@@ -89,7 +89,14 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  if (isStoreRoute) {
+  const isCacheableStoreRoute =
+    isStoreRoute &&
+    !pathname.startsWith('/cart') &&
+    !pathname.startsWith('/checkout') &&
+    !pathname.startsWith('/account') &&
+    !pathname.startsWith('/wishlist');
+
+  if (isCacheableStoreRoute) {
     supabaseResponse.headers.set(
       'cdn-cache-control',
       'public, s-maxage=86400, stale-while-revalidate=60'

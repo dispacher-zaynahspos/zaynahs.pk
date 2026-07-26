@@ -37,7 +37,7 @@ const payload = {
       }
     },
     {
-      expression: '(http.request.uri.path wildcard "/*")',
+      expression: '(http.request.uri.path wildcard "/*") and not (http.request.uri.path contains "/cart") and not (http.request.uri.path contains "/checkout") and not (http.request.uri.path contains "/account") and not (http.request.uri.path contains "/api") and not (http.request.uri.path contains "/admin")',
       description: 'html-pages',
       action: 'set_cache_settings',
       action_parameters: {
