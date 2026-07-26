@@ -79,7 +79,7 @@ CREATE TABLE IF NOT EXISTS products (
   sort_order INTEGER DEFAULT 0,
   custom_badge_id UUID REFERENCES badges(id) ON DELETE SET NULL,
   badge_enabled BOOLEAN DEFAULT true,
-  size_guide_id UUID REFERENCES size_guides(id) ON DELETE SET NULL,
+  size_guide_id UUID,
   frequently_bought_together_ids UUID[] DEFAULT '{}'::uuid[],
   flash_sale_enabled BOOLEAN DEFAULT false,
   flash_sale_start_date TIMESTAMPTZ,
@@ -846,6 +846,10 @@ DROP POLICY IF EXISTS "Public read size guides" ON size_guides;
 CREATE POLICY "Public read size guides" ON size_guides FOR SELECT USING (true);
 DROP POLICY IF EXISTS "Admin all size guides" ON size_guides;
 CREATE POLICY "Admin all size guides" ON size_guides FOR ALL USING (auth.role() = 'authenticated');
+
+-- Add FK constraint after size_guides table exists
+ALTER TABLE products ADD CONSTRAINT fk_products_size_guide
+  FOREIGN KEY (size_guide_id) REFERENCES size_guides(id) ON DELETE SET NULL;
 
 -- ============================================================
 -- COUPONS
