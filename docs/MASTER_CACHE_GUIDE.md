@@ -161,11 +161,12 @@ Triggers are mapped to five core database tables:
 CREATE TRIGGER "revalidate-products"
   AFTER INSERT OR UPDATE OR DELETE ON public.products
   FOR EACH ROW EXECUTE FUNCTION supabase_functions.http_request(
-    'https://www.zaynahs.pk/api/revalidate',
+    'https://domain.com/api/revalidate',
     'POST',
     '{"Content-Type":"application/json","x-revalidate-secret":"zaynahs_secret_cache_revalidate_2026"}'
   );
 ```
+> **Note:** The `https://domain.com` URL is a placeholder. The `http_request()` trigger function dynamically resolves the actual domain from `store_settings.store_url` at runtime — no manual domain change needed per project.
 *(Repeated for `categories`, `reviews`, `homepage_sections`, and `store_settings` tables).*
 
 ---
@@ -230,7 +231,7 @@ node --env-file=.env.local scripts/deploy-cloudflare-rules.js
 |---|---|---|---|---|
 | **`no-cache-dynamic`** | `(path contains "/cart")` or `(path contains "/admin")` or `(path contains "/checkout")` or `(path contains "/api")` | **Cache** | **Edge TTL: 0s, Browser TTL: 0s** — effectively bypass. ⚠️ CF Free plan may still cache 200 HTML responses (cart data loads client-side, zero impact). |
 | **`static-assets`** | `(path contains "/_next/static/")` | **Cache** | **Edge TTL: 1 Year** (override origin). Safe due to Next build content hashing. |
-| **`html-pages`** | `(path wildcard "/*")` | **Cache** | **Edge TTL: 24 Hours** (override origin). Combined with webhook purge — admin change → Cloudflare purge → fresh data in seconds. |
+| **`html-pages`** | `(path wildcard "/*")` | **Cache** | **Edge TTL: BYPASS (cache: false)** — HTML pages are NOT cached at Cloudflare Edge to prevent CSS/JS hash skew on new deploys. Vercel ISR handles page-level caching instead. |
 | **`supabase-images`** | `(full_uri contains "supabase.co")` | **Cache** | **Edge TTL: 1 Month** (override origin). Minimizes Supabase egress cost. |
 
 ---

@@ -428,6 +428,14 @@ export default function CustomizerEditor({
 
         setEditedProducts({});
         toast.success('Customizer settings and layout saved successfully');
+
+        // Safety-net: explicitly purge Next.js + Cloudflare cache
+        // In case Supabase pg_net webhook trigger fails (network/timeout)
+        try {
+          await fetch('/api/revalidate-customizer', { method: 'POST' });
+        } catch {
+          // Silent — webhook trigger should still handle it
+        }
       } catch (err) {
         toast.error('Failed to save layout adjustments and settings');
       }

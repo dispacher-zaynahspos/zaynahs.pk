@@ -84,6 +84,7 @@ export default function SettingsForm({ initialSettings }: SettingsFormProps) {
   const [socialWhatsapp, setSocialWhatsapp] = useState(initialSettings.socialWhatsapp || '');
   const [socialYoutube, setSocialYoutube] = useState(initialSettings.socialYoutube || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isPurging, setIsPurging] = useState(false);
 
   // Fake Views & Trust States
   const [enableFakeViews, setEnableFakeViews] = useState(initialSettings.enableFakeViews ?? true);
@@ -1041,6 +1042,23 @@ export default function SettingsForm({ initialSettings }: SettingsFormProps) {
     }
   };
 
+  const handlePurgeCache = async () => {
+    setIsPurging(true);
+    try {
+      const res = await fetch('/api/revalidate-customizer', { method: 'POST' });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        toast.success('Cache purge successful! Store pe fresh data dikhega.');
+      } else {
+        toast.error(data.error || 'Cache purge failed');
+      }
+    } catch (err: any) {
+      toast.error('Network error — cache purge failed');
+    } finally {
+      setIsPurging(false);
+    }
+  };
+
   const renderSettingsBadgeIcon = (iconName: string) => {
     const IconComponent = (CentralIcons as any)[iconName];
     if (!IconComponent) return null;
@@ -1966,29 +1984,55 @@ export default function SettingsForm({ initialSettings }: SettingsFormProps) {
           <span className="text-xs text-gray-500 dark:text-gray-400 font-semibold hidden sm:block">
             Changes apply to: <span className="text-[#e94560] font-bold capitalize">{activeTab}</span> settings
           </span>
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className={`relative overflow-hidden flex items-center justify-center gap-2 rounded-xl active:scale-95 text-white px-8 py-3.5 text-sm font-bold shadow-md transition-all cursor-pointer ml-auto ${
-              isSubmitting 
-                ? 'bg-[#e94560] disabled:cursor-not-allowed' 
-                : 'bg-[#1a1a2e] dark:bg-[#e94560] hover:bg-[#e94560] dark:hover:bg-[#e94560]/90'
-            }`}
-          >
-            {isSubmitting && (
-              <div className="absolute inset-0 flex items-center justify-center rounded-[inherit] pointer-events-none z-10 bg-inherit">
-                <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
-                <div className="flex items-center gap-2 relative z-10">
-                  <div className="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
-                  <span>Saving...</span>
+          <div className="flex items-center gap-3 ml-auto">
+            {/* Purge All Cache Button */}
+            <button
+              type="button"
+              disabled={isPurging}
+              onClick={handlePurgeCache}
+              className={`relative overflow-hidden flex items-center justify-center gap-2 rounded-xl active:scale-95 px-5 py-3.5 text-sm font-bold shadow-sm transition-all cursor-pointer border ${
+                isPurging
+                  ? 'border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 disabled:cursor-not-allowed'
+                  : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-[#0f0f1b] text-gray-700 dark:text-gray-300 hover:border-amber-400 dark:hover:border-amber-600 hover:text-amber-600 dark:hover:text-amber-400'
+              }`}
+            >
+              {isPurging ? (
+                <div className="flex items-center gap-2">
+                  <div className="h-4 w-4 rounded-full border-2 border-amber-300 border-t-amber-600 animate-spin" />
+                  <span>Purging...</span>
                 </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+                  <span className="hidden sm:inline">Purge Cache</span>
+                </div>
+              )}
+            </button>
+            {/* Save Settings Button */}
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className={`relative overflow-hidden flex items-center justify-center gap-2 rounded-xl active:scale-95 text-white px-8 py-3.5 text-sm font-bold shadow-md transition-all cursor-pointer ${
+                isSubmitting 
+                  ? 'bg-[#e94560] disabled:cursor-not-allowed' 
+                  : 'bg-[#1a1a2e] dark:bg-[#e94560] hover:bg-[#e94560] dark:hover:bg-[#e94560]/90'
+              }`}
+            >
+              {isSubmitting && (
+                <div className="absolute inset-0 flex items-center justify-center rounded-[inherit] pointer-events-none z-10 bg-inherit">
+                  <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
+                  <div className="flex items-center gap-2 relative z-10">
+                    <div className="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                    <span>Saving...</span>
+                  </div>
+                </div>
+              )}
+              <div className={`flex items-center gap-2 transition-opacity ${isSubmitting ? 'opacity-0' : 'opacity-100'}`}>
+                <Save className="h-4 w-4" />
+                <span>Save Settings</span>
               </div>
-            )}
-            <div className={`flex items-center gap-2 transition-opacity ${isSubmitting ? 'opacity-0' : 'opacity-100'}`}>
-              <Save className="h-4 w-4" />
-              <span>Save Settings</span>
-            </div>
-          </button>
+            </button>
+          </div>
         </div>
       )}
     </form>
