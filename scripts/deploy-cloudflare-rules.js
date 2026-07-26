@@ -41,7 +41,11 @@ const payload = {
       description: 'html-pages',
       action: 'set_cache_settings',
       action_parameters: {
-        cache: false
+        cache: true,
+        edge_ttl: {
+          mode: 'override_origin',
+          default: 86400
+        }
       }
     },
     {
