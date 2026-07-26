@@ -81,22 +81,7 @@ export default function CategoryManager({ initialCategories, aiEnabled, storeUrl
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<Set<string>>(new Set());
   const fileInputRef = useRef<HTMLInputElement>(null);
-  // Always show AI button — guides user to settings if not configured
-  const [aiConfigured, setAiConfigured] = useState<boolean | null>(null);
-
-  React.useEffect(() => {
-    const fetchAiSettings = async () => {
-      try {
-        const res = await fetch('/api/ai-check');
-        const data = await res.json();
-        setAiConfigured(data.ai_enabled === true);
-      } catch (err) {
-        console.error('Failed to load AI settings:', err);
-        setAiConfigured(false);
-      }
-    };
-    fetchAiSettings();
-  }, []);
+  const [aiConfigured] = useState<boolean>(aiEnabled ?? false);
 
   const handleAICopywrite = async () => {
     if (!name.trim()) {

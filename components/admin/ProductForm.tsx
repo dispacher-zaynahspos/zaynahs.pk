@@ -70,10 +70,12 @@ function SortableImageItem({
   img,
   index,
   handleRemoveImage,
+  onPreviewImage,
 }: {
   img: any;
   index: number;
   handleRemoveImage: (idx: number, url: string) => void;
+  onPreviewImage: (url: string) => void;
 }) {
   const {
     attributes,
@@ -109,14 +111,29 @@ function SortableImageItem({
         <img src={img.url} alt={`Preview ${index}`} className="absolute inset-0 w-full h-full object-cover pointer-events-none" />
 
         {/* Desktop-only hover overlay (hidden on mobile) */}
-        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity hidden md:flex items-center justify-center gap-2 z-20 pointer-events-auto">
+        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity hidden md:flex items-center justify-center gap-1 z-20 pointer-events-auto">
           <button
-          type="button"
-          className={`p-1.5 rounded-lg text-white ${img.isPrimary ? 'text-amber-400' : 'opacity-0'}`}
-          title="Primary"
-        >
-          <Star className="h-4.5 w-4.5 fill-current" />
-        </button>
+            type="button"
+            className={`p-1.5 rounded-lg text-white ${img.isPrimary ? 'text-amber-400' : 'opacity-0'}`}
+            title="Primary"
+          >
+            <Star className="h-4.5 w-4.5 fill-current" />
+          </button>
+          
+          <button
+            type="button"
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onPreviewImage(img.url);
+            }}
+            className="p-1.5 rounded-lg text-white hover:bg-white/20"
+            title="Preview Image"
+          >
+            <Eye className="h-4.5 w-4.5" />
+          </button>
+
           <button
             type="button"
             onPointerDown={(e) => e.stopPropagation()}
@@ -214,23 +231,8 @@ export default function ProductForm({ categories, initialProduct, aiEnabled, sto
   const [productSearchQuery, setProductSearchQuery] = useState('');
   const [isAiGenerating, setIsAiGenerating] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  // Always show AI button — if ai_enabled is false, we still show the button
-  // but clicking it will guide user to enable AI in settings
-  const [aiConfigured, setAiConfigured] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    const fetchAiSettings = async () => {
-      try {
-        const res = await fetch('/api/ai-check');
-        const data = await res.json();
-        setAiConfigured(data.ai_enabled === true);
-      } catch (err) {
-        console.error('Failed to load AI settings:', err);
-        setAiConfigured(false);
-      }
-    };
-    fetchAiSettings();
-  }, []);
+  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
+  const [aiConfigured, setAiConfigured] = useState<boolean>(aiEnabled ?? false);
 
   const handleAICopywrite = async () => {
     if (!name.trim()) {
@@ -1818,7 +1820,11 @@ export default function ProductForm({ categories, initialProduct, aiEnabled, sto
                                           className="h-6 w-6 rounded object-cover border border-gray-200 dark:border-gray-700 flex-shrink-0"
                                         />
                                         <span className="truncate text-gray-750 dark:text-gray-200">
-                                          {images.find(img => img.url === val.imageUrl)?.alt || val.imageUrl.split('/').pop() || 'Linked Image'}
+                                          {(() => {
+                                            const idx = images.findIndex(img => img.url === val.imageUrl);
+                                            const name = images[idx]?.alt || val.imageUrl.split('/').pop() || 'Linked Image';
+                                            return idx !== -1 ? `${idx + 1}. ${name}` : name;
+                                          })()}
                                         </span>
                                       </>
                                     ) : (
@@ -1870,7 +1876,7 @@ export default function ProductForm({ categories, initialProduct, aiEnabled, sto
 
                                       {images.map((img, imgIdx) => {
                                         const isSelected = val.imageUrl === img.url;
-                                        const filename = img.alt || img.url.split('/').pop() || `Image ${imgIdx + 1}`;
+                                        const filename = `${imgIdx + 1}. ${img.alt || img.url.split('/').pop() || 'Image'}`;
                                         return (
                                           <button
                                             key={imgIdx}
@@ -2686,6 +2692,7 @@ export default function ProductForm({ categories, initialProduct, aiEnabled, sto
                           img={img}
                           index={i}
                           handleRemoveImage={handleRemoveImage}
+                          onPreviewImage={setPreviewImageUrl}
                         />
                       ))}
                     </div>
@@ -3029,6 +3036,32 @@ export default function ProductForm({ categories, initialProduct, aiEnabled, sto
         onSelect={handleAddSelectedLibraryImages}
         multiple={true}
       />
+
+      {/* Image Preview Modal */}
+      {previewImageUrl && (
+        <div 
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 p-4 animate-in fade-in duration-200"
+          onClick={() => setPreviewImageUrl(null)}
+        >
+          <div className="relative max-w-4xl w-full max-h-[90vh] flex flex-col items-center justify-center">
+            <button
+              type="button"
+              onClick={() => setPreviewImageUrl(null)}
+              className="absolute top-0 right-0 md:-top-12 md:-right-4 p-2 text-white hover:bg-white/20 bg-black/50 md:bg-transparent rounded-full transition-all z-[10000] cursor-pointer"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+            <img 
+              src={previewImageUrl} 
+              alt="Preview" 
+              className="max-w-full max-h-[85vh] object-contain rounded-xl shadow-2xl bg-white dark:bg-gray-900 border border-white/10" 
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+        </div>
+      )}
     </>
   );
 }
