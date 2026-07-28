@@ -3,8 +3,7 @@ import { getSiteUrl } from '@/lib/site-url-server';
 import { notifyGoogleIndexing } from '@/lib/googleIndexing';
 import { pingIndexNow } from '@/lib/indexNow';
 
-const CLOUDFLARE_ZONE_ID = process.env.CLOUDFLARE_ZONE_ID;
-const CLOUDFLARE_API_TOKEN = process.env.CLOUDFLARE_API_TOKEN;
+
 
 async function resolveSiteUrl(): Promise<string> {
   try {
@@ -23,6 +22,8 @@ async function resolveSiteUrl(): Promise<string> {
 }
 
 async function purgeCloudflareUrls(urls: string[]) {
+  const CLOUDFLARE_ZONE_ID = process.env.CLOUDFLARE_ZONE_ID;
+  const CLOUDFLARE_API_TOKEN = process.env.CLOUDFLARE_API_TOKEN;
   if (!CLOUDFLARE_ZONE_ID || !CLOUDFLARE_API_TOKEN) {
     console.warn('Cloudflare credentials missing. Skipping cache purge.');
     return;
@@ -53,6 +54,8 @@ async function purgeCloudflareUrls(urls: string[]) {
 }
 
 async function purgeCloudflareEverything() {
+  const CLOUDFLARE_ZONE_ID = process.env.CLOUDFLARE_ZONE_ID;
+  const CLOUDFLARE_API_TOKEN = process.env.CLOUDFLARE_API_TOKEN;
   if (!CLOUDFLARE_ZONE_ID || !CLOUDFLARE_API_TOKEN) {
     console.warn('Cloudflare credentials missing. Skipping complete cache purge.');
     return;

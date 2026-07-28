@@ -1845,3 +1845,16 @@ DROP TRIGGER IF EXISTS "revalidate-meta_category_mapping" ON public.meta_categor
 CREATE TRIGGER "revalidate-meta_category_mapping"
   AFTER INSERT OR UPDATE OR DELETE ON public.meta_category_mapping
   FOR EACH ROW EXECUTE FUNCTION supabase_functions.http_request('https://domain.com/api/revalidate', 'POST', '{"Content-Type":"application/json","x-revalidate-secret":"zaynahs_secret_cache_revalidate_2026"}', '{}', '5000');
+
+-- Trigger for shipping_methods table
+DROP TRIGGER IF EXISTS "revalidate-shipping_methods" ON public.shipping_methods;
+CREATE TRIGGER "revalidate-shipping_methods"
+  AFTER INSERT OR UPDATE OR DELETE ON public.shipping_methods
+  FOR EACH ROW EXECUTE FUNCTION supabase_functions.http_request('https://domain.com/api/revalidate', 'POST', '{"Content-Type":"application/json","x-revalidate-secret":"zaynahs_secret_cache_revalidate_2026"}', '{}', '5000');
+
+-- Trigger for payment_methods table
+DROP TRIGGER IF EXISTS "revalidate-payment_methods" ON public.payment_methods;
+CREATE TRIGGER "revalidate-payment_methods"
+  AFTER INSERT OR UPDATE OR DELETE ON public.payment_methods
+  FOR EACH ROW EXECUTE FUNCTION supabase_functions.http_request('https://domain.com/api/revalidate', 'POST', '{"Content-Type":"application/json","x-revalidate-secret":"zaynahs_secret_cache_revalidate_2026"}', '{}', '5000');
+
