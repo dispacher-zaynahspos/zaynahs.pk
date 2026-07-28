@@ -2,6 +2,20 @@ import { getSettings } from '@/lib/services/settings';
 
 export const revalidate = 0; // Serve dynamically to ensure dynamic branding updates
 
+/** Auto-detect MIME type from URL extension — prevents browser rejection */
+const getIconType = (url: string): string => {
+  const lower = url.toLowerCase().split('?')[0]; // strip query params
+  if (lower.endsWith('.png')) return 'image/png';
+  if (lower.endsWith('.svg')) return 'image/svg+xml';
+  if (lower.endsWith('.webp')) return 'image/webp';
+  if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) return 'image/jpeg';
+  if (lower.endsWith('.gif')) return 'image/gif';
+  if (lower.endsWith('.ico')) return 'image/x-icon';
+  // Default — if hosted on Supabase storage, check for known patterns
+  if (lower.includes('.supabase.co/storage')) return 'image/webp';
+  return 'image/png';
+};
+
 export async function GET() {
   try {
     const settings = await getSettings();
@@ -25,13 +39,13 @@ export async function GET() {
         {
           src: faviconUrl,
           sizes: '192x192',
-          type: 'image/png',
+          type: getIconType(faviconUrl),
           purpose: 'any maskable'
         },
         {
           src: logoUrl,
           sizes: '512x512',
-          type: 'image/png',
+          type: getIconType(logoUrl),
           purpose: 'any maskable'
         }
       ]

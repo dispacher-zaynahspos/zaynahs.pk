@@ -105,3 +105,4 @@ export async function POST(request: Request) {
   }
 }
 export const dynamic = 'force-dynamic';
+export const maxDuration = 60; // Allow up to 60s for large file uploads + AI analysis
