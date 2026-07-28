@@ -261,3 +261,16 @@ When adding a new page, category, or route:
 2. **GPU Acceleration & Jitter Prevention (Desktop)**: To prevent scrolling lags, jitter, and paint delays on high-resolution desktop screens, modal backdrop overlays must NEVER use CPU-heavy blur filters (e.g. `backdrop-blur-sm`, `backdrop-blur-xs`). Always use high-contrast solid/opacity overlays (e.g. `bg-black/60`). 
 3. **Hardware Rendering**: Add GPU acceleration triggers like `will-change-transform` and `transform-gpu` to scrollable containers and modal cards to delegate paint layers to the GPU, guaranteeing 60fps scrolling on all screens.
 <!-- END:touch-first-scrolling-rule -->
+
+<!-- BEGIN:safe-server-action-rule -->
+# Safe Server Action Error Handling (Unmasking Errors)
+
+1. Next.js App Router aggressively masks thrown errors in Server Actions (`use server`) during production builds. If you throw a native `Error` during database operations or API requests, the client only receives "An error occurred in the Server Components render", which makes production debugging impossible.
+2. To prevent this, **ALL mutations (Create, Update, Delete) in Server Actions MUST use the `SafeResult` pattern** instead of throwing errors.
+3. Every mutating server function must be wrapped using the `safeAction()` utility from `@/lib/utils/serverAction` (or a similarly named equivalent pattern). 
+4. Example: `export const updateCategorySafe = async (id, data) => safeAction(updateCategory(id, data))`
+5. On the frontend, after invoking a safe server action, you MUST check the result flag:
+   `const result = await mySafeAction();`
+   `if (!result.success) throw new Error(result.error);` (or handle the error locally).
+6. Doing this ensures the actual `error.message` from the backend is gracefully returned as a serialized object and rendered in toast notifications, maintaining transparency in production.
+<!-- END:safe-server-action-rule -->

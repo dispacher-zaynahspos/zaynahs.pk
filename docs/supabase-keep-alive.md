@@ -118,3 +118,33 @@ Agar multiple projects hain to:
 - Completely free within GitHub Actions free tier
 - `service_role` key bypasses RLS — never expose it client-side
 - Workflow file ko commit aur push karna bhoolna mat
+
+
+
+
+
+
+
+
+
+Yeh lijiye bhai jaan, aasani se copy karne ke liye:
+
+**Secret Name 1:**
+```text
+SUPABASE_URL
+```
+**Value 1:**
+```text
+https://b.supabase.co
+```
+
+---
+
+**Secret Name 2:**
+```text
+SUPABASE_KEY
+```
+**Value 2:**
+```text
+servise key
+```

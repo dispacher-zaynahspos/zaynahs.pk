@@ -1526,3 +1526,23 @@ export const updateProductSortOrders = async (productIds: string[]): Promise<voi
     throw error;
   }
 };
+
+// ============================================================================
+// SAFE ACTION WRAPPERS (Prevent Next.js Production Error Masking)
+// ============================================================================
+import { safeAction } from '@/lib/utils/serverAction';
+
+export const createProductSafe = async (
+  productPayload: any,
+  images: any[],
+  variants: any[],
+  modifiers: any[]
+) => safeAction(createProduct(productPayload, images, variants, modifiers));
+
+export const updateProductSafe = async (
+  productId: string,
+  productPayload: any,
+  images: any[],
+  variants: any[],
+  modifiers: any[]
+) => safeAction(updateProduct(productId, productPayload, images, variants, modifiers));

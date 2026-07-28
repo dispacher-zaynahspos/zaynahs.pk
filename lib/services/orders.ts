@@ -578,3 +578,14 @@ export const getOrderById = async (id: string): Promise<Order | null> => {
     return null;
   }
 };
+
+// ============================================================================
+// SAFE ACTION WRAPPERS (Prevent Next.js Production Error Masking)
+// ============================================================================
+import { safeAction } from '@/lib/utils/serverAction';
+
+export const updateOrderStatusSafe = async (...args: Parameters<typeof updateOrderStatus>) => safeAction(updateOrderStatus(...args));
+export const updateOrderDetailsSafe = async (...args: Parameters<typeof updateOrderDetails>) => safeAction(updateOrderDetails(...args));
+export const deleteOrderSafe = async (...args: Parameters<typeof deleteOrder>) => safeAction(deleteOrder(...args));
+export const restoreOrderSafe = async (...args: Parameters<typeof restoreOrder>) => safeAction(restoreOrder(...args));
+export const hardDeleteOrderSafe = async (...args: Parameters<typeof hardDeleteOrder>) => safeAction(hardDeleteOrder(...args));

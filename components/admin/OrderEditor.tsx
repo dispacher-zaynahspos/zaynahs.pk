@@ -4,7 +4,7 @@ import React, { useState, useMemo } from 'react';
 import { Product, CartItem, ProductVariant, StoreSettings, Order } from '@/lib/types';
 import { formatPrice } from '@/lib/utils/whatsapp';
 import { Trash2, Package, Search, Plus, X, Tag, Truck, Check } from '@/components/common/Icons';
-import { updateOrderDetails } from '@/lib/services/orders';
+import { updateOrderDetailsSafe } from '@/lib/services/orders';
 import { toast } from 'sonner';
 
 interface OrderEditorProps {
@@ -221,7 +221,7 @@ export default function OrderEditor({ order: initialOrder, settings, products, o
         return rest;
       });
 
-      const updated = await updateOrderDetails(initialOrder.id, {
+      const result = await updateOrderDetailsSafe(initialOrder.id, {
         items: cleanItems,
         subtotal,
         total,
@@ -230,6 +230,8 @@ export default function OrderEditor({ order: initialOrder, settings, products, o
         discountCode,
         statusLogs: updatedLogs
       });
+      if (!result.success) throw new Error(result.error);
+      const updated = result.data;
       toast.success('Order updated successfully');
       onSave(updated);
     } catch (error) {

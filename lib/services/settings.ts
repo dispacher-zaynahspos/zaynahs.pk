@@ -962,3 +962,10 @@ export const updateSettings = async (settings: Partial<StoreSettings>): Promise<
     throw new Error(String(message));
   }
 };
+
+// ============================================================================
+// SAFE ACTION WRAPPERS (Prevent Next.js Production Error Masking)
+// ============================================================================
+import { safeAction } from '@/lib/utils/serverAction';
+
+export const updateSettingsSafe = async (settings: Partial<StoreSettings>) => safeAction(updateSettings(settings));

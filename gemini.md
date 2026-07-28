@@ -765,3 +765,15 @@ Admin DB change → Supabase webhook → /api/revalidate
 ## RULE M5 — DESKTOP / MOBILE JITTER PREVENTION
 Modals aur filters ke overlays par CPU-heavy blur styles (e.g. backdrop-blur-sm, backdrop-blur-xs) forbidden hain. Sirf high-contrast solid options (e.g. bg-black/60) render honge.
 GPU Acceleration: Scrollable layers par CSS triggers will-change-transform aur transform-gpu laazmi hain.
+
+## RULE E1 — SERVER COMPONENT ERROR UNMASKING (SAFE ACTIONS)
+- **Problem**: Next.js App Router aggressively masks thrown errors in Server Actions (`use server`) during production builds. If you `throw new Error('Missing column')`, the client only receives "An error occurred in the Server Components render".
+- **Solution**: **ALL mutations (Create, Update, Delete) in Server Actions MUST use the `SafeResult` pattern** instead of throwing errors.
+- Every mutating server function must be wrapped using the `safeAction()` utility from `@/lib/utils/serverAction` (or a similarly named equivalent pattern). 
+- Example: `export const updateCategorySafe = async (id, data) => safeAction(updateCategory(id, data))`
+- On the frontend, after invoking a safe server action, you MUST check the result flag:
+  ```typescript
+  const result = await mySafeAction();
+  if (!result.success) throw new Error(result.error);
+  ```
+- This ensures the actual `error.message` from the backend is gracefully returned as a serialized object and rendered in toast notifications.

@@ -24,7 +24,7 @@ import {
 } from '@/components/common/Icons';
 import { Order, StoreSettings, StatusLogItem } from '@/lib/types';
 import { formatPrice, cleanWhatsAppPhone } from '@/lib/utils/whatsapp';
-import { updateOrderDetails, deleteOrder } from '@/lib/services/orders';
+import { updateOrderDetailsSafe, deleteOrderSafe } from '@/lib/services/orders';
 import { toast } from 'sonner';
 import OrderEditor from './OrderEditor';
 import { getAllProductsAdmin } from '@/lib/services/products';
@@ -216,10 +216,11 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
          newNotesLines.push(`Notes: ${editOtherNotes.trim()}`);
       }
 
-      const updated = await updateOrderDetails(order.id, { 
+      const result = await updateOrderDetailsSafe(order.id, { 
         notes: newNotesLines.join('\n')
       });
-      setOrder(updated);
+      if (!result.success) throw new Error(result.error);
+      setOrder(result.data);
       setIsEditingNotes(false);
       toast.success('Notes updated');
       router.refresh();
@@ -264,12 +265,13 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
 
       if (editPayment.trim()) newNotesLines.push(`Payment Method: ${editPayment.trim()}`);
 
-      const updated = await updateOrderDetails(order.id, { 
+      const result = await updateOrderDetailsSafe(order.id, { 
         customerName: editCustomerName,
         customerPhone: editCustomerPhone,
         notes: newNotesLines.join('\n')
       });
-      setOrder(updated);
+      if (!result.success) throw new Error(result.error);
+      setOrder(result.data);
       setIsEditingCustomer(false);
       toast.success('Customer details updated');
       router.refresh();
@@ -311,11 +313,12 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
         createdAt: new Date().toISOString()
       };
       const newLogs = [...(order.statusLogs || []), newLog];
-      const updated = await updateOrderDetails(order.id, { 
+      const result = await updateOrderDetailsSafe(order.id, { 
         status: newStatus,
         statusLogs: newLogs
       });
-      setOrder(updated);
+      if (!result.success) throw new Error(result.error);
+      setOrder(result.data);
       toast.success(`Order status updated to ${newStatus}`);
       router.refresh();
     } catch (error) {
@@ -331,7 +334,8 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
     if (!confirm('Are you sure you want to move this order to trash?')) return;
     try {
       setIsUpdating(true);
-      await deleteOrder(order.id);
+      const result = await deleteOrderSafe(order.id);
+      if (!result.success) throw new Error(result.error);
       toast.success('Order moved to trash');
       router.push('/admin/orders');
     } catch (error) {
@@ -363,14 +367,15 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
           createdAt: new Date().toISOString(),
         };
         const updatedLogs = [...(order.statusLogs || []), cancelLog];
-        const updated = await updateOrderDetails(order.id, {
+        const result = await updateOrderDetailsSafe(order.id, {
           status: 'pending',
           trackingNumber: '',
           courierName: '',
           trackingUrl: '',
           statusLogs: updatedLogs,
         });
-        setOrder(updated);
+        if (!result.success) throw new Error(result.error);
+      setOrder(result.data);
         toast.success(`Shipment cancelled: ${data.message}`);
         router.refresh();
       } else {
@@ -397,12 +402,13 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
       };
       const updatedLogs = [...(order.statusLogs || []), newLog];
       
-      const updated = await updateOrderDetails(order.id, { 
+      const result = await updateOrderDetailsSafe(order.id, { 
         statusLogs: updatedLogs,
         staffNotes: staffNoteInput 
       });
       
-      setOrder(updated);
+      if (!result.success) throw new Error(result.error);
+      setOrder(result.data);
       setStaffNoteInput('');
       toast.success('Comment added to timeline');
       router.refresh();
@@ -417,12 +423,13 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
   const handleUpdateTracking = async () => {
     try {
       setIsUpdating(true);
-      const updated = await updateOrderDetails(order.id, {
+      const result = await updateOrderDetailsSafe(order.id, {
         trackingNumber,
         courierName,
         trackingUrl,
       });
-      setOrder(updated);
+      if (!result.success) throw new Error(result.error);
+      setOrder(result.data);
       setIsEditingTracking(false);
       toast.success('Tracking details updated');
       router.refresh();
@@ -440,8 +447,9 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
     const newLogs = order.statusLogs.filter(l => l.id !== logId);
     try {
       setIsUpdating(true);
-      const updated = await updateOrderDetails(order.id, { statusLogs: newLogs });
-      setOrder(updated);
+      const result = await updateOrderDetailsSafe(order.id, { statusLogs: newLogs });
+      if (!result.success) throw new Error(result.error);
+      setOrder(result.data);
       toast.success('Comment deleted');
     } catch (e) {
       toast.error('Failed to delete comment');
@@ -455,8 +463,9 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
     const newLogs = order.statusLogs.map(l => l.id === logId ? { ...l, notes: editingCommentText } : l);
     try {
       setIsUpdating(true);
-      const updated = await updateOrderDetails(order.id, { statusLogs: newLogs });
-      setOrder(updated);
+      const result = await updateOrderDetailsSafe(order.id, { statusLogs: newLogs });
+      if (!result.success) throw new Error(result.error);
+      setOrder(result.data);
       setEditingCommentId(null);
       toast.success('Comment updated');
     } catch (e) {

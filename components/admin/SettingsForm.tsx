@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Save, Upload, Trash2, Image as ImageIcon, Loader2, Plus, CreditCard, Truck, Edit2, Check, X, Shield, ChevronUp, ChevronDown, ChevronRight, ChevronLeft, Settings, Layout, Navigation, Package, Zap, MessageCircle, Globe, ShoppingBag, HelpCircle, Mail } from 'lucide-react';
 import { StoreSettings, ShippingMethod, PaymentMethod, Category, Product, NavigationItem, Coupon } from '@/lib/types';
-import { updateSettings } from '@/lib/services/settings';
+import { updateSettingsSafe } from '@/lib/services/settings';
 import { getCoupons, createCoupon, updateCoupon, deleteCoupon } from '@/lib/services/coupons';
 import * as CentralIcons from '@/components/common/Icons';
 import { uploadImage } from '@/lib/uploadImage';
@@ -1030,7 +1030,8 @@ export default function SettingsForm({ initialSettings }: SettingsFormProps) {
         abandonedCartEmailTemplate: abandonedCartEmailTemplate.trim()
       };
 
-      await updateSettings(payload);
+      const result = await updateSettingsSafe(payload);
+      if (!result.success) throw new Error(result.error);
       setNextOrderSequenceDirty(false);
       toast.success('Settings updated successfully!');
       router.refresh();

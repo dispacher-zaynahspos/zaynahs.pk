@@ -25,7 +25,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Product, ProductImage, ProductVariant, ProductModifier, Category, VariantPreset, VariantPresetValue, Badge, SizeGuide } from '@/lib/types';
-import { createProduct, updateProduct } from '@/lib/services/products';
+import { createProductSafe, updateProductSafe } from '@/lib/services/products';
 import { deleteProductImage } from '@/lib/services/storage';
 import { uploadImage } from '@/lib/uploadImage';
 import MediaSelectorModal from './MediaSelectorModal';
@@ -933,23 +933,34 @@ export default function ProductForm({ categories, initialProduct, aiEnabled, sto
 
       let savedProduct;
       if (isEdit && initialProduct) {
-        await updateProduct(
+        const result = await updateProductSafe(
           initialProduct.id,
           productPayload,
           images,
           variants,
           modifiers
         );
+        if (!result.success) {
+          toast.error(result.error);
+          setIsSubmitting(false);
+          return;
+        }
         savedProduct = { id: initialProduct.id, slug: productPayload.slug };
         toast.success('Product updated successfully!');
         router.refresh();
       } else {
-        const newProduct = await createProduct(
+        const result = await createProductSafe(
           productPayload,
           images,
           variants,
           modifiers
         );
+        if (!result.success) {
+          toast.error(result.error);
+          setIsSubmitting(false);
+          return;
+        }
+        const newProduct = result.data;
         savedProduct = { id: newProduct.id, slug: newProduct.slug };
         toast.success('Product created successfully!');
         router.push(`/admin/products/${newProduct.id}`);

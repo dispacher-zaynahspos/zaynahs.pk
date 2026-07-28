@@ -1802,7 +1802,7 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
 
       {/* ── IMAGE PREVIEW & LIGHT IMAGE EDITOR MODAL ───────────────────────── */}
       {previewItem && typeof document !== 'undefined' && createPortal(
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85  animate-fade-in">
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/85  animate-fade-in">
           <div className="bg-white dark:bg-[#16162a] rounded-3xl max-w-5xl w-full border border-gray-200 dark:border-gray-800 shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[90vh] md:max-h-[85vh] will-change-transform">
             
             {/* Left/Center: Image Viewport */}

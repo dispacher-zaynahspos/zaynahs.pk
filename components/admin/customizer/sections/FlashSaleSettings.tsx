@@ -115,8 +115,23 @@ export default function FlashSaleSettings({
     setCatDiscountValue('');
   };
 
-  const handleRemoveCategoryDiscount = (catId: string) => {
-    const updated = categoryDiscounts.filter((c: any) => c.categoryId !== catId);
+  const handleRemoveCategoryDiscount = (categoryId: string) => {
+    const updated = categoryDiscounts.filter((c: any) => c.categoryId !== categoryId);
+    onUpdateSection({
+      content_data: { ...contentData, categoryDiscounts: updated }
+    });
+  };
+
+  const handleMoveCategoryDiscount = (index: number, direction: 'up' | 'down') => {
+    if (direction === 'up' && index === 0) return;
+    if (direction === 'down' && index === categoryDiscounts.length - 1) return;
+
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    const updated = [...categoryDiscounts];
+    const temp = updated[index];
+    updated[index] = updated[targetIndex];
+    updated[targetIndex] = temp;
+    
     onUpdateSection({
       content_data: { ...contentData, categoryDiscounts: updated }
     });
@@ -154,32 +169,32 @@ export default function FlashSaleSettings({
         </div>
       </div>
 
-      {/* Button Customize */}
-      <div className="grid grid-cols-2 gap-2">
-        <div className="space-y-1.5">
-          <label className="text-[11px] font-bold text-gray-500 dark:text-gray-400">
-            View All Text
-          </label>
-          <input
-            type="text"
-            value={settings.viewAllText || ''}
-            onChange={e => handleSettingsChange('viewAllText', e.target.value)}
-            placeholder="View All"
-            className="w-full px-2 py-1.5 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-gray-800 rounded-xl text-xs font-semibold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
-          />
-        </div>
-        <div className="space-y-1.5">
-          <label className="text-[11px] font-bold text-gray-500 dark:text-gray-400">
-            Custom URL Link
-          </label>
-          <input
-            type="text"
-            value={settings.viewAllUrl || ''}
-            onChange={e => handleSettingsChange('viewAllUrl', e.target.value)}
-            placeholder="e.g. /shop"
-            className="w-full px-2 py-1.5 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-gray-800 rounded-xl text-xs font-semibold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
-          />
-        </div>
+      <div className="space-y-1.5">
+        <label className="text-[11px] font-bold text-gray-500 dark:text-gray-400">
+          Upper View All Button Text
+        </label>
+        <input
+          type="text"
+          value={settings.viewAllText || ''}
+          onChange={e => handleSettingsChange('viewAllText', e.target.value)}
+          placeholder="View All"
+          className="w-full px-3 py-2 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-gray-800 rounded-xl text-xs font-semibold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
+        />
+      </div>
+      <div className="space-y-1.5">
+        <label className="text-[11px] font-bold text-gray-500 dark:text-gray-400">
+          Upper View All Custom Link
+        </label>
+        <input
+          type="text"
+          value={settings.viewAllUrl || ''}
+          onChange={e => handleSettingsChange('viewAllUrl', e.target.value)}
+          placeholder="e.g. /shop?category=co-ord-sets"
+          className="w-full px-3 py-2 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-gray-800 rounded-xl text-xs font-semibold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
+        />
+        <p className="text-[10px] text-gray-400 leading-normal">
+          If left blank, it will automatically link to the selected category page.
+        </p>
       </div>
 
       <div className="space-y-1.5">
@@ -258,18 +273,37 @@ export default function FlashSaleSettings({
           <div className="space-y-1.5 pt-2 border-t border-gray-200 dark:border-gray-800">
             <span className="text-[9px] font-bold text-gray-450 uppercase block">Active Category Sales</span>
             <div className="space-y-1.5">
-              {categoryDiscounts.map((cd: any) => {
+              {categoryDiscounts.map((cd: any, index: number) => {
                 const catObj = categories.find(c => c.id === cd.categoryId);
                 if (!catObj) return null;
                 return (
-                  <div key={cd.categoryId} className="flex items-center justify-between p-2 bg-white dark:bg-[#16162a] border border-gray-250/20 dark:border-gray-800 rounded-xl text-xs">
-                    <span className="font-bold text-gray-800 dark:text-gray-200">{catObj.name}</span>
-                    <div className="flex items-center gap-2">
+                  <div key={cd.categoryId} className="group relative flex items-center justify-between p-2 pr-16 bg-white dark:bg-[#16162a] border border-gray-250/20 dark:border-gray-800 rounded-xl text-xs overflow-hidden">
+                    <span className="font-bold text-gray-800 dark:text-gray-200 truncate pr-2">{catObj.name}</span>
+                    <div className="flex items-center gap-2 shrink-0">
                       <span className="font-bold text-[#e94560]">-{(cd.discountType === 'percentage' ? cd.discountValue + '%' : 'Rs. ' + cd.discountValue)}</span>
+                    </div>
+                    {/* Hover Actions */}
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-white dark:bg-[#16162a] pl-2">
+                      <button
+                        type="button"
+                        onClick={() => handleMoveCategoryDiscount(index, 'up')}
+                        disabled={index === 0}
+                        className="p-1 text-gray-400 hover:text-gray-900 dark:hover:text-white disabled:opacity-30 cursor-pointer"
+                      >
+                        <ChevronUp className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleMoveCategoryDiscount(index, 'down')}
+                        disabled={index === categoryDiscounts.length - 1}
+                        className="p-1 text-gray-400 hover:text-gray-900 dark:hover:text-white disabled:opacity-30 cursor-pointer"
+                      >
+                        <ChevronDown className="h-3.5 w-3.5" />
+                      </button>
                       <button
                         type="button"
                         onClick={() => handleRemoveCategoryDiscount(cd.categoryId)}
-                        className="p-1 text-gray-400 hover:text-red-500 cursor-pointer"
+                        className="p-1 text-gray-400 hover:text-red-500 cursor-pointer ml-1 border-l border-gray-200 dark:border-gray-800 pl-2"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>

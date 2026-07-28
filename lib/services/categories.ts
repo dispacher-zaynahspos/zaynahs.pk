@@ -292,3 +292,12 @@ export const getCategoryById = async (id: string): Promise<Category | null> => {
   }
 };
 
+
+// ============================================================================
+// SAFE ACTION WRAPPERS (Prevent Next.js Production Error Masking)
+// ============================================================================
+import { safeAction } from '@/lib/utils/serverAction';
+
+export const createCategorySafe = async (...args: Parameters<typeof createCategory>) => safeAction(createCategory(...args));
+export const updateCategorySafe = async (...args: Parameters<typeof updateCategory>) => safeAction(updateCategory(...args));
+export const deleteCategorySafe = async (...args: Parameters<typeof deleteCategory>) => safeAction(deleteCategory(...args));

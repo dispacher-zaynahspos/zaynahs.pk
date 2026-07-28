@@ -4,7 +4,7 @@ import React, { useState, useRef } from 'react';
 import Link from 'next/link';
 import { Plus, Edit, Trash2, X, Image as ImageIcon, Zap, Loader2, FolderOpen, Download, Upload } from '@/components/common/Icons';
 import { Category } from '@/lib/types';
-import { createCategory, updateCategory, deleteCategory } from '@/lib/services/categories';
+import { createCategorySafe, updateCategorySafe, deleteCategorySafe } from '@/lib/services/categories';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 import MediaSelectorModal from './MediaSelectorModal';
@@ -167,7 +167,8 @@ export default function CategoryManager({ initialCategories, aiEnabled, storeUrl
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to move this category to Trash?')) return;
     try {
-      await deleteCategory(id);
+      const result = await deleteCategorySafe(id);
+      if (!result.success) throw new Error(result.error);
       setCategories(prev => prev.filter(c => c.id !== id));
       setSelectedCategoryIds(prev => {
         const next = new Set(prev);
@@ -242,13 +243,15 @@ export default function CategoryManager({ initialCategories, aiEnabled, storeUrl
           };
 
           if (existing) {
-            const updatedCategory = await updateCategory(existing.id, payload);
+            const result = await updateCategorySafe(existing.id, payload);
+            if (!result.success) throw new Error(result.error);
             const idx = newCategories.findIndex(c => c.id === existing.id);
-            if (idx !== -1) newCategories[idx] = updatedCategory;
+            if (idx !== -1) newCategories[idx] = result.data;
             updated++;
           } else {
-            const created = await createCategory(payload);
-            newCategories.push(created);
+            const result = await createCategorySafe(payload);
+            if (!result.success) throw new Error(result.error);
+            newCategories.push(result.data);
             imported++;
           }
         }
@@ -280,11 +283,15 @@ export default function CategoryManager({ initialCategories, aiEnabled, storeUrl
     try {
       let savedCategory: Category;
       if (editId) {
-        savedCategory = await updateCategory(editId, payload);
+        const result = await updateCategorySafe(editId, payload);
+        if (!result.success) throw new Error(result.error);
+        savedCategory = result.data;
         setCategories(prev => prev.map(c => c.id === editId ? savedCategory : c));
         toast.success('Category updated successfully');
       } else {
-        savedCategory = await createCategory(payload);
+        const result = await createCategorySafe(payload);
+        if (!result.success) throw new Error(result.error);
+        savedCategory = result.data;
         setCategories(prev => [...prev, savedCategory]);
         toast.success('Category created successfully');
       }
