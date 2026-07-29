@@ -422,6 +422,190 @@ const PROVIDER_KEY_LINKS: Record<string, string> = {
 const AUDIENCE_PRESETS = ['Men', 'Women', 'Kids'];
 const TYPE_PRESETS = ['Clothes', 'Shoes', 'Accessories', 'Jewellery', 'Bags'];
 
+// ─────────────────────────────────────────────────────────────
+// Business Type Presets — auto-fill all AI writing settings
+// ─────────────────────────────────────────────────────────────
+export interface BusinessPreset {
+  id: string;
+  name: string;
+  emoji: string;
+  audiences: string[];
+  productTypes: string[];
+  tone: string;
+  categoryPrompt: string;
+  categoryLimit: number;
+  productPrompt: string;
+  productLimit: number;
+  shortPrompt: string;
+  shortLimit: number;
+  categoryTemplate: string;
+  productTemplate: string;
+}
+
+const BUSINESS_PRESETS: BusinessPreset[] = [
+  {
+    id: 'clothing',
+    name: 'Clothing & Fashion',
+    emoji: '👗',
+    audiences: ['Women', 'Men', 'Kids'],
+    productTypes: ['Clothes', 'Dresses', 'Tops', 'Trousers', 'Suits', 'T-shirts', 'Co-ord Sets'],
+    tone: 'Professional',
+    categoryPrompt: 'Write an engaging category overview. Highlight fabric quality, style variety, and occasion suitability. Mention Pakistani fashion trends.',
+    categoryLimit: 100,
+    productPrompt: 'Write a detailed product description with fabric composition, fit, occasions, care instructions, and styling tips for Pakistani audiences.',
+    productLimit: 200,
+    shortPrompt: 'Write a catchy 1-line highlight with fabric and key feature. Include focus keyword.',
+    shortLimit: 25,
+    categoryTemplate: '<p>Explore our exclusively curated <strong>{{category_name}}</strong> collection — from everyday elegance to festive statement pieces. Premium materials, intricate details, and exquisite craftsmanship designed for every occasion.</p>',
+    productTemplate: '<h2>{{product_name}} — Style Meets Comfort</h2>\n<p>Elevate your wardrobe with this premium piece from our curated fashion collection.</p>\n<h2>Key Features</h2>\n<ul>\n<li><strong>Fabric:</strong> Premium quality material</li>\n<li><strong>Fit:</strong> Comfortable, true-to-size cut</li>\n<li><strong>Occasions:</strong> Casual, formal, and festive wear</li>\n</ul>\n<h2>Care Instructions</h2>\n<ul>\n<li>Machine wash cold</li>\n<li>Do not bleach</li>\n</ul>',
+  },
+  {
+    id: 'jewellery',
+    name: 'Jewellery',
+    emoji: '💍',
+    audiences: ['Women', 'Men'],
+    productTypes: ['Jewellery', 'Necklaces', 'Earrings', 'Rings', 'Bracelets', 'Bangles', 'Pendants'],
+    tone: 'Elegant',
+    categoryPrompt: 'Write a luxurious, elegant category description. Mention craftsmanship, metals, stones, and occasions like weddings, eid, and formal events.',
+    categoryLimit: 100,
+    productPrompt: 'Write a premium jewellery description inspired by: paragraph explaining the jewelry style, material quality, and design; "Key Features" bullet list; "Available Finishes" list; "Care Instructions" section. Make it luxurious and emotional.',
+    productLimit: 200,
+    shortPrompt: 'Write a catchy, high-conversion single-line product highlight about the jewelry piece. Include focus keyword and optimize for SEO.',
+    shortLimit: 25,
+    categoryTemplate: '<p>Explore our exclusively curated <strong>{{category_name}}</strong> collection — from everyday elegance to festive statement pieces. Premium materials, intricate details, and exquisite craftsmanship designed for women of all ages.</p>',
+    productTemplate: '<h2>Exquisite Craftsmanship</h2>\n<p>Each piece in our <strong>{{product_name}}</strong> collection is designed to make you feel radiant and timeless.</p>\n<h2>Key Features</h2>\n<ul>\n<li><strong>Premium Diamonds:</strong> Sparkling marquise and round cut</li>\n<li><strong>Durable Chain:</strong> Fade-resistant and tarnish-free</li>\n<li><strong>Adjustable Length:</strong> Perfect fit for everyone</li>\n</ul>\n<h2>Care Instructions</h2>\n<ul>\n<li>Keep away from water, perfume, and lotion</li>\n<li>Store in a dry place away from direct sunlight</li>\n<li>Wipe gently with a soft cloth after each use</li>\n</ul>',
+  },
+  {
+    id: 'shoes',
+    name: 'Shoes & Footwear',
+    emoji: '👟',
+    audiences: ['Women', 'Men', 'Kids'],
+    productTypes: ['Shoes', 'Sneakers', 'Heels', 'Sandals', 'Boots', 'Flats', 'Slippers'],
+    tone: 'Bold',
+    categoryPrompt: 'Write an energetic category description for shoes. Highlight comfort technology, sole quality, occasions, and style types.',
+    categoryLimit: 100,
+    productPrompt: 'Write a detailed shoe description covering material (upper, sole), comfort features, sizing guide, occasion fit, and care tips.',
+    productLimit: 180,
+    shortPrompt: 'Write a bold, SEO-rich 1-line highlight of the shoe model. Include material and key comfort feature.',
+    shortLimit: 25,
+    categoryTemplate: '<p>Step into style with our premium <strong>{{category_name}}</strong> collection. Engineered for comfort and designed for every occasion — from casual outings to formal events.</p>',
+    productTemplate: '<h2>Step Into Comfort & Style</h2>\n<p>Our <strong>{{product_name}}</strong> combines premium craftsmanship with all-day comfort.</p>\n<h2>Key Features</h2>\n<ul>\n<li><strong>Upper Material:</strong> Premium quality leather/fabric</li>\n<li><strong>Sole:</strong> Anti-slip, cushioned rubber sole</li>\n<li><strong>Fit:</strong> True to size, available in multiple widths</li>\n</ul>\n<h2>Care Tips</h2>\n<ul>\n<li>Wipe clean with dry cloth</li>\n<li>Store away from direct sunlight</li>\n</ul>',
+  },
+  {
+    id: 'bags',
+    name: 'Bags & Accessories',
+    emoji: '👜',
+    audiences: ['Women', 'Men'],
+    productTypes: ['Bags', 'Handbags', 'Clutches', 'Wallets', 'Belts', 'Backpacks', 'Tote Bags'],
+    tone: 'Professional',
+    categoryPrompt: 'Write a professional category description for bags. Highlight material quality, capacity, compartments, and style versatility.',
+    categoryLimit: 100,
+    productPrompt: 'Write a detailed bag description covering material, dimensions, compartments, hardware quality, and occasions it suits.',
+    productLimit: 180,
+    shortPrompt: 'Write a conversion-driven 1-line product summary for a bag. Include material and key functional feature.',
+    shortLimit: 25,
+    categoryTemplate: '<p>Discover our curated <strong>{{category_name}}</strong> collection — where function meets fashion. Crafted from premium materials with thoughtful design for the modern lifestyle.</p>',
+    productTemplate: '<h2>Crafted for the Modern Lifestyle</h2>\n<p>Our <strong>{{product_name}}</strong> blends timeless design with everyday functionality.</p>\n<h2>Key Features</h2>\n<ul>\n<li><strong>Material:</strong> Premium quality leather/synthetic</li>\n<li><strong>Compartments:</strong> Spacious main compartment + organizer pockets</li>\n<li><strong>Hardware:</strong> Durable gold/silver-tone metal hardware</li>\n</ul>\n<h2>Care Instructions</h2>\n<ul>\n<li>Wipe with a dry cloth</li>\n<li>Avoid direct sunlight and moisture</li>\n</ul>',
+  },
+  {
+    id: 'electronics',
+    name: 'Electronics & Laptops',
+    emoji: '💻',
+    audiences: ['Men', 'Women', 'Students'],
+    productTypes: ['Laptops', 'Tablets', 'Accessories', 'Headphones', 'Keyboards', 'Monitors', 'UPS'],
+    tone: 'Professional',
+    categoryPrompt: 'Write a technical, informative category description. Highlight performance specs, brand reliability, and use cases (office, gaming, study).',
+    categoryLimit: 100,
+    productPrompt: 'Write a comprehensive electronics product description with specs (processor, RAM, storage, display), performance highlights, use cases, and warranty info.',
+    productLimit: 250,
+    shortPrompt: 'Write a precise, spec-driven 1-line product summary. Mention key spec and use case.',
+    shortLimit: 25,
+    categoryTemplate: '<p>Explore our premium <strong>{{category_name}}</strong> collection — featuring the latest technology from trusted global brands. Built for performance, designed for productivity.</p>',
+    productTemplate: '<h2>Performance Meets Reliability</h2>\n<p>The <strong>{{product_name}}</strong> is engineered for professionals and power users who demand the best.</p>\n<h2>Key Specifications</h2>\n<ul>\n<li><strong>Processor:</strong> Latest generation CPU</li>\n<li><strong>RAM:</strong> High-speed memory for multitasking</li>\n<li><strong>Storage:</strong> Fast SSD storage</li>\n<li><strong>Display:</strong> Full HD+ display</li>\n</ul>\n<h2>Warranty & Support</h2>\n<ul>\n<li>Official brand warranty included</li>\n<li>Authorized service centers across Pakistan</li>\n</ul>',
+  },
+  {
+    id: 'mobile',
+    name: 'Mobile Phones',
+    emoji: '📱',
+    audiences: ['Men', 'Women', 'Students'],
+    productTypes: ['Mobile Phones', 'Smartphones', 'Covers', 'Chargers', 'Cables', 'Screen Protectors'],
+    tone: 'Bold',
+    categoryPrompt: 'Write an exciting category description for mobile phones. Highlight camera quality, battery life, performance, and price-to-value ratio.',
+    categoryLimit: 100,
+    productPrompt: 'Write a comprehensive mobile phone description with camera specs, battery, processor, display, connectivity features, and storage options.',
+    productLimit: 250,
+    shortPrompt: 'Write a punchy, spec-focused 1-line mobile phone summary. Highlight camera or battery as the hero feature.',
+    shortLimit: 25,
+    categoryTemplate: '<p>Stay connected with our latest <strong>{{category_name}}</strong> collection — featuring flagship and budget-friendly smartphones with cutting-edge features and official warranties.</p>',
+    productTemplate: '<h2>Capture Every Moment. Power Through Every Day.</h2>\n<p>The <strong>{{product_name}}</strong> redefines what a smartphone can do.</p>\n<h2>Key Specifications</h2>\n<ul>\n<li><strong>Camera:</strong> Pro-grade multi-lens system</li>\n<li><strong>Battery:</strong> Long-lasting fast-charging battery</li>\n<li><strong>Processor:</strong> High-performance chipset</li>\n<li><strong>Display:</strong> Smooth AMOLED/LCD display</li>\n</ul>\n<h2>In The Box</h2>\n<ul>\n<li>Smartphone</li>\n<li>Charger & Cable</li>\n<li>Official Warranty Card</li>\n</ul>',
+  },
+  {
+    id: 'hardware',
+    name: 'Hardware & Tools',
+    emoji: '🔧',
+    audiences: ['Men', 'Technicians', 'Businesses'],
+    productTypes: ['Tools', 'Hardware', 'Equipment', 'Spare Parts', 'Power Tools', 'Hand Tools'],
+    tone: 'Professional',
+    categoryPrompt: 'Write a professional, technical category description for hardware and tools. Highlight durability, materials, and professional use cases.',
+    categoryLimit: 100,
+    productPrompt: 'Write a detailed technical description covering build quality, materials, specifications, safety features, and professional applications.',
+    productLimit: 200,
+    shortPrompt: 'Write a precise, professional 1-line product summary. Highlight key spec or professional use case.',
+    shortLimit: 25,
+    categoryTemplate: '<p>Shop our premium <strong>{{category_name}}</strong> collection — professional-grade tools and hardware engineered for durability, precision, and performance in demanding environments.</p>',
+    productTemplate: '<h2>Built for Professionals</h2>\n<p>The <strong>{{product_name}}</strong> is engineered to deliver reliable performance in the most demanding conditions.</p>\n<h2>Key Specifications</h2>\n<ul>\n<li><strong>Material:</strong> Industrial-grade quality</li>\n<li><strong>Durability:</strong> Heavy-duty construction</li>\n<li><strong>Application:</strong> Professional and DIY use</li>\n</ul>\n<h2>Safety & Compliance</h2>\n<ul>\n<li>Safety-certified design</li>\n<li>Ergonomic grip for extended use</li>\n</ul>',
+  },
+  {
+    id: 'cosmetics',
+    name: 'Cosmetics & Beauty',
+    emoji: '💄',
+    audiences: ['Women'],
+    productTypes: ['Makeup', 'Skincare', 'Lipstick', 'Foundation', 'Serums', 'Moisturizers', 'Perfumes'],
+    tone: 'Elegant',
+    categoryPrompt: 'Write a luxurious, empowering beauty category description. Highlight ingredients, skin benefits, and the confidence it brings.',
+    categoryLimit: 100,
+    productPrompt: 'Write a premium beauty product description with key ingredients, skin benefits, how-to-use instructions, and who it suits best.',
+    productLimit: 200,
+    shortPrompt: 'Write a glamorous, benefit-driven 1-line product highlight. Mention key ingredient and skin benefit.',
+    shortLimit: 25,
+    categoryTemplate: '<p>Discover our premium <strong>{{category_name}}</strong> collection — expertly formulated to enhance your natural beauty. From everyday essentials to luxurious treatments, find your perfect match.</p>',
+    productTemplate: '<h2>Your Skin Deserves the Best</h2>\n<p>Our <strong>{{product_name}}</strong> is crafted with premium ingredients to deliver visible results.</p>\n<h2>Key Benefits</h2>\n<ul>\n<li><strong>Active Ingredients:</strong> Clinically proven formulation</li>\n<li><strong>Skin Type:</strong> Suitable for all skin types</li>\n<li><strong>Results:</strong> Visible improvement within days</li>\n</ul>\n<h2>How to Use</h2>\n<ul>\n<li>Apply to clean skin morning and/or evening</li>\n<li>Follow with SPF during daytime use</li>\n</ul>',
+  },
+  {
+    id: 'furniture',
+    name: 'Furniture & Home Decor',
+    emoji: '🪑',
+    audiences: ['Women', 'Men', 'Families'],
+    productTypes: ['Furniture', 'Sofa', 'Bed', 'Tables', 'Chairs', 'Wardrobes', 'Decor', 'Lighting'],
+    tone: 'Professional',
+    categoryPrompt: 'Write an inspiring home decor category description. Highlight design style, material quality, durability, and how it transforms living spaces.',
+    categoryLimit: 100,
+    productPrompt: 'Write a detailed furniture description covering materials, dimensions, assembly info, style compatibility, and maintenance.',
+    productLimit: 200,
+    shortPrompt: 'Write a space-inspiring 1-line product summary. Highlight material and design style.',
+    shortLimit: 25,
+    categoryTemplate: '<p>Transform your living space with our premium <strong>{{category_name}}</strong> collection — blending contemporary design with exceptional craftsmanship for a home that reflects your style.</p>',
+    productTemplate: '<h2>Elevate Your Living Space</h2>\n<p>The <strong>{{product_name}}</strong> combines aesthetic design with practical functionality.</p>\n<h2>Key Features</h2>\n<ul>\n<li><strong>Material:</strong> Premium quality wood/fabric/metal</li>\n<li><strong>Dimensions:</strong> Optimal size for Pakistani homes</li>\n<li><strong>Style:</strong> Modern/Contemporary/Traditional design</li>\n</ul>\n<h2>Care & Maintenance</h2>\n<ul>\n<li>Wipe clean with dry cloth</li>\n<li>Avoid direct sunlight to preserve color</li>\n</ul>',
+  },
+  {
+    id: 'general',
+    name: 'General / Multi-Category',
+    emoji: '🛒',
+    audiences: ['Women', 'Men', 'Kids'],
+    productTypes: ['Products', 'Items', 'Goods', 'Accessories', 'Gifts'],
+    tone: 'Professional',
+    categoryPrompt: 'Write an engaging category overview that welcomes customers and highlights quality, variety, and value.',
+    categoryLimit: 80,
+    productPrompt: 'Write a comprehensive product description highlighting features, benefits, material quality, and who it suits best.',
+    productLimit: 150,
+    shortPrompt: 'Write a concise, benefit-focused 1-line product highlight. Include focus keyword.',
+    shortLimit: 20,
+    categoryTemplate: '<p>Explore our <strong>{{category_name}}</strong> collection — carefully selected for quality, value, and customer satisfaction. Find exactly what you need.</p>',
+    productTemplate: '<h2>{{product_name}} — Quality You Can Trust</h2>\n<p>This premium product delivers exceptional value and performance.</p>\n<h2>Key Features</h2>\n<ul>\n<li>Premium quality construction</li>\n<li>Designed for everyday use</li>\n<li>Value for money</li>\n</ul>',
+  },
+];
+
+
 export default function AITab({
   aiEnabled,
   setAiEnabled,
@@ -462,6 +646,27 @@ export default function AITab({
   const [customType, setCustomType] = useState('');
   const [testingKey, setTestingKey] = useState<'content' | 'vision' | null>(null);
   const [keyTestResult, setKeyTestResult] = useState<{ section: string; valid: boolean; message: string } | null>(null);
+  const [selectedPresetId, setSelectedPresetId] = useState<string>('');
+
+  const applyPreset = (presetId: string) => {
+    const preset = BUSINESS_PRESETS.find(p => p.id === presetId);
+    if (!preset) return;
+    setAiPersonaConfig({
+      ...aiPersonaConfig,
+      targetAudiences: preset.audiences,
+      productTypes: preset.productTypes,
+      tone: preset.tone,
+    });
+    setCategoryDescriptionPrompt(preset.categoryPrompt);
+    setCategoryDescriptionLimit(preset.categoryLimit);
+    setProductDescriptionPrompt(preset.productPrompt);
+    setProductDescriptionLimit(preset.productLimit);
+    setProductShortPrompt(preset.shortPrompt);
+    setProductShortLimit(preset.shortLimit);
+    setCategoryDefaultTemplate(preset.categoryTemplate);
+    setProductDefaultTemplate(preset.productTemplate);
+    setSelectedPresetId(presetId);
+  };
 
   const handleTestKey = async (section: 'content' | 'vision') => {
     const provider = section === 'content' ? contentProvider : visionProvider;
@@ -788,7 +993,52 @@ export default function AITab({
 
           {/* Right Panel: Persona & Toggles */}
           <div className="space-y-8">
+
+            {/* === BUSINESS PRESET SELECTOR === */}
+            <div className="bg-gradient-to-br from-[#1a1a2e]/5 to-[#e94560]/5 dark:from-[#1a1a2e] dark:to-[#16162a] p-6 rounded-2xl border border-[#e94560]/20 dark:border-[#e94560]/30 shadow-sm space-y-4 transition-colors">
+              <div>
+                <h3 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                  <span>⚡</span> Business Type Presets
+                </h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Select your business type to auto-fill all AI prompts, word limits, target audiences, product types, and HTML templates.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {BUSINESS_PRESETS.map((preset) => (
+                  <button
+                    key={preset.id}
+                    type="button"
+                    onClick={() => setSelectedPresetId(selectedPresetId === preset.id ? '' : preset.id)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${
+                      selectedPresetId === preset.id
+                        ? 'bg-[#e94560] border-[#e94560] text-white shadow-md'
+                        : 'bg-white dark:bg-[#16162a] border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-[#e94560] hover:text-[#e94560]'
+                    }`}
+                  >
+                    <span>{preset.emoji}</span>
+                    {preset.name}
+                  </button>
+                ))}
+              </div>
+              {selectedPresetId && (
+                <div className="flex items-center gap-3 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => applyPreset(selectedPresetId)}
+                    className="flex items-center gap-2 px-4 py-2 bg-[#e94560] hover:bg-[#c73652] text-white rounded-xl text-xs font-bold transition-all shadow"
+                  >
+                    ✅ Apply &ldquo;{BUSINESS_PRESETS.find(p => p.id === selectedPresetId)?.name}&rdquo; Preset
+                  </button>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                    Will auto-fill audiences, product types, prompts, word limits &amp; HTML templates below.
+                  </span>
+                </div>
+              )}
+            </div>
+
             {/* Behavior configuration */}
+
             <div className="bg-white dark:bg-[#16162a] p-6 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm space-y-6 transition-colors">
               <h3 className="text-base font-bold text-gray-900 dark:text-white">Copywriting Persona & Behavior</h3>
 

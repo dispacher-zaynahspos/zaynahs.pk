@@ -66,7 +66,7 @@ export function buildSystemPrompt(settings: AISettings, storeSettings?: any, sit
 
   return `You are an expert SEO copywriter and marketing specialist for the brand "${settings.brand_name || storeSettings?.store_name || process.env.NEXT_PUBLIC_BRAND_NAME || 'Your Store'}".
 ${brandInfo}
-Store Type: ${settings.store_type || 'General'} clothing & fashion store.${audienceStr}${typesStr}
+Store Type: ${settings.store_type || settings.product_types || 'General'} store.${audienceStr}${typesStr}
 Target Market: ${settings.target_market || 'Pakistan'}.
 Tone of Voice: ${settings.tone || 'Professional'}.
 Target Language: Write content in ${settings.language || 'English'}.

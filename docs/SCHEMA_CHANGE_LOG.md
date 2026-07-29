@@ -4,6 +4,24 @@
 
 ---
 
+### [2026-07-29] v5.0.0 — AI Settings Bug Fix + Business Type Presets
+**Files Updated:**
+- [lib/aiEngine.ts](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/lib/aiEngine.ts)
+- [lib/seoPrompts.ts](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/lib/seoPrompts.ts)
+- [lib/services/settings.ts](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/lib/services/settings.ts)
+- [components/admin/settings/AITab.tsx](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/components/admin/settings/AITab.tsx)
+
+**Changes:**
+1. **CRITICAL BUG FIX — AI Settings Table Mismatch**: `getAISettings()` was reading from a separate `ai_settings` table that was **never updated by the UI**. The admin UI saves all AI settings to `store_settings` via `updateSettings()`. Fixed `getAISettings()` to read from `store_settings` (ID: `00000000-0000-4000-8000-000000000001`) — the actual single source of truth.
+2. **Fixed Hardcoded `target_audiences` Default**: The `mapSettings()` in `settings.ts` was defaulting `target_audiences` to the hardcoded string `'Kids'` instead of an empty string. This caused the AI to always target kids regardless of what was saved.
+3. **Fixed Hardcoded Store Type in `seoPrompts.ts`**: System prompt was hardcoded as "clothing & fashion store". Now dynamically uses `settings.store_type` or `settings.product_types` from saved settings.
+4. **Added `category_description_prompt/limit`, `product_description_prompt/limit`, `product_short_prompt/limit` fields** to `AISettings` interface in `aiEngine.ts` (were missing, causing TS errors).
+5. **Added Business Type Presets**: Added 10 fully-configured business presets in `AITab.tsx`:
+   - 👗 Clothing & Fashion, 💍 Jewellery, 👟 Shoes & Footwear, 👜 Bags & Accessories
+   - 💻 Electronics & Laptops, 📱 Mobile Phones, 🔧 Hardware & Tools
+   - 💄 Cosmetics & Beauty, 🪑 Furniture & Home Decor, 🛒 General / Multi-Category
+   - Each preset auto-fills: Target Audiences, Product Types, Tone, Category/Product/Short prompts & word limits, and HTML copy templates.
+
 ### [2026-07-28] v4.9.9 — Added Missing Webhooks for Shipping & Payment Methods
 **Files Updated:**
 - [supabase/schema/SUPER_MASTER_SCHEMA.sql](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/supabase/schema/SUPER_MASTER_SCHEMA.sql)

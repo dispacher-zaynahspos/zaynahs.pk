@@ -21,23 +21,79 @@ interface AISettings {
   product_types?: string;
   category_default_template?: string;
   product_default_template?: string;
+  category_description_prompt?: string;
+  category_description_limit?: number;
+  product_description_prompt?: string;
+  product_description_limit?: number;
+  product_short_prompt?: string;
+  product_short_limit?: number;
 }
 
 /**
- * Helper to fetch settings from Supabase
+ * Helper to fetch AI settings from store_settings (the single source of truth).
+ * The UI saves all AI config to store_settings via updateSettings().
+ * Reading from the same table ensures Target Audience, Product Types, prompts etc. are always current.
  */
 export async function getAISettings(): Promise<AISettings> {
   const { data, error } = await supabaseAdmin
-    .from('ai_settings')
+    .from('store_settings')
     .select('*')
-    .eq('id', '00000000-0000-4000-8000-000000000002')
+    .eq('id', '00000000-0000-4000-8000-000000000001')
     .single();
 
   if (error || !data) {
-    throw new Error('AI Settings not initialized in database');
+    throw new Error('Store settings not found — cannot initialize AI engine.');
   }
-  return data;
+
+  // Parse JSONB persona config for nested audience/type arrays
+  const personaConfig: { tone?: string; language?: string; customInstructions?: string; targetAudiences?: string[]; productTypes?: string[] } =
+    typeof data.ai_persona_config === 'string'
+      ? JSON.parse(data.ai_persona_config)
+      : (data.ai_persona_config ?? {});
+
+  // Build flat target_audiences string: prefer flat column, fallback to JSONB array
+  const targetAudiencesFlat =
+    data.target_audiences ||
+    (Array.isArray(personaConfig.targetAudiences) ? personaConfig.targetAudiences.join(', ') : '');
+
+  // Build flat product_types string: prefer flat column, fallback to JSONB array
+  const productTypesFlat =
+    data.product_types ||
+    (Array.isArray(personaConfig.productTypes) ? personaConfig.productTypes.join(', ') : '');
+
+  return {
+    ai_enabled: data.ai_enabled ?? false,
+    content_provider: data.content_provider ?? 'groq',
+    content_model: data.content_model ?? 'llama-3.3-70b-versatile',
+    content_keys: data.content_keys ?? '',
+    ai_model_credentials:
+      typeof data.ai_model_credentials === 'string'
+        ? JSON.parse(data.ai_model_credentials)
+        : (data.ai_model_credentials ?? {}),
+    vision_provider: data.vision_provider ?? 'gemini',
+    vision_model: data.vision_model ?? 'gemini-2.5-flash',
+    vision_keys: data.vision_keys ?? '',
+    brand_name: data.store_name ?? '',
+    store_type: productTypesFlat || 'General',
+    target_market: 'Pakistan',
+    tone: data.ai_tone || personaConfig.tone || 'Professional',
+    language: data.ai_language || personaConfig.language || 'English',
+    custom_instructions: data.ai_custom_instructions || personaConfig.customInstructions || '',
+    auto_content_seo: data.auto_content_seo ?? true,
+    auto_media_ai: data.auto_media_ai ?? true,
+    target_audiences: targetAudiencesFlat,
+    product_types: productTypesFlat,
+    category_default_template: data.category_default_template ?? '',
+    product_default_template: data.product_default_template ?? '',
+    category_description_prompt: data.category_description_prompt ?? '',
+    category_description_limit: data.category_description_limit ?? 150,
+    product_description_prompt: data.product_description_prompt ?? '',
+    product_description_limit: data.product_description_limit ?? 250,
+    product_short_prompt: data.product_short_prompt ?? '',
+    product_short_limit: data.product_short_limit ?? 100,
+  };
 }
+
 
 /**
  * Downloads an image from a URL and converts it to a base64 string
