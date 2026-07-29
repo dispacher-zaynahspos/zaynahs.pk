@@ -251,7 +251,7 @@ export default function ProductForm({ categories, initialProduct, aiEnabled, sto
       setSlug(generatedSlug);
 
       const selectedCategory = categories.find(c => c.id === categoryId);
-      const categoryName = selectedCategory ? selectedCategory.name : 'Kids Clothes';
+      const categoryName = selectedCategory ? selectedCategory.name : 'General';
 
       const payload = {
         entity_type: 'product',

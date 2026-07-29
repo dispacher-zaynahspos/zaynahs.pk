@@ -575,7 +575,7 @@ const mapSettings = (row: SettingsRow): StoreSettings => ({
   postex_notes_check: row.postex_notes_check ?? '1',
   postex_default_weight: row.postex_default_weight ?? '0.5',
   postex_default_items: row.postex_default_items ?? '3',
-  postex_default_product: row.postex_default_product ?? 'Kids Clothes',
+  postex_default_product: row.postex_default_product ?? 'General Items',
   postex_whatsapp_template: row.postex_whatsapp_template ?? 'Dear {name}, your order has been booked. You can track it here: {url}\n{note}',
   postex_whatsapp_note: row.postex_whatsapp_note ?? 'Thank you for shopping with us!',
   postex_auto_download_label: row.postex_auto_download_label ?? false,
