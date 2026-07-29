@@ -4,6 +4,16 @@
 
 ---
 
+### [2026-07-28] v4.9.9 — Added Missing Webhooks for Shipping & Payment Methods
+**Files Updated:**
+- [supabase/schema/SUPER_MASTER_SCHEMA.sql](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/supabase/schema/SUPER_MASTER_SCHEMA.sql)
+- [supabase/migrations/20260616183200_setup_database_webhooks.sql](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/supabase/migrations/20260616183200_setup_database_webhooks.sql)
+- [lib/revalidate.ts](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/lib/revalidate.ts)
+
+**Changes:**
+1. **Added Webhooks for Shipping & Payment Methods**: Implemented missing `revalidate-shipping_methods` and `revalidate-payment_methods` database triggers in the master schema and migration file.
+2. **Fixed Cloudflare Environment Variable Resolution**: Moved `process.env.CLOUDFLARE_ZONE_ID` and `process.env.CLOUDFLARE_API_TOKEN` inside the function scope in `lib/revalidate.ts` to prevent Next.js from evaluating them as undefined due to build-time module caching, ensuring Cloudflare cache is correctly purged on every admin change.
+
 ### [2026-06-27] v4.9.8 — Dynamic Order Fulfillment Dropdowns, Shopify-Style Stats & Bulk Actions Bar
 **Files Updated:**
 - [components/admin/OrderDetailCanvas.tsx](file:///Users/shoaib/Documents/zaynahsestore-tv-main/components/admin/OrderDetailCanvas.tsx)

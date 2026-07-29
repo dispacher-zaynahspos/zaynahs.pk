@@ -274,3 +274,11 @@ When adding a new page, category, or route:
    `if (!result.success) throw new Error(result.error);` (or handle the error locally).
 6. Doing this ensures the actual `error.message` from the backend is gracefully returned as a serialized object and rendered in toast notifications, maintaining transparency in production.
 <!-- END:safe-server-action-rule -->
+
+<!-- BEGIN:server-action-env-rule -->
+# Server Action Environment Variables Rule
+
+1. When writing Next.js Server Actions or API routes, NEVER declare `process.env` variables globally outside the function scope (unless they are strictly used for static compile-time configuration).
+2. During build time, Next.js caches module scopes. Variables like `process.env.CLOUDFLARE_ZONE_ID` or tokens may evaluate to `undefined` at runtime if declared globally.
+3. ALWAYS read dynamic environment variables *inside* the function body where they are used.
+<!-- END:server-action-env-rule -->

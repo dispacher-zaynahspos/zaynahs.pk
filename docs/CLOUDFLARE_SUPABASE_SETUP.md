@@ -38,7 +38,7 @@ GOOGLE_SITE_VERIFICATION="your_value"
 ## ⚡ Section 2: Supabase Database Webhooks
 
 We use database triggers to call `supabase_functions.http_request()` on every `INSERT`, `UPDATE`, or `DELETE` on:
-`products`, `categories`, `reviews`, `homepage_sections`, and `store_settings`.
+`products`, `categories`, `reviews`, `homepage_sections`, `store_settings`, `shipping_methods`, and `payment_methods`.
 
 ### SQL Migration File
 [supabase/migrations/20260616183200_setup_database_webhooks.sql](file:///Users/shoaib/Desktop/Zaynahs%20e-store/supabase/migrations/20260616183200_setup_database_webhooks.sql)
