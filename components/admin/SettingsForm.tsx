@@ -303,12 +303,23 @@ export default function SettingsForm({ initialSettings }: SettingsFormProps) {
   const [visionProvider, setVisionProvider] = useState(initialSettings.vision_provider || 'gemini');
   const [visionModel, setVisionModel] = useState(initialSettings.vision_model || 'gemini-2.5-flash');
   const pConfig: { tone?: string; language?: string; customInstructions?: string; targetAudiences?: string[]; productTypes?: string[] } = initialSettings.ai_persona_config || {};
+  
+  // Parse flat DB columns (source of truth) — these are always current.
+  // JSONB ai_persona_config is a legacy fallback only.
+  const flatAudiences = initialSettings.target_audiences
+    ? initialSettings.target_audiences.split(',').map((s: string) => s.trim()).filter(Boolean)
+    : null;
+  const flatProductTypes = initialSettings.product_types
+    ? initialSettings.product_types.split(',').map((s: string) => s.trim()).filter(Boolean)
+    : null;
+
   const [aiPersonaConfig, setAiPersonaConfig] = useState({
     tone: pConfig.tone || 'Professional',
     language: pConfig.language || 'English',
     customInstructions: pConfig.customInstructions || '',
-    targetAudiences: Array.isArray(pConfig.targetAudiences) ? pConfig.targetAudiences : ['Kids'],
-    productTypes: Array.isArray(pConfig.productTypes) ? pConfig.productTypes : ['Clothes', 'Shoes'],
+    // Prefer flat column → fallback to JSONB → fallback to empty (no hardcoded 'Kids')
+    targetAudiences: flatAudiences ?? (Array.isArray(pConfig.targetAudiences) ? pConfig.targetAudiences : []),
+    productTypes: flatProductTypes ?? (Array.isArray(pConfig.productTypes) ? pConfig.productTypes : []),
   });
   const [autoContentSeo, setAutoContentSeo] = useState(initialSettings.auto_content_seo ?? true);
   const [autoMediaAi, setAutoMediaAi] = useState(initialSettings.auto_media_ai ?? true);

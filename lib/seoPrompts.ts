@@ -22,9 +22,8 @@ interface AISettings {
  */
 export function buildSystemPrompt(settings: AISettings, storeSettings?: any, siteUrl?: string): string {
   const resolvedUrl = siteUrl || storeSettings?.store_url || process.env.NEXT_PUBLIC_SITE_URL || '';
-  const audienceStr = settings.target_audiences ? `\nTarget Audiences: ${settings.target_audiences}` : '';
-  const typesStr = settings.product_types ? `\nProduct Types: ${settings.product_types}` : '';
-  
+
+  // Build brand info block
   let brandInfo = `Brand Name: ${settings.brand_name || storeSettings?.store_name || process.env.NEXT_PUBLIC_BRAND_NAME || 'Your Store'}`;
   if (storeSettings?.address) {
     brandInfo += `\nPhysical Address / Location: ${storeSettings.address}`;
@@ -35,7 +34,26 @@ export function buildSystemPrompt(settings: AISettings, storeSettings?: any, sit
   if (storeSettings?.tagline) {
     brandInfo += `\nBrand Tagline: ${storeSettings.tagline}`;
   }
-  
+
+  // Build STRICT audience instruction — explicitly tell AI who to target AND who NOT to target
+  let audienceInstruction = '';
+  if (settings.target_audiences && settings.target_audiences.trim()) {
+    const audiences = settings.target_audiences.split(',').map(a => a.trim()).filter(Boolean);
+    const hasKids = audiences.some(a => /kid|child|children|baby|babies/i.test(a));
+    audienceInstruction = `\nTARGET AUDIENCE (STRICT RULE): Write EXCLUSIVELY for these audiences: ${audiences.join(', ')}.`
+      + ` Do NOT write for, reference, or imply any other demographic.`
+      + (!hasKids
+        ? ` CRITICAL: "Kids" and "Children" are NOT in your target audience list. You MUST NEVER mention children, kids, child, toddler, baby, ages, or any child-related theme in any part of the content. Any content referencing children will be rejected.`
+        : '');
+  }
+
+  // Build product types instruction
+  let typesInstruction = '';
+  if (settings.product_types && settings.product_types.trim()) {
+    typesInstruction = `\nProduct Types Sold: ${settings.product_types}`;
+  }
+
+  // Build template guides
   let templateGuides = '';
   if (settings.category_default_template) {
     templateGuides += `\nFor category pages, base the generated "long_description" on the structural layout and style of this template (replace {{category_name}} with the actual category name):\n${settings.category_default_template}\n`;
@@ -44,6 +62,7 @@ export function buildSystemPrompt(settings: AISettings, storeSettings?: any, sit
     templateGuides += `\nFor product pages, base the generated "long_description" on the structural layout and style of this template (replace {{product_name}} with the actual product name):\n${settings.product_default_template}\n`;
   }
 
+  // Build custom prompt instruction block
   let customPromptInstructions = '';
   if (settings.category_description_prompt) {
     customPromptInstructions += `\n- Category Description Custom Instructions: ${settings.category_description_prompt}`;
@@ -66,7 +85,7 @@ export function buildSystemPrompt(settings: AISettings, storeSettings?: any, sit
 
   return `You are an expert SEO copywriter and marketing specialist for the brand "${settings.brand_name || storeSettings?.store_name || process.env.NEXT_PUBLIC_BRAND_NAME || 'Your Store'}".
 ${brandInfo}
-Store Type: ${settings.store_type || settings.product_types || 'General'} store.${audienceStr}${typesStr}
+Store Type: ${settings.store_type || settings.product_types || 'General'} store.${audienceInstruction}${typesInstruction}
 Target Market: ${settings.target_market || 'Pakistan'}.
 Tone of Voice: ${settings.tone || 'Professional'}.
 Target Language: Write content in ${settings.language || 'English'}.
