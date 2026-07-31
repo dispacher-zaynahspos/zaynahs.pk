@@ -520,7 +520,7 @@ const cachedProducts = unstable_cache(
   { revalidate: 86400, tags: ['products'] }
 );
 
-// Cache with limit (used for SSR — keeps HTML small)
+// Cache WITH limit (used for SSR payload reduction)
 const cachedProductsLimited = unstable_cache(
   async (categoryId?: string, limit?: number) => fetchProducts(categoryId, limit),
   ['products-list-limited'],
