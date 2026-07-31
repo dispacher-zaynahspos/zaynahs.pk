@@ -75,10 +75,11 @@ export default async function StoreShopPage({ searchParams }: PageProps) {
   const { category: categorySlug } = await searchParams;
   
   const [products, categories, settings] = await Promise.all([
-    getProducts(),
+    getProducts(undefined, 24), // SSR first 24 only — ShopPage loads rest client-side
     getCategories(),
     getSettings()
   ]);
+
 
   let faqSchema: any = null;
   if (categorySlug) {

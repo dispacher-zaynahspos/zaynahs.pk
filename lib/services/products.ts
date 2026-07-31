@@ -478,7 +478,7 @@ const applyFlashSaleDiscounts = async (products: Product[]): Promise<Product[]> 
   }
 };
 
-const fetchProducts = async (categoryId?: string): Promise<Product[]> => {
+const fetchProducts = async (categoryId?: string, limit?: number): Promise<Product[]> => {
   try {
     let query = staticSupabase
       .from('products')
@@ -490,9 +490,16 @@ const fetchProducts = async (categoryId?: string): Promise<Product[]> => {
       query = query.eq('category_id', categoryId);
     }
 
-    const { data, error } = await query
+    let finalQuery = query
       .order('sort_order', { ascending: true })
       .order('created_at', { ascending: false });
+
+    // Limit SSR payload to avoid embedding 100+ products in HTML (causes 2MB+ pages)
+    if (limit && limit > 0) {
+      finalQuery = finalQuery.limit(limit) as typeof finalQuery;
+    }
+
+    const { data, error } = await finalQuery;
 
     if (error) {
       console.error('[Products Error Debug] fetchProducts failed:', error);
@@ -506,15 +513,27 @@ const fetchProducts = async (categoryId?: string): Promise<Product[]> => {
   }
 };
 
+// Cache without limit (used internally for full list)
 const cachedProducts = unstable_cache(
   async (categoryId?: string) => fetchProducts(categoryId),
   ['products-list'],
   { revalidate: 86400, tags: ['products'] }
 );
 
-export const getProducts = async (categoryId?: string) => {
+// Cache with limit (used for SSR — keeps HTML small)
+const cachedProductsLimited = unstable_cache(
+  async (categoryId?: string, limit?: number) => fetchProducts(categoryId, limit),
+  ['products-list-limited'],
+  { revalidate: 86400, tags: ['products'] }
+);
+
+export const getProducts = async (categoryId?: string, limit?: number) => {
+  if (limit && limit > 0) {
+    return cachedProductsLimited(categoryId, limit);
+  }
   return cachedProducts(categoryId);
 };
+
 
 const fetchRelatedProducts = async (productId: string, categoryId?: string, limit = 4): Promise<Product[]> => {
   try {

@@ -231,6 +231,26 @@ export default function ShopPage({
   useScrollRestoration();
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
+  // SSR gives first 24 products. Fetch the full list client-side after hydration.
+  const [allProducts, setAllProducts] = useState<Product[]>(initialProducts);
+  const [productsHydrated, setProductsHydrated] = useState(false);
+
+  useEffect(() => {
+    if (productsHydrated) return;
+    setProductsHydrated(true);
+    if (initialProducts.length < 30) {
+      fetch('/api/products/list')
+        .then(r => r.json())
+        .then(data => {
+          if (data.products && data.products.length > initialProducts.length) {
+            setAllProducts(data.products);
+          }
+        })
+        .catch(() => {});
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+
   // Availability Filters
   const [availability, setAvailability] = useState({
     onSale: false,
@@ -240,13 +260,13 @@ export default function ShopPage({
 
   // Calculate global min and max prices to initialize inputs
   const priceLimits = useMemo(() => {
-    if (initialProducts.length === 0) return { min: 0, max: 10000 };
-    const prices = initialProducts.map(p => p.price);
+    if (allProducts.length === 0) return { min: 0, max: 10000 };
+    const prices = allProducts.map(p => p.price);
     return {
       min: Math.floor(Math.min(...prices)),
       max: Math.ceil(Math.max(...prices))
     };
-  }, [initialProducts]);
+  }, [allProducts]);
 
   const [priceMin, setPriceMin] = useState<number>(priceLimits.min);
   const [priceMax, setPriceMax] = useState<number>(priceLimits.max);
@@ -258,7 +278,7 @@ export default function ShopPage({
     const materialsSet = new Set<string>();
     const colorToHex: Record<string, string> = {};
 
-    initialProducts.forEach(product => {
+    allProducts.forEach(product => {
       product.variants?.forEach(variant => {
         if (!variant.active) return;
 
@@ -294,7 +314,7 @@ export default function ShopPage({
       materials: Array.from(materialsSet).sort(),
       colorToHex
     };
-  }, [initialProducts]);
+  }, [allProducts]);
 
   // Variant Filter States
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
@@ -354,7 +374,7 @@ export default function ShopPage({
   // Pre-calculate category counts
   const categoryCounts = useMemo(() => {
     const counts: Record<string, number> = {};
-    initialProducts.forEach(product => {
+    allProducts.forEach(product => {
       const categoryIds = new Set<string>();
       if (product.categoryId) categoryIds.add(product.categoryId);
       product.productCategories?.forEach(pc => {
@@ -365,12 +385,12 @@ export default function ShopPage({
       });
     });
     return counts;
-  }, [initialProducts]);
+  }, [allProducts]);
 
   // Get Featured Products list
   const featuredProducts = useMemo(() => {
-    return initialProducts.filter(p => p.isFeatured).slice(0, 3);
-  }, [initialProducts]);
+    return allProducts.filter(p => p.isFeatured).slice(0, 3);
+  }, [allProducts]);
 
   // Handle Quick Add to Cart for Featured Products
   const handleQuickAdd = (e: React.MouseEvent, product: Product) => {
@@ -395,7 +415,7 @@ export default function ShopPage({
 
   // Filter products client-side
   const filteredProducts = useMemo(() => {
-    let list = [...initialProducts];
+    let list = [...allProducts];
 
     // Category filter
     if (selectedCategoryId) {
@@ -482,7 +502,7 @@ export default function ShopPage({
     }
 
     return list;
-  }, [initialProducts, selectedCategoryId, searchQuery, availability, priceMin, priceMax, sortBy, selectedColors, selectedSizes, selectedMaterials]);
+  }, [allProducts, selectedCategoryId, searchQuery, availability, priceMin, priceMax, sortBy, selectedColors, selectedSizes, selectedMaterials]);
 
   const [loadMoreLimit, setLoadMoreLimit] = useState(() => Math.max(PAGE_SIZE, (isNaN(urlPage) ? 1 : urlPage) * PAGE_SIZE));
 
@@ -551,7 +571,7 @@ export default function ShopPage({
           >
             <span>Shop</span>
             <span className={selectedCategoryId === undefined ? 'text-white/80' : 'text-gray-400'}>
-              ({initialProducts.length})
+              ({allProducts.length})
             </span>
           </button>
 
