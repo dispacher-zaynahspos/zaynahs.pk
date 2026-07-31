@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Product, StoreSettings } from '@/lib/types';
 import { deleteProduct, updateProduct, updateProductFields } from '@/lib/services/products';
 import { triggerMetaSync } from '@/lib/services/metaSyncAction';
@@ -19,6 +20,7 @@ import {
 } from '@/components/common/Icons';
 import ImportExportModal from '@/components/admin/ImportExportModal';
 import PaginationFooter from './PaginationFooter';
+import { saveProductNavContext } from '@/lib/hooks/useProductNav';
 
 interface ProductListProps {
   initialProducts: Product[];
@@ -26,6 +28,7 @@ interface ProductListProps {
 }
 
 export default function ProductList({ initialProducts, settings }: ProductListProps) {
+  const router = useRouter();
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [searchQuery, setSearchQuery] = useState('');
   const [syncingAll, setSyncingAll] = useState(false);
@@ -37,6 +40,16 @@ export default function ProductList({ initialProducts, settings }: ProductListPr
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
+
+  /** Save nav context then navigate to edit page */
+  const handleEditProduct = (productId: string, allFiltered: Product[]) => {
+    saveProductNavContext({
+      ids: allFiltered.map(p => p.id),
+      source: 'Products',
+      sourceUrl: '/admin/products',
+    });
+    router.push(`/admin/products/${productId}`);
+  };
 
   const categoriesMap = new Map<string, string>();
   products.forEach(p => {
@@ -546,10 +559,10 @@ export default function ProductList({ initialProducts, settings }: ProductListPr
                                   {isSyncing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
                                 </button>
                               )}
-                              <Link href={`/admin/products/${product.id}`}
-                                className="p-1.5 rounded-lg border border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-[#1a1a2e] dark:hover:text-white transition-all" title="Edit Product">
+                              <button onClick={() => handleEditProduct(product.id, filteredProducts)}
+                                className="p-1.5 rounded-lg border border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-[#1a1a2e] dark:hover:text-white transition-all cursor-pointer" title="Edit Product">
                                 <Edit className="h-4 w-4" />
-                              </Link>
+                              </button>
                               <button onClick={() => handleDelete(product.id)}
                                 className="p-1.5 rounded-lg border border-gray-200 dark:border-gray-800 text-red-500 hover:bg-red-50/10 transition-all cursor-pointer" title="Move to Trash">
                                 <Trash2 className="h-4 w-4" />
@@ -693,10 +706,10 @@ export default function ProductList({ initialProducts, settings }: ProductListPr
                           {isSyncing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />} Sync
                         </button>
                       )}
-                      <Link href={`/admin/products/${product.id}`}
-                        className="flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 text-[10px] font-bold transition-all">
+                      <button onClick={() => handleEditProduct(product.id, filteredProducts)}
+                        className="flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 text-[10px] font-bold transition-all cursor-pointer">
                         <Edit className="h-3.5 w-3.5" /> Edit
-                      </Link>
+                      </button>
                       <button onClick={() => handleDelete(product.id)}
                         className="flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-800 text-red-500 hover:bg-red-50/10 text-[10px] font-bold transition-all">
                         <Trash2 className="h-3.5 w-3.5" /> Delete

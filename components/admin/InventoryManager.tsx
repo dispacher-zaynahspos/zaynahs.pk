@@ -2,6 +2,7 @@
 
 import React, { useState, useTransition } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { Product, Category, ProductVariant } from '@/lib/types';
 import { updateProductFields, updateProductVariantFields } from '@/lib/services/products';
 import { toast } from 'sonner';
@@ -13,10 +14,12 @@ import {
   Check, 
   Loader2,
   SlidersHorizontal,
-  PackageOpen
+  PackageOpen,
+  Edit
 } from '@/components/common/Icons';
 import { getSwatchStyle } from '@/lib/utils/swatch';
 import PaginationFooter from './PaginationFooter';
+import { saveProductNavContext } from '@/lib/hooks/useProductNav';
 
 interface InventoryManagerProps {
   products: Product[];
@@ -24,6 +27,7 @@ interface InventoryManagerProps {
 }
 
 export default function InventoryManager({ products: initialProducts, categories }: InventoryManagerProps) {
+  const router = useRouter();
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -32,6 +36,16 @@ export default function InventoryManager({ products: initialProducts, categories
   const [selectedVariantIds, setSelectedVariantIds] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
+
+  /** Save inventory nav context then open product edit page */
+  const handleEditProduct = (productId: string) => {
+    saveProductNavContext({
+      ids: filteredProducts.map(p => p.id),
+      source: 'Inventory',
+      sourceUrl: '/admin/inventory',
+    });
+    router.push(`/admin/products/${productId}`);
+  };
 
   // Bulk updater for variants
   const handleBulkUpdateVariantStock = async (productId: string, variantIds: string[], newStock: number) => {
@@ -485,8 +499,16 @@ export default function InventoryManager({ products: initialProducts, categories
                             )}
                           </td>
                           <td className="py-4 px-4 text-right">
-                            <div className="flex justify-end">
+                            <div className="flex items-center justify-end gap-2">
                               {renderProductStatus(product)}
+                              <button
+                                type="button"
+                                onClick={() => handleEditProduct(product.id)}
+                                className="p-1.5 rounded-lg border border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-[#1a1a2e] dark:hover:text-white transition-all cursor-pointer flex-shrink-0"
+                                title="Edit Product"
+                              >
+                                <Edit className="h-3.5 w-3.5" />
+                              </button>
                             </div>
                           </td>
                         </tr>{/* Expanded Variants Subtable */}

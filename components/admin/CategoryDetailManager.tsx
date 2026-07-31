@@ -37,6 +37,7 @@ import {
   Zap
 } from '@/components/common/Icons';
 import PaginationFooter from './PaginationFooter';
+import { saveProductNavContext } from '@/lib/hooks/useProductNav';
 
 interface CategoryDetailManagerProps {
   category: Category;
@@ -53,6 +54,16 @@ export default function CategoryDetailManager({ category, initialProducts }: Cat
   const [expandedProducts, setExpandedProducts] = useState<Record<string, boolean>>({});
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
+
+  /** Save nav context (category view) then navigate to product edit */
+  const handleEditProduct = (productId: string, allFiltered: Product[]) => {
+    saveProductNavContext({
+      ids: allFiltered.map(p => p.id),
+      source: category.name,
+      sourceUrl: `/admin/categories/${category.id}`,
+    });
+    router.push(`/admin/products/${productId}`);
+  };
   const [updatingIds, setUpdatingIds] = useState<Record<string, boolean>>({});
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
   const [selectedVariantIds, setSelectedVariantIds] = useState<string[]>([]);
@@ -718,13 +729,14 @@ export default function CategoryDetailManager({ category, initialProducts }: Cat
                       </td>
                       <td className="py-4 px-4 text-center">
                         <div className="flex items-center justify-center gap-2">
-                          <Link
-                            href={`/admin/products/${product.id}`}
-                            className="inline-flex p-2 rounded-lg border border-gray-200 dark:border-gray-800 text-gray-650 hover:bg-gray-50 dark:hover:bg-[#1d1d36] transition-all"
+                          <button
+                            type="button"
+                            onClick={() => handleEditProduct(product.id, filteredProducts)}
+                            className="inline-flex p-2 rounded-lg border border-gray-200 dark:border-gray-800 text-gray-650 hover:bg-gray-50 dark:hover:bg-[#1d1d36] transition-all cursor-pointer"
                             title="Edit full product details"
                           >
                             <Edit className="h-4 w-4" />
-                          </Link>
+                          </button>
                           <button
                             type="button"
                             onClick={() => handleRemoveProduct(product.id)}
@@ -1120,13 +1132,14 @@ export default function CategoryDetailManager({ category, initialProducts }: Cat
 
                         {/* Action buttons on top right */}
                         <div className="flex items-center gap-1.5 flex-shrink-0">
-                          <Link
-                            href={`/admin/products/${product.id}`}
-                            className="p-2 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-650 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#1d1d36] transition-all min-h-[36px] min-w-[36px] flex items-center justify-center bg-white dark:bg-transparent"
+                          <button
+                            type="button"
+                            onClick={() => handleEditProduct(product.id, filteredProducts)}
+                            className="p-2 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-650 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#1d1d36] transition-all min-h-[36px] min-w-[36px] flex items-center justify-center bg-white dark:bg-transparent cursor-pointer"
                             title="Edit full product details"
                           >
                             <Edit className="h-4 w-4" />
-                          </Link>
+                          </button>
                           <button
                             type="button"
                             onClick={() => handleRemoveProduct(product.id)}
