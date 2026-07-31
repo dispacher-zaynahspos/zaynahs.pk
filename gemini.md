@@ -73,6 +73,7 @@
     - Whenever adding, implementing, or modifying any product card design layout or template, the agent MUST ensure it is fully linked to all dynamic customizer settings (such as Image Aspect Ratio (`aspectClass`), Image Hover Style (`imageHoverStyle`), vertical element ordering (`elementsOrder` and `renderShowcaseContent`/`renderElement`), text alignment classes (`alignClass`), star rating visibility (`showStars`), swatches, quick view, wishlist, and cart action overlays).
     - Specifically, the card template MUST support dynamic multi-badge vertical stacking (via the unified `<div className="bdg-container"> {renderCardBadge()} </div>` flexbox) just like the default style1 (`style1`) layout.
     - The agent must strictly follow the step-by-step implementation checklist in [add_card_style_prompt.md](file:///Users/shoaib/Documents/zaynahsestore-tv-main/docs/prompts/add_card_style_prompt.md) and keep all templates completely synchronized.
+  - **RULE DS3 — SKELETON LOADERS (MANDATORY)**: Never use a global `app/loading.tsx` file for page loading states as it completely blocks the UI (hiding Navbar, Footer, etc.) and ruins the perceived performance. Instead, ALWAYS use component-level skeletons (e.g., mapping `<ProductCardSkeleton />` or `<LoadingSkeleton />` inside the page layout) to provide immediate feedback while keeping the application layout visible. Ensure fast loading by rendering these skeletons instantly while data is fetching.
 
 ---
 
