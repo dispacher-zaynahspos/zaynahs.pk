@@ -45,11 +45,13 @@ async function purgeCloudflareUrls(urls: string[]) {
     const data = await res.json();
     if (!res.ok || !data.success) {
       console.error('Failed to purge Cloudflare cache:', data);
+      throw new Error(data.errors?.[0]?.message || 'Cloudflare Purge API failed');
     } else {
       console.log('Successfully purged Cloudflare cache:', urls);
     }
   } catch (error) {
     console.error('Error purging Cloudflare cache:', error);
+    throw error;
   }
 }
 
@@ -77,11 +79,13 @@ async function purgeCloudflareEverything() {
     const data = await res.json();
     if (!res.ok || !data.success) {
       console.error('Failed to purge everything on Cloudflare:', data);
+      throw new Error(data.errors?.[0]?.message || 'Cloudflare Purge API failed');
     } else {
       console.log('Successfully purged everything on Cloudflare');
     }
   } catch (error) {
     console.error('Error purging everything on Cloudflare:', error);
+    throw error;
   }
 }
 
