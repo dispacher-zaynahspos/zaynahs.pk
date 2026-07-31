@@ -26,15 +26,17 @@ export async function GET(request: Request) {
   await step('getProductBySlug', () => getProductBySlug(slug));
   const product = results.getProductBySlug?.ok ? results.getProductBySlug.data : null;
   if (product) {
-    await step('seo_meta', () =>
-      supabaseAdmin.from('seo_meta').select('*').eq('entity_type', 'product').eq('entity_id', product.id).maybeSingle()
-    );
+    await step('seo_meta', async () => {
+      const r = await supabaseAdmin.from('seo_meta').select('*').eq('entity_type', 'product').eq('entity_id', product.id).maybeSingle();
+      return r.data;
+    });
     await step('getProductReviews', () => getProductReviews(product.id));
     await step('getAverageRating', () => getAverageRating(product.id));
     await step('getRelatedProducts', () => getRelatedProducts(product.id, product.categoryId, 4));
-    await step('social_proof_count', () =>
-      supabaseAdmin.from('social_proof_products').select('product_id', { count: 'exact', head: true }).eq('product_id', product.id)
-    );
+    await step('social_proof_count', async () => {
+      const r = await supabaseAdmin.from('social_proof_products').select('product_id', { count: 'exact', head: true }).eq('product_id', product.id);
+      return r;
+    });
     await step('getSiteUrl', () => getSiteUrl(results.getSettings.ok ? results.getSettings.data : undefined));
   }
 
