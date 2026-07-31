@@ -1281,3 +1281,51 @@ Result: 100% pixel-perfect drag and drop bina kisi offset ke!
 ---
 
 > **Ek line mein:** "Sidebar aur scrollable dashboard layouts mein dnd-kit ka DragOverlay hamesha offset problems deta hai — isay nikaal kar direct element par dragging styles lagayein." 🖱️
+
+---
+
+# Masla 12: Page Couldn't Load on Mobile (2.2MB HTML & Next.js Hydration Bloat) (July 2026)
+
+---
+
+## Pehle Kya Tha (Symptom)
+Mobile browsers par (khass tor pe Safari ya in-app browsers) TotVogue ki website open karne par black screen aati thi aur "This page couldn't load. Reload to try again" ka error aata tha. TTFB (Time To First Byte) 2.8 seconds se zyada tha aur overall page sluggish tha. 
+
+---
+
+## Issue Kya Tha (Root Cause)
+1. **Uncapped SSR Data Fetching**: `getProducts()` function directly saare 113 products (jinke andar 900+ image URLs, variants aur categories the) database se utha kar SSR (Server-Side Rendering) HTML ke andar pass kar raha tha.
+2. **Next.js Hydration Bloat**: Next.js App Router (React Server Components) job client component (`StoreFront` aur `ShopPage`) ko props pass karta hai, to uss pure data ko JSON string bana kar HTML me ek badi inline script (`self.__next_f.push(...)`) me embed kar deta hai. 
+3. **Payload Size Limit exceeded**: Is wajah se har page (Homepage aur Shop) ka HTML file size **2.2 MB** tak pahunch gaya jisme se **1.58 MB** sirf ek inline javascript block tha. Mobile browsers (especially iOS Safari) 1MB se bari inline scripts parse karte waqt memory limits ki waja se crash ho jate thay ya parsing delay itna zyada hota tha ke OS browser process kill kar deta tha.
+
+---
+
+## Fix Kaise Hua
+SSR par limits lagai gai aur remaining products client-side hydration (API fetch) pe shift kiye gaye:
+
+1. **`getProducts(categoryId?, limit?)` updated**: Function me ek optional `limit` parameter add kiya gaya. SSR render hote waqt humne explicitly limit set kardi `getProducts(undefined, 24)`.
+2. **HTML Size Reduced**: HTML size 2.2MB se kam ho kar sirf `~200KB` reh gaya! Jisse mobile browser rendering instantly shuru hui aur TTFB 2.8s se `~400ms` tak aagaya.
+3. **Client-side Fetching (Hydration)**: Naya public API route banaya `/api/products/list`. `StoreFront` aur `ShopPage` components me `useEffect` use kar ke component mount hone ke baad yeh API call ki gai. API se saaray bache huay products aate hi unko list me merge (`allProducts` state) kardia gaya, jis se user ko filter / search karne k liye saare products milte rahay bina page crash huye.
+
+---
+
+## Next Time Yeh Na Aaye — Rules
+
+```
+✅ RULE: SSR component mein database se 20-30 se ziada items fetch kar ke directly "use client" components mein prop ke through pass mat karein, werna wo SSR HTML ka size heavily bloat (increase) kar denge.
+
+✅ RULE: E-commerce lists ya grids ko hamesha pehle page (say limit=24) tak SSR karein, baki data client mount hone k baad silent API call k zariye list mein push karein (hydration/progressive loading).
+
+✅ RULE: Agar page load pe "This page couldn't load" ka native browser warning (black screen) aaye, to hamesha Page Source ya curl chala kar check karein k HTML ka output size (in bytes) aur `__next` script blocks kitne baray hain. 
+```
+
+### Checklist — E-commerce Data Rendering:
+```
+☐ Kya initial load par SSR me sirf zaroorat ka product data araha hai (Limit applied)?
+☐ Kya remaining catalogue user ke page load k baad silent background fetch horaha hai?
+☐ Kya page source HTML ka total size < 500KB hai?
+```
+
+---
+
+> **Ek line mein:** "Next.js mein `use client` component ko hazaro records directly props mein pass mat karo — wo HTML payload ko MBs mein pohancha dega aur mobile safari fail ho jayega. SSR mein sirf 24 bhejo, baqi client-mount pe fetch karo!" ⚡
