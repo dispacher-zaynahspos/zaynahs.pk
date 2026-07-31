@@ -282,3 +282,11 @@ When adding a new page, category, or route:
 2. During build time, Next.js caches module scopes. Variables like `process.env.CLOUDFLARE_ZONE_ID` or tokens may evaluate to `undefined` at runtime if declared globally.
 3. ALWAYS read dynamic environment variables *inside* the function body where they are used.
 <!-- END:server-action-env-rule -->
+
+<!-- BEGIN:global-loading-rule -->
+# Global Loading Skeleton Rule
+
+1. Always use `app/loading.tsx` as the single, centralized, global loading module for the entire application (both `/admin` and Storefront). 
+2. Do NOT create route-specific `loading.tsx` files (e.g., `app/(store)/loading.tsx` or `app/admin/products/loading.tsx`), as they cause layout thrashing and inconsistent user experiences.
+3. The global `app/loading.tsx` must be a simple, centered spinner (e.g., `<Loader2 className="animate-spin" />`) that provides clear visual feedback to the user that navigation/data-fetching is occurring, without disrupting the persistent layouts (like the Navbar or Admin Sidebar).
+<!-- END:global-loading-rule -->
