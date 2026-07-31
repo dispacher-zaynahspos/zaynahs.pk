@@ -1329,3 +1329,47 @@ SSR par limits lagai gai aur remaining products client-side hydration (API fetch
 ---
 
 > **Ek line mein:** "Next.js mein `use client` component ko hazaro records directly props mein pass mat karo — wo HTML payload ko MBs mein pohancha dega aur mobile safari fail ho jayega. SSR mein sirf 24 bhejo, baqi client-mount pe fetch karo!" ⚡
+
+---
+
+# Masla 13: Next.js Cache Bypassing, Skeleton Flash, 502 Images & Rocket Loader Breakage (July 2026)
+
+---
+
+## Pehle Kya Tha (Symptom)
+1. **Skeleton Flash / Fresh Load Feel:** Jab bhi user Storefront pe navigate karta tha (homepage se shop, ya category filter karta tha), to page instant load hone ki bajaye grey `loading.tsx` skeleton show karta tha jis se "fresh load" ka feel aata tha aur cache hit ka koi faida nazar nahi aata tha.
+2. **Broken Images (502 Bad Gateway):** Ek specific product ("Leg Pants For Woman") ki image blue question mark `?` (broken) show ho rahi thi, jispe Vercel Image Optimizer 502 error de raha tha.
+3. **Admin Purge Cache Not Working:** Jab Admin panel se "Purge Cache" kiya to koi asar nahi hua, Vercel aur Cloudflare purana data hi dikhate rahay.
+4. **ChunkLoadError & Frozen Page:** Naye code ki deployment (push) ke baad website open ki to `ChunkLoadError: Failed to load chunk` aagaya, aur logo ya kisi button pe click karne se kuch nahi hota tha, page completely freeze tha. Console mein `rocket-loader.min.js` ki tarf se errors arhay the.
+
+---
+
+## Issue Kya Tha (Root Cause)
+
+1. **Skeleton Flash:** `app/(store)/loading.tsx` file Next.js router ko force kar rahi thi ke har navigation pe skeleton show kare. Sath hi, `getProducts(undefined, 24)` (limited fetch) pe server side Next.js ka `unstable_cache` implement nahi tha. Is waja se har click pe Server Component DB query chalata tha aur jab tak result nahi aata, skeleton dikhata tha.
+2. **Broken Images (Legacy Database):** Wo specific product image actually ek bohat purane, ab delete ho chukay Supabase project ki URL thi. Vercel ka Image Optimizer us dead URL ko optimize karne ki koshish karta tha aur time-out / 502 error return karta tha.
+3. **Admin Purge / Cloudflare Token Expired:** Admin ka Purge Cache code to bilkul theek tha, lekin `.env.local` mein para hua `CLOUDFLARE_API_TOKEN` expire ya invalid ho chuka tha (`Authentication Error 10000`). Is waja se Cloudflare memory clear nahi kar raha tha.
+4. **Rocket Loader Breakage:** Cloudflare mein **Rocket Loader™** ON tha. Rocket Loader JavaScript tags ko rewrite karta hai taake wo baad mein load hon. Ye feature Next.js (SPA) websites ki chunk loading, routing, aur React Hydration ko completely barbad kar deta hai. Jab Vercel ne naya build deploy kiya (chunks change hue), to Cloudflare ne purana HTML bheja, aur Rocket Loader us puranay chunk ko load karne ke loop mein phans gaya aur sari click events break kar di.
+
+---
+
+## Fix Kaise Hua
+
+1. **Removed `loading.tsx` & Added `nextjs-toploader`:** Storefront root se `loading.tsx` files delete kar deen, aur uski jagah `app/layout.tsx` mein ek patli red top progress bar (`nextjs-toploader`) laga di. Ye bar sirf fraction of a second ke liye chalti hai, aur bina layout ko hilaaye smooth SPA feel deti hai.
+2. **Added `unstable_cache` for limit queries:** `lib/services/products.ts` mein `cachedProductsLimited` banaya jisay tag `['products']` diya, taake limited server fetch bhi instantly respond kare. 
+3. **Bypassed Vercel Image Optimizer:** `next.config.ts` mein `images: { unoptimized: true }` add kar diya. Is se Vercel ka over-stressed optimizer bypass ho gaya. Ab Supabase se sidha WebP format images aati hain aur browser unhe sidha apne local disk mein (`max-age=1 year`) cache kar leta hai. Dead images ab bhi broken hain (kyun ke wo project hi delete ho chuka hai), user ko Admin se new image upload karni hogi, lekin page crash nahi hoga.
+4. **Disabled Rocket Loader & Manual Purge:** User se kaha gaya ke wo manually Cloudflare dashboard se "Rocket Loader" ko OFF karein, aur fauran ek manual "Purge Everything" dabayen taake Naya HTML Vercel se Cloudflare mein load ho sakay.
+
+---
+
+## Next Time Yeh Na Aaye — Rules
+
+```
+✅ RULE: Cloudflare mein kisi bhi Next.js ya React website ke liye "Rocket Loader" ko HAMESHA OFF rakhein. Ye SPA routing aur React Hydration ka dushman hai.
+
+✅ RULE: Agar aap app router (Next.js 14+) use kar rahe hain, to Storefront ke main sections mein `loading.tsx` avoid karein (jab tak streaming explicitly required na ho), aur uski jagah Top ProgressBar (`nextjs-toploader`) use karein taake user ko fake "slow load" feel na aaye.
+
+✅ RULE: E-commerce stores mein Cloudflare cache mismatch tab hota hai jab Naya build Vercel pe deploy ho lekin Cloudflare purana HTML de. Jab bhi koi code branch push ho aur Vercel build complete ho, hamesha Cloudflare se "Purge Everything" karein!
+
+✅ RULE: Agar Purge Cache APIs achanak fail hone lagen, to Vercel/Cloudflare ke API Tokens ki expiry ya validity zaroor check karein.
+```
