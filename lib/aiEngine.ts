@@ -51,15 +51,21 @@ export async function getAISettings(): Promise<AISettings> {
       ? JSON.parse(data.ai_persona_config)
       : (data.ai_persona_config ?? {});
 
-  // Build flat target_audiences string: prefer flat column, fallback to JSONB array
+  // PRIORITY: JSONB ai_persona_config is the source of truth (always written by the UI save action).
+  // Flat columns (target_audiences, product_types) are secondary and may contain stale data from old migrations.
   const targetAudiencesFlat =
+    (Array.isArray(personaConfig.targetAudiences) && personaConfig.targetAudiences.length > 0
+      ? personaConfig.targetAudiences.join(', ')
+      : null) ||
     data.target_audiences ||
-    (Array.isArray(personaConfig.targetAudiences) ? personaConfig.targetAudiences.join(', ') : '');
+    '';
 
-  // Build flat product_types string: prefer flat column, fallback to JSONB array
   const productTypesFlat =
+    (Array.isArray(personaConfig.productTypes) && personaConfig.productTypes.length > 0
+      ? personaConfig.productTypes.join(', ')
+      : null) ||
     data.product_types ||
-    (Array.isArray(personaConfig.productTypes) ? personaConfig.productTypes.join(', ') : '');
+    '';
 
   return {
     ai_enabled: data.ai_enabled ?? false,

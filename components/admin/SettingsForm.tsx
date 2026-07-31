@@ -302,24 +302,31 @@ export default function SettingsForm({ initialSettings }: SettingsFormProps) {
   );
   const [visionProvider, setVisionProvider] = useState(initialSettings.vision_provider || 'gemini');
   const [visionModel, setVisionModel] = useState(initialSettings.vision_model || 'gemini-2.5-flash');
+  // PRIORITY: JSONB ai_persona_config is always written by the UI and is the source of truth.
+  // Flat columns (target_audiences, product_types) can hold stale data from old migrations.
+  // Prefer JSONB array → flat string fallback → empty array (never hardcode 'Kids').
   const pConfig: { tone?: string; language?: string; customInstructions?: string; targetAudiences?: string[]; productTypes?: string[] } = initialSettings.ai_persona_config || {};
-  
-  // Parse flat DB columns (source of truth) — these are always current.
-  // JSONB ai_persona_config is a legacy fallback only.
-  const flatAudiences = initialSettings.target_audiences
+  const jsonbAudiences = Array.isArray(pConfig.targetAudiences) && pConfig.targetAudiences.length > 0
+    ? pConfig.targetAudiences
+    : null;
+  const jsonbProductTypes = Array.isArray(pConfig.productTypes) && pConfig.productTypes.length > 0
+    ? pConfig.productTypes
+    : null;
+
+  const flatAudiencesParsed = initialSettings.target_audiences
     ? initialSettings.target_audiences.split(',').map((s: string) => s.trim()).filter(Boolean)
-    : null;
-  const flatProductTypes = initialSettings.product_types
+    : [];
+  const flatProductTypesParsed = initialSettings.product_types
     ? initialSettings.product_types.split(',').map((s: string) => s.trim()).filter(Boolean)
-    : null;
+    : [];
 
   const [aiPersonaConfig, setAiPersonaConfig] = useState({
     tone: pConfig.tone || 'Professional',
     language: pConfig.language || 'English',
     customInstructions: pConfig.customInstructions || '',
-    // Prefer flat column → fallback to JSONB → fallback to empty (no hardcoded 'Kids')
-    targetAudiences: flatAudiences ?? (Array.isArray(pConfig.targetAudiences) ? pConfig.targetAudiences : []),
-    productTypes: flatProductTypes ?? (Array.isArray(pConfig.productTypes) ? pConfig.productTypes : []),
+    // JSONB first (always fresh from UI saves), flat column as fallback, never default to 'Kids'
+    targetAudiences: jsonbAudiences ?? flatAudiencesParsed,
+    productTypes: jsonbProductTypes ?? flatProductTypesParsed,
   });
   const [autoContentSeo, setAutoContentSeo] = useState(initialSettings.auto_content_seo ?? true);
   const [autoMediaAi, setAutoMediaAi] = useState(initialSettings.auto_media_ai ?? true);
