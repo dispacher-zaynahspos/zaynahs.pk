@@ -273,7 +273,7 @@ export default function Navbar({
   const customBorderColorStyle = headerBorderColor !== '#e5e7eb' ? { borderColor: headerBorderColor } : {};
 
   const renderLogo = () => (
-    <Link href="/" key="logo" className="flex items-center gap-2 shrink-0 select-none" onClick={() => { setSearchOpen(false); setMobileMenuOpen(false); }}>
+    <Link href="/" key="logo" className="flex items-center gap-2 shrink-0 select-none" onClick={() => { setSearchOpen(false); setMobileMenuOpen(false); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
       {logoUrl ? (
         <div
           style={{ width: `${logoWidth}px`, maxWidth: `${logoWidth}px` }}
