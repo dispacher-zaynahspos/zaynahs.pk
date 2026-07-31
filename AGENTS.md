@@ -282,3 +282,17 @@ When adding a new page, category, or route:
 2. During build time, Next.js caches module scopes. Variables like `process.env.CLOUDFLARE_ZONE_ID` or tokens may evaluate to `undefined` at runtime if declared globally.
 3. ALWAYS read dynamic environment variables *inside* the function body where they are used.
 <!-- END:server-action-env-rule -->
+
+<!-- BEGIN:post-deploy-cache-rule -->
+# Post-Deploy Cache Purge Rule (MANDATORY — prevents stale 500s)
+
+1. **On EVERY new clone / store setup, run `node scripts/post-deploy-fix.mjs` ONCE after the first production deploy is READY.** It purges Vercel CDN + Data cache, purges Cloudflare edge, verifies all storefront pages return 200, and tests the `/api/revalidate` webhook.
+2. **Root cause it prevents:** the first deployment built with incomplete/wrong env (e.g. `NEXT_PUBLIC_SITE_URL=localhost:3000`) leaves a stale Vercel ISR/data-cache render that serves **500 on product pages** until the next deploy + cache purge.
+3. **Golden rules to avoid the issue at the source:**
+   - Set ALL env vars (especially `NEXT_PUBLIC_*` — inlined at build time) BEFORE triggering the first build.
+   - Set `store_settings.store_url` in the DB BEFORE the first deploy (Supabase webhooks resolve their URL from it at trigger time).
+   - If product pages 500 after a deploy: purge Vercel cache (`npx vercel cache purge --project <name> --yes`) — that fixes it instantly; it is almost never a code bug.
+4. **Required env vars for the script:** `VERCEL_PROJECT_NAME`, `VERCEL_TEAM_ID`, plus existing `VERCEL_TOKEN`, `CLOUDFLARE_*`, `REVALIDATE_SECRET`, `NEXT_PUBLIC_SITE_URL`, `SUPABASE_*`.
+5. Cloudflare token MUST include **Zone → Cache Purge → Purge** permission, or the purge step fails with 403.
+6. NEVER commit temp/debug files (test-*.js, `env tv`, vercel_envs.json, debug API routes) — GitHub push protection blocks them anyway.
+<!-- END:post-deploy-cache-rule -->

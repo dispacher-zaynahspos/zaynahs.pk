@@ -728,6 +728,50 @@ bashcurl -X POST https://www.zaynahs.pk/api/revalidate \
 
 ---
 
+# PART 11.5: Post-Deploy Cache Fix — MANDATORY (stale 500 fix)
+
+> ⚠️ **Every new clone/setup MUST run this once after the first production deploy.**
+> Without it, the FIRST deployment's stale Vercel ISR cache can serve 500 errors on
+> product pages (bad env baked at build time + cached render) until the next deploy.
+
+```bash
+node scripts/post-deploy-fix.mjs
+```
+
+What it does (all in one):
+
+| # | Check | What it fixes |
+|---|-------|---------------|
+| 1 | Vercel cache purge (`vercel cache purge`) | Clears stale ISR/data cache — **the root cause of product-page 500s** |
+| 2 | Cloudflare purge (`purge_everything`) | Clears edge cache |
+| 3 | Page verify (`/`, `/shop`, `/reviews`, sample product) | Confirms all pages return 200 |
+| 4 | Webhook test (`POST /api/revalidate`) | Confirms cache revalidation works |
+
+**Required env vars** (add to `.env.local`):
+```env
+VERCEL_PROJECT_NAME=your-vercel-project-name
+VERCEL_TEAM_ID=team_xxxxxxxxxxxx
+```
+(reads existing: `VERCEL_TOKEN`, `CLOUDFLARE_ZONE_ID`, `CLOUDFLARE_API_TOKEN`, `REVALIDATE_SECRET`, `NEXT_PUBLIC_SITE_URL`, `SUPABASE_PROJECT_REF`, `SUPABASE_MGMT_TOKEN`)
+
+**Prevention rules (2 golden rules to avoid the 500 in the first place):**
+1. **Set ALL env vars BEFORE the first build** — especially `NEXT_PUBLIC_*` (they are inlined at build time; wrong values baked into the first deployment = stale cache 500s).
+2. **Set `store_settings.store_url` BEFORE the first deploy** — webhooks resolve their URL from this DB value at trigger time.
+
+Expected output:
+```
+[1/4] Vercel cache purge: OK
+[2/4] Cloudflare purge: OK
+[3/4] 200 / OK
+[3/4] 200 /shop OK
+[3/4] 200 /reviews OK
+[3/4] 200 /product/... OK
+[4/4] Webhook: OK (revalidated:true)
+✅ ALL CHECKS PASSED — setup is clean.
+```
+
+---
+
 # AGENT AUTOMATION — FULL SETUP FLOW
 
 > Jab aap agent ko yeh cheezein dein to wo SUB KAM KHUD KARE GA:
