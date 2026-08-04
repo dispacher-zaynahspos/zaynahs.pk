@@ -261,6 +261,9 @@ interface SettingsRow {
   product_description_limit?: number | null;
   product_short_prompt?: string | null;
   product_short_limit?: number | null;
+  collection_default_template?: string | null;
+  collection_description_prompt?: string | null;
+  collection_description_limit?: number | null;
 
   // SMTP/Email Fallback Columns
   smtp_email?: string | null;
