@@ -105,17 +105,7 @@ function pctChange(current: number, previous: number): { pct: number; direction:
   return { pct: Math.abs(pct), direction: pct > 0 ? 'up' : pct < 0 ? 'down' : 'flat' };
 }
 
-function timeAgo(dateStr: string): string {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return 'just now';
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  const days = Math.floor(hrs / 24);
-  if (days < 30) return `${days}d ago`;
-  return `${Math.floor(days / 30)}mo ago`;
-}
+import { timeAgo } from '@/lib/utils/dateFilters';
 
 export default function DashboardClient({ orders, products, customers, settings }: DashboardClientProps) {
   const [dateFilter, setDateFilter] = useState<DateRange>('all');

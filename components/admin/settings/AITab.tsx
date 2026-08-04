@@ -50,6 +50,12 @@ interface AITabProps {
   setProductShortPrompt: (val: string) => void;
   productShortLimit: number;
   setProductShortLimit: (val: number) => void;
+  collectionDefaultTemplate: string;
+  setCollectionDefaultTemplate: (val: string) => void;
+  collectionDescriptionPrompt: string;
+  setCollectionDescriptionPrompt: (val: string) => void;
+  collectionDescriptionLimit: number;
+  setCollectionDescriptionLimit: (val: number) => void;
 }
 
 const PROVIDERS = [
@@ -61,8 +67,6 @@ const PROVIDERS = [
 const TEXT_MODELS: Record<string, string[]> = {
   // ── FREE PROVIDERS ──────────────────────────────────────────────
   groq: [
-    'meta-llama/llama-4-scout-17b-16e-instruct',
-    'meta-llama/llama-4-maverick-17b-128e-instruct',
     'llama-3.3-70b-versatile',
     'llama-3.1-70b-versatile',
     'llama-3.1-8b-instant',
@@ -103,7 +107,6 @@ const TEXT_MODELS: Record<string, string[]> = {
     '@cf/meta/llama-3.1-8b-instruct',
     '@cf/meta/llama-3.2-3b-instruct',
     '@cf/meta/llama-3.2-1b-instruct',
-    '@cf/meta/llama-4-scout-17b-16e-instruct',
     '@cf/google/gemma-3n-e4b-it',
     '@cf/google/gemma-3-12b-it',
     '@cf/google/gemma-2-2b-it',
@@ -118,8 +121,6 @@ const TEXT_MODELS: Record<string, string[]> = {
     'meta/llama-3.3-70b-instruct',
     'meta/llama-3.1-70b-instruct',
     'meta/llama-3.1-8b-instruct',
-    'meta/llama-4-maverick-17b-128e-instruct',
-    'meta/llama-4-scout-17b-16e-instruct',
     'nvidia/llama-3.1-nemotron-70b-instruct',
     'nvidia/nemotron-4-340b-instruct',
     'nvidia/nemotron-mini-4b-instruct',
@@ -139,8 +140,6 @@ const TEXT_MODELS: Record<string, string[]> = {
   ],
   openrouter: [
     'meta-llama/llama-3.3-70b-instruct:free',
-    'meta-llama/llama-4-maverick:free',
-    'meta-llama/llama-4-scout:free',
     'deepseek/deepseek-r1:free',
     'deepseek/deepseek-chat:free',
     'deepseek/deepseek-v3-base:free',
@@ -171,8 +170,6 @@ const TEXT_MODELS: Record<string, string[]> = {
     'deepseek-coder',
   ],
   together: [
-    'meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8',
-    'meta-llama/Llama-4-Scout-17B-16E-Instruct',
     'meta-llama/Llama-3.3-70B-Instruct-Turbo',
     'meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo',
     'meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo',
@@ -1199,7 +1196,7 @@ export default function AITab({
               Configure target word limits and custom copywriting guidelines/prompts for category descriptions, product descriptions, and product short descriptions.
             </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {/* Category Description */}
               <div className="space-y-3 p-4 rounded-xl bg-gray-50/50 dark:bg-[#0f0f1b]/50 border border-gray-100 dark:border-gray-800/80">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-blue-500">Category Description</h4>
@@ -1271,6 +1268,31 @@ export default function AITab({
                     onChange={(e) => setProductShortLimit(e.target.value ? Number(e.target.value) : 0)}
                     placeholder="100"
                     className="w-full rounded-xl border border-gray-200 dark:border-gray-855 bg-white dark:bg-[#16162a] px-3.5 py-2 text-xs text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all"
+                  />
+                </div>
+              </div>
+
+              {/* Collection Description */}
+              <div className="space-y-3 p-4 rounded-xl bg-gray-50/50 dark:bg-[#0f0f1b]/50 border border-gray-100 dark:border-gray-800/80">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-purple-500">Collection Description</h4>
+                <div className="space-y-1">
+                  <label className="block text-[10px] font-bold uppercase text-gray-400 dark:text-gray-500">Prompt Instructions</label>
+                  <textarea
+                    rows={4}
+                    value={collectionDescriptionPrompt}
+                    onChange={(e) => setCollectionDescriptionPrompt(e.target.value)}
+                    placeholder="e.g. Focus on premium quality, curated styles, and perfect fits."
+                    className="w-full rounded-xl border border-gray-200 dark:border-gray-850 bg-white dark:bg-[#16162a] px-3.5 py-2 text-xs text-gray-900 dark:text-white focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="block text-[10px] font-bold uppercase text-gray-400 dark:text-gray-500">Word Limit</label>
+                  <input
+                    type="number"
+                    value={collectionDescriptionLimit || ''}
+                    onChange={(e) => setCollectionDescriptionLimit(e.target.value ? Number(e.target.value) : 0)}
+                    placeholder="100"
+                    className="w-full rounded-xl border border-gray-200 dark:border-gray-850 bg-white dark:bg-[#16162a] px-3.5 py-2 text-xs text-gray-900 dark:text-white focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all"
                   />
                 </div>
               </div>

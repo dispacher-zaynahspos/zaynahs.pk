@@ -16,6 +16,7 @@ import {
   getAllProductsAdmin
 } from '@/lib/services/products';
 import { updateCategory } from '@/lib/services/categories';
+import { useConfirm } from '@/components/admin/shared/AdminConfirmProvider';
 import { toast } from 'sonner';
 import { formatPrice } from '@/lib/utils/whatsapp';
 import { getSwatchStyle } from '@/lib/utils/swatch';
@@ -46,6 +47,7 @@ interface CategoryDetailManagerProps {
 
 export default function CategoryDetailManager({ category, initialProducts }: CategoryDetailManagerProps) {
   const router = useRouter();
+  const { confirm } = useConfirm();
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [sortBy, setSortBy] = useState('newest');
   const [searchQuery, setSearchQuery] = useState('');
@@ -89,7 +91,13 @@ export default function CategoryDetailManager({ category, initialProducts }: Cat
   // Bulk remove products from category
   const handleBulkRemoveProducts = async () => {
     if (selectedProductIds.length === 0) return;
-    if (!confirm(`Are you sure you want to remove ${selectedProductIds.length} products from this category?`)) return;
+    const confirmed = await confirm({
+      title: 'Remove Products',
+      message: `Are you sure you want to remove ${selectedProductIds.length} products from this category?`,
+      variant: 'danger',
+      confirmText: 'Remove'
+    });
+    if (!confirmed) return;
     
     setProducts(prev => prev.filter(p => !selectedProductIds.includes(p.id)));
     setSelectedProductIds([]);

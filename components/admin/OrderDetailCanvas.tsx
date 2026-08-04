@@ -23,6 +23,7 @@ import {
   X
 } from '@/components/common/Icons';
 import { Order, StoreSettings, StatusLogItem } from '@/lib/types';
+import { useConfirm } from '@/components/admin/shared/AdminConfirmProvider';
 import { formatPrice, cleanWhatsAppPhone } from '@/lib/utils/whatsapp';
 import { updateOrderDetailsSafe, deleteOrderSafe } from '@/lib/services/orders';
 import { toast } from 'sonner';
@@ -36,6 +37,7 @@ interface OrderDetailCanvasProps {
 
 export default function OrderDetailCanvas({ order: initialOrder, settings }: OrderDetailCanvasProps) {
   const router = useRouter();
+  const { confirm } = useConfirm();
   const [order, setOrder] = useState<Order>(initialOrder);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -331,7 +333,13 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
   };
 
   const handleMoveToTrash = async () => {
-    if (!confirm('Are you sure you want to move this order to trash?')) return;
+    const confirmed = await confirm({
+      title: 'Move to Trash',
+      message: 'Are you sure you want to move this order to trash?',
+      variant: 'danger',
+      confirmText: 'Move to Trash'
+    });
+    if (!confirmed) return;
     try {
       setIsUpdating(true);
       const result = await deleteOrderSafe(order.id);
@@ -349,7 +357,13 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
   const handleCancelShipment = async () => {
     const tn = order.trackingNumber;
     if (!tn) return;
-    if (!confirm(`Are you sure you want to cancel shipment ${tn} on PostEx and revert order to Pending?`)) return;
+    const confirmed = await confirm({
+      title: 'Cancel Shipment',
+      message: `Are you sure you want to cancel shipment ${tn} on PostEx and revert order to Pending?`,
+      variant: 'danger',
+      confirmText: 'Cancel Shipment'
+    });
+    if (!confirmed) return;
     try {
       setIsUpdating(true);
       const res = await fetch('/api/courier/postex/cancel', {
@@ -443,7 +457,13 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
 
   const handleDeleteTimelineComment = async (logId: string) => {
     if (!order.statusLogs) return;
-    if (!window.confirm('Delete this comment?')) return;
+    const confirmed = await confirm({
+      title: 'Delete Comment',
+      message: 'Delete this comment?',
+      variant: 'danger',
+      confirmText: 'Delete'
+    });
+    if (!confirmed) return;
     const newLogs = order.statusLogs.filter(l => l.id !== logId);
     try {
       setIsUpdating(true);

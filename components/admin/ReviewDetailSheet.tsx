@@ -10,6 +10,7 @@ import { X, Check, EyeOff, Trash2, ExternalLink, Edit, Package, Phone, Mail } fr
 import Link from 'next/link';
 import { getClientSiteUrl } from '@/lib/site-url';
 import { cleanWhatsAppPhone } from '@/lib/utils/whatsapp';
+import { useConfirm } from '@/components/admin/shared/AdminConfirmProvider';
 
 const FALLBACK_IMAGE = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%23f3f4f6'/%3E%3C/svg%3E";
 
@@ -24,6 +25,7 @@ interface ReviewDetailSheetProps {
 }
 
 export default function ReviewDetailSheet({ review, onClose, onApprove, onHide, onDelete, storeUrl, storeName }: ReviewDetailSheetProps) {
+  const { confirm } = useConfirm();
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
 
@@ -239,7 +241,16 @@ export default function ReviewDetailSheet({ review, onClose, onApprove, onHide, 
               <span>{review.hidden ? 'Show Feed' : 'Hide Feed'}</span>
             </button>
             <button
-              onClick={() => { if (confirm('Are you sure you want to move this review to Trash?')) { onDelete(review.id); onClose(); } }}
+              type="button"
+              onClick={async () => { 
+                const confirmed = await confirm({
+                  title: 'Move to Trash',
+                  message: 'Are you sure you want to move this review to Trash?',
+                  variant: 'danger',
+                  confirmText: 'Move to Trash'
+                });
+                if (confirmed) { onDelete(review.id); onClose(); } 
+              }}
               className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-600 hover:text-white dark:hover:bg-red-500 text-xs font-bold transition-all cursor-pointer"
             >
               <Trash2 className="w-3.5 h-3.5" />

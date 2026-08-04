@@ -4,6 +4,10 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import OrderCreateCanvas from '@/components/admin/OrderCreateCanvas';
+import EmptyState from '@/components/common/EmptyState';
+import AdminSearchInput from '@/components/admin/shared/AdminSearchInput';
+import AdminDateFilter from '@/components/admin/shared/AdminDateFilter';
+import { useConfirm } from '@/components/admin/shared/AdminConfirmProvider';
 import {
   Search,
   Calendar,
@@ -18,8 +22,17 @@ import {
   Package,
   Trash2,
   Archive,
-  ArrowRight
+  ArrowRight,
+  Edit,
+  Printer,
+  Plus,
+  MessageSquare,
+  MapPin,
+  Tag,
+  Box,
+  Info
 } from '@/components/common/Icons';
+import { getStartISO, getEndISO } from '@/lib/utils/dateFilters';
 import { Order, StoreSettings, StatusLogItem } from '@/lib/types';
 import { formatPrice } from '@/lib/utils/whatsapp';
 import { toast } from 'sonner';
@@ -32,6 +45,7 @@ interface OrderLogProps {
 
 export default function OrderLog({ initialOrders, settings }: OrderLogProps) {
   const router = useRouter();
+  const { confirm } = useConfirm();
   const [orders, setOrders] = useState<Order[]>(initialOrders);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -144,16 +158,7 @@ export default function OrderLog({ initialOrders, settings }: OrderLogProps) {
         .range(from, to);
 
       const now = new Date();
-      const getStartISO = (d: Date) => {
-        const copy = new Date(d);
-        copy.setHours(0, 0, 0, 0);
-        return copy.toISOString();
-      };
-      const getEndISO = (d: Date) => {
-        const copy = new Date(d);
-        copy.setHours(23, 59, 59, 999);
-        return copy.toISOString();
-      };
+
 
       if (filter === 'today') {
         query = query.gte('created_at', getStartISO(now)).lte('created_at', getEndISO(now));
@@ -557,7 +562,13 @@ export default function OrderLog({ initialOrders, settings }: OrderLogProps) {
 
   const handleBulkCancel = async () => {
     if (selectedOrderIds.length === 0) return;
-    if (!confirm(`Are you sure you want to cancel these ${selectedOrderIds.length} orders?`)) return;
+    const confirmed = await confirm({
+      title: 'Bulk Cancel Orders',
+      message: `Are you sure you want to cancel these ${selectedOrderIds.length} orders?`,
+      variant: 'warning',
+      confirmText: 'Cancel Orders'
+    });
+    if (!confirmed) return;
     setIsRefreshing(true);
     try {
       const supabase = createClient();
@@ -596,7 +607,13 @@ export default function OrderLog({ initialOrders, settings }: OrderLogProps) {
 
   const handleBulkTrash = async () => {
     if (selectedOrderIds.length === 0) return;
-    if (!confirm(`Are you sure you want to move these ${selectedOrderIds.length} orders to trash?`)) return;
+    const confirmed = await confirm({
+      title: 'Bulk Trash Orders',
+      message: `Are you sure you want to move these ${selectedOrderIds.length} orders to trash?`,
+      variant: 'danger',
+      confirmText: 'Move to Trash'
+    });
+    if (!confirmed) return;
     setIsRefreshing(true);
     try {
       const supabase = createClient();
@@ -688,25 +705,19 @@ export default function OrderLog({ initialOrders, settings }: OrderLogProps) {
 
         {/* Unified date filter — first column in metrics grid */}
         <div className="stat-item min-w-[160px] p-4 border-r border-gray-200 dark:border-gray-800 flex flex-col justify-center relative">
-          <div className="flex items-center gap-1.5 bg-white dark:bg-[#16162a] border border-gray-200 dark:border-gray-800 rounded-lg px-2.5 py-1.5">
-            <Calendar className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
-            <select
-              value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value)}
-              className="bg-transparent border-0 text-xs font-semibold focus:outline-none text-gray-700 dark:text-gray-200 cursor-pointer appearance-none flex-1 min-w-0"
-              style={{ WebkitAppearance: 'none', MozAppearance: 'none' }}
-            >
-              <option value="all">All Dates</option>
-              <option value="today">Today</option>
-              <option value="yesterday">Yesterday</option>
-              <option value="last7">Last 7 days</option>
-              <option value="last30">Last 30 days</option>
-              <option value="custom">Custom range</option>
-            </select>
-            <svg className="h-3 w-3 text-gray-400 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="6 9 12 15 18 9" />
-            </svg>
-          </div>
+          <AdminDateFilter
+            value={dateFilter}
+            onChange={setDateFilter}
+            className="border-none bg-transparent dark:bg-transparent shadow-none"
+            options={[
+              { value: 'all', label: 'All Dates' },
+              { value: 'today', label: 'Today' },
+              { value: 'yesterday', label: 'Yesterday' },
+              { value: 'last7', label: 'Last 7 days' },
+              { value: 'last30', label: 'Last 30 days' },
+              { value: 'custom', label: 'Custom range' }
+            ]}
+          />
         </div>
 
         <div className="stat-item flex-1 min-w-[110px] p-4 border-r border-gray-200 dark:border-gray-800 last:border-r-0 flex flex-col gap-1">
@@ -836,12 +847,11 @@ export default function OrderLog({ initialOrders, settings }: OrderLogProps) {
       {/* Expanded Search Input */}
       {isSearchExpanded && (
         <div className="bg-white dark:bg-[#16162a] border-x border-gray-200 dark:border-gray-800 px-4 py-3 flex gap-2 animate-fade-in border-b">
-          <input
-            type="text"
-            placeholder="Search by order no, customer or phone..."
+          <AdminSearchInput
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-1 px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 text-xs font-semibold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
+            onChange={setSearchQuery}
+            placeholder="Search by order no, customer or phone..."
+            className="flex-1 w-full"
           />
         </div>
       )}
@@ -849,22 +859,20 @@ export default function OrderLog({ initialOrders, settings }: OrderLogProps) {
       {/* Expanded Filters Panel */}
       {isFiltersExpanded && (
         <div className="bg-white dark:bg-[#16162a] border-x border-gray-200 dark:border-gray-800 px-4 py-3.5 flex flex-wrap items-center gap-3.5 animate-fade-in border-b">
-          <div className="flex items-center gap-1.5 bg-white dark:bg-[#16162a] border border-gray-200 dark:border-gray-800 rounded-xl px-3 py-1 flex-1 sm:flex-initial">
-            <Calendar className="h-4 w-4 text-gray-400" />
-            <select
-              value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value)}
-              className="bg-transparent border-0 text-xs font-bold focus:outline-none text-gray-900 dark:text-white cursor-pointer py-1.5"
-            >
-              <option value="all">All Dates</option>
-              <option value="today">Today</option>
-              <option value="yesterday">Yesterday</option>
-              <option value="tomorrow">Tomorrow</option>
-              <option value="last7">Last 7 Days</option>
-              <option value="last30">Last 30 Days</option>
-              <option value="custom">Custom Range</option>
-            </select>
-          </div>
+          <AdminDateFilter
+            value={dateFilter}
+            onChange={setDateFilter}
+            className="flex-1 sm:flex-initial"
+            options={[
+              { value: 'all', label: 'All Dates' },
+              { value: 'today', label: 'Today' },
+              { value: 'yesterday', label: 'Yesterday' },
+              { value: 'tomorrow', label: 'Tomorrow' },
+              { value: 'last7', label: 'Last 7 Days' },
+              { value: 'last30', label: 'Last 30 Days' },
+              { value: 'custom', label: 'Custom Range' }
+            ]}
+          />
 
           <div className="flex items-center gap-1.5 bg-white dark:bg-[#16162a] border border-gray-200 dark:border-gray-800 rounded-xl px-3 py-1 flex-1 sm:flex-initial">
             <select
@@ -953,8 +961,12 @@ export default function OrderLog({ initialOrders, settings }: OrderLogProps) {
 
       {/* Main Table Layout */}
       {sortedOrders.length === 0 ? (
-        <div className="py-16 text-center text-sm text-gray-500 border border-gray-200 dark:border-gray-800 rounded-b-xl bg-white dark:bg-[#16162a] shadow-xs">
-          No orders found matching your criteria.
+        <div className="bg-white dark:bg-[#16162a] rounded-b-xl border border-t-0 border-gray-200 dark:border-gray-800 shadow-xs">
+          <EmptyState 
+            icon={<Package className="h-8 w-8 text-gray-400" />}
+            title="No orders found" 
+            description="No orders found matching your criteria." 
+          />
         </div>
       ) : (
         <div className="bg-white dark:bg-[#16162a] rounded-b-xl border-x border-b border-gray-200 dark:border-gray-800 shadow-xs overflow-hidden transition-colors">

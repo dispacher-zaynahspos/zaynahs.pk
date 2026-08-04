@@ -14,11 +14,8 @@ export default async function StoreLayout({
   children: React.ReactNode;
 }) {
   const settings = await getSettings();
-  let brandName = settings.storeName;
-  try {
-    const brand = await getDomainBrand();
-    brandName = brand.name;
-  } catch {}
+  const brand = await getDomainBrand().catch(() => null);
+  const brandName = brand?.name ?? settings.storeName;
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50 dark:bg-[#0f0f1b] text-gray-900 dark:text-gray-100 pb-36 md:pb-0 transition-colors duration-200">

@@ -6,6 +6,10 @@ import {
   Zap, Copy, ExternalLink, SlidersHorizontal, Clock, ArrowUpRight,
   Trash2
 } from '@/components/common/Icons';
+import EmptyState from '@/components/common/EmptyState';
+import AdminSearchInput from '@/components/admin/shared/AdminSearchInput';
+import AdminDateFilter from '@/components/admin/shared/AdminDateFilter';
+import { useConfirm } from '@/components/admin/shared/AdminConfirmProvider';
 import { getWhatsAppSubscribers, getEmailSubscribers } from '@/lib/services/sections';
 import { WhatsAppSubscriber, EmailSubscriber } from '@/lib/types';
 import { toast } from 'sonner';
@@ -15,6 +19,7 @@ import { useAdminTab } from '@/lib/hooks/useAdminTab';
 type ActiveTab = 'whatsapp' | 'email';
 
 function AdminLeadsPageInner() {
+  const { confirm } = useConfirm();
   const [leads, setLeads] = useState<WhatsAppSubscriber[]>([]);
   const [emailSubs, setEmailSubs] = useState<EmailSubscriber[]>([]);
   const [loading, setLoading] = useState(true);
@@ -111,7 +116,13 @@ function AdminLeadsPageInner() {
   };
 
   const handleDeleteWhatsAppLead = async (id: string) => {
-    if (!confirm('Are you sure you want to move this WhatsApp lead to Trash?')) return;
+    const confirmed = await confirm({
+      title: 'Move to Trash',
+      message: 'Are you sure you want to move this WhatsApp lead to Trash?',
+      variant: 'danger',
+      confirmText: 'Move to Trash'
+    });
+    if (!confirmed) return;
     try {
       const { deleteWhatsAppSubscriber } = await import('@/lib/services/sections');
       await deleteWhatsAppSubscriber(id);
@@ -123,7 +134,13 @@ function AdminLeadsPageInner() {
   };
 
   const handleDeleteEmailSub = async (id: string) => {
-    if (!confirm('Are you sure you want to move this email subscriber to Trash?')) return;
+    const confirmed = await confirm({
+      title: 'Move to Trash',
+      message: 'Are you sure you want to move this email subscriber to Trash?',
+      variant: 'danger',
+      confirmText: 'Move to Trash'
+    });
+    if (!confirmed) return;
     try {
       const { deleteEmailSubscriber } = await import('@/lib/services/sections');
       await deleteEmailSubscriber(id);
@@ -151,16 +168,12 @@ function AdminLeadsPageInner() {
             WhatsApp leads from Spin Wheel / Exit Intent + Newsletter email subscribers
           </p>
         </div>
-        <div className="relative w-full md:w-80">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search name, phone, email..."
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] text-xs font-semibold text-gray-900 dark:text-white placeholder-gray-400 focus:border-[#e94560] focus:outline-none transition-all shadow-sm"
-          />
-        </div>
+        <AdminSearchInput
+          value={searchQuery}
+          onChange={setSearchQuery}
+          placeholder="Search name, phone, email..."
+          className="md:w-80"
+        />
       </div>
 
       {/* Stats Cards */}
@@ -230,14 +243,17 @@ function AdminLeadsPageInner() {
               <SlidersHorizontal className="h-4 w-4" />
               <span>Filters:</span>
             </div>
-            <div className="flex items-center gap-1.5 flex-wrap">
-              {(['all', 'today', 'yesterday', 'week', 'month'] as const).map(t => (
-                <button key={t} onClick={() => setTimeFilter(t)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${timeFilter === t ? 'bg-[#e94560] text-white' : 'bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300'}`}>
-                  {t === 'all' ? 'All Time' : t === 'today' ? 'Today' : t === 'yesterday' ? 'Yesterday' : t === 'week' ? 'Last 7 Days' : 'Last 30 Days'}
-                </button>
-              ))}
-            </div>
+            <AdminDateFilter 
+              value={timeFilter}
+              onChange={(val: any) => setTimeFilter(val)}
+              options={[
+                { value: 'all', label: 'All Time' },
+                { value: 'today', label: 'Today' },
+                { value: 'yesterday', label: 'Yesterday' },
+                { value: 'week', label: 'Last 7 Days' },
+                { value: 'month', label: 'Last 30 Days' }
+              ]}
+            />
             <div className="h-6 w-px bg-gray-200 dark:bg-gray-800 hidden sm:block" />
             <div className="flex items-center gap-1.5">
               {(['all', 'wheel', 'exit_intent'] as const).map(s => (
@@ -263,17 +279,15 @@ function AdminLeadsPageInner() {
                 ))}
               </div>
             ) : filteredLeads.length === 0 ? (
-              <div className="p-16 text-center space-y-3">
-                <div className="h-12 w-12 rounded-xl bg-gray-50 dark:bg-[#0f0f1b] border border-gray-100 dark:border-gray-800 mx-auto flex items-center justify-center text-gray-300 dark:text-gray-600">
-                  <MessageSquare className="h-6 w-6" />
-                </div>
-                <h3 className="text-sm font-bold text-gray-900 dark:text-white">No subscriber leads found</h3>
-                <p className="text-xs text-gray-400 dark:text-gray-500 max-w-xs mx-auto">
-                  {searchQuery || sourceFilter !== 'all' || timeFilter !== 'all' 
+              <EmptyState 
+                icon={<MessageSquare className="h-6 w-6 text-gray-300 dark:text-gray-600" />}
+                title="No subscriber leads found"
+                description={
+                  searchQuery || sourceFilter !== 'all' || timeFilter !== 'all' 
                     ? 'Adjust your filters or search terms.' 
-                    : 'Subscriber details from Spin Wheel and Exit Popup will display here.'}
-                </p>
-              </div>
+                    : 'Subscriber details from Spin Wheel and Exit Popup will display here.'
+                }
+              />
             ) : (
               <>
                 {/* Desktop WhatsApp Leads Table */}

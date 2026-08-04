@@ -21,6 +21,7 @@ interface CategoryRow {
   sort_order?: number | null;
   active?: boolean | null;
   active_sort_preference?: string | null;
+  vertical_id?: string | null;
   deleted_at?: string | null;
   created_at: string;
   updated_at: string;
@@ -40,7 +41,6 @@ const mapCategory = (row: CategoryRow): Category => ({
   createdAt: row.created_at,
   updatedAt: row.updated_at
 });
-
 const fetchCategories = async (): Promise<Category[]> => {
   try {
     const { data, error } = await staticSupabase
@@ -54,15 +54,29 @@ const fetchCategories = async (): Promise<Category[]> => {
     if (error) throw error;
     return (data ?? []).map(mapCategory);
   } catch (error) {
-    console.error('[categories] fetchCategories failed, returning empty fallback list:', error);
-    return [];
+    // Fallback: if vertical scoping is unavailable (pre-migration), fetch unfiltered
+    try {
+      const { data, error } = await staticSupabase
+        .from('categories')
+        .select('*')
+        .eq('active', true)
+        .is('deleted_at', null)
+        .order('sort_order', { ascending: true })
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return (data ?? []).map(mapCategory);
+    } catch (fallbackError) {
+      console.error('[categories] fetchCategories failed, returning empty fallback list:', error);
+      return [];
+    }
   }
 };
 
 const cachedCategories = unstable_cache(
   async () => fetchCategories(),
   ['categories-list'],
-  { revalidate: 86400, tags: ['categories'] }
+  { tags: ['categories'] }
 );
 
 export const getCategories = async () => {

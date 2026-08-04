@@ -893,7 +893,7 @@ export default function StoreFront({
     setHydrated(true);
     // Only fetch if SSR was limited (< 30 products)
     if (initialProducts.length < 30) {
-      fetch('/api/products/list')
+      fetch(`/api/products/list`)
         .then(r => r.json())
         .then(data => {
           if (data.products && data.products.length > initialProducts.length) {
@@ -934,11 +934,22 @@ export default function StoreFront({
     }));
   };
 
+  // Helper to include child category IDs (now just flat category)
+  const getValidCategoryIds = (catIdOrSlug: string) => {
+    const parent = categories.find(c => c.id === catIdOrSlug || c.slug === catIdOrSlug);
+    if (!parent) return [catIdOrSlug];
+    return [parent.id];
+  };
+
   // Filter products based on search query and category
   const filteredProducts = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
     return allProducts.filter(product => {
-      const matchesCategory = !selectedCategoryId || product.categoryId === selectedCategoryId;
+      const validCategoryIds = selectedCategoryId ? getValidCategoryIds(selectedCategoryId) : [];
+      const matchesCategory = !selectedCategoryId || 
+        validCategoryIds.includes(product.categoryId || '') || 
+        product.productCategories?.some(pc => validCategoryIds.includes(pc.categoryId));
+        
       if (!q) return matchesCategory;
 
       const matchesSearch = 
@@ -1058,11 +1069,14 @@ export default function StoreFront({
       if (sortMethod === 'featured' || source === 'featured') {
         prodList = prodList.filter(p => p.isFeatured);
       } else if (sortMethod === 'category' && source !== 'all' && source !== 'featured') {
-        prodList = prodList.filter(p => p.categoryId === source || p.category?.slug === source);
+        const validSourceIds = getValidCategoryIds(source);
+        prodList = prodList.filter(p => validSourceIds.includes(p.categoryId || '') || p.category?.slug === source || p.productCategories?.some(pc => validSourceIds.includes(pc.categoryId)));
       } else if (selectedCategoryId) {
-        prodList = prodList.filter(p => p.categoryId === selectedCategoryId);
+        const validCategoryIds = getValidCategoryIds(selectedCategoryId);
+        prodList = prodList.filter(p => validCategoryIds.includes(p.categoryId || '') || p.productCategories?.some(pc => validCategoryIds.includes(pc.categoryId)));
       } else if (source !== 'all' && source !== 'featured') {
-        prodList = prodList.filter(p => p.categoryId === source || p.category?.slug === source);
+        const validSourceIds = getValidCategoryIds(source);
+        prodList = prodList.filter(p => validSourceIds.includes(p.categoryId || '') || p.category?.slug === source || p.productCategories?.some(pc => validSourceIds.includes(pc.categoryId)));
       }
 
       // Sort by recency
@@ -1091,8 +1105,14 @@ export default function StoreFront({
       if (sortMethod === 'manual') return manualProductIds.length;
       let count = filteredProducts;
       if (sortMethod === 'featured' || source === 'featured') count = count.filter(p => p.isFeatured);
-      else if (sortMethod === 'category' && source !== 'all' && source !== 'featured') count = count.filter(p => p.categoryId === source || p.category?.slug === source);
-      else if (source !== 'all' && source !== 'featured') count = count.filter(p => p.categoryId === source || p.category?.slug === source);
+      else if (sortMethod === 'category' && source !== 'all' && source !== 'featured') {
+        const validSourceIds = getValidCategoryIds(source);
+        count = count.filter(p => validSourceIds.includes(p.categoryId || '') || p.category?.slug === source || p.productCategories?.some(pc => validSourceIds.includes(pc.categoryId)));
+      }
+      else if (source !== 'all' && source !== 'featured') {
+        const validSourceIds = getValidCategoryIds(source);
+        count = count.filter(p => validSourceIds.includes(p.categoryId || '') || p.category?.slug === source || p.productCategories?.some(pc => validSourceIds.includes(pc.categoryId)));
+      }
       return count.length;
     })();
 
@@ -1526,6 +1546,7 @@ export default function StoreFront({
             content = renderProductGrid(section);
             break;
           case 'category_grid':
+          case 'collections_grid':
             content = renderCategoryGrid(section);
             break;
           case 'trust_badges':

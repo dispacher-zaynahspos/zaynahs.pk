@@ -1,20 +1,30 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Trash2 } from '@/components/common/Icons';
 import { useRouter } from 'next/navigation';
 import { deleteProduct } from '@/lib/services/products';
+import { useConfirm } from '@/components/admin/shared/AdminConfirmProvider';
 import { toast } from 'sonner';
 
 interface TrashProductButtonProps {
   productId: string;
+  onSuccess?: () => void;
 }
 
-export default function TrashProductButton({ productId }: TrashProductButtonProps) {
+export default function TrashProductButton({ productId, onSuccess }: TrashProductButtonProps) {
   const router = useRouter();
+  const { confirm } = useConfirm();
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleTrash = async () => {
-    if (!confirm('Are you sure you want to move this product to Trash?')) return;
+    const confirmed = await confirm({
+      title: 'Move to Trash',
+      message: 'Are you sure you want to move this product to Trash?',
+      variant: 'danger',
+      confirmText: 'Move to Trash'
+    });
+    if (!confirmed) return;
     try {
       await deleteProduct(productId);
       toast.success('Product moved to Trash');

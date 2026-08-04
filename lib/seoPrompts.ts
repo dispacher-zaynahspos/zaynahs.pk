@@ -15,6 +15,9 @@ interface AISettings {
   product_description_limit?: number;
   product_short_prompt?: string;
   product_short_limit?: number;
+  collection_default_template?: string;
+  collection_description_prompt?: string;
+  collection_description_limit?: number;
 }
 
 /**
@@ -61,6 +64,9 @@ export function buildSystemPrompt(settings: AISettings, storeSettings?: any, sit
   if (settings.product_default_template) {
     templateGuides += `\nFor product pages, base the generated "long_description" on the structural layout and style of this template (replace {{product_name}} with the actual product name):\n${settings.product_default_template}\n`;
   }
+  if (settings.collection_default_template) {
+    templateGuides += `\nFor collection pages, base the generated "long_description" on the structural layout and style of this template (replace {{collection_name}} with the actual collection name):\n${settings.collection_default_template}\n`;
+  }
 
   // Build custom prompt instruction block
   let customPromptInstructions = '';
@@ -81,6 +87,12 @@ export function buildSystemPrompt(settings: AISettings, storeSettings?: any, sit
   }
   if (settings.product_short_limit) {
     customPromptInstructions += `\n- Product Short Description Length: Must be approximately ${settings.product_short_limit} words.`;
+  }
+  if (settings.collection_description_prompt) {
+    customPromptInstructions += `\n- Collection Description Custom Instructions: ${settings.collection_description_prompt}`;
+  }
+  if (settings.collection_description_limit) {
+    customPromptInstructions += `\n- Collection Description Length: Must be approximately ${settings.collection_description_limit} words.`;
   }
 
   return `You are an expert SEO copywriter and marketing specialist for the brand "${settings.brand_name || storeSettings?.store_name || process.env.NEXT_PUBLIC_BRAND_NAME || 'Your Store'}".
@@ -131,6 +143,13 @@ export function buildSEOPrompt(type: 'product' | 'category' | 'page', data: any,
       if (settings.category_description_prompt) {
         longDescInstruction += ` Style and instruction: ${settings.category_description_prompt}`;
       }
+    } else if (type === 'collection') {
+      if (settings.collection_description_limit) {
+        longDescInstruction = `Approximately ${settings.collection_description_limit} words detailed HTML copywriting copy. Break into logical sections with <h2> headers, bullet lists (<ul>, <li>), and paragraphs (<p>).`;
+      }
+      if (settings.collection_description_prompt) {
+        longDescInstruction += ` Style and instruction: ${settings.collection_description_prompt}`;
+      }
     }
   }
 
@@ -147,6 +166,12 @@ Product Details:
   } else if (type === 'category') {
     contextInfo = `
 Category Details:
+- Name: ${data.name}
+- Original Description: ${data.description || 'Not provided'}
+`;
+  } else if (type === 'collection') {
+    contextInfo = `
+Collection Details:
 - Name: ${data.name}
 - Original Description: ${data.description || 'Not provided'}
 `;

@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Loader2, Check, Edit2, Trash2 } from 'lucide-react';
+import { Loader2, Check, Edit2, Trash2 } from '@/components/common/Icons';
 import { Coupon } from '@/lib/types';
 
 interface CouponsTabProps {

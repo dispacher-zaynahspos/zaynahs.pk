@@ -20,6 +20,8 @@ import {
 import { getSwatchStyle } from '@/lib/utils/swatch';
 import PaginationFooter from './PaginationFooter';
 import { saveProductNavContext } from '@/lib/hooks/useProductNav';
+import EmptyState from '@/components/common/EmptyState';
+import AdminSearchInput from '@/components/admin/shared/AdminSearchInput';
 
 interface InventoryManagerProps {
   products: Product[];
@@ -307,14 +309,11 @@ export default function InventoryManager({ products: initialProducts, categories
 
       {/* Filter and Search Bar */}
       <div className="bg-white dark:bg-[#16162a] p-4 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between text-gray-900 dark:text-white transition-colors">
-        <div className="relative w-full md:max-w-md">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search products or SKUs..."
+        <div className="w-full sm:max-w-xs">
+          <AdminSearchInput
             value={searchQuery}
-            onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-[#0f0f1b] text-sm focus:outline-none focus:border-[#1a1a2e] dark:focus:border-gray-600 focus:bg-white transition-all text-gray-900 dark:text-white"
+            onChange={(val) => { setSearchQuery(val); setCurrentPage(1); }}
+            placeholder="Search products, SKUs..."
           />
         </div>
 
@@ -346,11 +345,11 @@ export default function InventoryManager({ products: initialProducts, categories
       </div>
 
       {filteredProducts.length === 0 ? (
-        <div className="bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm p-16 text-center text-gray-900 dark:text-white transition-colors">
-          <PackageOpen className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-          <h3 className="text-lg font-bold text-gray-700 dark:text-gray-300">No Inventory Records Found</h3>
-          <p className="text-sm text-gray-400 mt-1">Try resetting your search query or category filters.</p>
-        </div>
+        <EmptyState
+          icon={<PackageOpen className="h-8 w-8 text-gray-400" />}
+          title="No Inventory Records Found"
+          description="Try resetting your search query or category filters."
+        />
       ) : (
         <div className="space-y-4">
           {/* Desktop Table View */}

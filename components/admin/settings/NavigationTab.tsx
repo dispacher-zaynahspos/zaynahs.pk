@@ -77,6 +77,10 @@ export default function NavigationTab({
   const categoryDropdownRef = useRef<HTMLDivElement>(null);
   const productDropdownRef = useRef<HTMLDivElement>(null);
 
+  const flattenedCategories = useMemo(() => {
+    return categoriesList.map(c => ({ ...c, _level: 0 }));
+  }, [categoriesList]);
+
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (categoryDropdownRef.current && !categoryDropdownRef.current.contains(event.target as Node)) {
@@ -330,7 +334,7 @@ export default function NavigationTab({
                     className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-[#0f0f1b] px-4 py-2.5 text-sm cursor-pointer flex justify-between items-center text-gray-900 dark:text-white"
                   >
                     <span className="truncate">
-                      {menuItemCategoryId ? categoriesList.find(c => c.id === menuItemCategoryId)?.name : '-- Choose Category --'}
+                      {menuItemCategoryId ? flattenedCategories.find(c => c.id === menuItemCategoryId)?.name : '-- Choose Category --'}
                     </span>
                     <ChevronDown className="h-4 w-4 text-gray-400 shrink-0" />
                   </div>
@@ -357,7 +361,7 @@ export default function NavigationTab({
                         >
                           -- Choose Category --
                         </div>
-                        {categoriesList
+                        {flattenedCategories
                           .filter(c => c.name.toLowerCase().includes(categorySearch.toLowerCase()))
                           .map(c => {
                           const url = `/shop?category=${c.slug}`;
@@ -372,7 +376,10 @@ export default function NavigationTab({
                               }}
                               className={`px-3 py-1.5 text-xs cursor-pointer hover:bg-gray-50 dark:hover:bg-white/5 transition-colors flex items-center justify-between gap-3 ${menuItemCategoryId === c.id ? 'bg-[#e94560]/10 text-[#e94560] font-medium' : 'text-gray-700 dark:text-gray-300'}`}
                             >
-                              <span className="truncate">{c.name}</span>
+                              <span className="truncate flex items-center gap-1.5">
+                                {c._level > 0 && <span className="text-gray-400">{'—'.repeat(c._level)} </span>}
+                                {c.name}
+                              </span>
                               {existingLabel && (
                                 <span className="text-[9px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded text-[#e94560] shrink-0 border border-[#e94560]/20 flex items-center gap-1">
                                   <span className="w-1 h-1 rounded-full bg-[#e94560]"></span>

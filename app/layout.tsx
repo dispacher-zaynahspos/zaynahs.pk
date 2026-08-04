@@ -220,65 +220,68 @@ export default async function RootLayout({
             }} 
             closeButton 
           />
-          
+        </ThemeProvider>
+
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function(){
+                var p = window.location.pathname;
+                var m = p.startsWith('/admin') ? '/admin-manifest.json' : '/manifest.json';
+                var el = document.createElement('link');
+                el.rel = 'manifest';
+                el.href = m;
+                document.head.appendChild(el);
+              })();
+              if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                  for (var i = 0; i < registrations.length; i++) {
+                    registrations[i].unregister();
+                    console.log('Service Worker unregistered to prevent stale cache & WebView bugs.');
+                  }
+                });
+              }
+            `,
+          }}
+        />
+        {/* JSON-LD Schema — WebSite + Organization */}
+        {settings && (
           <script
+            type="application/ld+json"
             dangerouslySetInnerHTML={{
-              __html: `
-                (function(){
-                  var p = window.location.pathname;
-                  var m = p.startsWith('/admin') ? '/admin-manifest.json' : '/manifest.json';
-                  var el = document.createElement('link');
-                  el.rel = 'manifest';
-                  el.href = m;
-                  document.head.appendChild(el);
-                })();
-                if ('serviceWorker' in navigator) {
-                  navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                    for (var i = 0; i < registrations.length; i++) {
-                      registrations[i].unregister();
-                      console.log('Service Worker unregistered to prevent stale cache & WebView bugs.');
+              __html: JSON.stringify({
+                "@context": "https://schema.org",
+                "@graph": [
+                  {
+                    "@type": "WebSite",
+                    "@id": `${siteUrl}/#website`,
+                    "url": siteUrl,
+                    "name": storeName,
+                    "description": description,
+                    "potentialAction": [{
+                      "@type": "SearchAction",
+                      "target": {
+                        "@type": "EntryPoint",
+                        "urlTemplate": `${siteUrl}/shop?q={search_term_string}`
+                      },
+                      "query-input": "required name=search_term_string"
+                    }]
+                  },
+                  {
+                    "@type": "Organization",
+                    "@id": `${siteUrl}/#organization`,
+                    "name": storeName,
+                    "url": siteUrl,
+                    "logo": {
+                      "@type": "ImageObject",
+                      "url": settings.logoUrl ? (settings.logoUrl.startsWith('http') ? settings.logoUrl : `${siteUrl}${settings.logoUrl}`) : `${siteUrl}/icon.png`
                     }
-                  });
-                }
-              `,
+                  }
+                ]
+              })
             }}
           />
-          {/* JSON-LD Schema — WebSite + Organization */}
-          {settings && (
-            <script
-              type="application/ld+json"
-              dangerouslySetInnerHTML={{
-                __html: JSON.stringify({
-                  '@context': 'https://schema.org',
-                  '@graph': [
-                    {
-                      '@type': 'WebSite',
-                      name: storeName,
-                      url: settings.storeUrl || '',
-                      description: description,
-                      potentialAction: {
-                        '@type': 'SearchAction',
-                        target: {
-                          '@type': 'EntryPoint',
-                          urlTemplate: `${settings.storeUrl || ''}/search?q={search_term_string}`,
-                        },
-                        'query-input': 'required name=search_term_string',
-                      },
-                    },
-                    {
-                      '@type': 'Organization',
-                      name: storeName,
-                      url: settings.storeUrl || '',
-                      logo: settings.logoUrl || '',
-                      image: settings.bannerUrl || settings.logoUrl || '',
-                      description: description,
-                    },
-                  ],
-                }, null, 2),
-              }}
-            />
-          )}
-        </ThemeProvider>
+        )}
       </body>
     </html>
   );

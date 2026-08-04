@@ -53,6 +53,21 @@ export async function POST(request: Request) {
         description: data.description,
       };
       slug = data.slug;
+    } else if (entity_type === 'collection') {
+      const { data, error } = await supabaseAdmin
+        .from('collections')
+        .select('name, description, slug')
+        .eq('id', entity_id)
+        .single();
+
+      if (error || !data) {
+        return NextResponse.json({ error: 'Collection not found' }, { status: 404 });
+      }
+      entityData = {
+        name: data.name,
+        description: data.description,
+      };
+      slug = data.slug;
     } else {
       // generic page type
       entityData = {

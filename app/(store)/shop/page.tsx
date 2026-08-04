@@ -2,6 +2,7 @@ import React from 'react';
 import ShopPage from '@/components/store/ShopPage';
 import { getProducts } from '@/lib/services/products';
 import { getCategories, getCategoryBySlug } from '@/lib/services/categories';
+import { getCollections, fetchCollectionBySlug } from '@/lib/services/collections';
 import { getSettings } from '@/lib/services/settings';
 import { getDomainBrand, cleanBrandName } from '@/lib/utils/getDomainBrand';
 import { Metadata } from 'next';
@@ -10,13 +11,13 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
 export const revalidate = 3600; // 1 hour ISR — webhooks purge on admin save
 
 interface PageProps {
-  searchParams: Promise<{ category?: string; search?: string }>;
+  searchParams: Promise<{ category?: string; collection?: string; search?: string }>;
 }
 
 export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {
   try {
     const brand = await getDomainBrand();
-    const { category: categorySlug } = await searchParams;
+    const { category: categorySlug, collection: collectionSlug } = await searchParams;
     const settings = await getSettings();
     const siteUrl = `${brand.protocol}://${brand.domain}`;
 
@@ -39,6 +40,14 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
         description = cleanBrandName(seoMeta?.meta_description, brand.name) || category.description || `Explore our ${category.name} collection at ${brand.name}.`;
         imageUrl = category.imageUrl || imageUrl;
         canonicalUrl = `${siteUrl}/shop?category=${categorySlug}`;
+      }
+    } else if (collectionSlug) {
+      const collection = await fetchCollectionBySlug(collectionSlug);
+      if (collection) {
+        title = `${collection.name} Collection | ${brand.name}`;
+        description = collection.description || `Explore our ${collection.name} collection at ${brand.name}.`;
+        imageUrl = collection.imageUrl || imageUrl;
+        canonicalUrl = `${siteUrl}/shop?collection=${collectionSlug}`;
       }
     }
 
@@ -72,14 +81,17 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
 }
 
 export default async function StoreShopPage({ searchParams }: PageProps) {
-  const { category: categorySlug } = await searchParams;
+  const { category: categorySlug, collection: collectionSlug } = await searchParams;
   
-  const [products, categories, settings] = await Promise.all([
+  const [products, categories, collections, settings, brand] = await Promise.all([
     getProducts(undefined, 24), // SSR first 24 only — ShopPage loads rest client-side
     getCategories(),
-    getSettings()
+    getCollections(),
+    getSettings(),
+    getDomainBrand()
   ]);
 
+  const siteUrl = `${brand.protocol}://${brand.domain}`;
 
   let faqSchema: any = null;
   if (categorySlug) {
@@ -109,8 +121,23 @@ export default async function StoreShopPage({ searchParams }: PageProps) {
     }
   }
 
+  const itemListSchema = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "itemListElement": products.map((p, index) => ({
+      "@type": "ListItem",
+      "position": index + 1,
+      "url": `${siteUrl}/product/${p.slug}`,
+      "name": p.name
+    }))
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema) }}
+      />
       {faqSchema && (
         <script
           type="application/ld+json"
@@ -120,6 +147,7 @@ export default async function StoreShopPage({ searchParams }: PageProps) {
       <ShopPage
         initialProducts={products}
         categories={categories}
+        collections={collections}
         settings={settings}
       />
     </>

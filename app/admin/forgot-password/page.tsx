@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Mail, Store, ChevronLeft } from 'lucide-react';
+import { Mail, Store, ChevronLeft } from '@/components/common/Icons';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 

@@ -1,11 +1,40 @@
 -- ============================================================
 -- ZAYNAHS E-STORE — SUPER MASTER SCHEMA
--- Version: 2.3.0
--- Updated: 2026-06-28 (v2.3.0)
+-- Version: 2.4.0
+-- Updated: 2026-08-04 (v2.3.2 — Sub-Categories with parent_id)
 -- ============================================================
 
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- ============================================================
+-- COLLECTIONS
+-- ============================================================
+CREATE TABLE IF NOT EXISTS collections (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name TEXT NOT NULL,
+  slug TEXT NOT NULL UNIQUE,
+  description TEXT,
+  image_url TEXT,
+  sort_order INTEGER DEFAULT 0,
+  active BOOLEAN DEFAULT true,
+  deleted_at TIMESTAMPTZ DEFAULT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_collections_slug ON collections (LOWER(slug));
+
+ALTER TABLE collections ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Enable read access for all users on collections"
+  ON collections FOR SELECT
+  USING (true);
+
+CREATE POLICY "Enable all access for authenticated users on collections"
+  ON collections FOR ALL
+  USING (auth.role() = 'authenticated')
+  WITH CHECK (auth.role() = 'authenticated');
 
 -- ============================================================
 -- CATEGORIES
@@ -25,6 +54,32 @@ CREATE TABLE IF NOT EXISTS categories (
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_categories_slug ON categories (LOWER(slug));
+
+-- ============================================================
+-- COLLECTION_CATEGORIES
+-- ============================================================
+CREATE TABLE IF NOT EXISTS collection_categories (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  collection_id UUID REFERENCES collections(id) ON DELETE CASCADE,
+  category_id UUID REFERENCES categories(id) ON DELETE CASCADE,
+  sort_order INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(collection_id, category_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_collection_categories_collection ON collection_categories (collection_id);
+CREATE INDEX IF NOT EXISTS idx_collection_categories_category ON collection_categories (category_id);
+
+ALTER TABLE collection_categories ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Enable read access for all users on collection_categories"
+  ON collection_categories FOR SELECT
+  USING (true);
+
+CREATE POLICY "Enable all access for authenticated users on collection_categories"
+  ON collection_categories FOR ALL
+  USING (auth.role() = 'authenticated')
+  WITH CHECK (auth.role() = 'authenticated');
 
 -- System "Shop" category for /shop route
 INSERT INTO public.categories (id, name, slug, description, sort_order, active)
@@ -515,6 +570,9 @@ CREATE TABLE IF NOT EXISTS store_settings (
   product_description_limit INTEGER DEFAULT 150,
   product_short_prompt TEXT DEFAULT 'Write a catchy, high-conversion single-line product highlight (maximum 1 line) about the article. Include the focus keyword and make it highly optimized for SEO.',
   product_short_limit INTEGER DEFAULT 20,
+  collection_default_template TEXT DEFAULT '<p>Explore our exclusively curated <strong>{{collection_name}}</strong> collection — featuring premium styles and perfect fits.</p>',
+  collection_description_prompt TEXT DEFAULT 'Write an engaging collection overview inspired by: Explore our exclusively curated collection, featuring premium styles, soft fabrics, and comfortable fits.',
+  collection_description_limit INTEGER DEFAULT 80,
 
   -- SMTP/Email Fallback Columns
   smtp_email TEXT DEFAULT '',
@@ -1097,7 +1155,7 @@ CREATE TABLE IF NOT EXISTS ai_settings (
 );
 
 -- Seed default singleton record for AI settings if not exists
-INSERT INTO ai_settings (id, ai_enabled, content_provider, content_model, content_keys, vision_provider, vision_model, vision_keys, brand_name, store_type, target_market, tone, language, custom_instructions, auto_content_seo, auto_media_ai, target_audiences, product_types, category_default_template, product_default_template, category_description_prompt, category_description_limit, product_description_prompt, product_description_limit, product_short_prompt, product_short_limit)
+INSERT INTO ai_settings (id, ai_enabled, content_provider, content_model, content_keys, vision_provider, vision_model, vision_keys, brand_name, store_type, target_market, tone, language, custom_instructions, auto_content_seo, auto_media_ai, target_audiences, product_types, category_default_template, product_default_template, category_description_prompt, category_description_limit, product_description_prompt, product_description_limit, product_short_prompt, product_short_limit, collection_default_template, collection_description_prompt, collection_description_limit)
 VALUES (
   '00000000-0000-4000-8000-000000000002',
   false,
@@ -1858,3 +1916,5 @@ CREATE TRIGGER "revalidate-payment_methods"
   AFTER INSERT OR UPDATE OR DELETE ON public.payment_methods
   FOR EACH ROW EXECUTE FUNCTION supabase_functions.http_request('https://domain.com/api/revalidate', 'POST', '{"Content-Type":"application/json","x-revalidate-secret":"zaynahs_secret_cache_revalidate_2026"}', '{}', '5000');
 
+GRANT SELECT, INSERT, UPDATE, DELETE ON collections TO anon, authenticated, service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON collection_categories TO anon, authenticated, service_role;

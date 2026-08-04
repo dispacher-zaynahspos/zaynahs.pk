@@ -43,6 +43,7 @@ import { toast } from 'sonner';
 import { useOrderNotification } from '@/lib/hooks/useOrderNotification';
 import { useSettings } from '@/lib/hooks/useSettings';
 import Image from 'next/image';
+import { AdminConfirmProvider } from '@/components/admin/shared/AdminConfirmProvider';
 
 function AdminLayoutContent({
   children
@@ -166,6 +167,7 @@ function AdminLayoutContent({
         { label: 'Products', href: '/admin/products', icon: ShoppingBag },
         { label: 'Inventory', href: '/admin/inventory', icon: Package },
         { label: 'Categories', href: '/admin/categories', icon: FolderOpen },
+        { label: 'Collections', href: '/admin/collections', icon: Layers },
         { label: 'Variants', href: '/admin/variants', icon: Layers },
         { label: 'Size Guides', href: '/admin/size-guides', icon: Ruler },
         { label: 'Media', href: '/admin/media', icon: Images },
@@ -221,6 +223,7 @@ function AdminLayoutContent({
         { label: 'Email & SMTP', href: '/admin/settings?tab=email', icon: Mail },
         ...(settings?.meta_sync_enabled ? [{ label: 'Meta Sync', href: '/admin/settings?tab=meta_sync', icon: RefreshCw }] : []),
         { label: 'Homepage Customizer', href: '/admin/settings/customizer', icon: Layout },
+
       ]
     },
   ];
@@ -519,7 +522,9 @@ export default function AdminLayout({
         </div>
       </div>
     }>
-      <AdminLayoutContent>{children}</AdminLayoutContent>
+      <AdminConfirmProvider>
+        <AdminLayoutContent>{children}</AdminLayoutContent>
+      </AdminConfirmProvider>
     </Suspense>
   );
 }

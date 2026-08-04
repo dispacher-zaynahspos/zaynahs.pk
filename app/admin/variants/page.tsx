@@ -13,6 +13,7 @@ import {
 } from '@/lib/services/variantPresets';
 import { getSwatchStyle } from '@/lib/utils/swatch';
 import { toast } from 'sonner';
+import { useConfirm } from '@/components/admin/shared/AdminConfirmProvider';
 
 const standardColorMap: Record<string, string> = {
   black: '#000000',
@@ -38,6 +39,7 @@ const ATTR_ICONS = { color: Palette, size: Ruler, material: Package, custom: Tag
 const ATTR_LABELS = { color: 'Color', size: 'Size', material: 'Material', custom: 'Custom' };
 
 export default function VariantPresetsPage() {
+  const { confirm } = useConfirm();
   const [presets, setPresets] = useState<VariantPreset[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -112,7 +114,13 @@ export default function VariantPresetsPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this preset?')) return;
+    const confirmed = await confirm({
+      title: 'Delete Preset',
+      message: 'Delete this preset?',
+      variant: 'danger',
+      confirmText: 'Delete'
+    });
+    if (!confirmed) return;
     try {
       await deleteVariantPreset(id);
       setPresets(prev => prev.filter(p => p.id !== id));

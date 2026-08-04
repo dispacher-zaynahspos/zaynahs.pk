@@ -1,5 +1,5 @@
 import React from 'react';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw } from '@/components/common/Icons';
 
 interface LoadingOverlayProps {
   isLoading: boolean;

@@ -112,8 +112,8 @@ export async function routeVision(
   if (keys.groq) {
     fallbackChain.push({
       provider: 'groq',
-      model: 'meta-llama/llama-4-scout-17b-16e-instruct',
-      call: () => callGroq(keys.groq!, 'meta-llama/llama-4-scout-17b-16e-instruct', prompt, systemPrompt, true, base64, mimeType),
+      model: 'llama-3.2-11b-vision-preview',
+      call: () => callGroq(keys.groq!, 'llama-3.2-11b-vision-preview', prompt, systemPrompt, true, base64, mimeType),
     });
   }
   if (keys.mistral) {
@@ -162,8 +162,8 @@ export async function routeText(
   if (keys.groq) {
     fallbackChain.push({
       provider: 'groq',
-      model: 'meta-llama/llama-4-scout-17b-16e-instruct',
-      call: () => callGroq(keys.groq!, 'meta-llama/llama-4-scout-17b-16e-instruct', prompt, systemPrompt, false),
+      model: 'llama-3.1-8b-instant',
+      call: () => callGroq(keys.groq!, 'llama-3.1-8b-instant', prompt, systemPrompt, false),
     });
   }
   if (keys.google) {

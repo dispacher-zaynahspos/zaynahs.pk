@@ -35,6 +35,9 @@ interface SettingsRow {
   show_compare_price?: boolean | null;
   enable_search?: boolean | null;
   enable_category_filter?: boolean | null;
+  verticals_enabled?: boolean | null;
+  verticals_hub_title?: string | null;
+  verticals_hub_subtitle?: string | null;
   whatsapp_greeting?: string | null;
   whatsapp_footer?: string | null;
   meta_title?: string | null;
@@ -317,6 +320,7 @@ const mapSettings = (row: SettingsRow): StoreSettings => ({
   showComparePrice: row.show_compare_price ?? true,
   enableSearch: row.enable_search ?? true,
   enableCategoryFilter: row.enable_category_filter ?? true,
+
   whatsappGreeting: row.whatsapp_greeting ?? 'Hello! I would like to order:',
   whatsappFooter: row.whatsapp_footer ?? 'Please confirm my order. Thank you!',
   metaTitle: row.meta_title || undefined,
@@ -541,6 +545,9 @@ const mapSettings = (row: SettingsRow): StoreSettings => ({
   product_description_limit: row.product_description_limit ?? 250,
   product_short_prompt: row.product_short_prompt ?? '',
   product_short_limit: row.product_short_limit ?? 100,
+  collection_default_template: row.collection_default_template ?? '',
+  collection_description_prompt: row.collection_description_prompt ?? 'Write an engaging collection overview inspired by: Explore our exclusively curated collection, featuring premium styles, soft fabrics, and comfortable fits.',
+  collection_description_limit: row.collection_description_limit ?? 80,
 
   // SMTP/Email Fallback Columns
   smtp_email: row.smtp_email ?? '',
@@ -669,6 +676,7 @@ export const updateSettings = async (settings: Partial<StoreSettings>): Promise<
     if (settings.showComparePrice !== undefined) updatePayload.show_compare_price = settings.showComparePrice;
     if (settings.enableSearch !== undefined) updatePayload.enable_search = settings.enableSearch;
     if (settings.enableCategoryFilter !== undefined) updatePayload.enable_category_filter = settings.enableCategoryFilter;
+
     if (settings.whatsappGreeting !== undefined) updatePayload.whatsapp_greeting = settings.whatsappGreeting;
     if (settings.whatsappFooter !== undefined) updatePayload.whatsapp_footer = settings.whatsappFooter;
     if (settings.metaTitle !== undefined) updatePayload.meta_title = settings.metaTitle;
@@ -898,6 +906,9 @@ export const updateSettings = async (settings: Partial<StoreSettings>): Promise<
     if (settings.product_description_limit !== undefined) updatePayload.product_description_limit = settings.product_description_limit;
     if (settings.product_short_prompt !== undefined) updatePayload.product_short_prompt = settings.product_short_prompt;
     if (settings.product_short_limit !== undefined) updatePayload.product_short_limit = settings.product_short_limit;
+    if (settings.collection_default_template !== undefined) updatePayload.collection_default_template = settings.collection_default_template;
+    if (settings.collection_description_prompt !== undefined) updatePayload.collection_description_prompt = settings.collection_description_prompt;
+    if (settings.collection_description_limit !== undefined) updatePayload.collection_description_limit = settings.collection_description_limit;
 
     // SMTP/Email Fallback Columns
     if (settings.smtp_email !== undefined) updatePayload.smtp_email = settings.smtp_email;

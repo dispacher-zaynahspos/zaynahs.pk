@@ -3,6 +3,7 @@
 import React from 'react';
 import { Edit2, Trash2, Plus, Check, Ruler, Image as ImageIcon, Download, Upload } from '@/components/common/Icons';
 import { SizeGuide } from '@/lib/types';
+import { useConfirm } from '@/components/admin/shared/AdminConfirmProvider';
 
 interface SizeGuidesTabProps {
   sizeGuides: SizeGuide[];
@@ -55,6 +56,7 @@ export default function SizeGuidesTab({
   handleRemoveImage
 }: SizeGuidesTabProps) {
   const [isMediaModalOpen, setIsMediaModalOpen] = React.useState(false);
+  const { confirm } = useConfirm();
   const allSelected = sizeGuides.length > 0 && selectedGuideIds.size === sizeGuides.length;
 
   const toggleSelectAll = () => {
@@ -358,8 +360,14 @@ export default function SizeGuidesTab({
                               </button>
                               <button 
                                 type="button"
-                                onClick={() => {
-                                  if (window.confirm(`Remove column "${colName}"?`)) {
+                                onClick={async () => {
+                                  const confirmed = await confirm({
+                                    title: 'Remove Column',
+                                    message: `Remove column "${colName}"?`,
+                                    variant: 'danger',
+                                    confirmText: 'Remove'
+                                  });
+                                  if (confirmed) {
                                     const cols = guideColumns.split(',').map(s => s.trim()).filter(Boolean);
                                     const updatedCols = cols.filter(c => c !== colName);
                                     setGuideColumns(updatedCols.join(', '));

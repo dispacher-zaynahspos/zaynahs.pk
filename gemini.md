@@ -778,3 +778,47 @@ GPU Acceleration: Scrollable layers par CSS triggers will-change-transform aur t
   if (!result.success) throw new Error(result.error);
   ```
 - This ensures the actual `error.message` from the backend is gracefully returned as a serialized object and rendered in toast notifications.
+
+---
+
+# 🧩 SHARED_MODULES_RULE (STRICTLY ENFORCED FOR ALL AGENTS)
+
+⚠️ **CRITICAL DIRECTIVE TO ALL AI AGENTS**: 
+**DO NOT IGNORE THIS RULE.** You MUST reuse the following shared modules for ALL new pages and features in both `/admin` and `/store`. 
+**NEVER** build inline, page-local UI/logic for anything that is conceptually reusable. If a pattern doesn't exist yet, build it inside the shared directory first (`components/admin/shared/`, `components/store/shared/`, or `components/common/`), then consume it from the page.
+
+### 🚫 ABSOLUTELY FORBIDDEN PRACTICES
+- `window.confirm()` or native `alert()` → **BANNED**. You MUST use `AdminConfirmDialog` / `useConfirm`.
+- Inline `<input>` for searching or filtering → **BANNED**. You MUST use `AdminSearchInput` or `SearchBar`.
+- Inline `<svg>` or direct `lucide-react` imports on pages → **BANNED**. You MUST import from `@/components/common/Icons`.
+- Inline `<button>` blocks for Prev/Next pagination → **BANNED**. You MUST use `PaginationFooter`.
+- Hardcoded `<table>` headers without responsive mobile fallback → **BANNED**. See Admin Mobile Responsive Rule.
+- Custom "No data found" `<div className="text-gray-500">` → **BANNED**. You MUST use `EmptyState`.
+
+### ✅ THE MANDATORY MODULE MAP
+
+| Component/Feature | Required Module | Path / Provider |
+|-------------------|-----------------|-----------------|
+| **Icons** | **Central Registry Only** | `@/components/common/Icons` |
+| **Search Bar (Admin)** | `AdminSearchInput` | `@/components/admin/shared/AdminSearchInput` |
+| **Search Bar (Store)** | `SearchBar` | `@/components/store/SearchBar` |
+| **Pagination** | `PaginationFooter` | `@/components/admin/PaginationFooter` |
+| **Date Filters** | `AdminDateFilter` | `@/components/admin/shared/AdminDateFilter` |
+| **Confirmation Alerts** | `useConfirm` / `AdminConfirmProvider` | `@/components/admin/shared/AdminConfirmProvider` |
+| **Empty States** | `EmptyState` | `@/components/common/EmptyState` |
+| **Loading States** | `LoadingSkeleton` variants | `@/components/common/LoadingSkeleton` |
+| **Admin Page Headers**| `AdminPageHeader` | `@/components/admin/shared/AdminPageHeader` |
+| **Admin Cards/Panels**| `AdminCard` | `@/components/admin/shared/AdminCard` |
+| **Admin Bulk Actions**| `AdminBulkActionBar` | `@/components/admin/shared/AdminBulkActionBar` |
+| **Admin Toolbars** | `AdminToolbar` | `@/components/admin/shared/AdminToolbar` |
+| **Storefront Filters**| `CategoryFilter`, `PriceRangeFilter`, `ColorFilter`, `SizeFilter`, `MaterialFilter`, `SortDropdown` | `@/components/store/shared/*` |
+
+### ✅ THE MANDATORY UTILITY MAP
+
+- **Reordering Arrays / Drag & Drop** → `import { arrayMove } from '@/lib/utils/arrayMove'`
+- **Formatting Price / Currency** → `import { formatPrice } from '@/lib/utils/whatsapp'`
+- **Date Math / ISO Strings / Time Ago** → `import { timeAgo, getStartISO, getEndISO } from '@/lib/utils/dateFilters'`
+- **Storage URLs / Image Parsing** → `import { isOwnStorageUrl, processImageUrl } from '@/lib/services/storage'`
+- **Tab State Management** → `useAdminTab.ts` pattern
+
+Any agent found duplicating these patterns directly inside a page instead of importing the centralized module is fundamentally breaking the architecture of this project. **Import the module or build a new shared module!**

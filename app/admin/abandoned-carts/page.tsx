@@ -3,6 +3,10 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import { createClient } from '@/lib/supabase/client';
+import EmptyState from '@/components/common/EmptyState';
+import AdminSearchInput from '@/components/admin/shared/AdminSearchInput';
+import AdminDateFilter from '@/components/admin/shared/AdminDateFilter';
+import { useConfirm } from '@/components/admin/shared/AdminConfirmProvider';
 import { 
   Search, 
   ExternalLink, 
@@ -51,23 +55,10 @@ interface AbandonedCart {
   createdAt: string;
   updatedAt: string;
 }
-
-function timeAgo(dateStr: string): string {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const mins = Math.floor(diff / 60000);
-  const hours = Math.floor(diff / 3600000);
-  const days = Math.floor(diff / 86400000);
-  if (days > 0) return `${days}d ago`;
-  if (hours > 0) return `${hours}h ago`;
-  if (mins > 0) return `${mins}m ago`;
-  return 'Just now';
-}
-
-function formatPrice(n: number): string {
-  return `Rs. ${n.toLocaleString()}`;
-}
-
+import { timeAgo } from '@/lib/utils/dateFilters';
+import { formatPrice } from '@/lib/utils/whatsapp';
 export default function AbandonedCartsPage() {
+  const { confirm } = useConfirm();
   const [carts, setCarts] = useState<AbandonedCart[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -153,9 +144,14 @@ export default function AbandonedCartsPage() {
     setCurrentPage(1);
   }, [searchQuery, dateFilter, statusFilter, customStartDate, customEndDate]);
 
-  const handleDelete = async (id: string, e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
-    if (!confirm('Are you sure you want to delete this cart?')) return;
+  const handleDelete = async (id: string) => {
+    const confirmed = await confirm({
+      title: 'Delete Cart',
+      message: 'Are you sure you want to delete this cart?',
+      variant: 'danger',
+      confirmText: 'Delete'
+    });
+    if (!confirmed) return;
     setDeleting(id);
     try {
       const res = await fetch(`/api/admin/abandoned-carts/${id}`, { method: 'DELETE' });
@@ -390,34 +386,28 @@ export default function AbandonedCartsPage() {
       {/* Filters & Search Header */}
       <div className="flex flex-col gap-4">
         <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-          <div className="relative w-full sm:max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <input
-              type="text"
-              placeholder="Search by customer, phone, email or session ID..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] text-xs font-semibold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white transition-colors"
-            />
-          </div>
+          <AdminSearchInput
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder="Search by customer, phone, email or session ID..."
+            className="sm:max-w-md w-full"
+          />
           
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
             {/* Date filter */}
-            <div className="flex items-center gap-1.5 bg-white dark:bg-[#16162a] border border-gray-200 dark:border-gray-800 rounded-xl px-3 py-2 sm:py-1 w-full sm:w-auto">
-              <Calendar className="h-4 w-4 text-gray-400" />
-              <select
-                value={dateFilter}
-                onChange={(e) => setDateFilter(e.target.value)}
-                className="bg-transparent border-0 text-xs font-bold focus:outline-none text-gray-900 dark:text-white cursor-pointer py-1.5 flex-1"
-              >
-                <option value="all">All Dates</option>
-                <option value="today">Today</option>
-                <option value="yesterday">Yesterday</option>
-                <option value="last7">Last 7 Days</option>
-                <option value="last30">Last 30 Days</option>
-                <option value="custom">Custom Range</option>
-              </select>
-            </div>
+            <AdminDateFilter 
+              value={dateFilter}
+              onChange={setDateFilter}
+              className="py-2 sm:py-1 w-full sm:w-auto"
+              options={[
+                { value: 'all', label: 'All Dates' },
+                { value: 'today', label: 'Today' },
+                { value: 'yesterday', label: 'Yesterday' },
+                { value: 'last7', label: 'Last 7 Days' },
+                { value: 'last30', label: 'Last 30 Days' },
+                { value: 'custom', label: 'Custom Range' }
+              ]}
+            />
 
             {/* Status Tabs/Select */}
             <select
@@ -472,11 +462,11 @@ export default function AbandonedCartsPage() {
             ))}
           </div>
         ) : filteredCarts.length === 0 ? (
-          <div className="py-16 text-center">
-            <ShoppingCart className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-            <p className="text-gray-500 dark:text-gray-400 font-semibold">No matching abandoned carts found</p>
-            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Carts will appear here when checkout is started but not completed</p>
-          </div>
+          <EmptyState 
+            icon={<ShoppingCart className="h-8 w-8 text-gray-400" />}
+            title="No matching abandoned carts found" 
+            description="Carts will appear here when checkout is started but not completed" 
+          />
         ) : (
           <>
             {/* Desktop Table */}
@@ -562,7 +552,7 @@ export default function AbandonedCartsPage() {
                         {/* Actions */}
                         <td className="py-4 px-6 text-center" onClick={(e) => e.stopPropagation()}>
                           <button
-                            onClick={(e) => handleDelete(cart.id, e)}
+                            onClick={() => handleDelete(cart.id)}
                             disabled={deleting === cart.id}
                             className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-all"
                             title="Delete cart record"
@@ -623,7 +613,7 @@ export default function AbandonedCartsPage() {
                       <span>{timeAgo(cart.lastActivity)}</span>
                     </div>
                     <button
-                      onClick={(e) => { e.stopPropagation(); handleDelete(cart.id, e); }}
+                      onClick={(e) => { e.stopPropagation(); handleDelete(cart.id); }}
                       disabled={deleting === cart.id}
                       className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-all"
                       title="Delete cart"

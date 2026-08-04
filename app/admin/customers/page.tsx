@@ -14,6 +14,9 @@ import { Order, WhatsAppSubscriber } from '@/lib/types';
 import { formatPrice, cleanWhatsAppPhone } from '@/lib/utils/whatsapp';
 import { toast } from 'sonner';
 import { useAdminTab } from '@/lib/hooks/useAdminTab';
+import EmptyState from '@/components/common/EmptyState';
+import AdminSearchInput from '@/components/admin/shared/AdminSearchInput';
+import { useConfirm } from '@/components/admin/shared/AdminConfirmProvider';
 
 interface CustomerRecord {
   id: string;
@@ -26,6 +29,7 @@ interface CustomerRecord {
 }
 
 function AdminCustomersPageInner() {
+  const { confirm } = useConfirm();
   const [customers, setCustomers] = useState<CustomerRecord[]>([]);
   const [leads, setLeads] = useState<WhatsAppSubscriber[]>([]);
   const [loading, setLoading] = useState(true);
@@ -80,7 +84,13 @@ function AdminCustomersPageInner() {
   };
 
   const handleDeleteCustomer = async (id: string) => {
-    if (!confirm('Are you sure you want to move this customer to Trash?')) return;
+    const confirmed = await confirm({
+      title: 'Move to Trash',
+      message: 'Are you sure you want to move this customer to Trash?',
+      variant: 'danger',
+      confirmText: 'Move to Trash'
+    });
+    if (!confirmed) return;
     try {
       const { deleteCustomer } = await import('@/lib/services/customers');
       await deleteCustomer(id);
@@ -92,7 +102,13 @@ function AdminCustomersPageInner() {
   };
 
   const handleDeleteLead = async (id: string) => {
-    if (!confirm('Are you sure you want to move this WhatsApp lead to Trash?')) return;
+    const confirmed = await confirm({
+      title: 'Move to Trash',
+      message: 'Are you sure you want to move this WhatsApp lead to Trash?',
+      variant: 'danger',
+      confirmText: 'Move to Trash'
+    });
+    if (!confirmed) return;
     try {
       const { deleteWhatsAppSubscriber } = await import('@/lib/services/sections');
       await deleteWhatsAppSubscriber(id);
@@ -156,16 +172,12 @@ function AdminCustomersPageInner() {
           <h1 className="text-xl font-black text-gray-900 dark:text-white">Customers Directory</h1>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Manage and contact your e-store customers</p>
         </div>
-        <div className="relative w-full md:w-80">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search name, phone, email..."
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] text-xs font-semibold text-gray-900 dark:text-white placeholder-gray-400 focus:border-[#e94560] focus:outline-none transition-all shadow-sm"
-          />
-        </div>
+        <AdminSearchInput
+          value={searchQuery}
+          onChange={setSearchQuery}
+          placeholder="Search name, phone, email..."
+          className="md:w-80"
+        />
       </div>
 
       {/* Stats row */}
@@ -236,17 +248,11 @@ function AdminCustomersPageInner() {
           </div>
         ) : activeTab === 'buyers' ? (
           filteredCustomers.length === 0 ? (
-            <div className="p-16 text-center space-y-3">
-              <div className="h-12 w-12 rounded-xl bg-gray-50 dark:bg-[#0f0f1b] border border-gray-100 dark:border-gray-800 mx-auto flex items-center justify-center text-gray-300 dark:text-gray-600">
-                <Users className="h-6 w-6" />
-              </div>
-              <div>
-                <h3 className="text-sm font-bold text-gray-900 dark:text-white">No customers found</h3>
-                <p className="text-xs text-gray-400 dark:text-gray-500 max-w-xs mx-auto mt-1">
-                  {searchQuery ? 'Adjust your search query and try again.' : 'Registered customer profiles will appear here.'}
-                </p>
-              </div>
-            </div>
+            <EmptyState 
+              icon={<Users className="h-6 w-6 text-gray-300 dark:text-gray-600" />}
+              title="No customers found"
+              description={searchQuery ? 'Adjust your search query and try again.' : 'Registered customer profiles will appear here.'}
+            />
           ) : (
             <>
               {/* Desktop Table */}
@@ -413,17 +419,11 @@ function AdminCustomersPageInner() {
           )
         ) : (
           filteredLeads.length === 0 ? (
-            <div className="p-16 text-center space-y-3">
-              <div className="h-12 w-12 rounded-xl bg-gray-50 dark:bg-[#0f0f1b] border border-gray-100 dark:border-gray-800 mx-auto flex items-center justify-center text-gray-300 dark:text-gray-600">
-                <Users className="h-6 w-6" />
-              </div>
-              <div>
-                <h3 className="text-sm font-bold text-gray-900 dark:text-white">No WhatsApp leads found</h3>
-                <p className="text-xs text-gray-400 dark:text-gray-500 max-w-xs mx-auto mt-1">
-                  {searchQuery ? 'Adjust your search query and try again.' : 'Subscribers from the spin wheel and exit popups will appear here.'}
-                </p>
-              </div>
-            </div>
+            <EmptyState 
+              icon={<Users className="h-6 w-6 text-gray-300 dark:text-gray-600" />}
+              title="No WhatsApp leads found"
+              description={searchQuery ? 'Adjust your search query and try again.' : 'Subscribers from the spin wheel and exit popups will appear here.'}
+            />
           ) : (
             <>
               {/* Desktop Leads Table */}
@@ -568,15 +568,11 @@ function AdminCustomersPageInner() {
                   ))}
                 </div>
               ) : customerOrders.length === 0 ? (
-                <div className="py-16 text-center space-y-4">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-100 dark:bg-[#16162a] border border-gray-200 dark:border-gray-800 mx-auto">
-                    <Package className="h-8 w-8 text-gray-300 dark:text-gray-600" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-bold text-gray-900 dark:text-white">No orders found</h3>
-                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">This customer has not placed any orders yet.</p>
-                  </div>
-                </div>
+                <EmptyState 
+                  icon={<Package className="h-8 w-8 text-gray-300 dark:text-gray-600" />}
+                  title="No orders found"
+                  description="This customer has not placed any orders yet."
+                />
               ) : (
                 customerOrders.map(order => {
                   const isExpanded = expandedOrderId === order.id;

@@ -1,11 +1,12 @@
 import React from 'react';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, ExternalLink } from 'lucide-react';
+import { ArrowLeft, ExternalLink } from '@/components/common/Icons';
 import ProductForm from '@/components/admin/ProductForm';
 import ProductNavButtons from '@/components/admin/ProductNavButtons';
 import { getProductById } from '@/lib/services/products';
 import { getAllCategories } from '@/lib/services/categories';
+
 import { getSettings } from '@/lib/services/settings';
 import { getClientSiteUrl } from '@/lib/site-url';
 import TrashProductButton from '@/components/admin/TrashProductButton';
@@ -72,6 +73,7 @@ export default async function EditProductPage({ params }: PageProps) {
 
       <ProductForm
         categories={categories}
+
         initialProduct={product}
         aiEnabled={settings.ai_enabled}
         storeUrl={settings.storeUrl || undefined}

@@ -3,6 +3,7 @@
 import React from 'react';
 import { HomepageSection } from '@/lib/types';
 import { Image as ImageIcon } from '@/components/common/Icons';
+import { toast } from 'sonner';
 
 interface HeroSlide {
   id: string;
@@ -270,7 +271,7 @@ export default function HeroBannerSettings({
 
   const handleDeleteSlide = (slideId: string) => {
     if (slides.length <= 1) {
-      alert('You must keep at least 1 slide in the Hero Banner.');
+      toast.error('You must keep at least 1 slide in the Hero Banner.');
       return;
     }
     const updatedSlides = slides.filter(s => s.id !== slideId);

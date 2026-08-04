@@ -5,54 +5,15 @@ import Link from 'next/link';
 import { Plus, Edit, Trash2, X, Image as ImageIcon, Zap, Loader2, FolderOpen, Download, Upload } from '@/components/common/Icons';
 import { Category } from '@/lib/types';
 import { createCategorySafe, updateCategorySafe, deleteCategorySafe } from '@/lib/services/categories';
+
 import { createClient } from '@/lib/supabase/client';
+import { useConfirm } from '@/components/admin/shared/AdminConfirmProvider';
 import { toast } from 'sonner';
 import MediaSelectorModal from './MediaSelectorModal';
 import RichTextEditor from './RichTextEditor';
 import { getClientSiteUrl } from '@/lib/site-url';
 
-const isOwnStorageUrl = (url: string) => {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  if (!supabaseUrl) return false;
-  
-  const cleanSupabase = supabaseUrl.replace(/^https?:\/\//, '').toLowerCase();
-  const cleanUrl = url.replace(/^https?:\/\//, '').toLowerCase();
-  
-  return cleanUrl.startsWith(cleanSupabase) && cleanUrl.includes('/product-images/');
-};
-
-const processImageUrl = async (url: string, prefix: string): Promise<string> => {
-  if (!url) return url;
-  if (isOwnStorageUrl(url)) return url; // Already in our bucket
-
-  try {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error('Failed to fetch image');
-    const blob = await res.blob();
-    
-    // Create a file from blob
-    const ext = blob.type.split('/')[1] || 'jpg';
-    const file = new File([blob], `${prefix}-${Date.now()}.${ext}`, { type: blob.type });
-    
-    // Upload using supabase client directly
-    const supabase = createClient();
-    const fileName = `categories/${file.name}`;
-    const { error } = await supabase.storage
-      .from('product-images')
-      .upload(fileName, file, {
-        contentType: file.type,
-        upsert: true
-      });
-      
-    if (error) throw error;
-    
-    const { data } = supabase.storage.from('product-images').getPublicUrl(fileName);
-    return data.publicUrl;
-  } catch (error) {
-    console.error('Failed to download/upload image:', error);
-    return url; // Fallback to original URL if upload fails
-  }
-};
+import { isOwnStorageUrl, processImageUrl } from '@/lib/services/storage';
 
 interface CategoryManagerProps {
   initialCategories: Category[];
@@ -61,6 +22,7 @@ interface CategoryManagerProps {
 }
 
 export default function CategoryManager({ initialCategories, aiEnabled, storeUrl }: CategoryManagerProps) {
+  const { confirm } = useConfirm();
   const [categories, setCategories] = useState<Category[]>(initialCategories);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('sort-order');
@@ -165,7 +127,13 @@ export default function CategoryManager({ initialCategories, aiEnabled, storeUrl
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to move this category to Trash?')) return;
+    const confirmed = await confirm({
+      title: 'Move to Trash',
+      message: 'Are you sure you want to move this category to Trash?',
+      variant: 'danger',
+      confirmText: 'Move to Trash'
+    });
+    if (!confirmed) return;
     try {
       const result = await deleteCategorySafe(id);
       if (!result.success) throw new Error(result.error);
@@ -382,6 +350,8 @@ export default function CategoryManager({ initialCategories, aiEnabled, storeUrl
       }
     });
 
+  const flattenedCategories = filteredAndSortedCategories.map(c => ({ ...c, _level: 0 }));
+
   return (
     <div className="space-y-6">
       {/* Search & Actions Header */}
@@ -475,7 +445,7 @@ export default function CategoryManager({ initialCategories, aiEnabled, storeUrl
 
       {/* Grid listing */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredAndSortedCategories.map(cat => (
+        {flattenedCategories.map(cat => (
           <div key={cat.id} className="bg-white dark:bg-[#16162a] p-5 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm flex flex-col justify-between space-y-4 text-gray-900 dark:text-white transition-colors">
             <div className="block flex-1 group cursor-pointer" onClick={() => {
               if (typeof window !== 'undefined' && window.getSelection()?.toString().length) return;
@@ -503,7 +473,10 @@ export default function CategoryManager({ initialCategories, aiEnabled, storeUrl
                     <div className="w-4 h-4 mt-1 flex-shrink-0" />
                   )}
                   <div>
-                    <h3 className="font-bold text-gray-950 dark:text-white text-base group-hover:text-[#e94560] transition-colors">
+                    <h3 className="font-bold text-gray-950 dark:text-white text-base group-hover:text-[#e94560] transition-colors flex items-center gap-1.5 flex-wrap">
+                      {cat._level > 0 && (
+                        <span className="text-gray-400">{'—'.repeat(cat._level)} </span>
+                      )}
                       {cat.name}
                       {cat.id === '00000000-0000-4000-8000-000000000099' && (
                         <span className="ml-2 text-[9px] font-bold text-indigo-600 bg-indigo-50 dark:bg-indigo-950/20 px-1.5 py-0.5 rounded uppercase">System</span>
@@ -671,7 +644,7 @@ export default function CategoryManager({ initialCategories, aiEnabled, storeUrl
                   </div>
                 </div>
 
-                <div className="space-y-4">
+                <div className="pt-2 space-y-4">
                   <div>
                     <label className="block text-xs font-bold uppercase tracking-wider text-gray-500">Sort Order</label>
                     <input

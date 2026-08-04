@@ -19,15 +19,7 @@ async function fetchWithTimeout(url: string, timeoutMs: number = IMAGE_FETCH_TIM
   }
 }
 
-const isOwnStorageUrl = (url: string) => {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  if (!supabaseUrl) return false;
-  
-  const cleanSupabase = supabaseUrl.replace(/^https?:\/\//, '').toLowerCase();
-  const cleanUrl = url.replace(/^https?:\/\//, '').toLowerCase();
-  
-  return cleanUrl.startsWith(cleanSupabase) && cleanUrl.includes('/product-images/');
-};
+import { isOwnStorageUrl } from '@/lib/services/storage';
 
 export async function POST(request: NextRequest) {
   try {

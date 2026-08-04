@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { getSettings } from '@/lib/services/settings';
+import { getCategoryBySlug } from '@/lib/services/categories';
 import { getDomainBrand, cleanBrandName } from '@/lib/utils/getDomainBrand';
 import { Metadata } from 'next';
 
@@ -16,12 +17,8 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
   try {
     const brand = await getDomainBrand();
     const { slug } = await params;
-    
-    const { data: category } = await supabaseAdmin
-      .from('categories')
-      .select('id, name, description, image_url')
-      .eq('slug', slug)
-      .maybeSingle();
+
+    const category = await getCategoryBySlug(slug);
 
     if (!category) return {};
 
@@ -37,7 +34,7 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
 
     const title = cleanBrandName(seoMeta?.seo_title, brand.name) || `${category.name} | ${brand.name}`;
     const description = cleanBrandName(seoMeta?.meta_description, brand.name) || category.description || '';
-    const imageUrl = category.image_url || settings.logoUrl || settings.faviconUrl || '';
+    const imageUrl = category.imageUrl || settings.logoUrl || settings.faviconUrl || '';
 
     return {
       metadataBase: new URL(siteUrl),
@@ -62,7 +59,8 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
 
 export default async function CategoryRedirectPage({ params }: CategoryPageProps) {
   const resolvedParams = await params;
-  
-  // Redirect to the shop page with the category filter applied
+
+
+  // Legacy/default store → shop page with the category filter applied
   redirect(`/shop?category=${resolvedParams.slug}`);
 }

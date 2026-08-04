@@ -106,7 +106,12 @@ export {
   ArrowLeft,
   Printer,
   MoreVertical,
-  MoreHorizontal
+  MoreHorizontal,
+  ZoomOut,
+  CheckCircle,
+  AlertCircle,
+  Box,
+  Info
 } from 'lucide-react';
 
 // Custom Social Platform Icons (Consistent styling and sizes)

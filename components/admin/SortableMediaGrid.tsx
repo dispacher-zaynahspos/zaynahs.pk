@@ -18,6 +18,8 @@ import {
   rectSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { Trash2, GripVertical, CheckCircle2 } from '@/components/common/Icons';
+import { arrayMove } from '@/lib/utils/arrayMove';
 import { Save, AlertTriangle, X } from '@/components/common/Icons';
 
 interface SortableItem {
@@ -275,12 +277,4 @@ export default function SortableMediaGrid<T extends SortableItem>({
       </DndContext>
     </div>
   );
-}
-
-function arrayMove<T>(arr: T[], fromIndex: number, toIndex: number): T[] {
-  if (fromIndex === toIndex) return arr;
-  const newArr = [...arr];
-  const [moved] = newArr.splice(fromIndex, 1);
-  newArr.splice(toIndex, 0, moved);
-  return newArr;
 }

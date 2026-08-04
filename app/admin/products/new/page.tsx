@@ -1,9 +1,10 @@
 import React from 'react';
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from '@/components/common/Icons';
 import ProductForm from '@/components/admin/ProductForm';
 import { getProductById } from '@/lib/services/products';
 import { getAllCategories } from '@/lib/services/categories';
+
 import { getSettings } from '@/lib/services/settings';
 import type { Product } from '@/lib/types';
 

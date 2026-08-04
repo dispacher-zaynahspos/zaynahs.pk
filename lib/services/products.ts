@@ -109,6 +109,7 @@ interface DBProductRow {
   inventory_threshold?: number | null;
   variation_order?: string[] | null;
   product_categories?: any[] | null;
+
   deleted_at?: string | null;
   created_at: string;
   updated_at: string;
@@ -482,9 +483,18 @@ const fetchProducts = async (categoryId?: string, limit?: number): Promise<Produ
   try {
     let query = staticSupabase
       .from('products')
-      .select('*, product_images(*), product_variants(*), product_modifiers(*), categories!category_id(*), product_categories(*, categories(*)), badges(*), size_guides(*)')
-      .is('deleted_at', null)
-      .eq('is_active', true);
+      .select(`
+        *,
+        product_images(*),
+        product_variants(*),
+        product_modifiers(*),
+        categories!category_id(*),
+        product_categories(*, categories(*)),
+        badges!products_custom_badge_id_fkey(*),
+        size_guides!products_size_guide_id_fkey(*)
+      `)
+      .eq('is_active', true)
+      .is('deleted_at', null);
 
     if (categoryId) {
       query = query.eq('category_id', categoryId);
@@ -508,8 +518,43 @@ const fetchProducts = async (categoryId?: string, limit?: number): Promise<Produ
     const products = (data ?? []).map(mapProduct);
     return applyFlashSaleDiscounts(products);
   } catch (err) {
-    console.error('[Products Error Debug] fetchProducts caught error, returning empty fallback list:', err);
-    return [];
+    // Fallback: if vertical scoping is unavailable (pre-migration), fetch unfiltered
+    try {
+      let query = staticSupabase
+        .from('products')
+        .select(`
+          *,
+          product_images(*),
+          product_variants(*),
+          product_modifiers(*),
+          categories!category_id(*),
+          product_categories(*, categories(*)),
+          badges!products_custom_badge_id_fkey(*),
+          size_guides!products_size_guide_id_fkey(*)
+        `)
+        .is('deleted_at', null)
+        .eq('is_active', true);
+
+      if (categoryId) {
+        query = query.eq('category_id', categoryId);
+      }
+
+      let finalQuery = query
+        .order('sort_order', { ascending: true })
+        .order('created_at', { ascending: false });
+
+      if (limit && limit > 0) {
+        finalQuery = finalQuery.limit(limit) as typeof finalQuery;
+      }
+
+      const { data, error } = await finalQuery;
+      if (error) throw error;
+      const products = (data ?? []).map(mapProduct);
+      return applyFlashSaleDiscounts(products);
+    } catch (fallbackErr) {
+      console.error('[Products Error Debug] fetchProducts caught error, returning empty fallback list:', err);
+      return [];
+    }
   }
 };
 
@@ -517,14 +562,14 @@ const fetchProducts = async (categoryId?: string, limit?: number): Promise<Produ
 const cachedProducts = unstable_cache(
   async (categoryId?: string) => fetchProducts(categoryId),
   ['products-list'],
-  { revalidate: 86400, tags: ['products'] }
+  { tags: ['products'] }
 );
 
 // Cache WITH limit (used for SSR payload reduction)
 const cachedProductsLimited = unstable_cache(
   async (categoryId?: string, limit?: number) => fetchProducts(categoryId, limit),
   ['products-list-limited'],
-  { revalidate: 86400, tags: ['products'] }
+  { tags: ['products'] }
 );
 
 export const getProducts = async (categoryId?: string, limit?: number) => {
@@ -873,6 +918,7 @@ export const updateProduct = async (
     if (product.cost !== undefined) updatePayload.cost = product.cost;
     if (product.sku !== undefined) updatePayload.sku = product.sku;
     if (product.categoryId !== undefined) updatePayload.category_id = product.categoryId;
+
     if (product.stock !== undefined) updatePayload.stock = product.stock;
     if (product.hasVariants !== undefined) updatePayload.has_variants = product.hasVariants;
     if (product.isService !== undefined) updatePayload.is_service = product.isService;

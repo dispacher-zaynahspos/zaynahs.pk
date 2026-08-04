@@ -2,10 +2,11 @@
 
 import React, { useState, useTransition, useMemo, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Product, Category, StoreSettings, Review, HomepageSection } from '@/lib/types';
+import { Product, Category, StoreSettings, Review, HomepageSection, Collection } from '@/lib/types';
 import { 
-  Plus, Trash2, ChevronUp, ChevronDown, Smartphone, Tablet, Monitor, GripVertical, Settings, Check, RefreshCw, Eye, EyeOff, Lock, ChevronLeft, X
+  Plus, Trash2, ChevronUp, ChevronDown, Smartphone, Tablet, Monitor, GripVertical, Settings, Check, RefreshCw, Eye, EyeOff, Lock, ChevronLeft, X, Store
 } from '@/components/common/Icons';
+import { useConfirm } from '@/components/admin/shared/AdminConfirmProvider';
 import { 
   updateHomepageSection, 
   reorderHomepageSections, 
@@ -20,6 +21,7 @@ import HeroBannerSettings from './customizer/sections/HeroBannerSettings';
 import ProductGridSettings from './customizer/sections/ProductGridSettings';
 import CategoryListSettings from './customizer/sections/CategoryListSettings';
 import CategoryGridSettings from './customizer/sections/CategoryGridSettings';
+import CollectionsGridSettings from './customizer/sections/CollectionsGridSettings';
 import PromoBannerSettings from './customizer/sections/PromoBannerSettings';
 import RecentReviewsSettings from './customizer/sections/RecentReviewsSettings';
 import BrandsLogosSettings from './customizer/sections/BrandsLogosSettings';
@@ -37,18 +39,21 @@ interface CustomizerEditorProps {
   initialSections: HomepageSection[];
   products: Product[];
   categories: Category[];
-  settings: StoreSettings;
-  reviews?: Review[];
+  collections?: Collection[];
+  settings: StoreSettings | null;
+  reviews: Review[];
 }
 
 export default function CustomizerEditor({
   initialSections,
   products,
   categories,
+  collections = [],
   settings,
   reviews = []
 }: CustomizerEditorProps) {
   const router = useRouter();
+  const { confirm } = useConfirm();
   
   // Customizer States
   const [sections, setSections] = useState<HomepageSection[]>(initialSections);
@@ -62,7 +67,7 @@ export default function CustomizerEditor({
   // New states for page selectors & global settings
   const [activePage, setActivePage] = useState<'home' | 'shop' | 'product_detail' | 'product_card' | 'global' | 'appearance'>('home');
   const [activeSubTab, setActiveSubTab] = useState<string>('');
-  const [storeSettings, setStoreSettings] = useState<StoreSettings>(settings);
+  const [storeSettings, setStoreSettings] = useState<StoreSettings>(settings!);
   const isFirstRender = useRef(true);
 
   // Local products state for real-time preview sync
@@ -275,7 +280,13 @@ export default function CustomizerEditor({
 
   // Delete section
   const handleDeleteSection = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this section?')) return;
+    const confirmed = await confirm({
+      title: 'Delete Section',
+      message: 'Are you sure you want to delete this section?',
+      variant: 'danger',
+      confirmText: 'Delete'
+    });
+    if (!confirmed) return;
 
     startTransition(async () => {
       try {
@@ -298,6 +309,7 @@ export default function CustomizerEditor({
       product_grid: 'Featured Products',
       category_list: 'Shop By Category',
       category_grid: 'Featured Collection Highlights',
+      collections_grid: 'Nested Collections Grid',
       promo_banner: 'Limited Time Deal',
       trust_badges: 'Our Promises',
       recent_reviews: 'Customer Reviews',
@@ -511,6 +523,7 @@ export default function CustomizerEditor({
               <option value="appearance" className="bg-[#1a1a2e] text-white">Appearance / Presets</option>
             </select>
           </div>
+
         </div>
 
         {/* Center: Viewport Switcher */}
@@ -602,6 +615,7 @@ export default function CustomizerEditor({
                       { type: 'product_grid', label: 'Product Grid' },
                       { type: 'category_list', label: 'Category Filter' },
                       { type: 'category_grid', label: 'Category Grid' },
+                      { type: 'collections_grid', label: 'Collections Grid' },
                       { type: 'promo_banner', label: 'Promo Banner' },
                       { type: 'trust_badges', label: 'Trust Badges' },
                       { type: 'recent_reviews', label: 'Reviews Feed' },
@@ -1350,6 +1364,19 @@ export default function CustomizerEditor({
                     />
                   )}
 
+                  {activeSection.section_type === 'collections_grid' && (
+                    <CollectionsGridSettings
+                      section={activeSection}
+                      categories={categories}
+                      collections={collections}
+                      onUpdateSection={(updates) => handleUpdateSection(activeSection.id, updates)}
+                      onSelectMedia={(fieldPath, fieldKey, isGridItem, gridIndex) => {
+                        setMediaUploadTarget({ sectionId: activeSection.id, fieldPath, fieldKey, isGridItem, gridIndex });
+                        setIsMediaModalOpen(true);
+                      }}
+                    />
+                  )}
+
                   {activeSection.section_type === 'promo_banner' && (
                     <PromoBannerSettings
                       section={activeSection}
@@ -1545,6 +1572,7 @@ export default function CustomizerEditor({
         onSelect={handleMediaSelected}
         multiple={false}
       />
+      
     </div>
   );
 }

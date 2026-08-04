@@ -36,6 +36,8 @@ import { logDbError } from '@/lib/utils/dbErrorHandler';
 import JSZip from 'jszip';
 import { useAdminTab } from '@/lib/hooks/useAdminTab';
 import SortableMediaGrid from '@/components/admin/SortableMediaGrid';
+import { useConfirm } from '@/components/admin/shared/AdminConfirmProvider';
+import AdminSearchInput from '@/components/admin/shared/AdminSearchInput';
 
 interface MediaManagerProps {
   mode: 'library' | 'selector';
@@ -83,6 +85,7 @@ const normalizeUrl = (url: string): string => {
 };
 
 export default function MediaManager({ mode, onSelect, multiple = false, onClose }: MediaManagerProps) {
+  const { confirm } = useConfirm();
   const [mainTab, setMainTab] = useAdminTab<MainTab>('library');
 
   // ─── Library State ──────────────────────────────────────────────────────
@@ -818,7 +821,13 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
   // ════════════════════════════════════════════════════════════════════════
 
   const handleDelete = async (id: string, url: string) => {
-    if (!confirm('Are you sure you want to move this media file to Trash?')) return;
+    const confirmed = await confirm({
+      title: 'Move to Trash',
+      message: 'Are you sure you want to move this media file to Trash?',
+      variant: 'danger',
+      confirmText: 'Move to Trash'
+    });
+    if (!confirmed) return;
     try {
       const supabase = createClient();
       const { error: dbError } = await supabase
@@ -846,7 +855,13 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
 
   const handleBulkDeleteUnused = async () => {
     if (cleanerUnusedSelected.size === 0) { toast.warning('No unused files selected.'); return; }
-    if (!confirm(`Move ${cleanerUnusedSelected.size} unused file(s) to Trash?`)) return;
+    const confirmed = await confirm({
+      title: 'Move to Trash',
+      message: `Move ${cleanerUnusedSelected.size} unused file(s) to Trash?`,
+      variant: 'danger',
+      confirmText: 'Move to Trash'
+    });
+    if (!confirmed) return;
     try {
       setIsBulkDeleting(true);
       const toastId = toast.loading(`Moving ${cleanerUnusedSelected.size} file(s) to Trash...`);
@@ -877,7 +892,13 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
 
   const handleBulkDelete = async () => {
     if (selectedIds.length === 0) { toast.warning('No files selected.'); return; }
-    if (!confirm(`Move ${selectedIds.length} file(s) to Trash?`)) return;
+    const confirmed = await confirm({
+      title: 'Move to Trash',
+      message: `Move ${selectedIds.length} file(s) to Trash?`,
+      variant: 'danger',
+      confirmText: 'Move to Trash'
+    });
+    if (!confirmed) return;
     try {
       setIsBulkDeleting(true);
       const toastId = toast.loading(`Moving ${selectedIds.length} file(s) to Trash...`);
@@ -1226,10 +1247,11 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
 
         {/* Cleaner Search + Type Filter */}
         <div className="flex flex-col sm:flex-row items-center gap-3 bg-white dark:bg-[#16162a] p-4 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
-          <div className="relative w-full sm:w-64">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <input type="text" placeholder="Search filenames..." value={cleanerSearch} onChange={e => setCleanerSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 text-sm bg-gray-50/50 dark:bg-[#1a1a30] border border-gray-200 dark:border-gray-800 rounded-xl focus:outline-none focus:border-blue-500 text-gray-900 dark:text-white min-h-[44px]"
+          <div className="w-full sm:w-64">
+            <AdminSearchInput
+              value={cleanerSearch}
+              onChange={setCleanerSearch}
+              placeholder="Search filenames..."
             />
           </div>
           <div className="flex bg-gray-100 dark:bg-gray-800/60 p-1 rounded-xl w-full sm:w-auto min-h-[44px] items-center">
@@ -1579,10 +1601,11 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
           {/* Search + Sort + Filters */}
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-white dark:bg-[#16162a] p-4 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
             <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
-              <div className="relative w-full sm:w-64">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <input type="text" placeholder="Search filenames..." value={search} onChange={e => setSearch(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 text-sm bg-gray-50/50 dark:bg-[#1a1a30] border border-gray-200 dark:border-gray-800 rounded-xl focus:outline-none focus:border-blue-500 text-gray-900 dark:text-white min-h-[44px]"
+              <div className="w-full sm:w-64">
+                <AdminSearchInput
+                  value={search}
+                  onChange={setSearch}
+                  placeholder="Search filenames..."
                 />
               </div>
               <div className="flex bg-gray-100 dark:bg-gray-800/60 p-1 rounded-xl w-full sm:w-auto min-h-[44px] items-center">

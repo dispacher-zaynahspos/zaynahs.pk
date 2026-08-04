@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef } from 'react';
-import { Truck, CreditCard, Loader2, Plus, Edit2, Trash2, Check, X, GripVertical, ChevronUp, ChevronDown } from 'lucide-react';
+import { Truck, CreditCard, Loader2, Plus, Edit2, Trash2, Check, X, GripVertical, ChevronUp, ChevronDown } from '@/components/common/Icons';
 import { ShippingMethod, PaymentMethod } from '@/lib/types';
 
 interface ShippingTabProps {

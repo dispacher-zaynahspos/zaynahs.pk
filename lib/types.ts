@@ -12,6 +12,28 @@ export interface Category {
   updatedAt: string;
 }
 
+export interface Collection {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  imageUrl?: string;
+  sortOrder: number;
+  active: boolean;
+  deletedAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  categories?: Category[]; // For populated relations
+}
+
+export interface CollectionCategory {
+  id: string;
+  collectionId: string;
+  categoryId: string;
+  sortOrder: number;
+  createdAt: string;
+}
+
 export interface Badge {
   id: string;
   name: string;
@@ -401,6 +423,9 @@ export interface StoreSettings {
   product_description_limit?: number;
   product_short_prompt?: string;
   product_short_limit?: number;
+  collection_default_template?: string;
+  collection_description_prompt?: string;
+  collection_description_limit?: number;
 
   // SMTP/Email Fallback Columns
   storeUrl?: string;
@@ -470,7 +495,7 @@ export interface SizeGuide {
 
 export interface HomepageSection {
   id: string;
-  section_type: 'hero_banner' | 'product_grid' | 'category_list' | 'promo_banner' | 'trust_badges' | 'recent_reviews' | 'brands_logos' | 'category_grid' | 'social_feed' | 'ticker' | 'flash_sale';
+  section_type: 'hero_banner' | 'product_grid' | 'category_list' | 'promo_banner' | 'trust_badges' | 'recent_reviews' | 'brands_logos' | 'category_grid' | 'collections_grid' | 'social_feed' | 'ticker' | 'flash_sale' | string;
   title?: string;
   settings: Record<string, any>;
   content_data: Record<string, any>;
@@ -479,6 +504,7 @@ export interface HomepageSection {
   created_at?: string;
   updated_at?: string;
 }
+
 
 export interface WhatsAppSubscriber {
   id: string;

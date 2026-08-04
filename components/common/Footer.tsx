@@ -65,6 +65,7 @@ export default function Footer({ settings, brandName }: FooterProps) {
   const [mounted, setMounted] = useState(false);
   const [isPreview, setIsPreview] = useState(false);
   const [footerAccordionOpen, setFooterAccordionOpen] = useState<Record<string, boolean>>({});
+  const [showAllQuickLinks, setShowAllQuickLinks] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -205,78 +206,125 @@ export default function Footer({ settings, brandName }: FooterProps) {
               </h3>
               {navigationMenu.length > 0 ? (
                 <ul className="space-y-2.5 text-sm font-semibold">
-                  {renderFooterMenu(navigationMenu)}
-                  {/* Append policy links under custom navigation menu if toggled on */}
-                  {settings.showFaqInFooter !== false && (
-                    <li>
-                      <Link href="/faq" className="text-gray-500 hover:text-[#e94560] dark:text-gray-400 dark:hover:text-white transition-colors block">
-                        FAQ
-                      </Link>
-                    </li>
-                  )}
-                  <li>
-                    <Link href="/reviews" className="text-gray-500 hover:text-[#e94560] dark:text-gray-400 dark:hover:text-white transition-colors block">
-                      Reviews
-                    </Link>
-                  </li>
-                  {settings.showReturnsInFooter !== false && (
-                    <li>
-                      <Link href="/returns" className="text-gray-500 hover:text-[#e94560] dark:text-gray-400 dark:hover:text-white transition-colors block">
-                        Return Policy
-                      </Link>
-                    </li>
-                  )}
-                  {settings.showPrivacyInFooter !== false && (
-                    <li>
-                      <Link href="/privacy-policy" className="text-gray-500 hover:text-[#e94560] dark:text-gray-400 dark:hover:text-white transition-colors block">
-                        Privacy Policy
-                      </Link>
-                    </li>
-                  )}
+                  {(() => {
+                    const allItems = [
+                      ...renderFooterMenu(navigationMenu),
+                      settings.showFaqInFooter !== false && (
+                        <li key="faq">
+                          <Link href="/faq" className="text-gray-500 hover:text-[#e94560] dark:text-gray-400 dark:hover:text-white transition-colors block">
+                            FAQ
+                          </Link>
+                        </li>
+                      ),
+                      <li key="reviews">
+                        <Link href="/reviews" className="text-gray-500 hover:text-[#e94560] dark:text-gray-400 dark:hover:text-white transition-colors block">
+                          Reviews
+                        </Link>
+                      </li>,
+                      settings.showReturnsInFooter !== false && (
+                        <li key="returns">
+                          <Link href="/returns" className="text-gray-500 hover:text-[#e94560] dark:text-gray-400 dark:hover:text-white transition-colors block">
+                            Return Policy
+                          </Link>
+                        </li>
+                      ),
+                      settings.showPrivacyInFooter !== false && (
+                        <li key="privacy">
+                          <Link href="/privacy-policy" className="text-gray-500 hover:text-[#e94560] dark:text-gray-400 dark:hover:text-white transition-colors block">
+                            Privacy Policy
+                          </Link>
+                        </li>
+                      )
+                    ].filter(Boolean);
+
+                    const visibleItems = showAllQuickLinks ? allItems : allItems.slice(0, 6);
+                    const hasMore = allItems.length > 6;
+
+                    return (
+                      <>
+                        {visibleItems}
+                        {hasMore && (
+                          <li key="toggle-more">
+                            <button
+                              onClick={() => setShowAllQuickLinks(!showAllQuickLinks)}
+                              className="text-[#e94560] hover:text-[#d8344f] dark:text-[#ff6b84] dark:hover:text-[#ff8a9f] transition-colors font-bold flex items-center gap-1 mt-2 cursor-pointer"
+                            >
+                              {showAllQuickLinks ? 'Show Less' : 'Show More'}
+                              <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${showAllQuickLinks ? 'rotate-180' : ''}`} />
+                            </button>
+                          </li>
+                        )}
+                      </>
+                    );
+                  })()}
                 </ul>
               ) : (
                 <ul className="space-y-2.5 text-sm font-semibold">
-                  <li>
-                    <Link href="/" className="text-gray-500 hover:text-[#e94560] dark:text-gray-400 dark:hover:text-white transition-colors block">
-                      Home
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="/cart" className="text-gray-500 hover:text-[#e94560] dark:text-gray-400 dark:hover:text-white transition-colors block">
-                      Cart
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="/reviews" className="text-gray-500 hover:text-[#e94560] dark:text-gray-400 dark:hover:text-white transition-colors block">
-                      Reviews
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="/account" className="text-gray-500 hover:text-[#e94560] dark:text-gray-400 dark:hover:text-white transition-colors block">
-                      My Account
-                    </Link>
-                  </li>
-                  {settings.showFaqInFooter !== false && (
-                    <li>
-                      <Link href="/faq" className="text-gray-500 hover:text-[#e94560] dark:text-gray-400 dark:hover:text-white transition-colors block">
-                        FAQ
-                      </Link>
-                    </li>
-                  )}
-                  {settings.showReturnsInFooter !== false && (
-                    <li>
-                      <Link href="/returns" className="text-gray-500 hover:text-[#e94560] dark:text-gray-400 dark:hover:text-white transition-colors block">
-                        Return Policy
-                      </Link>
-                    </li>
-                  )}
-                  {settings.showPrivacyInFooter !== false && (
-                    <li>
-                      <Link href="/privacy-policy" className="text-gray-500 hover:text-[#e94560] dark:text-gray-400 dark:hover:text-white transition-colors block">
-                        Privacy Policy
-                      </Link>
-                    </li>
-                  )}
+                  {(() => {
+                    const allItems = [
+                      <li key="home">
+                        <Link href="/" className="text-gray-500 hover:text-[#e94560] dark:text-gray-400 dark:hover:text-white transition-colors block">
+                          Home
+                        </Link>
+                      </li>,
+                      <li key="cart">
+                        <Link href="/cart" className="text-gray-500 hover:text-[#e94560] dark:text-gray-400 dark:hover:text-white transition-colors block">
+                          Cart
+                        </Link>
+                      </li>,
+                      <li key="reviews">
+                        <Link href="/reviews" className="text-gray-500 hover:text-[#e94560] dark:text-gray-400 dark:hover:text-white transition-colors block">
+                          Reviews
+                        </Link>
+                      </li>,
+                      <li key="account">
+                        <Link href="/account" className="text-gray-500 hover:text-[#e94560] dark:text-gray-400 dark:hover:text-white transition-colors block">
+                          My Account
+                        </Link>
+                      </li>,
+                      settings.showFaqInFooter !== false && (
+                        <li key="faq">
+                          <Link href="/faq" className="text-gray-500 hover:text-[#e94560] dark:text-gray-400 dark:hover:text-white transition-colors block">
+                            FAQ
+                          </Link>
+                        </li>
+                      ),
+                      settings.showReturnsInFooter !== false && (
+                        <li key="returns">
+                          <Link href="/returns" className="text-gray-500 hover:text-[#e94560] dark:text-gray-400 dark:hover:text-white transition-colors block">
+                            Return Policy
+                          </Link>
+                        </li>
+                      ),
+                      settings.showPrivacyInFooter !== false && (
+                        <li key="privacy">
+                          <Link href="/privacy-policy" className="text-gray-500 hover:text-[#e94560] dark:text-gray-400 dark:hover:text-white transition-colors block">
+                            Privacy Policy
+                          </Link>
+                        </li>
+                      )
+                    ].filter(Boolean);
+
+                    const visibleItems = showAllQuickLinks ? allItems : allItems.slice(0, 6);
+                    const hasMore = allItems.length > 6;
+
+                    return (
+                      <>
+                        {visibleItems}
+                        {hasMore && (
+                          <li key="toggle-more">
+                            <button
+                              onClick={() => setShowAllQuickLinks(!showAllQuickLinks)}
+                              className="text-[#e94560] hover:text-[#d8344f] dark:text-[#ff6b84] dark:hover:text-[#ff8a9f] transition-colors font-bold flex items-center gap-1 mt-2 cursor-pointer"
+                            >
+                              {showAllQuickLinks ? 'Show Less' : 'Show More'}
+                              <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${showAllQuickLinks ? 'rotate-180' : ''}`} />
+                            </button>
+                          </li>
+                        )}
+                      </>
+                    );
+                  })()}
                 </ul>
               )}
             </div>

@@ -45,13 +45,13 @@ async function purgeCloudflareUrls(urls: string[]) {
     const data = await res.json();
     if (!res.ok || !data.success) {
       console.error('Failed to purge Cloudflare cache:', data);
-      throw new Error(data.errors?.[0]?.message || 'Cloudflare Purge API failed');
+      // Removed throw so server actions don't crash when CF fails
     } else {
       console.log('Successfully purged Cloudflare cache:', urls);
     }
   } catch (error) {
     console.error('Error purging Cloudflare cache:', error);
-    throw error;
+    // Removed throw
   }
 }
 
@@ -79,13 +79,13 @@ async function purgeCloudflareEverything() {
     const data = await res.json();
     if (!res.ok || !data.success) {
       console.error('Failed to purge everything on Cloudflare:', data);
-      throw new Error(data.errors?.[0]?.message || 'Cloudflare Purge API failed');
+      // Removed throw
     } else {
       console.log('Successfully purged everything on Cloudflare');
     }
   } catch (error) {
     console.error('Error purging everything on Cloudflare:', error);
-    throw error;
+    // Removed throw
   }
 }
 
@@ -126,10 +126,12 @@ export async function revalidateBanner() {
     (revalidateTag as any)('homepage');
     (revalidateTag as any)('homepage_sections');
     (revalidateTag as any)('products');
+    (revalidateTag as any)('verticals');
 
     // Purge page routing cache
     revalidatePath('/');
     revalidatePath('/shop');
+    revalidatePath('/store', 'layout');
     revalidatePath('/admin', 'layout');
 
     const dynamicSiteUrl = await resolveSiteUrl();
@@ -137,6 +139,7 @@ export async function revalidateBanner() {
       `${dynamicSiteUrl}/`,
       `${dynamicSiteUrl}`,
       `${dynamicSiteUrl}/shop`,
+      `${dynamicSiteUrl}/store`,
     ];
     await purgeCloudflareUrls(urls);
     console.log('[revalidate] Banners & homepage revalidated');
@@ -179,15 +182,18 @@ export async function revalidateHomepage() {
   try {
     (revalidateTag as any)('homepage');
     (revalidateTag as any)('products');
+    (revalidateTag as any)('verticals');
 
     revalidatePath('/');
     revalidatePath('/shop');
+    revalidatePath('/store', 'layout');
     revalidatePath('/admin', 'layout');
 
     const dynamicSiteUrl = await resolveSiteUrl();
     const urls = [
       `${dynamicSiteUrl}/`,
       `${dynamicSiteUrl}/shop`,
+      `${dynamicSiteUrl}/store`,
     ];
     await purgeCloudflareUrls(urls);
 
@@ -201,6 +207,32 @@ export async function revalidateHomepage() {
   }
 }
 
+export async function revalidateVertical(slug: string) {
+  try {
+    (revalidateTag as any)('verticals');
+    (revalidateTag as any)('homepage');
+    (revalidateTag as any)('products');
+    (revalidateTag as any)('homepage_sections');
+
+    revalidatePath('/store');
+    revalidatePath(`/store/${slug}`);
+    revalidatePath(`/store/${slug}/shop`);
+    revalidatePath('/');
+    revalidatePath('/admin', 'layout');
+
+    const dynamicSiteUrl = await resolveSiteUrl();
+    const urls = [
+      `${dynamicSiteUrl}/store`,
+      `${dynamicSiteUrl}/store/${slug}`,
+      `${dynamicSiteUrl}/store/${slug}/shop`,
+    ];
+    await purgeCloudflareUrls(urls);
+    console.log(`[revalidate] Vertical revalidated: ${slug}`);
+  } catch (error) {
+    console.error(`Error in revalidateVertical for ${slug}:`, error);
+  }
+}
+
 export async function revalidateSettings() {
   try {
     (revalidateTag as any)('settings');
@@ -209,6 +241,7 @@ export async function revalidateSettings() {
     (revalidateTag as any)('products');
     (revalidateTag as any)('categories');
     (revalidateTag as any)('banners');
+    (revalidateTag as any)('verticals');
 
     // Revalidate the entire site (including layout metadata, favicon, titles)
     revalidatePath('/', 'layout');

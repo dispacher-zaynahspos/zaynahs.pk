@@ -7,6 +7,7 @@ import {
   SlidersHorizontal, RefreshCw, Download, Upload, Check, ChevronRight
 } from '@/components/common/Icons';
 import { toast } from 'sonner';
+import { useConfirm } from '@/components/admin/shared/AdminConfirmProvider';
 
 interface AppearancePresetsListProps {
   settings: StoreSettings;
@@ -15,6 +16,7 @@ interface AppearancePresetsListProps {
 
 export function AppearancePresetsList({ settings, onSelectPreset }: AppearancePresetsListProps) {
   const currentPresetId = settings.theme_preset || 'classic_white';
+  const { confirm } = useConfirm();
 
   return (
     <div className="space-y-4">
@@ -35,9 +37,17 @@ export function AppearancePresetsList({ settings, onSelectPreset }: AppearancePr
           return (
             <div
               key={preset.id}
-              onClick={() => {
-                onSelectPreset(preset.id, preset.config);
-                toast.info(`Theme Preset "${preset.name}" applied in preview.`);
+              onClick={async () => {
+                const confirmed = await confirm({
+                  title: 'Apply Preset',
+                  message: `Are you sure you want to apply the "${preset.name}" preset? This will overwrite your current customizations.`,
+                  variant: 'warning',
+                  confirmText: 'Apply'
+                });
+                if (confirmed) {
+                  onSelectPreset(preset.id, preset.config);
+                  toast.info(`Theme Preset "${preset.name}" applied in preview.`);
+                }
               }}
               className={`group relative p-3.5 border rounded-2xl transition-all duration-200 cursor-pointer select-none ${
                 isActive
@@ -97,6 +107,7 @@ interface AppearanceCustomizePanelProps {
 export function AppearanceCustomizePanel({ settings, onUpdateSettings }: AppearanceCustomizePanelProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeCustomizeTab, setActiveCustomizeTab] = useState<'colors' | 'fonts' | 'elements'>('colors');
+  const { confirm } = useConfirm();
 
   const activePresetId = settings.theme_preset || 'classic_white';
   const defaultPreset = THEME_PRESETS.find(p => p.id === activePresetId) || THEME_PRESETS[0];
@@ -125,8 +136,14 @@ export function AppearanceCustomizePanel({ settings, onUpdateSettings }: Appeara
   };
 
   // Reset to default active preset values
-  const handleResetPreset = () => {
-    if (confirm(`Reset theme variables back to standard "${defaultPreset.name}" configuration?`)) {
+  const handleResetPreset = async () => {
+    const confirmed = await confirm({
+      title: 'Reset Theme',
+      message: `Reset theme variables back to standard "${defaultPreset.name}" configuration?`,
+      variant: 'warning',
+      confirmText: 'Reset'
+    });
+    if (confirmed) {
       onUpdateSettings({ theme_config: defaultPreset.config });
       toast.success(`Reset back to default "${defaultPreset.name}" settings.`);
     }

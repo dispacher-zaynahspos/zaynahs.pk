@@ -2,15 +2,16 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Save, Upload, Trash2, Image as ImageIcon, Loader2, Plus, CreditCard, Truck, Edit2, Check, X, Shield, ChevronUp, ChevronDown, ChevronRight, ChevronLeft, Settings, Layout, Navigation, Package, Zap, MessageCircle, Globe, ShoppingBag, HelpCircle, Mail } from 'lucide-react';
+import { Save, Upload, Trash2, Image as ImageIcon, Loader2, Plus, CreditCard, Truck, Edit2, Check, X, Shield, ChevronUp, ChevronDown, ChevronRight, ChevronLeft, Settings, Layout, Navigation, Package, Zap, MessageCircle, Globe, ShoppingBag, HelpCircle, Mail } from '@/components/common/Icons';
+import * as CentralIcons from '@/components/common/Icons';
 import { StoreSettings, ShippingMethod, PaymentMethod, Category, Product, NavigationItem, Coupon } from '@/lib/types';
 import { updateSettingsSafe } from '@/lib/services/settings';
 import { getCoupons, createCoupon, updateCoupon, deleteCoupon } from '@/lib/services/coupons';
-import * as CentralIcons from '@/components/common/Icons';
 import { uploadImage } from '@/lib/uploadImage';
 import { getCategories } from '@/lib/services/categories';
 import { getAllProductsAdmin } from '@/lib/services/products';
 import { useAdminTab } from '@/lib/hooks/useAdminTab';
+import { useConfirm } from '@/components/admin/shared/AdminConfirmProvider';
 import {
   getShippingMethods,
   createShippingMethod,
@@ -51,6 +52,7 @@ interface SettingsFormProps {
 
 export default function SettingsForm({ initialSettings }: SettingsFormProps) {
   const router = useRouter();
+  const { confirm } = useConfirm();
 
   // Settings Form States
   const [storeName, setStoreName] = useState(initialSettings.storeName);
@@ -338,6 +340,9 @@ export default function SettingsForm({ initialSettings }: SettingsFormProps) {
   const [productDescriptionLimit, setProductDescriptionLimit] = useState(initialSettings.product_description_limit ?? 250);
   const [productShortPrompt, setProductShortPrompt] = useState(initialSettings.product_short_prompt || '');
   const [productShortLimit, setProductShortLimit] = useState(initialSettings.product_short_limit ?? 100);
+  const [collectionDefaultTemplate, setCollectionDefaultTemplate] = useState(initialSettings.collection_default_template || '');
+  const [collectionDescriptionPrompt, setCollectionDescriptionPrompt] = useState(initialSettings.collection_description_prompt || '');
+  const [collectionDescriptionLimit, setCollectionDescriptionLimit] = useState(initialSettings.collection_description_limit ?? 80);
 
   // SMTP/Email Settings States
   const [smtpEmail, setSmtpEmail] = useState(initialSettings.smtp_email || '');
@@ -516,7 +521,13 @@ export default function SettingsForm({ initialSettings }: SettingsFormProps) {
   };
 
   const handleDeleteShipping = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this shipping method?')) return;
+    const confirmed = await confirm({
+      title: 'Delete Shipping Method',
+      message: 'Are you sure you want to delete this shipping method?',
+      variant: 'danger',
+      confirmText: 'Delete'
+    });
+    if (!confirmed) return;
     try {
       await deleteShippingMethod(id);
       setShippingMethods(prev => prev.filter(item => item.id !== id));
@@ -583,7 +594,13 @@ export default function SettingsForm({ initialSettings }: SettingsFormProps) {
   };
 
   const handleDeletePayment = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this payment method?')) return;
+    const confirmed = await confirm({
+      title: 'Delete Payment Method',
+      message: 'Are you sure you want to delete this payment method?',
+      variant: 'danger',
+      confirmText: 'Delete'
+    });
+    if (!confirmed) return;
     try {
       await deletePaymentMethod(id);
       setPaymentMethods(prev => prev.filter(item => item.id !== id));
@@ -736,7 +753,13 @@ export default function SettingsForm({ initialSettings }: SettingsFormProps) {
   };
 
   const handleDeleteCoupon = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this coupon?')) return;
+    const confirmed = await confirm({
+      title: 'Delete Coupon',
+      message: 'Are you sure you want to delete this coupon?',
+      variant: 'danger',
+      confirmText: 'Delete'
+    });
+    if (!confirmed) return;
     try {
       await deleteCoupon(id);
       setCoupons(prev => prev.filter(c => c.id !== id));
@@ -1033,6 +1056,9 @@ export default function SettingsForm({ initialSettings }: SettingsFormProps) {
         product_description_limit: Number(productDescriptionLimit) || 250,
         product_short_prompt: productShortPrompt.trim(),
         product_short_limit: Number(productShortLimit) || 100,
+        collection_default_template: collectionDefaultTemplate.trim(),
+        collection_description_prompt: collectionDescriptionPrompt.trim(),
+        collection_description_limit: Number(collectionDescriptionLimit) || 150,
 
         // SMTP/Email Fallback Columns
         smtp_email: smtpEmail.trim(),
@@ -1169,8 +1195,14 @@ export default function SettingsForm({ initialSettings }: SettingsFormProps) {
     }
   };
 
-  const deleteMenuItem = (id: string) => {
-    if (!confirm('Are you sure you want to delete this menu item and all its sub-menu items?')) return;
+  const handleDeleteMenuItem = async (id: string) => {
+    const confirmed = await confirm({
+      title: 'Delete Menu Item',
+      message: 'Are you sure you want to delete this menu item and all its sub-menu items?',
+      variant: 'danger',
+      confirmText: 'Delete'
+    });
+    if (!confirmed) return;
     const updatedMenu = deepCloneMenu(navigationMenu);
     const { siblings, index } = findNodeAndParent(updatedMenu, id);
     if (index !== -1) {
@@ -1464,7 +1496,7 @@ export default function SettingsForm({ initialSettings }: SettingsFormProps) {
           indentMenuItem={indentMenuItem}
           outdentMenuItem={outdentMenuItem}
           openEditMenuModal={openEditMenuModal}
-          deleteMenuItem={deleteMenuItem}
+          deleteMenuItem={handleDeleteMenuItem}
           isMenuModalOpen={isMenuModalOpen}
           setIsMenuModalOpen={setIsMenuModalOpen}
           menuItemLabel={menuItemLabel}
@@ -1964,6 +1996,12 @@ export default function SettingsForm({ initialSettings }: SettingsFormProps) {
           setProductShortPrompt={setProductShortPrompt}
           productShortLimit={productShortLimit}
           setProductShortLimit={setProductShortLimit}
+          collectionDefaultTemplate={collectionDefaultTemplate}
+          setCollectionDefaultTemplate={setCollectionDefaultTemplate}
+          collectionDescriptionPrompt={collectionDescriptionPrompt}
+          setCollectionDescriptionPrompt={setCollectionDescriptionPrompt}
+          collectionDescriptionLimit={collectionDescriptionLimit}
+          setCollectionDescriptionLimit={setCollectionDescriptionLimit}
         />
       )}
 

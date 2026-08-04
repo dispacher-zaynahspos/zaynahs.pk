@@ -10,6 +10,8 @@ import { Check, Trash2, MessageSquare, Eye, EyeOff, Plus, Image, Edit } from '@/
 import { toast } from 'sonner';
 import { useAdminTab } from '@/lib/hooks/useAdminTab';
 import { getClientSiteUrl } from '@/lib/site-url';
+import EmptyState from '@/components/common/EmptyState';
+import { useConfirm } from '@/components/admin/shared/AdminConfirmProvider';
 import ReviewDetailSheet from '@/components/admin/ReviewDetailSheet';
 import PostReviewModal from '@/components/admin/PostReviewModal';
 
@@ -20,6 +22,7 @@ function AdminReviewsPageInner() {
   const [socialProofs, setSocialProofs] = useState<SocialProof[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useAdminTab<'all' | 'pending' | 'approved' | 'custom'>('all');
+  const { confirm } = useConfirm();
   const [selectedReview, setSelectedReview] = useState<ReviewWithProduct | null>(null);
   const [showPostModal, setShowPostModal] = useState(false);
   const [editProof, setEditProof] = useState<SocialProof | null>(null);
@@ -89,7 +92,13 @@ function AdminReviewsPageInner() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Move this review to Trash?')) return;
+    const confirmed = await confirm({
+      title: 'Move to Trash',
+      message: 'Move this review to Trash?',
+      variant: 'danger',
+      confirmText: 'Move to Trash'
+    });
+    if (!confirmed) return;
     try {
       await deleteReview(id);
       toast.success('Review moved to Trash');
@@ -100,7 +109,13 @@ function AdminReviewsPageInner() {
   };
 
   const handleDeleteProof = async (id: string) => {
-    if (!confirm('Delete this social proof entry?')) return;
+    const confirmed = await confirm({
+      title: 'Delete Social Proof',
+      message: 'Delete this social proof entry?',
+      variant: 'danger',
+      confirmText: 'Delete'
+    });
+    if (!confirmed) return;
     try {
       await deleteSocialProof(id);
       toast.success('Social proof deleted');
@@ -241,13 +256,11 @@ function AdminReviewsPageInner() {
           </div>
         )
       ) : filteredReviews.length === 0 ? (
-        <div className="text-center py-12 bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 flex flex-col items-center justify-center space-y-3">
-          <div className="p-4 bg-gray-50 dark:bg-white/5 rounded-full text-gray-400">
-            <MessageSquare className="h-8 w-8" />
-          </div>
-          <h3 className="text-lg font-bold text-gray-900 dark:text-white">No reviews found</h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400">There are no reviews in this category.</p>
-        </div>
+        <EmptyState 
+          icon={<MessageSquare className="h-8 w-8 text-gray-400" />}
+          title="No reviews found" 
+          description="There are no reviews in this category." 
+        />
       ) : (
         /* ── Standard Reviews Table ── */
         <>

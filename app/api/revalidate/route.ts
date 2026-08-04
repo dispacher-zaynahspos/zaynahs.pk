@@ -4,7 +4,8 @@ import {
   revalidateBanner,
   revalidateCategory,
   revalidateHomepage,
-  revalidateSettings
+  revalidateSettings,
+  revalidateVertical
 } from '@/lib/revalidate';
 import { getProductById } from '@/lib/services/products';
 import { syncProductToMeta } from '@/lib/meta/syncProduct';
@@ -97,6 +98,13 @@ export async function POST(req: NextRequest) {
       }
     } else if (table === 'store_settings') {
       await revalidateSettings();
+    } else if (table === 'verticals') {
+      const slug = activeRecord.slug;
+      if (slug) {
+        await revalidateVertical(slug);
+      } else {
+        console.warn('[Webhook Revalidate] Vertical update received but slug was missing.');
+      }
     } else {
       console.log(`[Webhook Revalidate] Table ${table} has no specific handler. Revalidating settings completely.`);
       await revalidateSettings();

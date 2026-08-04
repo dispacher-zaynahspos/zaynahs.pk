@@ -28,6 +28,8 @@ export default function CategoryGridSettings({
   const [showBulkAdd, setShowBulkAdd] = useState(false);
   const [selectedBulkIds, setSelectedBulkIds] = useState<string[]>([]);
 
+  const displayCategories = (categories || []).filter(c => c.slug !== 'shop');
+
   const handleItemsChange = (updatedItems: any[]) => {
     onUpdateSection({
       content_data: { ...contentData, items: updatedItems }
@@ -39,7 +41,7 @@ export default function CategoryGridSettings({
   };
 
   const handleBulkAddSubmit = () => {
-    const newCards = categories
+    const newCards = (categories || [])
       .filter(c => selectedBulkIds.includes(c.id))
       .map(cat => ({
         title: cat.name,
@@ -99,13 +101,15 @@ export default function CategoryGridSettings({
         {showBulkAdd && (
           <div className="space-y-2 p-3 bg-gray-50 dark:bg-[#0f0f1b] border border-gray-200 dark:border-gray-800 rounded-xl">
             <div className="flex justify-between items-center mb-1">
-              <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider block">
-                Select Categories to Add
-              </label>
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider block">
+                  Select Categories to Add
+                </label>
+              </div>
               <span className="text-[10px] font-bold text-blue-500">{selectedBulkIds.length} Selected</span>
             </div>
             <div className="max-h-40 overflow-y-auto space-y-1.5 border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#16162a] rounded-lg p-2">
-              {categories.filter(c => c.slug !== 'shop').map(cat => (
+              {displayCategories.map(cat => (
                 <label key={cat.id} className="flex items-center gap-2 text-xs text-gray-800 dark:text-gray-200 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 p-1 rounded">
                   <input 
                     type="checkbox" 
@@ -217,8 +221,9 @@ export default function CategoryGridSettings({
                     className="w-full px-2 py-1 text-xs rounded border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] text-gray-900 dark:text-gray-100 focus:outline-none"
                     onChange={(e) => {
                       const catId = e.target.value;
+
                       if (catId) {
-                        const cat = categories.find(c => c.id === catId);
+                        const cat = (categories || []).find(c => c.id === catId);
                         if (cat) {
                           updateGridItem({ title: cat.name, link: `/shop?category=${cat.slug}` });
                         }
@@ -226,7 +231,7 @@ export default function CategoryGridSettings({
                     }}
                   >
                     <option value="">-- Select Category --</option>
-                    {categories.filter(c => c.slug !== 'shop').map(c => (
+                    {displayCategories.map(c => (
                       <option key={c.id} value={c.id}>{c.name}</option>
                     ))}
                   </select>

@@ -296,3 +296,40 @@ When adding a new page, category, or route:
 5. Cloudflare token MUST include **Zone → Cache Purge → Purge** permission, or the purge step fails with 403.
 6. NEVER commit temp/debug files (test-*.js, `env tv`, vercel_envs.json, debug API routes) — GitHub push protection blocks them anyway.
 <!-- END:post-deploy-cache-rule -->
+
+<!-- BEGIN:shared-modules-rule -->
+# SHARED_MODULES_RULE (STRICTLY ENFORCED)
+
+Any new page or feature added to `/admin` or `/store` MUST reuse the following shared modules. If a pattern doesn't exist yet, build it inside the shared directory first (`components/admin/shared/`, `components/store/shared/`, or `components/common/`), then consume it from the page — NEVER build inline, page-local UI/logic for anything conceptually reusable.
+
+1. **Icons** → only import from `@/components/common/Icons` — never `lucide-react` directly anywhere outside that file.
+2. **Search bar** → `/admin` pages use only `AdminSearchInput`; `/store` pages use only `SearchBar`. No inline `<input>` search reimplementations permitted.
+3. **Pagination** → only `PaginationFooter`, project-wide.
+4. **Date filters** → only `AdminDateFilter`, backed by `lib/utils/dateFilters.ts`.
+5. **Confirmation dialogs** → only `AdminConfirmDialog`. Raw `window.confirm()` is strictly forbidden.
+6. **arrayMove** → only import from `@/lib/utils/arrayMove`.
+7. **formatPrice** → only import from `@/lib/utils/whatsapp`.
+8. **timeAgo, getStartISO, getEndISO** → only import from `@/lib/utils/dateFilters`.
+9. **isOwnStorageUrl / processImageUrl** → only import from `@/lib/services/storage`.
+10. **Empty states** → only `@/components/common/EmptyState`.
+11. **Loading states** → only `@/components/common/LoadingSkeleton` variants.
+12. **Page headers (admin)** → only `AdminPageHeader`.
+13. **Cards (admin)** → only `AdminCard`.
+14. **Storefront filters** → only components in `components/store/shared/` (`CategoryFilter`, `PriceRangeFilter`, `ColorFilter`, `SizeFilter`, `SortDropdown`).
+15. **Tab management** → continue following the existing `useAdminTab.ts` pattern for any page with tabbed UI.
+<!-- END:shared-modules-rule -->
+
+<!-- BEGIN:multi-vertical-rule -->
+# Multi-Vertical Sub-Store Rule (STRICTLY ENFORCED)
+
+The app supports a Landing Hub (`/store`) → Sub-Stores (`/store/<slug>`) system. Vertical data lives in the `verticals` table.
+
+1. **NEVER hardcode vertical names** (no "Shoes", "Jewelry" etc. as literals). Verticals are admin data: `name`, `slug`, `tagline`, `tile_image_url`, `banner_url`, `display_order`, `is_active`.
+2. **`vertical_id` is nullable** — `NULL` = legacy/default store. The main store (`/`, `/shop`, `/category/[slug]`) must ALWAYS filter `.is('vertical_id', null)` when vertical scoping applies; sub-stores filter `.eq('vertical_id', <id>)`.
+3. **Extend, don't replace**: any new query/product/section feature must accept an optional `verticalId` and default to `NULL` behavior. Never break single-store behavior.
+4. **Cache parity**: all cached fetches (`unstable_cache`) MUST include `verticalId` in their cache key. Revalidation uses existing tags (`products`, `categories`, `homepage_sections`, `homepage`) + `verticals`; sub-store pages live under `/store/*` so use `revalidatePath('/store', 'layout')` and include `/store` URLs in Cloudflare purges.
+5. **Sub-store routes**: `/store/[vertical]/page.tsx` reuses `StoreFront`; `/store/[vertical]/shop/page.tsx` reuses `ShopPage` (pass `verticalId` for scoped client hydration via `/api/products/list?vertical=`). NEVER duplicate the section engine or shop UI.
+6. **Admin**: manage verticals at `/admin/settings/verticals`; the customizer's "Store:" selector edits each vertical's own section stack. New sections added while a vertical is selected MUST pass `verticalId` to `addHomepageSection`.
+7. **Hub behavior**: `/store` redirects to `/` when `verticals_enabled` is false, and to the single sub-store when only one vertical is active.
+8. **Schema changes**: any `verticals`-related change MUST be reflected in `SUPER_MASTER_SCHEMA.sql` first, then a migration file — then run `node scripts/check-master-schema.mjs`.
+<!-- END:multi-vertical-rule -->

@@ -4,6 +4,37 @@
 
 ---
 
+### [2026-08-03] v6.0.0 — Multi-Vertical Sub-Store System (Landing Hub → Sub-Stores)
+**Files Updated:**
+- [supabase/schema/SUPER_MASTER_SCHEMA.sql](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/supabase/schema/SUPER_MASTER_SCHEMA.sql) (v2.4.0)
+- [supabase/migrations/20260803000000_add_verticals.sql](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/supabase/migrations/20260803000000_add_verticals.sql) — NEW
+- [lib/types.ts](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/lib/types.ts)
+- [lib/services/verticals.ts](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/lib/services/verticals.ts) — NEW
+- [lib/services/sections.ts](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/lib/services/sections.ts)
+- [lib/services/products.ts](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/lib/services/products.ts)
+- [lib/services/categories.ts](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/lib/services/categories.ts)
+- [lib/services/settings.ts](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/lib/services/settings.ts)
+- [lib/revalidate.ts](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/lib/revalidate.ts)
+- [app/api/revalidate/route.ts](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/app/api/revalidate/route.ts)
+- [app/api/products/list/route.ts](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/app/api/products/list/route.ts)
+
+**Changes:**
+1. **New `verticals` table** — admin-configurable hub tiles / sub-stores: `id`, `name`, `slug` (unique), `tagline`, `tile_image_url`, `banner_url`, `display_order`, `is_active`, timestamps. RLS: public read (active only) + admin all. Webhook trigger `revalidate-verticals`.
+2. **Nullable `vertical_id` FK on `categories`, `products`, `homepage_sections`** (ON DELETE SET NULL) + indexes. `NULL` = legacy/default store — zero regression for single-store setups.
+3. **New `store_settings` columns**: `verticals_enabled` (default false), `verticals_hub_title`, `verticals_hub_subtitle`.
+4. **Storefront**: `/store` hub (redirects to `/` when disabled, redirects to the single sub-store when only 1 active), `/store/[vertical]` sub-store (reuses `StoreFront` engine), `/store/[vertical]/shop` scoped catalog (reuses `ShopPage`). All data scoped by `vertical_id` server-side; client hydration via `/api/products/list?vertical=<id>`.
+5. **Admin**: `/admin/settings/verticals` manager (CRUD + toggle + tile/banner media picker); customizer "Store:" selector loads each vertical's own section stack (`fetchSectionsForVerticalAdmin` — uncached).
+6. **Cache parity**: sections/products/categories/verticals `unstable_cache` keys include verticalId; `revalidateVertical(slug)` + `/store`, `/store/*` in Cloudflare purge lists; `verticals` revalidation tag.
+7. **Safety fallback**: all vertical-scoped queries retry unfiltered if the `vertical_id` column doesn't exist yet (pre-migration), keeping the app fully functional until the migration is applied.
+
+**Must run in Supabase SQL Editor (via Management API)**:
+```bash
+node scripts/run-migration.mjs supabase/migrations/20260803000000_add_verticals.sql
+```
+⚠️ **NOT YET APPLIED** — `SUPABASE_MGMT_TOKEN` in `.env.local` returned 401 (expired). Refresh the token, run the command above, then deploy.
+
+---
+
 ### [2026-07-29] v5.0.0 — AI Settings Bug Fix + Business Type Presets
 **Files Updated:**
 - [lib/aiEngine.ts](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/lib/aiEngine.ts)

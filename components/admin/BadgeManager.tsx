@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Plus, Edit, Trash2, X } from 'lucide-react';
+import { Plus, Edit, Trash2, X } from '@/components/common/Icons';
+import { useConfirm } from '@/components/admin/shared/AdminConfirmProvider';
 import { Badge } from '@/lib/types';
 import { createBadge, updateBadge, deleteBadge } from '@/lib/services/badges';
 import { toast } from 'sonner';
@@ -11,6 +12,7 @@ interface BadgeManagerProps {
 }
 
 export default function BadgeManager({ initialBadges }: BadgeManagerProps) {
+  const { confirm } = useConfirm();
   const [badges, setBadges] = useState<Badge[]>(initialBadges);
   
   // Modal states
@@ -40,7 +42,13 @@ export default function BadgeManager({ initialBadges }: BadgeManagerProps) {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this badge? This will remove it from all linked products.')) return;
+    const confirmed = await confirm({
+      title: 'Delete Badge',
+      message: 'Are you sure you want to delete this badge? This will remove it from all linked products.',
+      variant: 'danger',
+      confirmText: 'Delete'
+    });
+    if (!confirmed) return;
     try {
       await deleteBadge(id);
       setBadges(prev => prev.filter(b => b.id !== id));

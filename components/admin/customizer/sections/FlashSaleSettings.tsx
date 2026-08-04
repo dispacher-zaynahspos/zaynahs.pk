@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { HomepageSection, Product, Category } from '@/lib/types';
 import { Trash2, ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from '@/components/common/Icons';
 import { formatPrice } from '@/lib/utils/whatsapp';
+import { toast } from 'sonner';
 
 interface FlashSaleSettingsProps {
   section: HomepageSection;
@@ -95,7 +96,7 @@ export default function FlashSaleSettings({
     if (!selectedCatId || !catDiscountValue) return;
 
     if (categoryDiscounts.some((c: any) => c.categoryId === selectedCatId)) {
-      alert('This category discount rule already exists.');
+      toast.error('This category discount rule already exists.');
       return;
     }
 

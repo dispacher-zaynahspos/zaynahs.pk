@@ -21,13 +21,15 @@ import {
   SortableContext,
   useSortable,
   rectSortingStrategy,
-  arrayMove,
 } from '@dnd-kit/sortable';
+import { arrayMove } from '@/lib/utils/arrayMove';
 import { CSS } from '@dnd-kit/utilities';
 import { Product, ProductImage, ProductVariant, ProductModifier, Category, VariantPreset, VariantPresetValue, Badge, SizeGuide } from '@/lib/types';
 import { createProductSafe, updateProductSafe } from '@/lib/services/products';
 import { deleteProductImage } from '@/lib/services/storage';
 import { uploadImage } from '@/lib/uploadImage';
+import AdminSearchInput from '@/components/admin/shared/AdminSearchInput';
+import { useConfirm } from '@/components/admin/shared/AdminConfirmProvider';
 import MediaSelectorModal from './MediaSelectorModal';
 import { getVariantPresets } from '@/lib/services/variantPresets';
 import { getSizeGuides } from '@/lib/services/sizeGuides';
@@ -37,10 +39,9 @@ import { getClientSiteUrl } from '@/lib/site-url';
 import { toast } from 'sonner';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { getSwatchStyle } from '@/lib/utils/swatch';
-
-
 interface ProductFormProps {
   categories: Category[];
+
   initialProduct?: Product | null;
   aiEnabled?: boolean;
   storeUrl?: string;
@@ -186,7 +187,12 @@ function SortableImageItem({
 
 export default function ProductForm({ categories, initialProduct, aiEnabled, storeUrl }: ProductFormProps) {
   const router = useRouter();
+  const { confirm } = useConfirm();
   const isEdit = !!initialProduct?.id;
+
+  const flattenedCategories = React.useMemo(() => {
+    return categories.map(c => ({ ...c, _level: 0 }));
+  }, [categories]);
 
   // 1. Core States
   const [name, setName] = useState(initialProduct?.name || '');
@@ -196,6 +202,7 @@ export default function ProductForm({ categories, initialProduct, aiEnabled, sto
   const [comparePrice, setComparePrice] = useState(initialProduct?.comparePrice?.toString() || '');
   const [cost, setCost] = useState(initialProduct?.cost?.toString() || '0');
   const [categoryId, setCategoryId] = useState(initialProduct?.categoryId || '');
+
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>(
     initialProduct?.productCategories?.map(pc => pc.categoryId) || 
     (initialProduct?.categoryId ? [initialProduct.categoryId] : [])
@@ -838,8 +845,15 @@ export default function ProductForm({ categories, initialProduct, aiEnabled, sto
     toast.success(`Updated status to ${activeVal ? 'Active' : 'Inactive'} for ${selectedVariantIndices.length} variants`);
   };
 
-  const handleBulkDelete = () => {
-    if (confirm(`Are you sure you want to delete ${selectedVariantIndices.length} selected variants?`)) {
+  const handleBulkDelete = async () => {
+    if (selectedVariantIndices.length === 0) return;
+    const confirmed = await confirm({
+      title: 'Delete Variants',
+      message: `Are you sure you want to delete ${selectedVariantIndices.length} selected variants?`,
+      variant: 'danger',
+      confirmText: 'Delete'
+    });
+    if (confirmed) {
       setVariants(prev => prev.filter((_, i) => !selectedVariantIndices.includes(i)));
       setSelectedVariantIndices([]);
       toast.success('Deleted selected variants');
@@ -902,6 +916,7 @@ export default function ProductForm({ categories, initialProduct, aiEnabled, sto
         comparePrice: comparePrice.trim() ? parseFloat(comparePrice) : undefined,
         cost: parseFloat(cost) || 0,
         categoryId: selectedCategoryIds[0] || undefined,
+
         productCategories: selectedCategoryIds.map(categoryId => ({
           productId: isEdit && initialProduct ? initialProduct.id : '',
           categoryId
@@ -1123,10 +1138,10 @@ export default function ProductForm({ categories, initialProduct, aiEnabled, sto
                     />
                   </div>
                   <div className="space-y-3 rounded-xl border border-gray-200 bg-gray-50/50 p-4 dark:border-gray-800 dark:bg-[#111124] max-h-64 overflow-y-auto">
-                    {categories.filter(cat => cat.slug !== 'shop' && cat.name.toLowerCase().includes(categorySearchQuery.toLowerCase())).length === 0 ? (
+                    {flattenedCategories.filter(cat => cat.slug !== 'shop' && cat.name.toLowerCase().includes(categorySearchQuery.toLowerCase())).length === 0 ? (
                       <span className="text-sm text-gray-500">No categories found.</span>
                     ) : (
-                      categories
+                      flattenedCategories
                         .filter(cat => cat.slug !== 'shop' && cat.name.toLowerCase().includes(categorySearchQuery.toLowerCase()))
                         .map(cat => {
                           const isSelected = selectedCategoryIds.includes(cat.id);
@@ -1143,9 +1158,14 @@ export default function ProductForm({ categories, initialProduct, aiEnabled, sto
                                       setSelectedCategoryIds(prev => prev.filter(id => id !== cat.id));
                                     }
                                   }}
-                                  className="rounded border-gray-300 text-[#e94560] focus:ring-[#e94560] h-4 w-4 cursor-pointer"
+                                  className="rounded border-gray-300 text-[#e94560] focus:ring-[#e94560] h-4 w-4 cursor-pointer flex-shrink-0 mt-0.5"
                                 />
-                                <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">{cat.name}</span>
+                                <span className="text-sm font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-1.5 flex-wrap">
+                                  {cat._level > 0 && (
+                                    <span className="text-gray-400">{'—'.repeat(cat._level)} </span>
+                                  )}
+                                  {cat.name}
+                                </span>
                               </label>
                             </div>
                           );
@@ -1153,6 +1173,7 @@ export default function ProductForm({ categories, initialProduct, aiEnabled, sto
                     )}
                   </div>
                 </div>
+
 
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-gray-500">Size Guide Preset</label>
@@ -1986,7 +2007,15 @@ export default function ProductForm({ categories, initialProduct, aiEnabled, sto
                     {variants.length > 0 && (
                       <button
                         type="button"
-                        onClick={() => { if (confirm('Clear all variants?')) { setVariants([]); setSelectedVariantIndices([]); } }}
+                        onClick={async () => {
+                          const confirmed = await confirm({
+                            title: 'Clear Variants',
+                            message: 'Clear all variants?',
+                            variant: 'danger',
+                            confirmText: 'Clear All'
+                          });
+                          if (confirmed) { setVariants([]); setSelectedVariantIndices([]); }
+                        }}
                         className="flex items-center gap-1.5 px-4 py-2 rounded-lg border border-red-200 text-red-500 text-xs font-bold cursor-pointer hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors"
                       >
                         <Trash2 className="h-3.5 w-3.5" />

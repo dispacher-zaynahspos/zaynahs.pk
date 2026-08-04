@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Lock, Store, Eye, EyeOff, CheckCircle, AlertCircle } from 'lucide-react';
+import { Lock, Store, Eye, EyeOff, CheckCircle, AlertCircle } from '@/components/common/Icons';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 

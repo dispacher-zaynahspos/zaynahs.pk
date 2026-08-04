@@ -10,15 +10,15 @@ import { getProducts } from '@/lib/services/products';
  *   ?offset=24  — skip first N (for pagination/after-SSR loading)
  *   ?category=slug (optional)
  */
+export const dynamic = 'force-dynamic';
 export const revalidate = 3600; // Cache for 1 hour on CDN
 
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = req.nextUrl;
     const categoryId = searchParams.get('categoryId') || undefined;
-
     // Fetch all products (cached via unstable_cache — fast)
-    const allProducts = await getProducts(categoryId);
+    const allProducts = await getProducts(categoryId, undefined);
 
     return NextResponse.json(
       { products: allProducts, total: allProducts.length },

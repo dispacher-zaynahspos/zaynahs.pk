@@ -1,6 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
+import EmptyState from '@/components/common/EmptyState';
+import AdminSearchInput from '@/components/admin/shared/AdminSearchInput';
+import { useConfirm } from '@/components/admin/shared/AdminConfirmProvider';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Product, StoreSettings } from '@/lib/types';
@@ -16,7 +20,8 @@ import {
   RefreshCw, 
   Loader2, 
   Globe,
-  PackageOpen
+  PackageOpen,
+  Package
 } from '@/components/common/Icons';
 import ImportExportModal from '@/components/admin/ImportExportModal';
 import PaginationFooter from './PaginationFooter';
@@ -29,6 +34,7 @@ interface ProductListProps {
 
 export default function ProductList({ initialProducts, settings }: ProductListProps) {
   const router = useRouter();
+  const { confirm } = useConfirm();
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [searchQuery, setSearchQuery] = useState('');
   const [syncingAll, setSyncingAll] = useState(false);
@@ -81,7 +87,13 @@ export default function ProductList({ initialProducts, settings }: ProductListPr
 
   const handleBulkDelete = async () => {
     if (selectedProductIds.length === 0) return;
-    if (!confirm(`Are you sure you want to move ${selectedProductIds.length} products to Trash?`)) return;
+    const confirmed = await confirm({
+      title: 'Bulk Move to Trash',
+      message: `Are you sure you want to move ${selectedProductIds.length} products to Trash?`,
+      variant: 'danger',
+      confirmText: 'Move to Trash'
+    });
+    if (!confirmed) return;
     const toastId = toast.loading(`Deleting ${selectedProductIds.length} products...`);
     try {
       await Promise.all(selectedProductIds.map(id => deleteProduct(id)));
@@ -133,7 +145,13 @@ export default function ProductList({ initialProducts, settings }: ProductListPr
 
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to move this product to Trash?')) return;
+    const confirmed = await confirm({
+      title: 'Move to Trash',
+      message: 'Are you sure you want to move this product to Trash?',
+      variant: 'danger',
+      confirmText: 'Move to Trash'
+    });
+    if (!confirmed) return;
     try {
       await deleteProduct(id);
       setProducts(prev => prev.filter(p => p.id !== id));
@@ -282,16 +300,12 @@ export default function ProductList({ initialProducts, settings }: ProductListPr
       {/* Search & Actions header */}
       <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
         <div className="flex items-center gap-3 w-full lg:w-auto">
-          <div className="relative flex-1 lg:max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <input
-              type="text"
-              placeholder="Search products by name or SKU..."
-              value={searchQuery}
-              onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-              className="w-full pl-10 pr-4 py-2 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-[#1a1a2e]"
-            />
-          </div>
+          <AdminSearchInput
+            value={searchQuery}
+            onChange={(val) => { setSearchQuery(val); setCurrentPage(1); }}
+            placeholder="Search products by name or SKU..."
+            className="flex-1 lg:max-w-md"
+          />
           <div className="flex-shrink-0 flex items-center gap-2">
             <select
               value={selectedCategory}
@@ -412,9 +426,11 @@ export default function ProductList({ initialProducts, settings }: ProductListPr
       {/* Table listing - desktop / Cards - mobile */}
       <div className="bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden transition-colors">
         {filteredProducts.length === 0 ? (
-          <div className="py-12 text-center text-sm text-gray-500">
-            No products found matching your criteria.
-          </div>
+          <EmptyState 
+            icon={<Package className="h-8 w-8 text-gray-400" />}
+            title="No products found" 
+            description="No products found matching your criteria." 
+          />
         ) : (
           <>
             {/* Desktop Table */}

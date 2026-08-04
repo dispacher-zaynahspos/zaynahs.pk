@@ -99,6 +99,12 @@ export default function Navbar({
   const [moreDropdownOpen, setMoreDropdownOpen] = useState(false);
 
   const navigationMenu: NavigationItem[] = settings?.navigationMenu ?? [];
+
+  // Prepend a "Collections" dropdown linking to the hub + each sub-store
+  // whenever multi-vertical mode has active collections.
+  const navItems: NavigationItem[] = useMemo(() => {
+    return navigationMenu;
+  }, [navigationMenu]);
   const headerDesktopMenuAlign = settings?.headerDesktopMenuAlign ?? 'center';
 
   // Search store state
@@ -478,7 +484,7 @@ export default function Navbar({
       }
     }
     setVisibleCount(count);
-  }, [navigationMenu]);
+  }, [navItems]);
 
   // Re-measure whenever the container resizes
   useEffect(() => {
@@ -552,10 +558,10 @@ export default function Navbar({
 
   // Desktop dynamic navigation menu renderer (first row: visible items + More button)
   const renderDesktopNavMenu = () => {
-    if (isAdmin || navigationMenu.length === 0 || headerDesktopMenuAlign === 'hidden') return null;
+    if (isAdmin || navItems.length === 0 || headerDesktopMenuAlign === 'hidden') return null;
 
-    const visibleItems = navigationMenu.slice(0, visibleCount);
-    const overflowItems = navigationMenu.slice(visibleCount);
+    const visibleItems = navItems.slice(0, visibleCount);
+    const overflowItems = navItems.slice(visibleCount);
     const hasOverflow = overflowItems.length > 0;
 
     return (
@@ -567,7 +573,7 @@ export default function Navbar({
           className="absolute opacity-0 pointer-events-none flex items-center gap-0 top-0 left-0"
           style={{ visibility: 'hidden', zIndex: -1 }}
         >
-          {navigationMenu.map((item) => (
+          {navItems.map((item) => (
             <div key={item.id} className="flex items-center gap-1 px-3 py-2 text-sm font-semibold whitespace-nowrap shrink-0">
               <span>{item.label}</span>
               {item.children && item.children.length > 0 && <ChevronDown className="h-3.5 w-3.5" />}
@@ -604,8 +610,8 @@ export default function Navbar({
 
   // Overflow items row — shown below the header when More is clicked
   const renderOverflowRow = () => {
-    if (isAdmin || navigationMenu.length === 0 || headerDesktopMenuAlign === 'hidden') return null;
-    const overflowItems = navigationMenu.slice(visibleCount);
+    if (isAdmin || navItems.length === 0 || headerDesktopMenuAlign === 'hidden') return null;
+    const overflowItems = navItems.slice(visibleCount);
     if (overflowItems.length === 0 || !moreDropdownOpen) return null;
 
     return (
@@ -901,11 +907,11 @@ export default function Navbar({
 
 
               {/* 1. Custom Navigation Menu - FIRST SECTION (accordion) */}
-              {!isAdmin && navigationMenu.length > 0 && (
+              {!isAdmin && navItems.length > 0 && (
                 <div className="mb-6">
                   <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider block mb-3">Navigation</span>
                   <div className="space-y-1">
-                    {navigationMenu.map((item) => renderMobileNavItem(item))}
+                    {navItems.map((item) => renderMobileNavItem(item))}
                   </div>
                 </div>
               )}

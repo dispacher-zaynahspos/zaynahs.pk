@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Lock, LogOut, Mail, Shield, User, Eye, EyeOff } from 'lucide-react';
+import { Lock, LogOut, Mail, Shield, User, Eye, EyeOff } from '@/components/common/Icons';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 

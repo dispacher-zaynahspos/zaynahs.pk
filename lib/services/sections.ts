@@ -25,12 +25,26 @@ const fetchHomepageSections = async (onlyActive: boolean): Promise<HomepageSecti
     if (error) throw error;
     return data || [];
   } catch (error) {
-    console.error('[sections] fetchHomepageSections failed, returning empty fallback list:', error);
-    return [];
+    // Fallback: if vertical scoping is unavailable (pre-migration), fetch unfiltered
+    try {
+      let query = staticSupabase
+        .from('homepage_sections')
+        .select('*')
+        .order('sort_order', { ascending: true });
+      if (onlyActive) {
+        query = query.eq('active', true);
+      }
+      const { data, error } = await query;
+      if (error) throw error;
+      return data || [];
+    } catch (fallbackError) {
+      console.error('[sections] fetchHomepageSections failed, returning empty fallback list:', error);
+      return [];
+    }
   }
 };
 
-// Separate caches for active-only vs all sections so revalidation hits both
+// Separate caches for active-only vs all sections so revalidation hits both.
 const cachedActiveSections = unstable_cache(
   async () => fetchHomepageSections(true),
   ['homepage-sections-active'],
@@ -45,10 +59,31 @@ const cachedAllSections = unstable_cache(
 
 export const getHomepageSections = async (onlyActive = false): Promise<HomepageSection[]> => {
   try {
-    return onlyActive ? await cachedActiveSections() : await cachedAllSections();
+    return onlyActive
+      ? await cachedActiveSections()
+      : await cachedAllSections();
   } catch (error) {
     console.error('[sections] getHomepageSections failed:', error);
     throw error;
+  }
+};
+
+// Uncached fetch used by the customizer when switching between sub-stores —
+// bypasses the 24h ISR cache so edits always show fresh, unpublished sections.
+export const fetchSectionsForVerticalAdmin = async (): Promise<HomepageSection[]> => {
+  try {
+    const supabase = await createClient();
+    let query = supabase
+      .from('homepage_sections')
+      .select('*')
+      .order('sort_order', { ascending: true });
+
+    const { data, error } = await query;
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error('[sections] fetchSectionsForVerticalAdmin failed, returning empty fallback list:', error);
+    return [];
   }
 };
 
@@ -68,6 +103,7 @@ export const updateHomepageSection = async (
     if (error) throw error;
     revalidatePath('/');
     revalidatePath('/shop');
+    revalidatePath('/store', 'layout');
     await revalidateBanner();
     return data;
   } catch (error) {
@@ -91,6 +127,7 @@ export const reorderHomepageSections = async (
     await Promise.all(promises);
     revalidatePath('/');
     revalidatePath('/shop');
+    revalidatePath('/store', 'layout');
     await revalidateBanner();
   } catch (error) {
     console.error('[sections] reorderHomepageSections failed:', error);
@@ -147,6 +184,7 @@ export const addHomepageSection = async (
     if (error) throw error;
     revalidatePath('/');
     revalidatePath('/shop');
+    revalidatePath('/store', 'layout');
     await revalidateBanner();
     return data;
   } catch (error) {
@@ -166,6 +204,7 @@ export const deleteHomepageSection = async (id: string): Promise<void> => {
     if (error) throw error;
     revalidatePath('/');
     revalidatePath('/shop');
+    revalidatePath('/store', 'layout');
     await revalidateBanner();
   } catch (error) {
     console.error('[sections] deleteHomepageSection failed:', error);

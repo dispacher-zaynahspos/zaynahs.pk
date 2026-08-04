@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ChevronLeft, Mail, Eye, Check, X, Save, RefreshCw } from '@/components/common/Icons';
+import { useConfirm } from '@/components/admin/shared/AdminConfirmProvider';
 import { toast } from 'sonner';
 
 interface EmailTemplate {
@@ -79,6 +80,7 @@ const VARIABLES_BY_TYPE: Record<string, string[]> = {
 export default function TemplateEditorPage() {
   const params = useParams();
   const router = useRouter();
+  const { confirm } = useConfirm();
   const emailType = params.type as string;
 
   const [template, setTemplate] = useState<EmailTemplate | null>(null);
@@ -170,9 +172,13 @@ export default function TemplateEditorPage() {
   };
 
   const handleReset = async () => {
-    if (!confirm('This will discard your custom HTML template and use the built-in design. Continue?')) {
-      return;
-    }
+    const confirmed = await confirm({
+      title: 'Reset Template',
+      message: 'This will discard your custom HTML template and use the built-in design. Continue?',
+      variant: 'warning',
+      confirmText: 'Discard'
+    });
+    if (!confirmed) return;
 
     try {
       setSaving(true);

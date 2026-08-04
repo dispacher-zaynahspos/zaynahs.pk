@@ -109,3 +109,46 @@ export const deleteProductImage = async (url: string): Promise<void> => {
     throw error;
   }
 };
+
+export const isOwnStorageUrl = (url: string) => {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (!supabaseUrl) return false;
+  
+  const cleanSupabase = supabaseUrl.replace(/^https?:\/\//, '').toLowerCase();
+  const cleanUrl = url.replace(/^https?:\/\//, '').toLowerCase();
+  
+  return cleanUrl.startsWith(cleanSupabase) && cleanUrl.includes('/product-images/');
+};
+
+export const processImageUrl = async (url: string, prefix: string, folder: string = 'categories'): Promise<string> => {
+  if (!url) return url;
+  if (isOwnStorageUrl(url)) return url; // Already in our bucket
+
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Failed to fetch image');
+    const blob = await res.blob();
+    
+    // Create a file from blob
+    const ext = blob.type.split('/')[1] || 'jpg';
+    const file = new File([blob], `${prefix}-${Date.now()}.${ext}`, { type: blob.type });
+    
+    // Upload using supabase client directly
+    const supabase = createClient();
+    const fileName = `${folder}/${file.name}`;
+    const { error } = await supabase.storage
+      .from('product-images')
+      .upload(fileName, file, {
+        contentType: file.type,
+        upsert: true
+      });
+      
+    if (error) throw error;
+    
+    const { data } = supabase.storage.from('product-images').getPublicUrl(fileName);
+    return data.publicUrl;
+  } catch (error) {
+    console.error('Failed to download/upload image:', error);
+    return url; // Fallback to original URL if upload fails
+  }
+};
