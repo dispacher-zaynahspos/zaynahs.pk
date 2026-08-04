@@ -906,8 +906,12 @@ DROP POLICY IF EXISTS "Admin all size guides" ON size_guides;
 CREATE POLICY "Admin all size guides" ON size_guides FOR ALL USING (auth.role() = 'authenticated');
 
 -- Add FK constraint after size_guides table exists
-ALTER TABLE products ADD CONSTRAINT fk_products_size_guide
-  FOREIGN KEY (size_guide_id) REFERENCES size_guides(id) ON DELETE SET NULL;
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_products_size_guide') THEN
+        ALTER TABLE products ADD CONSTRAINT fk_products_size_guide FOREIGN KEY (size_guide_id) REFERENCES size_guides(id) ON DELETE SET NULL;
+    END IF;
+END $$;
 
 -- ============================================================
 -- COUPONS
@@ -1914,6 +1918,18 @@ CREATE TRIGGER "revalidate-shipping_methods"
 DROP TRIGGER IF EXISTS "revalidate-payment_methods" ON public.payment_methods;
 CREATE TRIGGER "revalidate-payment_methods"
   AFTER INSERT OR UPDATE OR DELETE ON public.payment_methods
+  FOR EACH ROW EXECUTE FUNCTION supabase_functions.http_request('https://domain.com/api/revalidate', 'POST', '{"Content-Type":"application/json","x-revalidate-secret":"zaynahs_secret_cache_revalidate_2026"}', '{}', '5000');
+
+-- Trigger for collections table
+DROP TRIGGER IF EXISTS "revalidate-collections" ON public.collections;
+CREATE TRIGGER "revalidate-collections"
+  AFTER INSERT OR UPDATE OR DELETE ON public.collections
+  FOR EACH ROW EXECUTE FUNCTION supabase_functions.http_request('https://domain.com/api/revalidate', 'POST', '{"Content-Type":"application/json","x-revalidate-secret":"zaynahs_secret_cache_revalidate_2026"}', '{}', '5000');
+
+-- Trigger for collection_categories table
+DROP TRIGGER IF EXISTS "revalidate-collection_categories" ON public.collection_categories;
+CREATE TRIGGER "revalidate-collection_categories"
+  AFTER INSERT OR UPDATE OR DELETE ON public.collection_categories
   FOR EACH ROW EXECUTE FUNCTION supabase_functions.http_request('https://domain.com/api/revalidate', 'POST', '{"Content-Type":"application/json","x-revalidate-secret":"zaynahs_secret_cache_revalidate_2026"}', '{}', '5000');
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON collections TO anon, authenticated, service_role;

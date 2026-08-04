@@ -638,6 +638,12 @@ export default function AITab({
   setProductShortPrompt,
   productShortLimit,
   setProductShortLimit,
+  collectionDefaultTemplate,
+  setCollectionDefaultTemplate,
+  collectionDescriptionPrompt,
+  setCollectionDescriptionPrompt,
+  collectionDescriptionLimit,
+  setCollectionDescriptionLimit,
 }: AITabProps) {
   const [customAudience, setCustomAudience] = useState('');
   const [customType, setCustomType] = useState('');
