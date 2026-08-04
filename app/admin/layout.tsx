@@ -44,6 +44,7 @@ import { useOrderNotification } from '@/lib/hooks/useOrderNotification';
 import { useSettings } from '@/lib/hooks/useSettings';
 import Image from 'next/image';
 import { AdminConfirmProvider } from '@/components/admin/shared/AdminConfirmProvider';
+import PurgeCacheButton from '@/components/admin/shared/PurgeCacheButton';
 
 function AdminLayoutContent({
   children
@@ -453,6 +454,7 @@ function AdminLayoutContent({
             </h2>
           </div>
           <div className="flex items-center gap-4">
+            <PurgeCacheButton variant="ghost" className="hidden md:flex" />
             <Link href="/" className="text-xs md:text-sm font-bold text-[#e94560] hover:underline whitespace-nowrap">
               View Store
             </Link>

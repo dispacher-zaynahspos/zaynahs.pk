@@ -1090,15 +1090,18 @@ export default function SettingsForm({ initialSettings }: SettingsFormProps) {
   const handlePurgeCache = async () => {
     setIsPurging(true);
     try {
-      const res = await fetch('/api/revalidate-customizer', { method: 'POST' });
-      const data = await res.json();
-      if (res.ok && data.success) {
+      const { purgeAllCache } = await import('@/lib/services/cache');
+      const result = await purgeAllCache();
+      if (result.success) {
         toast.success('Cache purge successful! Store pe fresh data dikhega.');
+        console.log('[SettingsForm] Purge Success:', result);
       } else {
-        toast.error(data.error || 'Cache purge failed');
+        toast.error(result.error || 'Cache purge failed');
+        console.error('[SettingsForm] Purge Failed:', result.error);
       }
     } catch (err: any) {
-      toast.error('Network error — cache purge failed');
+      toast.error(err.message || 'Network error — cache purge failed');
+      console.error('[SettingsForm] Purge Error:', err);
     } finally {
       setIsPurging(false);
     }

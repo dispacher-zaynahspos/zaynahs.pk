@@ -333,3 +333,15 @@ The app supports a Landing Hub (`/store`) → Sub-Stores (`/store/<slug>`) syste
 7. **Hub behavior**: `/store` redirects to `/` when `verticals_enabled` is false, and to the single sub-store when only one vertical is active.
 8. **Schema changes**: any `verticals`-related change MUST be reflected in `SUPER_MASTER_SCHEMA.sql` first, then a migration file — then run `node scripts/check-master-schema.mjs`.
 <!-- END:multi-vertical-rule -->
+
+<!-- BEGIN:cache-webhook-enforcement-rule -->
+# Cache & Webhook Enforcement Rule (STRICTLY ENFORCED)
+
+Whenever any **new feature, table, admin tab, or data module** is added to the system, the agent MUST simultaneously implement its cache purge and webhook systems for all connected projects. Never leave a new feature without instant cache invalidation.
+
+**Mandatory Checklist for New Features:**
+1. **Database Triggers**: Add a `revalidate-<table_name>` trigger to `SUPER_MASTER_SCHEMA.sql` (and its corresponding migration file) that POSTs to `https://domain.com/api/revalidate` with `x-revalidate-secret`.
+2. **Next.js Cache Tags**: Ensure the new data queries use appropriate cache tags (e.g. `['new_feature']`) via `unstable_cache`.
+3. **Revalidation Logic**: Update `app/api/revalidate/route.ts` and/or `lib/revalidate.ts` to explicitly handle the new table's webhooks. It must call `revalidateTag` for the new feature's tags and trigger a Cloudflare cache purge to ensure instantly faster load times globally.
+4. **Multi-Project Sync**: All schema changes and webhooks must be applied across ALL active project databases (TotVogue, Zaynahspk, MiniMahal, LittleMister) simultaneously to maintain parity.
+<!-- END:cache-webhook-enforcement-rule -->
