@@ -491,7 +491,7 @@ const fetchProducts = async (categoryId?: string, limit?: number): Promise<Produ
         categories!category_id(*),
         product_categories(*, categories(*)),
         badges!products_custom_badge_id_fkey(*),
-        size_guides!products_size_guide_id_fkey(*)
+        size_guides!fk_products_size_guide(*)
       `)
       .eq('is_active', true)
       .is('deleted_at', null);
@@ -530,7 +530,7 @@ const fetchProducts = async (categoryId?: string, limit?: number): Promise<Produ
           categories!category_id(*),
           product_categories(*, categories(*)),
           badges!products_custom_badge_id_fkey(*),
-          size_guides!products_size_guide_id_fkey(*)
+          size_guides!fk_products_size_guide(*)
         `)
         .is('deleted_at', null)
         .eq('is_active', true);
