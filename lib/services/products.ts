@@ -490,8 +490,8 @@ const fetchProducts = async (categoryId?: string, limit?: number): Promise<Produ
         product_modifiers(*),
         categories!category_id(*),
         product_categories(*, categories(*)),
-        badges!products_custom_badge_id_fkey(*),
-        size_guides!fk_products_size_guide(*)
+        badges(*),
+        size_guides(*)
       `)
       .eq('is_active', true)
       .is('deleted_at', null);
@@ -529,8 +529,8 @@ const fetchProducts = async (categoryId?: string, limit?: number): Promise<Produ
           product_modifiers(*),
           categories!category_id(*),
           product_categories(*, categories(*)),
-          badges!products_custom_badge_id_fkey(*),
-          size_guides!fk_products_size_guide(*)
+          badges(*),
+          size_guides(*)
         `)
         .is('deleted_at', null)
         .eq('is_active', true);
@@ -586,7 +586,7 @@ const fetchRelatedProducts = async (productId: string, categoryId?: string, limi
     if (categoryId) {
       const { data, error } = await staticSupabase
         .from('products')
-        .select('*, product_images(*), product_variants(*), product_modifiers(*), categories!category_id(*), product_categories(*, categories(*)), badges!products_custom_badge_id_fkey(*), size_guides!fk_products_size_guide(*)')
+        .select('*, product_images(*), product_variants(*), product_modifiers(*), categories!category_id(*), product_categories(*, categories(*)), badges(*), size_guides(*)')
         .is('deleted_at', null)
         .eq('is_active', true)
         .eq('category_id', categoryId)
@@ -606,7 +606,7 @@ const fetchRelatedProducts = async (productId: string, categoryId?: string, limi
       const excludeIds = [productId, ...related.map(r => r.id)];
       const { data, error } = await staticSupabase
         .from('products')
-        .select('*, product_images(*), product_variants(*), product_modifiers(*), categories!category_id(*), product_categories(*, categories(*)), badges!products_custom_badge_id_fkey(*), size_guides!fk_products_size_guide(*)')
+        .select('*, product_images(*), product_variants(*), product_modifiers(*), categories!category_id(*), product_categories(*, categories(*)), badges(*), size_guides(*)')
         .is('deleted_at', null)
         .eq('is_active', true)
         .not('id', 'in', `(${excludeIds.join(',')})`)
@@ -642,7 +642,7 @@ const fetchProductBySlug = async (slug: string): Promise<Product | null> => {
   try {
     const { data, error } = await staticSupabase
       .from('products')
-      .select('*, product_images(*), product_variants(*), product_modifiers(*), categories!category_id(*), product_categories(*, categories(*)), badges!products_custom_badge_id_fkey(*), size_guides!fk_products_size_guide(*)')
+      .select('*, product_images(*), product_variants(*), product_modifiers(*), categories!category_id(*), product_categories(*, categories(*)), badges(*), size_guides(*)')
       .eq('slug', slug)
       .is('deleted_at', null)
       .eq('is_active', true)
@@ -676,7 +676,7 @@ export const getProductById = async (id: string): Promise<Product | null> => {
   try {
     const { data, error } = await supabaseAdmin
       .from('products')
-      .select('*, product_images(*), product_variants(*), product_modifiers(*), categories!category_id(*), product_categories(*, categories(*)), badges!products_custom_badge_id_fkey(*), size_guides!fk_products_size_guide(*)')
+      .select('*, product_images(*), product_variants(*), product_modifiers(*), categories!category_id(*), product_categories(*, categories(*)), badges(*), size_guides(*)')
       .eq('id', id)
       .maybeSingle();
 
@@ -716,7 +716,7 @@ export const getAllProductsAdmin = async (): Promise<Product[]> => {
     const supabase = await createClient();
     const { data, error } = await supabase
       .from('products')
-      .select('*, product_images(*), product_variants(*), product_modifiers(*), categories!category_id(*), product_categories(*, categories(*)), badges!products_custom_badge_id_fkey(*), size_guides!fk_products_size_guide(*)')
+      .select('*, product_images(*), product_variants(*), product_modifiers(*), categories!category_id(*), product_categories(*, categories(*)), badges(*), size_guides(*)')
       .is('deleted_at', null)
       .order('created_at', { ascending: false });
 
@@ -1203,7 +1203,7 @@ export const getDeletedProducts = async (): Promise<Product[]> => {
     const supabase = await createClient();
     const { data, error } = await supabase
       .from('products')
-      .select('*, product_images(*), product_variants(*), product_modifiers(*), categories!category_id(*), product_categories(*, categories(*)), badges!products_custom_badge_id_fkey(*), size_guides!fk_products_size_guide(*)')
+      .select('*, product_images(*), product_variants(*), product_modifiers(*), categories!category_id(*), product_categories(*, categories(*)), badges(*), size_guides(*)')
       .not('deleted_at', 'is', null)
       .order('deleted_at', { ascending: false });
 
@@ -1280,7 +1280,7 @@ export const getProductsByCategoryId = async (categoryId: string): Promise<Produ
     // Query products that match the legacy category_id or are in the junction table
     let query = supabase
       .from('products')
-      .select('*, product_images(*), product_variants(*), product_modifiers(*), categories!category_id(*), product_categories(*, categories(*)), badges!products_custom_badge_id_fkey(*), size_guides!fk_products_size_guide(*)')
+      .select('*, product_images(*), product_variants(*), product_modifiers(*), categories!category_id(*), product_categories(*, categories(*)), badges(*), size_guides(*)')
       .is('deleted_at', null)
       .eq('is_active', true);
 
