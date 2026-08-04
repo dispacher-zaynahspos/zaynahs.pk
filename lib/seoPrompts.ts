@@ -116,7 +116,7 @@ STRICT SEO & COPYWRITING INSTRUCTIONS:
 /**
  * Builds the user prompt detailing the entity data and requested JSON schema
  */
-export function buildSEOPrompt(type: 'product' | 'category' | 'page', data: any, settings?: AISettings): string {
+export function buildSEOPrompt(type: 'product' | 'category' | 'collection' | 'page', data: any, settings?: AISettings): string {
   const basePrompt = `Generate complete, premium SEO and copywriting metadata for this ${type}.`;
 
   let metaDescInstruction = 'Exactly 150-160 characters. Must contain the primary keyword and end with a compelling call-to-action (CTA).';
