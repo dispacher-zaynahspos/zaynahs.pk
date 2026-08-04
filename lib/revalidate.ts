@@ -242,6 +242,7 @@ export async function revalidateSettings() {
     (revalidateTag as any)('categories');
     (revalidateTag as any)('banners');
     (revalidateTag as any)('verticals');
+    (revalidateTag as any)('collections');
 
     // Revalidate the entire site (including layout metadata, favicon, titles)
     revalidatePath('/', 'layout');
