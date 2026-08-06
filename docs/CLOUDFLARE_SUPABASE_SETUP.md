@@ -152,3 +152,29 @@ curl -X POST https://yourdomain.pk/api/revalidate \
   -d '{"type":"UPDATE","table":"products","record":{"id":"test","slug":"test-slug"}}'
 # Expected response: {"revalidated":true,"table":"products","type":"UPDATE"}
 ```
+
+---
+
+## 🌐 Section 6: Multi-Project Webhook Authentication (IMPORTANT)
+
+When managing multiple Next.js store projects (e.g., Zaynahs, TotVogue, MiniMahal, LittleMister) from a single codebase, ensure that each project's Cloudflare Cache Purge webhook is authenticated correctly:
+
+### 1. Token Type Matters
+The `CLOUDFLARE_API_TOKEN` set in your Vercel Environment Variables **must** be an **API Token**, NOT a Global API Key.
+- ✅ Correct: `cfut_...` or random 40-character alphanumeric token created via **My Profile > API Tokens > Create Token** (Requires "Cache Purge" permission).
+- ❌ Incorrect: `cfk_...` or 37-character hex string (Global API Keys do not work with standard Bearer auth).
+
+### 2. Automated Token Verification
+Before deploying or when debugging 500 errors related to cache purging, always test the tokens across all environments. We have a built-in script that automatically scans `.env.local` and all `env-backups/*.env.local` files:
+
+```bash
+node scripts/test-cf-tokens.mjs
+```
+This script calls `api.cloudflare.com/client/v4/user/tokens/verify` and will instantly tell you which projects have `VALID` tokens and which have `EXPIRED/INVALID` tokens.
+
+### 3. Updating Tokens on Vercel
+If the test script reports an invalid token for a specific project:
+1. Generate a new API Token in Cloudflare.
+2. Go to that specific project's Vercel Dashboard > Settings > Environment Variables.
+3. Update `CLOUDFLARE_API_TOKEN` and save.
+4. Run a new deployment on Vercel for the changes to take effect.
