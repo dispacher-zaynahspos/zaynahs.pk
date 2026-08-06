@@ -832,3 +832,9 @@ Whenever any **new feature, table, admin tab, or data module** is added to the s
 2. **Next.js Cache Tags**: Ensure the new data queries use appropriate cache tags (e.g. `['new_feature']`) via `unstable_cache`.
 3. **Revalidation Logic**: Update `app/api/revalidate/route.ts` and/or `lib/revalidate.ts` to explicitly handle the new table's webhooks. It must call `revalidateTag` for the new feature's tags and trigger a Cloudflare cache purge to ensure instantly faster load times globally.
 4. **Multi-Project Sync**: All schema changes and webhooks must be applied across ALL active project databases (TotVogue, Zaynahspk, MiniMahal, LittleMister) simultaneously to maintain parity.
+
+## RULE D9 — MULTI-PROJECT CLOUDFLARE WEBHOOK VERIFICATION (STRICTLY ENFORCED)
+When working with multiple cloned projects (e.g., Zaynahs, Totvogue, MiniMahal, LittleMister), each project relies on a Cloudflare API Token for the Next.js Cache Purge Webhook (`/api/revalidate`). 
+- **The Token:** It must be a valid **Cloudflare API Token** with "Cache Purge" permissions. It typically starts with `cfut_`. Do NOT use Global API Keys (`cfk_` or similar 37-char hex strings).
+- **Verification Script:** Whenever you configure env files or the user reports webhook/cache issues, you MUST run `node scripts/test-cf-tokens.mjs`. This script automatically scans `.env.local` and `env-backups/*.env.local`, extracts all `CLOUDFLARE_API_TOKEN`s, and verifies them against the live Cloudflare API (`https://api.cloudflare.com/client/v4/user/tokens/verify`).
+- **Agent Action:** If a token returns as INVALID or EXPIRED, you must immediately inform the user and tell them exactly which project's token failed, instructing them to generate a new valid "API Token" (not a Global API Key) from the Cloudflare Dashboard.
