@@ -822,3 +822,13 @@ GPU Acceleration: Scrollable layers par CSS triggers will-change-transform aur t
 - **Tab State Management** → `useAdminTab.ts` pattern
 
 Any agent found duplicating these patterns directly inside a page instead of importing the centralized module is fundamentally breaking the architecture of this project. **Import the module or build a new shared module!**
+
+## RULE CACHE2 — CACHE & WEBHOOK ENFORCEMENT (STRICTLY ENFORCED)
+
+Whenever any **new feature, table, admin tab, or data module** is added to the system, the agent MUST simultaneously implement its cache purge and webhook systems for all connected projects. Never leave a new feature without instant cache invalidation.
+
+**Mandatory Checklist for New Features:**
+1. **Database Triggers**: Add a `revalidate-<table_name>` trigger to `SUPER_MASTER_SCHEMA.sql` (and its corresponding migration file) that POSTs to `https://domain.com/api/revalidate` with `x-revalidate-secret`.
+2. **Next.js Cache Tags**: Ensure the new data queries use appropriate cache tags (e.g. `['new_feature']`) via `unstable_cache`.
+3. **Revalidation Logic**: Update `app/api/revalidate/route.ts` and/or `lib/revalidate.ts` to explicitly handle the new table's webhooks. It must call `revalidateTag` for the new feature's tags and trigger a Cloudflare cache purge to ensure instantly faster load times globally.
+4. **Multi-Project Sync**: All schema changes and webhooks must be applied across ALL active project databases (TotVogue, Zaynahspk, MiniMahal, LittleMister) simultaneously to maintain parity.

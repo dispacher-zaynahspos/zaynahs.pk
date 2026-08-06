@@ -6,8 +6,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { 
   User, Mail, Phone, Calendar, ShoppingBag, LogOut, 
-  ChevronDown, ChevronUp, Package, MapPin, Truck, ExternalLink, Shield 
+  ChevronDown, ChevronUp, Package, MapPin, Truck, ExternalLink, Shield, CheckCircle2, ChevronRight, Store, RotateCcw 
 } from '@/components/common/Icons';
+import { getSharedAspectClass } from '@/lib/utils/styles';
 import { customerLogout, changeCustomerPassword } from '@/lib/services/customers';
 import { Order } from '@/lib/types';
 import { formatPrice } from '@/lib/utils/whatsapp';
@@ -237,7 +238,7 @@ export default function AccountDashboard({ profile, orders }: AccountDashboardPr
 
                                 return (
                                   <div key={idx} className="py-3 flex items-center gap-3 first:pt-0 last:pb-0">
-                                    <div className="relative h-12 w-12 rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden shrink-0 bg-gray-50 dark:bg-[#0f0f1b]">
+                                    <div className={`relative w-12 rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden shrink-0 bg-gray-50 dark:bg-[#0f0f1b] ${getSharedAspectClass(settings?.imageAspectRatio)}`}>
                                       {img ? (
                                         <Image src={img} alt={item.product.name} fill sizes="48px" className="object-cover" unoptimized />
                                       ) : (

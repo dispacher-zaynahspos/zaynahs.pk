@@ -15,6 +15,7 @@ import { trackEvent } from '@/lib/trackEvent';
 import { animateFlyTo } from '@/lib/utils/flyAnimation';
 import { useScrollRestoration } from '@/lib/hooks/useScrollRestoration';
 import { useSettings } from '@/lib/hooks/useSettings';
+import { getSharedAspectClass, getSharedTitleClampClass } from '@/lib/utils/styles';
 import { getSwatchStyle } from '@/lib/utils/swatch';
 
 interface ShopPageProps {
@@ -76,7 +77,7 @@ function ShopProductListCard({ product, settings, addItem }: ShopProductListCard
       className="group flex flex-row overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] shadow-sm hover:shadow-md transition-all duration-300 relative"
     >
       {/* Left: Image Container */}
-      <div className="relative w-36 h-36 sm:w-48 sm:h-48 shrink-0 overflow-hidden bg-gray-50">
+      <div className={`relative w-36 sm:w-48 shrink-0 overflow-hidden bg-gray-50 ${getSharedAspectClass(settings?.imageAspectRatio)}`}>
         <Image
           src={initialImage}
           alt={product.name}
@@ -906,7 +907,7 @@ export default function ShopPage({
                   href={`/product/${p.slug}`}
                   className="flex gap-3 group relative cursor-pointer"
                 >
-                  <div className="relative h-14 w-14 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 shrink-0">
+                  <div className={`relative w-14 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 shrink-0 ${getSharedAspectClass(settings?.imageAspectRatio)}`}>
                     {img ? (
                       <Image
                         src={img}

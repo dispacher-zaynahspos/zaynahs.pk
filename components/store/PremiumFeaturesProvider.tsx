@@ -6,7 +6,8 @@ import { StoreSettings, Product, Order } from '@/lib/types';
 import { getProductsClient } from '@/lib/services/products-client';
 import { getOrdersClient } from '@/lib/services/orders-client';
 import { addWhatsAppSubscriberClient } from '@/lib/services/sections-client';
-import { X, Gift, Shield, CheckCircle2, Tag, Play } from '@/components/common/Icons';
+import { X, CheckCircle2, Star, Plus, Minus, Search, ArrowRight, User } from '@/components/common/Icons';
+import { getSharedAspectClass } from '@/lib/utils/styles';
 import { toast } from 'sonner';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -717,7 +718,7 @@ export default function PremiumFeaturesProvider({ settings }: PremiumFeaturesPro
         <div className="fixed bottom-24 left-4 z-[110] flex items-center max-w-[280px] sm:max-w-xs p-3 bg-white dark:bg-[#16162a] border border-gray-100 dark:border-gray-800/80 rounded-2xl shadow-xl transition-all duration-500 animate-slide-up">
           <Link href={`/product/${tickerProduct.slug}`} className="flex items-center gap-3 w-full">
             {tickerProduct.images?.[0]?.url && (
-              <div className="relative w-12 h-12 flex-shrink-0 bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden">
+              <div className={`relative w-12 flex-shrink-0 bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden ${getSharedAspectClass(settings?.imageAspectRatio)}`}>
                 <Image
                   src={tickerProduct.images[0].url}
                   alt={tickerProduct.name}

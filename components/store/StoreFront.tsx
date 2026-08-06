@@ -6,6 +6,7 @@ import Link from 'next/link';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
 import { Product, Category, StoreSettings, Review, HomepageSection } from '@/lib/types';
+import { getSharedAspectClass } from '@/lib/utils/styles';
 import CategoryFilter from './CategoryFilter';
 import ProductGrid from './ProductGrid';
 import { useSearchStore } from '@/store/searchStore';
@@ -1404,11 +1405,7 @@ export default function StoreFront({
     else if (displayItems.length > 4) gridCols = "grid-cols-2 md:grid-cols-4 lg:grid-cols-5";
 
     const aspectRatio = section.settings?.aspect_ratio || 'recommended';
-    const aspectClass = aspectRatio === '1by1' 
-      ? 'aspect-square' 
-      : aspectRatio === 'auto' 
-      ? 'h-64 md:h-80' 
-      : 'aspect-[3/4]';
+    const aspectClass = getSharedAspectClass(aspectRatio);
 
     return (
       <div key={section.id} className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">

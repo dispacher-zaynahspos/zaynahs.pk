@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { getSharedAspectClass, getSharedTitleClampClass } from '@/lib/utils/styles';
 import { ShoppingCart, Heart, Eye } from '@/components/common/Icons';
 import { Product, StoreSettings } from '@/lib/types';
 import { useCartStore } from '@/store/cartStore';
@@ -305,30 +306,8 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings 
     }
   };
 
-  const getAspectClass = (ratio?: string) => {
-    switch (ratio) {
-      case '3:4': return 'aspect-[3/4]';
-      case '4:3': return 'aspect-[4/3]';
-      case '16:9': return 'aspect-[16/9]';
-      case 'auto': return 'aspect-auto';
-      case '1:1':
-      default:
-        return 'aspect-square';
-    }
-  };
-
-  const getTitleClampClass = (limit?: string) => {
-    switch (limit) {
-      case '1': return 'line-clamp-1 min-h-[14px] sm:min-h-[16px]';
-      case 'none': return 'line-clamp-none';
-      case '2':
-      default:
-        return 'line-clamp-2 min-h-[28px] sm:min-h-[32px]';
-    }
-  };
-
-  const aspectClass = getAspectClass(settings?.imageAspectRatio);
-  const titleClampClass = getTitleClampClass(settings?.titleLineLimit);
+  const aspectClass = getSharedAspectClass(settings?.imageAspectRatio);
+  const titleClampClass = getSharedTitleClampClass(settings?.titleLineLimit);
 
   const hasSecondImage = product.images.length > 1;
   const secondImage = hasSecondImage ? (product.images[1]?.url || product.images[0]?.url) : null;

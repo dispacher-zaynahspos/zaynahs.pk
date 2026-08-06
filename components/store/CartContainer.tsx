@@ -11,7 +11,8 @@ import {
 } from '@/components/common/Icons';
 import { StoreSettings, ShippingMethod, CartItem, PaymentMethod } from '@/lib/types';
 import { useCartStore } from '@/store/cartStore';
-import { formatPrice, generateWhatsAppMessage, buildWhatsAppURL } from '@/lib/utils/whatsapp';
+import { generateWhatsAppMessage, buildWhatsAppURL, cleanWhatsAppPhone, formatPrice } from '@/lib/utils/whatsapp';
+import { getSharedAspectClass } from '@/lib/utils/styles';
 import { createOrder } from '@/lib/services/orders';
 import { trackEvent } from '@/lib/trackEvent';
 import { toast } from 'sonner';
@@ -524,7 +525,7 @@ export default function CartContainer({ settings }: CartContainerProps) {
                 return (
                   <div key={item.id} className="flex items-center justify-between py-4 text-sm font-semibold">
                     <div className="flex items-center gap-3">
-                      <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#0f0f1b]">
+                      <div className={`relative w-12 flex-shrink-0 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#0f0f1b] ${getSharedAspectClass(settings.imageAspectRatio)}`}>
                         {img ? (
                           <Image src={img} alt={item.product.name} fill className="object-cover" unoptimized />
                         ) : (
@@ -1296,7 +1297,7 @@ function CartItemCard({ item, compact = false, settings, removeItem, updateQuant
     <div className="flex items-start gap-4 py-3 border-b border-gray-100 dark:border-gray-800 last:border-0">
       {/* Image Container with Badge */}
       <div className="relative flex-shrink-0">
-        <div className="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#0f0f1b] relative h-16 w-16 shadow-sm">
+        <div className={`overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#0f0f1b] relative w-16 shadow-sm ${getSharedAspectClass(settings?.imageAspectRatio)}`}>
           {img ? (
             <Image src={img} alt={item.product.name} fill sizes="80px" className="object-cover" unoptimized />
           ) : (

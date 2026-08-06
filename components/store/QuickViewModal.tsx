@@ -16,6 +16,7 @@ import {
 } from '@/components/common/Icons';
 import { Product, ProductVariant, StoreSettings } from '@/lib/types';
 import { useCartStore } from '@/store/cartStore';
+import { getSharedAspectClass } from '@/lib/utils/styles';
 import { formatPrice } from '@/lib/utils/whatsapp';
 import { toast } from 'sonner';
 import VariantSelector from './VariantSelector';
@@ -164,7 +165,7 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
 
             {/* ── Image Gallery ─────────────────────────────────────────── */}
             <div className="relative bg-gray-50 dark:bg-black/20">
-              <div className="relative aspect-square w-full overflow-hidden touch-pan-y" ref={emblaRef}>
+              <div className={`relative w-full overflow-hidden touch-pan-y ${getSharedAspectClass(settings?.imageAspectRatio)}`} ref={emblaRef}>
                 <div className="flex h-full">
                   {images.map((img, i) => (
                     <div key={img.id || i} className="relative flex-[0_0_100%] min-w-0 w-full h-full select-none overflow-hidden">
@@ -221,7 +222,7 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
                       key={i}
                       type="button"
                       onClick={() => emblaApi?.scrollTo(i)}
-                      className={`relative h-12 w-12 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all cursor-pointer ${
+                      className={`relative w-12 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all cursor-pointer ${getSharedAspectClass(settings?.imageAspectRatio)} ${
                         i === activeIdx ? 'border-[#e94560]' : 'border-transparent hover:border-gray-400'
                       }`}
                     >

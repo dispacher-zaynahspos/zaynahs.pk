@@ -35,6 +35,7 @@ import { toast } from 'sonner';
 import VariantSelector from './VariantSelector';
 import { trackEvent } from '@/lib/trackEvent';
 import { animateFlyTo } from '@/lib/utils/flyAnimation';
+import { getSharedAspectClass } from '@/lib/utils/styles';
 import { getSwatchStyle } from '@/lib/utils/swatch';
 
 interface ProductDetailProps {
@@ -596,7 +597,7 @@ export default function ProductDetail({ product, settings, averageRating, social
           {/* Main image with arrows + hover zoom */}
           <div
             ref={imgContainerRef}
-            className="relative aspect-square w-full overflow-hidden rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-transparent group"
+            className={`relative w-full overflow-hidden rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-transparent group ${getSharedAspectClass(settings.imageAspectRatio)}`}
           >
             {/* Embla Viewport */}
             <div className="overflow-hidden w-full h-full md:cursor-zoom-in touch-pan-y" ref={emblaRef} onClick={() => setLightboxOpen(true)}>
@@ -693,7 +694,7 @@ export default function ProductDetail({ product, settings, averageRating, social
                 <button
                   key={i}
                   onClick={() => emblaApi?.scrollTo(i)}
-                  className={`relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg border transition-all cursor-pointer ${i === activeImageIndex
+                  className={`relative w-16 flex-shrink-0 overflow-hidden rounded-lg border transition-all cursor-pointer ${getSharedAspectClass(settings.imageAspectRatio)} ${i === activeImageIndex
                     ? 'border-[#e94560] ring-2 ring-[#e94560]/10'
                     : 'border-gray-200 dark:border-gray-800 hover:border-gray-400'
                     }`}
@@ -1085,7 +1086,7 @@ export default function ProductDetail({ product, settings, averageRating, social
               <div className="flex flex-col sm:flex-row flex-wrap items-center gap-4">
                 {/* Current Product Mini-card */}
                 <div className="flex items-center gap-3 bg-gray-50 dark:bg-white/5 p-2 rounded-xl w-full sm:w-auto sm:flex-1 min-w-[220px] border border-gray-100 dark:border-gray-800/80">
-                  <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-gray-100">
+                  <div className={`relative w-12 rounded-lg overflow-hidden bg-gray-100 ${getSharedAspectClass(settings?.imageAspectRatio)}`}>
                     <Image
                       src={images[0]?.url || fallbackPlaceholder}
                       alt={product.name}
@@ -1141,7 +1142,7 @@ export default function ProductDetail({ product, settings, averageRating, social
                           onClick={() => setSelectedBundleIds(prev => prev.includes(bp.id) ? prev.filter(id => id !== bp.id) : [...prev, bp.id])}
                           className="flex items-center gap-3"
                         >
-                          <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-gray-105 flex-shrink-0">
+                          <div className={`relative w-12 rounded-lg overflow-hidden bg-gray-105 flex-shrink-0 ${getSharedAspectClass(settings?.imageAspectRatio)}`}>
                             {bp.images?.[0]?.url && (
                               <Image
                                 src={bp.images[0].url}
