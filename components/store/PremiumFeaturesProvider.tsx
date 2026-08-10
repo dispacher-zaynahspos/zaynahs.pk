@@ -6,7 +6,7 @@ import { StoreSettings, Product, Order } from '@/lib/types';
 import { getProductsClient } from '@/lib/services/products-client';
 import { getOrdersClient } from '@/lib/services/orders-client';
 import { addWhatsAppSubscriberClient } from '@/lib/services/sections-client';
-import { X, CheckCircle2, Star, Plus, Minus, Search, ArrowRight, User } from '@/components/common/Icons';
+import { X, CheckCircle2, Star, Plus, Minus, Search, ArrowRight, User, Tag, Gift, Shield } from '@/components/common/Icons';
 import { getSharedAspectClass } from '@/lib/utils/styles';
 import { toast } from 'sonner';
 import Image from 'next/image';
