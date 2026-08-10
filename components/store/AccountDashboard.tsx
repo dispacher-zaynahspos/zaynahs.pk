@@ -238,7 +238,7 @@ export default function AccountDashboard({ profile, orders }: AccountDashboardPr
 
                                 return (
                                   <div key={idx} className="py-3 flex items-center gap-3 first:pt-0 last:pb-0">
-                                    <div className={`relative w-12 rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden shrink-0 bg-gray-50 dark:bg-[#0f0f1b] ${getSharedAspectClass(settings?.imageAspectRatio)}`}>
+                                    <div className="relative w-12 h-12 aspect-square rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden shrink-0 bg-gray-50 dark:bg-[#0f0f1b]">
                                       {img ? (
                                         <Image src={img} alt={item.product.name} fill sizes="48px" className="object-cover" unoptimized />
                                       ) : (

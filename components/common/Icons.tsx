@@ -58,6 +58,7 @@ export {
   Home,
   RefreshCw,
   Lock,
+  RotateCcw,
   Clock,
   Gift,
   Headphones,
