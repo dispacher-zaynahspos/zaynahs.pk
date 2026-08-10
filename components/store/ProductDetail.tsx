@@ -626,7 +626,7 @@ export default function ProductDetail({ product, settings, averageRating, social
                       alt={product.name}
                       fill
                       sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 600px"
-                      className={`object-cover transition-transform duration-200 ease-out ${isZoomed && i === activeImageIndex ? 'scale-[1.75]' : 'scale-100'
+                      className={`object-contain p-2 sm:p-4 transition-transform duration-200 ease-out ${isZoomed && i === activeImageIndex ? 'scale-[1.75]' : 'scale-100'
                         }`}
                       style={isZoomed && i === activeImageIndex ? { transformOrigin: `${zoomPos.x}% ${zoomPos.y}%` } : {}}
                       priority={i === 0}

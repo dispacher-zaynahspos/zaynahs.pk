@@ -2614,7 +2614,7 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings 
             alt={product.name}
             fill
             sizes="(max-width: 768px) 50vw, 25vw"
-            className={`object-cover object-center transition-transform duration-500 ${settings?.imageHoverStyle === 'zoom' ? (touchActive ? 'scale-105' : 'group-hover:scale-105 group-active:scale-105') : ''} ${secondImage && !hoveredImage ? (touchActive ? 'opacity-0' : 'opacity-100 group-hover:opacity-0 group-active:opacity-0') : ''}`}
+            className={`object-contain p-2 sm:p-3 object-center transition-transform duration-500 ${settings?.imageHoverStyle === 'zoom' ? (touchActive ? 'scale-105' : 'group-hover:scale-105 group-active:scale-105') : ''} ${secondImage && !hoveredImage ? (touchActive ? 'opacity-0' : 'opacity-100 group-hover:opacity-0 group-active:opacity-0') : ''}`}
             priority={false}
             loading="lazy"
           />
@@ -2624,7 +2624,7 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings 
               alt={`${product.name} alternate`}
               fill
               sizes="(max-width: 768px) 50vw, 25vw"
-              className={`object-cover object-center absolute inset-0 transition-opacity duration-500 ${touchActive ? 'opacity-100' : 'opacity-0'} group-hover:opacity-100 group-active:opacity-100`}
+              className={`object-contain p-2 sm:p-3 object-center absolute inset-0 transition-opacity duration-500 ${touchActive ? 'opacity-100' : 'opacity-0'} group-hover:opacity-100 group-active:opacity-100`}
               priority={false}
               loading="lazy"
             />
