@@ -204,8 +204,9 @@ export default function ProductForm({ categories, initialProduct, aiEnabled, sto
   const [categoryId, setCategoryId] = useState(initialProduct?.categoryId || '');
 
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>(
-    initialProduct?.productCategories?.map(pc => pc.categoryId) || 
-    (initialProduct?.categoryId ? [initialProduct.categoryId] : [])
+    (initialProduct?.productCategories && initialProduct.productCategories.length > 0)
+      ? initialProduct.productCategories.map(pc => pc.categoryId) 
+      : (initialProduct?.categoryId ? [initialProduct.categoryId] : [])
   );
   const [inventoryThreshold, setInventoryThreshold] = useState(initialProduct?.inventoryThreshold?.toString() || '0');
   const [stock, setStock] = useState(initialProduct?.stock?.toString() || '0');
