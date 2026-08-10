@@ -20,7 +20,7 @@ interface NavbarProps {
 }
 
 export default function Navbar({
-  storeName: propStoreName = 'Our Store',
+  storeName: propStoreName = 'Zaynahs E-Store',
   logoUrl: propLogoUrl,
   logoWidth: propLogoWidth = 120,
   settings,
