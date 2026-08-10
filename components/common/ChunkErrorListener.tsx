@@ -10,8 +10,10 @@ export default function ChunkErrorListener() {
       if (
         lower.includes('chunkloaderror') ||
         lower.includes('loading chunk') ||
+        lower.includes('failed to load chunk') ||
         lower.includes('failed to fetch dynamically imported module') ||
-        lower.includes('load chunk')
+        lower.includes('load chunk') ||
+        lower.includes('_next/static/chunks')
       ) {
         console.warn('[ChunkErrorListener] Chunk load error detected! Reloading page to fetch latest build...');
         
