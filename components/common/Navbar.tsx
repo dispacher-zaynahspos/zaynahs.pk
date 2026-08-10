@@ -283,14 +283,14 @@ export default function Navbar({
       {logoUrl ? (
         <div
           style={{ width: `${logoWidth}px`, maxWidth: `${logoWidth}px` }}
-          className="flex items-center shrink-0"
+          className="flex items-center shrink-0 max-h-10 md:max-h-14 overflow-hidden"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={logoUrl}
             alt={storeName}
             style={{ width: `${logoWidth}px`, height: 'auto', maxWidth: '100%', display: 'block' }}
-            className="object-contain"
+            className="object-contain max-h-10 md:max-h-14"
           />
         </div>
       ) : (
@@ -656,7 +656,7 @@ export default function Navbar({
             onClick={() => { if (!hasChildren) setMobileMenuOpen(false); }}
             className="flex-1 py-2 text-sm font-bold text-gray-900 dark:text-white hover:text-[#e94560] transition-colors"
           >
-            {item.label}
+            {item.label || (item as any).title}
           </Link>
           {hasChildren && (
             <button
