@@ -475,6 +475,8 @@ export default function PreviewClient({
     return liveProducts.find(p => p.slug === activeProductSlug) || defaultProduct;
   }, [liveProducts, activeProductSlug]);
 
+  const lastScrolledSectionId = React.useRef<string | null>(null);
+
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.data) {
@@ -492,17 +494,20 @@ export default function PreviewClient({
             setActiveProductSlug(event.data.activeProductSlug);
           }
           if (event.data.activeSectionId !== undefined) {
-            setActiveSectionId(event.data.activeSectionId);
-          }
-          if (event.data.activeSectionId) {
-            setTimeout(() => {
-              const element = document.getElementById(event.data.activeSectionId);
-              if (element) {
-                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-              }
-            }, 100);
+            const nextActiveId = event.data.activeSectionId;
+            setActiveSectionId(nextActiveId);
+            if (nextActiveId && nextActiveId !== lastScrolledSectionId.current) {
+              lastScrolledSectionId.current = nextActiveId;
+              setTimeout(() => {
+                const element = document.getElementById(nextActiveId);
+                if (element) {
+                  element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+              }, 100);
+            }
           }
         } else if (event.data.type === 'scroll_to_section') {
+          lastScrolledSectionId.current = event.data.sectionId;
           const element = document.getElementById(event.data.sectionId);
           if (element) {
             element.scrollIntoView({ behavior: 'smooth', block: 'center' });

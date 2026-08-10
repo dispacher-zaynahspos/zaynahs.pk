@@ -24,6 +24,210 @@
 
 ---
 
+# 🤖 FULL STACK AUTONOMOUS AGENT RULES
+(Next.js, React, Node.js, Vercel, GitHub, Supabase, Cloudflare | E-commerce + POS)
+
+## 1. Core Operating Principles
+- Pehle problem/root-cause samjho, phir fix karo — guess-based patch mat lagao
+- Har change se pehle "kya break ho sakta hai?" check karo
+- Existing code, schema, naming convention follow karo — rewrite se bacho
+- Scope discipline: sirf jo mangi gayi cheez fix/build karo, unrelated refactor mana hai
+- Agent apne decisions ka short summary log kare (kya fix kiya, kyun)
+
+## 2. Error Detection & Auto-Fix Rules
+- Build/lint/type errors: auto-detect → root cause identify → fix → re-run verify
+- Runtime errors (console, server logs, Vercel logs, Supabase logs) monitor karke fix
+- Fix ke baad automatically build/test chalao before "done" marna
+- Destructive/uncertain fix se pehle explain karo, phir proceed
+- Recurring error patterns `ERRORLOG.md` mein track karo (pattern + fix)
+
+## 3. Frontend Rules (Next.js / React)
+- App Router conventions follow karo (server vs client components sahi se separate)
+- Loading states, error boundaries, empty states har page/component mein honi chahiye
+- Env vars (`NEXT_PUBLIC_*`) properly prefix + `.env.example` update rakho
+- Images, fonts, SEO metadata optimize karo (Next.js best practices)
+
+## 4. Backend Rules (Node.js / API Routes)
+- Har API route: input validation + try/catch + proper status codes
+- Business logic (stock, orders, payments) atomic operations mein ho
+- Sensitive actions (refund, stock adjust, delete) logging ke saath
+- Rate limiting + auth check har protected route pe
+
+## 5. Database Rules (Supabase)
+- Schema change se pehle migration file + RLS policy check/update
+- Naming: `snake_case`, existing pattern follow
+- Kabhie bhi production pe destructive query (DROP/DELETE without WHERE) auto-run nahi
+- Realtime-sensitive tables (POS inventory/orders) — race-safe RPC use karo
+- Major schema change se pehle backup/rollback plan
+
+## 6. Git & GitHub Rules
+- Har logical change = separate commit, clear message (`fix:`, `feat:`, `chore:`)
+- Direct `main` pe push mana — feature branch → PR flow
+- Commit se pehle diff review (extra/accidental change check)
+- `.env`, secrets, `node_modules` kabhi commit na ho
+
+## 7. Deployment Rules (Vercel / Cloudflare)
+- Deploy se pehle local build 100% pass hona chahiye
+- Preview deploy pe test, phir production
+- Env vars dashboard sync verify before deploy
+- Fail hone pe logs se root-cause fix, blind retry mana
+- Har production deploy ka rollback plan ready
+
+## 8. E-commerce / POS Specific Rules
+- Stock/inventory changes atomic + logged (double-sell na ho)
+- Payment flow (JazzCash/EasyPaisa) — graceful fallback, silent fail mana
+- Order/sale data kabhi lose na ho — offline queue/sync retry
+- PKR pricing format consistent POS + storefront dono mein
+
+## 9. Testing & Verification Rules
+- Har fix/feature ke baad happy path + 1 edge case test
+- Critical flows (checkout, payment, stock) manual/auto test mandatory
+- Breaking change se pehle existing tests/build run
+
+## 10. Autonomy Boundaries (Agent Permissions)
+- ✅ Auto-allowed: lint/type fixes, non-destructive DB reads, local build/test, feature-branch commit+push, preview deploy
+- ⚠️ Confirm-first: schema migration, production deploy, payment logic change, bulk data update
+- ❌ Never auto: DROP table, delete prod data without backup, force-push main, expose/commit secrets
+
+---
+
+## 11. UI/UX Consistency Rules (Shared Design System)
+
+### Golden Rule
+- Naya page banane se pehle existing components check karo — naya mat banao
+- Ek hi type ka UI element = ek hi component, poore app mein reuse
+
+### Folder Structure (mandatory)
+```
+/components
+  /ui          → base atoms (list neeche)
+  /layout      → Header, Sidebar, Footer, PageWrapper, Container
+  /shared      → reusable business components (ProductCard, OrderRow, StatCard)
+  /forms       → form-specific composites (SearchForm, FilterForm, CheckoutForm)
+  /store       → store-only composites
+  /admin       → admin-only composites
+```
+
+### Design Tokens (single source of truth)
+- Colors, spacing, radius, shadow, font-size — sirf `tailwind.config` / `theme.ts` mein define
+- Hardcoded value (`#3b82f6`, `padding:13px`) kahin bhi mana hai
+- Har naya UI element existing token se hi bane
+
+### Complete Shared Component List (`/components/ui/`)
+
+**Navigation & Structure**
+- Navbar / TopBar, Sidebar (collapsible), Breadcrumb, Tabs, Pagination, BottomNav (mobile)
+
+**Inputs & Forms**
+- Button (primary, secondary, outline, ghost, danger, icon-button)
+- Input (text, number, password, with-icon)
+- SearchBar (debounce, clear icon, suggestions dropdown)
+- Select / Dropdown, MultiSelect, Checkbox, RadioGroup, Switch/Toggle, Textarea
+- DatePicker / DateRangePicker
+- FileUpload / ImageUpload (drag-drop zone)
+- FormField wrapper (label + error + hint — consistent everywhere)
+
+**Data Display**
+- Card (base + variants: ProductCard, StatCard, OrderCard)
+- Table (sortable, paginated, row-select)
+- List (drag-reorder support)
+- Badge, Chip/Tag (removable, filter, category)
+- Avatar, Tooltip, StatWidget, EmptyState
+- Skeleton/Loader (page, card, table variants)
+
+**Icons**
+- Single `Icon` wrapper component (lucide-react based) — icon library mix mana hai
+- Consistent size scale: `sm / md / lg` — hardcoded px mana hai
+
+**Feedback & Overlay**
+- Modal / Dialog, Drawer (side panel — mobile filters, cart)
+- Toast/Notification, ConfirmDialog (destructive actions)
+- ProgressBar, Spinner
+
+**Drag & Interaction**
+- DragHandle + SortableList (dnd-kit based)
+- Draggable Card (kanban/order board views)
+- Swipeable row (mobile — delete/edit actions)
+
+**E-commerce/POS Specific Shared**
+- ProductCard (grid + list variant), CartItem row, QuantityStepper (+/-)
+- PriceTag (with discount strike-through), StockBadge (in/low/out-of-stock)
+- OrderStatusBadge, PaymentMethodIcon set, CategoryChip / FilterChip bar
+
+### Consistency Checklist (agent har naya page pe follow kare)
+1. Same `PageWrapper`/layout use ho raha hai?
+2. Same Button/Input/Card/Chip component use ho raha hai (naya nahi bana)?
+3. Spacing/typography scale match karta hai baaki pages se?
+4. Same loading/error/empty-state pattern hai?
+5. Naya pattern chahiye to pehle 2-3 existing pages check karo
+
+### Anti-Patterns (kabhi na karo)
+- ❌ Har page ka apna custom Button/Card
+- ❌ Same data ke liye different card design har jagah
+- ❌ Icon library mix (kabhi lucide, kabhi heroicons, kabhi svg direct)
+- ❌ Copy-paste karke thoda modify karna instead of extending original component
+- ❌ Drag-drop har jagah alag library/logic se implement karna
+
+### Enforcement
+- Naya UI banane se pehle agent khud check kare: "kya ye `/components/ui/` mein already hai?"
+- `COMPONENTS.md` file maintain karo — list of all shared components + unka use-case
+
+---
+
+## 12. Multi-System Architecture Rules (/store vs /admin)
+
+### Structure
+```
+/app
+  /store    → customer-facing e-commerce (public)
+  /admin    → POS / dashboard / management (auth-protected)
+```
+
+### Shared vs System-Specific
+- **Shared (mandatory same everywhere):** Button, Input, Card base, Badge, Chip, Modal, Toast, Icon, Spinner, SearchBar base, FormField
+- **System-specific (alag layout allowed, same tokens):**
+  - `/store` → mobile-first, customer UX, minimal chrome, big touch targets, product-focused cards
+  - `/admin` → data-dense, sidebar nav, tables, filters, desktop + tablet priority
+- Dono systems **same design tokens** (color, spacing, radius, font) use karein — sirf layout density/purpose alag ho, base look-and-feel nahi
+
+### Route-level Rule
+- Naya `/store` page: sirf `/components/ui` + `/components/store` se import
+- Naya `/admin` page: sirf `/components/ui` + `/components/admin` se import
+- Agent kabhi `/admin`-style dense table `/store` mein ya `/store`-style card `/admin` mein bina reason ke copy na kare
+
+---
+
+## 13. Mobile Card / Native App Style Rules
+
+### Visual Style (modern native-app feel)
+- Rounded corners consistent scale: `rounded-xl` / `rounded-2xl` — sharp corners mana hai
+- Soft shadows (elevation-based), not harsh borders — `shadow-sm/md` scale se
+- Card padding consistent: `p-4` mobile, `p-5/6` desktop — hardcoded values mana
+- Bottom sheet / drawer pattern for mobile actions (not full modal on small screens)
+- Sticky bottom nav / action bar on mobile (cart, checkout, save)
+- Pull-to-refresh pattern where relevant (order list, product list)
+- Micro-interactions: tap scale (`active:scale-95`), smooth transitions (150-200ms)
+
+### Card Component Rules
+- Ek `BaseCard` component — sab variants (`ProductCard`, `OrderCard`, `StatCard`) isko extend karein
+- Consistent card anatomy: image/icon top → title → meta/subtext → action row bottom
+- Swipe actions on mobile cards (edit/delete) — same gesture pattern har jagah
+
+### Responsive Rules
+- Mobile-first build: pehle mobile layout design karo, phir `sm:` `md:` `lg:` breakpoints add karo
+- Grid: mobile = 1-2 col, tablet = 2-3 col, desktop = 3-4 col — consistent across store/admin
+- Touch targets minimum 44px height (buttons, icons, chips)
+- Font scale responsive (`text-sm` mobile → `text-base` desktop) via single typography scale, not per-page overrides
+
+### Anti-Patterns
+- ❌ Store pe ek card style, admin pe dusra card style bina reason
+- ❌ Desktop-first design jo mobile pe squeeze ho
+- ❌ Har page apna alag bottom-sheet/modal pattern
+- ❌ Inconsistent corner-radius/shadow across cards
+
+
+---
+
 # 🎨 DESIGN SYSTEM RULES (NON-NEGOTIABLE)
 
 ## Aesthetic: "Modern Pakistani E-Commerce — Premium Mobile"
@@ -838,3 +1042,91 @@ When working with multiple cloned projects (e.g., Zaynahs, Totvogue, MiniMahal, 
 - **The Token:** It must be a valid **Cloudflare API Token** with "Cache Purge" permissions. It typically starts with `cfut_`. Do NOT use Global API Keys (`cfk_` or similar 37-char hex strings).
 - **Verification Script:** Whenever you configure env files or the user reports webhook/cache issues, you MUST run `node scripts/test-cf-tokens.mjs`. This script automatically scans `.env.local` and `env-backups/*.env.local`, extracts all `CLOUDFLARE_API_TOKEN`s, and verifies them against the live Cloudflare API (`https://api.cloudflare.com/client/v4/user/tokens/verify`).
 - **Agent Action:** If a token returns as INVALID or EXPIRED, you must immediately inform the user and tell them exactly which project's token failed, instructing them to generate a new valid "API Token" (not a Global API Key) from the Cloudflare Dashboard.
+
+---
+
+# 🧠 SENIOR DEVELOPER BACKEND ENGINEERING HABITS
+
+1. **Think Before You Code**:
+   - The best engineers understand the problem before touching the keyboard.
+   - Junior Instinct: "I'll figure it out while coding."
+   - Senior Habit: "What problem am I solving?"
+
+2. **Read Existing Code First**:
+   - Understanding the current system saves hours of unnecessary work.
+   - Junior: "I'll rewrite everything."
+   - Senior: "Let me understand what's already here."
+
+3. **Handle Errors Gracefully**:
+   - Users don't need stack traces. They need helpful, structured responses.
+   - ❌ `res.json(error)`
+   - ✅ `res.status(400).json({ message: "Invalid email" })`
+
+4. **Write for Readability**:
+   - Self-documenting, clean, maintainable code over complex tricks.
+   - Subtext: "It's not about writing more code. It's about writing better systems."
+
+5. **Validate Every Input**:
+   - Never trust client input. Validate before touching your database.
+   - ❌ `User.create(req.body)`
+   - ✅ `if(!email){ return res.status(400) }`
+
+6. **Test Edge Cases**:
+   - Test empty states, missing values, rate limits, and network failures before shipping.
+
+7. **Think Like Your Users**:
+   - Good developers write code. Great developers build experiences.
+   - Junior: "My API works."
+   - Senior: "Can someone actually use it easily?"
+
+---
+
+# 🚨 STRONG ERROR TRACKING & INSTANT DIAGNOSTIC PROTOCOL
+
+Whenever the user copy-pastes an error log, terminal output, stack trace, or DevTools error snippet, the agent MUST immediately map it to the diagnostic matrix below, identify the root cause, and execute the exact instant fix without asking for permission.
+
+### 🔍 Error Diagnostic Matrix & Instant Fix Actions:
+
+1. **`ChunkLoadError` / `404 (Not Found) _next/static/chunks/`**:
+   - **Root Cause**: Cloudflare Edge CDN is serving stale HTML pointing to hashed JS assets deleted in a new deployment.
+   - **Instant Fix**: Run `node scripts/post-deploy-fix.mjs` or execute Cloudflare `purge_everything: true` API call, then trigger POST to `/api/revalidate`.
+
+2. **`PGRST204` / `Could not find the '<col>' column of '<table'> in schema cache`**:
+   - **Root Cause**: Supabase database table missing column or Supabase REST schema cache needs refreshing.
+   - **Instant Fix**: Run DDL SQL via Supabase Management API (`POST /v1/projects/{ref}/database/query`), sync `SUPER_MASTER_SCHEMA.sql`, and re-query.
+
+3. **`An error occurred in the Server Components render`**:
+   - **Root Cause**: Next.js App Router masked exception in Server Action or Server Component in production.
+   - **Instant Fix**: Wrap the operation in `safeAction()` from `@/lib/utils/serverAction` or return `{ success: false, error: message }` instead of throwing raw Error.
+
+4. **`Hydration failed because the initial UI does not match`**:
+   - **Root Cause**: Client-only dynamic value (`window.location`, `localStorage`, `Date.now()`, random numbers) evaluated during Server-Side Rendering (SSR).
+   - **Instant Fix**: Wrap client-only evaluation in `useEffect()` or `useState(null)` with `suppressHydrationWarning`.
+
+5. **`Invalid API Key` / `401 Unauthorized` on `/api/revalidate`**:
+   - **Root Cause**: Mismatched or missing `x-revalidate-secret` header in webhook request.
+   - **Instant Fix**: Pass `x-revalidate-secret: zaynahs_secret_cache_revalidate_2026` header explicitly.
+
+6. **`TypeError: Cannot read properties of undefined (reading 'map')`**:
+   - **Root Cause**: API or service returned `null`/`undefined` data without array fallback.
+   - **Instant Fix**: Provide nullish coalescing array fallback: `(data ?? []).map(...)`.
+
+7. **`Database error: RLS policy violation` / `42501`**:
+   - **Root Cause**: Query using standard client (`supabase`) instead of service role admin client (`supabaseAdmin`) on RLS-protected table.
+   - **Instant Fix**: Change import to `import { supabaseAdmin } from '@/lib/supabase/admin'`.
+
+8. **`Cookie limit exceeded` / `Cookie chunking failed`**:
+   - **Root Cause**: Auth session cookies exceeding 4KB browser limit on mobile devices.
+   - **Instant Fix**: Use `createServerClient` from `@supabase/ssr` with chunked cookie response handling in `proxy.ts`.
+
+### ⚡ Agent Mandatory Execution Order on Copy-Pasted Error:
+1. **Direct Action**: Immediately locate target file(s) and apply the fix.
+2. **Compile & Test**: Run `npm run build` locally to verify 0 build errors.
+3. **Deploy & Push**: Push commit to all GitHub remotes and trigger live cache revalidation.
+4. **Structured Report**:
+   - 📌 **Error**: Identified issue
+   - 🔍 **Root Cause**: Exact explanation
+   - 🛠️ **File & Line**: Exact code location fixed
+   - 🚀 **Status**: Live revalidation & build verification results
+
+

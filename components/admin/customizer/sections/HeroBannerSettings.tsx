@@ -726,13 +726,14 @@ export default function HeroBannerSettings({
               <NumberSliderControl
                 label="Height"
                 value={heightTablet}
-                min={200}
+                min={0}
                 max={600}
-                step={10}
+                step={5}
                 unit="px"
                 onChange={val => handleSettingsChange('height_tablet', `${val}px`)}
                 presets={[
-                  { label: 'Compact (300px)', val: 300 },
+                  { label: '16:9 Aspect (430px)', val: 430 },
+                  { label: 'Compact (200px)', val: 200 },
                   { label: 'Standard (350px)', val: 350 },
                   { label: 'Tall (400px)', val: 400 },
                   { label: 'Heroic (500px)', val: 500 }
@@ -852,13 +853,15 @@ export default function HeroBannerSettings({
               <NumberSliderControl
                 label="Height"
                 value={heightMobile}
-                min={150}
+                min={0}
                 max={500}
-                step={10}
+                step={5}
                 unit="px"
                 onChange={val => handleSettingsChange('height_mobile', `${val}px`)}
                 presets={[
-                  { label: 'Compact (200px)', val: 200 },
+                  { label: '16:9 Aspect (210px)', val: 210 },
+                  { label: 'Mini (100px)', val: 100 },
+                  { label: 'Compact (150px)', val: 150 },
                   { label: 'Standard (250px)', val: 250 },
                   { label: 'Tall (300px)', val: 300 },
                   { label: 'Heroic (400px)', val: 400 }
@@ -976,13 +979,14 @@ export default function HeroBannerSettings({
               <NumberSliderControl
                 label="Height"
                 value={heightDesktop}
-                min={250}
-                max={800}
-                step={10}
+                min={0}
+                max={900}
+                step={5}
                 unit="px"
                 onChange={val => handleSettingsChange('height_desktop', `${val}px`)}
                 presets={[
-                  { label: 'Compact (350px)', val: 350 },
+                  { label: '16:9 Aspect (675px)', val: 675 },
+                  { label: 'Compact (250px)', val: 250 },
                   { label: 'Standard (450px)', val: 450 },
                   { label: 'Tall (550px)', val: 550 },
                   { label: 'Heroic (650px)', val: 650 },

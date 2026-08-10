@@ -4,6 +4,211 @@
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
 <!-- END:nextjs-agent-rules -->
 
+# AGENTS.md — Full Stack Autonomous Agent Rules
+(Next.js, React, Node.js, Vercel, GitHub, Supabase, Cloudflare | E-commerce + POS)
+
+---
+
+## 1. Core Operating Principles
+- Pehle problem/root-cause samjho, phir fix karo — guess-based patch mat lagao
+- Har change se pehle "kya break ho sakta hai?" check karo
+- Existing code, schema, naming convention follow karo — rewrite se bacho
+- Scope discipline: sirf jo mangi gayi cheez fix/build karo, unrelated refactor mana hai
+- Agent apne decisions ka short summary log kare (kya fix kiya, kyun)
+
+## 2. Error Detection & Auto-Fix Rules
+- Build/lint/type errors: auto-detect → root cause identify → fix → re-run verify
+- Runtime errors (console, server logs, Vercel logs, Supabase logs) monitor karke fix
+- Fix ke baad automatically build/test chalao before "done" marna
+- Destructive/uncertain fix se pehle explain karo, phir proceed
+- Recurring error patterns `ERRORLOG.md` mein track karo (pattern + fix)
+
+## 3. Frontend Rules (Next.js / React)
+- App Router conventions follow karo (server vs client components sahi se separate)
+- Loading states, error boundaries, empty states har page/component mein honi chahiye
+- Env vars (`NEXT_PUBLIC_*`) properly prefix + `.env.example` update rakho
+- Images, fonts, SEO metadata optimize karo (Next.js best practices)
+
+## 4. Backend Rules (Node.js / API Routes)
+- Har API route: input validation + try/catch + proper status codes
+- Business logic (stock, orders, payments) atomic operations mein ho
+- Sensitive actions (refund, stock adjust, delete) logging ke saath
+- Rate limiting + auth check har protected route pe
+
+## 5. Database Rules (Supabase)
+- Schema change se pehle migration file + RLS policy check/update
+- Naming: `snake_case`, existing pattern follow
+- Kabhie bhi production pe destructive query (DROP/DELETE without WHERE) auto-run nahi
+- Realtime-sensitive tables (POS inventory/orders) — race-safe RPC use karo
+- Major schema change se pehle backup/rollback plan
+
+## 6. Git & GitHub Rules
+- Har logical change = separate commit, clear message (`fix:`, `feat:`, `chore:`)
+- Direct `main` pe push mana — feature branch → PR flow
+- Commit se pehle diff review (extra/accidental change check)
+- `.env`, secrets, `node_modules` kabhi commit na ho
+
+## 7. Deployment Rules (Vercel / Cloudflare)
+- Deploy se pehle local build 100% pass hona chahiye
+- Preview deploy pe test, phir production
+- Env vars dashboard sync verify before deploy
+- Fail hone pe logs se root-cause fix, blind retry mana
+- Har production deploy ka rollback plan ready
+
+## 8. E-commerce / POS Specific Rules
+- Stock/inventory changes atomic + logged (double-sell na ho)
+- Payment flow (JazzCash/EasyPaisa) — graceful fallback, silent fail mana
+- Order/sale data kabhi lose na ho — offline queue/sync retry
+- PKR pricing format consistent POS + storefront dono mein
+
+## 9. Testing & Verification Rules
+- Har fix/feature ke baad happy path + 1 edge case test
+- Critical flows (checkout, payment, stock) manual/auto test mandatory
+- Breaking change se pehle existing tests/build run
+
+## 10. Autonomy Boundaries (Agent Permissions)
+- ✅ Auto-allowed: lint/type fixes, non-destructive DB reads, local build/test, feature-branch commit+push, preview deploy
+- ⚠️ Confirm-first: schema migration, production deploy, payment logic change, bulk data update
+- ❌ Never auto: DROP table, delete prod data without backup, force-push main, expose/commit secrets
+
+---
+
+## 11. UI/UX Consistency Rules (Shared Design System)
+
+### Golden Rule
+- Naya page banane se pehle existing components check karo — naya mat banao
+- Ek hi type ka UI element = ek hi component, poore app mein reuse
+
+### Folder Structure (mandatory)
+```
+/components
+  /ui          → base atoms (list neeche)
+  /layout      → Header, Sidebar, Footer, PageWrapper, Container
+  /shared      → reusable business components (ProductCard, OrderRow, StatCard)
+  /forms       → form-specific composites (SearchForm, FilterForm, CheckoutForm)
+  /store       → store-only composites
+  /admin       → admin-only composites
+```
+
+### Design Tokens (single source of truth)
+- Colors, spacing, radius, shadow, font-size — sirf `tailwind.config` / `theme.ts` mein define
+- Hardcoded value (`#3b82f6`, `padding:13px`) kahin bhi mana hai
+- Har naya UI element existing token se hi bane
+
+### Complete Shared Component List (`/components/ui/`)
+
+**Navigation & Structure**
+- Navbar / TopBar, Sidebar (collapsible), Breadcrumb, Tabs, Pagination, BottomNav (mobile)
+
+**Inputs & Forms**
+- Button (primary, secondary, outline, ghost, danger, icon-button)
+- Input (text, number, password, with-icon)
+- SearchBar (debounce, clear icon, suggestions dropdown)
+- Select / Dropdown, MultiSelect, Checkbox, RadioGroup, Switch/Toggle, Textarea
+- DatePicker / DateRangePicker
+- FileUpload / ImageUpload (drag-drop zone)
+- FormField wrapper (label + error + hint — consistent everywhere)
+
+**Data Display**
+- Card (base + variants: ProductCard, StatCard, OrderCard)
+- Table (sortable, paginated, row-select)
+- List (drag-reorder support)
+- Badge, Chip/Tag (removable, filter, category)
+- Avatar, Tooltip, StatWidget, EmptyState
+- Skeleton/Loader (page, card, table variants)
+
+**Icons**
+- Single `Icon` wrapper component (lucide-react based) — icon library mix mana hai
+- Consistent size scale: `sm / md / lg` — hardcoded px mana hai
+
+**Feedback & Overlay**
+- Modal / Dialog, Drawer (side panel — mobile filters, cart)
+- Toast/Notification, ConfirmDialog (destructive actions)
+- ProgressBar, Spinner
+
+**Drag & Interaction**
+- DragHandle + SortableList (dnd-kit based)
+- Draggable Card (kanban/order board views)
+- Swipeable row (mobile — delete/edit actions)
+
+**E-commerce/POS Specific Shared**
+- ProductCard (grid + list variant), CartItem row, QuantityStepper (+/-)
+- PriceTag (with discount strike-through), StockBadge (in/low/out-of-stock)
+- OrderStatusBadge, PaymentMethodIcon set, CategoryChip / FilterChip bar
+
+### Consistency Checklist (agent har naya page pe follow kare)
+1. Same `PageWrapper`/layout use ho raha hai?
+2. Same Button/Input/Card/Chip component use ho raha hai (naya nahi bana)?
+3. Spacing/typography scale match karta hai baaki pages se?
+4. Same loading/error/empty-state pattern hai?
+5. Naya pattern chahiye to pehle 2-3 existing pages check karo
+
+### Anti-Patterns (kabhi na karo)
+- ❌ Har page ka apna custom Button/Card
+- ❌ Same data ke liye different card design har jagah
+- ❌ Icon library mix (kabhi lucide, kabhi heroicons, kabhi svg direct)
+- ❌ Copy-paste karke thoda modify karna instead of extending original component
+- ❌ Drag-drop har jagah alag library/logic se implement karna
+
+### Enforcement
+- Naya UI banane se pehle agent khud check kare: "kya ye `/components/ui/` mein already hai?"
+- `COMPONENTS.md` file maintain karo — list of all shared components + unka use-case
+
+---
+
+## 12. Multi-System Architecture Rules (/store vs /admin)
+
+### Structure
+```
+/app
+  /store    → customer-facing e-commerce (public)
+  /admin    → POS / dashboard / management (auth-protected)
+```
+
+### Shared vs System-Specific
+- **Shared (mandatory same everywhere):** Button, Input, Card base, Badge, Chip, Modal, Toast, Icon, Spinner, SearchBar base, FormField
+- **System-specific (alag layout allowed, same tokens):**
+  - `/store` → mobile-first, customer UX, minimal chrome, big touch targets, product-focused cards
+  - `/admin` → data-dense, sidebar nav, tables, filters, desktop + tablet priority
+- Dono systems **same design tokens** (color, spacing, radius, font) use karein — sirf layout density/purpose alag ho, base look-and-feel nahi
+
+### Route-level Rule
+- Naya `/store` page: sirf `/components/ui` + `/components/store` se import
+- Naya `/admin` page: sirf `/components/ui` + `/components/admin` se import
+- Agent kabhi `/admin`-style dense table `/store` mein ya `/store`-style card `/admin` mein bina reason ke copy na kare
+
+---
+
+## 13. Mobile Card / Native App Style Rules
+
+### Visual Style (modern native-app feel)
+- Rounded corners consistent scale: `rounded-xl` / `rounded-2xl` — sharp corners mana hai
+- Soft shadows (elevation-based), not harsh borders — `shadow-sm/md` scale se
+- Card padding consistent: `p-4` mobile, `p-5/6` desktop — hardcoded values mana
+- Bottom sheet / drawer pattern for mobile actions (not full modal on small screens)
+- Sticky bottom nav / action bar on mobile (cart, checkout, save)
+- Pull-to-refresh pattern where relevant (order list, product list)
+- Micro-interactions: tap scale (`active:scale-95`), smooth transitions (150-200ms)
+
+### Card Component Rules
+- Ek `BaseCard` component — sab variants (`ProductCard`, `OrderCard`, `StatCard`) isko extend karein
+- Consistent card anatomy: image/icon top → title → meta/subtext → action row bottom
+- Swipe actions on mobile cards (edit/delete) — same gesture pattern har jagah
+
+### Responsive Rules
+- Mobile-first build: pehle mobile layout design karo, phir `sm:` `md:` `lg:` breakpoints add karo
+- Grid: mobile = 1-2 col, tablet = 2-3 col, desktop = 3-4 col — consistent across store/admin
+- Touch targets minimum 44px height (buttons, icons, chips)
+- Font scale responsive (`text-sm` mobile → `text-base` desktop) via single typography scale, not per-page overrides
+
+### Anti-Patterns
+- ❌ Store pe ek card style, admin pe dusra card style bina reason
+- ❌ Desktop-first design jo mobile pe squeeze ho
+- ❌ Har page apna alag bottom-sheet/modal pattern
+- ❌ Inconsistent corner-radius/shadow across cards
+
+---
+
 <!-- BEGIN:domain-rules -->
 # Multi-Domain System Rule
 
@@ -130,173 +335,6 @@ This app runs across ANY domain (localhost, custom domain, production). Never ha
     - No new features can be merged with `any` types. If a feature or column is removed, its type definitions must also be removed to avoid stale code.
 <!-- END:db-rules -->
 
-<!-- BEGIN:social-proof-guidelines -->
-# Social Proof Guidelines
-
-1. **Social proof tab excludes all PII** (Name, Phone, Email) — show privacy notice instead
-2. Supports **many-to-many product association** via checkboxes (not single dropdown)
-3. If tagged product is deleted → show "Not Available" / "Deleted" badge, no broken link
-4. Storefront social proofs are fetched **client-side** (not SSR) to avoid blocking page render
-5. **Review count must ALWAYS merge store reviews + proof wall items.**  
-   Wherever a review count or rating summary is displayed (grid, header, product page, homepage, /reviews), use:
-   ```
-   totalCount = storeReviews.length + socialProofCount
-   avgRating  = (sum(storeReviews.rating) + socialProofCount * 5) / totalCount
-   ```
-   Each proof wall entry counts as a **5-star rating**. Append `"(Includes Verified + Proof Wall)"` annotation when `socialProofCount > 0`.
-   - Fetch `socialProofCount` server-side via `supabaseAdmin.from('social_proof_products').select('product_id', { count: 'exact', head: true }).eq('product_id', product.id)` for product pages, or `supabaseAdmin.from('social_proof').select('id', { count: 'exact', head: true }).eq('active', true).is('deleted_at', null)` for the homepage.
-   - On the `/reviews` page, use `socialProofs.length` (already in client).
-<!-- END:social-proof-guidelines -->
-
-<!-- BEGIN:legacy-audit-rule -->
-# Legacy Project Audit Rule (Old Version → Complete Setup)
-
-Jab bhi koi naya agent kisi **purane / existing project ko clone ya touch kare**, jahan pehle se Supabase, Cloudflare, Vercel, aur GitHub setup ho chuke hon, to us agent ki sab se pehli aur bunyadi zimmedari **SYSTEM AUDIT** karna hai. Agent paband hai ke wo aagay ka koi bhi kaam karne se pehle in sab docs ko deeply study kare aur purane project ko naye standards par automatically update kare:
-
-### 1. Mandatory Docs to Read (Batch Read):
-Agent ko laazmi tor par in files ko parhna hai (agar ye repo mein exist karti hon):
-- `docs/NEW_PROJECT_SETUP_GUIDE.md`
-- `docs/MANUAL_SETUP_GUIDE.md`
-- `docs/CLOUDFLARE_SUPABASE_SETUP.md`
-- `docs/MASTER_CACHE_GUIDE.md`
-- `docs/META_SYNC_GUIDE.md`
-
-### 2. Strict Audit Checklist:
-Agent in tamam areas ko scan karega aur jo missing ho, usay **Khu-ba-khud (Automatically)** create ya fix karega:
-
-| Area | Check Against | Auto-Fix Action |
-|---|---|---|
-| **Database Schema** | `SUPER_MASTER_SCHEMA.sql` | Kya sari nayi tables, columns, constraints, foreign keys aur indexes purane DB mein hain? Agar nahi, to API ke zariye DB update karo. |
-| **RLS & Policies** | `SUPER_MASTER_SCHEMA.sql` | Kya nayi security policies aur triggers (e.g., auto-increment, sync) apply ho chuke hain? Missing hain to add karo. |
-| **Migrations** | `supabase/migrations/` files | Kya saari migration files apply ho chuki hain? Agar purana project peeche hai to migrations run karo. |
-| **Storage Buckets** | `product-images` | Kya bucket exist karta hai? Uski public read/write policies bilkul wesi hain jesi docs mein likhi hain? Fix them. |
-| **Webhooks** | `docs/CLOUDFLARE_SUPABASE_SETUP.md` | Supabase DB webhooks (product_changes, order_events etc.) bani hui hain? |
-| **Cloudflare DNS & Rules** | Page/Cache Rules | HTML pages ki 24h cache, dynamic paths par no-cache, aur SSL Full Strict set hai? |
-| **Env Variables** | `.env.example` vs Vercel | Kya `CLOUDFLARE_ZONE_ID`, `CLOUDFLARE_API_TOKEN`, VERCEL_TOKEN, aur Supabase Keys Vercel par set hain? |
-| **Features Sync** | Export/Import, Image Fetch | Kya purane project mein nayi image fetching (Base64 ki bajaye Link Fetching) aur category imports chal rahe hain? Code update karo. |
-
-### 3. Execution Rules (Agent Lazmi Follow Kare):
-- **DO NOT ASK FOR PERMISSION:** Jo missing hai ya purana hai, usay khud fix karo (Jaise missing columns add karna ya purane base64 imports ko link-fetch pe shift karna).
-- **DO NOT BREAK EXISTING LOGIC:** Jo cheez pehle se bilkul perfect chal rahi hai, usay mat chero jab tak naye standard mein uska conflict na aye.
-- **PROVIDE A REPORT:** Aakhir mein ek summary do: "✅ Ye cheezein pehle se theek theen" aur "⚠️ Ye cheezein maine fix ki hain".
-<!-- END:legacy-audit-rule -->
-
-<!-- BEGIN:navigation-scroll-rule -->
-# Navigation and Tab Change Scroll Rules
-
-1. Next.js does not automatically scroll nested scrollable layout containers (e.g. `<main id="admin-main-content">` inside admin dashboard) to the top on page or URL query changes (like changing setting tabs `?tab=shipping`).
-2. To prevent pages/tabs from loading scrolled down or focusing on the footer:
-   - In the admin layout, give the scrollable main container the ID `admin-main-content` and reset its scroll position (`mainEl.scrollTop = 0`) inside a `useEffect` listening to `pathname` and `searchParams` changes.
-   - In the storefront layout/navbar, reset the `window` scroll position (`window.scrollTo({ top: 0, behavior: 'instant' })`) inside a `useEffect` on pathname/searchParams changes, EXCEPT when a scroll restoration is scheduled (`store_scroll_restore` exists in sessionStorage).
-<!-- END:navigation-scroll-rule -->
-
-<!-- BEGIN:multi-domain-og-rule -->
-## MULTI-DOMAIN OG RULE — MANDATORY FOR ALL PAGES
-
-This is a multi-domain system. totvogue.pk and zaynahs.pk are separate brands.
-
-**RULE: Every page that has `generateMetadata()` MUST follow this exact pattern:**
-
-```ts
-import { getDomainBrand } from '@/lib/utils/getDomainBrand'
-
-export async function generateMetadata() {
-  const brand = await getDomainBrand()
-  return {
-    title: '[Page Name] - ' + brand.name,
-    description: '[Page description] at ' + brand.name,
-    openGraph: {
-      siteName: brand.name,
-      title: '[Page Name] - ' + brand.name,
-      description: '[Page description] at ' + brand.name,
-    },
-    twitter: {
-      title: '[Page Name] - ' + brand.name,
-      description: '[Page description] at ' + brand.name,
-    }
-  }
-}
-```
-
-**NEVER:**
-- Hardcode "TotVogue" or "Zaynahs" in any `generateMetadata()`
-- Use `settings.storeName` in `generateMetadata()`
-- Use `settings.tagline` in `generateMetadata()`
-- Skip `generateMetadata()` on any new page
-
-**ALWAYS:**
-- Import `getDomainBrand` from `@/lib/utils/getDomainBrand`
-- Call it at the top of every `generateMetadata()`
-- Use `brand.name` for ALL title and OG name fields
-- Use `brand.tagline` for ALL description fields when no specific description
-
-When adding a new page, category, or route:
-- Copy `generateMetadata()` pattern from an existing working page
-- Never write brand name as a string literal
-- `getDomainBrand()` handles everything automatically
-<!-- END:multi-domain-og-rule -->
-
-<!-- BEGIN:middleware-rsc-rule -->
-# Middleware and RSC JSON Cache Rule
-
-1. **Never use `middleware.ts` for Next.js App Router redirects with Cloudflare.** The middleware convention can cause caching skews where Cloudflare caches the internal React Server Component (RSC) JSON payload instead of the HTML page, leading to raw JSON (`:HL["/_next/static...`) being displayed on the screen.
-2. **Always rename `middleware.ts` to `proxy.ts`.**
-3. **When redirecting from `proxy.ts` to a login or auth page, always append a cache-buster query parameter** (e.g., `?_nocache=timestamp`) and set `cdn-cache-control: no-store, no-cache, must-revalidate` on the NextResponse to explicitly prevent Cloudflare from caching the redirect or the resulting RSC payload.
-4. **Cookie Chunking**: Mobile browsers strictly enforce the 4KB cookie limit. When using Supabase SSR, ensure `createServerClient` sets cookies on the `NextResponse` explicitly during redirects, so chunked cookies are successfully stored on mobile devices.
-<!-- END:middleware-rsc-rule -->
-
-<!-- BEGIN:admin-mobile-responsive-rule -->
-# Admin Mobile Responsive Data Grids (Table vs Cards)
-
-1. All `/admin` pages displaying list/grid data MUST implement a dual-layout strategy to prevent mobile horizontal scrolling cut-offs.
-2. Use `hidden md:block` with a standard HTML `<table>` for desktop views.
-3. Use `md:hidden` with stacked Flexbox cards (`space-y-3 p-4`) for mobile views.
-4. Follow the exact implementation pattern defined in [admin_mobile_responsive_ui_pattern.md](file:///Users/shoaib/Documents/zaynahsestore-tv-main/docs/prompts/admin_mobile_responsive_ui_pattern.md).
-<!-- END:admin-mobile-responsive-rule -->
-
-<!-- BEGIN:touch-first-scrolling-rule -->
-# Touch-First and Smooth Desktop Scrollable Overlays Rule
-
-1. **Touch Scrolling (Mobile/Tablets)**: All overlays, modals, dropdowns, and drawers that open on mobile/tablet screen viewports MUST use `overscroll-contain touch-pan-y` and declare the inline style `style={{ WebkitOverflowScrolling: 'touch' }}` (or `-webkit-overflow-scrolling: touch` in CSS) to enable native iOS Safari momentum inertia scrolling.
-2. **GPU Acceleration & Jitter Prevention (Desktop)**: To prevent scrolling lags, jitter, and paint delays on high-resolution desktop screens, modal backdrop overlays must NEVER use CPU-heavy blur filters (e.g. `backdrop-blur-sm`, `backdrop-blur-xs`). Always use high-contrast solid/opacity overlays (e.g. `bg-black/60`). 
-3. **Hardware Rendering**: Add GPU acceleration triggers like `will-change-transform` and `transform-gpu` to scrollable containers and modal cards to delegate paint layers to the GPU, guaranteeing 60fps scrolling on all screens.
-<!-- END:touch-first-scrolling-rule -->
-
-<!-- BEGIN:safe-server-action-rule -->
-# Safe Server Action Error Handling (Unmasking Errors)
-
-1. Next.js App Router aggressively masks thrown errors in Server Actions (`use server`) during production builds. If you throw a native `Error` during database operations or API requests, the client only receives "An error occurred in the Server Components render", which makes production debugging impossible.
-2. To prevent this, **ALL mutations (Create, Update, Delete) in Server Actions MUST use the `SafeResult` pattern** instead of throwing errors.
-3. Every mutating server function must be wrapped using the `safeAction()` utility from `@/lib/utils/serverAction` (or a similarly named equivalent pattern). 
-4. Example: `export const updateCategorySafe = async (id, data) => safeAction(updateCategory(id, data))`
-5. On the frontend, after invoking a safe server action, you MUST check the result flag:
-   `const result = await mySafeAction();`
-   `if (!result.success) throw new Error(result.error);` (or handle the error locally).
-6. Doing this ensures the actual `error.message` from the backend is gracefully returned as a serialized object and rendered in toast notifications, maintaining transparency in production.
-<!-- END:safe-server-action-rule -->
-
-<!-- BEGIN:server-action-env-rule -->
-# Server Action Environment Variables Rule
-
-1. When writing Next.js Server Actions or API routes, NEVER declare `process.env` variables globally outside the function scope (unless they are strictly used for static compile-time configuration).
-2. During build time, Next.js caches module scopes. Variables like `process.env.CLOUDFLARE_ZONE_ID` or tokens may evaluate to `undefined` at runtime if declared globally.
-3. ALWAYS read dynamic environment variables *inside* the function body where they are used.
-<!-- END:server-action-env-rule -->
-
-<!-- BEGIN:post-deploy-cache-rule -->
-# Post-Deploy Cache Purge Rule (MANDATORY — prevents stale 500s)
-
-1. **On EVERY new clone / store setup, run `node scripts/post-deploy-fix.mjs` ONCE after the first production deploy is READY.** It purges Vercel CDN + Data cache, purges Cloudflare edge, verifies all storefront pages return 200, and tests the `/api/revalidate` webhook.
-2. **Root cause it prevents:** the first deployment built with incomplete/wrong env (e.g. `NEXT_PUBLIC_SITE_URL=localhost:3000`) leaves a stale Vercel ISR/data-cache render that serves **500 on product pages** until the next deploy + cache purge.
-3. **Golden rules to avoid the issue at the source:**
-   - Set ALL env vars (especially `NEXT_PUBLIC_*` — inlined at build time) BEFORE triggering the first build.
-   - Set `store_settings.store_url` in the DB BEFORE the first deploy (Supabase webhooks resolve their URL from it at trigger time).
-   - If product pages 500 after a deploy: purge Vercel cache (`npx vercel cache purge --project <name> --yes`) — that fixes it instantly; it is almost never a code bug.
-4. **Required env vars for the script:** `VERCEL_PROJECT_NAME`, `VERCEL_TEAM_ID`, plus existing `VERCEL_TOKEN`, `CLOUDFLARE_*`, `REVALIDATE_SECRET`, `NEXT_PUBLIC_SITE_URL`, `SUPABASE_*`.
-5. Cloudflare token MUST include **Zone → Cache Purge → Purge** permission, or the purge step fails with 403.
-6. NEVER commit temp/debug files (test-*.js, `env tv`, vercel_envs.json, debug API routes) — GitHub push protection blocks them anyway.
-<!-- END:post-deploy-cache-rule -->
-
 <!-- BEGIN:shared-modules-rule -->
 # SHARED_MODULES_RULE (STRICTLY ENFORCED)
 
@@ -319,29 +357,88 @@ Any new page or feature added to `/admin` or `/store` MUST reuse the following s
 15. **Tab management** → continue following the existing `useAdminTab.ts` pattern for any page with tabbed UI.
 <!-- END:shared-modules-rule -->
 
-<!-- BEGIN:multi-vertical-rule -->
-# Multi-Vertical Sub-Store Rule (STRICTLY ENFORCED)
+<!-- BEGIN:senior-backend-habits-rule -->
+# Senior Developer Backend Engineering Habits
 
-The app supports a Landing Hub (`/store`) → Sub-Stores (`/store/<slug>`) system. Vertical data lives in the `verticals` table.
+1. **Think Before You Code**:
+   - The best engineers understand the problem before touching the keyboard.
+   - Junior Instinct: "I'll figure it out while coding."
+   - Senior Habit: "What problem am I solving?"
 
-1. **NEVER hardcode vertical names** (no "Shoes", "Jewelry" etc. as literals). Verticals are admin data: `name`, `slug`, `tagline`, `tile_image_url`, `banner_url`, `display_order`, `is_active`.
-2. **`vertical_id` is nullable** — `NULL` = legacy/default store. The main store (`/`, `/shop`, `/category/[slug]`) must ALWAYS filter `.is('vertical_id', null)` when vertical scoping applies; sub-stores filter `.eq('vertical_id', <id>)`.
-3. **Extend, don't replace**: any new query/product/section feature must accept an optional `verticalId` and default to `NULL` behavior. Never break single-store behavior.
-4. **Cache parity**: all cached fetches (`unstable_cache`) MUST include `verticalId` in their cache key. Revalidation uses existing tags (`products`, `categories`, `homepage_sections`, `homepage`) + `verticals`; sub-store pages live under `/store/*` so use `revalidatePath('/store', 'layout')` and include `/store` URLs in Cloudflare purges.
-5. **Sub-store routes**: `/store/[vertical]/page.tsx` reuses `StoreFront`; `/store/[vertical]/shop/page.tsx` reuses `ShopPage` (pass `verticalId` for scoped client hydration via `/api/products/list?vertical=`). NEVER duplicate the section engine or shop UI.
-6. **Admin**: manage verticals at `/admin/settings/verticals`; the customizer's "Store:" selector edits each vertical's own section stack. New sections added while a vertical is selected MUST pass `verticalId` to `addHomepageSection`.
-7. **Hub behavior**: `/store` redirects to `/` when `verticals_enabled` is false, and to the single sub-store when only one vertical is active.
-8. **Schema changes**: any `verticals`-related change MUST be reflected in `SUPER_MASTER_SCHEMA.sql` first, then a migration file — then run `node scripts/check-master-schema.mjs`.
-<!-- END:multi-vertical-rule -->
+2. **Read Existing Code First**:
+   - Understanding the current system saves hours of unnecessary work.
+   - Junior: "I'll rewrite everything."
+   - Senior: "Let me understand what's already here."
 
-<!-- BEGIN:cache-webhook-enforcement-rule -->
-# Cache & Webhook Enforcement Rule (STRICTLY ENFORCED)
+3. **Handle Errors Gracefully**:
+   - Users don't need stack traces. They need helpful, structured responses.
+   - ❌ `res.json(error)`
+   - ✅ `res.status(400).json({ message: "Invalid email" })`
 
-Whenever any **new feature, table, admin tab, or data module** is added to the system, the agent MUST simultaneously implement its cache purge and webhook systems for all connected projects. Never leave a new feature without instant cache invalidation.
+4. **Write for Readability**:
+   - Self-documenting, clean, maintainable code over complex tricks.
+   - Subtext: "It's not about writing more code. It's about writing better systems."
 
-**Mandatory Checklist for New Features:**
-1. **Database Triggers**: Add a `revalidate-<table_name>` trigger to `SUPER_MASTER_SCHEMA.sql` (and its corresponding migration file) that POSTs to `https://domain.com/api/revalidate` with `x-revalidate-secret`.
-2. **Next.js Cache Tags**: Ensure the new data queries use appropriate cache tags (e.g. `['new_feature']`) via `unstable_cache`.
-3. **Revalidation Logic**: Update `app/api/revalidate/route.ts` and/or `lib/revalidate.ts` to explicitly handle the new table's webhooks. It must call `revalidateTag` for the new feature's tags and trigger a Cloudflare cache purge to ensure instantly faster load times globally.
-4. **Multi-Project Sync**: All schema changes and webhooks must be applied across ALL active project databases (TotVogue, Zaynahspk, MiniMahal, LittleMister) simultaneously to maintain parity.
-<!-- END:cache-webhook-enforcement-rule -->
+5. **Validate Every Input**:
+   - Never trust client input. Validate before touching your database.
+   - ❌ `User.create(req.body)`
+   - ✅ `if(!email){ return res.status(400) }`
+
+6. **Test Edge Cases**:
+   - Test empty states, missing values, rate limits, and network failures before shipping.
+
+7. **Think Like Your Users**:
+   - Good developers write code. Great developers build experiences.
+   - Junior: "My API works."
+   - Senior: "Can someone actually use it easily?"
+<!-- END:senior-backend-habits-rule -->
+
+<!-- BEGIN:error-tracking-diagnostic-rule -->
+# 🚨 STRONG ERROR TRACKING & INSTANT DIAGNOSTIC PROTOCOL
+
+Whenever the user copy-pastes an error log, terminal output, stack trace, or DevTools error snippet, the agent MUST immediately map it to the diagnostic matrix below, identify the root cause, and execute the exact instant fix without asking for permission.
+
+### 🔍 Error Diagnostic Matrix & Instant Fix Actions:
+
+1. **`ChunkLoadError` / `404 (Not Found) _next/static/chunks/`**:
+   - **Root Cause**: Cloudflare Edge CDN is serving stale HTML pointing to hashed JS assets deleted in a new deployment.
+   - **Instant Fix**: Run `node scripts/post-deploy-fix.mjs` or execute Cloudflare `purge_everything: true` API call, then trigger POST to `/api/revalidate`.
+
+2. **`PGRST204` / `Could not find the '<col>' column of '<table'> in schema cache`**:
+   - **Root Cause**: Supabase database table missing column or Supabase REST schema cache needs refreshing.
+   - **Instant Fix**: Run DDL SQL via Supabase Management API (`POST /v1/projects/{ref}/database/query`), sync `SUPER_MASTER_SCHEMA.sql`, and re-query.
+
+3. **`An error occurred in the Server Components render`**:
+   - **Root Cause**: Next.js App Router masked exception in Server Action or Server Component in production.
+   - **Instant Fix**: Wrap the operation in `safeAction()` from `@/lib/utils/serverAction` or return `{ success: false, error: message }` instead of throwing raw Error.
+
+4. **`Hydration failed because the initial UI does not match`**:
+   - **Root Cause**: Client-only dynamic value (`window.location`, `localStorage`, `Date.now()`, random numbers) evaluated during Server-Side Rendering (SSR).
+   - **Instant Fix**: Wrap client-only evaluation in `useEffect()` or `useState(null)` with `suppressHydrationWarning`.
+
+5. **`Invalid API Key` / `401 Unauthorized` on `/api/revalidate`**:
+   - **Root Cause**: Mismatched or missing `x-revalidate-secret` header in webhook request.
+   - **Instant Fix**: Pass `x-revalidate-secret: zaynahs_secret_cache_revalidate_2026` header explicitly.
+
+6. **`TypeError: Cannot read properties of undefined (reading 'map')`**:
+   - **Root Cause**: API or service returned `null`/`undefined` data without array fallback.
+   - **Instant Fix**: Provide nullish coalescing array fallback: `(data ?? []).map(...)`.
+
+7. **`Database error: RLS policy violation` / `42501`**:
+   - **Root Cause**: Query using standard client (`supabase`) instead of service role admin client (`supabaseAdmin`) on RLS-protected table.
+   - **Instant Fix**: Change import to `import { supabaseAdmin } from '@/lib/supabase/admin'`.
+
+8. **`Cookie limit exceeded` / `Cookie chunking failed`**:
+   - **Root Cause**: Auth session cookies exceeding 4KB browser limit on mobile devices.
+   - **Instant Fix**: Use `createServerClient` from `@supabase/ssr` with chunked cookie response handling in `proxy.ts`.
+
+### ⚡ Agent Mandatory Execution Order on Copy-Pasted Error:
+1. **Direct Action**: Immediately locate target file(s) and apply the fix.
+2. **Compile & Test**: Run `npm run build` locally to verify 0 build errors.
+3. **Deploy & Push**: Push commit to all GitHub remotes and trigger live cache revalidation.
+4. **Structured Report**:
+   - 📌 **Error**: Identified issue
+   - 🔍 **Root Cause**: Exact explanation
+   - 🛠️ **File & Line**: Exact code location fixed
+   - 🚀 **Status**: Live revalidation & build verification results
+<!-- END:error-tracking-diagnostic-rule -->
