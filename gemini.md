@@ -1278,7 +1278,7 @@ env-backups/
 ### Agent Rules (STRICTLY ENFORCED)
 1. **Never copy credentials** from one store's `env-backups/` file to another
 2. **After any token rotation**: update `env-backups/<store>.env.local` + Vercel dashboard for THAT store only
-3. **Before every deploy**: run `node scripts/post-deploy-fix.mjs` — it auto-reads ALL env-backups and purges ALL Cloudflare zones
+3. **Before every deploy**: run `node scripts/post-deploy-fix.mjs` — it auto-reads ALL env-backups and purges ALL Cloudflare zones + Vercel ISR cache
 4. **Verify no cross-contamination**: `rg "CLOUDFLARE_ZONE_ID" env-backups/` — every file MUST show a DIFFERENT value
 5. **Verify no secrets in code**: `rg "sbp_|ghp_|cfut_|eyJ" --glob '*.ts' --glob '*.tsx' --glob '*.mjs' --glob '*.sql'` — must return 0 results
 6. **cfk_ token = ALWAYS WRONG** → only `cfut_` tokens work with Bearer auth
@@ -1287,8 +1287,47 @@ env-backups/
 ```bash
 node scripts/post-deploy-fix.mjs
 # Auto-reads .env.local + ALL env-backups/*.env.local
-# Purges Cloudflare for EVERY store zone
-# Verifies /api/revalidate → {revalidated: true}
-# Verifies all pages → HTTP 200
+# 1. Vercel ISR cache purge (requires VERCEL_TOKEN + VERCEL_PROJECT_NAME)
+# 2. Purges Cloudflare for EVERY store zone
+# 3. Verifies /api/revalidate → {revalidated: true}
+# 4. Verifies all pages → HTTP 200
 ```
 If any zone fails → fix token immediately. NEVER skip a failed zone.
+
+---
+
+## 🚨 RULE VERCEL1 — VERCEL_PROJECT_NAME MANDATORY IN ALL ENV-BACKUPS
+
+> **Root Cause**: Vercel has its OWN internal ISR (Incremental Static Regeneration) cache that is SEPARATE from Cloudflare edge cache. Both must be purged after every deploy.
+
+### Why This Issue Happens
+- `.env.local` ya `env-backups/<store>.env.local` mein `VERCEL_PROJECT_NAME` missing hota hai
+- `post-deploy-fix.mjs` skip kar deta hai Vercel purge → [1/4] shows `SKIPPED`
+- Result: Vercel ke server pe purana HTML cached rehta hai → users ko stale page milta hai first request pe
+
+### Fix (Permanent)
+Every `env-backups/<store>.env.local` MUST have:
+```
+VERCEL_TOKEN=vcp_...          ← Vercel account token
+VERCEL_PROJECT_NAME=<name>    ← Exact project name from vercel.com dashboard
+```
+
+### Current Values (All Stores)
+| Store | VERCEL_PROJECT_NAME |
+|-------|---------------------|
+| TotVogue | `zaynahsestore-tv` |
+| Zaynahs | `zaynahsestore-tv-main` |
+| MiniMahal | `mini-mahal-e-store` |
+| LittleMister | `eestore` |
+
+### Verify Before Every Deploy
+```bash
+grep "VERCEL_PROJECT_NAME" env-backups/*.env.local
+# Every file MUST show a value — no empty or missing lines
+```
+
+### Agent Rule
+- When setting up ANY new store → IMMEDIATELY add `VERCEL_PROJECT_NAME` to its `env-backups/` file
+- When `post-deploy-fix.mjs` shows `SKIPPED` for Vercel → STOP and fix before continuing
+- NEVER mark deploy as complete if Vercel purge is SKIPPED
+

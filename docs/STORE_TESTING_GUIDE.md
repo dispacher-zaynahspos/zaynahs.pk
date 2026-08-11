@@ -56,6 +56,42 @@ LittleMister | CF:✅ | Webhook:✅ | Site:✅200
 | `CF:❌` | Renew `cfut_` token in Cloudflare dashboard → update `env-backups/<store>.env.local` + Vercel |
 | `Webhook:❌` | Check `REVALIDATE_SECRET` in Vercel matches `zaynahs_secret_cache_revalidate_2026` |
 | `Site:❌` | Check Vercel deployment logs — may need `node scripts/post-deploy-fix.mjs` |
+| `Webhook:❌` | Zaynahs `REVALIDATE_SECRET` mismatch ya Supabase webhook broken |
+
+---
+
+## 🚨 VERCEL PURGE SKIP — Root Cause & Fix (RULE VERCEL1)
+
+### Problem
+`[1/4] Vercel cache purge: SKIPPED` message aata hai jab:
+- `.env.local` mein `VERCEL_PROJECT_NAME` missing ho
+- Vercel ka internal ISR cache clear nahi hota → users ko stale HTML milta hai
+
+### Both Caches Must Be Purged After Deploy
+| Cache Layer | Tool | What It Clears |
+|-------------|------|---------------|
+| **Cloudflare Edge** | CF API `purge_everything` | Cached HTML/assets on CF edge servers |
+| **Vercel ISR** | Vercel CLI `cache purge` | Server-rendered cached pages on Vercel |
+
+### Verify Vercel Purge Working
+```bash
+node scripts/post-deploy-fix.mjs | head -2
+# Must show:
+# [1/4] Vercel cache purge: OK         ← NOT "SKIPPED"
+# [2/4] Cloudflare purge (4 zones):...
+```
+
+### Fix If SKIPPED
+```bash
+# Check what's missing
+grep "VERCEL_PROJECT_NAME\|VERCEL_TOKEN" env-backups/*.env.local
+
+# Add missing to each store backup:
+echo "VERCEL_PROJECT_NAME=zaynahsestore-tv" >> env-backups/totvogue.env.local
+echo "VERCEL_PROJECT_NAME=zaynahsestore-tv-main" >> env-backups/zaynahs.env.local
+echo "VERCEL_PROJECT_NAME=mini-mahal-e-store" >> env-backups/minimahal.env.local
+echo "VERCEL_PROJECT_NAME=eestore" >> env-backups/littlemister.env.local
+```
 
 ---
 
@@ -64,7 +100,9 @@ LittleMister | CF:✅ | Webhook:✅ | Site:✅200
 | Variable | Used By |
 |----------|---------|
 | `CLOUDFLARE_ZONE_ID` | Cloudflare purge API, cache rules check |
-| `CLOUDFLARE_API_TOKEN` | Cloudflare purge API, cache rules check |
+| `CLOUDFLARE_API_TOKEN` | Cloudflare purge API (`cfut_` format only!) |
+| `VERCEL_TOKEN` | Vercel ISR cache purge (MANDATORY) |
+| `VERCEL_PROJECT_NAME` | Vercel ISR cache purge (MANDATORY — without this purge SKIPS) |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase DB change (webhook trigger) |
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase DB change |
 | `REVALIDATE_SECRET` | Webhook revalidation test |
@@ -73,6 +111,7 @@ LittleMister | CF:✅ | Webhook:✅ | Site:✅200
 Set these in `.env.local`. Tests use `node --env-file=.env.local` or `source .env.local`.
 
 ---
+
 
 
 ## Quick Run All Tests

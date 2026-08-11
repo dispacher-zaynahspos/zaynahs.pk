@@ -387,11 +387,26 @@ This app runs across ANY domain (localhost, custom domain, production). Never ha
    - After EVERY Vercel deploy, run `node scripts/post-deploy-fix.mjs` from the repo root
    - This script automatically:
      1. Reads `.env.local` (current store) + ALL `env-backups/*.env.local` files
-     2. Purges Cloudflare cache for EVERY store zone found
-     3. Triggers `/api/revalidate` webhook on current store
-     4. Verifies all pages return HTTP 200
+     2. **Vercel ISR cache purge** — requires `VERCEL_TOKEN` + `VERCEL_PROJECT_NAME` in `.env.local`
+     3. Purges Cloudflare cache for EVERY store zone found
+     4. Triggers `/api/revalidate` webhook on current store
+     5. Verifies all pages return HTTP 200
    - If any zone fails purge → agent MUST fix the token immediately, NOT skip
    - Verify: `rg "CLOUDFLARE_ZONE_ID" env-backups/` — each file must have a DIFFERENT value
+
+   **RULE VERCEL1 — VERCEL_PROJECT_NAME MANDATORY (STRICTLY ENFORCED)**
+   - Every `env-backups/<store>.env.local` MUST contain `VERCEL_PROJECT_NAME`
+   - Without it → Vercel ISR cache purge SKIPS → stale HTML pages after deploy
+   - Root cause: Vercel has its OWN internal ISR cache separate from Cloudflare edge
+   - Both MUST be purged: Cloudflare (edge CDN) + Vercel (ISR server cache)
+   - Verify before any deploy: `grep "VERCEL_PROJECT_NAME" env-backups/*.env.local` — ALL files must have a value
+   - Current values:
+     ```
+     totvogue.env.local    → VERCEL_PROJECT_NAME=zaynahsestore-tv
+     zaynahs.env.local     → VERCEL_PROJECT_NAME=zaynahsestore-tv-main
+     minimahal.env.local   → VERCEL_PROJECT_NAME=mini-mahal-e-store
+     littlemister.env.local→ VERCEL_PROJECT_NAME=eestore
+     ```
 
 10. **ALWAYS KEEP TYPES.TS SYNCHRONIZED (STRICTLY ENFORCED)**
     - Whenever any new feature is added, database column is changed, or frontend interface data model is updated, the agent MUST immediately update `lib/types.ts`.
