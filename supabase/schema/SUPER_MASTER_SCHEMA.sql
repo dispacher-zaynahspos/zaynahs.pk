@@ -1,7 +1,7 @@
 -- ============================================================
 -- ZAYNAHS E-STORE — SUPER MASTER SCHEMA
--- Version: 2.4.0
--- Updated: 2026-08-04 (v2.3.2 — Sub-Categories with parent_id)
+-- Version: 2.5.0
+-- Updated: 2026-08-11 (v2.5.0 — Review Media Single Image Trash & Restoration with review_id in media_library)
 -- ============================================================
 
 -- Enable UUID extension
@@ -27,10 +27,12 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_collections_slug ON collections (LOWER(slu
 
 ALTER TABLE collections ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Enable read access for all users on collections" ON collections;
 CREATE POLICY "Enable read access for all users on collections"
   ON collections FOR SELECT
   USING (true);
 
+DROP POLICY IF EXISTS "Enable all access for authenticated users on collections" ON collections;
 CREATE POLICY "Enable all access for authenticated users on collections"
   ON collections FOR ALL
   USING (auth.role() = 'authenticated')
@@ -46,12 +48,15 @@ CREATE TABLE IF NOT EXISTS categories (
   description TEXT,
   image_url TEXT,
   sort_order INTEGER DEFAULT 0,
+  parent_id UUID REFERENCES categories(id) ON DELETE SET NULL,
   active BOOLEAN DEFAULT true,
   active_sort_preference TEXT DEFAULT 'manual',
   deleted_at TIMESTAMPTZ DEFAULT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+ALTER TABLE public.categories ADD COLUMN IF NOT EXISTS parent_id UUID REFERENCES public.categories(id) ON DELETE SET NULL;
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_categories_slug ON categories (LOWER(slug));
 
@@ -72,10 +77,12 @@ CREATE INDEX IF NOT EXISTS idx_collection_categories_category ON collection_cate
 
 ALTER TABLE collection_categories ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Enable read access for all users on collection_categories" ON collection_categories;
 CREATE POLICY "Enable read access for all users on collection_categories"
   ON collection_categories FOR SELECT
   USING (true);
 
+DROP POLICY IF EXISTS "Enable all access for authenticated users on collection_categories" ON collection_categories;
 CREATE POLICY "Enable all access for authenticated users on collection_categories"
   ON collection_categories FOR ALL
   USING (auth.role() = 'authenticated')
@@ -1117,6 +1124,12 @@ CREATE TABLE IF NOT EXISTS media_library (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+ALTER TABLE public.media_library ADD COLUMN IF NOT EXISTS review_id UUID REFERENCES public.reviews(id) ON DELETE CASCADE;
+ALTER TABLE public.reviews ADD COLUMN IF NOT EXISTS images TEXT[] DEFAULT '{}'::text[];
+ALTER TABLE public.ai_settings ADD COLUMN IF NOT EXISTS collection_default_template TEXT;
+ALTER TABLE public.ai_settings ADD COLUMN IF NOT EXISTS collection_description_prompt TEXT;
+ALTER TABLE public.ai_settings ADD COLUMN IF NOT EXISTS collection_description_limit INTEGER DEFAULT 100;
+
 CREATE INDEX IF NOT EXISTS idx_media_library_url ON media_library (file_url);
 CREATE INDEX IF NOT EXISTS idx_media_library_review_id ON media_library (review_id);
 
@@ -1158,6 +1171,9 @@ CREATE TABLE IF NOT EXISTS ai_settings (
   product_description_limit INTEGER DEFAULT 150,
   product_short_prompt TEXT DEFAULT 'Write a catchy, high-conversion single-line product highlight (maximum 1 line) about the article. Include the focus keyword and make it highly optimized for SEO.',
   product_short_limit INTEGER DEFAULT 20,
+  collection_default_template TEXT DEFAULT '<p>Discover our latest collection of {{collection_name}}. Premium designs and quality craftsmanship.</p>',
+  collection_description_prompt TEXT DEFAULT 'Write an engaging overview for this collection highlighting style, quality, and key attributes.',
+  collection_description_limit INTEGER DEFAULT 100,
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -1189,7 +1205,10 @@ VALUES (
   'Write a premium, detailed product description inspired by: paragraph explaining the product style, soft fabric, and fit; a "Key Features" bullet list; "Available Colors" list; and "Care Instructions" bullet list.',
   150,
   'Write a catchy, high-conversion single-line product highlight (maximum 1 line) about the article. Include the focus keyword and make it highly optimized for SEO.',
-  20
+  20,
+  '<p>Discover our latest collection of {{collection_name}}. Premium designs and quality craftsmanship.</p>',
+  'Write an engaging overview for this collection highlighting style, quality, and key attributes.',
+  100
 )
 ON CONFLICT (id) DO NOTHING;
 
