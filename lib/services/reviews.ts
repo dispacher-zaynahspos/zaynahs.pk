@@ -138,6 +138,20 @@ export const submitReview = async (review: {
   images?: string[];
 }): Promise<Review> => {
   try {
+    if (typeof window !== 'undefined') {
+      const res = await fetch('/api/reviews/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(review)
+      });
+      if (!res.ok) {
+        const json = await res.json();
+        throw new Error(json.error || 'Failed to submit review');
+      }
+      const data = await res.json();
+      return data.review;
+    }
+
     const rawContact = (review.contact || review.customerEmail || review.customerPhone || '').trim();
     const isEmail = rawContact.includes('@');
     const customerPhone = !isEmail && rawContact ? rawContact : (review.customerPhone || null);

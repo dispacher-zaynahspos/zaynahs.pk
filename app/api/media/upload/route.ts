@@ -23,10 +23,11 @@ export async function POST(request: Request) {
       const randomStr = Math.random().toString(36).substring(2, 7);
       const fileName = `review-photo-${timestamp}-${randomStr}.webp`;
       const arrayBuffer = await file.arrayBuffer();
+      const uint8Array = new Uint8Array(arrayBuffer);
 
       const { error: uploadErr } = await supabaseAdmin.storage
         .from(bucket)
-        .upload(fileName, Buffer.from(arrayBuffer), {
+        .upload(fileName, uint8Array, {
           cacheControl: 'public, max-age=31536000',
           contentType: 'image/webp',
           upsert: false
