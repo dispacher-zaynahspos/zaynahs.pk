@@ -262,6 +262,52 @@ export const deleteReview = async (id: string): Promise<void> => {
   }
 };
 
+// Delete a single review photo (moves photo into Trash without deleting review)
+export const deleteSingleReviewPhoto = async (reviewId: string, photoUrl: string): Promise<void> => {
+  try {
+    const { data: review, error: fetchErr } = await supabaseAdmin
+      .from('reviews')
+      .select('*')
+      .eq('id', reviewId)
+      .single();
+
+    if (fetchErr || !review) throw new Error('Review not found');
+
+    const currentImages: string[] = Array.isArray(review.images) ? review.images : [];
+    const updatedImages = currentImages.filter(u => u !== photoUrl);
+    const updatedScreenshotUrl = review.screenshot_url === photoUrl ? null : review.screenshot_url;
+
+    await supabaseAdmin
+      .from('reviews')
+      .update({
+        images: updatedImages,
+        screenshot_url: updatedScreenshotUrl
+      })
+      .eq('id', reviewId);
+
+    // Insert record into media_library with deleted_at set to NOW so it appears in Trash Bin -> Media tab
+    await supabaseAdmin
+      .from('media_library')
+      .insert({
+        file_url: photoUrl,
+        original_filename: `Review Photo (${review.customer_name})`,
+        title: `Customer Review Photo`,
+        alt_text: `Review photo by ${review.customer_name}`,
+        bucket: 'product-images',
+        file_size: 18400, // ~18 KB WebP average
+        mime_type: 'image/webp',
+        review_id: reviewId,
+        deleted_at: new Date().toISOString()
+      });
+
+    (revalidateTag as any)('reviews');
+    (revalidateTag as any)('products');
+  } catch (error) {
+    console.error('[reviews] deleteSingleReviewPhoto failed:', error);
+    throw error;
+  }
+};
+
 // 6. Get average rating and count for a product
 const fetchAverageRating = async (productId: string): Promise<{ average: number; count: number }> => {
   try {
@@ -366,19 +412,28 @@ export const getDeletedReviews = async (): Promise<(Review & { productName?: str
 
     const productIds = reviews.map(r => r.productId).filter(Boolean) as string[];
     if (productIds.length > 0) {
-      const { data: products } = await supabaseAdmin
-        .from('products')
-        .select('id, name')
-        .in('id', productIds);
+      const [productResult, imageResult] = await Promise.all([
+        supabaseAdmin.from('products').select('id, name').in('id', productIds),
+        supabaseAdmin.from('product_images').select('product_id, url, is_primary').in('product_id', productIds),
+      ]);
       const productMap: Record<string, { name: string }> = {};
-      if (products) {
-        for (const p of products) {
+      if (productResult.data) {
+        for (const p of productResult.data) {
           productMap[p.id] = { name: p.name };
+        }
+      }
+      const imageMap: Record<string, string> = {};
+      if (imageResult.data) {
+        for (const img of imageResult.data) {
+          if (!imageMap[img.product_id] || img.is_primary) {
+            imageMap[img.product_id] = img.url;
+          }
         }
       }
       return reviews.map(r => ({
         ...r,
         productName: r.productId ? productMap[r.productId]?.name : undefined,
+        productImage: r.productId ? imageMap[r.productId] : undefined,
       }));
     }
 

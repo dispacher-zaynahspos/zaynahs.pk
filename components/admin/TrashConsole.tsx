@@ -950,14 +950,25 @@ export default function TrashConsole({
                     </div>
                   </div>
                   {review.productName && (
-                    <p className="text-xs text-[#e94560] font-medium truncate">
-                      Product: {review.productName}
-                    </p>
+                    <div className="flex items-center gap-2 text-xs text-[#e94560] font-medium truncate">
+                      {(review as any).productImage && (
+                        <img src={(review as any).productImage} alt={review.productName} className="w-6 h-6 rounded-md object-cover flex-shrink-0" />
+                      )}
+                      <span className="truncate">Product: {review.productName}</span>
+                    </div>
                   )}
                   {review.comment && (
                     <p className="text-xs text-gray-650 dark:text-gray-400 italic line-clamp-3">
                       "{review.comment}"
                     </p>
+                  )}
+                  {/* Attached Customer Review Photos */}
+                  {((Array.isArray(review.images) && review.images.length > 0) || review.screenshotUrl) && (
+                    <div className="flex items-center gap-1.5 pt-1 overflow-x-auto">
+                      {(Array.isArray(review.images) && review.images.length > 0 ? review.images : [review.screenshotUrl!]).map((url, idx) => (
+                        <img key={idx} src={url} alt={`Review photo ${idx + 1}`} className="w-11 h-11 rounded-lg object-cover border border-gray-200 dark:border-gray-700 flex-shrink-0" />
+                      ))}
+                    </div>
                   )}
                   {review.deletedAt && (
                     <p suppressHydrationWarning={true} className="text-[10px] text-gray-400 mt-1">
@@ -1004,6 +1015,7 @@ export default function TrashConsole({
                 <th className="py-4 px-6">Customer</th>
                 <th className="py-4 px-6">Product</th>
                 <th className="py-4 px-6">Rating & Comment</th>
+                <th className="py-4 px-6">Review Photos</th>
                 <th className="py-4 px-6">Deleted At</th>
                 <th className="py-4 px-6 text-right">Actions</th>
               </tr>
@@ -1023,13 +1035,18 @@ export default function TrashConsole({
                     <td className="py-4 px-6">
                       <div>
                         <p className="font-bold text-gray-900 dark:text-white">{review.customerName}</p>
-                        {review.customerPhone && (
-                          <p className="text-xs text-gray-500 truncate max-w-xs">{review.customerPhone}</p>
+                        {(review.customerPhone || review.customerEmail) && (
+                          <p className="text-xs text-gray-500 truncate max-w-xs">{review.customerPhone || review.customerEmail}</p>
                         )}
                       </div>
                     </td>
                     <td className="py-4 px-6 text-gray-500 dark:text-gray-400 font-medium">
-                      {review.productName || 'Unknown Product'}
+                      <div className="flex items-center gap-2">
+                        {(review as any).productImage && (
+                          <img src={(review as any).productImage} alt={review.productName || 'Product'} className="w-8 h-8 rounded-lg object-cover border border-gray-200 dark:border-gray-700 flex-shrink-0" />
+                        )}
+                        <span className="truncate">{review.productName || 'Unknown Product'}</span>
+                      </div>
                     </td>
                     <td className="py-4 px-6">
                       <div className="flex flex-col space-y-1 max-w-md">
@@ -1047,6 +1064,17 @@ export default function TrashConsole({
                           </p>
                         )}
                       </div>
+                    </td>
+                    <td className="py-4 px-6">
+                      {((Array.isArray(review.images) && review.images.length > 0) || review.screenshotUrl) ? (
+                        <div className="flex items-center gap-1.5">
+                          {(Array.isArray(review.images) && review.images.length > 0 ? review.images : [review.screenshotUrl!]).map((url, idx) => (
+                            <img key={idx} src={url} alt={`Photo ${idx + 1}`} className="w-9 h-9 rounded-lg object-cover border border-gray-200 dark:border-gray-700 flex-shrink-0" />
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-xs text-gray-400 italic">No photos</span>
+                      )}
                     </td>
                     <td suppressHydrationWarning={true} className="py-4 px-6 text-gray-500 dark:text-gray-400 text-xs">
                       {review.deletedAt ? new Date(review.deletedAt).toLocaleString() : 'N/A'}
@@ -1482,6 +1510,11 @@ export default function TrashConsole({
                         className="h-4.5 w-4.5 rounded-md border-gray-300 text-[#e94560] focus:ring-[#e94560] cursor-pointer bg-white"
                       />
                     </div>
+                    {(item as any).review_id && (
+                      <div className="absolute top-2 right-2 z-10 bg-[#e94560] text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+                        Review Media
+                      </div>
+                    )}
                     {item.file_url ? (
                       <img 
                         src={item.file_url} 

@@ -39,6 +39,34 @@ export const getDeletedMedia = async (): Promise<TrashedMedia[]> => {
 export const restoreMedia = async (id: string): Promise<void> => {
   try {
     const supabase = await createClient();
+
+    // 1. Fetch media record to check if it belongs to a review
+    const { data: mediaRec } = await supabase
+      .from('media_library')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (mediaRec && mediaRec.review_id && mediaRec.file_url) {
+      const { data: review } = await supabaseAdmin
+        .from('reviews')
+        .select('*')
+        .eq('id', mediaRec.review_id)
+        .maybeSingle();
+
+      if (review) {
+        const currentImages: string[] = Array.isArray(review.images) ? review.images : [];
+        if (!currentImages.includes(mediaRec.file_url)) {
+          const updatedImages = [...currentImages, mediaRec.file_url];
+          await supabaseAdmin
+            .from('reviews')
+            .update({ images: updatedImages })
+            .eq('id', mediaRec.review_id);
+        }
+      }
+    }
+
+    // 2. Mark as restored in media_library
     const { error } = await supabase
       .from('media_library')
       .update({ deleted_at: null })

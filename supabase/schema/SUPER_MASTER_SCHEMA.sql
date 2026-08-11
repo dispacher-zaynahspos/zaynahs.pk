@@ -1111,12 +1111,14 @@ CREATE TABLE IF NOT EXISTS media_library (
   file_size BIGINT,
   mime_type TEXT,
   sort_order INTEGER DEFAULT 0,
+  review_id UUID REFERENCES public.reviews(id) ON DELETE CASCADE,
   deleted_at TIMESTAMPTZ DEFAULT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS idx_media_library_url ON media_library (file_url);
+CREATE INDEX IF NOT EXISTS idx_media_library_review_id ON media_library (review_id);
 
 ALTER TABLE media_library ENABLE ROW LEVEL SECURITY;
 
