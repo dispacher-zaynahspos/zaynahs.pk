@@ -230,6 +230,7 @@ CREATE TABLE IF NOT EXISTS reviews (
   hidden BOOLEAN DEFAULT false,
   is_manual BOOLEAN DEFAULT false,
   screenshot_url TEXT,
+  images TEXT[] DEFAULT '{}'::text[],
   deleted_at TIMESTAMPTZ DEFAULT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );

@@ -216,6 +216,36 @@ export default function ReviewDetailSheet({ review, onClose, onApprove, onHide, 
             </div>
           </section>
 
+          {/* Attached Customer Photos */}
+          {(() => {
+            const photoList = Array.isArray(review.images) && review.images.length > 0 
+              ? review.images 
+              : (review.screenshotUrl ? [review.screenshotUrl] : []);
+
+            if (photoList.length === 0) return null;
+
+            return (
+              <section className="space-y-2">
+                <h3 className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                  Attached Customer Photos ({photoList.length})
+                </h3>
+                <div className="flex flex-wrap gap-2.5 bg-gray-50 dark:bg-[#0f0f1b]/50 p-3 rounded-xl border border-gray-100 dark:border-gray-800/20">
+                  {photoList.map((url, idx) => (
+                    <a
+                      key={idx}
+                      href={url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="relative w-20 h-20 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 hover:scale-105 transition-transform"
+                    >
+                      <Image src={url} alt={`Review photo ${idx + 1}`} fill className="object-cover" sizes="80px" />
+                    </a>
+                  ))}
+                </div>
+              </section>
+            );
+          })()}
+
           {/* Moderation Flow Actions */}
           <div className="flex flex-wrap gap-2 pt-3 border-t border-gray-100 dark:border-gray-800 sticky bottom-0 bg-white dark:bg-[#16162a] pb-1">
             <button

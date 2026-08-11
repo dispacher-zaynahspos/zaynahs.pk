@@ -23,6 +23,7 @@ interface DBReview {
   hidden: boolean;
   is_manual?: boolean;
   screenshot_url?: string | null;
+  images?: string[] | null;
   deleted_at?: string | null;
   created_at: string;
 }
@@ -33,12 +34,14 @@ const mapReview = (row: DBReview): Review => ({
   customerName: row.customer_name,
   customerPhone: row.customer_phone || undefined,
   customerEmail: row.customer_email || undefined,
+  contact: row.customer_email || row.customer_phone || undefined,
   rating: row.rating,
   comment: row.comment || undefined,
   approved: row.approved ?? false,
   hidden: row.hidden ?? false,
   isManual: row.is_manual ?? false,
   screenshotUrl: row.screenshot_url || undefined,
+  images: Array.isArray(row.images) ? row.images.filter(Boolean) : (row.screenshot_url ? [row.screenshot_url] : []),
   deletedAt: row.deleted_at || undefined,
   createdAt: row.created_at
 });
@@ -127,21 +130,29 @@ export const getAllReviews = async (): Promise<(Review & { productName?: string;
 export const submitReview = async (review: {
   productId: string;
   customerName: string;
+  contact?: string;
   customerPhone?: string;
   customerEmail?: string;
   rating: number;
   comment?: string;
- }): Promise<Review> => {
+  images?: string[];
+}): Promise<Review> => {
   try {
+    const rawContact = (review.contact || review.customerEmail || review.customerPhone || '').trim();
+    const isEmail = rawContact.includes('@');
+    const customerPhone = !isEmail && rawContact ? rawContact : (review.customerPhone || null);
+    const customerEmail = isEmail ? rawContact : (review.customerEmail || null);
+
     const { data, error } = await supabaseAdmin
       .from('reviews')
       .insert({
         product_id: review.productId,
         customer_name: review.customerName,
-        customer_phone: review.customerPhone || null,
-        customer_email: review.customerEmail || null,
+        customer_phone: customerPhone,
+        customer_email: customerEmail,
         rating: review.rating,
         comment: review.comment || null,
+        images: Array.isArray(review.images) ? review.images.filter(Boolean) : [],
         approved: false
       })
       .select('*')

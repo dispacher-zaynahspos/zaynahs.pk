@@ -359,11 +359,34 @@ export default function ReviewsPageClient({
                               </p>
                             )}
 
-                            {review.screenshotUrl && (
-                              <div className="mt-2 relative w-full max-w-xs h-32 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700">
-                                <Image src={review.screenshotUrl} alt="Review screenshot" fill className="object-contain bg-gray-50 dark:bg-black/20" sizes="320px" />
-                              </div>
-                            )}
+                             {(() => {
+                              const photoList = Array.isArray(review.images) && review.images.length > 0 
+                                ? review.images 
+                                : (review.screenshotUrl ? [review.screenshotUrl] : []);
+
+                              if (photoList.length === 0) return null;
+
+                              return (
+                                <div className="mt-3 flex flex-wrap gap-2">
+                                  {photoList.map((imgUrl, imgIdx) => (
+                                    <button
+                                      key={imgIdx}
+                                      type="button"
+                                      onClick={() => setLightboxImage(imgUrl)}
+                                      className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 hover:opacity-90 transition-opacity cursor-pointer group"
+                                    >
+                                      <Image
+                                        src={imgUrl}
+                                        alt={`Review photo ${imgIdx + 1}`}
+                                        fill
+                                        className="object-cover"
+                                        sizes="80px"
+                                      />
+                                    </button>
+                                  ))}
+                                </div>
+                              );
+                            })()}
                           </div>
                         </div>
                       </div>

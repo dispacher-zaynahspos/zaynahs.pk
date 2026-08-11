@@ -142,3 +142,57 @@ export const uploadImage = async (file: File | Blob, bucket: string, customName?
     throw new Error(error.message || 'Image upload failed');
   }
 };
+
+/**
+ * Specifically uploads customer review photos.
+ * Compresses image client-side to WebP <= 20 KB (Judge.me style).
+ * Uploads directly to Supabase storage without adding to product media_library table.
+ */
+export const uploadReviewImage = async (file: File): Promise<string> => {
+  try {
+    const isBrowser = typeof window !== 'undefined';
+    const supabase = isBrowser 
+      ? createBrowserClient() 
+      : (await import('@/lib/supabase/admin')).supabaseAdmin;
+
+    // 1. Client-side compression to WebP under 20 KB
+    let webpFile: File | Blob = file;
+    if (isBrowser) {
+      const { compressImage } = await import('@/lib/utils/imageCompressor');
+      try {
+        webpFile = await compressImage(file, 20);
+      } catch (err) {
+        console.warn('[uploadReviewImage] Compression fallback used:', err);
+      }
+    }
+
+    const timestamp = Date.now();
+    const randomStr = Math.random().toString(36).substring(2, 7);
+    const fileName = `review-photo-${timestamp}-${randomStr}.webp`;
+
+    // 2. Upload file to Supabase storage bucket product-images
+    const { error: uploadError } = await supabase.storage
+      .from('product-images')
+      .upload(fileName, webpFile, {
+        cacheControl: 'public, max-age=31536000',
+        contentType: 'image/webp',
+        upsert: false
+      });
+
+    if (uploadError) throw uploadError;
+
+    // 3. Retrieve public URL
+    const { data } = supabase.storage
+      .from('product-images')
+      .getPublicUrl(fileName);
+
+    if (!data?.publicUrl) {
+      throw new Error('Failed to retrieve public URL for review photo');
+    }
+
+    return data.publicUrl;
+  } catch (error: any) {
+    console.error('[uploadReviewImage] Failed to upload review photo:', error);
+    throw new Error(error.message || 'Review photo upload failed');
+  }
+};

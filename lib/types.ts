@@ -601,12 +601,14 @@ export interface Review {
   customerName: string;
   customerPhone?: string;
   customerEmail?: string;
+  contact?: string;
   rating: number;
   comment?: string;
   approved: boolean;
   hidden?: boolean;
   isManual?: boolean;
   screenshotUrl?: string;
+  images?: string[];
   deletedAt?: string | null;
   createdAt: string;
 }

@@ -21,11 +21,12 @@ function AdminReviewsPageInner() {
   const [reviews, setReviews] = useState<ReviewWithProduct[]>([]);
   const [socialProofs, setSocialProofs] = useState<SocialProof[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useAdminTab<'all' | 'pending' | 'approved' | 'custom'>('all');
+  const [activeTab, setActiveTab] = useAdminTab<'all' | 'pending' | 'approved' | 'custom' | 'review_media'>('all');
   const { confirm } = useConfirm();
   const [selectedReview, setSelectedReview] = useState<ReviewWithProduct | null>(null);
   const [showPostModal, setShowPostModal] = useState(false);
   const [editProof, setEditProof] = useState<SocialProof | null>(null);
+  const [zoomImageUrl, setZoomImageUrl] = useState<string | null>(null);
 
   const handleOpenReview = (review: ReviewWithProduct) => setSelectedReview(review);
 
@@ -94,7 +95,7 @@ function AdminReviewsPageInner() {
   const handleDelete = async (id: string) => {
     const confirmed = await confirm({
       title: 'Move to Trash',
-      message: 'Move this review to Trash?',
+      message: 'Move this review and its media to Trash?',
       variant: 'danger',
       confirmText: 'Move to Trash'
     });
@@ -121,13 +122,14 @@ function AdminReviewsPageInner() {
       toast.success('Social proof deleted');
       refreshReviews();
     } catch (err) {
-      toast.error('Failed to delete');
+      toast.error('Failed to delete social proof');
     }
   };
 
   const filteredReviews = reviews.filter(review => {
     if (activeTab === 'pending') return !review.approved;
     if (activeTab === 'approved') return review.approved;
+    if (activeTab === 'review_media') return (Array.isArray(review.images) && review.images.length > 0) || Boolean(review.screenshotUrl);
     if (activeTab === 'custom') return false;
     return true;
   });
@@ -139,6 +141,9 @@ function AdminReviewsPageInner() {
 
   const countByTab = (tab: string) => {
     if (tab === 'custom') return socialProofs.length;
+    if (tab === 'review_media') {
+      return reviews.filter(r => (Array.isArray(r.images) && r.images.length > 0) || Boolean(r.screenshotUrl)).length;
+    }
     return reviews.filter(r => {
       if (tab === 'pending') return !r.approved;
       if (tab === 'approved') return r.approved;
@@ -151,7 +156,7 @@ function AdminReviewsPageInner() {
       <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Product Reviews</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Moderate customer ratings, feedback & social proof</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Moderate customer ratings, feedback, review media & social proof</p>
         </div>
         <button
           onClick={() => { setEditProof(null); setShowPostModal(true); }}
@@ -164,7 +169,7 @@ function AdminReviewsPageInner() {
 
       {/* Filter Tabs */}
       <div className="flex border-b border-gray-200 dark:border-gray-800 gap-1.5 overflow-x-auto">
-        {(['all', 'pending', 'approved', 'custom'] as const).map((tab) => (
+        {(['all', 'pending', 'approved', 'custom', 'review_media'] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -178,6 +183,11 @@ function AdminReviewsPageInner() {
               <>
                 <Image className="w-3.5 h-3.5" />
                 Custom Posts
+              </>
+            ) : tab === 'review_media' ? (
+              <>
+                <Image className="w-3.5 h-3.5" />
+                Review Media
               </>
             ) : (
               tab.charAt(0).toUpperCase() + tab.slice(1)
@@ -255,6 +265,113 @@ function AdminReviewsPageInner() {
             ))}
           </div>
         )
+      ) : activeTab === 'review_media' ? (
+        /* ── Review Media Gallery Tab ── */
+        filteredReviews.length === 0 ? (
+          <EmptyState 
+            icon={<Image className="h-8 w-8 text-gray-400" />}
+            title="No review media found" 
+            description="No customer uploaded photos attached to reviews yet." 
+          />
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredReviews.map((review) => {
+              const photoList = Array.isArray(review.images) && review.images.length > 0 
+                ? review.images 
+                : (review.screenshotUrl ? [review.screenshotUrl] : []);
+
+              if (photoList.length === 0) return null;
+
+              return (
+                <div
+                  key={review.id}
+                  className="bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
+                >
+                  {/* Photo Thumbnails */}
+                  <div className="p-3 bg-gray-50 dark:bg-black/20 border-b border-gray-100 dark:border-gray-800">
+                    <div className="grid grid-cols-2 gap-2">
+                      {photoList.map((imgUrl, imgIdx) => (
+                        <button
+                          key={imgIdx}
+                          type="button"
+                          onClick={() => setZoomImageUrl(imgUrl)}
+                          className="relative aspect-square rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 group hover:opacity-90 transition-all cursor-pointer"
+                        >
+                          <img src={imgUrl} alt={`Review photo ${imgIdx + 1}`} className="w-full h-full object-cover" />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Review Content & Product Metadata */}
+                  <div className="p-4 space-y-2 flex-1">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <span className="font-bold text-xs text-gray-900 dark:text-white truncate">
+                          {review.customerName}
+                        </span>
+                        <StarRating rating={review.rating} showText={false} starSize={12} />
+                      </div>
+                      <span className={`inline-flex items-center px-2 py-0.5 text-[9px] font-bold rounded-full ${
+                        !review.approved
+                          ? 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400'
+                          : review.hidden
+                          ? 'bg-gray-100 text-gray-700 dark:bg-white/5 dark:text-gray-400'
+                          : 'bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-400'
+                      }`}>
+                        {!review.approved ? 'Pending' : review.hidden ? 'Hidden' : 'Approved'}
+                      </span>
+                    </div>
+
+                    {review.productName && (
+                      <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 font-medium">
+                        {review.productImage && (
+                          <img src={review.productImage} alt={review.productName} className="w-5 h-5 rounded object-cover flex-shrink-0" />
+                        )}
+                        <span className="truncate">{review.productName}</span>
+                      </div>
+                    )}
+
+                    {review.comment && (
+                      <p className="text-xs text-gray-600 dark:text-gray-300 line-clamp-2 italic">
+                        &ldquo;{review.comment}&rdquo;
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Actions */}
+                  <div className="p-3 bg-gray-50/50 dark:bg-[#0f0f1b]/50 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between gap-1 text-xs font-bold">
+                    <button
+                      onClick={() => handleToggleApprove(review.id, review.approved)}
+                      className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                        review.approved
+                          ? 'bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400'
+                          : 'bg-gray-100 dark:bg-white/5 text-gray-500 hover:text-green-600'
+                      }`}
+                    >
+                      <Check className="w-3.5 h-3.5" />
+                      <span>{review.approved ? 'Approved' : 'Approve'}</span>
+                    </button>
+                    <button
+                      onClick={() => handleToggleHide(review.id, review.hidden ?? false)}
+                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-gray-500 hover:text-amber-500 transition-all cursor-pointer"
+                    >
+                      {review.hidden ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                      <span>{review.hidden ? 'Show' : 'Hide'}</span>
+                    </button>
+                    <button
+                      onClick={() => handleDelete(review.id)}
+                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all cursor-pointer"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Trash</span>
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )
       ) : filteredReviews.length === 0 ? (
         <EmptyState 
           icon={<MessageSquare className="h-8 w-8 text-gray-400" />}
@@ -279,7 +396,8 @@ function AdminReviewsPageInner() {
                     <th className="px-6 py-4 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100 dark:divide-gray-800">{filteredReviews.map((review) => (
+                <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                  {filteredReviews.map((review) => (
                     <tr key={review.id} className="cursor-pointer hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors" onClick={() => handleOpenReview(review)}>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
@@ -315,39 +433,37 @@ function AdminReviewsPageInner() {
                           {!review.approved ? 'Pending' : review.hidden ? 'Hidden' : 'Approved'}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-xs font-medium">
-                        {formatDate(review.createdAt)}
-                      </td>
+                      <td className="px-6 py-4 text-xs font-medium text-gray-400 dark:text-gray-500">{formatDate(review.createdAt)}</td>
                       <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
+                        <div className="flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
                           <button
-                            onClick={(e) => { e.stopPropagation(); handleToggleApprove(review.id, review.approved); }}
-                            className={`inline-flex h-9 w-9 items-center justify-center rounded-xl transition-all cursor-pointer ${
+                            onClick={() => handleToggleApprove(review.id, review.approved)}
+                            className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
                               review.approved
-                                ? 'bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400 hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-600'
-                                : 'bg-gray-100 dark:bg-white/5 text-gray-400 hover:bg-green-50 dark:hover:bg-green-500/10 hover:text-green-600'
+                                ? 'text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-500/10'
+                                : 'text-gray-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-500/10'
                             }`}
-                            title={review.approved ? "Unapprove Review" : "Approve Review"}
+                            title={review.approved ? 'Approved' : 'Approve'}
                           >
-                            <Check className="h-4.5 w-4.5" />
+                            <Check className="h-4 w-4" />
                           </button>
                           <button
-                            onClick={(e) => { e.stopPropagation(); handleToggleHide(review.id, review.hidden ?? false); }}
-                            className={`inline-flex h-9 w-9 items-center justify-center rounded-xl transition-all cursor-pointer ${
+                            onClick={() => handleToggleHide(review.id, review.hidden ?? false)}
+                            className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
                               review.hidden
-                                ? 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-green-50 dark:hover:bg-green-500/10 hover:text-green-600'
-                                : 'bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400 hover:bg-amber-50 dark:hover:bg-amber-500/10 hover:text-amber-600'
+                                ? 'text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-500/10'
+                                : 'text-gray-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-500/10'
                             }`}
-                            title={review.hidden ? "Show Review" : "Hide Review"}
+                            title={review.hidden ? 'Show' : 'Hide'}
                           >
-                            {review.hidden ? <Eye className="h-4.5 w-4.5" /> : <EyeOff className="h-4.5 w-4.5" />}
+                            {review.hidden ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                           </button>
                           <button
-                            onClick={(e) => { e.stopPropagation(); handleDelete(review.id); }}
-                            className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-600 hover:text-white dark:hover:bg-red-500 dark:hover:text-white transition-all cursor-pointer"
-                            title="Delete Review"
+                            onClick={() => handleDelete(review.id)}
+                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
+                            title="Move to Trash"
                           >
-                            <Trash2 className="h-4.5 w-4.5" />
+                            <Trash2 className="h-4 w-4" />
                           </button>
                         </div>
                       </td>
@@ -358,7 +474,7 @@ function AdminReviewsPageInner() {
             </div>
           </div>
 
-          {/* Mobile Card list */}
+          {/* Mobile view Cards */}
           <div className="md:hidden space-y-4">
             {filteredReviews.map((review) => (
               <div
