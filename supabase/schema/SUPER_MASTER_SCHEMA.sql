@@ -913,11 +913,13 @@ CREATE POLICY "Public read size guides" ON size_guides FOR SELECT USING (true);
 DROP POLICY IF EXISTS "Admin all size guides" ON size_guides;
 CREATE POLICY "Admin all size guides" ON size_guides FOR ALL USING (auth.role() = 'authenticated');
 
--- Add FK constraint after size_guides table exists
+-- Drop duplicate FK constraint if exists to avoid PGRST201 embedding conflict
+ALTER TABLE public.products DROP CONSTRAINT IF EXISTS fk_products_size_guide;
+
 DO $$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_products_size_guide') THEN
-        ALTER TABLE products ADD CONSTRAINT fk_products_size_guide FOREIGN KEY (size_guide_id) REFERENCES size_guides(id) ON DELETE SET NULL;
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'products_size_guide_id_fkey') THEN
+        ALTER TABLE public.products ADD CONSTRAINT products_size_guide_id_fkey FOREIGN KEY (size_guide_id) REFERENCES public.size_guides(id) ON DELETE SET NULL;
     END IF;
 END $$;
 
