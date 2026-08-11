@@ -1190,7 +1190,7 @@ VALUES (
   'gemini',
   'gemini-2.5-flash',
   '',
-  'TotVogue.pk',
+  'Your Store',
   'General',
   'Pakistan',
   'Professional',
@@ -1710,13 +1710,12 @@ BEGIN
         resolved_store_url := 'https://' || resolved_store_url;
       END IF;
 
-      -- Replace any template default URLs with the user-configured domain name
-      IF url LIKE 'https://www.zaynahs.pk%' THEN
-        url := replace(url, 'https://www.zaynahs.pk', resolved_store_url);
-      ELSIF url LIKE 'https://zaynahs.pk%' THEN
-        url := replace(url, 'https://zaynahs.pk', resolved_store_url);
-      ELSIF url LIKE 'https://domain.com%' THEN
+      -- Replace any template/placeholder URLs with the user-configured domain name
+      -- These patterns cover any store clone that may have been seeded with a default domain
+      IF url LIKE 'https://domain.com%' THEN
         url := replace(url, 'https://domain.com', resolved_store_url);
+      ELSIF url LIKE 'http://localhost%' THEN
+        url := replace(url, substring(url from 'http://localhost:[0-9]*'), resolved_store_url);
       END IF;
     END IF;
   EXCEPTION WHEN OTHERS THEN

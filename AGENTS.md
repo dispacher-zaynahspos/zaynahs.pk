@@ -318,6 +318,17 @@ This app runs across ANY domain (localhost, custom domain, production). Never ha
    - **After writing any migration, run `node scripts/check-master-schema.mjs` to verify — it MUST pass with 0 issues**
    - **If a migration is found that is NOT in master schema, the agent MUST fix master schema immediately before proceeding**
 
+6b. **HARD RULE: SCHEMA & CODE MUST BE 100% UNIVERSAL — NO HARDCODED PROJECT/BRAND VALUES (STRICTLY ENFORCED)**
+   - `SUPER_MASTER_SCHEMA.sql` is the single shared schema for ALL store clones (TotVogue, Zaynahs, MiniMahal, LittleMister, and any future clone).
+   - **NEVER hardcode any of these in `.ts`, `.tsx`, `.sql`, `.mjs`, `.js` source files:**
+     - Brand names (`TotVogue`, `Zaynahs`, `MiniMahal`, `LittleMister`)
+     - Domains (`totvogue.pk`, `zaynahs.pk`, `minimahal.com`, `littlemister.pk`)
+     - Store-specific URLs, phone numbers, WhatsApp numbers, addresses
+   - **Seed data in schema** MUST use generic placeholders: `'Your Store Name'`, `'https://domain.com'`, `'Your Store'`
+   - **Dynamic values** MUST come from: `store_settings` DB table → `settings.storeName`, `settings.storeUrl`, `settings.whatsappNumber`
+   - **URL replacement logic in triggers/functions** MUST only match generic template patterns (`https://domain.com`, `http://localhost`) — NEVER hardcode a specific live domain
+   - **Verify before any commit:** `rg "totvogue|zaynahs\.pk|minimahal|littlemister" --glob '*.ts' --glob '*.tsx' --glob '*.sql' --glob '*.mjs'` — result MUST be empty (0 matches) in source files
+
 7. **All Supabase admin actions via Management API only.**
    - Never use Supabase CLI (`supabase db push`, `supabase migration` etc.)
    - Never use direct Postgres connection strings, Prisma, or any direct ORM for schema changes or management. All operations MUST go through the Supabase Management API.
