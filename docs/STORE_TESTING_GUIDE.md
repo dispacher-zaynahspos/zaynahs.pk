@@ -1,10 +1,61 @@
-# TotVogue / Zaynahs E-Store — Complete Testing Guide
+# Multi-Store E-Commerce — Complete Testing Guide
 
 > **CRITICAL RULE**: The webhook secret must ALWAYS be `zaynahs_secret_cache_revalidate_2026` across all clones and instances. Do not use any other secret.
 
 > All API-based tests (Cloudflare, Supabase) use env vars from `.env.local`.  
 > Run with: `bash <(cat docs/STORE_TESTING_GUIDE.md | sed -n '/```bash/,/```/p' | sed 's/```//g')`  
 > Or copy-paste individual commands.
+
+---
+
+## ⚡ ONE-COMMAND — FULL AUDIT ALL 4 STORES (AGENT USE THIS FIRST)
+
+```bash
+node scripts/post-deploy-fix.mjs
+```
+This auto-reads ALL `env-backups/*.env.local` and runs:
+1. ✅ Cloudflare cache purge — ALL zones
+2. ✅ `/api/revalidate` webhook test — current store
+3. ✅ HTTP 200 check — all pages
+
+**Or run the live check manually:**
+```bash
+node -e "
+const { readFileSync } = await import('fs');
+function parseEnv(f) { const e={}; try { for (const l of readFileSync(f,'utf-8').split('\n')) { const t=l.trim(); if(t&&!t.startsWith('#')){ const q=t.indexOf('='); if(q>0) e[t.slice(0,q).trim()]=t.slice(q+1).trim(); } } } catch {} return e; }
+const stores = [
+  { name: 'TotVogue',    f: 'env-backups/totvogue.env.local',     url: 'https://www.totvogue.pk' },
+  { name: 'Zaynahs',     f: 'env-backups/zaynahs.env.local',      url: 'https://www.zaynahs.pk' },
+  { name: 'MiniMahal',   f: 'env-backups/minimahal.env.local',    url: 'https://www.minimahal.com' },
+  { name: 'LittleMister',f: 'env-backups/littlemister.env.local', url: 'https://www.littlemister.pk' }
+];
+const SECRET = 'zaynahs_secret_cache_revalidate_2026';
+for (const s of stores) {
+  const env = parseEnv(s.f);
+  const cfR = await fetch('https://api.cloudflare.com/client/v4/user/tokens/verify', { headers: { Authorization: 'Bearer ' + env.CLOUDFLARE_API_TOKEN } });
+  const cfD = await cfR.json();
+  const wR = await fetch(s.url + '/api/revalidate', { method: 'POST', signal: AbortSignal.timeout(8000), headers: { 'Content-Type': 'application/json', 'x-revalidate-secret': SECRET }, body: JSON.stringify({ type: 'UPDATE', table: 'products', record: { id: 'test' } }) });
+  const wD = await wR.json().catch(() => ({}));
+  const sR = await fetch(s.url, { method: 'HEAD', signal: AbortSignal.timeout(8000), redirect: 'follow' });
+  console.log(s.name + ' | CF:' + (cfD.result?.status === 'active' ? '✅' : '❌') + ' | Webhook:' + (wD.revalidated ? '✅' : '❌') + ' | Site:' + (sR.status < 400 ? '✅' : '❌') + sR.status);
+}
+"
+```
+
+**Expected healthy output:**
+```
+TotVogue     | CF:✅ | Webhook:✅ | Site:✅200
+Zaynahs      | CF:✅ | Webhook:✅ | Site:✅200
+MiniMahal    | CF:✅ | Webhook:✅ | Site:✅200
+LittleMister | CF:✅ | Webhook:✅ | Site:✅200
+```
+
+**If any store fails:**
+| Failure | Fix |
+|---------|-----|
+| `CF:❌` | Renew `cfut_` token in Cloudflare dashboard → update `env-backups/<store>.env.local` + Vercel |
+| `Webhook:❌` | Check `REVALIDATE_SECRET` in Vercel matches `zaynahs_secret_cache_revalidate_2026` |
+| `Site:❌` | Check Vercel deployment logs — may need `node scripts/post-deploy-fix.mjs` |
 
 ---
 
@@ -22,6 +73,7 @@
 Set these in `.env.local`. Tests use `node --env-file=.env.local` or `source .env.local`.
 
 ---
+
 
 ## Quick Run All Tests
 

@@ -1,4 +1,97 @@
-# Complete Project Setup Guide
+# Complete Project Setup Guide (Multi-Store Universal System)
+
+> ⚠️ **ABSOLUTE RULES — ALL CURRENT AND FUTURE PROJECTS:**
+> - **Code** = 100% Universal (same codebase, same `SUPER_MASTER_SCHEMA.sql` for ALL stores)
+> - **Credentials** = 100% Separate per store (never share tokens between stores)
+> - **Schema** = Must always match ALL migrations (run `node scripts/check-master-schema.mjs` before deploy)
+
+---
+
+## 🏪 Current Active Projects
+
+| Store | GitHub Repo | Site | env-backup file |
+|-------|-------------|------|-----------------|
+| TotVogue | `totvoguepk-bot/zaynahsestore-tv` | www.totvogue.pk | `env-backups/totvogue.env.local` |
+| Zaynahs | `dispacher-zaynahspos/zaynahs.pk` | www.zaynahs.pk | `env-backups/zaynahs.env.local` |
+| MiniMahal | `infominimahal-bit/mini-mahal-e-store` | www.minimahal.com | `env-backups/minimahal.env.local` |
+| LittleMister | `littlemisterpk-cell/eestore` | www.littlemister.pk | `env-backups/littlemister.env.local` |
+
+**REVALIDATE_SECRET (all projects — universal):** `zaynahs_secret_cache_revalidate_2026`
+
+---
+
+## 🔑 Credential Rules (MANDATORY — ALL PROJECTS)
+
+### Per-Store — MUST be UNIQUE:
+- `SUPABASE_PROJECT_REF`, `SUPABASE_MGMT_TOKEN`, `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
+- `CLOUDFLARE_ZONE_ID`, `CLOUDFLARE_API_TOKEN` (`cfut_...`), `CF_ACCOUNT_ID`
+- `VERCEL_PROJECT_NAME`, `GITHUB_TOKEN`, `NEXT_PUBLIC_SITE_URL`
+
+### Shared — same across ALL stores:
+- `REVALIDATE_SECRET=zaynahs_secret_cache_revalidate_2026`
+
+### Storage Structure:
+```
+env-backups/
+  totvogue.env.local      ← TotVogue ONLY
+  zaynahs.env.local       ← Zaynahs ONLY
+  minimahal.env.local     ← MiniMahal ONLY
+  littlemister.env.local  ← LittleMister ONLY
+.env.local                ← Current active store (switch when working on different store)
+```
+
+---
+
+## ✅ Quick Health Check — All Stores (Run Anytime)
+
+```bash
+node scripts/post-deploy-fix.mjs
+```
+
+Or manual live check:
+```bash
+node -e "
+const { readFileSync } = await import('fs');
+function parseEnv(f) { const e={}; try { for (const l of readFileSync(f,'utf-8').split('\n')) { const t=l.trim(); if(t&&!t.startsWith('#')){ const q=t.indexOf('='); if(q>0) e[t.slice(0,q).trim()]=t.slice(q+1).trim(); } } } catch {} return e; }
+const stores = [
+  { name: 'TotVogue',    f: 'env-backups/totvogue.env.local',     url: 'https://www.totvogue.pk' },
+  { name: 'Zaynahs',     f: 'env-backups/zaynahs.env.local',      url: 'https://www.zaynahs.pk' },
+  { name: 'MiniMahal',   f: 'env-backups/minimahal.env.local',    url: 'https://www.minimahal.com' },
+  { name: 'LittleMister',f: 'env-backups/littlemister.env.local', url: 'https://www.littlemister.pk' }
+];
+for (const s of stores) {
+  const env = parseEnv(s.f);
+  const cf = await fetch('https://api.cloudflare.com/client/v4/user/tokens/verify', { headers: { Authorization: 'Bearer ' + env.CLOUDFLARE_API_TOKEN } }).then(r=>r.json());
+  const wh = await fetch(s.url+'/api/revalidate', { method:'POST', signal:AbortSignal.timeout(8000), headers:{'Content-Type':'application/json','x-revalidate-secret':'zaynahs_secret_cache_revalidate_2026'}, body:JSON.stringify({type:'UPDATE',table:'products',record:{id:'test'}}) }).then(r=>r.json()).catch(()=>({}));
+  const site = await fetch(s.url, { method:'HEAD', signal:AbortSignal.timeout(8000), redirect:'follow' }).catch(()=>({status:0}));
+  console.log(s.name+' | CF:'+(cf.result?.status==='active'?'✅':'❌')+' | Webhook:'+(wh.revalidated?'✅':'❌')+' | Site:'+(site.status<400?'✅':'❌')+site.status);
+}
+"
+```
+
+**Expected:**
+```
+TotVogue     | CF:✅ | Webhook:✅ | Site:✅200
+Zaynahs      | CF:✅ | Webhook:✅ | Site:✅200
+MiniMahal    | CF:✅ | Webhook:✅ | Site:✅200
+LittleMister | CF:✅ | Webhook:✅ | Site:✅200
+```
+
+---
+
+## 🆕 Adding a NEW Store (Future Projects)
+
+1. Create new Supabase project → get `PROJECT_REF`, `ANON_KEY`, `SERVICE_ROLE_KEY`
+2. Create new Cloudflare API token (`cfut_`) for new domain
+3. Create new Vercel project → get `VERCEL_TOKEN`
+4. Create new GitHub repo → get `GITHUB_TOKEN`
+5. Fill credentials into new `env-backups/<newstore>.env.local` file
+6. Run: `node scripts/init-db.mjs` (applies `SUPER_MASTER_SCHEMA.sql` — creates everything)
+7. Run: `node scripts/post-deploy-fix.mjs` — auto-picks up new store and verifies
+8. **Never reuse** any token from an existing store — all must be fresh and unique
+
+---
 
 ## ⚡ Agent-Driven Setup (Primary Flow)
 
@@ -30,8 +123,8 @@ npm install
 | **Vercel** | Import repo, set env vars (secrets from Supabase), add domain, deploy |
 | **GitHub** | Push initial code, trigger deployment |
 | **Cache** | Wait for deployment, verify Cloudflare HIT/MISS/BYPASS, fix any cache issues |
-| **Env** | `.env.local` and `.env.example` populate karega with real keys |
-| **Docs** | `AGENTS.md`, `gemini.md`, setup guides update karega |
+| **Env** | `.env.local` and `env-backups/<store>.env.local` populate karega with real keys |
+| **Docs** | `AGENTS.md`, `GEMINI.md`, setup guides update karega |
 
 ### Agent Start Karne Ka Command:
 
@@ -53,6 +146,7 @@ Agent:
 **Total automatic — tumhe kuch nahi karna.**
 
 ---
+
 
 ## 🔄 Existing Project Audit & Fix Mode
 
