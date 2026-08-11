@@ -103,6 +103,26 @@ Agent ka task:
 
 ---
 
+## 📌 Multi-Store Environment & Master Schema Synchronization Rules (Strict Directive)
+
+Har naye/existing project setup mein ye rules 100% strictly enforce karne hain taake kisi bhi store/project par migration, policy conflict ya domain name discrepancy na aaye:
+
+1. **Multi-Domain Brand Configuration**:
+   - **Zaynahs.pk**: `NEXT_PUBLIC_BRAND_NAME=Zaynahs.pk`, `NEXT_PUBLIC_SITE_URL=https://www.zaynahs.pk` (Supabase Ref: `unfdpfmjqljbjydgsccr`)
+   - **TotVogue.pk**: `NEXT_PUBLIC_BRAND_NAME=TotVogue.pk`, `NEXT_PUBLIC_SITE_URL=https://www.totvogue.pk` (Supabase Ref: `ziucrfpebpxijqhwmqre`)
+   - **Little Mister**: `NEXT_PUBLIC_BRAND_NAME=Little Mister`, `NEXT_PUBLIC_SITE_URL=https://www.littlemister.pk` (Supabase Ref: `ljknmwianiswkalifueb`)
+   - **Mini Mahal**: `NEXT_PUBLIC_BRAND_NAME=Mini Mahal`, `NEXT_PUBLIC_SITE_URL=https://www.minimahal.com` (Supabase Ref: `mgwkcumurrllhpjvfezz`)
+
+2. **Idempotent RLS Policies & DDL Rule**:
+   - Master schema (`SUPER_MASTER_SCHEMA.sql`) ya individual migrations mein har `CREATE POLICY` se pehle hamesha `DROP POLICY IF EXISTS "<Policy Name>" ON <table_name>;` shamil hona chahiye taake multi-run par `policy already exists` error na aaye.
+   - Naye columns ko pehle `ALTER TABLE <table_name> ADD COLUMN IF NOT EXISTS <col_name> ...` se add karna hai, uske BAAD un columns par indexes (`CREATE INDEX IF NOT EXISTS`) lagane hain.
+
+3. **Multi-Database Bulk Sync**:
+   - Jab bhi master schema update ho, `node scripts/sync-all-dbs.mjs` run karo taake tamam 4 projects (`zaynahs`, `totvogue`, `littlemister`, `minimahal`) ke Supabase databases par DDL push aur sync ho jaye.
+   - Migration integrity check ke liye `node scripts/check-master-schema.mjs` run karo (0 errors mandatory).
+
+---
+
 ## PART 1: Prerequisites (Manual Reference)
 
 - Node.js 18+ installed
