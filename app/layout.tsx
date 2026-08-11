@@ -40,13 +40,14 @@ import { stripHtmlTags } from "@/lib/utils/stripHtml";
 
 export async function generateMetadata(): Promise<Metadata> {
   try {
-    const brand = await getDomainBrand();
     const settings = await getSettings();
-    const siteUrl = `${brand.protocol}://${brand.domain}`;
+    const brandName = settings.storeName || process.env.NEXT_PUBLIC_BRAND_NAME || 'Store';
+    const siteUrl = settings.storeUrl?.replace(/\/+$/, '') || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+    const tagline = settings.tagline || '';
 
-    const rawDesc = settings.metaDescription || brand.tagline || `Discover amazing deals at ${brand.name}. Quality items with fast delivery.`;
+    const rawDesc = settings.metaDescription || tagline || `Discover amazing deals at ${brandName}. Quality items with fast delivery.`;
     const description = stripHtmlTags(rawDesc);
-    const title = settings.metaTitle || brand.tagline || brand.name;
+    const title = settings.metaTitle || tagline || brandName;
 
     const timestamp = settings.updatedAt ? new Date(settings.updatedAt).getTime() : Date.now();
 
@@ -74,7 +75,7 @@ export async function generateMetadata(): Promise<Metadata> {
       metadataBase: new URL(siteUrl),
       title: {
         default: title,
-        template: `%s - ${brand.name}`
+        template: `%s - ${brandName}`
       },
       description,
       appleWebApp: {
@@ -113,9 +114,9 @@ export async function generateMetadata(): Promise<Metadata> {
         title,
         description,
         url: siteUrl,
-        siteName: brand.name,
+        siteName: brandName,
         locale: 'en_US',
-        images: [{ url: ogImage, width: 1200, height: 630, alt: brand.name }],
+        images: [{ url: ogImage, width: 1200, height: 630, alt: brandName }],
       },
       twitter: {
         card: 'summary_large_image',

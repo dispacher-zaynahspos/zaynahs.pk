@@ -13,13 +13,14 @@ export const revalidate = 86400; // 24 hours — webhooks purge on admin save
 
 export async function generateMetadata(): Promise<Metadata> {
   try {
-    const brand = await getDomainBrand();
     const settings = await getSettings();
-    const siteUrl = settings?.storeUrl?.replace(/\/+$/, '') || process.env.NEXT_PUBLIC_SITE_URL || '';
+    const brandName = settings.storeName || process.env.NEXT_PUBLIC_BRAND_NAME || 'Store';
+    const brandTagline = settings.tagline || process.env.NEXT_PUBLIC_BRAND_TAGLINE || '';
+    const siteUrl = settings?.storeUrl?.replace(/\/+$/, '') || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
 
     const banner = settings.bannerUrl || settings.logoUrl || settings.faviconUrl || '';
-    const title = settings.metaTitle || `${brand.name} - ${brand.tagline}`;
-    const desc = (settings.metaDescription || brand.tagline).slice(0, 160);
+    const title = settings.metaTitle || (brandTagline ? `${brandName} - ${brandTagline}` : brandName);
+    const desc = (settings.metaDescription || brandTagline).slice(0, 160);
 
     return {
       metadataBase: new URL(siteUrl),
@@ -35,10 +36,10 @@ export async function generateMetadata(): Promise<Metadata> {
         title: title,
         description: desc,
         url: siteUrl,
-        siteName: brand.name,
+        siteName: brandName,
         type: 'website',
         locale: 'en_US',
-        images: [{ url: banner, width: 1200, height: 630, alt: brand.name }],
+        images: [{ url: banner, width: 1200, height: 630, alt: brandName }],
       },
       twitter: {
         card: 'summary_large_image',
