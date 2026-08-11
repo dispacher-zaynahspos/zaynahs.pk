@@ -1,22 +1,281 @@
 # Multi-Store E-Commerce — Complete Testing Guide
 
-> **CRITICAL RULE**: The webhook secret must ALWAYS be `zaynahs_secret_cache_revalidate_2026` across all clones and instances. Do not use any other secret.
-
-> All API-based tests (Cloudflare, Supabase) use env vars from `.env.local`.  
-> Run with: `bash <(cat docs/STORE_TESTING_GUIDE.md | sed -n '/```bash/,/```/p' | sed 's/```//g')`  
-> Or copy-paste individual commands.
+> **CRITICAL RULE**: The webhook secret must ALWAYS be `zaynahs_secret_cache_revalidate_2026` across all clones and instances.
 
 ---
 
-## ⚡ ONE-COMMAND — FULL AUDIT ALL 4 STORES (AGENT USE THIS FIRST)
+## ✅ TEST 1 — PRIMARY: One-Command Full Audit (Run After Every Deploy)
 
 ```bash
 node scripts/post-deploy-fix.mjs
 ```
-This auto-reads ALL `env-backups/*.env.local` and runs:
-1. ✅ Cloudflare cache purge — ALL zones
-2. ✅ `/api/revalidate` webhook test — current store
-3. ✅ HTTP 200 check — all pages
+
+**Expected — ALL CHECKS PASSED:**
+```
+[1/4] Vercel cache purge: OK             ← MUST NOT be "SKIPPED"
+[2/4] Cloudflare purge (4 zones):
+  https://www.totvogue.pk: OK ✅
+  https://www.littlemister.pk/: OK ✅
+  https://www.minimahal.com: OK ✅
+  https://www.zaynahs.pk: OK ✅
+[3/4] 200 / OK
+[3/4] 200 /shop OK
+[3/4] 200 /reviews OK
+[3/4] 200 /product/<slug> OK
+[4/4] Webhook: OK (revalidated:true)
+
+✅ ALL CHECKS PASSED — setup is clean.
+```
+
+**If [1/4] shows SKIPPED → RULE VERCEL1 violated — fix immediately:**
+```bash
+grep "VERCEL_PROJECT_NAME" env-backups/*.env.local   # find missing
+# Add to each missing store:
+echo "VERCEL_PROJECT_NAME=<vercel-project-name>" >> env-backups/<store>.env.local
+```
+
+---
+
+## ✅ TEST 2 — DETAILED: Per-Store Full Credential + Live Audit
+
+```bash
+node -e "
+const { readFileSync } = await import('fs');
+function parseEnv(f) {
+  const e={};
+  try { for (const l of readFileSync(f,'utf-8').split('\n')) { const t=l.trim(); if(t&&!t.startsWith('#')){ const q=t.indexOf('='); if(q>0) e[t.slice(0,q).trim()]=t.slice(q+1).trim(); } } } catch {}
+  return e;
+}
+const stores = [
+  { name: 'TotVogue',    f: 'env-backups/totvogue.env.local',     url: 'https://www.totvogue.pk' },
+  { name: 'Zaynahs',     f: 'env-backups/zaynahs.env.local',      url: 'https://www.zaynahs.pk' },
+  { name: 'MiniMahal',   f: 'env-backups/minimahal.env.local',    url: 'https://www.minimahal.com' },
+  { name: 'LittleMister',f: 'env-backups/littlemister.env.local', url: 'https://www.littlemister.pk' }
+];
+const SECRET = 'zaynahs_secret_cache_revalidate_2026';
+console.log('=== FULL MULTI-STORE AUDIT ===\n');
+for (const s of stores) {
+  const env = parseEnv(s.f);
+  const checks = [];
+  // 1. CF Token active
+  const cf = await fetch('https://api.cloudflare.com/client/v4/user/tokens/verify',{headers:{Authorization:'Bearer '+env.CLOUDFLARE_API_TOKEN}}).then(r=>r.json()).catch(()=>({}));
+  checks.push('CF:' + (cf.result?.status==='active'?'✅':'❌ RENEW TOKEN'));
+  // 2. VERCEL_PROJECT_NAME present (RULE VERCEL1)
+  checks.push('VercelProject:' + (env.VERCEL_PROJECT_NAME?'✅ '+env.VERCEL_PROJECT_NAME:'❌ MISSING — add to env-backups'));
+  // 3. Webhook
+  const wh = await fetch(s.url+'/api/revalidate',{method:'POST',signal:AbortSignal.timeout(8000),headers:{'Content-Type':'application/json','x-revalidate-secret':SECRET},body:JSON.stringify({type:'UPDATE',table:'products',record:{id:'test'}})}).then(r=>r.json()).catch(()=>({}));
+  checks.push('Webhook:' + (wh.revalidated?'✅':'❌ CHECK REVALIDATE_SECRET IN VERCEL'));
+  // 4. Live pages
+  for (const p of ['/', '/shop', '/reviews']) {
+    const r = await fetch(s.url+p,{method:'HEAD',signal:AbortSignal.timeout(8000),redirect:'follow'}).catch(()=>({status:0}));
+    checks.push(p+':'+(r.status<400?'✅'+r.status:'❌'+r.status+' CHECK VERCEL LOGS'));
+  }
+  // 5. Credential uniqueness
+  checks.push('ZoneID:'+env.CLOUDFLARE_ZONE_ID?.slice(0,8)+'... (unique per store)');
+  checks.push('SBRef:'+env.SUPABASE_PROJECT_REF?.slice(0,8)+'... (unique per store)');
+  console.log(s.name + ':');
+  checks.forEach(c => console.log('  ' + c));
+  console.log();
+}
+"
+```
+
+**Expected healthy output (verified 2026-08-11):**
+```
+TotVogue:
+  CF:✅
+  VercelProject:✅ zaynahsestore-tv
+  Webhook:✅
+  /:✅200   /shop:✅200   /reviews:✅200
+  ZoneID:e4aceeac...   SBRef:ziucrfpe...
+
+Zaynahs:
+  CF:✅
+  VercelProject:✅ zaynahsestore-tv-main
+  Webhook:✅
+  /:✅200   /shop:✅200   /reviews:✅200
+  ZoneID:10d96444...   SBRef:unfdpfmj...
+
+MiniMahal:
+  CF:✅
+  VercelProject:✅ mini-mahal-e-store
+  Webhook:✅
+  /:✅200   /shop:✅200   /reviews:✅200
+  ZoneID:6acd4930...   SBRef:mgwkcumu...
+
+LittleMister:
+  CF:✅
+  VercelProject:✅ eestore
+  Webhook:✅
+  /:✅200   /shop:✅200   /reviews:✅200
+  ZoneID:063a3d5c...   SBRef:ljknmwia...
+```
+
+---
+
+## ✅ TEST 3 — UNIVERSAL CODE CHECK (No Hardcoded Brands)
+
+```bash
+# Must return 0 results — any match = violation
+rg "totvogue|zaynahs\.pk|minimahal|littlemister" \
+  --glob '*.ts' --glob '*.tsx' --glob '*.sql' --glob '*.mjs' \
+  --glob '!*.env*' --glob '!env-backups/*'
+
+# Must return 0 results — no secrets in code
+rg "sbp_|ghp_|cfut_|eyJh" \
+  --glob '*.ts' --glob '*.tsx' --glob '*.mjs' --glob '*.sql'
+```
+
+---
+
+## ✅ TEST 4 — VERCEL ENV VARS CHECK (All Projects)
+
+```bash
+node -e "
+const { readFileSync } = await import('fs');
+function parseEnv(f) { const e={}; try { for (const l of readFileSync(f,'utf-8').split('\n')) { const t=l.trim(); if(t&&!t.startsWith('#')){ const q=t.indexOf('='); if(q>0) e[t.slice(0,q).trim()]=t.slice(q+1).trim(); } } } catch {} return e; }
+const required = ['NEXT_PUBLIC_SUPABASE_URL','SUPABASE_SERVICE_ROLE_KEY','CLOUDFLARE_ZONE_ID','CLOUDFLARE_API_TOKEN','REVALIDATE_SECRET'];
+const configs = [
+  { store: 'TotVogue',    f: 'env-backups/totvogue.env.local',     project: 'zaynahsestore-tv' },
+  { store: 'Zaynahs',     f: 'env-backups/zaynahs.env.local',      project: 'zaynahsestore-tv-main' },
+  { store: 'MiniMahal',   f: 'env-backups/minimahal.env.local',    project: 'mini-mahal-e-store' },
+  { store: 'LittleMister',f: 'env-backups/littlemister.env.local', project: 'eestore' }
+];
+for (const c of configs) {
+  const env = parseEnv(c.f);
+  const r = await fetch('https://api.vercel.com/v9/projects/'+c.project+'/env',{headers:{Authorization:'Bearer '+env.VERCEL_TOKEN}});
+  const d = await r.json();
+  const keys = d.envs?.map(e=>e.key)||[];
+  const missing = required.filter(k=>!keys.includes(k));
+  console.log(c.store+' ('+c.project+'): '+(missing.length===0?'✅ All env vars OK':'❌ MISSING: '+missing.join(', ')));
+}
+"
+```
+
+---
+
+## 🚨 IF ANY TEST FAILS — Complete Fix Guide
+
+### ❌ CF:❌ — Cloudflare Token Invalid
+
+**Root cause:** Token expired, wrong format (`cfk_` instead of `cfut_`), or wrong zone
+```bash
+# Verify token format first
+grep "CLOUDFLARE_API_TOKEN" env-backups/<store>.env.local
+# Must start with cfut_ NOT cfk_
+
+# Verify token live
+TOKEN=<your_token>
+curl -s "https://api.cloudflare.com/client/v4/user/tokens/verify" \
+  -H "Authorization: Bearer $TOKEN"
+# expect: {"result":{"status":"active"},"success":true}
+```
+**Fix:**
+1. Go to https://dash.cloudflare.com/profile/api-tokens
+2. Create Token → Custom Token → Zone: Cache Purge → Specific zone: `<domain>`
+3. Copy `cfut_XXXX` token
+4. Update `env-backups/<store>.env.local`: `CLOUDFLARE_API_TOKEN=cfut_xxx`
+5. Update Vercel dashboard for that project → Environment Variables → `CLOUDFLARE_API_TOKEN`
+6. Re-run: `node scripts/post-deploy-fix.mjs`
+
+---
+
+### ❌ [1/4] Vercel cache purge: SKIPPED — RULE VERCEL1 Violated
+
+**Root cause:** `VERCEL_PROJECT_NAME` missing in `.env.local` or `env-backups/<store>.env.local`
+```bash
+# Check which files are missing it
+grep "VERCEL_PROJECT_NAME" env-backups/*.env.local
+grep "VERCEL_PROJECT_NAME" .env.local
+```
+**Fix:**
+```bash
+# Add to each missing file
+echo "VERCEL_PROJECT_NAME=zaynahsestore-tv"      >> env-backups/totvogue.env.local
+echo "VERCEL_PROJECT_NAME=zaynahsestore-tv-main" >> env-backups/zaynahs.env.local
+echo "VERCEL_PROJECT_NAME=mini-mahal-e-store"    >> env-backups/minimahal.env.local
+echo "VERCEL_PROJECT_NAME=eestore"               >> env-backups/littlemister.env.local
+echo "VERCEL_PROJECT_NAME=zaynahsestore-tv"      >> .env.local   # current working store
+# Re-run:
+node scripts/post-deploy-fix.mjs
+```
+
+---
+
+### ❌ Webhook:❌ — /api/revalidate Failing
+
+**Root cause:** Wrong `REVALIDATE_SECRET` in Vercel, or Supabase webhook pointing to wrong URL
+```bash
+# Test manually
+curl -s -X POST https://www.SITE.pk/api/revalidate \
+  -H "Content-Type: application/json" \
+  -H "x-revalidate-secret: zaynahs_secret_cache_revalidate_2026" \
+  -d '{"type":"UPDATE","table":"products","record":{"id":"test"}}'
+# Expect: {"revalidated":true,...}
+```
+**Fix options:**
+1. **Wrong secret in Vercel** → Vercel Dashboard → Project → Settings → Environment Variables → `REVALIDATE_SECRET` → must be exactly `zaynahs_secret_cache_revalidate_2026`
+2. **Supabase webhook wrong URL** → Supabase Dashboard → Database → Webhooks → fix URL to `https://www.SITE.pk/api/revalidate`
+3. **404 on route** → check `app/api/revalidate/route.ts` exists in codebase
+
+---
+
+### ❌ Site:❌ / /shop:❌ / /reviews:❌ — Pages Down
+
+**Root cause:** Vercel build failed, domain not attached, or ISR/cache stale
+```bash
+# Check what status you get
+curl -sI https://www.SITE.pk/ | head -5
+```
+**Fix by status:**
+| Status | Cause | Fix |
+|--------|-------|-----|
+| `500` | Build error | Check Vercel logs → fix code → redeploy |
+| `404` | Domain not attached | Vercel → Project → Domains → add domain |
+| `302/301` | Redirect loop | Check Cloudflare SSL = Full (Strict) |
+| `503` | Vercel cold start | Wait 30s and retry |
+| `0/timeout` | DNS not pointing to Vercel | Check Cloudflare DNS → CNAME → `cname.vercel-dns.com` |
+
+---
+
+### ❌ TEST 3 — Brand Name Found in Code
+
+**Root cause:** Someone hardcoded a brand/domain name in source files
+```bash
+rg "totvogue|zaynahs\.pk|minimahal|littlemister" \
+  --glob '*.ts' --glob '*.tsx' --glob '*.sql' --glob '*.mjs' \
+  --glob '!*.env*' --glob '!env-backups/*'
+```
+**Fix:**
+- Replace any hardcoded brand → use `settings.storeName` or `settings.storeUrl` from DB
+- Replace any hardcoded domain → use `getSiteUrl(settings)` or `NEXT_PUBLIC_SITE_URL`
+- NEVER hardcode `totvogue.pk`, `zaynahs.pk`, etc. in `.ts`/`.tsx`/`.sql` files
+
+---
+
+### ❌ TEST 4 — Vercel Env Vars Missing
+
+**Root cause:** Env vars not synced to Vercel dashboard after local update
+```bash
+# Add missing var to Vercel via API
+VERCEL_TOKEN=<token>
+PROJECT_ID=<project-id>
+curl -X POST "https://api.vercel.com/v9/projects/$PROJECT_ID/env" \
+  -H "Authorization: Bearer $VERCEL_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"key":"MISSING_KEY","value":"VALUE","type":"encrypted","target":["production","preview"]}'
+```
+Or: Vercel Dashboard → Project → Settings → Environment Variables → Add manually
+
+---
+
+### 🔁 After ANY Fix — Always Re-Run Full Audit
+```bash
+node scripts/post-deploy-fix.mjs
+# Must show: ✅ ALL CHECKS PASSED — setup is clean.
+```
+
+---
 
 **Or run the live check manually:**
 ```bash
@@ -37,6 +296,7 @@ for (const s of stores) {
   const wR = await fetch(s.url + '/api/revalidate', { method: 'POST', signal: AbortSignal.timeout(8000), headers: { 'Content-Type': 'application/json', 'x-revalidate-secret': SECRET }, body: JSON.stringify({ type: 'UPDATE', table: 'products', record: { id: 'test' } }) });
   const wD = await wR.json().catch(() => ({}));
   const sR = await fetch(s.url, { method: 'HEAD', signal: AbortSignal.timeout(8000), redirect: 'follow' });
+
   console.log(s.name + ' | CF:' + (cfD.result?.status === 'active' ? '✅' : '❌') + ' | Webhook:' + (wD.revalidated ? '✅' : '❌') + ' | Site:' + (sR.status < 400 ? '✅' : '❌') + sR.status);
 }
 "
