@@ -59,23 +59,63 @@ if (env.VERCEL_TOKEN && env.VERCEL_PROJECT_NAME) {
 }
 console.log(`[1/4] Vercel cache purge: ${results.purgeVercel}`);
 
-// 2) Purge Cloudflare
+// 2) Purge Cloudflare — ALL stores (reads env-backups/*.env.local for each clone)
+const allCfConfigs = [];
+
+// Always include current .env.local zone
 if (env.CLOUDFLARE_ZONE_ID && env.CLOUDFLARE_API_TOKEN) {
-  try {
-    const res = await fetch(`https://api.cloudflare.com/client/v4/zones/${env.CLOUDFLARE_ZONE_ID}/purge_cache`, {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${env.CLOUDFLARE_API_TOKEN}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ purge_everything: true }),
-    });
-    const data = await res.json();
-    results.purgeCloudflare = data.success ? 'OK' : JSON.stringify(data.errors);
-  } catch (e) {
-    results.purgeCloudflare = `FAILED: ${String(e.message || e)}`;
+  allCfConfigs.push({ zone: env.CLOUDFLARE_ZONE_ID, token: env.CLOUDFLARE_API_TOKEN, site: env.NEXT_PUBLIC_SITE_URL || 'current' });
+}
+
+// Also read env-backups/ for other store zones
+import { readdirSync } from 'fs';
+const backupDir = resolve(__dirname, '..', 'env-backups');
+try {
+  const files = readdirSync(backupDir).filter(f => f.endsWith('.env.local') || f.endsWith('.env'));
+  for (const file of files) {
+    try {
+      const bEnv = {};
+      const bContent = readFileSync(resolve(backupDir, file), 'utf-8');
+      for (const line of bContent.split('\n')) {
+        const t = line.trim();
+        if (t && !t.startsWith('#')) {
+          const eq = t.indexOf('=');
+          if (eq > 0) bEnv[t.slice(0, eq).trim()] = t.slice(eq + 1).trim();
+        }
+      }
+      if (bEnv.CLOUDFLARE_ZONE_ID && bEnv.CLOUDFLARE_API_TOKEN) {
+        // Avoid duplicates
+        if (!allCfConfigs.find(c => c.zone === bEnv.CLOUDFLARE_ZONE_ID)) {
+          allCfConfigs.push({ zone: bEnv.CLOUDFLARE_ZONE_ID, token: bEnv.CLOUDFLARE_API_TOKEN, site: bEnv.NEXT_PUBLIC_SITE_URL || file });
+        }
+      }
+    } catch {}
   }
+} catch {}
+
+if (allCfConfigs.length > 0) {
+  const purgeResults = [];
+  for (const cfg of allCfConfigs) {
+    try {
+      const res = await fetch(`https://api.cloudflare.com/client/v4/zones/${cfg.zone}/purge_cache`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${cfg.token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ purge_everything: true }),
+      });
+      const data = await res.json();
+      const status = data.success ? `OK ✅` : JSON.stringify(data.errors);
+      purgeResults.push(`  ${cfg.site}: ${status}`);
+    } catch (e) {
+      purgeResults.push(`  ${cfg.site}: FAILED: ${String(e.message || e)}`);
+    }
+  }
+  results.purgeCloudflare = 'OK';
+  console.log(`[2/4] Cloudflare purge (${allCfConfigs.length} zones):\n${purgeResults.join('\n')}`);
 } else {
   results.purgeCloudflare = 'SKIPPED (CLOUDFLARE creds missing)';
+  console.log(`[2/4] Cloudflare purge: ${results.purgeCloudflare}`);
 }
-console.log(`[2/4] Cloudflare purge: ${results.purgeCloudflare}`);
+
 
 // 3) Verify pages (homepage + shop + reviews + a sample product if any exist)
 const pathsToCheck = ['/', '/shop', '/reviews'];

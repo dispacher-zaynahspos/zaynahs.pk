@@ -356,6 +356,17 @@ Specifically, the schema must automatically handle:
 - Defining all trigger functions, sequences, and triggers (e.g. dynamic rating synchronizer, order auto-increment, abandoned cart order linking).
 Never ask the user to manually set up any tables, policies, buckets, or realtime settings in the Supabase dashboard.
 
+## RULE D6b — SCHEMA & CODE MUST BE 100% UNIVERSAL — NO HARDCODED PROJECT/BRAND VALUES (STRICTLY ENFORCED)
+- `SUPER_MASTER_SCHEMA.sql` is the single shared schema for ALL store clones (TotVogue, Zaynahs, MiniMahal, LittleMister, and any future clone).
+- **NEVER hardcode any of these in `.ts`, `.tsx`, `.sql`, `.mjs`, `.js` source files:**
+  - Brand names (`TotVogue`, `Zaynahs`, `MiniMahal`, `LittleMister`)
+  - Domains (`totvogue.pk`, `zaynahs.pk`, `minimahal.com`, `littlemister.pk`)
+  - Store-specific URLs, phone numbers, WhatsApp numbers, addresses
+- **Seed data in schema** MUST use generic placeholders: `'Your Store Name'`, `'https://domain.com'`, `'Your Store'`
+- **Dynamic values** MUST come from: `store_settings` DB table → `settings.storeName`, `settings.storeUrl`, `settings.whatsappNumber`
+- **URL replacement logic in triggers/functions** MUST only match generic template patterns (`https://domain.com`, `http://localhost`) — NEVER hardcode a specific live domain
+- **Verify before any commit:** `rg "totvogue|zaynahs\.pk|minimahal|littlemister" --glob '*.ts' --glob '*.tsx' --glob '*.sql' --glob '*.mjs'` — result MUST be empty (0 matches) in source files
+
 ---
 
 # 📁 PROJECT STRUCTURE
@@ -808,6 +819,42 @@ curl -X POST https://www.totvogue.pk/api/revalidate \
 | `/_next/static/*` | `immutable, 1 year` | `HIT` |
 | `/admin/*`, `/api/*` | `no-store` | `MISS` |
 
+### RULE C5 — INSTANT PRICE/SALE UPDATES (NO PR, NO REDEPLOY, NO DIRECT DB HIT) ✅
+
+**How instant price visibility works WITHOUT a new deploy, PR, or per-request DB hit:**
+
+#### Flow Diagram
+```
+Admin saves Flash Sale / Price change
+       ↓
+  Supabase DB Trigger fires webhook
+       ↓
+  POST /api/revalidate (x-revalidate-secret)
+       ↓
+  revalidateTag('products') → Server RAM cache INSTANTLY CLEARED (< 0.1s)
+       ↓
+  Next user page request → Server fetches fresh data from DB ONCE
+       ↓
+  Fresh data stored back in RAM cache (unstable_cache, 24h TTL)
+       ↓
+  ALL subsequent users served from fast RAM cache again ✅
+```
+
+#### Rules (MANDATORY — NEVER BREAK)
+1. **Every product/price mutation** in admin (Flash Sale, price edit, sale settings) MUST call `revalidateTag('products')` via `lib/revalidate.ts` helper — NO exceptions.
+2. **`/api/products/list` route** MUST have `Cache-Control: no-store, no-cache, must-revalidate` — never a static TTL — so the browser always re-fetches latest prices (the server responds from RAM cache, not DB).
+3. **`unstable_cache` in `lib/services/products.ts`** wraps ALL DB queries with tag `'products'` and `revalidate: 86400` (24h). This means DB is ONLY hit when cache is cold or after revalidation.
+4. **After any Vercel deploy**: run `node scripts/post-deploy-fix.mjs` to purge Cloudflare Edge CDN and keep HTML + CSS assets in-sync (prevents `ChunkLoadError`).
+5. **NEVER remove `revalidateTag('products')`** from any admin save handler — doing so breaks instant price visibility.
+
+#### What This Means
+- ✅ Price change visible to customers in < 1 second after Admin save
+- ✅ Zero DB hits per customer page load (served from server RAM)
+- ✅ No PR, no redeploy, no manual cache clear needed
+- ✅ Cloudflare Edge CDN serves HTML from ISR, Next.js RAM serves fresh data
+
+---
+
 ### RULE C4 — Middleware vs Proxy (RSC Caching Skew)
 - **MANDATORY**: Never name the root proxy file `middleware.ts` to avoid Next.js RSC caching skew bugs with Cloudflare. Always name it `proxy.ts`.
 - **Redirect Caching**: When triggering a redirect from `proxy.ts` to an auth page, explicitly append a `?_nocache=timestamp` query param and set `cdn-cache-control: no-store, no-cache, must-revalidate` on the response.
@@ -1189,5 +1236,59 @@ curl -X PATCH "https://api.vercel.com/v9/projects/$PROJECT_ID/env/$ENV_ID" \
 
 ### 🔁 Mandatory Self-Test After Any Setup
 1. Webhook: `curl -X POST https://SITE/api/revalidate -H "x-revalidate-secret: SECRET"` → `{"revalidated":true}`
-2. CF Token: `curl cf_verify -H "Bearer TOKEN"` → `"status":"active"`  
+2. CF Token: `curl cf_verify -H "Bearer TOKEN"` → `"status":"active"`
 3. Triggers: SQL query → no `localhost` or `domain.com` URL in any trigger
+
+---
+
+## 🔑 RULE CRED1 — EACH STORE HAS COMPLETELY SEPARATE CREDENTIALS (MANDATORY — NEVER SHARE)
+
+> ⚠️ **ABSOLUTE RULE**: Code = Universal (same for all stores). Credentials = 100% Separate per store. These two rules can NEVER be broken.
+
+### What MUST be Separate (per store)
+| Credential | Separate? | Notes |
+|------------|-----------|-------|
+| `SUPABASE_PROJECT_REF` | ✅ UNIQUE | Different DB per store |
+| `SUPABASE_MGMT_TOKEN` (`sbp_...`) | ✅ UNIQUE | Different Supabase account |
+| `NEXT_PUBLIC_SUPABASE_URL` | ✅ UNIQUE | Different project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ✅ UNIQUE | Different project key |
+| `SUPABASE_SERVICE_ROLE_KEY` | ✅ UNIQUE | Different project key |
+| `CLOUDFLARE_ZONE_ID` | ✅ UNIQUE | Different domain per store |
+| `CLOUDFLARE_API_TOKEN` (`cfut_...`) | ✅ UNIQUE | Different CF account/token |
+| `CF_ACCOUNT_ID` | ✅ UNIQUE | Different CF account |
+| `VERCEL_PROJECT_NAME` | ✅ UNIQUE | Different Vercel project |
+| `GITHUB_TOKEN` (`ghp_...`) | ✅ UNIQUE | Different GitHub account |
+| `NEXT_PUBLIC_SITE_URL` | ✅ UNIQUE | Different domain |
+
+### What is SHARED (same value across all stores)
+| Credential | Value | Why |
+|------------|-------|-----|
+| `REVALIDATE_SECRET` | `zaynahs_secret_cache_revalidate_2026` | Must match Supabase triggers |
+
+### Mandatory File Structure
+```
+env-backups/
+  totvogue.env.local      ← TotVogue ONLY credentials
+  zaynahs.env.local       ← Zaynahs ONLY credentials
+  minimahal.env.local     ← MiniMahal ONLY credentials
+  littlemister.env.local  ← LittleMister ONLY credentials
+.env.local                ← Current working store credentials
+```
+
+### Agent Rules (STRICTLY ENFORCED)
+1. **Never copy credentials** from one store's `env-backups/` file to another
+2. **After any token rotation**: update `env-backups/<store>.env.local` + Vercel dashboard for THAT store only
+3. **Before every deploy**: run `node scripts/post-deploy-fix.mjs` — it auto-reads ALL env-backups and purges ALL Cloudflare zones
+4. **Verify no cross-contamination**: `rg "CLOUDFLARE_ZONE_ID" env-backups/` — every file MUST show a DIFFERENT value
+5. **Verify no secrets in code**: `rg "sbp_|ghp_|cfut_|eyJ" --glob '*.ts' --glob '*.tsx' --glob '*.mjs' --glob '*.sql'` — must return 0 results
+6. **cfk_ token = ALWAYS WRONG** → only `cfut_` tokens work with Bearer auth
+
+### Multi-Store Purge System (MANDATORY after every deploy)
+```bash
+node scripts/post-deploy-fix.mjs
+# Auto-reads .env.local + ALL env-backups/*.env.local
+# Purges Cloudflare for EVERY store zone
+# Verifies /api/revalidate → {revalidated: true}
+# Verifies all pages → HTTP 200
+```
+If any zone fails → fix token immediately. NEVER skip a failed zone.

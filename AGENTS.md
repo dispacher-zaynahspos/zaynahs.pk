@@ -336,27 +336,62 @@ This app runs across ANY domain (localhost, custom domain, production). Never ha
    - Covers: schema migrations, storage rules, RLS policies, triggers, functions, webhooks, auth config, and any other DDL/DML changes
    - Pattern: use the helper scripts below — never hardcode tokens in any file. **Reference:** [SUPABASE_API_GUIDE.md](file:///Users/shoaib/Documents/zaynahsestore-tv-main/docs/SUPABASE_API_GUIDE.md)
 
-8. **NEVER hardcode credentials in any file.**
+8. **NEVER hardcode credentials in any file. (STRICTLY ENFORCED)**
    - No tokens, API keys, passwords, or project refs in `.ts`, `.tsx`, `.sql`, `.md`, `.json`, or `.js` files
-   - Everything goes in `.env.local` only:
-     ```
-     SUPABASE_PROJECT_REF=your_project_ref
-     SUPABASE_MGMT_TOKEN=sbp_your_management_token
-     NEXT_PUBLIC_SUPABASE_URL=https://yourref.supabase.co
-     NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
-     SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
-     REVALIDATE_SECRET=zaynahs_secret_cache_revalidate_2026
-     ```
-   - **Vercel API Sync:** The agent MUST automatically sync this universal secret to all linked Vercel projects via the Vercel REST API (`PATCH /v9/projects/{id}/env/{env_id}`).
-   - GitHub will block pushes containing secrets — use `rg "sbp_|ghp_" --glob '!.env*' --glob '!.git'` to check
+   - Every store's credentials go ONLY in its own `.env.local` (or `env-backups/<store>.env.local`) — NEVER shared across stores
+   - GitHub will block pushes containing secrets — verify with `rg "sbp_|ghp_|cfut_" --glob '!.env*' --glob '!.git'` — must be 0 results
+
+8b. **RULE — EACH STORE MUST HAVE COMPLETELY SEPARATE CREDENTIALS (STRICTLY ENFORCED)**
+
+   Every store clone (TotVogue, Zaynahs, MiniMahal, LittleMister, etc.) MUST have its own SEPARATE:
+   - `SUPABASE_PROJECT_REF` — unique per store
+   - `SUPABASE_MGMT_TOKEN` — unique per store (`sbp_...`)
+   - `NEXT_PUBLIC_SUPABASE_URL` — unique per store
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY` — unique per store
+   - `SUPABASE_SERVICE_ROLE_KEY` — unique per store
+   - `CLOUDFLARE_ZONE_ID` — unique per store domain
+   - `CLOUDFLARE_API_TOKEN` — unique per store (`cfut_...`)
+   - `CF_ACCOUNT_ID` — unique per store
+   - `VERCEL_TOKEN` — may be shared only if same Vercel account, but `VERCEL_PROJECT_NAME` must be unique
+   - `GITHUB_TOKEN` — unique per store GitHub account
+
+   **SHARED across all stores (universal, same value):**
+   - `REVALIDATE_SECRET=zaynahs_secret_cache_revalidate_2026` — ALWAYS this exact value, all stores
+
+   **Storage structure — MANDATORY:**
+   ```
+   env-backups/
+     totvogue.env.local      ← TotVogue full credentials
+     zaynahs.env.local       ← Zaynahs full credentials
+     minimahal.env.local     ← MiniMahal full credentials
+     littlemister.env.local  ← LittleMister full credentials
+   .env.local                ← Current active store credentials (whichever you're working on)
+   ```
+
+   **Agent enforcement rules:**
+   - Before any deploy/purge: verify each store's `CLOUDFLARE_ZONE_ID` matches its actual domain in CF dashboard
+   - `post-deploy-fix.mjs` MUST auto-read ALL `env-backups/*.env.local` and purge ALL store zones
+   - NEVER reuse the same `CLOUDFLARE_ZONE_ID` for two different stores
+   - NEVER reuse the same `SUPABASE_PROJECT_REF` for two different stores
+   - After any token rotation, update both `env-backups/<store>.env.local` AND Vercel dashboard for that store
 
 9. **Clone / setup from scratch:**
-   - Copy `.env.example` to `.env.local` and fill in your Supabase project details
-   - Run `node scripts/init-db.mjs` to apply `SUPER_MASTER_SCHEMA.sql` (creates all tables, indexes, RLS, triggers)
+   - Copy `.env.example` to `.env.local` and fill in YOUR store's Supabase project details
+   - Save a backup: `cp .env.local env-backups/<yourstore>.env.local`
+   - Run `node scripts/init-db.mjs` to apply `SUPER_MASTER_SCHEMA.sql`
    - Run `node scripts/run-migration.mjs supabase/migrations/<filename>.sql` for individual migrations
-   - Also fill in: `CLOUDFLARE_ZONE_ID`, `CLOUDFLARE_API_TOKEN` (for traffic analytics)
-   - Optional: `PUSHER_APP_ID`, `PUSHER_KEY`, `PUSHER_SECRET`, `PUSHER_CLUSTER` for real-time live count
+   - Fill in: `CLOUDFLARE_ZONE_ID`, `CLOUDFLARE_API_TOKEN` (unique per store)
    - Then `npm run dev` — everything works
+
+9b. **MULTI-STORE PURGE SYSTEM (MANDATORY — post-deploy-fix.mjs)**
+   - After EVERY Vercel deploy, run `node scripts/post-deploy-fix.mjs` from the repo root
+   - This script automatically:
+     1. Reads `.env.local` (current store) + ALL `env-backups/*.env.local` files
+     2. Purges Cloudflare cache for EVERY store zone found
+     3. Triggers `/api/revalidate` webhook on current store
+     4. Verifies all pages return HTTP 200
+   - If any zone fails purge → agent MUST fix the token immediately, NOT skip
+   - Verify: `rg "CLOUDFLARE_ZONE_ID" env-backups/` — each file must have a DIFFERENT value
 
 10. **ALWAYS KEEP TYPES.TS SYNCHRONIZED (STRICTLY ENFORCED)**
     - Whenever any new feature is added, database column is changed, or frontend interface data model is updated, the agent MUST immediately update `lib/types.ts`.
