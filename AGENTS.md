@@ -264,6 +264,24 @@ This app runs across ANY domain (localhost, custom domain, production). Never ha
 
 6. **Metadata Title Duplication (Absolute Title rule)**:
    - If a child page title (e.g. homepage) duplicates the brand name or suffix from the parent layout (`title.template`), always specify the title as an object with the `absolute` property: `title: { absolute: title }` instead of a plain string. This forces Next.js to ignore the parent layout suffix and prevents doubled titles.
+
+7. **RULE C5 — INSTANT PRICE/SALE UPDATE SYSTEM (MANDATORY — NEVER BREAK)**:
+   - Price/sale changes made in Admin are visible to storefront customers in **< 1 second**, WITHOUT any PR, redeploy, or direct DB hit per user request.
+   - **How it works:**
+     - Admin saves → Supabase DB trigger fires webhook → `POST /api/revalidate` → `revalidateTag('products')` clears server RAM cache instantly (< 0.1s)
+     - Next user request → server fetches fresh DB data ONCE → stores back in RAM cache (24h TTL via `unstable_cache`)
+     - All subsequent users served from ultra-fast RAM cache — zero DB load
+   - **Agent MUST enforce these rules at all times:**
+     - Every product/price/sale admin mutation MUST call `revalidateTag('products')` via `lib/revalidate.ts` — NO exceptions
+     - `/api/products/list` MUST keep `Cache-Control: no-store, no-cache, must-revalidate` — never add a static TTL back
+     - `unstable_cache` in `lib/services/products.ts` wraps ALL DB queries with tag `'products'` — never remove these wrappers
+     - After every Vercel deploy → run `node scripts/post-deploy-fix.mjs` to purge Cloudflare edge cache (prevents `ChunkLoadError` CSS/JS hash mismatch)
+
+8. **RULE C6 — CROSS-STORE IMPORT/EXPORT COLUMN MAPPING (MANDATORY)**:
+   - `products` table uses `is_active` (boolean) — NOT `active`. This is different from `product_variants`, `categories`, `product_modifiers` which use `active`.
+   - Import route (`app/api/products/import/route.ts`) MUST always map: `is_active: (p as any).isActive ?? p.active ?? true` for all insert/update operations on `products` table.
+   - NEVER use `active: p.active` on `products` table — PostgREST throws `PGRST204: Could not find 'active' column` which crashes cross-store catalog import.
+   - Export route must output `isActive` field (camelCase) so any future store clone can correctly re-import it.
 <!-- END:ssr-rules -->
 
 <!-- BEGIN:db-rules -->
