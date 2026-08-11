@@ -1464,12 +1464,12 @@ export default function CustomizerEditor({
                               <div className="flex items-center gap-1.5">
                                 <input
                                   type="color"
-                                  value={activeSection.settings?.tickerBgColor || (storeSettings as any).tickerBgColor || '#ffffff'}
+                                  value={activeSection.settings?.tickerBgColor || activeSection.settings?.bgColor || (storeSettings as any).tickerBgColor || '#ffffff'}
                                   onChange={e => {
                                     const val = e.target.value;
                                     setStoreSettings(prev => ({ ...prev, tickerBgColor: val }));
                                     handleUpdateSection(activeSection.id, {
-                                      settings: { ...activeSection.settings, tickerBgColor: val }
+                                      settings: { ...activeSection.settings, tickerBgColor: val, bgColor: val }
                                     });
                                   }}
                                   className="w-7 h-7 rounded-lg border border-gray-200 dark:border-gray-700 cursor-pointer"
@@ -1479,7 +1479,7 @@ export default function CustomizerEditor({
                                   onClick={() => {
                                     setStoreSettings(prev => ({ ...prev, tickerBgColor: '' }));
                                     handleUpdateSection(activeSection.id, {
-                                      settings: { ...activeSection.settings, tickerBgColor: '' }
+                                      settings: { ...activeSection.settings, tickerBgColor: '', bgColor: '' }
                                     });
                                   }}
                                   className="text-[9px] text-gray-400 hover:text-[#e94560] font-bold uppercase tracking-wider cursor-pointer"
@@ -1494,12 +1494,12 @@ export default function CustomizerEditor({
                               <div className="flex items-center gap-1.5">
                                 <input
                                   type="color"
-                                  value={activeSection.settings?.tickerTextColor || (storeSettings as any).tickerTextColor || '#1e293b'}
+                                  value={activeSection.settings?.tickerTextColor || activeSection.settings?.textColor || (storeSettings as any).tickerTextColor || '#1e293b'}
                                   onChange={e => {
                                     const val = e.target.value;
                                     setStoreSettings(prev => ({ ...prev, tickerTextColor: val }));
                                     handleUpdateSection(activeSection.id, {
-                                      settings: { ...activeSection.settings, tickerTextColor: val }
+                                      settings: { ...activeSection.settings, tickerTextColor: val, textColor: val }
                                     });
                                   }}
                                   className="w-7 h-7 rounded-lg border border-gray-200 dark:border-gray-700 cursor-pointer"
@@ -1509,7 +1509,7 @@ export default function CustomizerEditor({
                                   onClick={() => {
                                     setStoreSettings(prev => ({ ...prev, tickerTextColor: '' }));
                                     handleUpdateSection(activeSection.id, {
-                                      settings: { ...activeSection.settings, tickerTextColor: '' }
+                                      settings: { ...activeSection.settings, tickerTextColor: '', textColor: '' }
                                     });
                                   }}
                                   className="text-[9px] text-gray-400 hover:text-[#e94560] font-bold uppercase tracking-wider cursor-pointer"

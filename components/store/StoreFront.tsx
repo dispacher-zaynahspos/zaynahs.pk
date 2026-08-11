@@ -1489,17 +1489,15 @@ export default function StoreFront({
 
   const renderTickerSection = (section: HomepageSection) => {
     if (!activeSettings.enableTicker || !activeSettings.tickerText) return null;
-    const tickerBgColor = section.settings?.tickerBgColor || (activeSettings as any).tickerBgColor || '';
-    const tickerTextColor = section.settings?.tickerTextColor || (activeSettings as any).tickerTextColor || '';
+    const tickerBgColor = section.settings?.tickerBgColor || section.settings?.bgColor || (activeSettings as any).tickerBgColor || (activeSettings as any).ticker_bg_color || '';
+    const tickerTextColor = section.settings?.tickerTextColor || section.settings?.textColor || (activeSettings as any).tickerTextColor || (activeSettings as any).ticker_text_color || '';
 
     return (
       <div 
         key={section.id} 
-        className="w-full overflow-hidden bg-white dark:bg-white/5 border-y border-gray-200 dark:border-gray-800 py-3.5 select-none"
-        style={{
-          backgroundColor: tickerBgColor || undefined,
-          color: tickerTextColor || undefined
-        }}
+        id={section.id}
+        className={`w-full overflow-hidden border-y border-gray-200 dark:border-gray-800 py-3.5 select-none ${tickerBgColor ? '' : 'bg-white dark:bg-white/5'}`}
+        style={tickerBgColor ? { backgroundColor: tickerBgColor } : undefined}
       >
         <style>{`
           @keyframes marquee {
@@ -1518,8 +1516,8 @@ export default function StoreFront({
               {activeSettings.tickerText!.split('\n').filter(Boolean).map((item, itemIdx) => (
                 <div 
                   key={itemIdx} 
-                  className="flex items-center gap-8 text-sm font-bold uppercase tracking-wider"
-                  style={{ color: tickerTextColor || undefined }}
+                  className={`flex items-center gap-8 text-sm font-bold uppercase tracking-wider ${tickerTextColor ? '' : 'text-gray-800 dark:text-gray-200'}`}
+                  style={tickerTextColor ? { color: tickerTextColor } : undefined}
                 >
                   <span>{item}</span>
                   <span className="opacity-60 font-normal">✦</span>
