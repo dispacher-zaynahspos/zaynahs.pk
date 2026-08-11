@@ -197,25 +197,43 @@ Agent ka task:
 
 ---
 
-## 📌 Multi-Store Environment & Master Schema Synchronization Rules (Strict Directive)
+## 📌 UNIVERSAL MULTI-STORE RULES (STRICTLY ENFORCED — ALL PROJECTS)
 
-Har naye/existing project setup mein ye rules 100% strictly enforce karne hain taake kisi bhi store/project par migration, policy conflict ya domain name discrepancy na aaye:
+> These rules apply to ALL current stores (TotVogue, Zaynahs, MiniMahal, LittleMister) and ANY future store clones.
 
-1. **Multi-Domain Brand Configuration**:
-   - **Zaynahs.pk**: `NEXT_PUBLIC_BRAND_NAME=Zaynahs.pk`, `NEXT_PUBLIC_SITE_URL=https://www.zaynahs.pk` (Supabase Ref: `unfdpfmjqljbjydgsccr`)
-   - **TotVogue.pk**: `NEXT_PUBLIC_BRAND_NAME=TotVogue.pk`, `NEXT_PUBLIC_SITE_URL=https://www.totvogue.pk` (Supabase Ref: `ziucrfpebpxijqhwmqre`)
-   - **Little Mister**: `NEXT_PUBLIC_BRAND_NAME=Little Mister`, `NEXT_PUBLIC_SITE_URL=https://www.littlemister.pk` (Supabase Ref: `ljknmwianiswkalifueb`)
-   - **Mini Mahal**: `NEXT_PUBLIC_BRAND_NAME=Mini Mahal`, `NEXT_PUBLIC_SITE_URL=https://www.minimahal.com` (Supabase Ref: `mgwkcumurrllhpjvfezz`)
+### Rule 1 — Code = Universal, Credentials = Separate
+- **Source code, schema, migrations** → same for ALL stores (no brand names hardcoded)
+- **Env vars, tokens, keys** → unique per store, stored in `env-backups/<store>.env.local`
+- Brand name, domain, WhatsApp → read from `store_settings` DB table at runtime
 
-2. **Idempotent RLS Policies & DDL Rule**:
-   - Master schema (`SUPER_MASTER_SCHEMA.sql`) ya individual migrations mein har `CREATE POLICY` se pehle hamesha `DROP POLICY IF EXISTS "<Policy Name>" ON <table_name>;` shamil hona chahiye taake multi-run par `policy already exists` error na aaye.
-   - Naye columns ko pehle `ALTER TABLE <table_name> ADD COLUMN IF NOT EXISTS <col_name> ...` se add karna hai, uske BAAD un columns par indexes (`CREATE INDEX IF NOT EXISTS`) lagane hain.
+### Rule 2 — SUPER_MASTER_SCHEMA.sql = Single Source of Truth
+- Every DB change (table, column, index, policy, trigger) → update schema FIRST, migration SECOND
+- Before every deploy: `node scripts/check-master-schema.mjs` → must return 0 issues
+- Sync all stores: `node scripts/sync-all-dbs.mjs` after any schema change
 
-3. **Multi-Database Bulk Sync**:
-   - Jab bhi master schema update ho, `node scripts/sync-all-dbs.mjs` run karo taake tamam 4 projects (`zaynahs`, `totvogue`, `littlemister`, `minimahal`) ke Supabase databases par DDL push aur sync ho jaye.
-   - Migration integrity check ke liye `node scripts/check-master-schema.mjs` run karo (0 errors mandatory).
+### Rule 3 — RLS/DDL Must Be Idempotent
+- Every `CREATE POLICY` → must have `DROP POLICY IF EXISTS` before it
+- Every column add → `ALTER TABLE ... ADD COLUMN IF NOT EXISTS ...`
+- Every index → `CREATE INDEX IF NOT EXISTS ...`
+- This ensures migrations can run on any store without "already exists" errors
+
+### Rule 4 — Post-Deploy Mandatory Checks
+```bash
+node scripts/post-deploy-fix.mjs
+# Must show ALL CHECKS PASSED:
+# [1/4] Vercel cache purge: OK          ← NOT "SKIPPED" (RULE VERCEL1)
+# [2/4] Cloudflare purge (N zones): OK
+# [3/4] 200 on all pages
+# [4/4] Webhook: OK (revalidated:true)
+```
+
+### Rule 5 — VERCEL_PROJECT_NAME Mandatory (RULE VERCEL1)
+- Every `env-backups/<store>.env.local` MUST have `VERCEL_PROJECT_NAME=<exact-vercel-name>`
+- Without it → Vercel ISR cache purge SKIPS → stale HTML after deploy
+- If `[1/4] SKIPPED` → stop and fix before marking deploy complete
 
 ---
+
 
 ## PART 1: Prerequisites (Manual Reference)
 

@@ -1,21 +1,59 @@
-# 🚀 Cloudflare + Supabase Setup — Complete Guide
+# 🚀 Cloudflare + Supabase + Vercel Setup — Complete Multi-Store Guide
 > **MANDATORY READ** for all agents and developers before touching any caching, webhooks, or token configuration.
-> Last updated: 2026-08-11 (Comprehensive rewrite after full audit & fix)
+> Last updated: 2026-08-11 (Added RULE VERCEL1, multi-store purge system)
 
 ---
 
-## 📋 ALL 4 PROJECTS — Quick Reference
-
-| Project | Supabase Ref | CF Zone ID | CF Account ID | Site URL |
-|---------|-------------|------------|---------------|----------|
-| **TotVogue** | `ziucrfpebpxijqhwmqre` | `e4aceeacdc4f6a1677e92823df1651fd` | `c218bd7557331b8360d7085105b732b2` | `www.totvogue.pk` |
-| **Zaynahs** | `unfdpfmjqljbjydgsccr` | `10d964449186f64d7896f8dcac4e5eff` | `37b6f57e13fe9466342b453d3a3ed4af` | `www.zaynahs.pk` |
-| **MiniMahal** | `mgwkcumurrllhpjvfezz` | `6acd493022cd0f2d5a9c290088b5327a` | `7bb146345ffcc335d3435eda7bf7592d` | `www.minimahal.com` |
-| **LittleMister** | `ljknmwianiswkalifueb` | `063a3d5c72d44b3654aa60b17ed94863` | `597d5f9b660750e13c2f68b3748eef22` | `www.littlemister.pk` |
-
-**REVALIDATE_SECRET (all projects):** `zaynahs_secret_cache_revalidate_2026`
+## ⚠️ ABSOLUTE RULES — ALL CURRENT AND FUTURE PROJECTS
+- **Code** = Universal (same for all stores, no hardcoded brand/domain)
+- **Credentials** = 100% Separate per store (never share tokens)
+- **Vercel ISR + Cloudflare BOTH** must be purged after every deploy
 
 ---
+
+## 📋 ALL PROJECTS — Quick Reference
+
+| Project | Supabase Ref | CF Zone ID | CF Account ID | Vercel Project | Site URL |
+|---------|-------------|------------|---------------|----------------|----------|
+| **TotVogue** | `ziucrfpebpxijqhwmqre` | `e4aceeacdc4f6a1677e92823df1651fd` | `c218bd7557331b8360d7085105b732b2` | `zaynahsestore-tv` | `www.totvogue.pk` |
+| **Zaynahs** | `unfdpfmjqljbjydgsccr` | `10d964449186f64d7896f8dcac4e5eff` | `37b6f57e13fe9466342b453d3a3ed4af` | `zaynahsestore-tv-main` | `www.zaynahs.pk` |
+| **MiniMahal** | `mgwkcumurrllhpjvfezz` | `6acd493022cd0f2d5a9c290088b5327a` | `7bb146345ffcc335d3435eda7bf7592d` | `mini-mahal-e-store` | `www.minimahal.com` |
+| **LittleMister** | `ljknmwianiswkalifueb` | `063a3d5c72d44b3654aa60b17ed94863` | `597d5f9b660750e13c2f68b3748eef22` | `eestore` | `www.littlemister.pk` |
+
+**REVALIDATE_SECRET (all projects — universal):** `zaynahs_secret_cache_revalidate_2026`
+
+---
+
+## ✅ ONE-COMMAND FULL AUDIT (Run After Every Deploy)
+
+```bash
+node scripts/post-deploy-fix.mjs
+```
+
+**Expected output (ALL CHECKS PASSED):**
+```
+[1/4] Vercel cache purge: OK             ← Must NOT be "SKIPPED"
+[2/4] Cloudflare purge (4 zones):
+  https://www.totvogue.pk: OK ✅
+  https://www.littlemister.pk/: OK ✅
+  https://www.minimahal.com: OK ✅
+  https://www.zaynahs.pk: OK ✅
+[3/4] 200 / OK
+[3/4] 200 /shop OK
+[3/4] 200 /reviews OK
+[4/4] Webhook: OK (revalidated:true)
+✅ ALL CHECKS PASSED — setup is clean.
+```
+
+**🚨 RULE VERCEL1 — If [1/4] shows SKIPPED:**
+```bash
+# Add missing VERCEL_PROJECT_NAME to env-backups files:
+grep "VERCEL_PROJECT_NAME" env-backups/*.env.local   # Check which are missing
+echo "VERCEL_PROJECT_NAME=<project-name>" >> env-backups/<store>.env.local
+```
+
+---
+
 
 ## 🔑 SECTION 1: Cloudflare API Tokens — COMPLETE GUIDE
 
