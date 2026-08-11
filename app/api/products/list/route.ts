@@ -11,7 +11,7 @@ import { getProducts } from '@/lib/services/products';
  *   ?category=slug (optional)
  */
 export const dynamic = 'force-dynamic';
-export const revalidate = 3600; // Cache for 1 hour on CDN
+export const revalidate = 0; // Fresh response always
 
 export async function GET(req: NextRequest) {
   try {
@@ -24,8 +24,8 @@ export async function GET(req: NextRequest) {
       { products: allProducts, total: allProducts.length },
       {
         headers: {
-          'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=60',
-          'cdn-cache-control': 'public, s-maxage=3600, stale-while-revalidate=60',
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          'cdn-cache-control': 'no-store',
         },
       }
     );
