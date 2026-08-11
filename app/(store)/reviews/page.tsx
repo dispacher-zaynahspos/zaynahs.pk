@@ -30,7 +30,15 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function ReviewsPage({ searchParams }: PageProps) {
   const sp = await searchParams;
   const settings = await getSettings();
-  const siteUrl = await getSiteUrl(settings);
+  let siteUrl = settings?.storeUrl?.replace(/\/+$/, '') || '';
+  if (!siteUrl) {
+    try {
+      const brand = await getDomainBrand();
+      siteUrl = `${brand.protocol}://${brand.domain}`;
+    } catch {
+      siteUrl = 'https://zaynahs.pk';
+    }
+  }
 
   const { reviews, total } = await getGlobalReviews({
     search: sp.search,

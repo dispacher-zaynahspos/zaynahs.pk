@@ -301,7 +301,7 @@ const applyFlashSaleDiscounts = async (products: Product[]): Promise<Product[]> 
           discountPrice = Math.max(0, basePrice - discountVal);
         }
 
-        if (discountPrice < basePrice) {
+        if (discountVal > 0 && discountPrice < product.price) {
           const updatedVariants = product.variants.map(v => {
             if (v.price) {
               const varBasePrice = v.comparePrice || (product.comparePrice ? Math.round(product.comparePrice * (v.price / product.price)) : v.price);
@@ -313,7 +313,7 @@ const applyFlashSaleDiscounts = async (products: Product[]): Promise<Product[]> 
               }
               return {
                 ...v,
-                price: varDiscountPrice,
+                price: Math.min(v.price, varDiscountPrice),
                 comparePrice: varBasePrice
               };
             }
@@ -341,7 +341,7 @@ const applyFlashSaleDiscounts = async (products: Product[]): Promise<Product[]> 
           const basePrice = product.comparePrice || product.price;
           const discountPrice = fsProd.discountValue ? parseFloat(fsProd.discountValue.toString()) : product.price;
 
-          if (discountPrice < basePrice) {
+          if (discountPrice < product.price) {
             const ratio = discountPrice / basePrice;
             const updatedVariants = product.variants.map(v => {
               if (v.price) {
@@ -391,7 +391,7 @@ const applyFlashSaleDiscounts = async (products: Product[]): Promise<Product[]> 
             discountPrice = Math.max(0, basePrice - discountVal);
           }
 
-          if (discountPrice < basePrice) {
+          if (discountVal > 0 && discountPrice < product.price) {
             const updatedVariants = product.variants.map(v => {
               if (v.price) {
                 const varBasePrice = v.comparePrice || (product.comparePrice ? Math.round(product.comparePrice * (v.price / product.price)) : v.price);

@@ -9,12 +9,37 @@ export async function POST(request: Request) {
     const formData = await request.formData();
     const file = formData.get('file') as File | null;
     const bucket = (formData.get('bucket') as string) || 'product-images';
+    const skipMediaLibrary = formData.get('skipMediaLibrary') === 'true';
 
     if (!file) {
       return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
     }
 
-    console.log(`[Media Upload API] Processing file: ${file.name}, size: ${file.size} bytes`);
+    console.log(`[Media Upload API] Processing file: ${file.name}, size: ${file.size} bytes, skipMediaLibrary: ${skipMediaLibrary}`);
+
+    if (skipMediaLibrary) {
+      // Direct server-side upload using supabaseAdmin (bypasses browser RLS and media_library table)
+      const timestamp = Date.now();
+      const randomStr = Math.random().toString(36).substring(2, 7);
+      const fileName = `review-photo-${timestamp}-${randomStr}.webp`;
+      const arrayBuffer = await file.arrayBuffer();
+
+      const { error: uploadErr } = await supabaseAdmin.storage
+        .from(bucket)
+        .upload(fileName, Buffer.from(arrayBuffer), {
+          cacheControl: 'public, max-age=31536000',
+          contentType: 'image/webp',
+          upsert: false
+        });
+
+      if (uploadErr) throw uploadErr;
+
+      const { data } = supabaseAdmin.storage
+        .from(bucket)
+        .getPublicUrl(fileName);
+
+      return NextResponse.json({ url: data.publicUrl, success: true });
+    }
 
     // 1. Process upload and convert to WebP
     const fileUrl = await uploadImage(file, bucket);

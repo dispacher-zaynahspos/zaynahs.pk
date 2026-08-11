@@ -146,12 +146,14 @@ export default async function ProductPage({ params }: PageProps) {
 
   const layout = settings.productPageLayout || ['details', 'ticker', 'reviews', 'related', 'recently_viewed', 'social_feed'];
 
-  const siteUrl = await getSiteUrl(settings);
-  
   let schemaBrandName = 'Store';
+  let siteUrl = settings?.storeUrl?.replace(/\/+$/, '') || 'https://zaynahs.pk';
   try {
     const brand = await getDomainBrand();
     schemaBrandName = brand.name;
+    if (!settings?.storeUrl) {
+      siteUrl = `${brand.protocol}://${brand.domain}`;
+    }
   } catch {}
 
   const productSchema: any = {

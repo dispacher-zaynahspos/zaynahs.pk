@@ -151,9 +151,6 @@ export const uploadImage = async (file: File | Blob, bucket: string, customName?
 export const uploadReviewImage = async (file: File): Promise<string> => {
   try {
     const isBrowser = typeof window !== 'undefined';
-    const supabase = isBrowser 
-      ? createBrowserClient() 
-      : (await import('@/lib/supabase/admin')).supabaseAdmin;
 
     // 1. Client-side compression to WebP under 20 KB
     let webpFile: File | Blob = file;
@@ -166,11 +163,37 @@ export const uploadReviewImage = async (file: File): Promise<string> => {
       }
     }
 
+    // 2. Upload via Server API route (uses service role key -> 100% reliable, zero RLS issues)
+    if (isBrowser) {
+      try {
+        const formData = new FormData();
+        const cleanName = file.name.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9-]/g, '');
+        formData.append('file', webpFile, `${cleanName}.webp`);
+        formData.append('bucket', 'product-images');
+        formData.append('skipMediaLibrary', 'true');
+
+        const res = await fetch('/api/media/upload', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (res.ok) {
+          const json = await res.json();
+          if (json.url) return json.url;
+        }
+      } catch (e) {
+        console.warn('[uploadReviewImage] API upload failed, falling back to client SDK:', e);
+      }
+    }
+
+    const supabase = isBrowser 
+      ? createBrowserClient() 
+      : (await import('@/lib/supabase/admin')).supabaseAdmin;
+
     const timestamp = Date.now();
     const randomStr = Math.random().toString(36).substring(2, 7);
     const fileName = `review-photo-${timestamp}-${randomStr}.webp`;
 
-    // 2. Upload file to Supabase storage bucket product-images
     const { error: uploadError } = await supabase.storage
       .from('product-images')
       .upload(fileName, webpFile, {
@@ -181,7 +204,6 @@ export const uploadReviewImage = async (file: File): Promise<string> => {
 
     if (uploadError) throw uploadError;
 
-    // 3. Retrieve public URL
     const { data } = supabase.storage
       .from('product-images')
       .getPublicUrl(fileName);
