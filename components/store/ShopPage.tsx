@@ -538,7 +538,15 @@ export default function ShopPage({
     return list;
   }, [allProducts, selectedCategoryId, selectedCollectionId, searchQuery, availability, priceMin, priceMax, sortBy, selectedColors, selectedSizes, selectedMaterials, activeCollection]);
 
-  const [loadMoreLimit, setLoadMoreLimit] = useState(() => Math.max(PAGE_SIZE, (isNaN(urlPage) ? 1 : urlPage) * PAGE_SIZE));
+  const pageFromUrl = isNaN(urlPage) ? 1 : Math.max(1, urlPage);
+  const targetLimitFromUrl = pageFromUrl * PAGE_SIZE;
+
+  const [loadMoreLimit, setLoadMoreLimit] = useState(() => targetLimitFromUrl);
+
+  // Sync loadMoreLimit with targetLimitFromUrl whenever urlPage changes or on back-navigation
+  useEffect(() => {
+    setLoadMoreLimit((prev) => Math.max(prev, targetLimitFromUrl));
+  }, [targetLimitFromUrl]);
 
   const displayProducts = useMemo(() => {
     return filteredProducts.slice(0, loadMoreLimit);
@@ -547,23 +555,6 @@ export default function ShopPage({
   const totalResults = filteredProducts.length;
   const hasMore = displayProducts.length < totalResults;
   const currentPage = Math.ceil(displayProducts.length / PAGE_SIZE);
-
-  const isFilterMount = useRef(true);
-
-  // Reset pagination when filters change (skip initial mount to preserve urlPage on back-navigation)
-  useEffect(() => {
-    if (isFilterMount.current) {
-      isFilterMount.current = false;
-      return;
-    }
-    setLoadMoreLimit(PAGE_SIZE);
-  }, [selectedCategoryId, searchQuery, sortBy, availability.onSale, availability.inStock, availability.outStock, priceMin, priceMax, selectedColors.join(','), selectedSizes.join(','), selectedMaterials.join(',')]);
-
-  // Sync loadMoreLimit when URL page param changes (browser nav)
-  useEffect(() => {
-    const page = isNaN(urlPage) ? 1 : Math.max(1, urlPage);
-    setLoadMoreLimit((prev) => Math.max(prev, page * PAGE_SIZE));
-  }, [urlPage]);
 
   const handleLoadMore = () => {
     const nextPage = currentPage + 1;

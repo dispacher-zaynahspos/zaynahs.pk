@@ -40,20 +40,24 @@ export const useScrollRestoration = () => {
 
       // Wait for DOM/images to settle
       const restore = () => {
-        // 1. Scroll to saved position
-        window.scrollTo({ top: data.scrollY, behavior: 'instant' });
-
-        // 2. Focus/highlight the product card that was clicked
         const card = document.getElementById(`product-card-${data.productId}`);
         if (card) {
+          card.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' });
           card.focus({ preventScroll: true });
           card.classList.add('scroll-restore-highlight');
           setTimeout(() => card.classList.remove('scroll-restore-highlight'), 1200);
+        } else {
+          window.scrollTo({ top: data.scrollY, behavior: 'instant' });
         }
       };
 
-      // Double RAF ensures layout is painted
-      requestAnimationFrame(() => requestAnimationFrame(restore));
+      // Double RAF + timeout check ensures layout and image dimensions settle cleanly
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          restore();
+          setTimeout(restore, 100);
+        });
+      });
     } catch {
       sessionStorage.removeItem(SCROLL_KEY);
     }
