@@ -6,7 +6,7 @@ import { getAllSocialProofs, deleteSocialProof, restoreSocialProof } from '@/lib
 import { Review, SocialProof } from '@/lib/types';
 import StarRating from '@/components/store/StarRating';
 import { formatDistanceToNow, parseISO } from 'date-fns';
-import { Check, Trash2, MessageSquare, Eye, EyeOff, Plus, Image, Edit } from '@/components/common/Icons';
+import { Check, Trash2, MessageSquare, Eye, EyeOff, Plus, Image, Edit, ZoomIn } from '@/components/common/Icons';
 import { toast } from 'sonner';
 import { useAdminTab } from '@/lib/hooks/useAdminTab';
 import { getClientSiteUrl } from '@/lib/site-url';
@@ -14,6 +14,7 @@ import EmptyState from '@/components/common/EmptyState';
 import { useConfirm } from '@/components/admin/shared/AdminConfirmProvider';
 import ReviewDetailSheet from '@/components/admin/ReviewDetailSheet';
 import PostReviewModal from '@/components/admin/PostReviewModal';
+import ReviewImageZoomModal from '@/components/store/ReviewImageZoomModal';
 
 type ReviewWithProduct = Review & { productName?: string; productImage?: string; productSlug?: string };
 
@@ -28,83 +29,83 @@ function AdminReviewsPageInner() {
   const [editProof, setEditProof] = useState<SocialProof | null>(null);
   const [zoomImageUrl, setZoomImageUrl] = useState<string | null>(null);
 
-  const handleOpenReview = (review: ReviewWithProduct) => setSelectedReview(review);
+  const allReviewPhotos = reviews.flatMap(review => {
+    const list = Array.isArray(review.images) && review.images.length > 0 
+      ? review.images 
+      : (review.screenshotUrl ? [review.screenshotUrl] : []);
 
-  const refreshReviews = async () => {
+    return list.map((url, idx) => ({
+      id: `${review.id}-${idx}`,
+      url,
+      reviewId: review.id,
+      review,
+      customerName: review.customerName,
+      productName: review.productName,
+      productImage: review.productImage,
+      rating: review.rating,
+      createdAt: review.createdAt
+    }));
+  });
+
+  const loadData = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const [data, proofs] = await Promise.all([
+      const [revs, proofs] = await Promise.all([
         getAllReviews(),
         getAllSocialProofs()
       ]);
-      setReviews(data);
+      setReviews(revs);
       setSocialProofs(proofs);
     } catch (err) {
-      console.error('Failed to load data:', err);
-      toast.error('Failed to load data');
+      console.error('Failed to load reviews:', err);
+      toast.error('Failed to load reviews');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    let active = true;
-    async function load() {
-      try {
-        const [data, proofs] = await Promise.all([
-          getAllReviews(),
-          getAllSocialProofs()
-        ]);
-        if (active) {
-          setReviews(data);
-          setSocialProofs(proofs);
-          setLoading(false);
-        }
-      } catch (err) {
-        console.error('Failed to load data:', err);
-        if (active) {
-          toast.error('Failed to load data');
-          setLoading(false);
-        }
-      }
-    }
-    load();
-    return () => { active = false; };
+    loadData();
   }, []);
 
   const handleToggleApprove = async (id: string, currentApproved: boolean) => {
     try {
       await approveReview(id, !currentApproved);
-      toast.success(!currentApproved ? 'Review approved' : 'Review unapproved');
-      refreshReviews();
-    } catch (err) {
-      toast.error('Failed to update review');
+      setReviews((prev) =>
+        prev.map((r) => (r.id === id ? { ...r, approved: !currentApproved } : r))
+      );
+      toast.success(currentApproved ? 'Review unapproved' : 'Review approved');
+    } catch {
+      toast.error('Failed to update review status');
     }
   };
 
   const handleToggleHide = async (id: string, currentHidden: boolean) => {
     try {
       await hideShowReview(id, !currentHidden);
-      toast.success(!currentHidden ? 'Review hidden' : 'Review visible');
-      refreshReviews();
-    } catch (err) {
-      toast.error('Failed to toggle review');
+      setReviews((prev) =>
+        prev.map((r) => (r.id === id ? { ...r, hidden: !currentHidden } : r))
+      );
+      toast.success(currentHidden ? 'Review is now visible' : 'Review hidden');
+    } catch {
+      toast.error('Failed to update visibility');
     }
   };
 
   const handleDelete = async (id: string) => {
     const confirmed = await confirm({
-      title: 'Move to Trash',
-      message: 'Move this review and its media to Trash?',
+      title: 'Move Review to Trash',
+      message: 'Are you sure you want to move this review to Trash? It can be restored later from the Trash Bin.',
       variant: 'danger',
       confirmText: 'Move to Trash'
     });
     if (!confirmed) return;
+
     try {
       await deleteReview(id);
+      setReviews((prev) => prev.filter((r) => r.id !== id));
       toast.success('Review moved to Trash');
-      refreshReviews();
-    } catch (err) {
+    } catch {
       toast.error('Failed to delete review');
     }
   };
@@ -119,11 +120,15 @@ function AdminReviewsPageInner() {
     if (!confirmed) return;
     try {
       await deleteSocialProof(id);
-      toast.success('Social proof deleted');
-      refreshReviews();
-    } catch (err) {
-      toast.error('Failed to delete social proof');
+      setSocialProofs((prev) => prev.filter((p) => p.id !== id));
+      toast.success('Custom post deleted');
+    } catch {
+      toast.error('Failed to delete custom post');
     }
+  };
+
+  const handleOpenReview = (review: ReviewWithProduct) => {
+    setSelectedReview(review);
   };
 
   const filteredReviews = reviews.filter(review => {
@@ -266,110 +271,72 @@ function AdminReviewsPageInner() {
           </div>
         )
       ) : activeTab === 'review_media' ? (
-        /* ── Review Media Gallery Tab ── */
-        filteredReviews.length === 0 ? (
+        /* ── Review Media Gallery Grid ── */
+        allReviewPhotos.length === 0 ? (
           <EmptyState 
             icon={<Image className="h-8 w-8 text-gray-400" />}
             title="No review media found" 
             description="No customer uploaded photos attached to reviews yet." 
           />
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredReviews.map((review) => {
-              const photoList = Array.isArray(review.images) && review.images.length > 0 
-                ? review.images 
-                : (review.screenshotUrl ? [review.screenshotUrl] : []);
-
-              if (photoList.length === 0) return null;
-
-              return (
-                <div
-                  key={review.id}
-                  className="bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
-                >
-                  {/* Photo Thumbnails */}
-                  <div className="p-3 bg-gray-50 dark:bg-black/20 border-b border-gray-100 dark:border-gray-800">
-                    <div className="grid grid-cols-2 gap-2">
-                      {photoList.map((imgUrl, imgIdx) => (
-                        <button
-                          key={imgIdx}
-                          type="button"
-                          onClick={() => setZoomImageUrl(imgUrl)}
-                          className="relative aspect-square rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 group hover:opacity-90 transition-all cursor-pointer"
-                        >
-                          <img src={imgUrl} alt={`Review photo ${imgIdx + 1}`} className="w-full h-full object-cover" />
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Review Content & Product Metadata */}
-                  <div className="p-4 space-y-2 flex-1">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        <span className="font-bold text-xs text-gray-900 dark:text-white truncate">
-                          {review.customerName}
-                        </span>
-                        <StarRating rating={review.rating} showText={false} starSize={12} />
-                      </div>
-                      <span className={`inline-flex items-center px-2 py-0.5 text-[9px] font-bold rounded-full ${
-                        !review.approved
-                          ? 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400'
-                          : review.hidden
-                          ? 'bg-gray-100 text-gray-700 dark:bg-white/5 dark:text-gray-400'
-                          : 'bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-400'
-                      }`}>
-                        {!review.approved ? 'Pending' : review.hidden ? 'Hidden' : 'Approved'}
-                      </span>
-                    </div>
-
-                    {review.productName && (
-                      <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 font-medium">
-                        {review.productImage && (
-                          <img src={review.productImage} alt={review.productName} className="w-5 h-5 rounded object-cover flex-shrink-0" />
-                        )}
-                        <span className="truncate">{review.productName}</span>
-                      </div>
-                    )}
-
-                    {review.comment && (
-                      <p className="text-xs text-gray-600 dark:text-gray-300 line-clamp-2 italic">
-                        &ldquo;{review.comment}&rdquo;
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Actions */}
-                  <div className="p-3 bg-gray-50/50 dark:bg-[#0f0f1b]/50 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between gap-1 text-xs font-bold">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
+            {allReviewPhotos.map((photo) => (
+              <div
+                key={photo.id}
+                className="group relative bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
+              >
+                {/* Photo Aspect Square Thumbnail */}
+                <div className="relative aspect-square bg-gray-100 dark:bg-gray-800 overflow-hidden">
+                  <img
+                    src={photo.url}
+                    alt={`Review photo by ${photo.customerName}`}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  {/* Hover Overlay with Lightbox Zoom & Action buttons */}
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 p-2">
                     <button
-                      onClick={() => handleToggleApprove(review.id, review.approved)}
-                      className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                        review.approved
-                          ? 'bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400'
-                          : 'bg-gray-100 dark:bg-white/5 text-gray-500 hover:text-green-600'
-                      }`}
+                      type="button"
+                      onClick={() => setZoomImageUrl(photo.url)}
+                      className="p-2 rounded-xl bg-white/90 text-gray-900 hover:bg-white hover:scale-105 transition-all shadow-md cursor-pointer"
+                      title="Inspect / Zoom Photo"
                     >
-                      <Check className="w-3.5 h-3.5" />
-                      <span>{review.approved ? 'Approved' : 'Approve'}</span>
+                      <ZoomIn className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => handleToggleHide(review.id, review.hidden ?? false)}
-                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-gray-500 hover:text-amber-500 transition-all cursor-pointer"
+                      type="button"
+                      onClick={() => handleOpenReview(photo.review)}
+                      className="p-2 rounded-xl bg-white/90 text-gray-900 hover:bg-white hover:scale-105 transition-all shadow-md cursor-pointer"
+                      title="View Review Details"
                     >
-                      {review.hidden ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
-                      <span>{review.hidden ? 'Show' : 'Hide'}</span>
+                      <Eye className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => handleDelete(review.id)}
-                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all cursor-pointer"
+                      type="button"
+                      onClick={() => handleDelete(photo.reviewId)}
+                      className="p-2 rounded-xl bg-red-500 text-white hover:bg-red-600 hover:scale-105 transition-all shadow-md cursor-pointer"
+                      title="Move Review to Trash"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
-                      <span>Trash</span>
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
-              );
-            })}
+
+                {/* Footer Metadata */}
+                <div className="p-2.5 space-y-1 bg-white dark:bg-[#16162a] border-t border-gray-100 dark:border-gray-800">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-bold text-gray-900 dark:text-white truncate max-w-[100px]">
+                      {photo.customerName}
+                    </span>
+                    <StarRating rating={photo.rating} showText={false} starSize={10} />
+                  </div>
+                  {photo.productName && (
+                    <p className="text-[10px] text-gray-400 truncate leading-tight">
+                      {photo.productName}
+                    </p>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
         )
       ) : filteredReviews.length === 0 ? (
@@ -566,7 +533,7 @@ function AdminReviewsPageInner() {
         <PostReviewModal
           isOpen={showPostModal}
           onClose={() => { setShowPostModal(false); setEditProof(null); }}
-          onSuccess={() => refreshReviews()}
+          onSuccess={() => loadData()}
           editProof={editProof}
         />
       )}
