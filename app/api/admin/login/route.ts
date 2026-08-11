@@ -49,9 +49,14 @@ export async function POST(request: Request) {
       );
     }
 
-    // Admin email check
-    const allowedAdminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
-    if (allowedAdminEmail && authData.user.email !== allowedAdminEmail) {
+    // Admin email check (supports single email or comma-separated list in NEXT_PUBLIC_ADMIN_EMAIL)
+    const allowedAdminEmails = (process.env.NEXT_PUBLIC_ADMIN_EMAIL || '')
+      .split(',')
+      .map((e) => e.trim().toLowerCase())
+      .filter(Boolean);
+
+    const userEmail = authData.user.email?.toLowerCase() || '';
+    if (allowedAdminEmails.length > 0 && !allowedAdminEmails.includes(userEmail)) {
       await supabase.auth.signOut();
       return NextResponse.json(
         { error: 'Access denied: Not authorized for admin portal.' },

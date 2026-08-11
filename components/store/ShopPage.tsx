@@ -548,15 +548,21 @@ export default function ShopPage({
   const hasMore = displayProducts.length < totalResults;
   const currentPage = Math.ceil(displayProducts.length / PAGE_SIZE);
 
-  // Reset pagination when filters change
+  const isFilterMount = useRef(true);
+
+  // Reset pagination when filters change (skip initial mount to preserve urlPage on back-navigation)
   useEffect(() => {
+    if (isFilterMount.current) {
+      isFilterMount.current = false;
+      return;
+    }
     setLoadMoreLimit(PAGE_SIZE);
   }, [selectedCategoryId, searchQuery, sortBy, availability.onSale, availability.inStock, availability.outStock, priceMin, priceMax, selectedColors.join(','), selectedSizes.join(','), selectedMaterials.join(',')]);
 
   // Sync loadMoreLimit when URL page param changes (browser nav)
   useEffect(() => {
     const page = isNaN(urlPage) ? 1 : Math.max(1, urlPage);
-    setLoadMoreLimit(page * PAGE_SIZE);
+    setLoadMoreLimit((prev) => Math.max(prev, page * PAGE_SIZE));
   }, [urlPage]);
 
   const handleLoadMore = () => {
