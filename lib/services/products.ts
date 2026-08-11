@@ -292,43 +292,47 @@ const applyFlashSaleDiscounts = async (products: Product[]): Promise<Product[]> 
         const discountType = settings.globalFlashSaleDiscountType || 'percentage';
         const discountVal = settings.globalFlashSaleDiscountValue || 0;
 
-        const basePrice = product.comparePrice || product.price;
-        let discountPrice = product.price;
+        if (discountVal > 0) {
+          const currentPrice = product.price;
+          const baseComparePrice = product.comparePrice || product.price;
+          let discountPrice = currentPrice;
 
-        if (discountType === 'percentage') {
-          discountPrice = Math.round(basePrice * (1 - discountVal / 100));
-        } else if (discountType === 'fixed') {
-          discountPrice = Math.max(0, basePrice - discountVal);
-        }
+          if (discountType === 'percentage') {
+            discountPrice = Math.round(currentPrice * (1 - discountVal / 100));
+          } else if (discountType === 'fixed') {
+            discountPrice = Math.max(0, currentPrice - discountVal);
+          }
 
-        if (discountVal > 0 && discountPrice < product.price) {
-          const updatedVariants = product.variants.map(v => {
-            if (v.price) {
-              const varBasePrice = v.comparePrice || (product.comparePrice ? Math.round(product.comparePrice * (v.price / product.price)) : v.price);
-              let varDiscountPrice = v.price;
-              if (discountType === 'percentage') {
-                varDiscountPrice = Math.round(varBasePrice * (1 - discountVal / 100));
-              } else if (discountType === 'fixed') {
-                varDiscountPrice = Math.max(0, varBasePrice - discountVal);
+          if (discountPrice < currentPrice) {
+            const updatedVariants = product.variants.map(v => {
+              if (v.price) {
+                const varCurrentPrice = v.price;
+                const varComparePrice = v.comparePrice || (product.comparePrice ? Math.round(product.comparePrice * (v.price / product.price)) : v.price);
+                let varDiscountPrice = varCurrentPrice;
+                if (discountType === 'percentage') {
+                  varDiscountPrice = Math.round(varCurrentPrice * (1 - discountVal / 100));
+                } else if (discountType === 'fixed') {
+                  varDiscountPrice = Math.max(0, varCurrentPrice - discountVal);
+                }
+                return {
+                  ...v,
+                  price: varDiscountPrice,
+                  comparePrice: varComparePrice
+                };
               }
-              return {
-                ...v,
-                price: Math.min(v.price, varDiscountPrice),
-                comparePrice: varBasePrice
-              };
-            }
-            return v;
-          });
+              return v;
+            });
 
-          return {
-            ...product,
-            price: discountPrice,
-            comparePrice: basePrice,
-            variants: updatedVariants,
-            flashSaleEnabled: true,
-            flashSaleEndDate: settings.flash_sale_end_date || undefined,
-            flashSaleStartDate: settings.flash_sale_start_date || undefined
-          };
+            return {
+              ...product,
+              price: discountPrice,
+              comparePrice: baseComparePrice,
+              variants: updatedVariants,
+              flashSaleEnabled: true,
+              flashSaleEndDate: settings.flash_sale_end_date || undefined,
+              flashSaleStartDate: settings.flash_sale_start_date || undefined
+            };
+          }
         }
       }
 
@@ -338,19 +342,21 @@ const applyFlashSaleDiscounts = async (products: Product[]): Promise<Product[]> 
         const fsProd = fsProducts.find((p: any) => p?.productId === product.id);
 
         if (fsProd) {
-          const basePrice = product.comparePrice || product.price;
+          const currentPrice = product.price;
+          const baseComparePrice = product.comparePrice || product.price;
           const discountPrice = fsProd.discountValue ? parseFloat(fsProd.discountValue.toString()) : product.price;
 
-          if (discountPrice < product.price) {
-            const ratio = discountPrice / basePrice;
+          if (discountPrice < currentPrice) {
+            const ratio = discountPrice / currentPrice;
             const updatedVariants = product.variants.map(v => {
               if (v.price) {
-                const varBasePrice = v.comparePrice || (product.comparePrice ? Math.round(product.comparePrice * (v.price / product.price)) : v.price);
-                const newVarPrice = Math.round(varBasePrice * ratio);
+                const varCurrentPrice = v.price;
+                const varComparePrice = v.comparePrice || (product.comparePrice ? Math.round(product.comparePrice * (v.price / product.price)) : v.price);
+                const newVarPrice = Math.round(varCurrentPrice * ratio);
                 return {
                   ...v,
                   price: newVarPrice,
-                  comparePrice: varBasePrice
+                  comparePrice: varComparePrice
                 };
               }
               return v;
@@ -359,7 +365,7 @@ const applyFlashSaleDiscounts = async (products: Product[]): Promise<Product[]> 
             return {
               ...product,
               price: discountPrice,
-              comparePrice: basePrice,
+              comparePrice: baseComparePrice,
               variants: updatedVariants,
               flashSaleEnabled: true,
               flashSaleEndDate: fs.settings?.endTime || undefined,
@@ -382,43 +388,47 @@ const applyFlashSaleDiscounts = async (products: Product[]): Promise<Product[]> 
           const discountType = product.flashSaleDiscountType || 'fixed';
           const discountVal = product.flashSaleDiscountValue || 0;
 
-          const basePrice = product.comparePrice || product.price;
-          let discountPrice = product.price;
+          if (discountVal > 0) {
+            const currentPrice = product.price;
+            const baseComparePrice = product.comparePrice || product.price;
+            let discountPrice = currentPrice;
 
-          if (discountType === 'percentage') {
-            discountPrice = Math.round(basePrice * (1 - discountVal / 100));
-          } else if (discountType === 'fixed') {
-            discountPrice = Math.max(0, basePrice - discountVal);
-          }
+            if (discountType === 'percentage') {
+              discountPrice = Math.round(currentPrice * (1 - discountVal / 100));
+            } else if (discountType === 'fixed') {
+              discountPrice = Math.max(0, currentPrice - discountVal);
+            }
 
-          if (discountVal > 0 && discountPrice < product.price) {
-            const updatedVariants = product.variants.map(v => {
-              if (v.price) {
-                const varBasePrice = v.comparePrice || (product.comparePrice ? Math.round(product.comparePrice * (v.price / product.price)) : v.price);
-                let varDiscountPrice = v.price;
-                if (discountType === 'percentage') {
-                  varDiscountPrice = Math.round(varBasePrice * (1 - discountVal / 100));
-                } else if (discountType === 'fixed') {
-                  varDiscountPrice = Math.max(0, varBasePrice - discountVal);
+            if (discountPrice < currentPrice) {
+              const updatedVariants = product.variants.map(v => {
+                if (v.price) {
+                  const varCurrentPrice = v.price;
+                  const varComparePrice = v.comparePrice || (product.comparePrice ? Math.round(product.comparePrice * (v.price / product.price)) : v.price);
+                  let varDiscountPrice = varCurrentPrice;
+                  if (discountType === 'percentage') {
+                    varDiscountPrice = Math.round(varCurrentPrice * (1 - discountVal / 100));
+                  } else if (discountType === 'fixed') {
+                    varDiscountPrice = Math.max(0, varCurrentPrice - discountVal);
+                  }
+                  return {
+                    ...v,
+                    price: varDiscountPrice,
+                    comparePrice: varComparePrice
+                  };
                 }
-                return {
-                  ...v,
-                  price: varDiscountPrice,
-                  comparePrice: varBasePrice
-                };
-              }
-              return v;
-            });
+                return v;
+              });
 
-            return {
-              ...product,
-              price: discountPrice,
-              comparePrice: basePrice,
-              variants: updatedVariants,
-              flashSaleEnabled: true,
-              flashSaleEndDate: product.flashSaleEndDate || undefined,
-              flashSaleStartDate: product.flashSaleStartDate || undefined
-            };
+              return {
+                ...product,
+                price: discountPrice,
+                comparePrice: baseComparePrice,
+                variants: updatedVariants,
+                flashSaleEnabled: true,
+                flashSaleEndDate: product.flashSaleEndDate || undefined,
+                flashSaleStartDate: product.flashSaleStartDate || undefined
+              };
+            }
           }
         }
       }
@@ -429,44 +439,48 @@ const applyFlashSaleDiscounts = async (products: Product[]): Promise<Product[]> 
         const fsCat = categoryDiscounts.find((c: any) => c?.categoryId === product.categoryId);
 
         if (fsCat) {
-          const basePrice = product.comparePrice || product.price;
           const discountVal = parseFloat(fsCat.discountValue) || 0;
-          let discountPrice = product.price;
+          if (discountVal > 0) {
+            const currentPrice = product.price;
+            const baseComparePrice = product.comparePrice || product.price;
+            let discountPrice = currentPrice;
 
-          if (fsCat.discountType === 'percentage') {
-            discountPrice = Math.round(basePrice * (1 - discountVal / 100));
-          } else if (fsCat.discountType === 'fixed') {
-            discountPrice = Math.max(0, basePrice - discountVal);
-          }
+            if (fsCat.discountType === 'percentage') {
+              discountPrice = Math.round(currentPrice * (1 - discountVal / 100));
+            } else if (fsCat.discountType === 'fixed') {
+              discountPrice = Math.max(0, currentPrice - discountVal);
+            }
 
-          if (discountPrice < basePrice) {
-            const updatedVariants = product.variants.map(v => {
-              if (v.price) {
-                const varBasePrice = v.comparePrice || (product.comparePrice ? Math.round(product.comparePrice * (v.price / product.price)) : v.price);
-                let varDiscountPrice = v.price;
-                if (fsCat.discountType === 'percentage') {
-                  varDiscountPrice = Math.round(varBasePrice * (1 - discountVal / 100));
-                } else if (fsCat.discountType === 'fixed') {
-                  varDiscountPrice = Math.max(0, varBasePrice - discountVal);
+            if (discountPrice < currentPrice) {
+              const updatedVariants = product.variants.map(v => {
+                if (v.price) {
+                  const varCurrentPrice = v.price;
+                  const varComparePrice = v.comparePrice || (product.comparePrice ? Math.round(product.comparePrice * (v.price / product.price)) : v.price);
+                  let varDiscountPrice = varCurrentPrice;
+                  if (fsCat.discountType === 'percentage') {
+                    varDiscountPrice = Math.round(varCurrentPrice * (1 - discountVal / 100));
+                  } else if (fsCat.discountType === 'fixed') {
+                    varDiscountPrice = Math.max(0, varCurrentPrice - discountVal);
+                  }
+                  return {
+                    ...v,
+                    price: varDiscountPrice,
+                    comparePrice: varComparePrice
+                  };
                 }
-                return {
-                  ...v,
-                  price: varDiscountPrice,
-                  comparePrice: varBasePrice
-                };
-              }
-              return v;
-            });
+                return v;
+              });
 
-            return {
-              ...product,
-              price: discountPrice,
-              comparePrice: basePrice,
-              variants: updatedVariants,
-              flashSaleEnabled: true,
-              flashSaleEndDate: fs.settings?.endTime || undefined,
-              flashSaleStartDate: fs.settings?.startTime || undefined
-            };
+              return {
+                ...product,
+                price: discountPrice,
+                comparePrice: baseComparePrice,
+                variants: updatedVariants,
+                flashSaleEnabled: true,
+                flashSaleEndDate: fs.settings?.endTime || undefined,
+                flashSaleStartDate: fs.settings?.startTime || undefined
+              };
+            }
           }
         }
       }
