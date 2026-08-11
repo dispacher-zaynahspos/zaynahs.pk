@@ -83,13 +83,15 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
 export default async function StoreShopPage({ searchParams }: PageProps) {
   const { category: categorySlug, collection: collectionSlug } = await searchParams;
   
-  const [products, categories, collections, settings, brand] = await Promise.all([
-    getProducts(undefined, 24), // SSR first 24 only — ShopPage loads rest client-side
+  const [categories, collections, settings, brand] = await Promise.all([
     getCategories(),
     getCollections(),
     getSettings(),
     getDomainBrand()
   ]);
+
+  const activeCat = categorySlug ? categories.find(c => c.slug === categorySlug) : undefined;
+  const products = await getProducts(activeCat?.id);
 
   const siteUrl = `${brand.protocol}://${brand.domain}`;
 

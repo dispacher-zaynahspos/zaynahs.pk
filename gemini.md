@@ -21,6 +21,10 @@
 7. **Agent Executes**: Gemini agent runs all terminal commands autonomously. Never ask user to run commands manually unless absolutely required.
 8. **Fast & Direct Work**: Work directly and quickly. Do not waste tokens on MCP tools, browser interactions, or reading unnecessary files. Resolve issues with direct code analysis and implementation.
 9. **Product Card Styles & Templates**: Whenever creating, updating, or modifying product card styles, layout designs, swatches, badges, actions, or visual card themes, the agent MUST strictly follow the step-by-step implementation guide in [add_card_style_prompt.md](file:///Users/shoaib/Desktop/Zaynahs%20e-store/docs/prompts/add_card_style_prompt.md).
+10. **RULE D12 — FLASH SALE DISCOUNT & API CACHING (STRICTLY ENFORCED)**:
+   - Flash Sale discounts (percentage or fixed) MUST apply directly to active selling price (`product.price`), preserving `comparePrice` as original compare price (or original price if compare price was null).
+   - Dynamic product listing endpoints (such as `/api/products/list`) MUST use `Cache-Control: no-store, no-cache, must-revalidate` to prevent edge CDN price staleness across storefront pages.
+   - Every production deploy MUST trigger `node scripts/post-deploy-fix.mjs` to purge Cloudflare CDN edge cache and avoid CSS/JS hash mismatch (`ChunkLoadError 404`).
 
 ---
 
@@ -322,6 +326,12 @@ The webhook revalidation secret `REVALIDATE_SECRET` must **ALWAYS** be exactly `
 - It must be hardcoded in `.env.local`, Vercel environment variables, `NEW_PROJECT_SETUP_GUIDE.md`, and Supabase triggers. This ensures multi-domain clones don't break database webhooks.
 - Testing and manual curl triggers in `STORE_TESTING_GUIDE.md` must strictly use this secret.
 - **Vercel API Sync:** The agent MUST always ensure this secret is synced correctly across all connected Vercel projects (e.g., MiniMahal and Totvogue) using the Vercel REST API (`PATCH /v9/projects/{id}/env/{env_id}`). Never leave Vercel with a mismatched secret.
+
+## RULE D11 — NO DUPLICATE FOREIGN KEY CONSTRAINTS (STRICTLY ENFORCED)
+- Never create duplicate foreign key constraints on the same pair of tables (e.g., `fk_products_size_guide` vs `products_size_guide_id_fkey`).
+- Duplicate foreign key constraints cause Supabase PostgREST error `PGRST201: Could not embed because more than one relationship was found`, breaking API responses and hiding all products (`0 products found`).
+- Always check existing foreign key names before creating a constraint. If an old legacy constraint exists, drop it using `ALTER TABLE <table> DROP CONSTRAINT IF EXISTS <legacy_name>;`.
+- Storefront service queries (`staticSupabase` in `lib/services/products.ts`, `categories.ts`, `sections.ts`, etc.) MUST always use `SUPABASE_SERVICE_ROLE_KEY` with fallback to `NEXT_PUBLIC_SUPABASE_ANON_KEY` to prevent RLS and schema caching bugs.
 
 ## RULE D4 — SOFT DELETE
 Never hard delete products. Use `products.active = false`.
