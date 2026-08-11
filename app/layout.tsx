@@ -36,13 +36,16 @@ const getFaviconType = (url: string) => {
   return 'image/x-icon';
 };
 
+import { stripHtmlTags } from "@/lib/utils/stripHtml";
+
 export async function generateMetadata(): Promise<Metadata> {
   try {
     const brand = await getDomainBrand();
     const settings = await getSettings();
     const siteUrl = `${brand.protocol}://${brand.domain}`;
 
-    const description = settings.metaDescription || brand.tagline || `Discover amazing deals at ${brand.name}. Quality items with fast delivery.`;
+    const rawDesc = settings.metaDescription || brand.tagline || `Discover amazing deals at ${brand.name}. Quality items with fast delivery.`;
+    const description = stripHtmlTags(rawDesc);
     const title = settings.metaTitle || brand.tagline || brand.name;
 
     const timestamp = settings.updatedAt ? new Date(settings.updatedAt).getTime() : Date.now();

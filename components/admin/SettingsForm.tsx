@@ -1429,6 +1429,8 @@ export default function SettingsForm({ initialSettings }: SettingsFormProps) {
           setLogoWidth={setLogoWidth}
           faviconUrl={faviconUrl}
           setFaviconUrl={setFaviconUrl}
+          bannerUrl={bannerUrl}
+          setBannerUrl={setBannerUrl}
           handleRemoveImage={handleRemoveImage}
         />
       )}

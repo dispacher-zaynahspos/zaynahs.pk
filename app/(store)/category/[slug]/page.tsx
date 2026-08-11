@@ -5,6 +5,8 @@ import { getCategoryBySlug } from '@/lib/services/categories';
 import { getDomainBrand, cleanBrandName } from '@/lib/utils/getDomainBrand';
 import { Metadata } from 'next';
 
+import { stripHtmlTags } from '@/lib/utils/stripHtml';
+
 export const revalidate = 300; // Cache redirect for 5 minutes
 
 interface CategoryPageProps {
@@ -33,7 +35,8 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
     const siteUrl = `${brand.protocol}://${brand.domain}`;
 
     const title = cleanBrandName(seoMeta?.seo_title, brand.name) || `${category.name} | ${brand.name}`;
-    const description = cleanBrandName(seoMeta?.meta_description, brand.name) || category.description || '';
+    const rawDesc = cleanBrandName(seoMeta?.meta_description, brand.name) || category.description || '';
+    const description = stripHtmlTags(rawDesc);
     const imageUrl = category.imageUrl || settings.logoUrl || settings.faviconUrl || '';
 
     return {

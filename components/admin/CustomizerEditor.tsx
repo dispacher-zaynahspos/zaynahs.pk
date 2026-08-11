@@ -1444,15 +1444,81 @@ export default function CustomizerEditor({
                       </div>
 
                       {storeSettings.enableTicker && (
-                        <div className="space-y-1.5">
-                          <label className="text-[11px] font-bold text-gray-500 dark:text-gray-400 block uppercase tracking-wider">Ticker Lines (One per line)</label>
-                          <textarea
-                            rows={4}
-                            value={storeSettings.tickerText || ''}
-                            onChange={(e) => setStoreSettings(prev => ({ ...prev, tickerText: e.target.value }))}
-                            className="w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#0f0f1b] px-3 py-2 text-xs font-semibold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white resize-none"
-                            placeholder="Free returns within 30 days&#10;Unlimited delivery for only Rs. 175"
-                          />
+                        <div className="space-y-4 pt-2">
+                          <div className="space-y-1.5">
+                            <label className="text-[11px] font-bold text-gray-500 dark:text-gray-400 block uppercase tracking-wider">Ticker Lines (One per line)</label>
+                            <textarea
+                              rows={4}
+                              value={storeSettings.tickerText || ''}
+                              onChange={(e) => setStoreSettings(prev => ({ ...prev, tickerText: e.target.value }))}
+                              className="w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#0f0f1b] px-3 py-2 text-xs font-semibold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white resize-none"
+                              placeholder="Free returns within 30 days&#10;Unlimited delivery for only Rs. 175"
+                            />
+                          </div>
+
+                          <div className="space-y-3 pt-2 border-t border-gray-100 dark:border-gray-800">
+                            <h5 className="text-[11px] font-extrabold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Ticker Colors</h5>
+                            
+                            <div className="flex items-center justify-between">
+                              <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400">Bg Color</label>
+                              <div className="flex items-center gap-1.5">
+                                <input
+                                  type="color"
+                                  value={activeSection.settings?.tickerBgColor || (storeSettings as any).tickerBgColor || '#ffffff'}
+                                  onChange={e => {
+                                    const val = e.target.value;
+                                    setStoreSettings(prev => ({ ...prev, tickerBgColor: val }));
+                                    handleUpdateSection(activeSection.id, {
+                                      settings: { ...activeSection.settings, tickerBgColor: val }
+                                    });
+                                  }}
+                                  className="w-7 h-7 rounded-lg border border-gray-200 dark:border-gray-700 cursor-pointer"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setStoreSettings(prev => ({ ...prev, tickerBgColor: '' }));
+                                    handleUpdateSection(activeSection.id, {
+                                      settings: { ...activeSection.settings, tickerBgColor: '' }
+                                    });
+                                  }}
+                                  className="text-[9px] text-gray-400 hover:text-[#e94560] font-bold uppercase tracking-wider cursor-pointer"
+                                >
+                                  Reset
+                                </button>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center justify-between">
+                              <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400">Text Color</label>
+                              <div className="flex items-center gap-1.5">
+                                <input
+                                  type="color"
+                                  value={activeSection.settings?.tickerTextColor || (storeSettings as any).tickerTextColor || '#1e293b'}
+                                  onChange={e => {
+                                    const val = e.target.value;
+                                    setStoreSettings(prev => ({ ...prev, tickerTextColor: val }));
+                                    handleUpdateSection(activeSection.id, {
+                                      settings: { ...activeSection.settings, tickerTextColor: val }
+                                    });
+                                  }}
+                                  className="w-7 h-7 rounded-lg border border-gray-200 dark:border-gray-700 cursor-pointer"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setStoreSettings(prev => ({ ...prev, tickerTextColor: '' }));
+                                    handleUpdateSection(activeSection.id, {
+                                      settings: { ...activeSection.settings, tickerTextColor: '' }
+                                    });
+                                  }}
+                                  className="text-[9px] text-gray-400 hover:text-[#e94560] font-bold uppercase tracking-wider cursor-pointer"
+                                >
+                                  Reset
+                                </button>
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       )}
                     </div>

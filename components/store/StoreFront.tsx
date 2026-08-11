@@ -1434,9 +1434,11 @@ export default function StoreFront({
               <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-80 transition-opacity group-hover:opacity-90" />
               
               {/* Capsule label floating bottom-left */}
-              <div className="absolute bottom-4 left-4 bg-white/95 dark:bg-white text-[#1a1a2e] px-4 py-2 rounded-full text-xs font-black tracking-wide shadow-md transform transition-all group-hover:translate-x-1 duration-300">
-                {item.title || 'Explore'}
-              </div>
+              {section.settings?.show_card_labels !== false && (
+                <div className="absolute bottom-4 left-4 bg-white/95 dark:bg-white text-[#1a1a2e] px-4 py-2 rounded-full text-xs font-black tracking-wide shadow-md transform transition-all group-hover:translate-x-1 duration-300">
+                  {item.title || 'Explore'}
+                </div>
+              )}
             </Link>
           ))}
         </div>
@@ -1487,8 +1489,18 @@ export default function StoreFront({
 
   const renderTickerSection = (section: HomepageSection) => {
     if (!activeSettings.enableTicker || !activeSettings.tickerText) return null;
+    const tickerBgColor = section.settings?.tickerBgColor || (activeSettings as any).tickerBgColor || '';
+    const tickerTextColor = section.settings?.tickerTextColor || (activeSettings as any).tickerTextColor || '';
+
     return (
-      <div key={section.id} className="w-full overflow-hidden bg-white dark:bg-white/5 border-y border-gray-200 dark:border-gray-800 py-3.5 select-none">
+      <div 
+        key={section.id} 
+        className="w-full overflow-hidden bg-white dark:bg-white/5 border-y border-gray-200 dark:border-gray-800 py-3.5 select-none"
+        style={{
+          backgroundColor: tickerBgColor || undefined,
+          color: tickerTextColor || undefined
+        }}
+      >
         <style>{`
           @keyframes marquee {
             0% { transform: translateX(0); }
@@ -1504,9 +1516,13 @@ export default function StoreFront({
           {[...Array(4)].map((_, loopIdx) => (
             <div key={loopIdx} className="flex items-center gap-8">
               {activeSettings.tickerText!.split('\n').filter(Boolean).map((item, itemIdx) => (
-                <div key={itemIdx} className="flex items-center gap-8 text-sm font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wider">
+                <div 
+                  key={itemIdx} 
+                  className="flex items-center gap-8 text-sm font-bold uppercase tracking-wider"
+                  style={{ color: tickerTextColor || undefined }}
+                >
                   <span>{item}</span>
-                  <span className="text-gray-400 dark:text-gray-600 font-normal">✦</span>
+                  <span className="opacity-60 font-normal">✦</span>
                 </div>
               ))}
             </div>

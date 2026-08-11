@@ -37,7 +37,9 @@ interface GeneralTabProps {
   setLogoWidth: (val: number) => void;
   faviconUrl: string;
   setFaviconUrl: (val: string) => void;
-  handleRemoveImage: (type: 'logo' | 'favicon') => void;
+  bannerUrl: string;
+  setBannerUrl: (val: string) => void;
+  handleRemoveImage: (type: 'logo' | 'favicon' | 'banner') => void;
 }
 
 import MediaSelectorModal from '../MediaSelectorModal';
@@ -76,10 +78,12 @@ export default function GeneralTab({
   setLogoWidth,
   faviconUrl,
   setFaviconUrl,
+  bannerUrl,
+  setBannerUrl,
   handleRemoveImage,
 }: GeneralTabProps) {
   const [isMediaModalOpen, setIsMediaModalOpen] = React.useState(false);
-  const [selectingType, setSelectingType] = React.useState<'logo' | 'favicon' | null>(null);
+  const [selectingType, setSelectingType] = React.useState<'logo' | 'favicon' | 'banner' | null>(null);
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
       
@@ -361,13 +365,57 @@ export default function GeneralTab({
                     <span>Select Media</span>
                   </button>
                   <span className="text-[10px] text-gray-400 dark:text-gray-500">
-                    Browser tab ke liye small icon. Aap <strong className="text-gray-900 dark:text-white">.png</strong> ya <strong className="text-gray-900 dark:text-white">.ico</strong> dono formats use kar sakte hain (dono theek hain).
-                    <br />
-                    <span className="text-amber-500 font-semibold">Tip: Browser favicon ko bohot aggressive cache karta hai. Agar update na ho raha ho toh cache clear karein (Ctrl/Cmd + Shift + R) ya Incognito tab mein check karein.</span>
+                    Browser tab ke liye small icon.
                   </span>
                 </div>
               </div>
             </div>
+
+            {/* Share Banner (OG Image) Upload Zone */}
+            <div className="space-y-2.5">
+              <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                Share Link Banner (WhatsApp / Social OG Banner)
+              </label>
+              <div className="flex flex-col sm:flex-row items-center gap-4 p-4 rounded-xl border border-dashed border-gray-200 dark:border-gray-800 bg-gray-50/20 dark:bg-[#0f0f1b]/20">
+                {bannerUrl ? (
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="relative h-20 w-36 border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden bg-white dark:bg-[#0f0f1b] flex items-center justify-center p-1">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={bannerUrl} alt="Share Banner Preview" className="h-full w-full object-cover rounded" />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveImage('banner')}
+                      className="flex items-center gap-1 text-[11px] font-bold text-red-500 hover:text-red-600 transition-colors cursor-pointer"
+                    >
+                      <Trash2 className="h-3 w-3" /> Remove
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex h-20 w-36 items-center justify-center rounded-xl bg-gray-100 dark:bg-white/5 text-gray-400">
+                    <ImageIcon className="h-8 w-8" />
+                  </div>
+                )}
+
+                <div className="flex-1 flex flex-col gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectingType('banner');
+                      setIsMediaModalOpen(true);
+                    }}
+                    className="relative self-start flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-white/5 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 text-xs font-bold rounded-lg cursor-pointer transition-colors"
+                  >
+                    <ImageIcon className="h-3.5 w-3.5" />
+                    <span>Select Media</span>
+                  </button>
+                  <span className="text-[10px] text-gray-400 dark:text-gray-500">
+                    Jab aap basic domain link (<strong className="text-gray-900 dark:text-white">domain.pk</strong>) WhatsApp ya Social Media par share karein toh yeh banner image preview hoga (Recommended: 1200x630px).
+                  </span>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>
@@ -384,6 +432,8 @@ export default function GeneralTab({
               setLogoUrl(urls[0]);
             } else if (selectingType === 'favicon') {
               setFaviconUrl(urls[0]);
+            } else if (selectingType === 'banner') {
+              setBannerUrl(urls[0]);
             }
           }
           setIsMediaModalOpen(false);
