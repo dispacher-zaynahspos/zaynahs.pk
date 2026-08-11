@@ -945,3 +945,213 @@ Agent automated: 5-10 minutes
 - Vercel Free: 1M requests/month, 100GB bandwidth
 - Agent will document all limitations in docs/CLOUDFLARE_SUPABASE_SETUP.md
 ```
+---
+
+# 🔑 SECTION: CLOUDFLARE TOKEN SETUP — MANDATORY FOR NEW PROJECTS
+
+## ⚠️ Critical Rule: NEVER Use `cfk_` Global API Key
+
+When a new project is being set up, the `CLOUDFLARE_API_TOKEN` MUST be a `cfut_` API Token.
+
+| What you have | What to do |
+|--------------|------------|
+| `cfk_XXXXXXXX` (Global API Key) | Create new `cfut_` token via API (see below) |
+| `cfut_XXXXXXXX` (API Token) | ✅ Use directly |
+| No token | Create new `cfut_` token via dashboard or API |
+
+---
+
+## Step 1: Create Cloudflare API Token for New Project
+
+### Via Dashboard (Manual)
+1. Login to Cloudflare with project's account
+2. **https://dash.cloudflare.com/profile/api-tokens** → **Create Token**
+3. Custom Token → Permissions: `Zone → Cache Purge → Purge` + `Zone → Zone → Read`
+4. Zone: `Include → Specific zone → yourdomain.com`
+5. Expiry: **Set to 2030** to avoid expiry
+6. Copy the `cfut_XXXXXXXX` token
+
+### Via API (If You Have Global API Key)
+```bash
+# This is the AGENT METHOD — no manual steps needed
+CF_GLOBAL_KEY="cfk_XXXXXXXX"  # Global API Key from dashboard
+CF_EMAIL="account@gmail.com"   # CF account email
+ZONE_ID="your_zone_id"
+
+# Create new API Token with all needed permissions
+curl -s -X POST "https://api.cloudflare.com/client/v4/user/tokens" \
+  -H "X-Auth-Email: $CF_EMAIL" \
+  -H "X-Auth-Key: $CF_GLOBAL_KEY" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"name\": \"newproject-all-permissions\",
+    \"policies\": [{
+      \"effect\": \"allow\",
+      \"resources\": {\"com.cloudflare.api.account.zone.$ZONE_ID\": \"*\"},
+      \"permission_groups\": [
+        {\"id\": \"e17beae8b8cb423a99b1730f21238bed\"},
+        {\"id\": \"c8fed203ed3043cba015a93ad1616f1f\"},
+        {\"id\": \"e6d2666161e84845a636613608cee8d5\"},
+        {\"id\": \"517b21aee92c4d89936c976ba6e4be55\"},
+        {\"id\": \"3030687196b94b638145a3953da2b699\"},
+        {\"id\": \"9ff81cbbe65c400b97d92c3c1033cab6\"},
+        {\"id\": \"3245da1cf36c45c3847bb9b483c62f97\"}
+      ]
+    }],
+    \"not_before\": \"2026-01-01T00:00:00Z\",
+    \"expires_on\": \"2030-12-31T00:00:00Z\"
+  }" | python3 -c "
+import sys,json; d=json.load(sys.stdin)
+print('✅ Token:', d.get('result',{}).get('value','FAILED'))
+print('Errors:', d.get('errors',[]))
+"
+```
+
+---
+
+## Step 2: Setup Supabase Webhook Triggers
+
+After deploying to production, create ALL revalidate triggers:
+
+```bash
+SUPABASE_REF="your_project_ref"
+MGMT_TOKEN="sbp_XXXXXXXX"
+SITE_URL="https://www.yourdomain.com"
+SECRET="zaynahs_secret_cache_revalidate_2026"
+
+# Tables that need triggers
+TABLES="products categories product_variants product_images product_modifiers store_settings reviews seo_meta collections collection_categories badges homepage_sections coupons size_guides social_proof social_proof_products variant_presets ai_settings meta_category_mapping payment_methods shipping_methods"
+
+for TABLE in $TABLES; do
+  SQL="DROP TRIGGER IF EXISTS \"revalidate-$TABLE\" ON public.$TABLE;
+CREATE TRIGGER \"revalidate-$TABLE\"
+  AFTER INSERT OR UPDATE OR DELETE ON public.$TABLE
+  FOR EACH ROW EXECUTE FUNCTION supabase_functions.http_request(
+    '${SITE_URL}/api/revalidate', 'POST',
+    '{\"Content-Type\":\"application/json\",\"x-revalidate-secret\":\"${SECRET}\"}',
+    '{\"type\":\"CHANGE\",\"table\":\"$TABLE\"}',
+    '5000'
+  );"
+
+  SQL_JSON=$(python3 -c "import json; print(json.dumps({'query': '''$SQL'''}))")
+  RESULT=$(curl -s -X POST "https://api.supabase.com/v1/projects/$SUPABASE_REF/database/query" \
+    -H "Authorization: Bearer $MGMT_TOKEN" \
+    -H "Content-Type: application/json" \
+    -d "$SQL_JSON")
+
+  if echo "$RESULT" | python3 -c "import sys,json; d=json.load(sys.stdin); exit(0 if d==[] else 1)" 2>/dev/null; then
+    echo "✅ revalidate-$TABLE"
+  else
+    echo "❌ revalidate-$TABLE → $RESULT"
+  fi
+done
+```
+
+---
+
+## Step 3: Set Env Vars in Vercel
+
+```bash
+VERCEL_TOKEN="vcp_XXXXXXXX"
+PROJECT_ID="prj_XXXXXXXX"
+
+# Function to add env var
+add_env() {
+  KEY=$1; VALUE=$2
+  curl -s -X POST "https://api.vercel.com/v9/projects/$PROJECT_ID/env" \
+    -H "Authorization: Bearer $VERCEL_TOKEN" \
+    -H "Content-Type: application/json" \
+    -d "{\"key\":\"$KEY\",\"value\":\"$VALUE\",\"target\":[\"production\",\"preview\"],\"type\":\"sensitive\"}" \
+    | python3 -c "import sys,json; d=json.load(sys.stdin); print('✅' if d.get('key') else '❌', '$KEY', d.get('error',{}).get('message',''))"
+}
+
+add_env "CLOUDFLARE_API_TOKEN" "cfut_XXXXXXXX"
+add_env "CLOUDFLARE_ZONE_ID" "your_zone_id"
+add_env "REVALIDATE_SECRET" "zaynahs_secret_cache_revalidate_2026"
+add_env "NEXT_PUBLIC_SUPABASE_URL" "https://ref.supabase.co"
+add_env "NEXT_PUBLIC_SUPABASE_ANON_KEY" "eyJhbGci..."
+add_env "SUPABASE_SERVICE_ROLE_KEY" "eyJhbGci..."
+add_env "NEXT_PUBLIC_SITE_URL" "https://www.yourdomain.com"
+```
+
+---
+
+## Step 4: Save Credentials to env-backups/
+
+```bash
+# Create env-backups directory if not exists
+mkdir -p env-backups
+
+# Save all credentials (replace values)
+cat > env-backups/newproject.env.local << 'ENVEOF'
+# New Project — Created: $(date)
+SUPABASE_PROJECT_REF=your_ref
+SUPABASE_MGMT_TOKEN=sbp_XXXXXXXX
+NEXT_PUBLIC_SUPABASE_URL=https://ref.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGci...
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGci...
+CLOUDFLARE_ZONE_ID=your_zone_id
+CLOUDFLARE_API_TOKEN=cfut_XXXXXXXX
+CF_GLOBAL_KEY=cfk_XXXXXXXX
+CF_ACCOUNT_EMAIL=account@gmail.com
+VERCEL_TOKEN=vcp_XXXXXXXX
+VERCEL_PROJECT_ID=prj_XXXXXXXX
+GITHUB_TOKEN=ghp_XXXXXXXX
+GITHUB_USERNAME=username
+GITHUB_REPO=repo-name
+REVALIDATE_SECRET=zaynahs_secret_cache_revalidate_2026
+NEXT_PUBLIC_SITE_URL=https://www.yourdomain.com
+ENVEOF
+echo "✅ env-backups/newproject.env.local created"
+```
+
+---
+
+## Step 5: Final Verification Checklist
+
+```bash
+SITE="https://www.yourdomain.com"
+CF_TOKEN="cfut_XXXXXXXX"
+ZONE_ID="your_zone_id"
+SECRET="zaynahs_secret_cache_revalidate_2026"
+
+echo "=== 1. Site is live ===" && curl -sI $SITE | head -5
+echo "=== 2. Webhook works ===" && curl -s -X POST $SITE/api/revalidate \
+  -H "Content-Type: application/json" -H "x-revalidate-secret: $SECRET" \
+  -d '{"type":"UPDATE","table":"products","record":{"slug":"test"}}'
+echo "=== 3. CF token valid ===" && curl -s https://api.cloudflare.com/client/v4/user/tokens/verify \
+  -H "Authorization: Bearer $CF_TOKEN"
+echo "=== 4. CF purge works ===" && curl -s -X POST "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/purge_cache" \
+  -H "Authorization: Bearer $CF_TOKEN" -H "Content-Type: application/json" -d '{"purge_everything":true}'
+```
+
+---
+
+## ⚠️ Token Expiry Prevention Rules
+
+| Token Type | Where to Set Expiry | How to Renew |
+|-----------|-------------------|-------------|
+| Cloudflare API Token | Set `expires_on: 2030-12-31` in API call | Create new via API → update env-backups + Vercel |
+| Vercel Token | Select **"No expiration"** | https://vercel.com/account/tokens → Create |
+| Supabase Management Token | Never expires | https://supabase.com/dashboard/account/tokens |
+| GitHub Token | Select **"No expiration"** | https://github.com/settings/tokens |
+
+### Auto-Detecting Expired Tokens
+```bash
+# Test all tokens from env-backups
+for ENV in env-backups/*.env.local; do
+  echo "=== $(basename $ENV) ==="
+  CF_TOKEN=$(grep CLOUDFLARE_API_TOKEN $ENV | cut -d= -f2)
+  VERCEL_TOKEN=$(grep ^VERCEL_TOKEN $ENV | cut -d= -f2)
+  
+  # CF token
+  CF_STATUS=$(curl -s "https://api.cloudflare.com/client/v4/user/tokens/verify" \
+    -H "Authorization: Bearer $CF_TOKEN" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('result',{}).get('status','INVALID') if d.get('success') else 'INVALID')")
+  echo "  CF: $CF_STATUS (${CF_TOKEN:0:15}...)"
+  
+  # Vercel token
+  VCL_STATUS=$(curl -s "https://api.vercel.com/v2/user" \
+    -H "Authorization: Bearer $VERCEL_TOKEN" | python3 -c "import sys,json; d=json.load(sys.stdin); print('active' if d.get('user') else 'INVALID')")
+  echo "  Vercel: $VCL_STATUS"
+done
+```

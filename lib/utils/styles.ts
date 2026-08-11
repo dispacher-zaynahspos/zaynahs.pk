@@ -1,22 +1,30 @@
 export function getSharedAspectClass(ratio?: string): string {
-  if (!ratio) return 'aspect-square';
+  if (!ratio) return 'aspect-[3/4]';
   
   const normalized = ratio.toLowerCase().replace('by', ':');
   
   switch (normalized) {
     case '3:4': 
+    case '3/4':
+    case 'recommended':
+    case 'portrait':
       return 'aspect-[3/4]';
     case '4:3': 
+    case '4/3':
+    case 'landscape':
       return 'aspect-[4/3]';
     case '16:9': 
+    case '16/9':
       return 'aspect-[16/9]';
     case 'auto': 
-      // Use aspect-auto but allow it to have a flexible height
-      return 'aspect-auto';
+      return 'aspect-auto min-h-[220px] sm:min-h-[280px]';
     case '1:1':
-    case 'recommended':
-    default:
+    case '1/1':
+    case '1by1':
+    case 'square':
       return 'aspect-square';
+    default:
+      return 'aspect-[3/4]';
   }
 }
 

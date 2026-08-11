@@ -56,7 +56,7 @@
 ## 5. Database Rules (Supabase)
 - Schema change se pehle migration file + RLS policy check/update
 - Naming: `snake_case`, existing pattern follow
-- Kabhie bhi production pe destructive query (DROP/DELETE without WHERE) auto-run nahi
+- Kabhi bhi production pe destructive query (DROP/DELETE without WHERE) auto-run nahi
 - Realtime-sensitive tables (POS inventory/orders) — race-safe RPC use karo
 - Major schema change se pehle backup/rollback plan
 
@@ -224,9 +224,6 @@
 - ❌ Desktop-first design jo mobile pe squeeze ho
 - ❌ Har page apna alag bottom-sheet/modal pattern
 - ❌ Inconsistent corner-radius/shadow across cards
-
-
----
 
 # 🎨 DESIGN SYSTEM RULES (NON-NEGOTIABLE)
 
@@ -1130,3 +1127,57 @@ Whenever the user copy-pastes an error log, terminal output, stack trace, or Dev
    - 🚀 **Status**: Live revalidation & build verification results
 
 
+
+---
+
+## 🔑 CLOUDFLARE + SUPABASE — AGENT API RULE (MANDATORY)
+
+> ⚡ Agent kabhi bhi user ko manual kaam karne nahi dega jab API available ho.
+
+### ❌ NEVER
+- User ko manually Cloudflare token banane ko nahi kehna
+- User ko Supabase dashboard mein webhook add karne ko nahi kehna
+- Token browser mein test nahi karna — always API use karo
+
+### ✅ ALWAYS via API
+
+**CF Token Verify (all projects):**
+```bash
+TOKEN=cfut_xxxx
+curl -s "https://api.cloudflare.com/client/v4/user/tokens/verify" \
+  -H "Authorization: Bearer $TOKEN"
+# expect: {"result":{"status":"active"},"success":true}
+```
+
+**Supabase Trigger Create/Fix (all tables, all projects):**
+```bash
+SQL_JSON=$(python3 -c "import json; print(json.dumps({'query': 'CREATE TRIGGER ...'}))") 
+curl -X POST "https://api.supabase.com/v1/projects/$REF/database/query" \
+  -H "Authorization: Bearer $MGMT_TOKEN" -H "Content-Type: application/json" -d "$SQL_JSON"
+```
+
+**Vercel Env Update:**
+```bash
+curl -X PATCH "https://api.vercel.com/v9/projects/$PROJECT_ID/env/$ENV_ID" \
+  -H "Authorization: Bearer $VERCEL_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"value":"NEW_TOKEN","target":["production"]}'
+```
+
+### 🚨 cfk_ Token = ALWAYS WRONG
+- `cfk_` = Global API Key — Bearer auth mein KAAM NAHI KARTA
+- `cfut_` = API Token — ✅ SAHI FORMAT
+- Agar kisi env mein `cfk_` mile → immediately user ko batao naya `cfut_` token banane ko
+
+### 📋 All Projects Table
+| Project | Ref | Zone ID | URL | REVALIDATE_SECRET |
+|---------|-----|---------|-----|-------------------|
+| TotVogue | ziucrfpebpxijqhwmqre | e4aceeacdc4f6a1677e92823df1651fd | www.totvogue.pk | zaynahs_secret_cache_revalidate_2026 |
+| Zaynahs | unfdpfmjqljbjydgsccr | 10d964449186f64d7896f8dcac4e5eff | www.zaynahs.pk | zaynahs_secret_cache_revalidate_2026 |
+| MiniMahal | mgwkcumurrllhpjvfezz | 6acd493022cd0f2d5a9c290088b5327a | www.minimahal.com | zaynahs_secret_cache_revalidate_2026 |
+| LittleMister | ljknmwianiswkalifueb | 063a3d5c72d44b3654aa60b17ed94863 | www.littlemister.pk | zaynahs_secret_cache_revalidate_2026 |
+
+### 🔁 Mandatory Self-Test After Any Setup
+1. Webhook: `curl -X POST https://SITE/api/revalidate -H "x-revalidate-secret: SECRET"` → `{"revalidated":true}`
+2. CF Token: `curl cf_verify -H "Bearer TOKEN"` → `"status":"active"`  
+3. Triggers: SQL query → no `localhost` or `domain.com` URL in any trigger

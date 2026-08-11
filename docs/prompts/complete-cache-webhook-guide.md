@@ -884,3 +884,59 @@ HAMESHA naya filename do video upload pe
 = Browser hamesha fresh video dikhayega
 = Webhook + revalidate already kaam karega
 ```
+
+---
+
+# ⚠️ CRITICAL UPDATE — 2026-08-11 AUDIT FINDINGS
+
+## Step 2 Correction: Cloudflare API Token MUST be cfut_ Format
+
+**OLD (WRONG):**
+```
+CLOUDFLARE_API_TOKEN = "your_api_token"  # Could be cfk_ or cfut_
+```
+
+**NEW (CORRECT):**
+```
+CLOUDFLARE_API_TOKEN = "cfut_XXXXXXXX"   # MUST be cfut_ — NEVER cfk_
+```
+
+If you only have a `cfk_` Global API Key, create a new `cfut_` token via API:
+```bash
+curl -X POST "https://api.cloudflare.com/client/v4/user/tokens" \
+  -H "X-Auth-Email: YOUR_CF_EMAIL" \
+  -H "X-Auth-Key: cfk_XXXXXXXX" \
+  -d '{"name":"project-purge","policies":[{"effect":"allow","resources":{"com.cloudflare.api.account.zone.ZONE_ID":"*"},"permission_groups":[{"id":"e17beae8b8cb423a99b1730f21238bed"}]}],"expires_on":"2030-12-31T00:00:00Z"}'
+```
+
+## Step 5 Correction: Supabase Webhooks via SQL API (NOT Dashboard)
+
+**OLD (WRONG):** Go to Supabase Dashboard → Database → Webhooks → Create manually
+
+**NEW (CORRECT):** Agent creates via Management API:
+```bash
+SQL_JSON=$(python3 -c "import json; print(json.dumps({'query': '''
+DROP TRIGGER IF EXISTS "revalidate-products" ON public.products;
+CREATE TRIGGER "revalidate-products"
+  AFTER INSERT OR UPDATE OR DELETE ON public.products
+  FOR EACH ROW EXECUTE FUNCTION supabase_functions.http_request(
+    '"'"'https://www.YOURDOMAIN.com/api/revalidate'"'"', '"'"'POST'"'"',
+    '"'"'{"Content-Type":"application/json","x-revalidate-secret":"zaynahs_secret_cache_revalidate_2026"}'"'"',
+    '"'"'{"type":"CHANGE","table":"products"}'"'"', '"'"'5000'"'"');
+'''}))")
+
+curl -X POST "https://api.supabase.com/v1/projects/SUPABASE_REF/database/query" \
+  -H "Authorization: Bearer sbp_MGMT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d "$SQL_JSON"
+```
+
+## Common Trigger URL Mistakes Found in Audit
+
+| ❌ WRONG URL | ✅ Correct URL |
+|------------|--------------|
+| `http://localhost:3000/api/revalidate` | `https://www.yourdomain.com/api/revalidate` |
+| `https://domain.com/api/revalidate` | `https://www.totvogue.pk/api/revalidate` |
+| `.vercel.app` URL | Your actual custom domain |
+
+**Rule:** ALWAYS use the final production custom domain URL — NEVER vercel.app, NEVER localhost.

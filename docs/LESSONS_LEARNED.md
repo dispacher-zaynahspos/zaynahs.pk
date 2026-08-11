@@ -1373,3 +1373,83 @@ SSR par limits lagai gai aur remaining products client-side hydration (API fetch
 
 ✅ RULE: Agar Purge Cache APIs achanak fail hone lagen, to Vercel/Cloudflare ke API Tokens ki expiry ya validity zaroor check karein.
 ```
+---
+
+# 🧠 2026-08-11 — PURGE SYSTEM AUDIT LESSONS
+
+## Lesson 1: cfk_ vs cfut_ — Most Critical Token Lesson
+
+**Problem:** `CLOUDFLARE_API_TOKEN=cfk_XXXXXX` in env files.
+**Impact:** Cache purge SILENTLY FAILS — `{"success":false,"errors":[{"code":10000}]}` — no visible error, site just stays stale.
+**Root Cause:** `cfk_` = Global API Key. It requires `X-Auth-Email + X-Auth-Key` headers. Our code sends `Authorization: Bearer`, which only works with `cfut_` API Tokens.
+
+**Permanent Fix:**
+1. ALWAYS check token format first: `curl https://api.cloudflare.com/client/v4/user/tokens/verify -H "Authorization: Bearer TOKEN"`
+2. If `cfk_` found → immediately create new `cfut_` token via API using Global Key + email:
+```bash
+curl -X POST "https://api.cloudflare.com/client/v4/user/tokens" \
+  -H "X-Auth-Email: EMAIL" -H "X-Auth-Key: cfk_XXXX" \
+  -d '{"name":"project-auto","policies":[{"effect":"allow","resources":{"com.cloudflare.api.account.zone.ZONE_ID":"*"},"permission_groups":[{"id":"e17beae8b8cb423a99b1730f21238bed"}]}],"expires_on":"2030-12-31T00:00:00Z"}'
+```
+
+**Agent Rule Added:** Rule 14 in AGENTS.md — agents MUST use API for all CF ops, never ask user to do manual dashboard steps.
+
+---
+
+## Lesson 2: Trigger URL Drift — Use Correct Domain Always
+
+**Problem:** 
+- LittleMister: ALL 21 triggers → `http://localhost:3000/api/revalidate`
+- TotVogue/Zaynahs/MiniMahal: `revalidate-collections` + `revalidate-collection_categories` → `https://domain.com/api/revalidate`
+- TotVogue: `revalidate-verticals` → `https://domain.com/api/revalidate`
+
+**Impact:** Cache never cleared after admin changes on live sites.
+
+**Root Cause:** Triggers copy-pasted from dev environment or template without replacing placeholder URLs.
+
+**Permanent Fix:** Always verify trigger URLs after creating:
+```sql
+SELECT trigger_name, action_statement FROM information_schema.triggers 
+WHERE trigger_name LIKE 'revalidate%' 
+GROUP BY trigger_name, action_statement;
+```
+Check: every URL must be `https://www.CORRECT-DOMAIN.com/api/revalidate`.
+
+---
+
+## Lesson 3: Missing Triggers for New Tables
+
+**Problem:** `payment_methods` and `shipping_methods` tables had no revalidate triggers on TotVogue, Zaynahs, MiniMahal.
+**Impact:** Admin changes to payment/shipping methods don't refresh store cache.
+**Fix:** Added triggers for all missing tables. See CLOUDFLARE_SUPABASE_SETUP.md Section 2B for complete table list.
+
+**Rule:** Whenever a new table is added to the DB, IMMEDIATELY add a revalidate trigger for it.
+
+---
+
+## Lesson 4: Vercel Token Expiry
+
+**Problem:** Vercel tokens expired (`invalidToken: True`).
+**Rule:** Always create Vercel tokens with **No Expiration**.
+**Fix Pattern:** 
+1. https://vercel.com/account/tokens → Create → No Expiration → copy
+2. Update `env-backups/PROJECT.env.local` → `VERCEL_TOKEN=vcp_XXXX`
+3. Agent can update Vercel env vars via API:
+```bash
+curl -X PATCH "https://api.vercel.com/v9/projects/PROJECT_ID/env/ENV_ID" \
+  -H "Authorization: Bearer vcp_XXXX" \
+  -d '{"value":"NEW_VALUE","target":["production","preview"]}'
+```
+
+---
+
+## Lesson 5: Agent Rule — API First, Manual Last
+
+**Before:** Agents would say "go to Cloudflare dashboard and create a token"
+**After:** Agents MUST create tokens, update webhooks, update Vercel env vars via API — zero manual steps by user.
+
+This session proved that:
+- Cloudflare: New `cfut_` tokens can be created from `cfk_` Global Key via API
+- Supabase: All triggers managed via Management API SQL endpoint
+- Vercel: All env vars readable/updatable via API
+- `env-backups/`: Single source of truth for all credentials — always update after any change

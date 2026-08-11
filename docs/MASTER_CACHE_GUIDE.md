@@ -265,3 +265,55 @@ curl -X POST https://www.yourdomain.pk/api/revalidate \
   -d '{"type":"UPDATE","table":"products","record":{"id":"test","slug":"test-product"}}'
 # Expected response: {"revalidated":true,"table":"products","type":"UPDATE"}
 ```
+
+---
+
+## 🔑 SECTION 9: Cloudflare Token Management — MANDATORY RULES (Added 2026-08-11)
+
+### Token Format Rule — Most Critical
+
+| Token Type | Format | Works with Bearer? | Use Case |
+|-----------|--------|-------------------|---------- |
+| **API Token** | `cfut_XXXXXXXX` | ✅ YES | `CLOUDFLARE_API_TOKEN` env var |
+| **Global API Key** | `cfk_XXXXXXXX` | ❌ NO | Only for creating API Tokens via API |
+
+> **NEVER** put `cfk_` token in `CLOUDFLARE_API_TOKEN` env var. It silently fails cache purge.
+
+### Agent Must Verify Token on Any Setup
+```bash
+# Always verify before assuming token works
+curl -s "https://api.cloudflare.com/client/v4/user/tokens/verify" \
+  -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN"
+# Expect: {"result":{"status":"active"},"success":true}
+# If not active → create new cfut_ token (see CLOUDFLARE_SUPABASE_SETUP.md Section 1B)
+```
+
+### Creating New Token via API (if cfk_ is all you have)
+```bash
+curl -s -X POST "https://api.cloudflare.com/client/v4/user/tokens" \
+  -H "X-Auth-Email: ACCOUNT_EMAIL" \
+  -H "X-Auth-Key: cfk_XXXXXXXX" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "project-cache-purge",
+    "policies": [{"effect":"allow","resources":{"com.cloudflare.api.account.zone.ZONE_ID":"*"},
+    "permission_groups":[{"id":"e17beae8b8cb423a99b1730f21238bed"},{"id":"c8fed203ed3043cba015a93ad1616f1f"}]}],
+    "expires_on": "2030-12-31T00:00:00Z"
+  }'
+# Result: {"result":{"value":"cfut_XXXXXXXXXX","status":"active"}}
+```
+
+### Cache Purge Test (Must Run After Token Update)
+```bash
+curl -s -X POST "https://api.cloudflare.com/client/v4/zones/$CLOUDFLARE_ZONE_ID/purge_cache" \
+  -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"purge_everything":true}'
+# Expect: {"success":true}
+```
+
+### Setup Checklist Addition
+- [ ] `CLOUDFLARE_API_TOKEN` starts with `cfut_` — NOT `cfk_`
+- [ ] Token verified: `curl .../user/tokens/verify` → `"status":"active"`
+- [ ] Cache purge tested: `purge_everything` → `"success":true`
+- [ ] Token expiry set to 2030 (check via Cloudflare dashboard → API Tokens)

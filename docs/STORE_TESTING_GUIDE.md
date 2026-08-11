@@ -566,3 +566,167 @@ Fix:
   - **Test 14 (Supabase E2E):** DB update → webhook → cache clear → fresh data. ✅
   - **Test 16 (Env Check):** All 6 env vars pass. ✅
 - **Known Limitation:** Cloudflare Free plan caches cart/checkout/account 200 HTML responses despite bypass rules. These pages load dynamic data client-side, so caching the empty shell has zero user impact. Upgrade to Pro ($20/mo) for full bypass.
+
+---
+
+# 🔍 COMPLETE PURGE SYSTEM AUDIT GUIDE
+> Added: 2026-08-11 | Based on real audit & fixes across all 4 projects
+
+## ISSUES FOUND IN 2026-08-11 AUDIT (For Reference)
+
+| # | Issue | Project | Root Cause | Fix Applied |
+|---|-------|---------|------------|-------------|
+| 1 | CF token `cfk_` format — cache purge failing silently | TotVogue, MiniMahal | Global API Key used instead of API Token | Created new `cfut_` tokens via API |
+| 2 | `revalidate-verticals` trigger pointing to `https://domain.com/api/revalidate` | TotVogue | Placeholder URL never replaced after copy-paste | Fixed to `https://www.totvogue.pk/api/revalidate` |
+| 3 | ALL triggers pointing to `http://localhost:3000/api/revalidate` | LittleMister | Dev URL committed to production | Fixed all 21 triggers to `www.littlemister.pk` |
+| 4 | `revalidate-collections` + `revalidate-collection_categories` → `domain.com` | TotVogue, Zaynahs, MiniMahal | Copy-paste error in trigger SQL | Fixed to each project's correct URL |
+| 5 | `revalidate-payment_methods` + `revalidate-shipping_methods` missing | TotVogue, Zaynahs, MiniMahal | Never added for these tables | Created triggers for all 3 projects |
+
+---
+
+## FULL SYSTEM TEST — ALL 4 PROJECTS
+
+Run this to test everything at once:
+
+```bash
+python3 << 'PYEOF'
+import subprocess, json, re
+
+REVALIDATE_SECRET = "zaynahs_secret_cache_revalidate_2026"
+
+projects = {
+    "TOTVOGUE":    {"ref":"ziucrfpebpxijqhwmqre","mgmt":"sbp_your_management_token_placeholder","zone":"e4aceeacdc4f6a1677e92823df1651fd","cf":"cfut_your_cloudflare_token_placeholder","domain":"www.totvogue.pk"},
+    "ZAYNAHS":     {"ref":"unfdpfmjqljbjydgsccr","mgmt":"sbp_your_management_token_placeholder","zone":"10d964449186f64d7896f8dcac4e5eff","cf":"cfut_your_cloudflare_token_placeholder","domain":"www.zaynahs.pk"},
+    "MINIMAHAL":   {"ref":"mgwkcumurrllhpjvfezz","mgmt":"sbp_your_management_token_placeholder","zone":"6acd493022cd0f2d5a9c290088b5327a","cf":"cfut_your_cloudflare_token_placeholder","domain":"www.minimahal.com"},
+    "LITTLEMISTER":{"ref":"ljknmwianiswkalifueb","mgmt":"sbp_your_management_token_placeholder","zone":"063a3d5c72d44b3654aa60b17ed94863","cf":"cfut_your_cloudflare_token_placeholder","domain":"www.littlemister.pk"},
+}
+
+all_pass = True
+for name, cfg in projects.items():
+    print(f"\n{'='*55}\n  {name}\n{'='*55}")
+
+    # 1. Webhook
+    r = subprocess.run(["curl","-s","-X","POST",f"https://{cfg['domain']}/api/revalidate",
+        "-H","Content-Type: application/json","-H",f"x-revalidate-secret: {REVALIDATE_SECRET}",
+        "-d",'{"type":"UPDATE","table":"products","record":{"slug":"test"}}'],
+        capture_output=True,text=True,timeout=15)
+    wh = json.loads(r.stdout) if r.stdout else {}
+    wh_ok = wh.get('revalidated') == True
+    print(f"  Webhook /api/revalidate: {'✅' if wh_ok else '❌'} → {wh}")
+
+    # 2. CF token
+    r2 = subprocess.run(["curl","-s","https://api.cloudflare.com/client/v4/user/tokens/verify",
+        "-H",f"Authorization: Bearer {cfg['cf']}"],capture_output=True,text=True,timeout=10)
+    d2 = json.loads(r2.stdout)
+    cf_ok = d2.get('success') and d2.get('result',{}).get('status') == 'active'
+    print(f"  CF Token: {'✅ active' if cf_ok else '❌ INVALID'}")
+
+    # 3. CF purge
+    r3 = subprocess.run(["curl","-s","-X","POST",
+        f"https://api.cloudflare.com/client/v4/zones/{cfg['zone']}/purge_cache",
+        "-H",f"Authorization: Bearer {cfg['cf']}","-H","Content-Type: application/json",
+        "-d",'{"files":["https://test.com/test"]}'],capture_output=True,text=True,timeout=10)
+    d3 = json.loads(r3.stdout)
+    purge_ok = d3.get('success')
+    print(f"  CF Cache Purge: {'✅' if purge_ok else '❌'}")
+
+    # 4. Trigger URLs
+    r4 = subprocess.run(["curl","-s","-X","POST",
+        f"https://api.supabase.com/v1/projects/{cfg['ref']}/database/query",
+        "-H",f"Authorization: Bearer {cfg['mgmt']}","-H","Content-Type: application/json",
+        "-d",'{"query":"SELECT trigger_name,action_statement FROM information_schema.triggers WHERE trigger_name LIKE \'revalidate%\' GROUP BY trigger_name,action_statement;"}'],
+        capture_output=True,text=True,timeout=20)
+    d4 = json.loads(r4.stdout) if r4.stdout else []
+    wrong = []
+    if isinstance(d4,list):
+        for row in d4:
+            m = re.search(r"https?://[^']+", row.get('action_statement',''))
+            if m and cfg['domain'] not in m.group():
+                wrong.append(row['trigger_name'])
+    print(f"  Triggers: {len(d4) if isinstance(d4,list) else 0} total | {'✅ All correct' if not wrong else '❌ Wrong URL: '+str(wrong)}")
+
+    if not all([wh_ok, cf_ok, purge_ok, not wrong]):
+        all_pass = False
+
+print(f"\n{'='*55}")
+print(f"  OVERALL: {'🎉 ALL PASS' if all_pass else '❌ ISSUES FOUND — see above'}")
+print(f"{'='*55}")
+PYEOF
+```
+
+---
+
+## QUICK SINGLE PROJECT TEST
+
+```bash
+SITE="https://www.totvogue.pk"
+SECRET="zaynahs_secret_cache_revalidate_2026"
+CF_TOKEN="cfut_your_cloudflare_token_placeholder"
+ZONE_ID="e4aceeacdc4f6a1677e92823df1651fd"
+
+# 1. Webhook test
+curl -s -X POST "$SITE/api/revalidate" \
+  -H "Content-Type: application/json" \
+  -H "x-revalidate-secret: $SECRET" \
+  -d '{"type":"UPDATE","table":"products","record":{"slug":"test"}}'
+# Expected: {"revalidated":true,"table":"products","type":"UPDATE"}
+
+# 2. CF token test
+curl -s "https://api.cloudflare.com/client/v4/user/tokens/verify" \
+  -H "Authorization: Bearer $CF_TOKEN"
+# Expected: {"result":{"status":"active"},"success":true}
+
+# 3. CF cache purge
+curl -s -X POST "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/purge_cache" \
+  -H "Authorization: Bearer $CF_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"purge_everything":true}'
+# Expected: {"success":true}
+```
+
+---
+
+## TRIGGER INTEGRITY CHECK — Verify No Wrong URLs
+
+```bash
+# For any project — replace REF and MGMT_TOKEN
+REF="ziucrfpebpxijqhwmqre"
+MGMT_TOKEN="sbp_your_management_token_placeholder"
+CORRECT_DOMAIN="www.totvogue.pk"
+
+curl -s -X POST "https://api.supabase.com/v1/projects/$REF/database/query" \
+  -H "Authorization: Bearer $MGMT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"query":"SELECT trigger_name, action_statement FROM information_schema.triggers WHERE trigger_name LIKE '\''revalidate%'\'' GROUP BY trigger_name, action_statement ORDER BY trigger_name;"}' | python3 -c "
+import sys,json,re
+d=json.load(sys.stdin)
+wrong = 0
+for row in d:
+    m = re.search(r\"https?://[^']+\", row.get('action_statement',''))
+    url = m.group() if m else 'NO_URL'
+    ok = '$CORRECT_DOMAIN' in url
+    if not ok: wrong += 1
+    print(f\"{'✅' if ok else '❌'} {row['trigger_name']} → {url}\")
+print(f'\nTotal: {len(d)} | Wrong: {wrong}')
+"
+```
+
+---
+
+## TOKEN EXPIRY PREVENTION
+
+### Vercel Tokens
+- Always set **No Expiration** when creating
+- If expired: https://vercel.com/account/tokens → Create new → Update env-backups + Vercel env vars
+
+### Cloudflare API Tokens  
+- Set expiry to **2030-12-31** when creating via API
+- To check expiry: `curl https://api.cloudflare.com/client/v4/user/tokens -H "X-Auth-Email: EMAIL" -H "X-Auth-Key: cfk_KEY"`
+
+### Supabase Mgmt Tokens
+- These don't expire by default
+- If invalid: https://supabase.com/dashboard/account/tokens → Create new
+
+### GitHub Tokens
+- Classic tokens can expire — set to **No expiration**
+- If expired: https://github.com/settings/tokens → Create new

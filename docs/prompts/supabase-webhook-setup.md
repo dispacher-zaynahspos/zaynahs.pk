@@ -1,186 +1,154 @@
-# Supabase Webhook Setup Guide
-# Manually Karna Hai - Agent Nahi Kar Sakta
+# Supabase Webhook Triggers — Complete Setup Guide
+> **UPDATED 2026-08-11**: Manual Dashboard method DEPRECATED. Agent handles EVERYTHING via API.
+> Old title was "Manually Karna Hai - Agent Nahi Kar Sakta" — THIS IS WRONG. Agent KAR SAKTA HAI via API.
 
 ---
 
-## Kab Karna Hai
-```
-Agent ne /app/api/revalidate/route.ts bana diya
-Site Vercel pe deploy ho gayi
-Tab yeh karo
-```
+## ⚡ AGENT METHOD — PREFERRED (Zero Manual Steps)
 
----
+Agent khud SQL triggers create karta hai Supabase Management API se:
 
-## Step 1 - Supabase Dashboard Kholo
-```
-supabase.com → apna project select karo
-Left sidebar → Database → Webhooks
-→ "Create a new hook" button
-```
+```bash
+SUPABASE_REF="your_project_ref"          # e.g. ziucrfpebpxijqhwmqre
+MGMT_TOKEN="sbp_XXXXXXXX"               # Supabase Management Token
+SITE_URL="https://www.yourdomain.com"    # LIVE URL — NEVER localhost!
+SECRET="zaynahs_secret_cache_revalidate_2026"
 
----
+# All tables that need triggers
+TABLES=(products categories product_variants product_images product_modifiers
+  store_settings reviews seo_meta collections collection_categories badges
+  homepage_sections coupons size_guides social_proof social_proof_products
+  variant_presets ai_settings meta_category_mapping payment_methods shipping_methods)
 
-## Step 2 - Products Table Webhook
+for TABLE in "${TABLES[@]}"; do
+  HEADERS="{\"Content-Type\":\"application/json\",\"x-revalidate-secret\":\"${SECRET}\"}"
+  BODY="{\"type\":\"CHANGE\",\"table\":\"${TABLE}\"}"
 
-```
-Name:         revalidate-products
-Table:        products
-Events:       ✅ INSERT  ✅ UPDATE  ✅ DELETE
+  SQL="DROP TRIGGER IF EXISTS \"revalidate-${TABLE}\" ON public.${TABLE};
+CREATE TRIGGER \"revalidate-${TABLE}\"
+  AFTER INSERT OR UPDATE OR DELETE ON public.${TABLE}
+  FOR EACH ROW EXECUTE FUNCTION supabase_functions.http_request(
+    '${SITE_URL}/api/revalidate', 'POST',
+    '${HEADERS}', '${BODY}', '5000');"
 
-Type:         HTTP Request
-URL:          https://TERI-SITE.vercel.app/api/revalidate
+  SQL_JSON=$(python3 -c "import json; print(json.dumps({'query': '''$SQL'''}))")
+  RESULT=$(curl -s -X POST "https://api.supabase.com/v1/projects/$SUPABASE_REF/database/query" \
+    -H "Authorization: Bearer $MGMT_TOKEN" \
+    -H "Content-Type: application/json" \
+    -d "$SQL_JSON")
 
-HTTP Headers:
-  Key:    x-revalidate-secret
-  Value:  [tera REVALIDATE_SECRET value]
-
-→ Save karo ✅
-```
-
----
-
-## Step 3 - Banners Table Webhook
-
-```
-Name:         revalidate-banners
-Table:        banners
-Events:       ✅ INSERT  ✅ UPDATE  ✅ DELETE
-
-Type:         HTTP Request
-URL:          https://TERI-SITE.vercel.app/api/revalidate
-
-HTTP Headers:
-  Key:    x-revalidate-secret
-  Value:  [tera REVALIDATE_SECRET value]
-
-→ Save karo ✅
+  if [ "$RESULT" = "[]" ]; then
+    echo "✅ revalidate-$TABLE"
+  else
+    echo "❌ revalidate-$TABLE → $RESULT"
+  fi
+done
 ```
 
 ---
 
-## Step 4 - Categories Table Webhook
+## 📋 All 4 Projects — Credentials Quick Reference
 
-```
-Name:         revalidate-categories
-Table:        categories
-Events:       ✅ INSERT  ✅ UPDATE  ✅ DELETE
+| Project | Ref | Mgmt Token | Site URL |
+|---------|-----|------------|----------|
+| TotVogue | `ziucrfpebpxijqhwmqre` | `sbp_your_management_token_placeholder` | `https://www.totvogue.pk` |
+| Zaynahs | `unfdpfmjqljbjydgsccr` | `sbp_your_management_token_placeholder` | `https://www.zaynahs.pk` |
+| MiniMahal | `mgwkcumurrllhpjvfezz` | `sbp_your_management_token_placeholder` | `https://www.minimahal.com` |
+| LittleMister | `ljknmwianiswkalifueb` | `sbp_your_management_token_placeholder` | `https://www.littlemister.pk` |
 
-Type:         HTTP Request
-URL:          https://TERI-SITE.vercel.app/api/revalidate
+---
 
-HTTP Headers:
-  Key:    x-revalidate-secret
-  Value:  [tera REVALIDATE_SECRET value]
+## ✅ Verify Triggers — All Correct URLs
 
-→ Save karo ✅
+```bash
+REF="ziucrfpebpxijqhwmqre"
+MGMT="sbp_your_management_token_placeholder"
+EXPECTED_DOMAIN="www.totvogue.pk"
+
+curl -s -X POST "https://api.supabase.com/v1/projects/$REF/database/query" \
+  -H "Authorization: Bearer $MGMT" \
+  -H "Content-Type: application/json" \
+  -d '{"query":"SELECT trigger_name, action_statement FROM information_schema.triggers WHERE trigger_name LIKE '\''revalidate%'\'' GROUP BY trigger_name, action_statement ORDER BY trigger_name;"}' \
+  | python3 -c "
+import sys,json,re
+d=json.load(sys.stdin)
+wrong=0
+for row in d:
+  m=re.search(r\"https?://[^']+\", row.get('action_statement',''))
+  url=m.group() if m else 'NO_URL'
+  ok='$EXPECTED_DOMAIN' in url
+  if not ok: wrong+=1
+  print(f\"{'✅' if ok else '❌ WRONG'} {row['trigger_name']} → {url}\")
+print(f'\nTotal: {len(d)} | Wrong: {wrong}')
+"
 ```
 
 ---
 
-## Nai Table Bani? Naya Webhook Banao!
+## 🚨 Common Issues (From 2026-08-11 Audit)
 
-```
-Jab bhi agent nai table banaye:
-Supabase → Database → Webhooks → Create
+| Issue | Symptom | Fix |
+|-------|---------|-----|
+| Trigger URL = `localhost:3000` | Cache never clears on live site | Recreate trigger with correct live URL |
+| Trigger URL = `domain.com` | Cache never clears | Recreate trigger with correct domain |
+| Table missing trigger | That table's changes don't refresh cache | Add trigger for that table |
+| `supabase_functions` not found | SQL error | Enable `pg_net` extension in Supabase dashboard |
 
-Same settings:
-- Nai table ka naam
-- Same URL
-- Same secret header
-- INSERT + UPDATE + DELETE
+---
 
-Yeh rule hamesha follow karo!
+## Fix Single Wrong Trigger
+
+```bash
+# Replace TABLE, REF, MGMT, SITE_URL with correct values
+TABLE="collections"
+REF="ziucrfpebpxijqhwmqre"
+MGMT="sbp_your_management_token_placeholder"
+SITE_URL="https://www.totvogue.pk"
+SECRET="zaynahs_secret_cache_revalidate_2026"
+
+SQL_JSON=$(python3 -c "import json; print(json.dumps({'query': '''
+DROP TRIGGER IF EXISTS \"revalidate-$TABLE\" ON public.$TABLE;
+CREATE TRIGGER \"revalidate-$TABLE\"
+  AFTER INSERT OR UPDATE OR DELETE ON public.$TABLE
+  FOR EACH ROW EXECUTE FUNCTION supabase_functions.http_request(
+    '"'"'$SITE_URL/api/revalidate'"'"', '"'"'POST'"'"',
+    '"'"'{"Content-Type":"application/json","x-revalidate-secret":"$SECRET"}'"'"',
+    '"'"'{"type":"CHANGE","table":"$TABLE"}'"'"',
+    '"'"'5000'"'"');
+'''}))")
+
+curl -s -X POST "https://api.supabase.com/v1/projects/$REF/database/query" \
+  -H "Authorization: Bearer $MGMT" \
+  -H "Content-Type: application/json" \
+  -d "$SQL_JSON"
 ```
 
 ---
 
-## Webhook Test Kaise Karo
+## REVALIDATE_SECRET
 
+All projects use the same secret:
 ```
-Supabase → Database → Webhooks →
-tera webhook → "Send test request"
-
-Ya manually:
-Admin panel mein koi product update karo
-→ Supabase logs mein dekho webhook gaya?
-→ Vercel logs mein dekho request aayi?
+zaynahs_secret_cache_revalidate_2026
 ```
+This must match:
+- Supabase trigger header: `x-revalidate-secret: zaynahs_secret_cache_revalidate_2026`
+- Vercel env var: `REVALIDATE_SECRET=zaynahs_secret_cache_revalidate_2026`
+- `/api/revalidate/route.ts` check: `headers.get('x-revalidate-secret') === process.env.REVALIDATE_SECRET`
 
 ---
 
-## Webhook Logs Kahan Dekhein
+## Test Webhook Manually
 
-```
-Supabase → Database → Webhooks →
-tera webhook → Logs tab
+```bash
+SITE="https://www.totvogue.pk"
+SECRET="zaynahs_secret_cache_revalidate_2026"
 
-Yahan dikhega:
-✅ Success - 200 response
-❌ Failed - error message
-```
+curl -s -X POST "$SITE/api/revalidate" \
+  -H "Content-Type: application/json" \
+  -H "x-revalidate-secret: $SECRET" \
+  -d '{"type":"UPDATE","table":"products","record":{"slug":"test-product"}}'
 
----
-
-## Vercel Logs Kahan Dekhein
-
-```
-Vercel Dashboard → Project →
-Functions → /api/revalidate →
-Logs
-
-Yahan dikhega:
-- Request aayi
-- Secret check hua
-- Cache clear hua
-```
-
----
-
-## Common Errors
-
-```
-401 Error:
-→ Secret key match nahi kiya
-→ Vercel ENV mein REVALIDATE_SECRET check karo
-→ Supabase webhook header check karo
-
-404 Error:
-→ URL galat hai
-→ /api/revalidate route exist nahi
-→ Agent se pehle yeh file banwao
-
-500 Error:
-→ Code mein koi bug hai
-→ Vercel logs mein details dekhو
-```
-
----
-
-## ENV Variables Checklist
-
-```
-.env.local mein:
-✅ REVALIDATE_SECRET=koi_bhi_random_string
-
-Vercel Dashboard mein bhi same:
-✅ REVALIDATE_SECRET=same_value
-
-Dono jagah same hona chahiye!
-```
-
----
-
-## Quick Reference
-
-```
-Webhook URL:
-https://[teri-site].vercel.app/api/revalidate
-
-Header Key:   x-revalidate-secret
-Header Value: [REVALIDATE_SECRET ki value]
-
-Events:       INSERT + UPDATE + DELETE
-Type:         HTTP Request
-Method:       POST
+# Expected response:
+# {"revalidated":true,"table":"products","type":"UPDATE"}
 ```

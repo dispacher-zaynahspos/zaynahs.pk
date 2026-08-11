@@ -38,7 +38,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 ## 5. Database Rules (Supabase)
 - Schema change se pehle migration file + RLS policy check/update
 - Naming: `snake_case`, existing pattern follow
-- Kabhie bhi production pe destructive query (DROP/DELETE without WHERE) auto-run nahi
+- Kabhi bhi production pe destructive query (DROP/DELETE without WHERE) auto-run nahi
 - Realtime-sensitive tables (POS inventory/orders) — race-safe RPC use karo
 - Major schema change se pehle backup/rollback plan
 
@@ -442,3 +442,87 @@ Whenever the user copy-pastes an error log, terminal output, stack trace, or Dev
    - 🛠️ **File & Line**: Exact code location fixed
    - 🚀 **Status**: Live revalidation & build verification results
 <!-- END:error-tracking-diagnostic-rule -->
+
+<!-- BEGIN:cloudflare-supabase-api-rule -->
+---
+
+## 14. 🔑 Cloudflare + Supabase — Agent MUST Use API (MANDATORY RULE)
+
+### ❌ NEVER do manually
+- Never ask user to manually create Cloudflare tokens, Supabase webhooks, or Vercel env vars
+- Never say "go to dashboard and do X" when an API/curl exists
+- Never test tokens in browser — always use API
+
+### ✅ Agent ALWAYS handles via API automatically
+
+#### Cloudflare Token Verification (ALL projects at once)
+```bash
+# env-backups/ se CLOUDFLARE_API_TOKEN padhke har project test karo
+for ENV in env-backups/*.env.local; do
+  TOKEN=$(grep CLOUDFLARE_API_TOKEN $ENV | cut -d= -f2)
+  NAME=$(basename $ENV)
+  curl -s "https://api.cloudflare.com/client/v4/user/tokens/verify" \
+    -H "Authorization: Bearer $TOKEN" | python3 -c "import sys,json; d=json.load(sys.stdin); print(f'$NAME: {d.get(\"result\",{}).get(\"status\",\"INVALID\")} | success: {d.get(\"success\")}')"
+done
+```
+
+#### Cloudflare Cache Purge (via API)
+```bash
+curl -s -X POST "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/purge_cache" \
+  -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"purge_everything":true}'
+```
+
+#### Supabase Webhook Triggers — Agent creates via SQL API
+```bash
+# CORRECT: cfut_ token only (NOT cfk_ Global API Key)
+# cfk_ tokens DO NOT work with Bearer auth — always create cfut_ API Tokens
+SQL_JSON=$(python3 -c "import json; print(json.dumps({'query': '''
+DROP TRIGGER IF EXISTS "revalidate-TABLE" ON public.TABLE;
+CREATE TRIGGER "revalidate-TABLE"
+  AFTER INSERT OR UPDATE OR DELETE ON public.TABLE
+  FOR EACH ROW EXECUTE FUNCTION supabase_functions.http_request(
+    '"'"'https://SITE_URL/api/revalidate'"'"', '"'"'POST'"'"',
+    '"'"'{"Content-Type":"application/json","x-revalidate-secret":"SECRET"}'"'"',
+    '"'"'{"type":"CHANGE","table":"TABLE"}'"'"', '"'"'5000'"'"'
+  );
+'''}))")
+curl -s -X POST "https://api.supabase.com/v1/projects/$SUPABASE_REF/database/query" \
+  -H "Authorization: Bearer $SUPABASE_MGMT_TOKEN" \
+  -H "Content-Type: application/json" -d "$SQL_JSON"
+```
+
+#### Vercel Env Vars — Agent updates via API
+```bash
+# Get project ID
+curl -s "https://api.vercel.com/v9/projects?limit=20" \
+  -H "Authorization: Bearer $VERCEL_TOKEN" | python3 -c "import sys,json; [print(p['id'], p['name']) for p in json.load(sys.stdin)['projects']]"
+
+# Update env var
+curl -s -X PATCH "https://api.vercel.com/v9/projects/PROJECT_ID/env/ENV_ID" \
+  -H "Authorization: Bearer $VERCEL_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"value":"NEW_VALUE","target":["production","preview","development"]}'
+```
+
+### 📋 All Projects Reference
+| Project | Supabase Ref | CF Zone ID | Site URL |
+|---------|-------------|------------|----------|
+| TotVogue | ziucrfpebpxijqhwmqre | e4aceeacdc4f6a1677e92823df1651fd | www.totvogue.pk |
+| Zaynahs | unfdpfmjqljbjydgsccr | 10d964449186f64d7896f8dcac4e5eff | www.zaynahs.pk |
+| MiniMahal | mgwkcumurrllhpjvfezz | 6acd493022cd0f2d5a9c290088b5327a | www.minimahal.com |
+| LittleMister | ljknmwianiswkalifueb | 063a3d5c72d44b3654aa60b17ed94863 | www.littlemister.pk |
+
+### 🚨 CF Token Format Rule (CRITICAL)
+- `cfut_` or `cf_` = ✅ API Token — works with `Authorization: Bearer`
+- `cfk_` = ❌ Global API Key — NEVER works with Bearer auth
+- Agent MUST warn user if cfk_ token found in any env file
+- Agent MUST guide user to create new cfut_ token via Cloudflare → Profile → API Tokens → Create Token → Cache Purge permission
+
+### 🔁 Mandatory Self-Test After Any Change
+After creating/updating ANY trigger, token, or webhook, agent MUST verify:
+1. **Webhook live test**: `curl -X POST https://SITE/api/revalidate -H "x-revalidate-secret: SECRET"` → expect `{"revalidated":true}`
+2. **CF token test**: `curl https://api.cloudflare.com/client/v4/user/tokens/verify -H "Authorization: Bearer TOKEN"` → expect `"status":"active"`
+3. **Trigger URL check**: SQL query to verify no trigger points to `localhost` or `domain.com`
+<!-- END:cloudflare-supabase-api-rule -->

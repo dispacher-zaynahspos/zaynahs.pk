@@ -1452,3 +1452,48 @@ echo "SUPABASE_SERVICE_KEY=$SERVICE"
 | Data API (PostgREST) | `{url}/rest/v1/{table}` |
 | GraphQL API | `POST {url}/graphql/v1` |
 | Edge Functions | `POST {url}/functions/v1/{slug}` |
+
+---
+
+## 📡 Webhook Triggers — Via Management API (MANDATORY METHOD)
+
+> **Rule:** NEVER create webhooks via Supabase Dashboard. Always use Management API so agents can automate.
+
+### Create Revalidate Trigger
+```bash
+SUPABASE_REF="your_project_ref"
+MGMT_TOKEN="sbp_XXXXXXXX"
+TABLE="products"
+SITE_URL="https://www.yourdomain.com"
+SECRET="zaynahs_secret_cache_revalidate_2026"
+
+SQL_JSON=$(python3 -c "import json; print(json.dumps({'query': '''
+DROP TRIGGER IF EXISTS \"revalidate-$TABLE\" ON public.$TABLE;
+CREATE TRIGGER \"revalidate-$TABLE\"
+  AFTER INSERT OR UPDATE OR DELETE ON public.$TABLE
+  FOR EACH ROW EXECUTE FUNCTION supabase_functions.http_request(
+    '"'"'$SITE_URL/api/revalidate'"'"', '"'"'POST'"'"',
+    '"'"'{"Content-Type":"application/json","x-revalidate-secret":"$SECRET"}'"'"',
+    '"'"'{"type":"CHANGE","table":"$TABLE"}'"'"', '"'"'5000'"'"');
+'''}))")
+
+curl -X POST "https://api.supabase.com/v1/projects/$SUPABASE_REF/database/query" \
+  -H "Authorization: Bearer $MGMT_TOKEN" \
+  -H "Content-Type: application/json" -d "$SQL_JSON"
+```
+
+### List All Revalidate Triggers
+```bash
+curl -s -X POST "https://api.supabase.com/v1/projects/$SUPABASE_REF/database/query" \
+  -H "Authorization: Bearer $MGMT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"query":"SELECT trigger_name, action_statement FROM information_schema.triggers WHERE trigger_name LIKE '\''revalidate%'\'' GROUP BY trigger_name, action_statement ORDER BY trigger_name;"}'
+```
+
+### All Projects Mgmt Tokens
+| Project | Ref | Token |
+|---------|-----|-------|
+| TotVogue | ziucrfpebpxijqhwmqre | sbp_your_management_token_placeholder |
+| Zaynahs | unfdpfmjqljbjydgsccr | sbp_your_management_token_placeholder |
+| MiniMahal | mgwkcumurrllhpjvfezz | sbp_your_management_token_placeholder |
+| LittleMister | ljknmwianiswkalifueb | sbp_your_management_token_placeholder |

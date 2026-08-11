@@ -1,180 +1,412 @@
-# 🚀 Cloudflare Cache Rules & Supabase Webhooks — Setup Guide
-
-> **Master System Blueprint**: This guide details the complete configuration of the caching, Edge CDN, and database-level webhook triggers in Zaynahs E-Store. Read this before modifying any caching or revalidation code.
-
----
-
-## 📌 Section 1: Complete Cache TTL & System Map
-
-| Cache Layer / Path | Cache Provider | TTL (Time-To-Live) | Reason & Behavior |
-| :--- | :--- | :--- | :--- |
-| `app/(store)/page.tsx` | Vercel ISR | **86,400s (24 Hours)** | Storefront home page is pre-generated at build time. We use a 24h TTL because Supabase webhooks instantly purge this on any settings/product updates. |
-| `app/(store)/product/[slug]/page.tsx` | Vercel ISR | **86,400s (24 Hours)** | Product details are pre-rendered statically via `generateStaticParams()`. Refreshes instantly on product updates via DB trigger webhooks. |
-| `lib/services/*.ts` | Next.js Server | **86,400s (24 Hours)** | Server Action queries are wrapped with `unstable_cache` to minimize DB queries. Tagged with granular tags (`products`, `settings`, `categories`) for instant invalidation. |
-| Cloudflare: `/_next/static/*` | Cloudflare CDN | **31,536,000s (1 Year)** | Hashed assets (compiled CSS/JS) generated at build time. Their names change when files are modified, making 1-year caching completely safe. |
-| Cloudflare: `supabase.co` | Cloudflare CDN | **2,592,000s (1 Month)** | Storage bucket public image URLs. Caching these at the CDN edge dramatically reduces Supabase egress bandwidth costs. |
-| Cloudflare: `/cart`, `/checkout`, `/admin`, `/api`, `/account` | Cloudflare CDN | **0s (Bypass Cache)** | Transactions, checkout flows, admin portals, and API endpoints must never be cached to prevent serving stale or private customer data. ⚠️ Free plan caches 200 HTML responses despite bypass rules — impact minimal (cart data client-side). |
-| Cloudflare: `/*` (HTML pages) | Cloudflare CDN | **BYPASS (cache: false)** | HTML pages are NOT cached at Cloudflare Edge to prevent CSS/JS hash skew on new deploys. Vercel ISR handles page-level caching instead. Webhook purge still clears Vercel ISR cache. |
+# 🚀 Cloudflare + Supabase Setup — Complete Guide
+> **MANDATORY READ** for all agents and developers before touching any caching, webhooks, or token configuration.
+> Last updated: 2026-08-11 (Comprehensive rewrite after full audit & fix)
 
 ---
 
-## 🔑 Required `.env.local` Variables
+## 📋 ALL 4 PROJECTS — Quick Reference
 
-Ensure these variables are set in your local and deployment environments:
-```env
-DIRECT_URL="postgresql://postgres.[REF]:[PASSWORD]@aws-1-[REGION].pooler.supabase.com:5432/postgres"
-REVALIDATE_SECRET="zaynahs_secret_cache_revalidate_2026"
-CLOUDFLARE_ZONE_ID="your_zone_id"
-CLOUDFLARE_API_TOKEN="your_api_token"
-NEXT_PUBLIC_SITE_URL="https://www.totvogue.pk"
-NEXT_PUBLIC_SUPABASE_URL="https://your-project.supabase.co"
-NEXT_PUBLIC_SUPABASE_ANON_KEY="your_anon_key"
-SUPABASE_SERVICE_ROLE_KEY="your_service_role_key"
-GOOGLE_SITE_VERIFICATION="your_value"
-```
+| Project | Supabase Ref | CF Zone ID | CF Account ID | Site URL |
+|---------|-------------|------------|---------------|----------|
+| **TotVogue** | `ziucrfpebpxijqhwmqre` | `e4aceeacdc4f6a1677e92823df1651fd` | `c218bd7557331b8360d7085105b732b2` | `www.totvogue.pk` |
+| **Zaynahs** | `unfdpfmjqljbjydgsccr` | `10d964449186f64d7896f8dcac4e5eff` | `37b6f57e13fe9466342b453d3a3ed4af` | `www.zaynahs.pk` |
+| **MiniMahal** | `mgwkcumurrllhpjvfezz` | `6acd493022cd0f2d5a9c290088b5327a` | `7bb146345ffcc335d3435eda7bf7592d` | `www.minimahal.com` |
+| **LittleMister** | `ljknmwianiswkalifueb` | `063a3d5c72d44b3654aa60b17ed94863` | `597d5f9b660750e13c2f68b3748eef22` | `www.littlemister.pk` |
+
+**REVALIDATE_SECRET (all projects):** `zaynahs_secret_cache_revalidate_2026`
 
 ---
 
-## ⚡ Section 2: Supabase Database Webhooks
+## 🔑 SECTION 1: Cloudflare API Tokens — COMPLETE GUIDE
 
-We use database triggers to call `supabase_functions.http_request()` on every `INSERT`, `UPDATE`, or `DELETE` on:
-`products`, `categories`, `reviews`, `homepage_sections`, `store_settings`, `shipping_methods`, and `payment_methods`.
+### ❌ CRITICAL: Token Type Confusion (Most Common Bug)
 
-### SQL Migration File
-[supabase/migrations/20260616183200_setup_database_webhooks.sql](file:///Users/shoaib/Desktop/Zaynahs%20e-store/supabase/migrations/20260616183200_setup_database_webhooks.sql)
+Cloudflare has TWO different types of keys — agents/devs often confuse them:
 
-### Trigger Execution Logic
-The triggers use the `pg_net` PostgreSQL extension to asynchronously send POST requests to our revalidation API:
-```
-Database Modification
-   ↓
-http_request() trigger function
-   ↓
-Asynchronous net.http_post() via pg_net
-   ↓
-Next.js POST /api/revalidate
-   ↓
-Cache cleared (revalidateTag + Cloudflare edge purge)
-```
+| Type | Format | Auth Method | Works for Cache Purge? |
+|------|--------|-------------|------------------------|
+| **Global API Key** | `cfk_XXXXXXXX` | `X-Auth-Email` + `X-Auth-Key` headers | ❌ **NO** — wrong auth method |
+| **API Token** | `cfut_XXXXXXXX` | `Authorization: Bearer TOKEN` | ✅ **YES** |
+
+> **Rule:** `CLOUDFLARE_API_TOKEN` in env files MUST always be `cfut_` format.
+> If you see `cfk_` in env → it will SILENTLY FAIL on cache purge. Always fix immediately.
 
 ---
 
-## ☁️ Section 3: Cloudflare Caching Rules
+### 1A. Creating New API Token — Via Cloudflare Dashboard
 
-We automate rule deployment, CNAME proxying (orange clouding), and google-site-verification DNS records using a deployer script:
-
-### Deployer Script
-[scripts/deploy-cloudflare-rules.js](file:///Users/shoaib/Desktop/Zaynahs%20e-store/scripts/deploy-cloudflare-rules.js)
-
-### Cache Rules Configuration
-The script configures **4 cache rules** under the `http_request_cache_settings` ruleset:
-
-1. **`no-cache-dynamic`**: Bypasses caching for `/cart`, `/checkout`, `/account`, `/api`, and `/admin`. Uses `browser_ttl: 0` to also prevent browser cache. ⚠️ On Free plan, 200 HTML responses may still get cached — impact is minimal since cart/checkout data loads client-side.
-2. **`static-assets`**: Overrides origin headers to cache `/_next/static/*` files at the Edge for 1 year.
-3. **`html-pages`**: Bypasses caching for all HTML pages (`/*`) at Cloudflare Edge (`cache: false`). This prevents CSS/JS hash skew issues on new deploys where cached HTML references deleted asset files. Vercel ISR handles page-level caching instead.
-4. **`supabase-images`**: Caches all URLs containing `supabase.co` for 1 month at the edge.
-
-> **Note:** Page Rules (older system) are also active for additional bypass enforcement on `cart*`, `checkout*`, and `my-account*` paths with `cache_level: bypass`.
+1. Go to: **https://dash.cloudflare.com/profile/api-tokens**
+2. Click **"Create Token"** (top section — NOT "API Keys" at bottom)
+3. Select **"Create Custom Token"**
+4. Fill in:
+   - Token name: `projectname-cache-purge`
+   - Permissions: `Zone → Cache Purge → Purge`
+   - Zone Resources: `Include → Specific zone → yourdomain.com`
+5. Continue → Create Token → **Copy the `cfut_XXXX` token**
 
 ---
 
-## 🚨 Section 4: Critical Caching Coding Standards
+### 1B. Creating New API Token — Via API (Agent Method — PREFERRED)
 
-### Rule 1: Never Call `headers()` or `cookies()` in Store Page Server Components
-Calling `headers()` or `cookies()` in any storefront Server Component (including `generateMetadata()`) dynamically forces the page into dynamic rendering. This appends `cache-control: private, no-store` headers, destroying Vercel's ISR cache.
-* **Exceptions**: Allowed only in `robots.ts`, `sitemap.ts`, `/admin/**`, and `/api/**`.
-* **Server-Client Split**: `getSiteUrl()` (uses `headers()`) is in `lib/site-url-server.ts` — only import from server components. `getClientSiteUrl()` and `cleanLocalhostUrls()` are in `lib/site-url.ts` — safe for client components.
-* **Shop Page Fix**: Always use `settings?.storeUrl?.replace(...)` directly in `generateMetadata` instead of `getSiteUrl()` to avoid `headers()` calls that break caching.
-* **Verification Command**:
-  ```bash
-  grep -rn "headers()\|cookies()" app/ --include="*.tsx" --include="*.ts" | grep -v "robots\|sitemap\|admin\|api"
-  # Must return EMPTY
-  ```
-
-### Rule 2: Next.js 16 Strict `revalidateTag` Argument Casting
-Next.js 16 expects 2 arguments for `revalidateTag` at compile time but runs with 1.
-* **Correct Syntax**: Always wrap revalidation calls with `(revalidateTag as any)`:
-  ```typescript
-  (revalidateTag as any)('products');
-  ```
-* **Verification Command**:
-  ```bash
-  grep -rn "revalidateTag(" lib/ --include="*.ts" | grep "expire" && echo "⚠️ FIX NEEDED" || echo "✅ CLEAN"
-  ```
-
-### Rule 3: Loop Guard Protection on API Webhooks
-When configuring triggers, prevent infinite loops where your webhook updates fields on the same table it listens to. Enforce loop guards:
-```typescript
-const META_ONLY_COLUMNS = new Set(['meta_sync_status', 'meta_sync_error', 'meta_last_synced_at', 'updated_at']);
-const changedColumns = Object.keys(record).filter((k) => record[k] !== old_record[k]);
-const isMetaOnly = changedColumns.every((col) => META_ONLY_COLUMNS.has(col));
-if (isMetaOnly) return NextResponse.json({ revalidated: false, reason: 'meta_sync_only' });
-```
-
----
-
-## ✅ Section 5: New Fork Setup Checklist
-
-Follow these steps in exact order when deploying a new store domain:
+If you have the Global API Key (`cfk_`) + email, you can create a proper `cfut_` token via API:
 
 ```bash
-# 1. Fill out your .env.local variables with the active domain keys
+# Step 1: Test Global API Key works (X-Auth-Email + X-Auth-Key)
+curl -s "https://api.cloudflare.com/client/v4/user" \
+  -H "X-Auth-Email: ACCOUNT_EMAIL" \
+  -H "X-Auth-Key: cfk_XXXXXXXX"
+# Expect: {"success": true, "result": {"email": "..."}}
 
-# 2. Run the SQL schema script in the Supabase SQL editor:
-#    (Execute supabase/schema/SUPER_MASTER_SCHEMA.sql)
+# Step 2: Get Cache Purge permission group ID
+curl -s "https://api.cloudflare.com/client/v4/user/tokens/permission_groups" \
+  -H "X-Auth-Email: ACCOUNT_EMAIL" \
+  -H "X-Auth-Key: cfk_XXXXXXXX" | python3 -c "
+import sys,json; d=json.load(sys.stdin)
+for g in d.get('result',[]):
+  if 'cache' in g.get('name','').lower() or 'purge' in g.get('name','').lower():
+    print(g['id'], g['name'])
+"
+# Cache Purge ID: e17beae8b8cb423a99b1730f21238bed
 
-# 3. Deploy Supabase revalidation trigger webhooks:
-psql "$(grep -E "^DIRECT_URL=" .env.local | cut -d'="' -f2 | cut -d'"' -f1)" \
-  -f supabase/migrations/20260616183200_setup_database_webhooks.sql
+# Step 3: Create new API Token with all needed permissions
+curl -s -X POST "https://api.cloudflare.com/client/v4/user/tokens" \
+  -H "X-Auth-Email: ACCOUNT_EMAIL" \
+  -H "X-Auth-Key: cfk_XXXXXXXX" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "projectname-all-permissions-auto",
+    "policies": [{
+      "effect": "allow",
+      "resources": {
+        "com.cloudflare.api.account.zone.ZONE_ID": "*"
+      },
+      "permission_groups": [
+        {"id": "e17beae8b8cb423a99b1730f21238bed"},
+        {"id": "c8fed203ed3043cba015a93ad1616f1f"},
+        {"id": "e6d2666161e84845a636613608cee8d5"},
+        {"id": "517b21aee92c4d89936c976ba6e4be55"},
+        {"id": "3030687196b94b638145a3953da2b699"},
+        {"id": "9ff81cbbe65c400b97d92c3c1033cab6"},
+        {"id": "3245da1cf36c45c3847bb9b483c62f97"},
+        {"id": "dbc512b354774852af2b5a5f4ba3d470"},
+        {"id": "fb6778dc191143babbfaa57993f1d275"},
+        {"id": "7b7216b327b04b8fbc8f524e1f9b7531"},
+        {"id": "c03055bc037c4ea9afb9a9f104b7b721"}
+      ]
+    }],
+    "not_before": "2026-01-01T00:00:00Z",
+    "expires_on": "2030-12-31T00:00:00Z"
+  }'
+# Result: {"success": true, "result": {"value": "cfut_XXXXXXXXXX", "id": "...", "status": "active"}}
+```
 
-# 4. Deploy Cloudflare cache rules, proxy CNAMEs, and DNS TXT verification records:
-node --env-file=.env.local scripts/deploy-cloudflare-rules.js
+> **Permission IDs Reference (2026):**
+> | Permission | ID |
+> |-----------|-----|
+> | Cache Purge | `e17beae8b8cb423a99b1730f21238bed` |
+> | Cache Settings Read | `3245da1cf36c45c3847bb9b483c62f97` |
+> | Cache Settings Write | `9ff81cbbe65c400b97d92c3c1033cab6` |
+> | Zone Read | `c8fed203ed3043cba015a93ad1616f1f` |
+> | Zone Write | `e6d2666161e84845a636613608cee8d5` |
+> | Zone Settings Read | `517b21aee92c4d89936c976ba6e4be55` |
+> | Zone Settings Write | `3030687196b94b638145a3953da2b699` |
+> | Zone WAF Read | `dbc512b354774852af2b5a5f4ba3d470` |
+> | Zone WAF Write | `fb6778dc191143babbfaa57993f1d275` |
+> | SSL & Certs Read | `7b7216b327b04b8fbc8f524e1f9b7531` |
+> | SSL & Certs Write | `c03055bc037c4ea9afb9a9f104b7b721` |
 
-# 5. Run verification tests to check for caching leaks
-grep -rn "headers()\|cookies()" app/ --include="*.tsx" --include="*.ts" | grep -v "robots\|sitemap\|admin\|api"
+---
 
-# 6. Deploy to Vercel
-git push vercel main
+### 1C. Verify Token is Valid
 
-# 7. Purge Cloudflare Edge Cache once after deployment:
-node --env-file=.env.local -e "
-const z=process.env.CLOUDFLARE_ZONE_ID, t=process.env.CLOUDFLARE_API_TOKEN;
-fetch('https://api.cloudflare.com/client/v4/zones/'+z+'/purge_cache',{
-  method:'POST',headers:{'Authorization':'Bearer '+t,'Content-Type':'application/json'},
-  body:JSON.stringify({purge_everything:true})
-}).then(r=>r.json()).then(d=>console.log(d.success?'✅ CF Purged':'❌',d.errors));
+```bash
+curl -s "https://api.cloudflare.com/client/v4/user/tokens/verify" \
+  -H "Authorization: Bearer cfut_XXXXXXXXXX"
+# Expect: {"result":{"status":"active"},"success":true}
+```
+
+---
+
+### 1D. Update Token if It Has Missing Permissions
+
+```bash
+# Get token ID first
+curl -s "https://api.cloudflare.com/client/v4/user/tokens" \
+  -H "X-Auth-Email: EMAIL" \
+  -H "X-Auth-Key: cfk_XXXXXX" | python3 -c "
+import sys,json; d=json.load(sys.stdin)
+for t in d.get('result',[]): print(t['id'], t['name'], t['status'])
 "
 
-# 8. Test webhook manually from terminal:
-curl -X POST https://yourdomain.pk/api/revalidate \
+# Update existing token to add Cache Purge
+curl -s -X PUT "https://api.cloudflare.com/client/v4/user/tokens/TOKEN_ID" \
+  -H "X-Auth-Email: EMAIL" \
+  -H "X-Auth-Key: cfk_XXXXXX" \
   -H "Content-Type: application/json" \
-  -H "x-revalidate-secret: your_revalidate_secret" \
-  -d '{"type":"UPDATE","table":"products","record":{"id":"test","slug":"test-slug"}}'
-# Expected response: {"revalidated":true,"table":"products","type":"UPDATE"}
+  -d '{"name":"token-name","status":"active","policies":[{"effect":"allow","resources":{"com.cloudflare.api.account.zone.ZONE_ID":"*"},"permission_groups":[{"id":"e17beae8b8cb423a99b1730f21238bed"},{"id":"c8fed203ed3043cba015a93ad1616f1f"},{"id":"e6d2666161e84845a636613608cee8d5"}]}]}'
 ```
 
 ---
 
-## 🌐 Section 6: Multi-Project Webhook Authentication (IMPORTANT)
-
-When managing multiple Next.js store projects (e.g., Zaynahs, TotVogue, MiniMahal, LittleMister) from a single codebase, ensure that each project's Cloudflare Cache Purge webhook is authenticated correctly:
-
-### 1. Token Type Matters
-The `CLOUDFLARE_API_TOKEN` set in your Vercel Environment Variables **must** be an **API Token**, NOT a Global API Key.
-- ✅ Correct: `cfut_...` or random 40-character alphanumeric token created via **My Profile > API Tokens > Create Token** (Requires "Cache Purge" permission).
-- ❌ Incorrect: `cfk_...` or 37-character hex string (Global API Keys do not work with standard Bearer auth).
-
-### 2. Automated Token Verification
-Before deploying or when debugging 500 errors related to cache purging, always test the tokens across all environments. We have a built-in script that automatically scans `.env.local` and all `env-backups/*.env.local` files:
+### 1E. Update Token in Vercel via API
 
 ```bash
-node scripts/test-cf-tokens.mjs
-```
-This script calls `api.cloudflare.com/client/v4/user/tokens/verify` and will instantly tell you which projects have `VALID` tokens and which have `EXPIRED/INVALID` tokens.
+VERCEL_TOKEN="vcp_XXXXXXXX"
+PROJECT_ID="prj_XXXXXXXX"
 
-### 3. Updating Tokens on Vercel
-If the test script reports an invalid token for a specific project:
-1. Generate a new API Token in Cloudflare.
-2. Go to that specific project's Vercel Dashboard > Settings > Environment Variables.
-3. Update `CLOUDFLARE_API_TOKEN` and save.
-4. Run a new deployment on Vercel for the changes to take effect.
+# Step 1: Find env var ID
+curl -s "https://api.vercel.com/v9/projects/$PROJECT_ID/env" \
+  -H "Authorization: Bearer $VERCEL_TOKEN" | python3 -c "
+import sys,json; d=json.load(sys.stdin)
+for e in d.get('envs',[]):
+  if 'CLOUDFLARE' in e.get('key',''):
+    print(e['id'], e['key'])
+"
+
+# Step 2: Update env var (production+preview only — sensitive vars can't include development)
+curl -s -X PATCH "https://api.vercel.com/v9/projects/$PROJECT_ID/env/ENV_VAR_ID" \
+  -H "Authorization: Bearer $VERCEL_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"value":"cfut_NEW_TOKEN","target":["production","preview"]}'
+
+# Step 3: Trigger redeploy
+LATEST_DEPLOY=$(curl -s "https://api.vercel.com/v6/deployments?projectId=$PROJECT_ID&limit=1&target=production" \
+  -H "Authorization: Bearer $VERCEL_TOKEN" | python3 -c "import sys,json; print(json.load(sys.stdin)['deployments'][0]['uid'])")
+
+curl -s -X POST "https://api.vercel.com/v13/deployments?forceNew=1&withCache=0" \
+  -H "Authorization: Bearer $VERCEL_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d "{\"deploymentId\":\"$LATEST_DEPLOY\",\"name\":\"PROJECT_NAME\",\"target\":\"production\",\"source\":\"api-trigger-git-deploy\"}"
+```
+
+---
+
+### 1F. Update env-backups After Any Token Change
+
+```bash
+# Always update env-backups/ after changing tokens
+sed -i '' 's|CLOUDFLARE_API_TOKEN=OLD_TOKEN|CLOUDFLARE_API_TOKEN=NEW_TOKEN|g' \
+  env-backups/totvogue.env.local
+
+# Also update VERCEL_TOKEN if changed
+sed -i '' 's|VERCEL_TOKEN=OLD_TOKEN|VERCEL_TOKEN=NEW_TOKEN|g' \
+  env-backups/totvogue.env.local
+```
+
+---
+
+## 🎣 SECTION 2: Supabase Database Webhook Triggers
+
+### How It Works
+
+```
+Admin changes product in database
+    ↓
+Supabase trigger fires (AFTER INSERT/UPDATE/DELETE)
+    ↓
+supabase_functions.http_request() called
+    ↓
+POST https://www.site.com/api/revalidate
+    Header: x-revalidate-secret: zaynahs_secret_cache_revalidate_2026
+    Body: {"type":"CHANGE","table":"products"}
+    ↓
+Next.js revalidates ISR cache for affected tags
+    ↓
+Cloudflare CDN gets fresh content on next request
+```
+
+### 2A. Create Trigger via API (Agent Method)
+
+```bash
+SUPABASE_MGMT_TOKEN="sbp_XXXXXXXX"
+SUPABASE_REF="PROJECT_REF"
+SITE_URL="https://www.yourdomain.com"
+SECRET="zaynahs_secret_cache_revalidate_2026"
+
+SQL=$(cat << ENDSQL
+DROP TRIGGER IF EXISTS "revalidate-products" ON public.products;
+CREATE TRIGGER "revalidate-products"
+  AFTER INSERT OR UPDATE OR DELETE ON public.products
+  FOR EACH ROW EXECUTE FUNCTION supabase_functions.http_request(
+    '${SITE_URL}/api/revalidate', 'POST',
+    '{"Content-Type":"application/json","x-revalidate-secret":"${SECRET}"}',
+    '{"type":"CHANGE","table":"products"}',
+    '5000'
+  );
+ENDSQL
+)
+
+SQL_JSON=$(python3 -c "import json,sys; print(json.dumps({'query': '''$SQL'''}))")
+curl -s -X POST "https://api.supabase.com/v1/projects/$SUPABASE_REF/database/query" \
+  -H "Authorization: Bearer $SUPABASE_MGMT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d "$SQL_JSON"
+```
+
+### 2B. Required Triggers — All Tables
+
+All projects need triggers on these tables:
+
+```
+products, categories, product_variants, product_images, product_modifiers,
+store_settings, reviews, seo_meta, collections, collection_categories,
+badges, homepage_sections, coupons, size_guides, social_proof,
+social_proof_products, variant_presets, ai_settings, meta_category_mapping,
+payment_methods, shipping_methods
+```
+
+> TotVogue also has: `verticals`
+
+### 2C. Verify All Triggers Point to Correct URL
+
+```bash
+# Run this SQL to verify no trigger has wrong URL (localhost, domain.com etc.)
+SQL='{"query":"SELECT trigger_name, action_statement FROM information_schema.triggers WHERE trigger_name LIKE '\''revalidate%'\'' GROUP BY trigger_name, action_statement ORDER BY trigger_name;"}'
+
+curl -s -X POST "https://api.supabase.com/v1/projects/SUPABASE_REF/database/query" \
+  -H "Authorization: Bearer MGMT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d "$SQL" | python3 -c "
+import sys,json,re
+d=json.load(sys.stdin)
+CORRECT_DOMAIN = 'www.yourdomain.com'
+for row in d:
+  m = re.search(r\"https?://[^']+\", row.get('action_statement',''))
+  url = m.group() if m else 'NO URL'
+  status = '✅' if CORRECT_DOMAIN in url else '❌ WRONG'
+  print(f'{status} {row[\"trigger_name\"]} → {url}')
+"
+```
+
+---
+
+## 📌 SECTION 3: Cache TTL Map
+
+| Path | Cache Layer | TTL | Notes |
+|------|-------------|-----|-------|
+| `/*` (HTML pages) | Cloudflare | BYPASS | HTML not cached at CF — Vercel ISR handles it |
+| `/product/[slug]` | Vercel ISR | 24h | Revalidated on product DB change |
+| `/_next/static/*` | Cloudflare | 1 year | Hashed filenames — safe to cache forever |
+| `supabase.co` storage | Cloudflare | 1 month | Image CDN cache |
+| `/cart`, `/checkout`, `/admin`, `/api/*` | Cloudflare | BYPASS | Never cache dynamic/private |
+
+---
+
+## 🔑 SECTION 4: Required .env.local Variables
+
+```env
+# Supabase
+SUPABASE_PROJECT_REF=your_ref
+SUPABASE_MGMT_TOKEN=sbp_XXXXXXXX
+NEXT_PUBLIC_SUPABASE_URL=https://ref.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGci...
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGci...
+
+# Vercel
+VERCEL_TOKEN=vcp_XXXXXXXX
+
+# GitHub
+GITHUB_USERNAME=your-bot-user
+GITHUB_TOKEN=ghp_XXXXXXXX
+GITHUB_REPO=repo-name
+
+# Cloudflare — MUST be cfut_ format, NEVER cfk_
+CLOUDFLARE_ZONE_ID=your_zone_id
+CLOUDFLARE_API_TOKEN=cfut_XXXXXXXX
+CF_ACCOUNT_ID=your_account_id
+
+# Cache & Webhook
+REVALIDATE_SECRET=zaynahs_secret_cache_revalidate_2026
+NEXT_PUBLIC_SITE_URL=https://www.yourdomain.com
+```
+
+---
+
+## 🚨 SECTION 5: Common Issues & Fixes
+
+### Issue 1: `cfk_` token in env file
+**Symptom:** Cache purge silently fails — `{"success":false,"errors":[{"code":10000,"message":"Authentication error"}]}`
+**Fix:** Create new `cfut_` token via API (see Section 1B) and update env + Vercel
+
+### Issue 2: Trigger pointing to `localhost:3000` or `domain.com`
+**Symptom:** Cache not clearing after admin changes on live site
+**Fix:**
+```bash
+DROP TRIGGER IF EXISTS "revalidate-TABLE" ON public.TABLE;
+CREATE TRIGGER "revalidate-TABLE" AFTER INSERT OR UPDATE OR DELETE ON public.TABLE
+FOR EACH ROW EXECUTE FUNCTION supabase_functions.http_request(
+  'https://www.CORRECT-DOMAIN.com/api/revalidate', 'POST',
+  '{"Content-Type":"application/json","x-revalidate-secret":"zaynahs_secret_cache_revalidate_2026"}',
+  '{"type":"CHANGE","table":"TABLE"}', '5000');
+```
+
+### Issue 3: Vercel token expired (`invalidToken: True`)
+**Symptom:** `{"error":{"code":"forbidden","message":"Not authorized","invalidToken":true}}`
+**Fix:** Get new token from https://vercel.com/account/tokens → Create → No Expiration → update env-backups
+
+### Issue 4: Missing triggers on a table
+**Symptom:** Admin changes to that table don't refresh site cache
+**Fix:** Run Section 2A for the missing table
+
+---
+
+## ⚡ SECTION 6: Agent Auto-Verification Script
+
+Run this after any setup or credential change to verify ALL 4 projects:
+
+```python
+import subprocess, json, re
+
+REVALIDATE_SECRET = "zaynahs_secret_cache_revalidate_2026"
+
+projects = {
+    "TOTVOGUE":    {"ref":"ziucrfpebpxijqhwmqre","mgmt":"sbp_your_management_token_placeholder","zone":"e4aceeacdc4f6a1677e92823df1651fd","cf_token":"cfut_your_cloudflare_token_placeholder","domain":"www.totvogue.pk"},
+    "ZAYNAHS":     {"ref":"unfdpfmjqljbjydgsccr","mgmt":"sbp_your_management_token_placeholder","zone":"10d964449186f64d7896f8dcac4e5eff","cf_token":"cfut_your_cloudflare_token_placeholder","domain":"www.zaynahs.pk"},
+    "MINIMAHAL":   {"ref":"mgwkcumurrllhpjvfezz","mgmt":"sbp_your_management_token_placeholder","zone":"6acd493022cd0f2d5a9c290088b5327a","cf_token":"cfut_your_cloudflare_token_placeholder","domain":"www.minimahal.com"},
+    "LITTLEMISTER":{"ref":"ljknmwianiswkalifueb","mgmt":"sbp_your_management_token_placeholder","zone":"063a3d5c72d44b3654aa60b17ed94863","cf_token":"cfut_your_cloudflare_token_placeholder","domain":"www.littlemister.pk"},
+}
+
+for name, cfg in projects.items():
+    print(f"\n{'='*55}\n  {name} ({cfg['domain']})\n{'='*55}")
+
+    # 1. Webhook live test
+    r = subprocess.run(["curl","-s","-X","POST",f"https://{cfg['domain']}/api/revalidate",
+        "-H","Content-Type: application/json",
+        "-H",f"x-revalidate-secret: {REVALIDATE_SECRET}",
+        "-d",'{"type":"UPDATE","table":"products","record":{"slug":"test"}}'],
+        capture_output=True,text=True,timeout=15)
+    wh = json.loads(r.stdout) if r.stdout else {}
+    print(f"  Webhook: {'✅' if wh.get('revalidated') else '❌'} → {wh}")
+
+    # 2. CF token verify
+    r2 = subprocess.run(["curl","-s","https://api.cloudflare.com/client/v4/user/tokens/verify",
+        "-H",f"Authorization: Bearer {cfg['cf_token']}"], capture_output=True,text=True,timeout=10)
+    d2 = json.loads(r2.stdout)
+    cf_status = d2.get('result',{}).get('status','INVALID') if d2.get('success') else 'INVALID'
+    print(f"  CF Token: {'✅' if cf_status=='active' else '❌'} → {cf_status}")
+
+    # 3. CF cache purge test
+    r3 = subprocess.run(["curl","-s","-X","POST",
+        f"https://api.cloudflare.com/client/v4/zones/{cfg['zone']}/purge_cache",
+        "-H",f"Authorization: Bearer {cfg['cf_token']}",
+        "-H","Content-Type: application/json",
+        "-d",'{"files":["https://test.com/test"]}'],
+        capture_output=True,text=True,timeout=10)
+    d3 = json.loads(r3.stdout)
+    print(f"  CF Purge: {'✅' if d3.get('success') else '❌'}")
+
+    # 4. Trigger URL check
+    r4 = subprocess.run(["curl","-s","-X","POST",
+        f"https://api.supabase.com/v1/projects/{cfg['ref']}/database/query",
+        "-H",f"Authorization: Bearer {cfg['mgmt']}",
+        "-H","Content-Type: application/json",
+        "-d",'{"query":"SELECT trigger_name,action_statement FROM information_schema.triggers WHERE trigger_name LIKE \'revalidate%\' GROUP BY trigger_name,action_statement;"}'],
+        capture_output=True,text=True,timeout=20)
+    d4 = json.loads(r4.stdout)
+    wrong = [row['trigger_name'] for row in d4 if isinstance(d4,list)
+             and cfg['domain'] not in re.search(r"https?://[^']+", row.get('action_statement','')).group('') if re.search(r"https?://[^']+", row.get('action_statement',''))]
+    total = len(d4) if isinstance(d4, list) else 0
+    print(f"  Triggers: {'✅' if not wrong else '❌'} {total} total | Wrong URL: {wrong if wrong else 'None'}")
+
+print("\n✅ Audit complete")
+```
