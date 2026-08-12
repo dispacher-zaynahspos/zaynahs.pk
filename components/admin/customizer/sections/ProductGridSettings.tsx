@@ -33,12 +33,25 @@ export default function ProductGridSettings({
 
   const filteredPickerProducts = useMemo(() => {
     let list = products;
+    
+    // Filter by selected product source
+    if (settings.source === 'featured') {
+      list = list.filter(p => p.isFeatured);
+    } else if (settings.source && settings.source !== 'all') {
+      list = list.filter(p => 
+        p.categoryId === settings.source || 
+        p.category?.slug === settings.source ||
+        p.category?.id === settings.source ||
+        p.productCategories?.some((pc: any) => pc.categoryId === settings.source || pc.category?.slug === settings.source)
+      );
+    }
+
     if (pickerSearch.trim()) {
       const q = pickerSearch.toLowerCase();
       list = list.filter(p => p.name.toLowerCase().includes(q) || (p.sku && p.sku.toLowerCase().includes(q)));
     }
     return list.slice(0, 50); // Show up to 50 items for performance
-  }, [pickerSearch, products]);
+  }, [pickerSearch, products, settings.source]);
 
   const manualProducts = useMemo(() => {
     return manualProductIds
