@@ -32,15 +32,13 @@ export default function ProductGridSettings({
   const [pickerSearch, setPickerSearch] = useState('');
 
   const filteredPickerProducts = useMemo(() => {
-    if (!pickerSearch.trim()) return [];
-    const q = pickerSearch.toLowerCase();
-    return products
-      .filter(p =>
-        !manualProductIds.includes(p.id) &&
-        (p.name.toLowerCase().includes(q) || (p.sku && p.sku.toLowerCase().includes(q)))
-      )
-      .slice(0, 10);
-  }, [pickerSearch, products, manualProductIds]);
+    let list = products;
+    if (pickerSearch.trim()) {
+      const q = pickerSearch.toLowerCase();
+      list = list.filter(p => p.name.toLowerCase().includes(q) || (p.sku && p.sku.toLowerCase().includes(q)));
+    }
+    return list.slice(0, 50); // Show up to 50 items for performance
+  }, [pickerSearch, products]);
 
   const manualProducts = useMemo(() => {
     return manualProductIds
@@ -134,15 +132,26 @@ export default function ProductGridSettings({
             )}
           </div>
 
-          {pickerSearch && filteredPickerProducts.length > 0 && (
-            <div className="border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-[#0f0f1b] divide-y divide-gray-100 dark:divide-gray-800 max-h-40 overflow-y-auto">
-              {filteredPickerProducts.map(p => (
-                <button
+          <div className="border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-[#0f0f1b] divide-y divide-gray-100 dark:divide-gray-800 max-h-40 overflow-y-auto overscroll-contain">
+            {filteredPickerProducts.map(p => {
+              const isChecked = manualProductIds.includes(p.id);
+              return (
+                <label
                   key={p.id}
-                  type="button"
-                  onClick={() => addProduct(p.id)}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-gray-50 dark:hover:bg-white/5 text-left transition-colors cursor-pointer"
+                  className={`flex items-center gap-2.5 px-3 py-2 cursor-pointer transition-colors ${isChecked ? 'bg-blue-50/50 dark:bg-blue-900/10' : 'hover:bg-gray-50 dark:hover:bg-white/5'}`}
                 >
+                  <input
+                    type="checkbox"
+                    checked={isChecked}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        addProduct(p.id);
+                      } else {
+                        removeProduct(p.id);
+                      }
+                    }}
+                    className="shrink-0 rounded border-gray-300 text-[#e94560] focus:ring-[#e94560] h-3.5 w-3.5 cursor-pointer"
+                  />
                   <div className="relative h-7 w-7 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
                     {p.images?.[0] && (
                       <Image src={p.images[0].url} alt={p.name} fill className="object-cover" sizes="28px" />
@@ -152,14 +161,13 @@ export default function ProductGridSettings({
                     <div className="text-xs font-semibold text-gray-900 dark:text-white truncate">{p.name}</div>
                     {p.sku && <div className="text-[10px] text-gray-400">{p.sku}</div>}
                   </div>
-                </button>
-              ))}
-            </div>
-          )}
-
-          {pickerSearch && filteredPickerProducts.length === 0 && (
-            <p className="text-xs text-gray-400 text-center py-2">No products found</p>
-          )}
+                </label>
+              );
+            })}
+            {filteredPickerProducts.length === 0 && (
+              <div className="text-xs text-gray-400 text-center py-4">No products found</div>
+            )}
+          </div>
 
           {manualProducts.length > 0 && (
             <div className="space-y-1.5 max-h-60 overflow-y-auto">
