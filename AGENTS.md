@@ -384,7 +384,9 @@ This app runs across ANY domain (localhost, custom domain, production). Never ha
    - Then `npm run dev` — everything works
 
 9b. **MULTI-STORE PURGE SYSTEM (MANDATORY — post-deploy-fix.mjs)**
-   - After EVERY Vercel deploy, run `node scripts/post-deploy-fix.mjs` from the repo root
+   - **CRITICAL AGENT RULE**: The AI Agent (Gemini) MUST NEVER wait for the user to ask for a cache purge.
+   - Every time the Agent pushes code to GitHub (`git push`), the Agent MUST independently wait 2 minutes to allow Vercel to finish building.
+   - After the 2 minute Vercel build window, the Agent MUST automatically execute `node scripts/post-deploy-fix.mjs` in the terminal to purge the cache for all projects simultaneously.
    - This script automatically:
      1. Reads `.env.local` (current store) + ALL `env-backups/*.env.local` files
      2. **Vercel ISR cache purge** — requires `VERCEL_TOKEN` + `VERCEL_PROJECT_NAME` in `.env.local`

@@ -164,6 +164,8 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
   const [completedCrop, setCompletedCrop] = useState<PixelCrop | null>(null);
   const [aspect, setAspect] = useState<number | undefined>(undefined);
   const imgRef = useRef<HTMLImageElement>(null);
+  const [manualWidth, setManualWidth] = useState<string>('');
+  const [manualHeight, setManualHeight] = useState<string>('');
 
   // ════════════════════════════════════════════════════════════════════════
   // 1. DATA LOADING

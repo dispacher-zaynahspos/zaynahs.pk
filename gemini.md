@@ -25,6 +25,7 @@
    - Flash Sale discounts (percentage or fixed) MUST apply directly to active selling price (`product.price`), preserving `comparePrice` as original compare price (or original price if compare price was null).
    - Dynamic product listing endpoints (such as `/api/products/list`) MUST use `Cache-Control: no-store, no-cache, must-revalidate` to prevent edge CDN price staleness across storefront pages.
    - Every production deploy MUST trigger `node scripts/post-deploy-fix.mjs` to purge Cloudflare CDN edge cache and avoid CSS/JS hash mismatch (`ChunkLoadError 404`).
+   - **CRITICAL AGENT RULE**: The AI Agent MUST NEVER wait for the user to ask for a cache purge. After any `git push`, the Agent MUST independently wait 2 minutes, then automatically run `node scripts/post-deploy-fix.mjs` in the terminal.
 
 ---
 
@@ -845,6 +846,7 @@ Admin saves Flash Sale / Price change
 2. **`/api/products/list` route** MUST have `Cache-Control: no-store, no-cache, must-revalidate` — never a static TTL — so the browser always re-fetches latest prices (the server responds from RAM cache, not DB).
 3. **`unstable_cache` in `lib/services/products.ts`** wraps ALL DB queries with tag `'products'` and `revalidate: 86400` (24h). This means DB is ONLY hit when cache is cold or after revalidation.
 4. **After any Vercel deploy**: run `node scripts/post-deploy-fix.mjs` to purge Cloudflare Edge CDN and keep HTML + CSS assets in-sync (prevents `ChunkLoadError`).
+   **CRITICAL AGENT RULE**: The AI Agent MUST automatically run this script 2 minutes after executing any `git push`. Do not wait for the user to ask.
 5. **NEVER remove `revalidateTag('products')`** from any admin save handler — doing so breaks instant price visibility.
 
 #### What This Means
@@ -1278,7 +1280,8 @@ env-backups/
 ### Agent Rules (STRICTLY ENFORCED)
 1. **Never copy credentials** from one store's `env-backups/` file to another
 2. **After any token rotation**: update `env-backups/<store>.env.local` + Vercel dashboard for THAT store only
-3. **Before every deploy**: run `node scripts/post-deploy-fix.mjs` — it auto-reads ALL env-backups and purges ALL Cloudflare zones + Vercel ISR cache
+3. **Before every deploy**: run `node scripts/post-deploy-fix.mjs` — it auto-reads ALL env-backups and purges ALL Cloudflare zones + Vercel ISR cache. 
+   **CRITICAL AGENT RULE**: The AI Agent MUST automatically run this script 2 minutes after executing any `git push`. Do not wait for the user to ask.
 4. **Verify no cross-contamination**: `rg "CLOUDFLARE_ZONE_ID" env-backups/` — every file MUST show a DIFFERENT value
 5. **Verify no secrets in code**: `rg "sbp_|ghp_|cfut_|eyJ" --glob '*.ts' --glob '*.tsx' --glob '*.mjs' --glob '*.sql'` — must return 0 results
 6. **cfk_ token = ALWAYS WRONG** → only `cfut_` tokens work with Bearer auth
