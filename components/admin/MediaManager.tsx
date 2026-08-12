@@ -39,7 +39,7 @@ import SortableMediaGrid from '@/components/admin/SortableMediaGrid';
 import { useConfirm } from '@/components/admin/shared/AdminConfirmProvider';
 import AdminSearchInput from '@/components/admin/shared/AdminSearchInput';
 import { Crop as CropIcon } from 'lucide-react';
-import ReactCrop, { Crop, PixelCrop, centerCrop, makeAspectCrop } from 'react-image-crop';
+import ReactCrop, { Crop, PixelCrop, centerCrop, makeAspectCrop, convertToPixelCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 
 interface MediaManagerProps {
