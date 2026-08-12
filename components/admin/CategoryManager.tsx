@@ -567,8 +567,10 @@ export default function CategoryManager({ initialCategories, aiEnabled, storeUrl
               </button>
             </div>
 
-            {/* Scrollable Form Body */}
-            <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-5">
+            {/* Form Container */}
+            <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0">
+              {/* Scrollable Form Body */}
+              <div className="flex-1 overflow-y-auto p-6 space-y-5">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-gray-500">Category Name *</label>
@@ -701,38 +703,41 @@ export default function CategoryManager({ initialCategories, aiEnabled, storeUrl
                   minHeight="180px"
                 />
               </div>
+              </div>
 
-              {/* Action Buttons */}
-              <div className="flex gap-4 pt-4 border-t border-gray-150 dark:border-gray-800 bg-white dark:bg-[#16162a]">
-                <button
-                  type="button"
-                  onClick={() => setIsOpen(false)}
-                  className="flex-1 text-center border border-gray-250 dark:border-gray-700 text-gray-700 dark:text-gray-350 bg-white dark:bg-transparent rounded-xl py-3 text-sm font-bold cursor-pointer hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className={`relative overflow-hidden flex-1 flex items-center justify-center text-center rounded-xl py-3 text-sm font-bold shadow-md cursor-pointer transition-all active:scale-[0.98] ${
-                    isSubmitting
-                      ? 'bg-gray-400 dark:bg-gray-600 cursor-not-allowed'
-                      : 'bg-[#1a1a2e] dark:bg-[#e94560] hover:opacity-90 text-white'
-                  }`}
-                >
-                  {isSubmitting && (
-                    <div className="absolute inset-0 flex items-center justify-center rounded-[inherit] pointer-events-none z-10 bg-inherit">
-                      <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
-                      <div className="flex items-center gap-2 relative z-10">
-                        <div className="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
-                        <span className="text-white">Saving...</span>
+              {/* Action Buttons (Sticky Footer) */}
+              <div className="p-6 pt-4 border-t border-gray-150 dark:border-gray-800 bg-gray-50 dark:bg-[#11111e] shrink-0">
+                <div className="flex gap-4">
+                  <button
+                    type="button"
+                    onClick={() => setIsOpen(false)}
+                    className="flex-1 text-center border border-gray-250 dark:border-gray-700 text-gray-700 dark:text-gray-350 bg-white dark:bg-transparent rounded-xl py-3 text-sm font-bold cursor-pointer hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className={`relative overflow-hidden flex-1 flex items-center justify-center text-center rounded-xl py-3 text-sm font-bold shadow-md cursor-pointer transition-all active:scale-[0.98] ${
+                      isSubmitting
+                        ? 'bg-gray-400 dark:bg-gray-600 cursor-not-allowed'
+                        : 'bg-[#1a1a2e] dark:bg-[#e94560] hover:opacity-90 text-white'
+                    }`}
+                  >
+                    {isSubmitting && (
+                      <div className="absolute inset-0 flex items-center justify-center rounded-[inherit] pointer-events-none z-10 bg-inherit">
+                        <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
+                        <div className="flex items-center gap-2 relative z-10">
+                          <div className="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                          <span className="text-white">Saving...</span>
+                        </div>
                       </div>
-                    </div>
-                  )}
-                  <span className={`transition-opacity ${isSubmitting ? 'opacity-0' : 'opacity-100'}`}>
-                    Save Category
-                  </span>
-                </button>
+                    )}
+                    <span className={isSubmitting ? 'opacity-0' : ''}>
+                      {editId ? 'Save Changes' : 'Create Category'}
+                    </span>
+                  </button>
+                </div>
               </div>
             </form>
           </div>

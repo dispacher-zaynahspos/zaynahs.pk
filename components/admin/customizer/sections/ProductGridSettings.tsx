@@ -30,6 +30,7 @@ export default function ProductGridSettings({
   const manualProductIds: string[] = settings.manualProductIds || [];
 
   const [pickerSearch, setPickerSearch] = useState('');
+  const [draggingId, setDraggingId] = useState<string | null>(null);
 
   const filteredPickerProducts = useMemo(() => {
     let list = products;
@@ -76,6 +77,43 @@ export default function ProductGridSettings({
     copy.splice(newIndex, 0, removed);
     handleSettingsChange('manualProductIds', copy);
   };
+
+  const handleDragStart = (e: React.DragEvent, idx: number) => {
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', manualProductIds[idx]);
+    setDraggingId(manualProductIds[idx]);
+  };
+  
+  const handleDragOver = (e: React.DragEvent, idx: number) => {
+    e.preventDefault();
+    const threshold = 120;
+    const speed = 15;
+    const cursorY = e.clientY;
+    const viewportH = window.innerHeight;
+    if (cursorY > viewportH - threshold) {
+      window.scrollBy({ top: speed, behavior: 'auto' });
+    } else if (cursorY < threshold) {
+      window.scrollBy({ top: -speed, behavior: 'auto' });
+    }
+
+    if (!draggingId) return;
+    const tgtId = manualProductIds[idx];
+    if (draggingId === tgtId) return;
+
+    const srcIdx = manualProductIds.indexOf(draggingId);
+    const tgtIdx = manualProductIds.indexOf(tgtId);
+    if (srcIdx === -1 || tgtIdx === -1) return;
+
+    const copy = [...manualProductIds];
+    const [dragged] = copy.splice(srcIdx, 1);
+    const adjustedTgt = tgtIdx > srcIdx ? tgtIdx - 1 : tgtIdx;
+    copy.splice(adjustedTgt, 0, dragged);
+    handleSettingsChange('manualProductIds', copy);
+    setDraggingId(tgtId);
+  };
+  
+  const handleDrop = () => setDraggingId(null);
+  const handleDragEnd = () => setDraggingId(null);
 
   return (
     <div className="space-y-4">
@@ -187,9 +225,17 @@ export default function ProductGridSettings({
               {manualProducts.map((p, idx) => (
                 <div
                   key={p.id}
-                  className="flex items-center gap-2 p-2 bg-white dark:bg-[#0f0f1b] rounded-xl border border-gray-200 dark:border-gray-700"
+                  className={`flex items-center gap-2 p-2 bg-white dark:bg-[#0f0f1b] rounded-xl border border-gray-200 dark:border-gray-700 transition-all duration-200 ${draggingId === p.id ? 'opacity-50 bg-orange-50/50 dark:bg-orange-950/20' : ''}`}
                 >
-                  <div className="flex flex-col items-center gap-0.5">
+                  <div className="text-xs font-semibold text-slate-400 w-6 text-center shrink-0">#{idx + 1}</div>
+                  <div 
+                    className="flex flex-col items-center gap-0.5"
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, idx)}
+                    onDragOver={(e) => handleDragOver(e, idx)}
+                    onDrop={handleDrop}
+                    onDragEnd={handleDragEnd}
+                  >
                     <button
                       type="button"
                       onClick={() => moveProduct(idx, 'up')}
@@ -198,7 +244,7 @@ export default function ProductGridSettings({
                     >
                       <ChevronUp className="h-2.5 w-2.5" />
                     </button>
-                    <span className="p-0.5 text-gray-400 cursor-grab select-none">
+                    <span className="p-0.5 text-gray-400 cursor-grab active:cursor-grabbing touch-none select-none">
                       <GripVertical className="h-3 w-3" />
                     </span>
                     <button
