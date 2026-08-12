@@ -4,6 +4,127 @@
 
 ---
 
+## ⭐ TEST 5 — GOLD STANDARD: 10-Point Auto-Discovery Audit (All Projects)
+
+> **Reads `env-backups/*.env.local` automatically** — works for ALL current + future projects.
+> Add a new store → just create its `env-backups/<store>.env.local` → this test picks it up instantly.
+
+```bash
+node -e "
+const { readFileSync, readdirSync } = await import('fs');
+function parseEnv(f) { const e={}; try { for (const l of readFileSync(f,'utf-8').split('\n')) { const t=l.trim(); if(t&&!t.startsWith('#')){ const q=t.indexOf('='); if(q>0) e[t.slice(0,q).trim()]=t.slice(q+1).trim(); } } } catch {} return e; }
+
+// AUTO-DISCOVER all stores from env-backups/ folder
+const backupFiles = readdirSync('env-backups').filter(f=>f.endsWith('.env.local'));
+const stores = backupFiles.map(f => {
+  const env = parseEnv('env-backups/'+f);
+  const name = f.replace('.env.local','');
+  const url = env.NEXT_PUBLIC_SITE_URL || env.NEXT_PUBLIC_APP_URL || '';
+  const vProj = env.VERCEL_PROJECT_NAME || '';
+  return { name, f:'env-backups/'+f, url, vProj, env };
+}).filter(s => s.url); // skip files without a site URL
+
+const SECRET='zaynahs_secret_cache_revalidate_2026';
+const REQ_ENV=['NEXT_PUBLIC_SUPABASE_URL','SUPABASE_SERVICE_ROLE_KEY','CLOUDFLARE_ZONE_ID','CLOUDFLARE_API_TOKEN','REVALIDATE_SECRET'];
+
+console.log('======================================');
+console.log('  10-POINT AUDIT — '+stores.length+' STORES FOUND');
+console.log('======================================\n');
+const summary=[];
+for (const s of stores) {
+  const {env}=s; const results=[];
+  // [1] CF token active
+  const cf=await fetch('https://api.cloudflare.com/client/v4/user/tokens/verify',{headers:{Authorization:'Bearer '+env.CLOUDFLARE_API_TOKEN}}).then(r=>r.json()).catch(()=>({}));
+  results.push(['CF token active', cf.result?.status==='active', 'Renew cfut_ token at dash.cloudflare.com/profile/api-tokens']);
+  // [2] CF token format cfut_ (not cfk_)
+  results.push(['CF token format cfut_', env.CLOUDFLARE_API_TOKEN?.startsWith('cfut_'), 'Delete cfk_ token, create new cfut_ token (Custom Token → Zone Cache Purge)']);
+  // [3] CLOUDFLARE_ZONE_ID present
+  results.push(['Zone ID present', !!env.CLOUDFLARE_ZONE_ID, 'Add CLOUDFLARE_ZONE_ID to env-backups/'+s.name+'.env.local']);
+  // [4] Supabase URL present
+  results.push(['Supabase URL present', !!env.NEXT_PUBLIC_SUPABASE_URL, 'Add NEXT_PUBLIC_SUPABASE_URL to env-backups/'+s.name+'.env.local']);
+  // [5] VERCEL_PROJECT_NAME set (RULE VERCEL1)
+  results.push(['VERCEL_PROJECT_NAME set (RULE VERCEL1)', !!env.VERCEL_PROJECT_NAME, 'Add: echo \"VERCEL_PROJECT_NAME=<vercel-project>\" >> env-backups/'+s.name+'.env.local']);
+  // [6] REVALIDATE_SECRET correct
+  results.push(['REVALIDATE_SECRET correct', env.REVALIDATE_SECRET===SECRET, 'Set REVALIDATE_SECRET='+SECRET+' in Vercel dashboard + env-backups file']);
+  // [7] Webhook live
+  const wh=s.url?await fetch(s.url+'/api/revalidate',{method:'POST',signal:AbortSignal.timeout(8000),headers:{'Content-Type':'application/json','x-revalidate-secret':SECRET},body:JSON.stringify({type:'UPDATE',table:'products',record:{id:'test'}})}).then(r=>r.json()).catch(()=>({})):{};
+  results.push(['Webhook /api/revalidate', wh.revalidated===true, 'Check REVALIDATE_SECRET in Vercel, or Supabase webhook URL pointing to '+s.url+'/api/revalidate']);
+  // [8] Homepage 200
+  const home=s.url?await fetch(s.url,{method:'HEAD',signal:AbortSignal.timeout(8000),redirect:'follow'}).catch(()=>({status:0})):{status:0};
+  results.push(['Homepage HTTP 200', home.status===200, 'Status '+home.status+' — check Vercel build logs / domain config / Cloudflare SSL=Full(Strict)']);
+  // [9] Vercel env vars complete
+  const vr=s.vProj&&env.VERCEL_TOKEN?await fetch('https://api.vercel.com/v9/projects/'+s.vProj+'/env',{headers:{Authorization:'Bearer '+env.VERCEL_TOKEN}}).then(r=>r.json()).catch(()=>({})):{};
+  const keys=vr.envs?.map(e=>e.key)||[];
+  const missingVE=REQ_ENV.filter(k=>!keys.includes(k));
+  results.push(['Vercel env vars complete', missingVE.length===0, missingVE.length?'Missing in Vercel dashboard: '+missingVE.join(', '):'']);
+  // [10] Unique creds present
+  results.push(['Unique creds present', !!(env.CLOUDFLARE_ZONE_ID&&env.SUPABASE_PROJECT_REF), 'Both CLOUDFLARE_ZONE_ID and SUPABASE_PROJECT_REF must be in env-backups/'+s.name+'.env.local']);
+
+  const passed=results.filter(r=>r[1]).length, total=results.length, allOk=passed===total;
+  summary.push({name:s.name,passed,total,allOk});
+  console.log((allOk?'✅':'❌')+' '+s.name.toUpperCase()+' — '+passed+'/'+total+(allOk?' PERFECT':''));
+  results.forEach(([label,ok,fix],i)=>{
+    console.log('  '+(ok?'✅':'❌')+' ['+( i+1)+'] '+label);
+    if(!ok&&fix) console.log('       🔧 FIX: '+fix);
+  });
+  console.log();
+}
+console.log('======================================');
+summary.forEach(s=>console.log((s.allOk?'✅':'❌')+' '+s.name+': '+s.passed+'/'+s.total));
+const ok4=summary.filter(s=>s.allOk).length;
+console.log('\n'+(ok4===summary.length?'🎉 ALL '+summary.length+' STORES '+summary[0]?.total+'/'+summary[0]?.total+' — NO ISSUES':'⚠️ '+(summary.length-ok4)+' store(s) need fixing — see 🔧 FIX above'));
+"
+```
+
+**Expected Output (Verified 2026-08-11):**
+```
+======================================
+  10-POINT AUDIT — 4 STORES FOUND
+======================================
+
+✅ TOTVOGUE — 10/10 PERFECT
+  ✅ [1] CF token active
+  ✅ [2] CF token format cfut_
+  ✅ [3] Zone ID present
+  ✅ [4] Supabase URL present
+  ✅ [5] VERCEL_PROJECT_NAME set (RULE VERCEL1)
+  ✅ [6] REVALIDATE_SECRET correct
+  ✅ [7] Webhook /api/revalidate
+  ✅ [8] Homepage HTTP 200
+  ✅ [9] Vercel env vars complete
+  ✅ [10] Unique creds present
+
+✅ ZAYNAHS — 10/10 PERFECT
+✅ MINIMAHAL — 10/10 PERFECT
+✅ LITTLEMISTER — 10/10 PERFECT
+
+🎉 ALL 4 STORES 10/10 — NO ISSUES
+```
+
+### If Any Check Fails — Read the 🔧 FIX Line
+
+The test auto-prints the exact fix command next to each failure, e.g.:
+```
+❌ [5] VERCEL_PROJECT_NAME set (RULE VERCEL1)
+   🔧 FIX: Add: echo "VERCEL_PROJECT_NAME=<vercel-project>" >> env-backups/zaynahs.env.local
+```
+
+---
+
+### Adding a New Store — Auto-Pickup
+
+```bash
+# 1. Create env-backups for new store
+cp env-backups/totvogue.env.local env-backups/newstore.env.local
+# 2. Fill in new store credentials
+nano env-backups/newstore.env.local   # update all values
+# 3. Re-run — new store is auto-discovered
+node -e "<paste the TEST 5 command above>"
+```
+
+---
+
+
 ## ✅ TEST 1 — PRIMARY: One-Command Full Audit (Run After Every Deploy)
 
 ```bash

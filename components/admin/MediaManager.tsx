@@ -38,6 +38,9 @@ import { useAdminTab } from '@/lib/hooks/useAdminTab';
 import SortableMediaGrid from '@/components/admin/SortableMediaGrid';
 import { useConfirm } from '@/components/admin/shared/AdminConfirmProvider';
 import AdminSearchInput from '@/components/admin/shared/AdminSearchInput';
+import { Crop as CropIcon } from 'lucide-react';
+import ReactCrop, { Crop, PixelCrop } from 'react-image-crop';
+import 'react-image-crop/dist/ReactCrop.css';
 
 interface MediaManagerProps {
   mode: 'library' | 'selector';
@@ -155,6 +158,12 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
   const [isSavingEdits, setIsSavingEdits] = useState(false);
   const [isSavingSortOrder, setIsSavingSortOrder] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  
+  // Crop states
+  const [crop, setCrop] = useState<Crop>();
+  const [completedCrop, setCompletedCrop] = useState<PixelCrop | null>(null);
+  const [aspect, setAspect] = useState<number | undefined>(undefined);
+  const imgRef = useRef<HTMLImageElement>(null);
 
   // ════════════════════════════════════════════════════════════════════════
   // 1. DATA LOADING
@@ -579,6 +588,9 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
     setGrayscale(0);
     setSepia(0);
     setInvert(0);
+    setCrop(undefined);
+    setCompletedCrop(null);
+    setAspect(undefined);
   };
 
   const applyQuickFilter = (filterName: string) => {
@@ -675,9 +687,35 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
       // Draw centered
       ctx.drawImage(img, -img.width / 2, -img.height / 2);
       
+      let finalCanvas = canvas;
+      if (completedCrop && completedCrop.width > 0 && completedCrop.height > 0 && imgRef.current) {
+        const cropCanvas = document.createElement('canvas');
+        const cropCtx = cropCanvas.getContext('2d');
+        if (!cropCtx) throw new Error('Could not get crop canvas context');
+
+        const scaleX = canvas.width / imgRef.current.width;
+        const scaleY = canvas.height / imgRef.current.height;
+
+        cropCanvas.width = completedCrop.width * scaleX;
+        cropCanvas.height = completedCrop.height * scaleY;
+
+        cropCtx.drawImage(
+          canvas,
+          completedCrop.x * scaleX,
+          completedCrop.y * scaleY,
+          completedCrop.width * scaleX,
+          completedCrop.height * scaleY,
+          0,
+          0,
+          cropCanvas.width,
+          cropCanvas.height
+        );
+        finalCanvas = cropCanvas;
+      }
+      
       // Export to blob
       const blob: Blob = await new Promise((resolve, reject) => {
-        canvas.toBlob((b) => {
+        finalCanvas.toBlob((b) => {
           if (b) resolve(b);
           else reject(new Error('Failed to export edited image from canvas'));
         }, 'image/webp', 0.90);
@@ -1834,17 +1872,40 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
                 <video src={previewItem.file_url} className="max-w-full max-h-[60vh] object-contain" controls autoPlay playsInline />
               ) : (
                 <div className="relative overflow-hidden flex items-center justify-center">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={previewItem.file_url}
-                    alt={previewItem.alt_text}
-                    style={{
-                      transform: `rotate(${rotation}deg) scaleX(${flipH ? -1 : 1}) scaleY(${flipV ? -1 : 1})`,
-                      filter: `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturation}%) blur(${blur}px) grayscale(${grayscale}%) sepia(${sepia}%) invert(${invert}%)`,
-                      transition: 'transform 0.2s ease, filter 0.1s ease'
-                    }}
-                    className="max-w-full max-h-[60vh] object-contain rounded-lg shadow-lg"
-                  />
+                  {showEditor ? (
+                    <ReactCrop
+                      crop={crop}
+                      onChange={(_, percentCrop) => setCrop(percentCrop)}
+                      onComplete={(c) => setCompletedCrop(c)}
+                      aspect={aspect}
+                      className="max-h-[60vh] rounded-lg shadow-lg"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        ref={imgRef}
+                        src={previewItem.file_url}
+                        alt={previewItem.alt_text}
+                        style={{
+                          transform: `rotate(${rotation}deg) scaleX(${flipH ? -1 : 1}) scaleY(${flipV ? -1 : 1})`,
+                          filter: `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturation}%) blur(${blur}px) grayscale(${grayscale}%) sepia(${sepia}%) invert(${invert}%)`,
+                          transition: 'transform 0.2s ease, filter 0.1s ease'
+                        }}
+                        className="max-w-full max-h-[60vh] object-contain block"
+                      />
+                    </ReactCrop>
+                  ) : (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      src={previewItem.file_url}
+                      alt={previewItem.alt_text}
+                      style={{
+                        transform: `rotate(${rotation}deg) scaleX(${flipH ? -1 : 1}) scaleY(${flipV ? -1 : 1})`,
+                        filter: `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturation}%) blur(${blur}px) grayscale(${grayscale}%) sepia(${sepia}%) invert(${invert}%)`,
+                        transition: 'transform 0.2s ease, filter 0.1s ease'
+                      }}
+                      className="max-w-full max-h-[60vh] object-contain rounded-lg shadow-lg"
+                    />
+                  )}
                 </div>
               )}
 
@@ -1990,6 +2051,55 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
                         >
                           <Undo className="w-4 h-4" />
                           <span className="text-[8px] mt-1 text-gray-500">Reset</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Crop Aspects */}
+                    <div className="space-y-2">
+                      <h4 className="font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider text-[10px]">Crop Aspect Ratio</h4>
+                      <div className="flex flex-wrap gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setAspect(undefined)}
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${aspect === undefined ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
+                        >
+                          <CropIcon className="w-3 h-3" /> Custom
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setAspect(1)}
+                          className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${aspect === 1 ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
+                        >
+                          1:1
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setAspect(3 / 4)}
+                          className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${aspect === 3 / 4 ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
+                        >
+                          3:4
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setAspect(4 / 3)}
+                          className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${aspect === 4 / 3 ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
+                        >
+                          4:3
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setAspect(9 / 16)}
+                          className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${aspect === 9 / 16 ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
+                        >
+                          9:16
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setAspect(16 / 9)}
+                          className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${aspect === 16 / 9 ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
+                        >
+                          16:9
                         </button>
                       </div>
                     </div>

@@ -106,7 +106,12 @@ export default function ProductGridSettings({
           <option value="all">Default (as fetched)</option>
           <option value="manual">Manual Pick &amp; Sort</option>
           <option value="featured">Featured Only</option>
-          <option value="recent">Recent Added</option>
+          <option value="recent">Newest First (Recent Added)</option>
+          <option value="oldest">Oldest First</option>
+          <option value="price_low">Price: Low to High</option>
+          <option value="price_high">Price: High to Low</option>
+          <option value="a_to_z">A to Z (Name)</option>
+          <option value="z_to_a">Z to A (Name)</option>
           <option value="category">Selected Category Order</option>
         </select>
       </div>

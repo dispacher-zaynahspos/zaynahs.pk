@@ -1080,9 +1080,19 @@ export default function StoreFront({
         prodList = prodList.filter(p => validSourceIds.includes(p.categoryId || '') || p.category?.slug === source || p.productCategories?.some(pc => validSourceIds.includes(pc.categoryId)));
       }
 
-      // Sort by recency
+      // Apply sorting
       if (sortMethod === 'recent') {
         prodList = [...prodList].sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime());
+      } else if (sortMethod === 'oldest') {
+        prodList = [...prodList].sort((a, b) => new Date(a.createdAt || '').getTime() - new Date(b.createdAt || '').getTime());
+      } else if (sortMethod === 'price_low') {
+        prodList = [...prodList].sort((a, b) => (a.price ?? 0) - (b.price ?? 0));
+      } else if (sortMethod === 'price_high') {
+        prodList = [...prodList].sort((a, b) => (b.price ?? 0) - (a.price ?? 0));
+      } else if (sortMethod === 'a_to_z') {
+        prodList = [...prodList].sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+      } else if (sortMethod === 'z_to_a') {
+        prodList = [...prodList].sort((a, b) => (b.name || '').localeCompare(a.name || ''));
       }
 
       return prodList.slice(0, effectiveLimit);
