@@ -39,7 +39,7 @@ import SortableMediaGrid from '@/components/admin/SortableMediaGrid';
 import { useConfirm } from '@/components/admin/shared/AdminConfirmProvider';
 import AdminSearchInput from '@/components/admin/shared/AdminSearchInput';
 import { Crop as CropIcon } from 'lucide-react';
-import ReactCrop, { Crop, PixelCrop } from 'react-image-crop';
+import ReactCrop, { Crop, PixelCrop, centerCrop, makeAspectCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 
 interface MediaManagerProps {
@@ -591,6 +591,48 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
     setCrop(undefined);
     setCompletedCrop(null);
     setAspect(undefined);
+  };
+
+  const handleAspectClick = (newAspect: number | undefined) => {
+    setAspect(newAspect);
+    if (imgRef.current) {
+      const { width, height } = imgRef.current;
+      if (newAspect) {
+        setCrop(
+          centerCrop(
+            makeAspectCrop(
+              {
+                unit: '%',
+                width: 90,
+              },
+              newAspect,
+              width,
+              height
+            ),
+            width,
+            height
+          )
+        );
+      } else {
+        setCrop({
+          unit: '%',
+          width: 50,
+          height: 50,
+          x: 25,
+          y: 25
+        });
+      }
+    }
+  };
+
+  const getCropSize = () => {
+    if (!completedCrop || !imgRef.current) return null;
+    const scaleX = imgRef.current.naturalWidth / imgRef.current.width;
+    const scaleY = imgRef.current.naturalHeight / imgRef.current.height;
+    const actualW = Math.round(completedCrop.width * scaleX);
+    const actualH = Math.round(completedCrop.height * scaleY);
+    if (actualW === 0 || actualH === 0) return null;
+    return `${actualW} × ${actualH} px`;
   };
 
   const applyQuickFilter = (filterName: string) => {
@@ -2057,46 +2099,51 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
 
                     {/* Crop Aspects */}
                     <div className="space-y-2">
-                      <h4 className="font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider text-[10px]">Crop Aspect Ratio</h4>
+                      <div className="flex justify-between items-end">
+                        <h4 className="font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider text-[10px]">Crop Aspect Ratio</h4>
+                        {getCropSize() && (
+                          <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-1.5 rounded">{getCropSize()}</span>
+                        )}
+                      </div>
                       <div className="flex flex-wrap gap-1.5">
                         <button
                           type="button"
-                          onClick={() => setAspect(undefined)}
+                          onClick={() => handleAspectClick(undefined)}
                           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${aspect === undefined ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
                         >
                           <CropIcon className="w-3 h-3" /> Custom
                         </button>
                         <button
                           type="button"
-                          onClick={() => setAspect(1)}
+                          onClick={() => handleAspectClick(1)}
                           className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${aspect === 1 ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
                         >
                           1:1
                         </button>
                         <button
                           type="button"
-                          onClick={() => setAspect(3 / 4)}
+                          onClick={() => handleAspectClick(3 / 4)}
                           className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${aspect === 3 / 4 ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
                         >
                           3:4
                         </button>
                         <button
                           type="button"
-                          onClick={() => setAspect(4 / 3)}
+                          onClick={() => handleAspectClick(4 / 3)}
                           className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${aspect === 4 / 3 ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
                         >
                           4:3
                         </button>
                         <button
                           type="button"
-                          onClick={() => setAspect(9 / 16)}
+                          onClick={() => handleAspectClick(9 / 16)}
                           className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${aspect === 9 / 16 ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
                         >
                           9:16
                         </button>
                         <button
                           type="button"
-                          onClick={() => setAspect(16 / 9)}
+                          onClick={() => handleAspectClick(16 / 9)}
                           className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${aspect === 16 / 9 ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
                         >
                           16:9
