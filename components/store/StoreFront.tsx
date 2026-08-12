@@ -142,10 +142,16 @@ function FlashSaleSection({ section, products, currencySymbol, settings, isPrevi
         // Apply standard sorting for category matches
         if (sortMethod === 'newest') {
           return new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime();
+        } else if (sortMethod === 'oldest') {
+          return new Date(a.createdAt || '').getTime() - new Date(b.createdAt || '').getTime();
         } else if (sortMethod === 'price_low') {
           return a.price - b.price;
         } else if (sortMethod === 'price_high') {
           return b.price - a.price;
+        } else if (sortMethod === 'a_to_z') {
+          return a.name.localeCompare(b.name);
+        } else if (sortMethod === 'z_to_a') {
+          return b.name.localeCompare(a.name);
         }
         
         return (b.createdAt || '').localeCompare(a.createdAt || '');
