@@ -625,14 +625,52 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
     }
   };
 
-  const getCropSize = () => {
-    if (!completedCrop || !imgRef.current) return null;
-    const scaleX = imgRef.current.naturalWidth / imgRef.current.width;
-    const scaleY = imgRef.current.naturalHeight / imgRef.current.height;
-    const actualW = Math.round(completedCrop.width * scaleX);
-    const actualH = Math.round(completedCrop.height * scaleY);
-    if (actualW === 0 || actualH === 0) return null;
-    return `${actualW} × ${actualH} px`;
+  useEffect(() => {
+    if (completedCrop && imgRef.current) {
+      const scaleX = imgRef.current.naturalWidth / imgRef.current.width;
+      const scaleY = imgRef.current.naturalHeight / imgRef.current.height;
+      const actualW = Math.round(completedCrop.width * scaleX);
+      const actualH = Math.round(completedCrop.height * scaleY);
+      if (actualW > 0 && actualH > 0) {
+        setManualWidth(actualW.toString());
+        setManualHeight(actualH.toString());
+      }
+    } else {
+      setManualWidth('');
+      setManualHeight('');
+    }
+  }, [completedCrop]);
+
+  const applyManualSize = () => {
+    const w = parseInt(manualWidth, 10);
+    const h = parseInt(manualHeight, 10);
+    if (isNaN(w) || isNaN(h) || !imgRef.current || w <= 0 || h <= 0) return;
+    
+    const { naturalWidth, naturalHeight, width, height } = imgRef.current;
+    const pctW = Math.min((w / naturalWidth) * 100, 100);
+    const pctH = Math.min((h / naturalHeight) * 100, 100);
+    
+    setAspect(undefined); 
+    
+    const newCrop = centerCrop(
+      {
+        unit: '%',
+        width: pctW,
+        height: pctH,
+      },
+      width,
+      height
+    );
+    
+    setCrop(newCrop);
+    setCompletedCrop(convertToPixelCrop(newCrop, width, height));
+  };
+
+  const handleManualSizeKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      applyManualSize();
+    }
   };
 
   const applyQuickFilter = (filterName: string) => {
@@ -770,7 +808,8 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
       if (overwrite) {
         // Extract relative file path from URL
         const pathParts = previewItem.file_url.split(`/storage/v1/object/public/${bucketName}/`);
-        const filePath = pathParts[1] ? decodeURIComponent(pathParts[1]) : previewItem.seo_filename;
+        const fullFilePath = pathParts[1] ? decodeURIComponent(pathParts[1]) : previewItem.seo_filename;
+        const filePath = fullFilePath.split('?')[0]; // Strip existing cache buster
         
         const { error: uploadError } = await supabase.storage
           .from(bucketName)
@@ -781,11 +820,15 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
           
         if (uploadError) throw uploadError;
         
-        // Update database record for size
+        const baseUrl = previewItem.file_url.split('?')[0];
+        const newFileUrl = `${baseUrl}?v=${timestamp}`;
+        
+        // Update database record for size and new cache-busted URL
         const { error: dbError } = await supabase
           .from('media_library')
           .update({
             file_size: blob.size,
+            file_url: newFileUrl,
             updated_at: new Date().toISOString()
           })
           .eq('id', previewItem.id);
@@ -2101,9 +2144,28 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
                     <div className="space-y-2">
                       <div className="flex justify-between items-end">
                         <h4 className="font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider text-[10px]">Crop Aspect Ratio</h4>
-                        {getCropSize() && (
-                          <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-1.5 rounded">{getCropSize()}</span>
-                        )}
+                        <div className="flex items-center gap-1 opacity-80 hover:opacity-100 transition-opacity">
+                          <input 
+                            type="number" 
+                            className="w-12 text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-1 py-0.5 rounded border-none text-center outline-none focus:ring-1 focus:ring-blue-500 placeholder-blue-300"
+                            value={manualWidth}
+                            onChange={(e) => setManualWidth(e.target.value)}
+                            onKeyDown={handleManualSizeKeyDown}
+                            onBlur={applyManualSize}
+                            placeholder="W"
+                          />
+                          <span className="text-[10px] font-bold text-gray-400">×</span>
+                          <input 
+                            type="number" 
+                            className="w-12 text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-1 py-0.5 rounded border-none text-center outline-none focus:ring-1 focus:ring-blue-500 placeholder-blue-300"
+                            value={manualHeight}
+                            onChange={(e) => setManualHeight(e.target.value)}
+                            onKeyDown={handleManualSizeKeyDown}
+                            onBlur={applyManualSize}
+                            placeholder="H"
+                          />
+                          <span className="text-[10px] font-bold text-gray-400 ml-0.5">px</span>
+                        </div>
                       </div>
                       <div className="flex flex-wrap gap-1.5">
                         <button
