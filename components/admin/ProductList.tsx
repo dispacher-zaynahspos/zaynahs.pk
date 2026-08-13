@@ -25,6 +25,8 @@ import {
 } from '@/components/common/Icons';
 import ImportExportModal from '@/components/admin/ImportExportModal';
 import PaginationFooter from './PaginationFooter';
+import ImagePreviewModal from '@/components/admin/ImagePreviewModal';
+import TableThumbnail from '@/components/admin/TableThumbnail';
 import { saveProductNavContext } from '@/lib/hooks/useProductNav';
 
 interface ProductListProps {
@@ -46,6 +48,7 @@ export default function ProductList({ initialProducts, settings }: ProductListPr
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
+  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
 
   /** Save nav context then navigate to edit page */
   const handleEditProduct = (productId: string, allFiltered: Product[]) => {
@@ -470,7 +473,7 @@ export default function ProductList({ initialProducts, settings }: ProductListPr
                       return (
                         <tr 
                           key={product.id} 
-                          className="hover:bg-gray-50/20 dark:hover:bg-white/5 transition-all"
+                          className={`hover:bg-gray-50/20 dark:hover:bg-white/5 transition-all ${selectedProductIds.includes(product.id) ? 'bg-indigo-50/30 dark:bg-indigo-900/10' : ''}`}
                         >
                           <td className="py-3 px-4 md:py-4 md:px-6 w-12 text-center">
                             <input
@@ -487,9 +490,11 @@ export default function ProductList({ initialProducts, settings }: ProductListPr
                             />
                           </td>
                           <td className="py-3 px-4 md:py-4 md:px-6 flex items-center gap-2 md:gap-3">
-                            <div className="relative h-10 w-10 md:h-12 md:w-12 rounded-lg overflow-hidden border border-gray-100 dark:border-gray-800 flex-shrink-0 bg-gray-50 dark:bg-[#0f0f1b]">
-                              <img src={primaryImage} alt={product.name} className="absolute inset-0 w-full h-full object-cover" />
-                            </div>
+                            <TableThumbnail 
+                              url={primaryImage} 
+                              alt={product.name} 
+                              onPreview={setPreviewImageUrl} 
+                            />
                             <div className="min-w-0">
                               <div className="flex items-center gap-1.5">
                                 <p className="font-bold text-[#1a1a2e] dark:text-white text-xs md:text-sm max-w-[180px] lg:max-w-[400px] line-clamp-1">
@@ -639,9 +644,12 @@ export default function ProductList({ initialProducts, settings }: ProductListPr
                         }}
                         className="rounded border-gray-300 text-[#e94560] focus:ring-[#e94560] h-4 w-4 cursor-pointer mt-1 flex-shrink-0"
                       />
-                      <div className="relative h-12 w-12 rounded-xl overflow-hidden border border-gray-100 dark:border-gray-800 flex-shrink-0 bg-gray-50 dark:bg-[#0f0f1b]">
-                        <img src={primaryImage} alt={product.name} className="absolute inset-0 w-full h-full object-cover" />
-                      </div>
+                      <TableThumbnail 
+                        url={primaryImage} 
+                        alt={product.name} 
+                        onPreview={setPreviewImageUrl} 
+                        className="h-12 w-12"
+                      />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2">
                           <h3 className="text-sm font-black text-[#1a1a2e] dark:text-white truncate flex-1 line-clamp-1 max-w-[250px]">{product.name}</h3>
@@ -754,6 +762,11 @@ export default function ProductList({ initialProducts, settings }: ProductListPr
         onImportComplete={() => {
           window.location.reload();
         }}
+      />
+      
+      <ImagePreviewModal 
+        url={previewImageUrl} 
+        onClose={() => setPreviewImageUrl(null)} 
       />
     </div>
   );

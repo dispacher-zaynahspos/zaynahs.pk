@@ -39,6 +39,8 @@ import {
 } from '@/components/common/Icons';
 import PaginationFooter from './PaginationFooter';
 import { saveProductNavContext } from '@/lib/hooks/useProductNav';
+import ImagePreviewModal from '@/components/admin/ImagePreviewModal';
+import TableThumbnail from '@/components/admin/TableThumbnail';
 
 interface CategoryDetailManagerProps {
   category: Category;
@@ -56,6 +58,7 @@ export default function CategoryDetailManager({ category, initialProducts }: Cat
   const [expandedProducts, setExpandedProducts] = useState<Record<string, boolean>>({});
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
+  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
 
   /** Save nav context (category view) then navigate to product edit */
   const handleEditProduct = (productId: string, allFiltered: Product[]) => {
@@ -599,21 +602,11 @@ export default function CategoryDetailManager({ category, initialProducts }: Cat
                       </td>
                       <td className="py-4 px-4 font-semibold text-gray-900 dark:text-white">
                         <div className="flex items-center gap-3">
-                          <div className="relative h-10 w-10 rounded-lg overflow-hidden bg-gray-50 dark:bg-gray-800 border border-gray-150 dark:border-gray-800 flex-shrink-0">
-                            {product.images?.[0] ? (
-                              <Image
-                                src={product.images[0].url}
-                                alt={product.name}
-                                fill
-                                sizes="40px"
-                                className="object-cover"
-                              />
-                            ) : (
-                              <div className="h-full w-full bg-gray-100 dark:bg-gray-850 flex items-center justify-center text-gray-400 text-[10px]">
-                                No Img
-                              </div>
-                            )}
-                          </div>
+                          <TableThumbnail 
+                            url={product.images?.[0]?.url || null} 
+                            alt={product.name} 
+                            onPreview={setPreviewImageUrl} 
+                          />
                           <div>
                             <div className="text-sm font-bold text-gray-900 dark:text-white">{product.name}</div>
                             <div className="text-[10px] font-mono text-gray-450 mt-0.5">{product.sku || 'No SKU'}</div>
@@ -1113,21 +1106,12 @@ export default function CategoryDetailManager({ category, initialProducts }: Cat
                             }}
                             className="rounded border-gray-300 text-[#e94560] focus:ring-[#e94560] h-4 w-4 cursor-pointer flex-shrink-0"
                           />
-                          <div className="relative h-12 w-12 rounded-xl overflow-hidden bg-gray-50 dark:bg-gray-850 border border-gray-150 dark:border-gray-800 flex-shrink-0">
-                            {product.images?.[0] ? (
-                              <Image
-                                src={product.images[0].url}
-                                alt={product.name}
-                                fill
-                                sizes="48px"
-                                className="object-cover"
-                              />
-                            ) : (
-                              <div className="h-full w-full bg-gray-100 dark:bg-gray-850 flex items-center justify-center text-gray-400 text-[10px]">
-                                No Img
-                              </div>
-                            )}
-                          </div>
+                          <TableThumbnail 
+                            url={product.images?.[0]?.url || null} 
+                            alt={product.name} 
+                            onPreview={setPreviewImageUrl} 
+                            className="h-12 w-12"
+                          />
                           <div>
                             <div className="text-sm font-bold text-gray-900 dark:text-white leading-tight">{product.name}</div>
                             {product.sku && (
@@ -1756,6 +1740,11 @@ export default function CategoryDetailManager({ category, initialProducts }: Cat
           </button>
         </div>
       </div>
+      
+      <ImagePreviewModal 
+        url={previewImageUrl} 
+        onClose={() => setPreviewImageUrl(null)} 
+      />
     </div>
   );
 }

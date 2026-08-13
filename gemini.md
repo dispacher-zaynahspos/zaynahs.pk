@@ -165,6 +165,7 @@
 3. Spacing/typography scale match karta hai baaki pages se?
 4. Same loading/error/empty-state pattern hai?
 5. Naya pattern chahiye to pehle 2-3 existing pages check karo
+6. **MANDATORY**: Har naye admin page par product ya image thumbnail show karte waqt [ADMIN_UI_FEATURES_GUIDE.md](docs/ADMIN_UI_FEATURES_GUIDE.md) ko laazmi follow karein. Koi bhi admin table/list banate waqt is guide mein maujood UI rules (jaise TableThumbnail click pe Modal) apply karein.
 
 ### Anti-Patterns (kabhi na karo)
 - ❌ Har page ka apna custom Button/Card

@@ -22,6 +22,8 @@ import PaginationFooter from './PaginationFooter';
 import { saveProductNavContext } from '@/lib/hooks/useProductNav';
 import EmptyState from '@/components/common/EmptyState';
 import AdminSearchInput from '@/components/admin/shared/AdminSearchInput';
+import ImagePreviewModal from '@/components/admin/ImagePreviewModal';
+import TableThumbnail from '@/components/admin/TableThumbnail';
 
 interface InventoryManagerProps {
   products: Product[];
@@ -38,6 +40,7 @@ export default function InventoryManager({ products: initialProducts, categories
   const [selectedVariantIds, setSelectedVariantIds] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
+  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
 
   /** Save inventory nav context then open product edit page */
   const handleEditProduct = (productId: string) => {
@@ -389,21 +392,11 @@ export default function InventoryManager({ products: initialProducts, categories
                           </td>
                           <td className="py-4 px-4 font-semibold text-gray-900 dark:text-white">
                             <div className="flex items-center gap-3">
-                              <div className="relative h-10 w-10 rounded-lg overflow-hidden bg-gray-50 dark:bg-gray-800 border border-gray-150 dark:border-gray-800 flex-shrink-0">
-                                {product.images?.[0] ? (
-                                  <Image
-                                    src={product.images[0].url}
-                                    alt={product.name}
-                                    fill
-                                    sizes="40px"
-                                    className="object-cover"
-                                  />
-                                ) : (
-                                  <div className="h-full w-full bg-gray-100 dark:bg-gray-850 flex items-center justify-center text-gray-400 text-[10px]">
-                                    No Img
-                                  </div>
-                                )}
-                              </div>
+                              <TableThumbnail 
+                                url={product.images?.[0]?.url || null} 
+                                alt={product.name} 
+                                onPreview={setPreviewImageUrl} 
+                              />
                               <div>
                                 <div className="text-sm font-bold text-gray-900 dark:text-white">{product.name}</div>
                                 {product.productCategories && product.productCategories.length > 0 ? (
@@ -743,21 +736,12 @@ export default function InventoryManager({ products: initialProducts, categories
                   {/* Product Header */}
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3">
-                      <div className="relative h-12 w-12 rounded-xl overflow-hidden bg-gray-50 dark:bg-gray-800 border border-gray-150 dark:border-gray-800 flex-shrink-0">
-                        {product.images?.[0] ? (
-                          <Image
-                            src={product.images[0].url}
-                            alt={product.name}
-                            fill
-                            sizes="48px"
-                            className="object-cover"
-                          />
-                        ) : (
-                          <div className="h-full w-full bg-gray-100 dark:bg-gray-850 flex items-center justify-center text-gray-400 text-[10px]">
-                            No Img
-                          </div>
-                        )}
-                      </div>
+                      <TableThumbnail 
+                        url={product.images?.[0]?.url || null} 
+                        alt={product.name} 
+                        onPreview={setPreviewImageUrl} 
+                        className="h-12 w-12"
+                      />
                         <div>
                           <div className="text-sm font-bold text-gray-900 dark:text-white leading-tight">{product.name}</div>
                           {product.productCategories && product.productCategories.length > 0 ? (
@@ -1099,6 +1083,11 @@ export default function InventoryManager({ products: initialProducts, categories
           />
         </div>
       )}
+      
+      <ImagePreviewModal 
+        url={previewImageUrl} 
+        onClose={() => setPreviewImageUrl(null)} 
+      />
     </div>
   );
 }

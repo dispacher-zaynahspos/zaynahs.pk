@@ -15,6 +15,8 @@ import { useConfirm } from '@/components/admin/shared/AdminConfirmProvider';
 import { toast } from 'sonner';
 import MediaSelectorModal from './MediaSelectorModal';
 import RichTextEditor from './RichTextEditor';
+import ImagePreviewModal from '@/components/admin/ImagePreviewModal';
+import TableThumbnail from '@/components/admin/TableThumbnail';
 
 interface CollectionManagerProps {
   initialCollections: Collection[];
@@ -31,6 +33,7 @@ export default function CollectionManager({ initialCollections, categories, aiEn
   // Modal states
   const [isOpen, setIsOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
+  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
   
   // Form fields
   const [name, setName] = useState('');
@@ -307,7 +310,11 @@ export default function CollectionManager({ initialCollections, categories, aiEn
                     <div className="flex items-center gap-3">
                       {col.imageUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={col.imageUrl} alt={col.name} className="w-10 h-10 rounded-lg object-cover bg-gray-100" />
+                        <TableThumbnail 
+                          url={col.imageUrl} 
+                          alt={col.name} 
+                          onPreview={setPreviewImageUrl} 
+                        />
                       ) : (
                         <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400">
                           <ImageIcon className="w-5 h-5" />
@@ -662,6 +669,11 @@ export default function CollectionManager({ initialCollections, categories, aiEn
           onClose={() => setIsMediaModalOpen(false)}
         />
       )}
+
+      <ImagePreviewModal 
+        url={previewImageUrl} 
+        onClose={() => setPreviewImageUrl(null)} 
+      />
     </div>
   );
 }

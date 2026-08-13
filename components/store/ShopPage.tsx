@@ -26,6 +26,23 @@ interface ShopPageProps {
   isPreview?: boolean;
 }
 
+const SORT_OPTIONS = [
+  { value: 'manual', label: 'Manual Order' },
+  { value: 'newest', label: 'Newest First' },
+  { value: 'oldest', label: 'Oldest First' },
+  { value: 'price_desc', label: 'Price: High to Low' },
+  { value: 'price_asc', label: 'Price: Low to High' },
+  { value: 'alpha_asc', label: 'Alphabetically: A-Z' },
+  { value: 'alpha_desc', label: 'Alphabetically: Z-A' },
+];
+
+const getSortLabel = (value: string) => SORT_OPTIONS.find(o => o.value === value)?.label || value;
+
+const toNumber = (v: string | null, fallback: number) => {
+  const n = Number(v);
+  return v && !isNaN(n) ? n : fallback;
+};
+
 interface ShopProductListCardProps {
   product: Product;
   settings: StoreSettings;
@@ -206,6 +223,10 @@ export default function ShopPage({
   const urlCollectionSlug = searchParams.get('collection') || undefined;
   const urlSearchQuery = searchParams.get('search') || '';
   const urlPage = parseInt(searchParams.get('page') || '1', 10);
+  const urlSortParam = searchParams.get('sort') || undefined;
+  const urlAvailabilityParam = (searchParams.get('availability') || '').split(',').filter(Boolean);
+  const urlMinPriceParam = searchParams.get('minPrice');
+  const urlMaxPriceParam = searchParams.get('maxPrice');
   const PAGE_SIZE = 12;
 
   // Calculate matching category ID from slug
@@ -232,7 +253,7 @@ export default function ShopPage({
   const [selectedCollectionId, setSelectedCollectionId] = useState<string | undefined>(activeCollection?.id);
   const [searchQuery, setSearchQuery] = useState(urlSearchQuery);
   const defaultSort = activeCategory?.activeSortPreference || (categories.find(c => c.id === SYSTEM_CATEGORY_ID)?.activeSortPreference) || 'manual';
-  const [sortBy, setSortBy] = useState<string>(defaultSort);
+  const [sortBy, setSortBy] = useState<string>(urlSortParam && SORT_OPTIONS.some(o => o.value === urlSortParam) ? urlSortParam : defaultSort);
   const [viewMode, setViewMode] = useState<'grid-3' | 'grid-4' | 'list'>('grid-4');
   const [isCollectionDescExpanded, setIsCollectionDescExpanded] = useState(false);
   const [isCategoryDescExpanded, setIsCategoryDescExpanded] = useState(false);
@@ -263,11 +284,11 @@ export default function ShopPage({
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
 
-  // Availability Filters
+  // Availability Filters (synced with ?availability= URL param)
   const [availability, setAvailability] = useState({
-    onSale: false,
-    inStock: false,
-    outStock: false
+    onSale: urlAvailabilityParam.includes('on-sale'),
+    inStock: urlAvailabilityParam.includes('in-stock'),
+    outStock: urlAvailabilityParam.includes('out-of-stock')
   });
 
   // Calculate global min and max prices to initialize inputs
@@ -280,8 +301,9 @@ export default function ShopPage({
     };
   }, [allProducts]);
 
-  const [priceMin, setPriceMin] = useState<number>(priceLimits.min);
-  const [priceMax, setPriceMax] = useState<number>(priceLimits.max);
+  const [priceMin, setPriceMin] = useState<number>(() => toNumber(urlMinPriceParam, priceLimits.min));
+  const [priceMax, setPriceMax] = useState<number>(() => toNumber(urlMaxPriceParam, priceLimits.max));
+  const priceDirtyRef = useRef(false);
 
   // Dynamic extraction of active/used variants (Colors, Sizes, Materials) from the active catalog products
   const usedVariants = useMemo(() => {
@@ -338,11 +360,13 @@ export default function ShopPage({
   const [showAllSizes, setShowAllSizes] = useState(false);
   const [showAllMaterials, setShowAllMaterials] = useState(false);
 
-  // Update states if price limits change or URL changes
+  // Reset price defaults only when the user hasn't touched price and no URL price params exist
   useEffect(() => {
+    if (priceDirtyRef.current) return;
+    if (searchParams.has('minPrice') || searchParams.has('maxPrice')) return;
     setPriceMin(priceLimits.min);
     setPriceMax(priceLimits.max);
-  }, [priceLimits]);
+  }, [priceLimits, searchParams]);
 
   useEffect(() => {
     if (!urlCategorySlug || urlCategorySlug === 'shop') {
@@ -362,11 +386,54 @@ export default function ShopPage({
     }
   }, [urlCollectionSlug, collections]);
 
-  // Sync sort dropdown to active category's admin-configured preference
+  // Sync sort dropdown to URL sort param, falling back to category's admin-configured preference
   useEffect(() => {
-    const preference = activeCategory?.activeSortPreference || (categories.find(c => c.id === SYSTEM_CATEGORY_ID)?.activeSortPreference) || 'manual';
-    setSortBy(preference);
-  }, [activeCategory, categories]);
+    const urlSort = searchParams.get('sort');
+    if (urlSort && SORT_OPTIONS.some(o => o.value === urlSort)) {
+      setSortBy(urlSort);
+    } else {
+      const preference = activeCategory?.activeSortPreference || (categories.find(c => c.id === SYSTEM_CATEGORY_ID)?.activeSortPreference) || 'manual';
+      setSortBy(preference);
+    }
+  }, [activeCategory, categories, searchParams]);
+
+  // Sync availability from URL (back/forward nav, shared links, Load More)
+  useEffect(() => {
+    const flags = (searchParams.get('availability') || '').split(',').filter(Boolean);
+    setAvailability({
+      onSale: flags.includes('on-sale'),
+      inStock: flags.includes('in-stock'),
+      outStock: flags.includes('out-of-stock')
+    });
+  }, [searchParams]);
+
+  // Sync price range from URL
+  useEffect(() => {
+    const minP = searchParams.get('minPrice');
+    const maxP = searchParams.get('maxPrice');
+    if (minP !== null || maxP !== null) {
+      priceDirtyRef.current = true;
+      if (minP !== null) setPriceMin(toNumber(minP, priceLimits.min));
+      if (maxP !== null) setPriceMax(toNumber(maxP, priceLimits.max));
+    }
+  }, [searchParams, priceLimits]);
+
+  // Debounced write of price range to URL (slider drag fires many rapid changes)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const params = new URLSearchParams(searchParams.toString());
+      const minActive = priceMin > priceLimits.min;
+      const maxActive = priceMax < priceLimits.max;
+      if (minActive) params.set('minPrice', String(priceMin)); else params.delete('minPrice');
+      if (maxActive) params.set('maxPrice', String(priceMax)); else params.delete('maxPrice');
+      if (minActive || maxActive) params.delete('page');
+      const next = params.toString();
+      if (next !== searchParams.toString()) {
+        router.replace(`${pathname}?${next}`, { scroll: false });
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [priceMin, priceMax, priceLimits, searchParams, pathname, router]);
 
   useEffect(() => {
     setSearchQuery(urlSearchQuery);
@@ -548,6 +615,54 @@ export default function ShopPage({
     setLoadMoreLimit((prev) => Math.max(prev, targetLimitFromUrl));
   }, [targetLimitFromUrl]);
 
+  // Update URL with the new sort param and reset pagination
+  const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    setSortBy(value);
+    const params = new URLSearchParams(searchParams.toString());
+    if (value === 'manual') params.delete('sort'); else params.set('sort', value);
+    params.delete('page');
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    setLoadMoreLimit(PAGE_SIZE);
+  };
+
+  // Update URL with availability flags and reset pagination
+  const handleAvailabilityChange = (key: 'onSale' | 'inStock' | 'outStock', checked: boolean) => {
+    const next = { ...availability, [key]: checked };
+    setAvailability(next);
+    const params = new URLSearchParams(searchParams.toString());
+    const flags: string[] = [];
+    if (next.onSale) flags.push('on-sale');
+    if (next.inStock) flags.push('in-stock');
+    if (next.outStock) flags.push('out-of-stock');
+    if (flags.length > 0) params.set('availability', flags.join(',')); else params.delete('availability');
+    params.delete('page');
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    setLoadMoreLimit(PAGE_SIZE);
+  };
+
+  const removeSortPill = () => {
+    const preference = activeCategory?.activeSortPreference || (categories.find(c => c.id === SYSTEM_CATEGORY_ID)?.activeSortPreference) || 'manual';
+    setSortBy(preference);
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete('sort');
+    params.delete('page');
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    setLoadMoreLimit(PAGE_SIZE);
+  };
+
+  const removePricePill = () => {
+    priceDirtyRef.current = false;
+    setPriceMin(priceLimits.min);
+    setPriceMax(priceLimits.max);
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete('minPrice');
+    params.delete('maxPrice');
+    params.delete('page');
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    setLoadMoreLimit(PAGE_SIZE);
+  };
+
   const displayProducts = useMemo(() => {
     return filteredProducts.slice(0, loadMoreLimit);
   }, [filteredProducts, loadMoreLimit]);
@@ -568,12 +683,13 @@ export default function ShopPage({
     setLoadMoreLimit(nextPage * PAGE_SIZE);
   };
 
-  // Reset Filters helper
+  // Reset Filters helper — clears all filter/sort params but keeps category/collection context
   const handleClearFilters = () => {
     setSelectedCategoryId(undefined);
     setSelectedCollectionId(undefined);
     setSearchQuery('');
     setAvailability({ onSale: false, inStock: false, outStock: false });
+    priceDirtyRef.current = false;
     setPriceMin(priceLimits.min);
     setPriceMax(priceLimits.max);
     setSelectedColors([]);
@@ -582,7 +698,17 @@ export default function ShopPage({
     setShowAllColors(false);
     setShowAllSizes(false);
     setShowAllMaterials(false);
-    router.replace(pathname, { scroll: false });
+    const preference = activeCategory?.activeSortPreference || (categories.find(c => c.id === SYSTEM_CATEGORY_ID)?.activeSortPreference) || 'manual';
+    setSortBy(preference);
+    setLoadMoreLimit(PAGE_SIZE);
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete('sort');
+    params.delete('availability');
+    params.delete('minPrice');
+    params.delete('maxPrice');
+    params.delete('search');
+    params.delete('page');
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
 
@@ -639,7 +765,7 @@ export default function ShopPage({
             <input
               type="checkbox"
               checked={availability.onSale}
-              onChange={(e) => setAvailability(prev => ({ ...prev, onSale: e.target.checked }))}
+              onChange={(e) => handleAvailabilityChange('onSale', e.target.checked)}
               className="rounded border-gray-300 dark:border-gray-700 text-[#e94560] focus:ring-[#e94560] h-4 w-4"
             />
             <span>On sale</span>
@@ -648,7 +774,7 @@ export default function ShopPage({
             <input
               type="checkbox"
               checked={availability.inStock}
-              onChange={(e) => setAvailability(prev => ({ ...prev, inStock: e.target.checked }))}
+              onChange={(e) => handleAvailabilityChange('inStock', e.target.checked)}
               className="rounded border-gray-300 dark:border-gray-700 text-[#e94560] focus:ring-[#e94560] h-4 w-4"
             />
             <span>In stock</span>
@@ -657,7 +783,7 @@ export default function ShopPage({
             <input
               type="checkbox"
               checked={availability.outStock}
-              onChange={(e) => setAvailability(prev => ({ ...prev, outStock: e.target.checked }))}
+              onChange={(e) => handleAvailabilityChange('outStock', e.target.checked)}
               className="rounded border-gray-300 dark:border-gray-700 text-[#e94560] focus:ring-[#e94560] h-4 w-4"
             />
             <span>Out of stock</span>
@@ -681,6 +807,7 @@ export default function ShopPage({
                 type="number"
                 value={priceMin}
                 onChange={(e) => {
+                  priceDirtyRef.current = true;
                   const val = Number(e.target.value);
                   setPriceMin(val >= 0 ? val : 0);
                 }}
@@ -696,6 +823,7 @@ export default function ShopPage({
                 type="number"
                 value={priceMax}
                 onChange={(e) => {
+                  priceDirtyRef.current = true;
                   const val = Number(e.target.value);
                   setPriceMax(val >= 0 ? val : 0);
                 }}
@@ -714,6 +842,7 @@ export default function ShopPage({
             max={priceLimits.max}
             value={priceMax}
             onChange={(e) => {
+              priceDirtyRef.current = true;
               const val = Number(e.target.value);
               if (val >= priceMin) {
                 setPriceMax(val);
@@ -1234,7 +1363,7 @@ export default function ShopPage({
                 <span className="hidden sm:inline text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider shrink-0">Sort by:</span>
                 <select
                   value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
+                  onChange={handleSortChange}
                   className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 px-3 py-2 text-xs font-bold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white shadow-sm"
                 >
                   <option value="manual">Manual Order</option>
@@ -1250,9 +1379,16 @@ export default function ShopPage({
           </div>
 
           {/* Active Filter Tags Row (Visible when filters are active) */}
-          {(selectedCategoryId || searchQuery || availability.onSale || availability.inStock || availability.outStock || priceMin > priceLimits.min || priceMax < priceLimits.max || selectedColors.length > 0 || selectedSizes.length > 0 || selectedMaterials.length > 0) && (
+          {(selectedCategoryId || searchQuery || (searchParams.has('sort') && sortBy !== 'manual') || availability.onSale || availability.inStock || availability.outStock || priceMin > priceLimits.min || priceMax < priceLimits.max || selectedColors.length > 0 || selectedSizes.length > 0 || selectedMaterials.length > 0) && (
             <div className="flex flex-wrap items-center gap-2.5 bg-gray-100/50 dark:bg-gray-900/30 p-3 rounded-xl">
               <span className="text-[10px] font-black text-gray-450 uppercase tracking-wider">Active Filters:</span>
+
+              {searchParams.has('sort') && sortBy !== 'manual' && (
+                <span className="inline-flex items-center gap-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-xs px-2.5 py-1 rounded-full font-bold text-gray-800 dark:text-gray-200">
+                  Sort: {getSortLabel(sortBy)}
+                  <button onClick={removeSortPill} className="hover:text-red-500 shrink-0"><X className="h-3 w-3" /></button>
+                </span>
+              )}
 
               {selectedCategoryId && (
                 <span className="inline-flex items-center gap-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-xs px-2.5 py-1 rounded-full font-bold text-gray-800 dark:text-gray-200">
@@ -1271,28 +1407,28 @@ export default function ShopPage({
               {availability.onSale && (
                 <span className="inline-flex items-center gap-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-xs px-2.5 py-1 rounded-full font-bold text-gray-800 dark:text-gray-200">
                   On Sale
-                  <button onClick={() => setAvailability(p => ({ ...p, onSale: false }))} className="hover:text-red-500 shrink-0"><X className="h-3 w-3" /></button>
+                  <button onClick={() => handleAvailabilityChange('onSale', false)} className="hover:text-red-500 shrink-0"><X className="h-3 w-3" /></button>
                 </span>
               )}
 
               {availability.inStock && (
                 <span className="inline-flex items-center gap-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-xs px-2.5 py-1 rounded-full font-bold text-gray-800 dark:text-gray-200">
                   In Stock
-                  <button onClick={() => setAvailability(p => ({ ...p, inStock: false }))} className="hover:text-red-500 shrink-0"><X className="h-3 w-3" /></button>
+                  <button onClick={() => handleAvailabilityChange('inStock', false)} className="hover:text-red-500 shrink-0"><X className="h-3 w-3" /></button>
                 </span>
               )}
 
               {availability.outStock && (
                 <span className="inline-flex items-center gap-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-xs px-2.5 py-1 rounded-full font-bold text-gray-800 dark:text-gray-200">
                   Out of Stock
-                  <button onClick={() => setAvailability(p => ({ ...p, outStock: false }))} className="hover:text-red-500 shrink-0"><X className="h-3 w-3" /></button>
+                  <button onClick={() => handleAvailabilityChange('outStock', false)} className="hover:text-red-500 shrink-0"><X className="h-3 w-3" /></button>
                 </span>
               )}
 
               {(priceMin > priceLimits.min || priceMax < priceLimits.max) && (
                 <span className="inline-flex items-center gap-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-xs px-2.5 py-1 rounded-full font-bold text-gray-800 dark:text-gray-200">
                   Price: Rs {priceMin} - Rs {priceMax}
-                  <button onClick={() => { setPriceMin(priceLimits.min); setPriceMax(priceLimits.max); }} className="hover:text-red-500 shrink-0"><X className="h-3 w-3" /></button>
+                  <button onClick={removePricePill} className="hover:text-red-500 shrink-0"><X className="h-3 w-3" /></button>
                 </span>
               )}
 
