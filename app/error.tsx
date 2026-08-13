@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { AlertTriangle, RefreshCw, Home } from '@/components/common/Icons';
 import Link from 'next/link';
 
@@ -11,18 +11,22 @@ export default function GlobalError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const [isChunkError, setIsChunkError] = useState(false);
+
   useEffect(() => {
-    // Log the error to an error reporting service
     console.error('Storefront Error Boundary caught an error:', error);
 
     // Auto-reload on ChunkLoadError (caused by Vercel/Cloudflare cache mismatch)
-    const errString = error.message?.toLowerCase() || error.stack?.toLowerCase() || '';
+    const errString = (error.message?.toLowerCase() || '') + (error.stack?.toLowerCase() || '');
     if (
       errString.includes('chunkloaderror') || 
       errString.includes('failed to fetch dynamically imported module') ||
-      errString.includes('_next/static/chunks')
+      errString.includes('_next/static/chunks') ||
+      errString.includes('loading chunk') ||
+      errString.includes('failed to load chunk')
     ) {
-      console.warn('ChunkLoadError detected in Error Boundary. Forcing reload...');
+      setIsChunkError(true);
+      console.warn('ChunkLoadError detected in Error Boundary. Forcing silent reload...');
       
       const reloadKey = 'last_chunk_error_reload_boundary';
       const now = Date.now();
@@ -30,13 +34,24 @@ export default function GlobalError({
       
       if (!lastReload || now - parseInt(lastReload, 10) > 10000) {
         sessionStorage.setItem(reloadKey, now.toString());
-        // Force a cache-busting reload to bypass max-age=60 browser cache
         const currentUrl = new URL(window.location.href);
         currentUrl.searchParams.set('_r', now.toString());
         window.location.href = currentUrl.toString();
+        return; // Don't show any UI
       }
+      // If we already reloaded recently, fall through and show the error page
+      setIsChunkError(false);
     }
   }, [error]);
+
+  // For ChunkLoadErrors, show nothing (blank screen while reloading silently)
+  if (isChunkError) {
+    return (
+      <div className="flex min-h-[70vh] items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-gray-300 border-t-[#e94560]" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-[70vh] flex-col items-center justify-center px-4 py-16 text-center">
@@ -45,7 +60,7 @@ export default function GlobalError({
       </div>
       
       <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2 font-heading">
-        This page couldn't load
+        This page couldn&apos;t load
       </h2>
       
       <p className="text-sm text-gray-500 dark:text-gray-400 max-w-md mx-auto mb-8 font-body leading-relaxed">
