@@ -17,6 +17,7 @@ import {
 import StarRating from './StarRating';
 import { useScrollRestoration } from '@/lib/hooks/useScrollRestoration';
 import { useSettings } from '@/lib/hooks/useSettings';
+import { getOptimizedImageUrl } from '@/lib/utils/imageUrl';
 
 interface StoreFrontProps {
   initialProducts: Product[];
@@ -588,7 +589,7 @@ function HeroBannerSection({ section, settings }: HeroBannerSectionProps) {
                 {/* ── Single background image (shared across mobile/tablet/desktop) ── */}
                 {slideImage && (
                   <img
-                    src={slideImage}
+                    src={getOptimizedImageUrl(slideImage, 1600)}
                     alt={slide.title || section.title || settings.storeName}
                     className={`${slideClass} w-full h-full object-cover select-none pointer-events-none absolute inset-0 z-0 ${
                       hasVideo && loadedMedia[slide.id] ? 'opacity-0' : 'opacity-100'

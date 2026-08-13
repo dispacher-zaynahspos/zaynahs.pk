@@ -1,8 +1,11 @@
-# Admin UI Features Guide
+# UI & Performance Guide
 
-This document outlines the standard UI features, components, and behaviors that must be implemented across all current and future Admin pages (e.g., Products, Inventory, Categories, Collections, etc.). 
+This document outlines the standard UI features, components, performance rules, and behaviors that must be implemented across all current and future pages — Admin (Products, Inventory, Categories, Collections, etc.) AND Storefront (shop, product, home).
 
-By following these guidelines, you ensure the Zaynahs E-Store admin panel remains consistent and feels like a cohesive native app.
+**Contents**: Section 1–2 = Admin UI patterns (shared table modules, forms) · Section 3 = URL-driven sort/filter/Load More pattern · Section 4 = Page load performance standards · Section 5 = Image optimization (`getOptimizedImageUrl`).
+
+By following these guidelines, the store remains consistent across every surface and loads fast on all devices.
+
 
 ---
 
@@ -117,5 +120,33 @@ The canonical working implementation is `components/store/ShopPage.tsx` (handler
 3. **Non-critical sections** (social feed, recommendations, banners) → client-side fetch with `Promise.race` timeout + graceful `.catch(() => [])` fallback — NEVER block SSR.
 4. **`generateMetadata` must be cheap**: only cached lookups (`getSettings`, `getProductBySlug`, seo_meta) — never `getProducts()` full-catalog calls.
 5. **Before deploying**: run `npm run build` locally; then push + `node scripts/post-deploy-fix.mjs` (Cloudflare purge) — never deploy with pending build errors.
+
+---
+
+## 5. Image Optimization (MANDATORY — storefront display)
+
+**Context**: `next.config` has `images.unoptimized: true` (Vercel image-optimization limits), so Next does NOT resize images. Without transformation, every product image downloads at its FULL original upload size (1–4MB each) — this was the #1 cause of slow image loading.
+
+**Solution**: Use `getOptimizedImageUrl(url, width)` from `@/lib/utils/imageUrl` on every **storefront display** image URL. It appends Supabase Storage transform params (`?width=<width>&quality=80`) so Supabase's CDN resizes + compresses before serving (~80-90% smaller files).
+
+### 5.1 Rules
+1. **Never render a raw Supabase product/banner URL in the storefront.** Always wrap with `getOptimizedImageUrl(url, width)`.
+2. **Helper is 100% safe** (this is why it's mandatory, not optional):
+   - Non-Supabase hosts (Unsplash, custom CDN) → URL returned unchanged.
+   - URLs already having a `width` param → untouched.
+   - If the project has no image-transformation feature → Supabase ignores the params and serves the original (graceful degradation, nothing breaks).
+   - `data:` / `blob:` / relative URLs → returned unchanged.
+3. **Standard widths** (match the render size ×2 for retina):
+   | Surface | Width |
+   |---------|-------|
+   | Grid cards (`ProductCard`) | `600` |
+   | List-row image (`ShopPage` list card) | `400` |
+   | Product gallery main (`ProductDetail`) | `1200` |
+   | Product thumbnails / cart / bundle mini | `160` |
+   | QuickView gallery | `900` |
+   | Social feed posts | `400` |
+   | Hero slider / banners (`StoreFront`) | `1600` |
+4. **Admin pages keep ORIGINAL URLs** (no transform) — editing/uploading needs full resolution. Never apply the helper to admin displays.
+5. **Applied files** (reference — don't regress): `ProductCard.tsx`, `ShopPage.tsx`, `ProductDetail.tsx`, `StoreFront.tsx`, `QuickViewModal.tsx`, `CartContainer.tsx`, `SocialFeedRibbon.tsx`.
 
 ---

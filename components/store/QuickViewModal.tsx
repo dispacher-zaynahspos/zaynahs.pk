@@ -21,6 +21,7 @@ import { formatPrice } from '@/lib/utils/whatsapp';
 import { toast } from 'sonner';
 import VariantSelector from './VariantSelector';
 import { animateFlyTo } from '@/lib/utils/flyAnimation';
+import { getOptimizedImageUrl } from '@/lib/utils/imageUrl';
 
 interface QuickViewModalProps {
   product: Product;
@@ -170,7 +171,7 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
                   {images.map((img, i) => (
                     <div key={img.id || i} className="relative flex-[0_0_100%] min-w-0 w-full h-full select-none overflow-hidden">
                       <Image
-                        src={img.url}
+                        src={getOptimizedImageUrl(img.url, 900)}
                         alt={product.name}
                         fill
                         sizes="(max-width: 640px) 100vw, 50vw"
@@ -227,7 +228,7 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
                       }`}
                     >
                       <Image
-                        src={img.url}
+                        src={getOptimizedImageUrl(img.url, 160)}
                         alt={`Thumbnail ${i + 1}`}
                         fill
                         sizes="48px"

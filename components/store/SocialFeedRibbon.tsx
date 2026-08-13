@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import { StoreSettings } from '@/lib/types';
+import { getOptimizedImageUrl } from '@/lib/utils/imageUrl';
 import { Play, YoutubeIcon, InstagramIcon, FacebookIcon, TiktokIcon, VimeoIcon } from '@/components/common/Icons';
 
 interface SocialFeedRibbonProps {
@@ -280,7 +281,7 @@ export default function SocialFeedRibbon({
               className="relative aspect-[9/16] bg-gray-100 dark:bg-gray-800 rounded-2xl overflow-hidden group border border-gray-100 dark:border-gray-800 block cursor-pointer"
             >
               <Image
-                src={feed.imageUrl}
+                src={getOptimizedImageUrl(feed.imageUrl, 400)}
                 alt={feed.caption || `Social post by @${feed.username}`}
                 fill
                 sizes="(max-width: 768px) 50vw, 25vw"

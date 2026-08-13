@@ -13,6 +13,7 @@ import { StoreSettings, ShippingMethod, CartItem, PaymentMethod } from '@/lib/ty
 import { useCartStore } from '@/store/cartStore';
 import { generateWhatsAppMessage, buildWhatsAppURL, cleanWhatsAppPhone, formatPrice } from '@/lib/utils/whatsapp';
 import { getSharedAspectClass } from '@/lib/utils/styles';
+import { getOptimizedImageUrl } from '@/lib/utils/imageUrl';
 import { createOrder } from '@/lib/services/orders';
 import { trackEvent } from '@/lib/trackEvent';
 import { toast } from 'sonner';
@@ -514,7 +515,7 @@ export default function CartContainer({ settings }: CartContainerProps) {
             <div className="divide-y divide-gray-100 dark:divide-gray-800">
               {/* Product list */}
               {placedOrder.items.map((item: any) => {
-                const img = item.product.images.find((i: any) => i.isPrimary)?.url || item.product.images[0]?.url || '';
+                const img = getOptimizedImageUrl(item.product.images.find((i: any) => i.isPrimary)?.url || item.product.images[0]?.url || '', 160);
                 const parts: string[] = [];
                 if (item.selectedVariant?.color) parts.push(item.selectedVariant.color);
                 if (item.selectedVariant?.size) parts.push(item.selectedVariant.size);
@@ -1285,7 +1286,7 @@ interface CartItemCardProps {
 }
 
 function CartItemCard({ item, compact = false, settings, removeItem, updateQuantity }: CartItemCardProps) {
-  const img = item.product.images.find((i: any) => i.isPrimary)?.url || item.product.images[0]?.url || '';
+  const img = getOptimizedImageUrl(item.product.images.find((i: any) => i.isPrimary)?.url || item.product.images[0]?.url || '', 160);
   const parts: string[] = [];
   if (item.selectedVariant?.color) parts.push(item.selectedVariant.color);
   if (item.selectedVariant?.size) parts.push(item.selectedVariant.size);

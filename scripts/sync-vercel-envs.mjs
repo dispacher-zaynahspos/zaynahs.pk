@@ -59,16 +59,17 @@ for (const p of projects) {
     // Delete first in case it exists, ignore errors
     spawnSync('npx', ['-y', 'vercel@latest', 'env', 'rm', key, 'production', 'preview', 'development', '--project', p.name, '--token', p.token, '--yes'], { encoding: 'utf-8' });
     
-    // Add it back
-    const out = spawnSync('npx', ['-y', 'vercel@latest', 'env', 'add', key, 'production', 'preview', 'development', '--project', p.name, '--token', p.token], {
-      input: value,
-      encoding: 'utf-8'
-    });
-    
-    if (out.status !== 0) {
-      console.error(`    Failed to add ${key}: ${out.stderr || out.stdout}`);
-    } else {
-      console.log(`    Success.`);
+    for (const envName of ['production', 'preview', 'development']) {
+      const out = spawnSync('npx', ['-y', 'vercel@latest', 'env', 'add', key, envName, '--project', p.name, '--token', p.token], {
+        input: value,
+        encoding: 'utf-8'
+      });
+      
+      if (out.status !== 0) {
+        console.error(`    Failed to add ${key} to ${envName}: ${out.stderr || out.stdout}`);
+      } else {
+        console.log(`    Success for ${envName}.`);
+      }
     }
   };
 
