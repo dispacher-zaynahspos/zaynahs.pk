@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import useEmblaCarousel from 'embla-carousel-react';
 import {
   ChevronLeft,
@@ -586,11 +587,21 @@ export default function ProductDetail({ product, settings, averageRating, social
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 space-y-6">
-      {/* Back button */}
-      <Link href="/shop" className="inline-flex items-center gap-1 text-sm font-semibold text-gray-600 dark:text-gray-400 hover:text-[#e94560] dark:hover:text-[#e94560] transition-colors">
+      {/* Back button — uses browser back to preserve scroll, filters, sort */}
+      <button
+        type="button"
+        onClick={() => {
+          if (window.history.length > 1) {
+            window.history.back();
+          } else {
+            window.location.href = '/shop';
+          }
+        }}
+        className="inline-flex items-center gap-1 text-sm font-semibold text-gray-600 dark:text-gray-400 hover:text-[#e94560] dark:hover:text-[#e94560] transition-colors cursor-pointer"
+      >
         <ChevronLeft className="h-4 w-4" />
-        <span>Back to Shop</span>
-      </Link>
+        <span>Back</span>
+      </button>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 bg-white dark:bg-[#16162a] p-5 md:p-8 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm text-gray-900 dark:text-white transition-colors">
         {/* Gallery */}
