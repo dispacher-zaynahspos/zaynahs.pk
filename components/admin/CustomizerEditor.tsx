@@ -1396,6 +1396,7 @@ export default function CustomizerEditor({
                   {activeSection.section_type === 'recent_reviews' && (
                     <RecentReviewsSettings
                       section={activeSection}
+                      reviews={reviews}
                       onUpdateSection={(updates) => handleUpdateSection(activeSection.id, updates)}
                     />
                   )}

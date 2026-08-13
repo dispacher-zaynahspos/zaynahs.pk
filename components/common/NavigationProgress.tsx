@@ -1,7 +1,9 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
+// @ts-ignore — nprogress doesn't ship types, already bundled by nextjs-toploader
+import NProgress from 'nprogress';
 
 /**
  * NavigationProgress — Global click listener that starts the NProgress bar
@@ -13,38 +15,25 @@ import { usePathname, useSearchParams } from 'next/navigation';
  *   2. Calling NProgress.start() immediately on click
  *   3. Calling NProgress.done() when pathname/searchParams actually change
  */
-export default function NavigationProgress() {
+function NavigationProgressInner() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
   // When route changes (pathname or searchParams), finish the progress bar
   useEffect(() => {
-    try {
-      // Dynamic import to avoid SSR issues
-      const NProgress = (window as any).__nprogress;
-      if (NProgress?.done) {
-        NProgress.done();
-      }
-    } catch {}
+    NProgress.done();
   }, [pathname, searchParams]);
 
   // Global click listener to START progress on internal link clicks
   useEffect(() => {
-    // Import NProgress from nextjs-toploader and store globally
-    import('nextjs-toploader/nProgress').then((mod) => {
-      const NProgress = mod.default || mod;
-      (window as any).__nprogress = NProgress;
-    }).catch(() => {});
-
     const handleClick = (e: MouseEvent) => {
-      // Find the closest <a> tag from the click target
       const anchor = (e.target as HTMLElement)?.closest?.('a');
       if (!anchor) return;
 
       const href = anchor.getAttribute('href');
       if (!href) return;
 
-      // Skip external links, hash links, mailto, tel, javascript, etc.
+      // Skip external links, hash links, mailto, tel, javascript
       if (
         href.startsWith('http') ||
         href.startsWith('//') ||
@@ -60,17 +49,12 @@ export default function NavigationProgress() {
       // Skip if target is _blank
       if (anchor.target === '_blank') return;
 
-      // Skip if it's the same page (exact same href)
+      // Skip if it's the same exact page
       const currentPath = window.location.pathname + window.location.search;
       if (href === currentPath) return;
 
       // Start the progress bar!
-      try {
-        const NProgress = (window as any).__nprogress;
-        if (NProgress?.start) {
-          NProgress.start();
-        }
-      } catch {}
+      NProgress.start();
     };
 
     document.addEventListener('click', handleClick, { capture: true });
@@ -80,4 +64,12 @@ export default function NavigationProgress() {
   }, []);
 
   return null;
+}
+
+export default function NavigationProgress() {
+  return (
+    <Suspense fallback={null}>
+      <NavigationProgressInner />
+    </Suspense>
+  );
 }

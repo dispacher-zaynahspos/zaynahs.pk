@@ -77,7 +77,7 @@ export default async function CatalogPage() {
     getProducts(),
     getCategories(),
     getSettings(),
-    getTopReviews(3),
+    getTopReviews(20),
     getHomepageSections(true),
   ]);
 
