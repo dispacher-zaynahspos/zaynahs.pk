@@ -46,7 +46,7 @@ try {
   process.exit(1);
 }
 
-const configString = JSON.stringify(multiStoreConfig);
+const configString = Buffer.from(JSON.stringify(multiStoreConfig)).toString('base64');
 
 console.log(`Found ${projects.length} Vercel projects to update.`);
 console.log(`Multi-Store Config has ${multiStoreConfig.length} zones.`);
@@ -56,8 +56,8 @@ for (const p of projects) {
   
   const addEnv = (key, value) => {
     console.log(`  Updating ${key}...`);
-    // Delete first in case it exists, ignore errors
-    spawnSync('npx', ['-y', 'vercel@latest', 'env', 'rm', key, 'production', 'preview', 'development', '--project', p.name, '--token', p.token, '--yes'], { encoding: 'utf-8' });
+    // Delete first from all environments in case it exists, ignore errors
+    spawnSync('npx', ['-y', 'vercel@latest', 'env', 'rm', key, '--project', p.name, '--token', p.token, '--yes'], { encoding: 'utf-8' });
     
     for (const envName of ['production', 'preview', 'development']) {
       const out = spawnSync('npx', ['-y', 'vercel@latest', 'env', 'add', key, envName, '--project', p.name, '--token', p.token], {

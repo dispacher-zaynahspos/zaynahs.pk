@@ -720,7 +720,7 @@ export default function PremiumFeaturesProvider({ settings }: PremiumFeaturesPro
             {tickerProduct.images?.[0]?.url && (
               <div className={`relative w-12 flex-shrink-0 bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden ${getSharedAspectClass(settings?.imageAspectRatio)}`}>
                 <Image
-                  src={tickerProduct.images[0].url}
+                  src={tickerProduct.images?.[0]?.url}
                   alt={tickerProduct.name}
                   fill
                   sizes="48px"

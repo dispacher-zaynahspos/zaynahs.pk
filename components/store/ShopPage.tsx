@@ -52,7 +52,7 @@ interface ShopProductListCardProps {
 
 function ShopProductListCard({ product, settings, addItem }: ShopProductListCardProps) {
   const fallbackPlaceholder = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%23f3f4f6'/%3E%3C/svg%3E";
-  const primaryImage = getOptimizedImageUrl(product.images.find(img => img.isPrimary)?.url || product.images[0]?.url || fallbackPlaceholder, 400);
+  const primaryImage = getOptimizedImageUrl(product.images?.find(img => img.isPrimary)?.url || product.images?.[0]?.url || fallbackPlaceholder, 400);
   const activeVariants = product.variants.filter(v => v.active);
   const defaultIndex = (settings?.defaultVariantIndex || 1) - 1;
   const defaultVar = activeVariants[defaultIndex] || activeVariants[0];
@@ -496,7 +496,7 @@ export default function ShopPage({
     toast.success(`${product.name} added to cart!`);
 
     // Trigger fly animation
-    const img = product.images.find(img => img.isPrimary)?.url || product.images[0]?.url;
+    const img = product.images?.find(img => img.isPrimary)?.url || product.images?.[0]?.url;
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
     const targetId = isMobile ? 'header-cart-icon-mobile' : 'header-cart-icon-desktop';
     animateFlyTo(e.currentTarget as HTMLElement, targetId, img);
@@ -1027,7 +1027,7 @@ export default function ShopPage({
           <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider block">Featured Products</span>
           <div className="space-y-3.5">
             {featuredProducts.map((p) => {
-              const img = p.images.find(img => img.isPrimary)?.url || p.images[0]?.url;
+              const img = p.images?.find(img => img.isPrimary)?.url || p.images?.[0]?.url;
               return (
                 <Link
                   key={p.id}
@@ -1492,12 +1492,13 @@ export default function ShopPage({
                 ? 'sm:grid-cols-2 lg:grid-cols-3'
                 : 'sm:grid-cols-3 lg:grid-cols-4'
               }`}>
-              {displayProducts.map(product => (
+              {displayProducts.map((product, index) => (
                 <ProductCard
                   key={product.id}
                   product={product}
                   currencySymbol={activeSettings.currencySymbol}
                   settings={activeSettings}
+                  priority={index < 6}
                 />
               ))}
             </div>

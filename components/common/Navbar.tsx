@@ -283,7 +283,7 @@ export default function Navbar({
       {logoUrl ? (
         <div
           style={{ width: `${logoWidth}px`, maxWidth: `${logoWidth}px` }}
-          className="flex items-center shrink-0 overflow-hidden transition-all duration-200"
+          className="flex items-center shrink-0 transition-all duration-200"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -291,6 +291,7 @@ export default function Navbar({
             alt={storeName}
             style={{ width: `${logoWidth}px`, height: 'auto', maxWidth: '100%', display: 'block' }}
             className="object-contain max-h-16 md:max-h-20"
+            fetchPriority="high"
           />
         </div>
       ) : (

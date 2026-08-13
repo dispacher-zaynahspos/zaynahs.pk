@@ -18,8 +18,8 @@ export default function ProductGrid({ products, currencySymbol, settings }: Prod
 
   return (
     <div className={`grid ${mobileCols} gap-4 sm:grid-cols-3 lg:grid-cols-4`}>
-      {products.map(product => (
-        <ProductCard key={product.id} product={product} currencySymbol={currencySymbol} settings={settings} />
+      {products.map((product, index) => (
+        <ProductCard key={product.id} product={product} currencySymbol={currencySymbol} settings={settings} priority={index < 6} />
       ))}
     </div>
   );

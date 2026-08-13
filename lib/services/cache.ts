@@ -15,7 +15,9 @@ export const purgeAllCache = async () => {
 
       if (multiStoreConfigStr) {
         try {
-          cfConfigs = JSON.parse(multiStoreConfigStr);
+          const isBase64 = !multiStoreConfigStr.startsWith('[');
+          const decodedStr = isBase64 ? Buffer.from(multiStoreConfigStr, 'base64').toString('utf-8') : multiStoreConfigStr;
+          cfConfigs = JSON.parse(decodedStr);
         } catch (e) {
           console.warn('Failed to parse MULTI_STORE_CLOUDFLARE_CONFIG', e);
         }

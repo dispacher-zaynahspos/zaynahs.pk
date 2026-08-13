@@ -26,14 +26,15 @@ interface ProductCardProps {
   product: Product;
   currencySymbol?: string;
   settings?: StoreSettings | null;
+  priority?: boolean;
 }
 
-export default function ProductCard({ product, currencySymbol = 'Rs.', settings }: ProductCardProps) {
+export default function ProductCard({ product, currencySymbol = 'Rs.', settings, priority = false }: ProductCardProps) {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === 'dark';
   const addItem = useCartStore(state => state.addItem);
   const fallbackPlaceholder = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%23f3f4f6'/%3E%3C/svg%3E";
-  const primaryImage = getOptimizedImageUrl(product.images.find(img => img.isPrimary)?.url || product.images[0]?.url || fallbackPlaceholder, 600);
+  const primaryImage = getOptimizedImageUrl(product.images?.find(img => img.isPrimary)?.url || product.images?.[0]?.url || fallbackPlaceholder, 600);
 
   const [hoveredImage, setHoveredImage] = useState<string | null>(null);
   const [touchActive, setTouchActive] = useState(false);
@@ -247,7 +248,7 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings 
     availableGroups.push({ type: 'material', name: 'Material', variants: materialVariants });
   }
   if (customVariants.length > 0 && settings?.card_show_type_custom !== false) {
-    const customName = product.variants.find(v => v.customOption)?.customOption || 'Custom';
+    const customName = product.variants?.find(v => v.customOption)?.customOption || 'Custom';
     availableGroups.push({ type: 'custom', name: customName, variants: customVariants });
   }
 
@@ -310,8 +311,8 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings 
   const aspectClass = getSharedAspectClass(settings?.imageAspectRatio);
   const titleClampClass = getSharedTitleClampClass(settings?.titleLineLimit);
 
-  const hasSecondImage = product.images.length > 1;
-  const secondImage = hasSecondImage ? getOptimizedImageUrl(product.images[1]?.url || product.images[0]?.url, 600) : null;
+  const hasSecondImage = product.images?.length > 1;
+  const secondImage = hasSecondImage ? getOptimizedImageUrl(product.images?.[1]?.url || product.images?.[0]?.url, 600) : null;
 
   const alignClass = cardAlignment === 'center' ? 'items-center text-center' :
     cardAlignment === 'right' ? 'items-end text-right' :
@@ -1779,8 +1780,8 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings 
           fill
           sizes="(max-width: 768px) 50vw, 25vw"
           className={`${fitClass} transition-transform duration-500 ${zoomClass} ${fadeClass}`}
-          priority={false}
-          loading="lazy"
+          priority={priority}
+          loading={priority ? undefined : "lazy"}
         />
         {secondImage && !hoveredImage && (
           <Image
@@ -1789,8 +1790,8 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings 
             fill
             sizes="(max-width: 768px) 50vw, 25vw"
             className={`${fitClass} absolute inset-0 transition-opacity duration-500 ${touchActive ? 'opacity-100' : 'opacity-0'} group-hover:opacity-100 group-active:opacity-100`}
-            priority={false}
-            loading="lazy"
+            priority={priority}
+            loading={priority ? undefined : "lazy"}
           />
         )}
       </>

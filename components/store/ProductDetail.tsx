@@ -59,9 +59,9 @@ export default function ProductDetail({ product, settings, averageRating, social
       : [{ id: 'dummy', productId: product.id, url: "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%23f3f4f6'/%3E%3C/svg%3E", alt: product.name, sortOrder: 0, isPrimary: true, createdAt: '' }];
   }, [product.images, product.id, product.name]);
 
-  const [activeImage, setActiveImage] = useState(images.find(img => img.isPrimary)?.url || images[0].url);
+  const [activeImage, setActiveImage] = useState(images.find(img => img.isPrimary)?.url || images?.[0]?.url);
   const [activeImageIndex, setActiveImageIndex] = useState(
-    Math.max(0, images.findIndex(img => img.url === (images.find(i => i.isPrimary)?.url || images[0].url)))
+    Math.max(0, images.findIndex(img => img.url === (images.find(i => i.isPrimary)?.url || images?.[0]?.url)))
   );
   const [isZoomed, setIsZoomed] = useState(false);
   const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 });
@@ -463,7 +463,7 @@ export default function ProductDetail({ product, settings, averageRating, social
         let chosenVariant: ProductVariant | undefined = undefined;
         if (bp.hasVariants && bp.variants.length > 0) {
           const selectedVarId = bundleVariantSelections[bp.id];
-          chosenVariant = bp.variants.find(v => v.id === selectedVarId && v.active)
+          chosenVariant = bp.variants?.find(v => v.id === selectedVarId && v.active)
             ?? bp.variants.filter(v => v.active)[0];
         }
         addItem(bp, chosenVariant, [], 1);
@@ -547,7 +547,7 @@ export default function ProductDetail({ product, settings, averageRating, social
     toast.success(`${product.name} added to cart!`);
 
     // Trigger fly animation
-    const imageUrl = selectedVariant?.imageUrl || product.images.find(img => img.isPrimary)?.url || product.images[0]?.url;
+    const imageUrl = selectedVariant?.imageUrl || product.images?.find(img => img.isPrimary)?.url || product.images?.[0]?.url;
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
     const targetId = isMobile ? 'header-cart-icon-mobile' : 'header-cart-icon-desktop';
     animateFlyTo(e.currentTarget as HTMLElement, targetId, imageUrl);
@@ -566,7 +566,7 @@ export default function ProductDetail({ product, settings, averageRating, social
       toast.success('Added to wishlist');
 
       // Trigger fly animation for adding to wishlist
-      const imageUrl = selectedVariant?.imageUrl || product.images.find(img => img.isPrimary)?.url || product.images[0]?.url;
+      const imageUrl = selectedVariant?.imageUrl || product.images?.find(img => img.isPrimary)?.url || product.images?.[0]?.url;
       const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
       const targetId = isMobile ? 'mobile-bottom-wishlist-icon' : 'header-wishlist-icon-desktop';
       animateFlyTo(e.currentTarget as HTMLElement, targetId, imageUrl);
@@ -1146,7 +1146,7 @@ export default function ProductDetail({ product, settings, averageRating, social
                           <div className={`relative w-12 rounded-lg overflow-hidden bg-gray-105 flex-shrink-0 ${getSharedAspectClass(settings?.imageAspectRatio)}`}>
                             {bp.images?.[0]?.url && (
                               <Image
-                                src={bp.images[0].url}
+                                src={bp.images?.[0]?.url}
                                 alt={bp.name}
                                 fill
                                 sizes="48px"

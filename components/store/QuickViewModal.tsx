@@ -106,7 +106,7 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
     toast.success(`${product.name} added to cart!`);
 
     // Trigger fly animation
-    const imageUrl = selectedVariant?.imageUrl || product.images.find(img => img.isPrimary)?.url || product.images[0]?.url;
+    const imageUrl = selectedVariant?.imageUrl || product.images?.find(img => img.isPrimary)?.url || product.images?.[0]?.url;
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
     const targetId = isMobile ? 'header-cart-icon-mobile' : 'header-cart-icon-desktop';
     animateFlyTo(e.currentTarget as HTMLElement, targetId, imageUrl);
