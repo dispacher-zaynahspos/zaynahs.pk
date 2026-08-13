@@ -490,7 +490,7 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings 
       case 'swatches':
         if (product.showSwatchesOnArchive === false || finalRenderedGroups.length === 0) return null;
         return (
-          <div key="swatches" className="flex flex-col gap-1 w-full mt-1 mb-1">
+          <div key="swatches" className="flex flex-col gap-1.5 w-full mt-2 mb-2">
             {finalRenderedGroups}
           </div>
         );
@@ -1636,17 +1636,18 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings 
             padding: 6px !important;
         }
 
-        .grid-cols-2 .z-card-container .sc1 .card-content,
+.grid-cols-2 .z-card-container .sc1 .card-content,
         .grid-cols-2 .z-card-container .sc2 .card-content,
         .grid-cols-2 .z-card-container .sc3 .card-content,
         .grid-cols-2 .z-card-container .sc4 .card-content,
         .grid-cols-2 .z-card-container .sc5 .card-content,
         .grid-cols-2 .z-card-container .sc6 .card-content,
         .grid-cols-2 .z-card-container .sc7 .card-content,
+        .grid-cols-2 .z-card-container .sc8 .card-content,
         .grid-cols-2 .z-card-container .z-card-content-geo,
         .grid-cols-2 .z-card-container .sc9 .card-content,
         .grid-cols-2 .z-card-container .sc10 .card-content {
-            padding: 6px 0 0 0 !important;
+            padding: 6px 0 8px 0 !important;
         }
 
         .grid-cols-2 .z-card-container .sc1 .card-title,
@@ -1762,11 +1763,11 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings 
 
   // Shared optimized images renderer respecting dynamic aspect ratio and hover style settings
   const renderCardImages = (fitClass: 'object-contain' | 'object-cover' = 'object-contain') => {
-    const zoomClass = settings?.imageHoverStyle === 'zoom' 
-      ? (touchActive ? 'scale-105' : 'group-hover:scale-105 group-active:scale-105') 
+    const zoomClass = settings?.imageHoverStyle === 'zoom'
+      ? (touchActive ? 'scale-105' : 'group-hover:scale-105 group-active:scale-105')
       : '';
-    const fadeClass = (secondImage && !hoveredImage) 
-      ? (touchActive ? 'opacity-0' : 'opacity-100 group-hover:opacity-0 group-active:opacity-0') 
+    const fadeClass = (secondImage && !hoveredImage)
+      ? (touchActive ? 'opacity-0' : 'opacity-100 group-hover:opacity-0 group-active:opacity-0')
       : '';
 
     return (
@@ -1797,45 +1798,45 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings 
 
   // Shared optimized content block renderer respecting element ordering, alignment, and display toggles
   const renderShowcaseContent = (styleClass: string) => {
-    const starsColor = 
-      styleClass === 'sc2' ? 'rgba(255,255,255,.8)' : 
-      styleClass === 'sc3' ? 'rgba(255,255,255,.9)' : 
-      styleClass === 'sc4' ? '#ffeaa7' : 
-      styleClass === 'sc6' ? '#d4af37' : 
-      styleClass === 'sc7' ? '#000' :
-      styleClass === 'sc8' ? '#000' :
-      styleClass === 'sc9' ? '#6750a4' :
-      styleClass === 'sc10' ? '#8e44ad' :
-      '#f59e0b';
-    
-    const countColor = 
-      styleClass === 'sc2' ? 'rgba(255,255,255,.4)' : 
-      styleClass === 'sc3' ? 'rgba(255,255,255,.5)' : 
-      styleClass === 'sc4' ? 'rgba(255,255,255,.6)' : 
-      styleClass === 'sc7' ? '#555' :
-      styleClass === 'sc8' ? '#666' :
-      styleClass === 'sc9' ? '#666' :
-      '#888';
+    const starsColor =
+      styleClass === 'sc2' ? 'rgba(255,255,255,.8)' :
+        styleClass === 'sc3' ? 'rgba(255,255,255,.9)' :
+          styleClass === 'sc4' ? '#ffeaa7' :
+            styleClass === 'sc6' ? '#d4af37' :
+              styleClass === 'sc7' ? '#000' :
+                styleClass === 'sc8' ? '#000' :
+                  styleClass === 'sc9' ? '#6750a4' :
+                    styleClass === 'sc10' ? '#8e44ad' :
+                      '#f59e0b';
 
-    const poldStyle = 
-      styleClass === 'sc2' ? { color: 'rgba(255,255,255,.5)' } : 
-      styleClass === 'sc3' ? { color: 'rgba(255,255,255,.6)' } : 
-      styleClass === 'sc4' ? { color: 'rgba(255,255,255,.6)' } : 
-      styleClass === 'sc6' ? { color: 'rgba(255,255,255,.4)' } : 
-      undefined;
+    const countColor =
+      styleClass === 'sc2' ? 'rgba(255,255,255,.4)' :
+        styleClass === 'sc3' ? 'rgba(255,255,255,.5)' :
+          styleClass === 'sc4' ? 'rgba(255,255,255,.6)' :
+            styleClass === 'sc7' ? '#555' :
+              styleClass === 'sc8' ? '#666' :
+                styleClass === 'sc9' ? '#666' :
+                  '#888';
 
-    const descClass = 
-      styleClass === 'sc2' ? 'text-white/70' : 
-      styleClass === 'sc3' ? 'text-white/80' : 
-      styleClass === 'sc4' ? 'text-white/80' : 
-      styleClass === 'sc6' ? 'text-[#d4af37]/70' : 
-      styleClass === 'sc7' ? 'text-gray-700' : 
-      styleClass === 'sc8' ? 'text-gray-500' : 
-      styleClass === 'sc10' ? 'text-gray-500' : 
-      'text-gray-500';
+    const poldStyle =
+      styleClass === 'sc2' ? { color: 'rgba(255,255,255,.5)' } :
+        styleClass === 'sc3' ? { color: 'rgba(255,255,255,.6)' } :
+          styleClass === 'sc4' ? { color: 'rgba(255,255,255,.6)' } :
+            styleClass === 'sc6' ? { color: 'rgba(255,255,255,.4)' } :
+              undefined;
 
-    const contentClass = styleClass === 'sc8' 
-      ? 'z-card-content-geo flex-grow flex flex-col justify-end' 
+    const descClass =
+      styleClass === 'sc2' ? 'text-white/70' :
+        styleClass === 'sc3' ? 'text-white/80' :
+          styleClass === 'sc4' ? 'text-white/80' :
+            styleClass === 'sc6' ? 'text-[#d4af37]/70' :
+              styleClass === 'sc7' ? 'text-gray-700' :
+                styleClass === 'sc8' ? 'text-gray-500' :
+                  styleClass === 'sc10' ? 'text-gray-500' :
+                    'text-gray-500';
+
+    const contentClass = styleClass === 'sc8'
+      ? 'z-card-content-geo flex-grow flex flex-col justify-end'
       : 'card-content';
 
     return (
@@ -2699,14 +2700,16 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings 
           </div>
         </div>
 
-        <div className={`flex flex-grow flex-col p-2.5 sm:p-3 ${alignClass}`}>
-          {elementsOrder.filter(el => el !== 'swatches').map(element => renderElement(element))}
-          {displayDescription && (
-            <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 mt-1.5 line-clamp-2 leading-relaxed">
-              {displayDescription}
-            </p>
-          )}
-          <div className="w-full opacity-100 max-h-[200px] overflow-hidden mt-2">
+        <div className={`flex flex-grow flex-col ${alignClass}`}>
+          <div className="flex flex-col px-2.5 sm:px-3 pt-2.5 sm:pt-3 w-full">
+            {elementsOrder.filter(el => el !== 'swatches').map(element => renderElement(element))}
+            {displayDescription && (
+              <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 mt-1.5 line-clamp-2 leading-relaxed">
+                {displayDescription}
+              </p>
+            )}
+          </div>
+          <div className="w-full opacity-100 max-h-[200px] overflow-hidden px-2.5 sm:px-3 pb-2.5 sm:pb-3">
             {elementsOrder.includes('swatches') && renderElement('swatches')}
           </div>
         </div>
