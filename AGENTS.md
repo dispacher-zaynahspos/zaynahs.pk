@@ -300,6 +300,12 @@ This app runs across ANY domain (localhost, custom domain, production). Never ha
      ```
    - NEVER remove `NavigationProgress` from the layout. NEVER set `height` below 4. Keep `showSpinner={false}` (the spinner circle near the cart is ugly and distracting).
    - If adding new navigation patterns (programmatic `router.push`, custom buttons with `window.location`), ensure they also trigger the progress bar.
+
+10. **RULE C8 — STUCK VERCEL DATA CACHE & CACHE KEY BUMPING (MANDATORY)**:
+    - **The Bug:** Next.js `unstable_cache` on Vercel Data Cache occasionally ignores `revalidateTag` calls from webhooks (Next.js 14/15 bug), causing the storefront to serve permanently stale product slugs, missing images, or outdated prices EVEN AFTER a Vercel redeploy (because Vercel Data Cache persists across deployments).
+    - **The Symptoms:** The admin database (Supabase) shows correct data, but the live HTML storefront (e.g., `/shop`) continues to render old/deleted product slugs causing 404s for users on fresh devices.
+    - **The Nuclear Fix (Agent Directive):** If a user complains about products not updating, missing, or throwing 404s despite the DB being correct, the Agent MUST immediately bump the cache key suffix in `lib/services/products.ts` (e.g., change `['products-list']` to `['products-list-v2']`, then `v3`, etc.) and push a commit.
+    - **Why it works:** Changing the literal cache string forces Vercel to treat it as a brand-new cache query, completely abandoning the poisoned cache node and fetching 100% fresh data from Supabase.
 <!-- END:ssr-rules -->
 
 <!-- BEGIN:db-rules -->
