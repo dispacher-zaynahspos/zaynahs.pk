@@ -6,6 +6,7 @@ import ProductCard from '@/components/store/ProductCard';
 import { getProducts, getProductBySlug, getRelatedProducts } from '@/lib/services/products';
 import { getSettings } from '@/lib/services/settings';
 import { getProductReviews, getAverageRating } from '@/lib/services/reviews';
+import { getSocialProofCountForProduct } from '@/lib/services/socialProof';
 import { Product } from '@/lib/types';
 import RecentlyViewed from '@/components/store/RecentlyViewed';
 import SocialFeedRibbon from '@/components/store/SocialFeedRibbon';
@@ -139,10 +140,7 @@ export default async function ProductPage({ params }: PageProps) {
     getRelatedProducts(product.id, product.categoryId, 4)
   ]);
 
-  const { count: socialProofCount } = await supabaseAdmin
-    .from('social_proof_products')
-    .select('product_id', { count: 'exact', head: true })
-    .eq('product_id', product.id);
+  const socialProofCount = await getSocialProofCountForProduct(product.id);
 
   const layout = settings.productPageLayout || ['details', 'ticker', 'reviews', 'related', 'recently_viewed', 'social_feed'];
 

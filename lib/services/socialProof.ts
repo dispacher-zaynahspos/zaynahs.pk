@@ -109,6 +109,53 @@ export const getTopSocialProofs = async (limit: number = 2): Promise<SocialProof
   return cachedTopSocialProofs(limit);
 };
 
+const fetchActiveSocialProofCount = async (): Promise<number> => {
+  try {
+    const { count } = await supabaseAdmin
+      .from('social_proof')
+      .select('id', { count: 'exact', head: true })
+      .eq('active', true)
+      .is('deleted_at', null);
+    return count ?? 0;
+  } catch (error) {
+    console.error('[socialProof] fetchActiveSocialProofCount failed:', error);
+    return 0;
+  }
+};
+
+const cachedActiveSocialProofCount = unstable_cache(
+  fetchActiveSocialProofCount,
+  ['active-social-proof-count'],
+  { revalidate: 300, tags: ['social_proof'] }
+);
+
+export const getActiveSocialProofCount = async (): Promise<number> => {
+  return cachedActiveSocialProofCount();
+};
+
+const fetchSocialProofCountForProduct = async (productId: string): Promise<number> => {
+  try {
+    const { count } = await supabaseAdmin
+      .from('social_proof_products')
+      .select('product_id', { count: 'exact', head: true })
+      .eq('product_id', productId);
+    return count ?? 0;
+  } catch (error) {
+    console.error('[socialProof] fetchSocialProofCountForProduct failed:', error);
+    return 0;
+  }
+};
+
+const cachedSocialProofCountForProduct = (productId: string) => unstable_cache(
+  async () => fetchSocialProofCountForProduct(productId),
+  [`social-proof-count-${productId}`],
+  { revalidate: 300, tags: ['social_proof'] }
+);
+
+export const getSocialProofCountForProduct = async (productId: string): Promise<number> => {
+  return cachedSocialProofCountForProduct(productId)();
+};
+
 export const getSocialProofs = async (): Promise<SocialProof[]> => {
   try {
     const { data, error } = await supabaseAdmin

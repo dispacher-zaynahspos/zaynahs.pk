@@ -5,7 +5,7 @@ import { getCategories } from '@/lib/services/categories';
 import { getSettings } from '@/lib/services/settings';
 import { getTopReviews } from '@/lib/services/reviews';
 import { getHomepageSections } from '@/lib/services/sections';
-import { supabaseAdmin } from '@/lib/supabase/admin';
+import { getActiveSocialProofCount } from '@/lib/services/socialProof';
 import { getDomainBrand } from '@/lib/utils/getDomainBrand';
 import { Metadata } from 'next';
 
@@ -81,11 +81,7 @@ export default async function CatalogPage() {
     getHomepageSections(true),
   ]);
 
-  const { count: socialProofCount } = await supabaseAdmin
-    .from('social_proof')
-    .select('id', { count: 'exact', head: true })
-    .eq('active', true)
-    .is('deleted_at', null);
+  const socialProofCount = await getActiveSocialProofCount();
 
   return (
     <StoreFront
@@ -94,7 +90,7 @@ export default async function CatalogPage() {
       settings={settings}
       reviews={reviews}
       sections={sections}
-      socialProofCount={socialProofCount ?? 0}
+      socialProofCount={socialProofCount}
     />
   );
 }

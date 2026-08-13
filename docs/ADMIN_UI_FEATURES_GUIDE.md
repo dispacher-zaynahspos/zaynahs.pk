@@ -94,3 +94,28 @@ The canonical working implementation is `components/store/ShopPage.tsx` (handler
 - Mobile filter drawer uses the same handlers (shared `renderFiltersContent`).
 
 ---
+
+## 4. Page Load Performance Standards (MANDATORY)
+
+**Applies to**: Every storefront page (home, `/shop`, category, product) and any future listing page.
+
+### 4.1 Baseline — Already In Place (NEVER remove or weaken)
+| Area | Rule |
+|------|------|
+| SSR payload | Server renders ONLY first **24 products** per page (`getProducts(id, 24)`); the rest loads client-side after hydration via `/api/products/list` |
+| ISR | Home = `revalidate 86400`, Shop = `3600`, Product = `86400`; admin save webhooks purge via `revalidateTag` — never set `revalidate = 0` on catalog pages |
+| Fonts | `next/font/google` with `display: 'swap'` — never self-host heavy fonts, never block render on fonts |
+| DB cache | ALL storefront DB reads wrapped in `unstable_cache` with tags (`products`, `categories`, `settings`, `social_proof`…) — raw `supabaseAdmin` queries in SSR are FORBIDDEN unless the data is per-user/uncacheable |
+| Images | `next/image` everywhere (lazy loading + responsive sizes); never bare `<img>` in storefront |
+| CDN | Cloudflare edge cache + `cdn-cache-control` headers; purge everything after every deploy (`post-deploy-fix.mjs`) |
+| Shop filters | Sort/availability/price filtering is 100% client-side on the cached full list — zero DB hits after hydration |
+| Streaming | `Promise.all` for all parallel SSR fetches — never sequential `await` chains |
+
+### 4.2 Rules for New Pages / Features
+1. **Never add an uncached `supabaseAdmin` query inside a Server Component render or `generateMetadata`.** If the value is the same for all users (counts, banners, lists), wrap it in `unstable_cache` — e.g. social proof counts use `getActiveSocialProofCount()` / `getSocialProofCountForProduct()` (5-min revalidate, `social_proof` tag).
+2. **SSR only what first paint + SEO needs.** Lists over ~24 items must follow the "SSR 24 + client hydration" pattern (`/api/products/list` supports `?categoryId=` if category-scoped hydration is needed).
+3. **Non-critical sections** (social feed, recommendations, banners) → client-side fetch with `Promise.race` timeout + graceful `.catch(() => [])` fallback — NEVER block SSR.
+4. **`generateMetadata` must be cheap**: only cached lookups (`getSettings`, `getProductBySlug`, seo_meta) — never `getProducts()` full-catalog calls.
+5. **Before deploying**: run `npm run build` locally; then push + `node scripts/post-deploy-fix.mjs` (Cloudflare purge) — never deploy with pending build errors.
+
+---

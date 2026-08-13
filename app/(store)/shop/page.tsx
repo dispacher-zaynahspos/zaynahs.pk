@@ -91,7 +91,9 @@ export default async function StoreShopPage({ searchParams }: PageProps) {
   ]);
 
   const activeCat = categorySlug ? categories.find(c => c.slug === categorySlug) : undefined;
-  const products = await getProducts(activeCat?.id);
+  // SSR only first 24 products (same as home page) — keeps HTML payload small;
+  // ShopPage hydrates the full catalog client-side after mount
+  const products = await getProducts(activeCat?.id, 24);
 
   const siteUrl = `${brand.protocol}://${brand.domain}`;
 
