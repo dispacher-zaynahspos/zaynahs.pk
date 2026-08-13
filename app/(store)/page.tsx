@@ -71,10 +71,10 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function CatalogPage() {
-  // SSR only first 24 products — keeps HTML payload ~200KB instead of 2.2MB
-  // StoreFront fetches the rest client-side after hydration
+  // Fetch all active products on SSR to prevent layout shifts and missing products in Featured/Category grids.
+  // The data is cached via unstable_cache in getProducts, so DB load is 0.
   const [products, categories, settings, reviews, sections] = await Promise.all([
-    getProducts(undefined, 24),
+    getProducts(),
     getCategories(),
     getSettings(),
     getTopReviews(3),

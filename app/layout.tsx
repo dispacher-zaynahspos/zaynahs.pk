@@ -208,7 +208,7 @@ export default async function RootLayout({
           enableSystem={false}
           disableTransitionOnChange
         >
-          <NextTopLoader color="#e94560" showSpinner={false} height={3} shadow="0 0 10px #e94560,0 0 5px #e94560" />
+          <NextTopLoader color="#e94560" showSpinner={true} height={5} shadow="0 0 10px #e94560,0 0 5px #e94560" />
           <ChunkErrorListener />
           {children}
           <Toaster 

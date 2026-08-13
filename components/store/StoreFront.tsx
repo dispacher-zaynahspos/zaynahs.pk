@@ -891,26 +891,8 @@ export default function StoreFront({
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | undefined>(undefined);
   useScrollRestoration();
 
-  // SSR gives first 24 products. After mount, fetch the full list client-side.
-  // This keeps HTML payload small (~200KB) while still showing all products.
-  const [allProducts, setAllProducts] = useState<Product[]>(initialProducts);
-  const [hydrated, setHydrated] = useState(false);
-
-  useEffect(() => {
-    if (hydrated) return;
-    setHydrated(true);
-    // Only fetch if SSR was limited (< 30 products)
-    if (initialProducts.length < 30) {
-      fetch(`/api/products/list`)
-        .then(r => r.json())
-        .then(data => {
-          if (data.products && data.products.length > initialProducts.length) {
-            setAllProducts(data.products);
-          }
-        })
-        .catch(() => { /* stay with SSR products */ });
-    }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // SSR now provides all active products, no need to fetch client-side.
+  const allProducts = initialProducts;
 
   // Live settings: SSR value shown immediately, overridden by fresh DB fetch on mount
   const { settings: liveSettings } = useSettings(settings);

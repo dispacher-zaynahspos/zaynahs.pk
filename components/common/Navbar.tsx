@@ -267,8 +267,18 @@ export default function Navbar({
       moreOpenRef.current = false;
     }
     if (typeof window !== 'undefined') {
-      const hasSavedScroll = sessionStorage.getItem('store_scroll_restore');
-      if (!hasSavedScroll) {
+      const raw = sessionStorage.getItem('store_scroll_restore');
+      let shouldRestore = false;
+      if (raw) {
+        try {
+          const data = JSON.parse(raw);
+          const currentPath = window.location.pathname + window.location.search;
+          if (data.path === currentPath) {
+            shouldRestore = true;
+          }
+        } catch {}
+      }
+      if (!shouldRestore) {
         window.scrollTo({ top: 0, behavior: 'instant' });
       }
     }

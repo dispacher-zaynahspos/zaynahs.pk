@@ -30,7 +30,10 @@ export default function GlobalError({
       
       if (!lastReload || now - parseInt(lastReload, 10) > 10000) {
         sessionStorage.setItem(reloadKey, now.toString());
-        window.location.reload();
+        // Force a cache-busting reload to bypass max-age=60 browser cache
+        const currentUrl = new URL(window.location.href);
+        currentUrl.searchParams.set('_r', now.toString());
+        window.location.href = currentUrl.toString();
       }
     }
   }, [error]);

@@ -265,24 +265,8 @@ export default function ShopPage({
   useScrollRestoration();
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
-  // SSR gives first 24 products. Fetch the full list client-side after hydration.
-  const [allProducts, setAllProducts] = useState<Product[]>(initialProducts);
-  const [productsHydrated, setProductsHydrated] = useState(false);
-
-  useEffect(() => {
-    if (productsHydrated) return;
-    setProductsHydrated(true);
-    if (initialProducts.length < 30) {
-      fetch('/api/products/list')
-        .then(r => r.json())
-        .then(data => {
-          if (data.products && data.products.length > initialProducts.length) {
-            setAllProducts(data.products);
-          }
-        })
-        .catch(() => {});
-    }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // SSR now provides all active products, no need to fetch client-side.
+  const allProducts = initialProducts;
 
 
   // Availability Filters (synced with ?availability= URL param)
@@ -680,7 +664,8 @@ export default function ShopPage({
     } else {
       params.delete('page');
     }
-    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    const newUrl = `${pathname}?${params.toString()}`;
+    window.history.replaceState({ ...window.history.state, as: newUrl, url: newUrl }, '', newUrl);
     setLoadMoreLimit(nextPage * PAGE_SIZE);
   };
 
