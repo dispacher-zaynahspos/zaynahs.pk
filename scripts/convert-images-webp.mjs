@@ -47,15 +47,12 @@ async function listObjects(prefix = '') {
   const out = [];
   let offset = 0;
   for (;;) {
-    const res = await fetch(`${api}/object/list/${BUCKET}`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({ prefix, limit: 1000, offset, sortBy: { column: 'name', order: 'asc' } }),
-    });
-    const data = await res.json();
-    if (!Array.isArray(data)) throw new Error(`list failed: ${JSON.stringify(data)}`);
-    const files = data.filter((x) => x.id); // objects have id; folders don't
-    out.push(...files);
+    const { data, error } = await supabase.storage
+      .from(BUCKET)
+      .list(prefix, { limit: 1000, offset, sortBy: { column: 'name', order: 'asc' } });
+    if (error) throw new Error(`list failed: ${error.message}`);
+    if (!data || data.length === 0) break;
+    out.push(...data);
     if (data.length < 1000) break;
     offset += 1000;
   }
@@ -78,22 +75,32 @@ async function getAllObjects() {
 
 function needConversion(item) {
   const ext = item.name.split('.').pop()?.toLowerCase() || '';
-  if (ext === 'webp' && item.size <= MAX_BYTES) return false; // already small webp
-  if (item.size <= MAX_BYTES && ext === 'webp') return false;
-  return true;
+  return !(ext === 'webp' && item.size <= MAX_BYTES); // skip already-small webp only
 }
 
 async function convertToWebp(buffer, maxBytes) {
   const qualities = [92, 85, 78, 70, 62, 55, 48, 40];
+  const toBuffer = (b, opts) => sharp(b, { animated: false }).rotate().webp({ ...opts, effort: 4, smartSubsample: true }).toBuffer();
   for (const q of qualities) {
-    const out = await sharp(buffer, { animated: false })
-      .rotate() // bake EXIF orientation
-      .webp({ quality: q, effort: 4, smartSubsample: true })
-      .toBuffer();
+    const out = await toBuffer(buffer, { quality: q });
     if (out.length <= maxBytes) return { buffer: out, quality: q };
   }
-  // Last resort: smallest quality, whatever size
-  const out = await sharp(buffer).rotate().webp({ quality: 38, effort: 4 }).toBuffer();
+  // Quality floor reached and still too big — downscale (max 1600px) then re-try
+  const meta = await sharp(buffer).metadata();
+  const maxDim = Math.max(meta.width || 0, meta.height || 0);
+  if (maxDim > 1200) {
+    const resized = await sharp(buffer, { animated: false })
+      .rotate()
+      .resize(1200, 1200, { fit: 'inside', withoutEnlargement: true })
+      .toBuffer();
+    for (const q of [70, 60, 50, 40]) {
+      const out = await toBuffer(resized, { quality: q });
+      if (out.length <= maxBytes) return { buffer: out, quality: q, resized: true };
+    }
+    const out = await toBuffer(resized, { quality: 35 });
+    return { buffer: out, quality: 35, resized: true };
+  }
+  const out = await toBuffer(buffer, { quality: 38 });
   return { buffer: out, quality: 38 };
 }
 
@@ -118,12 +125,12 @@ async function worker(queue, results) {
     const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${item.name}`;
     try {
       const buffer = await download(publicUrl);
-      const { buffer: webp, quality } = await convertToWebp(buffer, MAX_BYTES);
+      const { buffer: webp, quality, resized } = await convertToWebp(buffer, MAX_BYTES);
       await upload(item.name, webp, 'image/webp');
       const saved = ((item.size - webp.length) / item.size) * 100;
       results.converted++;
       console.log(
-        `OK  ${item.name}  ${(item.size / 1024).toFixed(0)}KB -> ${(webp.length / 1024).toFixed(0)}KB (q${quality}, -${saved.toFixed(0)}%)`
+        `OK  ${item.name}  ${(item.size / 1024).toFixed(0)}KB -> ${(webp.length / 1024).toFixed(0)}KB (q${quality}${resized ? ' resized' : ''}, -${saved.toFixed(0)}%)`
       );
     } catch (err) {
       results.failed++;

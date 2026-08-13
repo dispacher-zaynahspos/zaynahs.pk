@@ -7,6 +7,7 @@
 - [CLOUDFLARE_SUPABASE_SETUP.md](file:///Users/shoaib/Desktop/Zaynahs%20e-store/docs/CLOUDFLARE_SUPABASE_SETUP.md) (Cache Rules, Webhooks, ISR Guide)
 - [STORE_TESTING_GUIDE.md](file:///Users/shoaib/Desktop/Zaynahs%20e-store/docs/STORE_TESTING_GUIDE.md) (Cache & Webhook Tests)
 - [NEW_PROJECT_SETUP_GUIDE.md](file:///Users/shoaib/Desktop/Zaynahs%20e-store/docs/NEW_PROJECT_SETUP_GUIDE.md) (Full clone & deploy guide)
+- [GEMINI_AUTOMATION_GUIDE.md](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/docs/GEMINI_AUTOMATION_GUIDE.md) (Guide for Gemini automation scripts)
 
 ---
 
@@ -51,6 +52,7 @@
 - Loading states, error boundaries, empty states har page/component mein honi chahiye
 - Env vars (`NEXT_PUBLIC_*`) properly prefix + `.env.example` update rakho
 - Images, fonts, SEO metadata optimize karo (Next.js best practices)
+- **CRITICAL SAFE ACCESS RULE:** Har jagah `product.images?.[0]?.url` aur `product.images?.find()` use karo. Kabhi bhi `product.images[0].url` ya bina `?.` ke array methods use na karo. Supabase relationships kabhi empty ho sakti hain aur unsafe access puray Next.js page ko crash kar deta hai (jis se "This page couldn't load" ka error aata hai). Same rule `variants` pe apply hota hai.
 
 ## 4. Backend Rules (Node.js / API Routes)
 - Har API route: input validation + try/catch + proper status codes
@@ -166,6 +168,7 @@
 4. Same loading/error/empty-state pattern hai?
 5. Naya pattern chahiye to pehle 2-3 existing pages check karo
 6. **MANDATORY**: Har naye admin page par product ya image thumbnail show karte waqt [UI_PERFORMANCE_GUIDE.md](docs/UI_PERFORMANCE_GUIDE.md) ko laazmi follow karein. Koi bhi admin table/list banate waqt is guide mein maujood UI rules (jaise TableThumbnail click pe Modal) apply karein. Yeh guide storefront display images par `getOptimizedImageUrl()` (Supabase transform params), URL-driven sort/filter pattern, aur page-load performance standards bhi cover karti hai — naye storefront components banate waqt bhi follow karein.
+7. **Supabase stored images compress** (WebP ≤100KB, URL-preserving): `scripts/convert-images-webp.mjs` chalayein + [SUPABASE_IMAGE_CONVERTER.md](docs/SUPABASE_IMAGE_CONVERTER.md) follow karein (TEST_LIMIT test → full run → verify). Kabhi curl/raw fetch se upload nahi — supabase-js `upload(..., { upsert: true })` hi use karein.
 
 ### Anti-Patterns (kabhi na karo)
 - ❌ Har page ka apna custom Button/Card
