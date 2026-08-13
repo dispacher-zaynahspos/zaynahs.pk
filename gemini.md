@@ -284,6 +284,11 @@
     - Specifically, the card template MUST support dynamic multi-badge vertical stacking (via the unified `<div className="bdg-container"> {renderCardBadge()} </div>` flexbox) just like the default style1 (`style1`) layout.
     - The agent must strictly follow the step-by-step implementation checklist in [add_card_style_prompt.md](file:///Users/shoaib/Documents/zaynahsestore-tv-main/docs/prompts/add_card_style_prompt.md) and keep all templates completely synchronized.
   - **RULE DS3 — SKELETON LOADERS (MANDATORY)**: Never use a global `app/loading.tsx` file for page loading states as it completely blocks the UI (hiding Navbar, Footer, etc.) and ruins the perceived performance. Instead, ALWAYS use component-level skeletons (e.g., mapping `<ProductCardSkeleton />` or `<LoadingSkeleton />` inside the page layout) to provide immediate feedback while keeping the application layout visible. Ensure fast loading by rendering these skeletons instantly while data is fetching.
+  - **RULE DS4 — NAVIGATION PROGRESS BAR ON ALL ROUTE CHANGES (MANDATORY)**:
+    - A visible red progress bar MUST appear at the top of the page on EVERY internal navigation — menu clicks, category clicks, product clicks, back/forward, "View All", "Shop Now", etc.
+    - `NextTopLoader` alone does NOT catch `<Link>` clicks in Next.js App Router. The `NavigationProgress` component (`components/common/NavigationProgress.tsx`) fills this gap by globally intercepting `<a>` click events and calling `NProgress.start()`.
+    - Both `<NextTopLoader>` and `<NavigationProgress>` MUST be in `app/layout.tsx`. Keep `showSpinner={false}` (the spinner circle near the cart is ugly). Keep `height={5}`.
+    - NEVER remove `NavigationProgress` from the layout.
 
 ---
 

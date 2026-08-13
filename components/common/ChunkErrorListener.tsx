@@ -25,7 +25,10 @@ export default function ChunkErrorListener() {
         // Only allow reload if the last one was more than 10 seconds ago
         if (!lastReload || now - parseInt(lastReload, 10) > 10000) {
           sessionStorage.setItem(reloadKey, now.toString());
-          window.location.reload();
+          // Force a cache-busting reload to bypass stale browser cache
+          const currentUrl = new URL(window.location.href);
+          currentUrl.searchParams.set('_r', now.toString());
+          window.location.href = currentUrl.toString();
         }
       }
     };

@@ -288,6 +288,17 @@ This app runs across ANY domain (localhost, custom domain, production). Never ha
    - Import route (`app/api/products/import/route.ts`) MUST always map: `is_active: (p as any).isActive ?? p.active ?? true` for all insert/update operations on `products` table.
    - NEVER use `active: p.active` on `products` table — PostgREST throws `PGRST204: Could not find 'active' column` which crashes cross-store catalog import.
    - Export route must output `isActive` field (camelCase) so any future store clone can correctly re-import it.
+
+9. **RULE C7 — NAVIGATION PROGRESS BAR ON ALL ROUTE CHANGES (MANDATORY)**:
+   - A visible red progress bar (`NextTopLoader` + `NavigationProgress`) MUST appear at the top of the page on EVERY internal navigation — menu clicks, category clicks, product clicks, back/forward, "View All", "Shop Now", etc.
+   - `NextTopLoader` alone does NOT catch `<Link>` component clicks in Next.js App Router. The `NavigationProgress` component (`components/common/NavigationProgress.tsx`) fills this gap by globally intercepting `<a>` click events and programmatically calling `NProgress.start()`.
+   - **Both components MUST be rendered in `app/layout.tsx`** inside `<ThemeProvider>`:
+     ```tsx
+     <NextTopLoader color="#e94560" showSpinner={false} height={5} shadow="0 0 10px #e94560,0 0 5px #e94560" />
+     <NavigationProgress />
+     ```
+   - NEVER remove `NavigationProgress` from the layout. NEVER set `height` below 4. Keep `showSpinner={false}` (the spinner circle near the cart is ugly and distracting).
+   - If adding new navigation patterns (programmatic `router.push`, custom buttons with `window.location`), ensure they also trigger the progress bar.
 <!-- END:ssr-rules -->
 
 <!-- BEGIN:db-rules -->

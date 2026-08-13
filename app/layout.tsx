@@ -25,6 +25,7 @@ import { getDomainBrand } from '@/lib/utils/getDomainBrand';
 import Pixels from '@/components/Pixels';
 import ChunkErrorListener from '@/components/common/ChunkErrorListener';
 import NextTopLoader from 'nextjs-toploader';
+import NavigationProgress from '@/components/common/NavigationProgress';
 
 const getFaviconType = (url: string) => {
   const lower = url.toLowerCase();
@@ -208,7 +209,8 @@ export default async function RootLayout({
           enableSystem={false}
           disableTransitionOnChange
         >
-          <NextTopLoader color="#e94560" showSpinner={true} height={5} shadow="0 0 10px #e94560,0 0 5px #e94560" />
+          <NextTopLoader color="#e94560" showSpinner={false} height={5} shadow="0 0 10px #e94560,0 0 5px #e94560" />
+          <NavigationProgress />
           <ChunkErrorListener />
           {children}
           <Toaster 
