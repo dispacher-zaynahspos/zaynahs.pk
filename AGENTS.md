@@ -148,6 +148,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 5. Naya pattern chahiye to pehle 2-3 existing pages check karo
 6. **MANDATORY**: Har naye admin page par product ya image thumbnail show karte waqt [UI_PERFORMANCE_GUIDE.md](docs/UI_PERFORMANCE_GUIDE.md) ko laazmi follow karein. Koi bhi admin table/list banate waqt is guide mein maujood UI rules (jaise TableThumbnail click pe Modal) apply karein. Yeh guide storefront display images par `getOptimizedImageUrl()` (Supabase transform params), URL-driven sort/filter pattern, aur page-load performance standards bhi cover karti hai — naye storefront components banate waqt bhi follow karein.
 7. **Supabase stored images compress** (WebP ≤100KB, URL-preserving): `scripts/convert-images-webp.mjs` chalayein + [SUPABASE_IMAGE_CONVERTER.md](docs/SUPABASE_IMAGE_CONVERTER.md) follow karein (TEST_LIMIT test → full run → verify). Kabhi curl/raw fetch se upload nahi — supabase-js `upload(..., { upsert: true })` hi use karein.
+8. **Naye store setup pe brand content sab jagah push karo (MANDATORY)**: [NEW_PROJECT_SETUP_GUIDE.md](docs/NEW_PROJECT_SETUP_GUIDE.md) section 3.3b follow karein — pehle user se poocho (brand name, business type, tagline, product order), phir `node scripts/seed-brand.mjs` se sab jagah push karo (store_settings, ai_settings, seo_meta, categories sort_order). Kabhi brand values assume/hardcode na karo.
 
 ### Anti-Patterns (kabhi na karo)
 - ❌ Har page ka apna custom Button/Card

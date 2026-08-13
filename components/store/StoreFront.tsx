@@ -1140,8 +1140,8 @@ export default function StoreFront({
             {bottomEnableLoadMore && hasMore && (
               <button
                 type="button"
-                onClick={() => handleLoadMore(section.id, baseLimit)}
-                className="px-5 py-2.5 text-xs md:text-sm font-semibold tracking-wide uppercase rounded-full transition-all duration-200 shadow-sm active:scale-95 hover:brightness-90 cursor-pointer"
+                onClick={(e) => { e.preventDefault(); handleLoadMore(section.id, baseLimit); }}
+                className="px-5 py-2.5 text-xs md:text-sm font-semibold tracking-wide uppercase rounded-full transition-all duration-200 shadow-sm active:scale-95 hover:brightness-90 cursor-pointer select-none touch-manipulation relative z-10"
                 style={{
                   backgroundColor: section.settings?.bottomLoadMoreBgColor || '#f1f5f9',
                   color: section.settings?.bottomLoadMoreTextColor || '#1e293b',
@@ -1153,7 +1153,7 @@ export default function StoreFront({
             {bottomEnableViewAll && (
               <Link
                 href={viewAllLink}
-                className="px-5 py-2.5 text-xs md:text-sm font-semibold tracking-wide uppercase rounded-full transition-all duration-200 shadow-sm active:scale-95 hover:brightness-90"
+                className="px-5 py-2.5 text-xs md:text-sm font-semibold tracking-wide uppercase rounded-full transition-all duration-200 shadow-sm active:scale-95 hover:brightness-90 select-none touch-manipulation relative z-10"
                 style={{
                   backgroundColor: section.settings?.bottomViewAllBgColor || '#FFD147',
                   color: section.settings?.bottomViewAllTextColor || '#0f172a',

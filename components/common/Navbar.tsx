@@ -874,15 +874,15 @@ export default function Navbar({
 
         {/* Mobile Header Layout */}
         <div className="mx-auto md:hidden flex h-14 items-center justify-between px-4 relative">
-          <div className="flex-1 flex items-center gap-2 justify-start shrink-0 z-30">
+          <div className="flex-1 flex items-center gap-2 justify-start shrink-0 relative z-30 pointer-events-auto">
             {mobileLeftElements}
           </div>
           <div className="absolute inset-x-0 top-0 bottom-0 flex items-center justify-center pointer-events-none z-20">
-            <div className="pointer-events-auto flex items-center">
+            <div className="pointer-events-auto flex items-center max-w-[50%] overflow-hidden justify-center">
               {mobileCenterElements}
             </div>
           </div>
-          <div className="flex-1 flex items-center gap-2 justify-end shrink-0 z-30">
+          <div className="flex-1 flex items-center gap-2 justify-end shrink-0 relative z-30 pointer-events-auto">
             {mobileRightElements}
           </div>
         </div>

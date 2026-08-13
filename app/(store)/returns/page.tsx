@@ -8,15 +8,19 @@ export const revalidate = 60; // Cache for 1 minute
 export async function generateMetadata(): Promise<Metadata> {
   try {
     const brand = await getDomainBrand();
+    const settings = await getSettings();
+    const siteUrl = settings?.storeUrl?.replace(/\/+$/, '') || process.env.NEXT_PUBLIC_SITE_URL || '';
+    const ogImage = settings.bannerUrl || settings.logoUrl || '';
+    const title = `Return & Exchange Policy | ${brand.name}`;
+    const description = `Read our return and exchange policy at ${brand.name}. We offer easy exchanges and returns to ensure you have the best experience.`;
     return {
-      title: `Return & Exchange Policy | ${brand.name}`,
-      description: `Read our return and exchange policy at ${brand.name}. We offer easy exchanges and returns to ensure you have the best experience.`,
+      title,
+      description,
+      openGraph: { title, description, url: `${siteUrl}/returns`, type: 'website', images: ogImage ? [{ url: ogImage, width: 1200, height: 630, alt: brand.name }] : [] },
+      twitter: { card: 'summary_large_image', title, description, images: ogImage ? [ogImage] : [] },
     };
   } catch {
-    return {
-      title: 'Return & Exchange Policy',
-      description: 'Read our return and exchange policy.',
-    };
+    return { title: 'Return & Exchange Policy', description: 'Read our return and exchange policy.' };
   }
 }
 

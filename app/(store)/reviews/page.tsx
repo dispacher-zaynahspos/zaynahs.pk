@@ -15,9 +15,27 @@ interface PageProps {
 export async function generateMetadata(): Promise<Metadata> {
   try {
     const brand = await getDomainBrand();
+    const settings = await getSettings();
+    const siteUrl = settings?.storeUrl?.replace(/\/+$/, '') || process.env.NEXT_PUBLIC_SITE_URL || '';
+    const ogImage = settings.bannerUrl || settings.logoUrl || '';
+    const title = `Customer Reviews | ${brand.name}`;
+    const description = `Read authentic customer reviews and ratings at ${brand.name}. See what our customers are saying about our products.`;
     return {
-      title: `Customer Reviews | ${brand.name}`,
-      description: `Read authentic customer reviews and ratings at ${brand.name}. See what our customers are saying about our products.`,
+      title,
+      description,
+      openGraph: {
+        title,
+        description,
+        url: `${siteUrl}/reviews`,
+        type: 'website',
+        images: ogImage ? [{ url: ogImage, width: 1200, height: 630, alt: brand.name }] : [],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title,
+        description,
+        images: ogImage ? [ogImage] : [],
+      },
     };
   } catch {
     return {

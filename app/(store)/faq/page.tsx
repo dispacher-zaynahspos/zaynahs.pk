@@ -8,9 +8,27 @@ export const revalidate = 60; // Cache for 1 minute
 export async function generateMetadata(): Promise<Metadata> {
   try {
     const brand = await getDomainBrand();
+    const settings = await getSettings();
+    const siteUrl = settings?.storeUrl?.replace(/\/+$/, '') || process.env.NEXT_PUBLIC_SITE_URL || '';
+    const ogImage = settings.bannerUrl || settings.logoUrl || '';
+    const title = `Frequently Asked Questions (FAQ) | ${brand.name}`;
+    const description = `Find answers to frequently asked questions at ${brand.name} about shipping, delivery, payments, returns, and orders.`;
     return {
-      title: `Frequently Asked Questions (FAQ) | ${brand.name}`,
-      description: `Find answers to frequently asked questions at ${brand.name} about shipping, delivery, payments, returns, and orders.`,
+      title,
+      description,
+      openGraph: {
+        title,
+        description,
+        url: `${siteUrl}/faq`,
+        type: 'website',
+        images: ogImage ? [{ url: ogImage, width: 1200, height: 630, alt: brand.name }] : [],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title,
+        description,
+        images: ogImage ? [ogImage] : [],
+      },
     };
   } catch {
     return {

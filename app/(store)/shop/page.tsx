@@ -23,7 +23,7 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
 
     let title = `Shop Products | ${brand.name}`;
     let description = (settings.metaDescription || brand.tagline).slice(0, 160);
-    let imageUrl = settings.logoUrl || settings.faviconUrl || '';
+    let imageUrl = settings.bannerUrl || settings.logoUrl || settings.faviconUrl || '';
     let canonicalUrl = `${siteUrl}/shop`;
 
     if (categorySlug) {

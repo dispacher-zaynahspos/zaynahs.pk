@@ -1493,8 +1493,8 @@ export default function ShopPage({
             <div className="w-full flex items-center justify-center mt-8">
               <button
                 type="button"
-                onClick={handleLoadMore}
-                className="px-8 py-3 text-sm font-bold uppercase tracking-wider rounded-full bg-[#e94560] text-white hover:bg-[#d8344f] hover:shadow-md hover:scale-[1.02] active:scale-95 transition-all duration-300 shadow-sm cursor-pointer"
+                onClick={(e) => { e.preventDefault(); handleLoadMore(); }}
+                className="px-8 py-3 text-sm font-bold uppercase tracking-wider rounded-full bg-[#e94560] text-white hover:bg-[#d8344f] hover:shadow-md hover:scale-[1.02] active:scale-95 transition-all duration-300 shadow-sm cursor-pointer select-none touch-manipulation relative z-10"
               >
                 Load More ({totalResults - displayProducts.length} remaining)
               </button>

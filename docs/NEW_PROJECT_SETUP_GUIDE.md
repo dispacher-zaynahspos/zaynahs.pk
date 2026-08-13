@@ -284,6 +284,41 @@ SUPABASE_SERVICE_ROLE_KEY=eyJ...
    - Seeds the default settings singleton row in `store_settings`.
 *Note: You do NOT need to run any supabase cli push commands or manually set up buckets, realtime settings, or policies in the dashboard.*
 
+### 3.3b Brand Setup — Ask First, Push Everywhere (MANDATORY)
+
+**Kabhi bhi brand values assume/hardcode mat karo.** Schema push ke baad, user se ye questions POOCHNA mandatory hai:
+
+| # | Sawal | Kahan use hota hai |
+|---|-------|-------------------|
+| 1 | **Brand ka naam kya hai?** | `store_settings.store_name`, `ai_settings.brand_name`, SEO titles |
+| 2 | **Store URL kya hai?** | `store_settings.store_url` |
+| 3 | **Business type kya hai?** (Fashion & Jewelry / Kids Wear / Electronics...) | `ai_settings.store_type`, templates, FAQ |
+| 4 | **Main kya bikta hai?** (Clothes? Jewelry? Dono? Kiska order pehle?) | `ai_settings.product_types`, categories `sort_order` |
+| 5 | **Tagline / positioning?** (e.g. "Pakistan's Most Trusted Fashion Store") | `store_settings.tagline`, meta_title/description, footer |
+| 6 | **Target audience?** (Women/Men/Kids...) | `ai_settings.target_audiences` |
+| 7 | **Currency?** (PKR...) | `store_settings.currency`, `currency_symbol` |
+
+Phir **sab jagah** push karo (sirf ek jagah nahi):
+
+- **`store_settings`** (id `...0001`): `store_name`, `store_url`, `tagline`, `meta_title`, `meta_description`, `footer_text`, `faq_content` (HTML — pehla Q: "Why is Brand trusted?"), `return_policy_content`, `privacy_policy_content`, `whatsapp_greeting`/`whatsapp_footer`
+- **`ai_settings`** (id `...0002`): `brand_name`, `store_type`, `custom_instructions` (brand positioning — AI content enforce), `product_types`, `target_audiences`, `category_default_template`, `product_default_template` (brand + positioning HTML)
+- **`seo_meta`**: har row me "Your Store"/purana brand → naya brand (seo_title, og_title)
+- **`categories.sort_order`**: user ke order ke mutabiq (e.g. clothes pehle = 1, jewelry = 2...) — storefront `sort_order` ascending render karta hai
+
+**Ready-made script** (zaynahs pe verified):
+```bash
+BRAND_NAME="Zaynahs.pk" BRAND_TYPE="Premium Fashion & Jewelry Store" \
+BRAND_TAGLINE="Pakistan's Most Trusted Fashion Store — Premium Jewelry & Clothes" \
+BRAND_PRODUCTS="Jewellery, Necklaces, Earrings, Rings, Clothes, Fashion Apparel" \
+BRAND_AUDIENCES="Women, Men" \
+node scripts/seed-brand.mjs
+```
+Script: `store_settings` + `ai_settings` update, `seo_meta` replace (har row), print verify. Categories order alag se set karo:
+```bash
+node --input-type=module -e "...supabase.from('categories').update({sort_order:1}).eq('slug','womens-clothing')..."
+```
+Verify: `curl -s https://<store>/` → title/description naya brand dikhe.
+
 ### 3.4 Auth Configuration (via Management API)
 
 After DB setup, **auth settings must be configured** otherwise password reset flow breaks and `/oauth/consent` 404 appears.
