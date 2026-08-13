@@ -37,7 +37,10 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
           .maybeSingle();
 
         title = cleanBrandName(seoMeta?.seo_title, brand.name) || `${category.name} | ${brand.name}`;
-        description = cleanBrandName(seoMeta?.meta_description, brand.name) || category.description || `Explore our ${category.name} collection at ${brand.name}.`;
+        
+        let catDesc = cleanBrandName(seoMeta?.meta_description, brand.name) || category.description || `Explore our ${category.name} collection at ${brand.name}.`;
+        description = catDesc.replace(/<[^>]*>?/gm, '').slice(0, 160);
+        
         imageUrl = category.imageUrl || imageUrl;
         canonicalUrl = `${siteUrl}/shop?category=${categorySlug}`;
       }
@@ -45,7 +48,10 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
       const collection = await fetchCollectionBySlug(collectionSlug);
       if (collection) {
         title = `${collection.name} Collection | ${brand.name}`;
-        description = collection.description || `Explore our ${collection.name} collection at ${brand.name}.`;
+        
+        let colDesc = collection.description || `Explore our ${collection.name} collection at ${brand.name}.`;
+        description = colDesc.replace(/<[^>]*>?/gm, '').slice(0, 160);
+        
         imageUrl = collection.imageUrl || imageUrl;
         canonicalUrl = `${siteUrl}/shop?collection=${collectionSlug}`;
       }
@@ -63,7 +69,7 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
         description,
         url: canonicalUrl,
         type: 'website',
-        images: [{ url: imageUrl }],
+        images: [{ url: imageUrl, width: 1200, height: 630, alt: brand.name }],
       },
       twitter: {
         card: 'summary_large_image',
