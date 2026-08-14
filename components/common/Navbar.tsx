@@ -292,17 +292,7 @@ export default function Navbar({
     <Link 
       href="/" 
       key="logo" 
-      className="flex items-center gap-2 shrink-0 select-none" 
-      onClick={(e) => { 
-        e.preventDefault();
-        setSearchOpen(false); 
-        setMobileMenuOpen(false); 
-        if (pathname === '/') {
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        } else {
-          router.push('/');
-        }
-      }}
+      className="flex items-center gap-2 shrink-0 select-none"
     >
       {logoUrl ? (
         <div
