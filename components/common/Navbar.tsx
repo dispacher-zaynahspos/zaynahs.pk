@@ -293,11 +293,14 @@ export default function Navbar({
       href="/" 
       key="logo" 
       className="flex items-center gap-2 shrink-0 select-none" 
-      onClick={() => { 
+      onClick={(e) => { 
+        e.preventDefault();
         setSearchOpen(false); 
         setMobileMenuOpen(false); 
         if (pathname === '/') {
           window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+          router.push('/');
         }
       }}
     >
