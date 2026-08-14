@@ -289,10 +289,30 @@ export default function Navbar({
   const customBorderColorStyle = headerBorderColor !== '#e5e7eb' ? { borderColor: headerBorderColor } : {};
 
   const renderLogo = () => (
-    <Link 
-      href="/" 
-      key="logo" 
-      className="flex items-center gap-2 shrink-0 select-none"
+    <Link
+      href="/"
+      key="logo"
+      className="flex items-center gap-2 shrink-0 select-none active:scale-95 active:opacity-80 transition-all duration-200"
+      onClick={(e) => {
+        setSearchOpen(false);
+        setMobileMenuOpen(false);
+        if (pathname === '/') {
+          if (typeof window !== 'undefined' && window.scrollY > 0) {
+            e.preventDefault();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+        } else {
+          // Fallback to hard navigation if client-side routing gets stuck
+          if (typeof window !== 'undefined') {
+            const currentPath = window.location.pathname;
+            setTimeout(() => {
+              if (window.location.pathname === currentPath) {
+                window.location.href = '/';
+              }
+            }, 800);
+          }
+        }
+      }}
     >
       {logoUrl ? (
         <div
@@ -878,15 +898,15 @@ export default function Navbar({
 
         {/* Mobile Header Layout */}
         <div className="mx-auto md:hidden flex h-14 items-center justify-between px-4 relative">
-          <div className="flex-1 flex items-center gap-2 justify-start shrink-0 relative z-30 pointer-events-auto">
+          <div className="flex-1 flex items-center gap-2 justify-start shrink-0 relative z-30 pointer-events-none [&>*]:pointer-events-auto">
             {mobileLeftElements}
           </div>
-          <div className="absolute inset-x-0 top-0 bottom-0 flex items-center justify-center pointer-events-none z-20">
-            <div className="pointer-events-auto flex items-center max-w-[50%] overflow-hidden justify-center">
+          <div className="absolute inset-x-0 top-0 bottom-0 flex items-center justify-center pointer-events-none z-40">
+            <div className="pointer-events-auto flex items-center max-w-[65%] justify-center">
               {mobileCenterElements}
             </div>
           </div>
-          <div className="flex-1 flex items-center gap-2 justify-end shrink-0 relative z-30 pointer-events-auto">
+          <div className="flex-1 flex items-center gap-2 justify-end shrink-0 relative z-30 pointer-events-none [&>*]:pointer-events-auto">
             {mobileRightElements}
           </div>
         </div>
