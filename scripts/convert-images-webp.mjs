@@ -27,8 +27,9 @@ for (const line of envRaw.split('\n')) {
 const SERVICE_KEY = envMap.SUPABASE_SERVICE_ROLE_KEY;
 const SUPABASE_URL = envMap.NEXT_PUBLIC_SUPABASE_URL;
 const BUCKET = 'product-images';
-const MAX_BYTES = 200 * 1024; // 200 KB
-const TARGET_MIN = 100 * 1024; // 100 KB (soft floor; not enforced if quality would look bad)
+const MAX_BYTES = 50 * 1024;
+const TARGET_MIN = 30 * 1024;
+const MAX_DIMENSION = 1200;
 const CONCURRENCY = 10;
 
 if (!SERVICE_KEY || !SUPABASE_URL) {

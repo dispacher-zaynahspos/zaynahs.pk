@@ -152,12 +152,12 @@ export const uploadReviewImage = async (file: File): Promise<string> => {
   try {
     const isBrowser = typeof window !== 'undefined';
 
-    // 1. Client-side compression to WebP under 20 KB
+    // 1. Client-side compression to WebP under 50 KB
     let webpFile: File | Blob = file;
     if (isBrowser) {
       const { compressImage } = await import('@/lib/utils/imageCompressor');
       try {
-        webpFile = await compressImage(file, 20);
+        webpFile = await compressImage(file, 50);
       } catch (err) {
         console.warn('[uploadReviewImage] Compression fallback used:', err);
       }
