@@ -55,7 +55,7 @@ export const uploadImage = async (file: File | Blob, bucket: string, customName?
           : new File([file], `${sanitizedName}.${fileExtension}`, { type: file.type });
         
         try {
-          webpFile = await compressImage(fileToCompress, 50);
+          webpFile = await compressImage(fileToCompress, 200);
           fileExtension = 'webp';
         } catch (err) {
           console.warn('[uploadImage] Client side compression failed, using original:', err);

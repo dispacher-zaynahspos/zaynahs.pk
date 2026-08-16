@@ -150,3 +150,14 @@ The canonical working implementation is `components/store/ShopPage.tsx` (handler
 5. **Applied files** (reference — don't regress): `ProductCard.tsx`, `ShopPage.tsx`, `ProductDetail.tsx`, `StoreFront.tsx`, `QuickViewModal.tsx`, `CartContainer.tsx`, `SocialFeedRibbon.tsx`.
 
 ---
+
+## 6. Mobile Layout Overlaps & Navigation Interception (MANDATORY)
+
+**Context**: In responsive headers (e.g., `Navbar.tsx`), flex containers like `flex-1` expand to fill empty space. If side containers have a higher z-index than center absolute elements (like the Logo), the side containers' invisible empty space will intercept and block touch events on the center element. Furthermore, custom routing handlers can silently fail if the JS chunk is stale.
+
+**Rules**:
+1. **Z-Index & Pointer Events**: Always set `pointer-events-none` on flexible spacer containers (`flex-1`) that overlap other components, and `[&>*]:pointer-events-auto` on their children. Use a higher z-index (e.g. `z-40`) for absolute centered elements that must receive clicks over flexible side columns.
+2. **Customizer Size Limits**: NEVER restrict user-customizable logos with `max-w-[50%] overflow-hidden`, as it breaks the clickable area for scaled logos (making the visual edges unclickable). Use a safe bounding box like `max-w-[65%]` without overflow hiding.
+3. **Routing Cache Trap**: Do NOT use `e.preventDefault()` with `router.push('/')` on logo clicks. This pattern is vulnerable to silent failures (frozen page) during Cloudflare cache mismatches (`ChunkLoadError`). Always use the native Next.js `<Link>` behavior, coupled with an 800ms `setTimeout` fallback that forces `window.location.href = '/'` if client-side routing gets stuck.
+
+---

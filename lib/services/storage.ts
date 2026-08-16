@@ -36,7 +36,7 @@ async function uploadViaServer(file: File, folder: string, type?: string): Promi
 async function uploadViaClient(file: File, fileName: string): Promise<string> {
   const supabase = createClient();
   const isVideo = file.type.startsWith('video/') || /\.(mp4|mov|webm|m4v|avi|mkv|ogv)$/i.test(file.name);
-  const rawOrCompressed = isVideo ? file : await compressImage(file, 50);
+  const rawOrCompressed = isVideo ? file : await compressImage(file, 200);
 
   const { error } = await supabase.storage
     .from('product-images')

@@ -14,7 +14,7 @@ import { animateFlyTo } from '@/lib/utils/flyAnimation';
 import { saveScrollPosition } from '@/lib/hooks/useScrollRestoration';
 import { useTheme } from 'next-themes';
 import { getSwatchStyle } from '@/lib/utils/swatch';
-import { getOptimizedImageUrl } from '@/lib/utils/imageUrl';
+import { getOptimizedImageUrl, getPresetImageUrl } from '@/lib/utils/imageUrl';
 
 // Lazy load QuickViewModal to reduce initial JS bundle
 const QuickViewModal = dynamic(() => import('./QuickViewModal'), {
@@ -34,7 +34,7 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
   const isDark = resolvedTheme === 'dark';
   const addItem = useCartStore(state => state.addItem);
   const fallbackPlaceholder = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%23f3f4f6'/%3E%3C/svg%3E";
-  const primaryImage = getOptimizedImageUrl(product.images?.find(img => img.isPrimary)?.url || product.images?.[0]?.url || fallbackPlaceholder, 600);
+  const primaryImage = getPresetImageUrl(product.images?.find(img => img.isPrimary)?.url || product.images?.[0]?.url || fallbackPlaceholder, 'card');
 
   const [hoveredImage, setHoveredImage] = useState<string | null>(null);
   const [touchActive, setTouchActive] = useState(false);
@@ -94,7 +94,7 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
     return colorMatch && sizeMatch;
   }) || activeVariants.find(v => v.color === selectedColor) || activeVariants.find(v => v.size === selectedSize) || defaultVar;
 
-  const currentImage = (userSelectedColor && currentVariant && currentVariant.imageUrl) ? getOptimizedImageUrl(currentVariant.imageUrl, 600) : primaryImage;
+  const currentImage = (userSelectedColor && currentVariant && currentVariant.imageUrl) ? getPresetImageUrl(currentVariant.imageUrl, 'card') : primaryImage;
   const currentPrice = (currentVariant && currentVariant.price) ? currentVariant.price : product.price;
   const currentComparePrice = (currentVariant && currentVariant.comparePrice) ? currentVariant.comparePrice : product.comparePrice;
 
@@ -312,7 +312,7 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
   const titleClampClass = getSharedTitleClampClass(settings?.titleLineLimit);
 
   const hasSecondImage = product.images?.length > 1;
-  const secondImage = hasSecondImage ? getOptimizedImageUrl(product.images?.[1]?.url || product.images?.[0]?.url, 600) : null;
+  const secondImage = hasSecondImage ? getPresetImageUrl(product.images?.[1]?.url || product.images?.[0]?.url, 'card') : null;
 
   const alignClass = cardAlignment === 'center' ? 'items-center text-center' :
     cardAlignment === 'right' ? 'items-end text-right' :
@@ -337,7 +337,7 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
                 key={i}
                 type="button"
                 title={v.color}
-                onMouseEnter={() => v.imageUrl ? setHoveredImage(getOptimizedImageUrl(v.imageUrl, 600)) : null}
+                onMouseEnter={() => v.imageUrl ? setHoveredImage(getPresetImageUrl(v.imageUrl, 'card')) : null}
                 onMouseLeave={() => setHoveredImage(null)}
                 onClick={(e) => {
                   e.preventDefault();

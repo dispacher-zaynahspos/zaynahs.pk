@@ -17,7 +17,8 @@ async function compressBitmapToWebP(
   baseName: string,
   maxKb: number
 ): Promise<File> {
-  const MAX_DIM = 1200;
+  // Allow higher resolution if we have a larger file size budget
+  const MAX_DIM = maxKb > 100 ? 2000 : 1200;
 
   const srcW = source instanceof ImageBitmap ? source.width : source.naturalWidth;
   const srcH = source instanceof ImageBitmap ? source.height : source.naturalHeight;
@@ -49,7 +50,7 @@ async function compressBitmapToWebP(
     new Promise((res) => canvas.toBlob((b) => res(b), 'image/webp', q));
 
   // Iterative quality reduction, then resolution reduction
-  const qualities = [0.88, 0.75, 0.62, 0.50, 0.38, 0.26, 0.15];
+  const qualities = [0.95, 0.88, 0.75, 0.62, 0.50, 0.38, 0.26, 0.15];
   let cW = targetW;
   let cH = targetH;
 

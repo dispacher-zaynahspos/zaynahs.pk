@@ -38,7 +38,7 @@ import { trackEvent } from '@/lib/trackEvent';
 import { animateFlyTo } from '@/lib/utils/flyAnimation';
 import { getSharedAspectClass } from '@/lib/utils/styles';
 import { getSwatchStyle } from '@/lib/utils/swatch';
-import { getOptimizedImageUrl } from '@/lib/utils/imageUrl';
+import { getOptimizedImageUrl, getPresetImageUrl } from '@/lib/utils/imageUrl';
 
 interface ProductDetailProps {
   product: Product;
@@ -634,7 +634,7 @@ export default function ProductDetail({ product, settings, averageRating, social
                     onMouseLeave={() => setIsZoomed(false)}
                   >
                     <Image
-                      src={getOptimizedImageUrl(img.url, 1200)}
+                      src={getPresetImageUrl(img.url, 'zoom')}
                       alt={product.name}
                       fill
                       sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 600px"
@@ -712,7 +712,7 @@ export default function ProductDetail({ product, settings, averageRating, social
                     }`}
                 >
                   <Image
-                    src={getOptimizedImageUrl(img.url, 160)}
+                    src={getPresetImageUrl(img.url, 'admin_thumb')}
                     alt={`${product.name} gallery ${i}`}
                     fill
                     sizes="64px"
@@ -1100,7 +1100,7 @@ export default function ProductDetail({ product, settings, averageRating, social
                 <div className="flex items-center gap-3 bg-gray-50 dark:bg-white/5 p-2 rounded-xl w-full sm:w-auto sm:flex-1 min-w-[220px] border border-gray-100 dark:border-gray-800/80">
                   <div className={`relative w-12 rounded-lg overflow-hidden bg-gray-100 ${getSharedAspectClass(settings?.imageAspectRatio)}`}>
                     <Image
-                      src={getOptimizedImageUrl(images[0]?.url || fallbackPlaceholder, 160)}
+                      src={getPresetImageUrl(images[0]?.url || fallbackPlaceholder, 'micro')}
                       alt={product.name}
                       fill
                       sizes="48px"
@@ -1208,7 +1208,7 @@ export default function ProductDetail({ product, settings, averageRating, social
                                         style={getSwatchStyle(bg)}
                                       >
                                         {matchV?.imageUrl && (matchV.showImageSwatch || !bg) && (
-                                          <img src={matchV.imageUrl} alt={color} className="w-full h-full object-cover" />
+                                          <img src={getPresetImageUrl(matchV.imageUrl, 'micro')} alt={color} className="w-full h-full object-cover" />
                                         )}
                                       </button>
                                     ) : (

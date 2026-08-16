@@ -17,7 +17,7 @@ import { useScrollRestoration } from '@/lib/hooks/useScrollRestoration';
 import { useSettings } from '@/lib/hooks/useSettings';
 import { getSharedAspectClass, getSharedTitleClampClass } from '@/lib/utils/styles';
 import { getSwatchStyle } from '@/lib/utils/swatch';
-import { getOptimizedImageUrl } from '@/lib/utils/imageUrl';
+import { getOptimizedImageUrl, getPresetImageUrl } from '@/lib/utils/imageUrl';
 
 interface ShopPageProps {
   initialProducts: Product[];
@@ -52,7 +52,7 @@ interface ShopProductListCardProps {
 
 function ShopProductListCard({ product, settings, addItem }: ShopProductListCardProps) {
   const fallbackPlaceholder = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%23f3f4f6'/%3E%3C/svg%3E";
-  const primaryImage = getOptimizedImageUrl(product.images?.find(img => img.isPrimary)?.url || product.images?.[0]?.url || fallbackPlaceholder, 400);
+  const primaryImage = getPresetImageUrl(product.images?.find(img => img.isPrimary)?.url || product.images?.[0]?.url || fallbackPlaceholder, 'card');
   const activeVariants = product.variants.filter(v => v.active);
   const defaultIndex = (settings?.defaultVariantIndex || 1) - 1;
   const defaultVar = activeVariants[defaultIndex] || activeVariants[0];

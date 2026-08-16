@@ -1453,3 +1453,41 @@ This session proved that:
 - Supabase: All triggers managed via Management API SQL endpoint
 - Vercel: All env vars readable/updatable via API
 - `env-backups/`: Single source of truth for all credentials — always update after any change
+
+---
+
+# Masla 10: Mobile Logo Click Interception & Routing Cache Trap (August 2026)
+
+---
+
+## Pehle Kya Tha (Symptom)
+Mobile header (Navbar) mein beech wale logo par click (tap) karne se aksar kuch nahi hota tha (50-70% failure rate). Khaskar agar user kisi aur page (jaise product ya category) se home par wapas aane ke liye logo pe tap karta, toh page bilkul freeze lagta tha aur navigation nahi hoti thi. Customizer se logo bara karne par bhi edges clickable nahi rehte the.
+
+---
+
+## Issue Kya Tha (Root Cause)
+Yeh do alag problems ka mix tha:
+1. **Z-Index Overlap (CSS Bug):** Mobile header ke left (`Hamburger`) aur right (`Cart/Search`) containers ko `flex-1` diya hua tha. Is wajah se dono containers stretch ho kar center tak aa jate the. Unka z-index `z-30` aur `pointer-events-auto` tha, jabke logo ka center container `z-20` par tha. Natija yeh tha ke tap actually logo ke bajaye left/right containers ke invisible space pe hit hota tha.
+2. **Next.js Routing Trap (ChunkLoadError):** Agar click sahi register ho bhi jata, toh logo ke `onClick` mein manually `e.preventDefault()` aur `router.push('/')` laga hua tha. Agar nayi deployment ke baad Cloudflare ka cache mismatch ho (ChunkLoadError), toh Next.js ka client-side router softly fail ho jata hai aur user ko phasa deta hai.
+3. **Customizer Constraints:** Logo container par `max-w-[50%] overflow-hidden` set tha. Jab customizer se logo width barhayi jati, toh container chota reh jata aur logo ki edges non-clickable (cut off) ho jati theen.
+
+---
+
+## Fix Kaise Hua
+1. **Z-Index Optimization:** Center absolute container (Logo) ka z-index barha kar `z-40` kiya gaya taake woh left/right se upar rahe. Left aur right containers par `pointer-events-none` lagaya, aur unke andar wale items (icons) par `[&>*]:pointer-events-auto` lagaya taake empty space clickable na rahe.
+2. **Native Routing & Fallback:** `e.preventDefault()` aur `router.push('/')` ko remove kar diya gaya. Native Next.js `<Link>` element ab properly apna kaam karta hai. Saath hi ek 800ms ka fallback `setTimeout` lagaya gaya jo `window.location.href = '/'` force karta hai agar client-side routing kisi wajah se atak jaye.
+3. **Visual Click Area Fixed:** `max-w-[50%] overflow-hidden` ko hata kar `max-w-[65%]` (safe zone) set kiya gaya taake customizer se logo kitna bhi bada ho, pura image clickable rahe.
+
+---
+
+## Next Time Yeh Na Aaye — Rules
+
+```
+✅ RULE: Header ya kisi bhi sticky UI mein agar spacer elements (`flex-1`) use hon, toh unki parent div par humesha `pointer-events-none` set karein taake woh apne peeche wali elements ke clicks intercept na karein. Sirf andar wale interactive items par `pointer-events-auto` allowed hai.
+
+✅ RULE: Next.js Client-Side routing mein kabhi bhi native `<Link>` tag ke click ko `e.preventDefault()` kar ke bypass na karein, khas tor par global nav links (logo) ke liye, kyunke ye ChunkLoadError ki surat mein fail ho sakta hai. 
+
+✅ RULE: Humesha client-side routing fail hone ka fallback banayein (jaise setTimeout de kar `window.location.href` force karna) agar page change hone mein 1 second se ziada lag raha ho.
+```
+
+> **Ek line mein:** "Invisible spacer divs ke z-index overlaps hamesha clicks khate hain — `pointer-events-none` ka istamal karein, aur native `<Link>` behavior ko custom `router.push` se bypass na karein." 🚀

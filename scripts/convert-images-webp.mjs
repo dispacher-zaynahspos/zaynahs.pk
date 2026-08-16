@@ -27,8 +27,8 @@ for (const line of envRaw.split('\n')) {
 const SERVICE_KEY = envMap.SUPABASE_SERVICE_ROLE_KEY;
 const SUPABASE_URL = envMap.NEXT_PUBLIC_SUPABASE_URL;
 const BUCKET = 'product-images';
-const MAX_BYTES = 100 * 1024; // 100 KB
-const TARGET_MIN = 50 * 1024; // 50 KB (soft floor; not enforced if quality would look bad)
+const MAX_BYTES = 200 * 1024; // 200 KB
+const TARGET_MIN = 100 * 1024; // 100 KB (soft floor; not enforced if quality would look bad)
 const CONCURRENCY = 10;
 
 if (!SERVICE_KEY || !SUPABASE_URL) {
@@ -88,10 +88,10 @@ async function convertToWebp(buffer, maxBytes) {
   // Quality floor reached and still too big — downscale (max 1600px) then re-try
   const meta = await sharp(buffer).metadata();
   const maxDim = Math.max(meta.width || 0, meta.height || 0);
-  if (maxDim > 1200) {
+  if (maxDim > 2000) {
     const resized = await sharp(buffer, { animated: false })
       .rotate()
-      .resize(1200, 1200, { fit: 'inside', withoutEnlargement: true })
+      .resize(2000, 2000, { fit: 'inside', withoutEnlargement: true })
       .toBuffer();
     for (const q of [70, 60, 50, 40]) {
       const out = await toBuffer(resized, { quality: q });
