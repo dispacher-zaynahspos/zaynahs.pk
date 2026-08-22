@@ -41,3 +41,9 @@ for (const file of files) {
     console.error(`❌ Failed to push to ${username}/${repo}`);
   }
 }
+
+console.log('\n⏳ Waiting 3 minutes for Vercel deployments to finish before purging caches...');
+execSync('sleep 180', { stdio: 'inherit' });
+console.log('🧹 Running Cloudflare and Vercel cache purge for all clones...');
+execSync('node scripts/post-deploy-fix.mjs', { stdio: 'inherit' });
+console.log('✅ All clones pushed and purged successfully!');

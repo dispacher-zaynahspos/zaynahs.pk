@@ -575,14 +575,14 @@ const fetchProducts = async (categoryId?: string, limit?: number): Promise<Produ
 // Cache without limit (used internally for full list)
 const cachedProducts = unstable_cache(
   async (categoryId?: string) => fetchProducts(categoryId),
-  ['products-list-v2'],
+  ['products-list-v3'],
   { tags: ['products'] }
 );
 
 // Cache WITH limit (used for SSR payload reduction)
 const cachedProductsLimited = unstable_cache(
   async (categoryId?: string, limit?: number) => fetchProducts(categoryId, limit),
-  ['products-list-limited-v2'],
+  ['products-list-limited-v3'],
   { tags: ['products'] }
 );
 

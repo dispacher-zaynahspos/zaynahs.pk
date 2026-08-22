@@ -644,7 +644,7 @@ const fetchSettings = async (): Promise<StoreSettings> => {
 
 const cachedSettings = unstable_cache(
   async () => fetchSettings(),
-  ['store-settings'],
+  ['store-settings-v3'],
   { revalidate: 86400, tags: ['settings'] }
 );
 
