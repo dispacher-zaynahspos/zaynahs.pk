@@ -82,16 +82,67 @@ LittleMister | CF:✅ | Webhook:✅ | Site:✅200
 
 ## 🆕 Adding a NEW Store (Future Projects)
 
-1. Create new Supabase project → get `PROJECT_REF`, `ANON_KEY`, `SERVICE_ROLE_KEY`
-2. Create new Cloudflare API token (`cfut_`) for new domain
-3. Create new Vercel project → get `VERCEL_TOKEN`
-4. Create new GitHub repo → get `GITHUB_TOKEN`
-5. Fill credentials into new `env-backups/<newstore>.env.local` file
-6. Run: `node scripts/init-db.mjs` (applies `SUPER_MASTER_SCHEMA.sql` — creates everything)
-7. Run: `node scripts/post-deploy-fix.mjs` — auto-picks up new store and verifies
-8. **Never reuse** any token from an existing store — all must be fresh and unique
+### ✅ Same for ALL stores (run once, shared codebase)
+| What | Status |
+|------|--------|
+| `SUPER_MASTER_SCHEMA.sql` | Same schema, run on each new Supabase project |
+| Code / Next.js app | Same Git repo, same code |
+| `app/api/revalidate/route.ts` | No changes needed |
+
+### ❌ Different per store (do this for EACH new project)
+
+**Step 1 — Supabase**
+```bash
+# Create new Supabase project → get keys, then:
+node scripts/init-db.mjs          # applies SUPER_MASTER_SCHEMA.sql
+node scripts/setup-triggers.mjs   # creates 21 revalidation triggers with correct body
+node scripts/seed-brand.mjs       # seeds brand name, logo, categories (see docs)
+```
+
+**Step 2 — Vercel env vars (per Vercel project)**
+
+Add these unique per-store env vars to the Vercel project dashboard:
+```
+SUPABASE_URL              = https://<new-project-ref>.supabase.co
+SUPABASE_ANON_KEY         = <new-anon-key>
+SUPABASE_SERVICE_ROLE_KEY = <new-service-role-key>
+SUPABASE_PROJECT_REF      = <new-project-ref>
+NEXT_PUBLIC_SITE_URL      = https://www.<newdomain>.pk
+REVALIDATE_SECRET         = <unique-secret-per-store>
+CLOUDFLARE_ZONE_ID        = <zone-id-for-this-domain>
+CLOUDFLARE_API_TOKEN      = cfut_<token-for-this-domain>
+```
+
+Shared across all stores (same value):
+```
+NEXT_PUBLIC_SUPABASE_URL  (if multi-tenant — or per-store)
+VERCEL_TOKEN              (same team token OK)
+```
+
+**Step 3 — Cloudflare**
+- New domain → new Zone ID → new API token (`cfut_`) scoped to that zone
+- Add `CLOUDFLARE_ZONE_ID` + `CLOUDFLARE_API_TOKEN` to that store's Vercel project
+- Update `MULTI_STORE_CLOUDFLARE_CONFIG` if using multi-store cache purge
+
+**Step 4 — Verify**
+```bash
+node scripts/setup-triggers.mjs   # idempotent, run after any trigger issue
+```
+Then test: Admin → save any setting → storefront should update within 3s.
 
 ---
+
+### ⚠️ Existing projects with broken triggers (TotVogue, MiniMahal, etc.)
+If triggers already exist but have empty body `{}`:
+```bash
+# Switch .env.local to target project then run:
+node scripts/setup-triggers.mjs
+```
+This script drops old triggers and recreates with correct body. Safe to run anytime.
+
+---
+
+
 
 ## ⚡ Agent-Driven Setup (Primary Flow)
 
