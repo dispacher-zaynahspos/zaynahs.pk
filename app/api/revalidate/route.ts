@@ -30,10 +30,12 @@ export async function POST(req: NextRequest) {
     console.log(`[Webhook Revalidate] Received table trigger. Table: ${table}, Type: ${type}`);
 
     // If deleting, fields are in old_record. Otherwise in record.
-    const activeRecord = type === 'DELETE' ? old_record : record;
+    // DB triggers may not include record data (body: {"type":"CHANGE","table":"..."})
+    // Default to {} so table-level handlers (store_settings, banners, fallback) still work.
+    const activeRecord = (type === 'DELETE' ? old_record : record) ?? {};
 
-    if (!activeRecord) {
-      return NextResponse.json({ error: 'No record data found in payload' }, { status: 400 });
+    if (!table) {
+      return NextResponse.json({ error: 'No table found in payload' }, { status: 400 });
     }
 
     // 3. Dispatch to specific revalidation handler
@@ -94,7 +96,9 @@ export async function POST(req: NextRequest) {
       if (slug) {
         await revalidateCategory(slug);
       } else {
-        console.warn('[Webhook Revalidate] Category update received but slug was missing.');
+        // No slug in payload (e.g. DB trigger without record) — full settings revalidation
+        console.warn('[Webhook Revalidate] Category update: no slug, falling back to revalidateSettings.');
+        await revalidateSettings();
       }
     } else if (table === 'store_settings') {
       await revalidateSettings();
@@ -103,7 +107,8 @@ export async function POST(req: NextRequest) {
       if (slug) {
         await revalidateVertical(slug);
       } else {
-        console.warn('[Webhook Revalidate] Vertical update received but slug was missing.');
+        console.warn('[Webhook Revalidate] Vertical update: no slug, falling back to revalidateSettings.');
+        await revalidateSettings();
       }
     } else {
       console.log(`[Webhook Revalidate] Table ${table} has no specific handler. Revalidating settings completely.`);
