@@ -109,23 +109,27 @@ function AdminLayoutContent({
     const startISO = startOfDay.toISOString();
 
     async function fetchTodayCounts() {
-      const supabase = createClient();
-      const [ordersRes, pendingRes, leadsRes, cartsRes, pendingCartsRes, settingsFetch] = await Promise.all([
-        supabase.from('orders').select('id', { count: 'exact', head: true }).gte('created_at', startISO),
-        supabase.from('orders').select('id', { count: 'exact', head: true }).gte('created_at', startISO).in('status', ['pending', 'placed']),
-        supabase.from('whatsapp_subscribers').select('id', { count: 'exact', head: true }).gte('created_at', startISO),
-        supabase.from('abandoned_carts').select('id', { count: 'exact', head: true }).gte('last_activity', startISO),
-        supabase.from('abandoned_carts').select('id', { count: 'exact', head: true }).gte('last_activity', startISO).eq('email_sent', false).eq('order_placed', false),
-        fetch('/api/ai-check').then(r => r.json()).catch(() => ({ ai_enabled: false }))
-      ]);
-      setTodayCounts({
-        orders: ordersRes.count ?? 0,
-        pending: pendingRes.count ?? 0,
-        leads: leadsRes.count ?? 0,
-        carts: cartsRes.count ?? 0,
-        pendingCarts: pendingCartsRes.count ?? 0,
-      });
-      setAiEnabled(settingsFetch.ai_enabled);
+      try {
+        const supabase = createClient();
+        const [ordersRes, pendingRes, leadsRes, cartsRes, pendingCartsRes, settingsFetch] = await Promise.all([
+          supabase.from('orders').select('id', { count: 'exact', head: true }).gte('created_at', startISO),
+          supabase.from('orders').select('id', { count: 'exact', head: true }).gte('created_at', startISO).in('status', ['pending', 'placed']),
+          supabase.from('whatsapp_subscribers').select('id', { count: 'exact', head: true }).gte('created_at', startISO),
+          supabase.from('abandoned_carts').select('id', { count: 'exact', head: true }).gte('last_activity', startISO),
+          supabase.from('abandoned_carts').select('id', { count: 'exact', head: true }).gte('last_activity', startISO).eq('email_sent', false).eq('order_placed', false),
+          fetch('/api/ai-check').then(r => r.json()).catch(() => ({ ai_enabled: false }))
+        ]);
+        setTodayCounts({
+          orders: ordersRes?.count ?? 0,
+          pending: pendingRes?.count ?? 0,
+          leads: leadsRes?.count ?? 0,
+          carts: cartsRes?.count ?? 0,
+          pendingCarts: pendingCartsRes?.count ?? 0,
+        });
+        setAiEnabled(settingsFetch?.ai_enabled || false);
+      } catch (err) {
+        console.warn('Network issue while fetching admin badges (connection closed or blocked). Retrying next time...', err);
+      }
     }
     fetchTodayCounts();
   }, []);
