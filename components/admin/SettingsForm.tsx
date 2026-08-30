@@ -254,7 +254,7 @@ export default function SettingsForm({ initialSettings }: SettingsFormProps) {
   const [volumeDiscountsEnabled, setVolumeDiscountsEnabled] = useState(initialSettings.volume_discounts_enabled ?? true);
   const [frequentlyBoughtTogetherEnabled, setFrequentlyBoughtTogetherEnabled] = useState(initialSettings.frequently_bought_together_enabled ?? true);
   const [stockUrgencyEnabled, setStockUrgencyEnabled] = useState(initialSettings.stock_urgency_enabled ?? true);
-  const [flashSaleEnabled, setFlashSaleEnabled] = useState(initialSettings.flash_sale_enabled ?? true);
+  const [flashSaleEnabled, setFlashSaleEnabled] = useState(initialSettings.flash_sale_enabled ?? false);
   const [flashSaleStartDate, setFlashSaleStartDate] = useState(initialSettings.flash_sale_start_date || '');
   const [flashSaleEndDate, setFlashSaleEndDate] = useState(initialSettings.flash_sale_end_date || '');
   const [globalFlashSaleDiscountType, setGlobalFlashSaleDiscountType] = useState(initialSettings.globalFlashSaleDiscountType || 'percentage');
@@ -988,8 +988,8 @@ export default function SettingsForm({ initialSettings }: SettingsFormProps) {
         frequently_bought_together_enabled: frequentlyBoughtTogetherEnabled,
         stock_urgency_enabled: stockUrgencyEnabled,
         flash_sale_enabled: flashSaleEnabled,
-        flash_sale_start_date: flashSaleStartDate || undefined,
-        flash_sale_end_date: flashSaleEndDate || undefined,
+        flash_sale_start_date: flashSaleStartDate || null,
+        flash_sale_end_date: flashSaleEndDate || null,
         globalFlashSaleDiscountType: globalFlashSaleDiscountType,
         globalFlashSaleDiscountValue: globalFlashSaleDiscountValue,
         social_feeds_enabled: socialFeedsEnabled,

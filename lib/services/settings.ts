@@ -456,7 +456,7 @@ const mapSettings = (row: SettingsRow): StoreSettings => ({
   volume_discounts_enabled: row.volume_discounts_enabled ?? true,
   frequently_bought_together_enabled: row.frequently_bought_together_enabled ?? true,
   stock_urgency_enabled: row.stock_urgency_enabled ?? true,
-  flash_sale_enabled: row.flash_sale_enabled ?? true,
+  flash_sale_enabled: row.flash_sale_enabled ?? false,
   flash_sale_start_date: row.flash_sale_start_date || undefined,
   flash_sale_end_date: row.flash_sale_end_date || undefined,
   globalFlashSaleDiscountType: (row.global_flash_sale_discount_type as any) || 'percentage',
