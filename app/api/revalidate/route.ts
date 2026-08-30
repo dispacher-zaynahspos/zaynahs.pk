@@ -38,6 +38,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No table found in payload' }, { status: 400 });
     }
 
+    // If this is a manual deploy ping from Vercel (or a manual curl)
+    if (type === 'deploy' || table === 'deploy') {
+      console.log('[Webhook Revalidate] Received manual/Vercel deploy trigger. Purging everything.');
+      await revalidateHomepage();
+      return NextResponse.json({ message: 'Deployment cache purge successful' });
+    }
+
     // 3. Dispatch to specific revalidation handler
     const childTables = ['product_variants', 'product_images', 'product_modifiers', 'reviews'];
 
