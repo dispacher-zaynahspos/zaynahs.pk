@@ -448,3 +448,19 @@ for name, cfg in projects.items():
 
 print("\n✅ Audit complete")
 ```
+
+---
+
+## 🔥 CRITICAL BUG FIX (AUG 2026): NEVER USE PARTIAL CLOUDFLARE URL PURGE
+
+**Problem:** 
+When the admin saved the Customizer or updated Settings, the storefront UI (e.g., banners, active sections) was not reflecting the new data immediately, despite the Supabase Webhook firing perfectly. 
+
+**Root Cause:**
+In `lib/revalidate.ts`, the functions `revalidateBanner` and `revalidateHomepage` were using `purgeCloudflareUrls(urls)`. Cloudflare Edge Cache is extremely strict about URL matches (e.g., matching `www.zaynahs.pk` vs `zaynahs.pk` vs `http://...`). This caused the partial URL purge to silently fail, leaving stale cached HTML on the edge servers, leading to users seeing old layouts.
+
+**The Fix / Rule:**
+We removed `purgeCloudflareUrls` and replaced it entirely with **`purgeCloudflareEverything()`**.
+
+**Rule for Future AI Agents:**
+**NEVER use `purgeCloudflareUrls` for cache invalidation.** Always use `purgeCloudflareEverything()` when dealing with admin save actions, customizer updates, or product changes. This guarantees that all edge cache is wiped instantly, and the Next.js server handles the fresh data fetch on the very next user request seamlessly.
