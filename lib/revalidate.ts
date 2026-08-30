@@ -134,14 +134,7 @@ export async function revalidateBanner() {
     revalidatePath('/store', 'layout');
     revalidatePath('/admin', 'layout');
 
-    const dynamicSiteUrl = await resolveSiteUrl();
-    const urls = [
-      `${dynamicSiteUrl}/`,
-      `${dynamicSiteUrl}`,
-      `${dynamicSiteUrl}/shop`,
-      `${dynamicSiteUrl}/store`,
-    ];
-    await purgeCloudflareUrls(urls);
+    await purgeCloudflareEverything();
     console.log('[revalidate] Banners & homepage revalidated');
   } catch (error) {
     console.error('Error in revalidateBanner:', error);
@@ -189,14 +182,14 @@ export async function revalidateHomepage() {
     revalidatePath('/store', 'layout');
     revalidatePath('/admin', 'layout');
 
+    await purgeCloudflareEverything();
+
     const dynamicSiteUrl = await resolveSiteUrl();
     const urls = [
       `${dynamicSiteUrl}/`,
       `${dynamicSiteUrl}/shop`,
       `${dynamicSiteUrl}/store`,
     ];
-    await purgeCloudflareUrls(urls);
-
     for (const url of urls) {
       await notifyGoogleIndexing(url, 'URL_UPDATED');
     }
