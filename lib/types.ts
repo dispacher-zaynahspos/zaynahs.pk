@@ -299,8 +299,8 @@ export interface StoreSettings {
   frequently_bought_together_enabled?: boolean;
   stock_urgency_enabled?: boolean;
   flash_sale_enabled?: boolean;
-  flash_sale_start_date?: string;
-  flash_sale_end_date?: string;
+  flash_sale_start_date?: string | null;
+  flash_sale_end_date?: string | null;
   globalFlashSaleDiscountType?: 'percentage' | 'fixed';
   globalFlashSaleDiscountValue?: number;
   social_feeds_enabled?: boolean;

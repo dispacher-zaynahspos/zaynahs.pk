@@ -396,9 +396,9 @@ export default function ProductDetail({ product, settings, averageRating, social
           isFlashSaleActive = true;
           if (globalStart > now) {
             isIncoming = true;
-            targetDateStr = settings.flash_sale_start_date;
+            targetDateStr = settings.flash_sale_start_date || undefined;
           } else {
-            targetDateStr = settings.flash_sale_end_date;
+            targetDateStr = settings.flash_sale_end_date || undefined;
           }
         }
       }
