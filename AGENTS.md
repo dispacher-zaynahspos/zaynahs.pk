@@ -284,13 +284,18 @@ This app runs across ANY domain (localhost, custom domain, production). Never ha
      - `unstable_cache` in `lib/services/products.ts` wraps ALL DB queries with tag `'products'` — never remove these wrappers
      - After every Vercel deploy → run `node scripts/post-deploy-fix.mjs` to purge Cloudflare edge cache (prevents `ChunkLoadError` CSS/JS hash mismatch)
 
-8. **RULE C6 — CROSS-STORE IMPORT/EXPORT COLUMN MAPPING (MANDATORY)**:
+8. **RULE C9 — CLOUDFLARE EDGE CACHE PURGING STRATEGY (MANDATORY)**:
+   - **Never** use `purgeCloudflareUrls()` for cache invalidation. Cloudflare URL purging is highly strict (requires exact protocol, `www` vs non-`www` matching) and silently fails to clear cached assets if there is a slight mismatch.
+   - **Always** use `purgeCloudflareEverything()` inside `lib/revalidate.ts` functions (`revalidateBanner`, `revalidateHomepage`, `revalidateSettings`, etc.).
+   - Whenever an admin saves ANY layout, setting, product, or category, the webhook must trigger a FULL zone purge so that storefront customers receive 100% fresh data instantly.
+
+9. **RULE C6 — CROSS-STORE IMPORT/EXPORT COLUMN MAPPING (MANDATORY)**:
    - `products` table uses `is_active` (boolean) — NOT `active`. This is different from `product_variants`, `categories`, `product_modifiers` which use `active`.
    - Import route (`app/api/products/import/route.ts`) MUST always map: `is_active: (p as any).isActive ?? p.active ?? true` for all insert/update operations on `products` table.
    - NEVER use `active: p.active` on `products` table — PostgREST throws `PGRST204: Could not find 'active' column` which crashes cross-store catalog import.
    - Export route must output `isActive` field (camelCase) so any future store clone can correctly re-import it.
 
-9. **RULE C7 — NAVIGATION PROGRESS BAR ON ALL ROUTE CHANGES (MANDATORY)**:
+10. **RULE C7 — NAVIGATION PROGRESS BAR ON ALL ROUTE CHANGES (MANDATORY)**:
    - A visible red progress bar (`NextTopLoader` + `NavigationProgress`) MUST appear at the top of the page on EVERY internal navigation — menu clicks, category clicks, product clicks, back/forward, "View All", "Shop Now", etc.
    - `NextTopLoader` alone does NOT catch `<Link>` component clicks in Next.js App Router. The `NavigationProgress` component (`components/common/NavigationProgress.tsx`) fills this gap by globally intercepting `<a>` click events and programmatically calling `NProgress.start()`.
    - **Both components MUST be rendered in `app/layout.tsx`** inside `<ThemeProvider>`:
@@ -301,7 +306,7 @@ This app runs across ANY domain (localhost, custom domain, production). Never ha
    - NEVER remove `NavigationProgress` from the layout. NEVER set `height` below 4. Keep `showSpinner={false}` (the spinner circle near the cart is ugly and distracting).
    - If adding new navigation patterns (programmatic `router.push`, custom buttons with `window.location`), ensure they also trigger the progress bar.
 
-10. **RULE C8 — STUCK VERCEL DATA CACHE & CACHE KEY BUMPING (MANDATORY)**:
+11. **RULE C8 — STUCK VERCEL DATA CACHE & CACHE KEY BUMPING (MANDATORY)**:
     - **The Bug:** Next.js `unstable_cache` on Vercel Data Cache occasionally ignores `revalidateTag` calls from webhooks (Next.js 14/15 bug), causing the storefront to serve permanently stale product slugs, missing images, or outdated prices EVEN AFTER a Vercel redeploy (because Vercel Data Cache persists across deployments).
     - **The Symptoms:** The admin database (Supabase) shows correct data, but the live HTML storefront (e.g., `/shop`) continues to render old/deleted product slugs causing 404s for users on fresh devices.
     - **The Nuclear Fix (Agent Directive):** If a user complains about products not updating, missing, or throwing 404s despite the DB being correct, the Agent MUST immediately bump the cache key suffix in `lib/services/products.ts` (e.g., change `['products-list']` to `['products-list-v2']`, then `v3`, etc.) and push a commit.
