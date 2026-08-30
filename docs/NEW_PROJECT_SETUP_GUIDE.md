@@ -80,65 +80,34 @@ LittleMister | CF:✅ | Webhook:✅ | Site:✅200
 
 ---
 
-## 🆕 Adding a NEW Store (Future Projects)
+## 🆕 Naya Clone Project Setup Karte Waqt: Kab, Kahan aur Kya Karna Hai?
 
-### ✅ Same for ALL stores (run once, shared codebase)
-| What | Status |
-|------|--------|
-| `SUPER_MASTER_SCHEMA.sql` | Same schema, run on each new Supabase project |
-| Code / Next.js app | Same Git repo, same code |
-| `app/api/revalidate/route.ts` | No changes needed |
+Jab bhi aap koi **naya e-commerce project** banayenge, toh yeh 3 step process hoga:
 
-### ❌ Different per store (do this for EACH new project)
+### Step 1: Schema (Supabase mein)
+* **Code change NAHI karna.** Code (Next.js) sab projects ka 100% SAME hai. 
+* Supabase ke SQL editor mein direct `SUPER_MASTER_SCHEMA.sql` copy-paste karke run karna hai. Yeh sari tables, policies aur base logic bana dega.
 
-**Step 1 — Supabase**
-```bash
-# Create new Supabase project → get keys, then:
-node scripts/init-db.mjs          # applies SUPER_MASTER_SCHEMA.sql
-node scripts/setup-triggers.mjs   # creates 21 revalidation triggers with correct body
-node scripts/seed-brand.mjs       # seeds brand name, logo, categories (see docs)
-```
+### Step 2: Triggers (Setup time, Terminal se)
+* Ab aapko manually trigger copy-paste nahi karne. 
+* Sirf terminal mein naye project ka token (jo `env-backups/` mein naye project ki `.env.local` file mein hoga) de kar yeh command chalani hai: 
+  ```bash
+  node scripts/setup-triggers.mjs
+  ```
+* Yeh script automatically bilkul sahi body `{"type":"CHANGE","table":"..."}` ke sath 21 triggers database mein daal dega (purane empty `{}` trigger ka masla khatam).
 
-**Step 2 — Vercel env vars (per Vercel project)**
-
-Add these unique per-store env vars to the Vercel project dashboard:
-```
-SUPABASE_URL              = https://<new-project-ref>.supabase.co
-SUPABASE_ANON_KEY         = <new-anon-key>
-SUPABASE_SERVICE_ROLE_KEY = <new-service-role-key>
-SUPABASE_PROJECT_REF      = <new-project-ref>
-NEXT_PUBLIC_SITE_URL      = https://www.<newdomain>.pk
-REVALIDATE_SECRET         = <unique-secret-per-store>
-CLOUDFLARE_ZONE_ID        = <zone-id-for-this-domain>
-CLOUDFLARE_API_TOKEN      = cfut_<token-for-this-domain>
-```
-
-Shared across all stores (same value):
-```
-NEXT_PUBLIC_SUPABASE_URL  (if multi-tenant — or per-store)
-VERCEL_TOKEN              (same team token OK)
-```
-
-**Step 3 — Cloudflare**
-- New domain → new Zone ID → new API token (`cfut_`) scoped to that zone
-- Add `CLOUDFLARE_ZONE_ID` + `CLOUDFLARE_API_TOKEN` to that store's Vercel project
-- Update `MULTI_STORE_CLOUDFLARE_CONFIG` if using multi-store cache purge
-
-**Step 4 — Verify**
-```bash
-node scripts/setup-triggers.mjs   # idempotent, run after any trigger issue
-```
-Then test: Admin → save any setting → storefront should update within 3s.
+### Step 3: Setup Time (Vercel Env Vars)
+* Vercel pe naya project deploy karte waqt `.env.example` wale sab variables daalne hain.
+* **Credentials:** Jis project ka setup ho raha hoga, uske API keys aur tokens ya toh uski apni file mein honge (e.g., `env-backups/nayaproject.env.local`) ya seedha `.env.local` mein.
+* **Most Important:** Naye project ke Cloudflare dashboard se uska apna `CLOUDFLARE_ZONE_ID` aur `CLOUDFLARE_API_TOKEN` Vercel mein laazmi add karna hai, warna cache purge (admin save) kaam nahi karega.
+* Naye project ke Supabase API keys daalne hain (`SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`).
 
 ---
 
-### ⚠️ Existing projects with broken triggers (TotVogue, MiniMahal, etc.)
-If triggers already exist but have empty body `{}`:
-```bash
-# Switch .env.local to target project then run:
-node scripts/setup-triggers.mjs
-```
-This script drops old triggers and recreates with correct body. Safe to run anytime.
+### ⚠️ Past Issues & Architecture Summary
+* **Triggers Bug:** Pehle Supabase triggers empty body `{}` bhej rahe thay. Islye frontend cache update nahi hota tha. Ab `setup-triggers.mjs` hamesha proper JSON bhejta hai.
+* **Vercel Env Vars:** Zaynahs aur dusray projects mein ghalat Cloudflare/Supabase tokens lagay thay. Ab har project ka token strict separate hoga (`env-backups/` files mein).
+* **Flash Sale Bug:** UI mein dates clear karne par `undefined` ja raha tha. Ab TypeScript aur Form dono `null` bhejte hain taake DB usay sahi delete karay.
 
 ---
 
