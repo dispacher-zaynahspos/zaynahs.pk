@@ -98,7 +98,7 @@ export default async function StoreShopPage({ searchParams }: PageProps) {
 
   const activeCat = categorySlug ? categories.find(c => c.slug === categorySlug) : undefined;
   // SSR now provides all active products, no need to fetch client-side.
-  const products = await getProducts(activeCat?.id);
+  const products = await getProducts();
 
   const siteUrl = `${brand.protocol}://${brand.domain}`;
 

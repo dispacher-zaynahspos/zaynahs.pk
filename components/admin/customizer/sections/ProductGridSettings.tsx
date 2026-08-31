@@ -51,7 +51,7 @@ export default function ProductGridSettings({
       const q = pickerSearch.toLowerCase();
       list = list.filter(p => p.name.toLowerCase().includes(q) || (p.sku && p.sku.toLowerCase().includes(q)));
     }
-    return list.slice(0, 50); // Show up to 50 items for performance
+    return list.slice(0, 300); // Show up to 300 items for manual picking
   }, [pickerSearch, products, settings.source]);
 
   const manualProducts = useMemo(() => {
