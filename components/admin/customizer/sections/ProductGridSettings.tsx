@@ -30,7 +30,13 @@ export default function ProductGridSettings({
   const manualProductIds: string[] = settings.manualProductIds || [];
 
   const [pickerSearch, setPickerSearch] = useState('');
+  const [pickerLimit, setPickerLimit] = useState(50);
   const [draggingId, setDraggingId] = useState<string | null>(null);
+
+  // Reset limit when search changes
+  React.useEffect(() => {
+    setPickerLimit(50);
+  }, [pickerSearch, settings.source]);
 
   const filteredPickerProducts = useMemo(() => {
     let list = products;
@@ -51,8 +57,11 @@ export default function ProductGridSettings({
       const q = pickerSearch.toLowerCase();
       list = list.filter(p => p.name.toLowerCase().includes(q) || (p.sku && p.sku.toLowerCase().includes(q)));
     }
-    return list.slice(0, 300); // Show up to 300 items for manual picking
+    return list;
   }, [pickerSearch, products, settings.source]);
+
+  const displayPickerProducts = filteredPickerProducts.slice(0, pickerLimit);
+  const hasMorePickerProducts = displayPickerProducts.length < filteredPickerProducts.length;
 
   const manualProducts = useMemo(() => {
     return manualProductIds
@@ -184,7 +193,7 @@ export default function ProductGridSettings({
           </div>
 
           <div className="border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-[#0f0f1b] divide-y divide-gray-100 dark:divide-gray-800 max-h-40 overflow-y-auto overscroll-contain">
-            {filteredPickerProducts.map(p => {
+            {displayPickerProducts.map(p => {
               const isChecked = manualProductIds.includes(p.id);
               return (
                 <label
@@ -217,6 +226,15 @@ export default function ProductGridSettings({
             })}
             {filteredPickerProducts.length === 0 && (
               <div className="text-xs text-gray-400 text-center py-4">No products found</div>
+            )}
+            {hasMorePickerProducts && (
+              <button
+                type="button"
+                onClick={() => setPickerLimit(prev => prev + 50)}
+                className="w-full py-2 text-xs font-bold text-[#e94560] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+              >
+                Load More ({filteredPickerProducts.length - pickerLimit} left)
+              </button>
             )}
           </div>
 
