@@ -84,6 +84,31 @@ export default function CollectionsGridSettings({
         </select>
       </div>
 
+      {/* Desktop Columns Selector */}
+      <div className="space-y-1.5 pb-2 border-b border-gray-200 dark:border-gray-800">
+        <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider block">
+          Desktop Grid Columns
+        </label>
+        <select
+          value={section.settings?.desktop_columns || 'auto'}
+          onChange={(e) => {
+            onUpdateSection({
+              settings: {
+                ...section.settings,
+                desktop_columns: e.target.value
+              }
+            });
+          }}
+          className="w-full px-2 py-1 text-xs rounded border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] text-gray-900 dark:text-gray-100 focus:outline-none"
+        >
+          <option value="auto">Auto (Best fit based on count)</option>
+          <option value="2">2 Columns (Wide)</option>
+          <option value="3">3 Columns</option>
+          <option value="4">4 Columns</option>
+          <option value="5">5 Columns</option>
+        </select>
+      </div>
+
       {/* Show/Hide Card Title Badges Toggle */}
       <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-800 pb-2.5 pt-1">
         <span className="text-xs font-bold text-gray-700 dark:text-gray-300">Show Card Title Badges</span>

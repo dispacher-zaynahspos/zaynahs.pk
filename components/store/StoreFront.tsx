@@ -1452,12 +1452,23 @@ export default function StoreFront({
       ? items.filter((item: any) => item && item.imageUrl) 
       : defaultItems;
 
-    // Use responsive columns based on length to maintain grid nicely
+    const desktopCols = section.settings?.desktop_columns || 'auto';
     let gridCols = "grid-cols-2 md:grid-cols-4";
-    if (displayItems.length === 1) gridCols = "grid-cols-1 md:grid-cols-1 max-w-md mx-auto";
-    else if (displayItems.length === 2) gridCols = "grid-cols-2 md:grid-cols-2 max-w-2xl mx-auto";
-    else if (displayItems.length === 3) gridCols = "grid-cols-2 md:grid-cols-3 max-w-4xl mx-auto";
-    else if (displayItems.length > 4) gridCols = "grid-cols-2 md:grid-cols-4 lg:grid-cols-5";
+    
+    if (desktopCols === 'auto') {
+      if (displayItems.length === 1) gridCols = "grid-cols-1 md:grid-cols-1 max-w-md mx-auto";
+      else if (displayItems.length === 2) gridCols = "grid-cols-2 md:grid-cols-2 max-w-2xl mx-auto";
+      else if (displayItems.length === 3) gridCols = "grid-cols-2 md:grid-cols-3 max-w-4xl mx-auto";
+      else if (displayItems.length > 4) gridCols = "grid-cols-2 md:grid-cols-4 lg:grid-cols-5";
+    } else {
+      const colMap: Record<string, string> = {
+        '2': 'grid-cols-2 md:grid-cols-2',
+        '3': 'grid-cols-2 md:grid-cols-3',
+        '4': 'grid-cols-2 md:grid-cols-4',
+        '5': 'grid-cols-2 md:grid-cols-5 lg:grid-cols-5',
+      };
+      gridCols = colMap[desktopCols] || "grid-cols-2 md:grid-cols-4";
+    }
 
     const aspectRatio = section.settings?.aspect_ratio || 'recommended';
     const aspectClass = getSharedAspectClass(aspectRatio);
