@@ -654,6 +654,36 @@ export default function ProductDetail({ product, settings, averageRating, social
               <ZoomIn className="w-4 h-4 text-gray-700 dark:text-gray-300" />
             </div>
 
+            {/* Badges */}
+            <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10 items-start pointer-events-none">
+              {(selectedVariant?.comparePrice ?? product.comparePrice) && (selectedVariant?.comparePrice ?? product.comparePrice) > (selectedVariant?.price ?? product.price) && (
+                <span className="rounded-full bg-[#e94560] px-3 py-1 text-[10px] font-black text-white shadow-sm uppercase tracking-wider">
+                  -{Math.round((((selectedVariant?.comparePrice ?? product.comparePrice) - (selectedVariant?.price ?? product.price)) / (selectedVariant?.comparePrice ?? product.comparePrice)) * 100)}%
+                </span>
+              )}
+              {product.isFeatured && (
+                <span className="rounded-full bg-[#1a1a2e] px-3 py-1 text-[10px] font-black text-white shadow-sm uppercase tracking-wider">
+                  FEATURED
+                </span>
+              )}
+              {product.badgeEnabled && product.customBadge && (
+                <span
+                  className="rounded-full px-3 py-1 text-[10px] font-black text-white shadow-sm uppercase tracking-wider"
+                  style={{
+                    backgroundColor: product.customBadge.bgColor,
+                    color: product.customBadge.textColor
+                  }}
+                >
+                  {product.customBadge.name}
+                </span>
+              )}
+              {!product.isService && stockAvailable > 0 && stockAvailable <= 8 && (
+                <span className="rounded-full bg-amber-600 px-3 py-1 text-[10px] font-black text-white shadow-sm uppercase tracking-wider">
+                  LIMITED
+                </span>
+              )}
+            </div>
+
             {/* Prev Arrow */}
             {images.length > 1 && (
               <button
