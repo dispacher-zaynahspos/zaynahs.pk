@@ -656,11 +656,18 @@ export default function ProductDetail({ product, settings, averageRating, social
 
             {/* Badges */}
             <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10 items-start pointer-events-none">
-              {(selectedVariant?.comparePrice ?? product.comparePrice) && (selectedVariant?.comparePrice ?? product.comparePrice) > (selectedVariant?.price ?? product.price) && (
-                <span className="rounded-full bg-[#e94560] px-3 py-1 text-[10px] font-black text-white shadow-sm uppercase tracking-wider">
-                  -{Math.round((((selectedVariant?.comparePrice ?? product.comparePrice) - (selectedVariant?.price ?? product.price)) / (selectedVariant?.comparePrice ?? product.comparePrice)) * 100)}%
-                </span>
-              )}
+              {(() => {
+                const currentCompare = selectedVariant?.comparePrice ?? product.comparePrice;
+                const currentPrc = selectedVariant?.price ?? product.price;
+                if (currentCompare && currentPrc && currentCompare > currentPrc) {
+                  return (
+                    <span className="rounded-full bg-[#e94560] px-3 py-1 text-[10px] font-black text-white shadow-sm uppercase tracking-wider">
+                      -{Math.round(((currentCompare - currentPrc) / currentCompare) * 100)}%
+                    </span>
+                  );
+                }
+                return null;
+              })()}
               {product.isFeatured && (
                 <span className="rounded-full bg-[#1a1a2e] px-3 py-1 text-[10px] font-black text-white shadow-sm uppercase tracking-wider">
                   FEATURED
