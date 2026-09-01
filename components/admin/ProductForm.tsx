@@ -28,7 +28,6 @@ import { Product, ProductImage, ProductVariant, ProductModifier, Category, Varia
 import { createProductSafe, updateProductSafe } from '@/lib/services/products';
 import { deleteProductImage } from '@/lib/services/storage';
 import { uploadImage } from '@/lib/uploadImage';
-import SortableVariantGrid from '@/components/admin/SortableVariantGrid';
 import AdminSearchInput from '@/components/admin/shared/AdminSearchInput';
 import ImagePreviewModal from '@/components/admin/ImagePreviewModal';
 import { useConfirm } from '@/components/admin/shared/AdminConfirmProvider';
