@@ -28,7 +28,9 @@ import { Product, ProductImage, ProductVariant, ProductModifier, Category, Varia
 import { createProductSafe, updateProductSafe } from '@/lib/services/products';
 import { deleteProductImage } from '@/lib/services/storage';
 import { uploadImage } from '@/lib/uploadImage';
+import SortableVariantGrid from '@/components/admin/SortableVariantGrid';
 import AdminSearchInput from '@/components/admin/shared/AdminSearchInput';
+import ImagePreviewModal from '@/components/admin/ImagePreviewModal';
 import { useConfirm } from '@/components/admin/shared/AdminConfirmProvider';
 import MediaSelectorModal from './MediaSelectorModal';
 import { getVariantPresets } from '@/lib/services/variantPresets';
@@ -3079,30 +3081,10 @@ export default function ProductForm({ categories, initialProduct, aiEnabled, sto
       />
 
       {/* Image Preview Modal */}
-      {previewImageUrl && (
-        <div 
-          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 p-4 animate-in fade-in duration-200"
-          onClick={() => setPreviewImageUrl(null)}
-        >
-          <div className="relative max-w-4xl w-full max-h-[90vh] flex flex-col items-center justify-center">
-            <button
-              type="button"
-              onClick={() => setPreviewImageUrl(null)}
-              className="absolute top-0 right-0 md:-top-12 md:-right-4 p-2 text-white hover:bg-white/20 bg-black/50 md:bg-transparent rounded-full transition-all z-[10000] cursor-pointer"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-              </svg>
-            </button>
-            <img 
-              src={previewImageUrl} 
-              alt="Preview" 
-              className="max-w-full max-h-[85vh] object-contain rounded-xl shadow-2xl bg-white dark:bg-gray-900 border border-white/10" 
-              onClick={(e) => e.stopPropagation()}
-            />
-          </div>
-        </div>
-      )}
+      <ImagePreviewModal
+        url={previewImageUrl}
+        onClose={() => setPreviewImageUrl(null)}
+      />
     </>
   );
 }
