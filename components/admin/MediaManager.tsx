@@ -963,7 +963,7 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
         {showActions && (
           <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-3 z-10">
             <div className="flex justify-end gap-1.5">
-              <button type="button" onClick={e => { e.stopPropagation(); handleOpenPreview(item); }} className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-all cursor-pointer min-h-[32px]" title="Preview & Edit Image">
+              <button type="button" onClick={e => { e.stopPropagation(); setPreviewItem(item); }} className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-all cursor-pointer min-h-[32px]" title="Preview & Edit Image">
                 <Eye className="w-3.5 h-3.5" />
               </button>
               <button type="button" onClick={e => { e.stopPropagation(); handleCopyUrl(item.file_url); }} className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-all cursor-pointer min-h-[32px]" title="Copy URL">
