@@ -876,7 +876,7 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
         key={item.id}
         onClick={() => {
           if (mode === 'library') {
-            handleOpenPreview(item);
+            setPreviewItem(item);
           } else {
             onToggle();
           }
