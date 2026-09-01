@@ -52,6 +52,9 @@ export const useSettings = (initialSettings?: StoreSettings) => {
           archiveSwatchAlign: row.archive_swatch_align ?? prev?.archiveSwatchAlign ?? 'left',
           defaultVariantIndex: row.default_variant_index ?? prev?.defaultVariantIndex ?? 1,
           enableVariantSwatches: row.enable_variant_swatches ?? prev?.enableVariantSwatches ?? true,
+          
+          lastVercelPurge: row.last_vercel_purge ?? prev?.lastVercelPurge,
+          lastCloudflarePurge: row.last_cloudflare_purge ?? prev?.lastCloudflarePurge,
         } as StoreSettings));
 
         setError(null);

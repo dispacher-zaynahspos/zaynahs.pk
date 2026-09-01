@@ -457,9 +457,9 @@ function AdminLayoutContent({
               {getPageTitle()}
             </h2>
           </div>
-          <div className="flex items-center gap-4">
-            <PurgeCacheButton variant="ghost" className="hidden md:flex" />
-            <Link href="/" className="text-xs md:text-sm font-bold text-[#e94560] hover:underline whitespace-nowrap">
+          <div className="flex items-center gap-2 md:gap-4">
+            <PurgeCacheButton variant="ghost" className="scale-90 md:scale-100 origin-right" />
+            <Link href="/" className="text-[10px] md:text-sm font-bold text-[#e94560] hover:underline whitespace-nowrap">
               View Store
             </Link>
           </div>

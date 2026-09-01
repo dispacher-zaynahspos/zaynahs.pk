@@ -158,6 +158,8 @@ export interface StoreSettings {
   socialFacebook?: string;
   socialInstagram?: string;
   socialWhatsapp?: string;
+  lastVercelPurge?: string;
+  lastCloudflarePurge?: string;
   socialYoutube?: string;
   enableFakeViews: boolean;
   minViews: number;

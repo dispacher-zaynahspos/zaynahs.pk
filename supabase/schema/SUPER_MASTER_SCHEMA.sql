@@ -294,6 +294,12 @@ CREATE POLICY "Admin all social_proof_products" ON social_proof_products FOR ALL
 -- ============================================================
 CREATE TABLE IF NOT EXISTS store_settings (
   id UUID PRIMARY KEY DEFAULT '00000000-0000-4000-8000-000000000001',
+  email_sender_name TEXT DEFAULT 'Your Store Team',
+  
+  -- Cache Purge tracking
+  last_vercel_purge TIMESTAMP WITH TIME ZONE,
+  last_cloudflare_purge TIMESTAMP WITH TIME ZONE,
+  
   store_name TEXT DEFAULT 'Your Store',
   store_url TEXT,
   whatsapp_number TEXT DEFAULT '',         -- format: 923001234567 (no + or spaces)

@@ -301,6 +301,10 @@ interface SettingsRow {
   postex_whatsapp_note?: string | null;
   postex_auto_download_label?: boolean | null;
 
+  // Cache Purge
+  last_vercel_purge?: string | null;
+  last_cloudflare_purge?: string | null;
+
   updated_at: string;
 }
 
@@ -323,6 +327,9 @@ const mapSettings = (row: SettingsRow): StoreSettings => ({
   showComparePrice: row.show_compare_price ?? true,
   enableSearch: row.enable_search ?? true,
   enableCategoryFilter: row.enable_category_filter ?? true,
+  
+  lastVercelPurge: row.last_vercel_purge || undefined,
+  lastCloudflarePurge: row.last_cloudflare_purge || undefined,
 
   whatsappGreeting: row.whatsapp_greeting ?? 'Hello! I would like to order:',
   whatsappFooter: row.whatsapp_footer ?? 'Please confirm my order. Thank you!',

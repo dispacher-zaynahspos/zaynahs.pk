@@ -2717,6 +2717,7 @@ export default function ProductForm({ categories, initialProduct, aiEnabled, sto
               {/* Uploaded Images preview grid */}
               {images.length > 0 && (
                 <DndContext
+                  id="product-images-dnd"
                   sensors={sensors}
                   collisionDetection={closestCenter}
                   measuring={{ droppable: { strategy: MeasuringStrategy.Always } }}

@@ -2,12 +2,20 @@
 
 import { revalidateSettings } from '@/lib/revalidate';
 import { safeAction } from '@/lib/utils/serverAction';
+import { supabaseAdmin } from '@/lib/supabase/admin';
+
+const SETTINGS_ID = '00000000-0000-4000-8000-000000000001';
 
 export const purgeAllCache = async () => {
   return safeAction(
     (async () => {
       // 1. Revalidate Next.js cache (tags & paths)
       await revalidateSettings();
+      
+      const vercelTime = new Date().toISOString();
+      const { error: vError } = await supabaseAdmin.from('store_settings').update({ last_vercel_purge: vercelTime }).eq('id', SETTINGS_ID);
+      if (vError) console.error('Vercel time save error:', vError);
+
 
       // 2. Perform real Cloudflare purge and capture response
       const multiStoreConfigStr = process.env.MULTI_STORE_CLOUDFLARE_CONFIG;
@@ -68,7 +76,11 @@ export const purgeAllCache = async () => {
         throw new Error(`Cloudflare purge failed: ${errors.join(', ')}`);
       }
 
-      return { success: true };
+      const cfTime = new Date().toISOString();
+      const { error: cError } = await supabaseAdmin.from('store_settings').update({ last_cloudflare_purge: cfTime }).eq('id', SETTINGS_ID);
+      if (cError) console.error('CF time save error:', cError);
+
+      return { success: true, vercelTime, cfTime };
     })()
   );
 };
