@@ -1166,6 +1166,43 @@ export default function Navbar({
                 </div>
               </div>
             )}
+
+            {/* Recommended Products when empty */}
+            {searchQuery.trim().length === 0 && products.length > 0 && (
+              <div className="space-y-3 pt-6">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">Recommended For You</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {products.filter(p => p.isFeatured).concat(products.filter(p => !p.isFeatured)).slice(0, 4).map((product) => {
+                    const primaryImage = product.images?.find(img => img.isPrimary) || product.images?.[0];
+                    return (
+                      <Link
+                        key={product.id}
+                        href={`/product/${product.slug}`}
+                        onClick={() => setSearchOpen(false)}
+                        className="flex items-center gap-3 px-3 py-2.5 rounded-2xl hover:bg-gray-50 dark:hover:bg-[#1d1d36] border border-transparent hover:border-gray-100 dark:hover:border-gray-800 transition-colors cursor-pointer group"
+                      >
+                        <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-xl bg-gray-100 dark:bg-gray-800">
+                          {primaryImage ? (
+                            <img src={primaryImage.url} alt={product.name} className="h-full w-full object-cover" />
+                          ) : (
+                            <div className="h-full w-full flex items-center justify-center text-[10px] text-gray-400">No Img</div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-xs font-bold text-gray-900 dark:text-white truncate group-hover:text-[#e94560] transition-colors">
+                            {product.name}
+                          </h4>
+                          <p className="text-[10px] font-black text-gray-900 dark:text-white mt-0.5">
+                            Rs. {product.price.toLocaleString()}
+                          </p>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+            
             {showSuggestions && searchQuery.trim().length > 0 && (
               <div className="mt-2 overflow-hidden py-1 max-h-[320px] overflow-y-auto divide-y divide-gray-100 dark:divide-gray-800/50">
                 {loading ? (
@@ -1205,8 +1242,9 @@ export default function Navbar({
                             <h4 className="text-xs font-bold text-gray-900 dark:text-white truncate group-hover:text-[#e94560] transition-colors">
                               {product.name}
                             </h4>
-                            <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate mt-0.5">
+                            <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate mt-0.5 flex items-center gap-1">
                               {product.category?.name || 'Uncategorized'}
+                              {product.sku && <span className="uppercase font-mono bg-gray-100 dark:bg-gray-800 px-1 rounded">SKU: {product.sku}</span>}
                               {product.variants.length > 0 && ` • ${product.variants.length} options`}
                             </p>
                           </div>
