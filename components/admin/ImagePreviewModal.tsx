@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 
 interface ImagePreviewModalProps {
@@ -7,9 +8,15 @@ interface ImagePreviewModalProps {
 }
 
 export default function ImagePreviewModal({ url, onClose }: ImagePreviewModalProps) {
-  if (!url) return null;
+  const [mounted, setMounted] = useState(false);
 
-  return (
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!url || !mounted) return null;
+
+  return createPortal(
     <div 
       className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 p-4 animate-in fade-in duration-200"
       onClick={onClose}
@@ -29,6 +36,7 @@ export default function ImagePreviewModal({ url, onClose }: ImagePreviewModalPro
           onClick={(e) => e.stopPropagation()}
         />
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
