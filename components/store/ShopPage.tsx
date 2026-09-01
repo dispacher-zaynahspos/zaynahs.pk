@@ -515,8 +515,17 @@ export default function ShopPage({
     const q = searchQuery.toLowerCase().trim();
     if (q) {
       list = list.filter(product => {
+        // Find if this product belongs to any collection that matches the query
+        const matchesCollection = collections?.some(c => {
+          if (!c.name.toLowerCase().includes(q)) return false;
+          const collectionCategoryIds = c.categories?.map(cat => cat.id) || [];
+          return (product.categoryId && collectionCategoryIds.includes(product.categoryId)) ||
+                 (product.productCategories?.some(pc => pc.categoryId && collectionCategoryIds.includes(pc.categoryId)));
+        });
+
         return (
           product.name.toLowerCase().includes(q) ||
+          matchesCollection ||
           (product.description && product.description.toLowerCase().includes(q)) ||
           (product.shortDescription && product.shortDescription.toLowerCase().includes(q)) ||
           (product.sku && product.sku.toLowerCase().includes(q)) ||
@@ -527,7 +536,8 @@ export default function ShopPage({
               (v.color && v.color.toLowerCase().includes(q)) ||
               (v.size && v.size.toLowerCase().includes(q)) ||
               (v.material && v.material.toLowerCase().includes(q)) ||
-              (v.sku && v.sku.toLowerCase().includes(q))
+              (v.sku && v.sku.toLowerCase().includes(q)) ||
+              (v.customValue && v.customValue.toLowerCase().includes(q))
             )
           ))
         );
