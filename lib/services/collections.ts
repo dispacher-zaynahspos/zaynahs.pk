@@ -88,7 +88,7 @@ export const fetchCollectionBySlug = async (slug: string): Promise<Collection | 
 
 // CRUD Operations
 export const createCollection = async (collection: { name: string; slug: string; description?: string; imageUrl?: string; sortOrder?: number; active?: boolean }): Promise<Collection> => {
-  const supabase = await createClient();
+  const supabase = staticSupabase;
   const { data, error } = await supabase
     .from('collections')
     .insert({
@@ -108,7 +108,7 @@ export const createCollection = async (collection: { name: string; slug: string;
 };
 
 export const updateCollection = async (id: string, collection: { name?: string; slug?: string; description?: string; imageUrl?: string; sortOrder?: number; active?: boolean }): Promise<Collection> => {
-  const supabase = await createClient();
+  const supabase = staticSupabase;
   
   const updatePayload: any = {};
   if (collection.name !== undefined) updatePayload.name = collection.name;
@@ -131,7 +131,7 @@ export const updateCollection = async (id: string, collection: { name?: string; 
 };
 
 export const deleteCollection = async (id: string): Promise<void> => {
-  const supabase = await createClient();
+  const supabase = staticSupabase;
   const { error } = await supabase
     .from('collections')
     .update({ deleted_at: new Date().toISOString() })
@@ -143,7 +143,7 @@ export const deleteCollection = async (id: string): Promise<void> => {
 
 // Assignment Operations
 export const assignCategoryToCollection = async (collectionId: string, categoryId: string, sortOrder: number = 0): Promise<void> => {
-  const supabase = await createClient();
+  const supabase = staticSupabase;
   const { error } = await supabase
     .from('collection_categories')
     .insert({ collection_id: collectionId, category_id: categoryId, sort_order: sortOrder })
@@ -158,7 +158,7 @@ export const assignCategoryToCollection = async (collectionId: string, categoryI
 };
 
 export const removeCategoryFromCollection = async (collectionId: string, categoryId: string): Promise<void> => {
-  const supabase = await createClient();
+  const supabase = staticSupabase;
   const { error } = await supabase
     .from('collection_categories')
     .delete()
@@ -170,7 +170,7 @@ export const removeCategoryFromCollection = async (collectionId: string, categor
 };
 
 export const reorderCollectionCategories = async (collectionId: string, categoryIds: string[]): Promise<void> => {
-  const supabase = await createClient();
+  const supabase = staticSupabase;
   // Bulk update sort orders
   for (let i = 0; i < categoryIds.length; i++) {
     await supabase

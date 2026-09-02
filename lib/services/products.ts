@@ -727,7 +727,7 @@ export const getProductById = async (id: string): Promise<Product | null> => {
 
 export const getAllProductsAdmin = async (): Promise<Product[]> => {
   try {
-    const supabase = await createClient();
+    const supabase = staticSupabase;
     const { data, error } = await supabase
       .from('products')
       .select('*, product_images(*), product_variants(*), product_modifiers(*), categories!category_id(*), product_categories(*, categories(*)), badges(*), size_guides(*)')
@@ -786,7 +786,7 @@ export const createProduct = async (
   modifiers: Omit<ProductModifier, 'id' | 'productId'>[]
 ): Promise<Product> => {
   try {
-    const supabase = await createClient();
+    const supabase = staticSupabase;
 
     // 1. Insert product core
     const { data: prodData, error: prodError } = await supabase
@@ -918,7 +918,7 @@ export const updateProduct = async (
   modifiers: Omit<ProductModifier, 'id' | 'productId'>[]
 ): Promise<Product> => {
   try {
-    const supabase = await createClient();
+    const supabase = staticSupabase;
 
     // 1. Update product core
     const updatePayload: Record<string, any> = {};
@@ -1074,7 +1074,7 @@ export const updateProductFields = async (
   fields: Partial<Product>
 ): Promise<void> => {
   try {
-    const supabase = await createClient();
+    const supabase = staticSupabase;
     const updatePayload: Record<string, any> = {};
     if (fields.name !== undefined) updatePayload.name = fields.name;
     if (fields.slug !== undefined) updatePayload.slug = fields.slug;
@@ -1165,7 +1165,7 @@ export const updateProductFields = async (
 
 export const deleteProduct = async (id: string): Promise<void> => {
   try {
-    const supabase = await createClient();
+    const supabase = staticSupabase;
 
     // Get product slug to revalidate properly
     const { data: prodData } = await supabase
@@ -1214,7 +1214,7 @@ export const deleteProduct = async (id: string): Promise<void> => {
 
 export const getDeletedProducts = async (): Promise<Product[]> => {
   try {
-    const supabase = await createClient();
+    const supabase = staticSupabase;
     const { data, error } = await supabase
       .from('products')
       .select('*, product_images(*), product_variants(*), product_modifiers(*), categories!category_id(*), product_categories(*, categories(*)), badges(*), size_guides(*)')
@@ -1231,7 +1231,7 @@ export const getDeletedProducts = async (): Promise<Product[]> => {
 
 export const restoreProduct = async (id: string): Promise<void> => {
   try {
-    const supabase = await createClient();
+    const supabase = staticSupabase;
 
     // Get product slug to revalidate properly
     const { data: prodData } = await supabase
@@ -1263,7 +1263,7 @@ export const restoreProduct = async (id: string): Promise<void> => {
 
 export const hardDeleteProduct = async (id: string): Promise<void> => {
   try {
-    const supabase = await createClient();
+    const supabase = staticSupabase;
     const { error } = await supabase
       .from('products')
       .delete()
@@ -1280,7 +1280,7 @@ export const hardDeleteProduct = async (id: string): Promise<void> => {
 
 export const getProductsByCategoryId = async (categoryId: string): Promise<Product[]> => {
   try {
-    const supabase = await createClient();
+    const supabase = staticSupabase;
 
     // First, get product IDs from the junction table
     const { data: junctionData, error: junctionError } = await supabase
@@ -1319,7 +1319,7 @@ export const updateProductVariantFields = async (
   fields: Partial<ProductVariant>
 ): Promise<void> => {
   try {
-    const supabase = await createClient();
+    const supabase = staticSupabase;
     const updatePayload: Record<string, any> = {};
     if (fields.stock !== undefined) updatePayload.stock = fields.stock;
     if (fields.price !== undefined) updatePayload.price = fields.price;
@@ -1378,7 +1378,7 @@ export const addProductToCategory = async (
   categoryId: string
 ): Promise<void> => {
   try {
-    const supabase = await createClient();
+    const supabase = staticSupabase;
 
     // Insert relationship
     const { error: relError } = await supabase
@@ -1424,7 +1424,7 @@ export const addProductsToCategory = async (
   categoryId: string
 ): Promise<void> => {
   try {
-    const supabase = await createClient();
+    const supabase = staticSupabase;
 
     // Prepare relationships
     const inserts = productIds.map(productId => ({
@@ -1481,7 +1481,7 @@ export const removeProductFromCategory = async (
     // Never allow removing from the "shop" system category
     if (categoryId === '00000000-0000-4000-8000-000000000099') return;
 
-    const supabase = await createClient();
+    const supabase = staticSupabase;
 
     // Delete relation from junction table
     const { error: relError } = await supabase
@@ -1538,7 +1538,7 @@ export const removeProductsFromCategory = async (
     if (categoryId === '00000000-0000-4000-8000-000000000099') return;
     if (!productIds || productIds.length === 0) return;
 
-    const supabase = await createClient();
+    const supabase = staticSupabase;
 
     // 1. Delete relations
     const { error: relError } = await supabase

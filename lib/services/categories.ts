@@ -108,7 +108,7 @@ export const getCategoryBySlug = async (slug: string) => {
 
 export const getAllCategories = async (): Promise<Category[]> => {
   try {
-    const supabase = await createClient();
+    const supabase = staticSupabase;
     const { data, error } = await supabase
       .from('categories')
       .select('*')
@@ -126,7 +126,7 @@ export const getAllCategories = async (): Promise<Category[]> => {
 
 export const createCategory = async (category: Omit<Category, 'id' | 'createdAt' | 'updatedAt'>): Promise<Category> => {
   try {
-    const supabase = await createClient();
+    const supabase = staticSupabase;
     const { data, error } = await supabase
       .from('categories')
       .insert({
@@ -156,7 +156,7 @@ export const createCategory = async (category: Omit<Category, 'id' | 'createdAt'
 
 export const updateCategory = async (id: string, category: Partial<Category>): Promise<Category> => {
   try {
-    const supabase = await createClient();
+    const supabase = staticSupabase;
     const updatePayload: Record<string, string | number | boolean | null | undefined> = {};
     if (category.name !== undefined) updatePayload.name = category.name;
     if (category.slug !== undefined) updatePayload.slug = category.slug;
@@ -194,7 +194,7 @@ export const deleteCategory = async (id: string): Promise<void> => {
       throw new Error('The system "All Products" category cannot be deleted.');
     }
 
-    const supabase = await createClient();
+    const supabase = staticSupabase;
     const { data: catData } = await supabase
       .from('categories')
       .select('slug')
@@ -226,7 +226,7 @@ export const deleteCategory = async (id: string): Promise<void> => {
 
 export const getDeletedCategories = async (): Promise<Category[]> => {
   try {
-    const supabase = await createClient();
+    const supabase = staticSupabase;
     const { data, error } = await supabase
       .from('categories')
       .select('*')
@@ -243,7 +243,7 @@ export const getDeletedCategories = async (): Promise<Category[]> => {
 
 export const restoreCategory = async (id: string): Promise<void> => {
   try {
-    const supabase = await createClient();
+    const supabase = staticSupabase;
     
     const { data: catData } = await supabase
       .from('categories')
@@ -274,7 +274,7 @@ export const restoreCategory = async (id: string): Promise<void> => {
 
 export const hardDeleteCategory = async (id: string): Promise<void> => {
   try {
-    const supabase = await createClient();
+    const supabase = staticSupabase;
     const { error } = await supabase
       .from('categories')
       .delete()
@@ -290,7 +290,7 @@ export const hardDeleteCategory = async (id: string): Promise<void> => {
 
 export const getCategoryById = async (id: string): Promise<Category | null> => {
   try {
-    const supabase = await createClient();
+    const supabase = staticSupabase;
     const { data, error } = await supabase
       .from('categories')
       .select('*')
