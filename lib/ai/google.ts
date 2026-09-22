@@ -1,13 +1,24 @@
 export const GOOGLE_MODELS = {
-  text: ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.5-flash-lite'],
-  vision: ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.5-flash-lite'],
+  text: ['gemini-3.5-flash', 'gemini-3.1-flash-lite', 'gemini-3.6-flash', 'gemini-flash-latest'],
+  vision: ['gemini-3.5-flash', 'gemini-3.1-flash-lite', 'gemini-3.6-flash', 'gemini-flash-latest'],
 } as const;
 
 export const GOOGLE_FREE_LIMITS = {
-  'gemini-2.5-flash': { reqPerDay: 1500, rpm: 15 },
-  'gemini-2.5-pro': { reqPerDay: 100, rpm: 5 },
-  'gemini-2.5-flash-lite': { reqPerDay: 4000, rpm: 30 },
+  'gemini-3.5-flash': { reqPerDay: 1500, rpm: 15 },
+  'gemini-3.1-flash-lite': { reqPerDay: 4000, rpm: 30 },
+  'gemini-3.6-flash': { reqPerDay: 1500, rpm: 15 },
+  'gemini-flash-latest': { reqPerDay: 1500, rpm: 15 },
 };
+
+export function normalizeGoogleModel(requestedModel: string): string {
+  const m = (requestedModel || '').toLowerCase();
+  if (m.includes('lite')) return 'gemini-3.1-flash-lite';
+  if (m.includes('3.5')) return 'gemini-3.5-flash';
+  if (m.includes('3.6')) return 'gemini-3.6-flash';
+  if (m.includes('3.1')) return 'gemini-3.1-flash-lite';
+  // Legacy aliases like gemini-1.5-flash, gemini-2.0-flash, gemini-2.5-flash, gemini-pro
+  return 'gemini-3.5-flash';
+}
 
 export async function callGoogle(
   apiKey: string,
@@ -18,34 +29,71 @@ export async function callGoogle(
   base64Data?: string,
   mimeType?: string,
 ): Promise<string> {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+  const primaryModel = normalizeGoogleModel(model);
+  const fallbackModel = primaryModel === 'gemini-3.1-flash-lite' ? 'gemini-3.5-flash' : 'gemini-3.1-flash-lite';
+  const modelsToTry = [primaryModel, fallbackModel];
 
-  const parts: any[] = [];
-  if (isVision && base64Data) {
-    parts.push({ inlineData: { mimeType: mimeType || 'image/webp', data: base64Data } });
+  const wantsJson = /json|\{|\}/i.test(prompt) || /json/i.test(systemPrompt);
+
+  let lastError: any = null;
+
+  for (const currentModel of modelsToTry) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent?key=${apiKey}`;
+
+    const parts: any[] = [];
+    if (isVision && base64Data) {
+      parts.push({ inlineData: { mimeType: mimeType || 'image/webp', data: base64Data } });
+    }
+    parts.push({ text: prompt });
+
+    const body: any = {
+      contents: [{ role: 'user', parts }],
+    };
+
+    if (systemPrompt && systemPrompt.trim()) {
+      body.systemInstruction = { parts: [{ text: systemPrompt }] };
+    }
+
+    if (wantsJson) {
+      body.generationConfig = { responseMimeType: 'application/json' };
+    }
+
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        const errMsg = errJson?.error?.message || `Google API error ${res.status}`;
+        const err = new Error(errMsg);
+        (err as any).status = res.status;
+        lastError = err;
+
+        // If 503 (high demand) or 404 (model deprecated) or 429 (rate limit), try fallback
+        if (res.status === 503 || res.status === 404 || res.status === 429) {
+          console.warn(`[callGoogle] ${currentModel} returned ${res.status}. Retrying with fallback...`);
+          continue;
+        }
+        throw err;
+      }
+
+      const json = await res.json();
+      const text = json?.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!text) {
+        throw new Error('Empty response from Google Gemini API');
+      }
+      return text;
+    } catch (fetchErr: any) {
+      lastError = fetchErr;
+      if (fetchErr.status === 503 || fetchErr.status === 404 || fetchErr.status === 429) {
+        continue;
+      }
+      throw fetchErr;
+    }
   }
-  parts.push({ text: prompt });
 
-  const body = {
-    contents: [{ role: 'user', parts }],
-    systemInstruction: { parts: [{ text: systemPrompt }] },
-    generationConfig: { responseMimeType: 'application/json' },
-  };
-
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-
-  if (!res.ok) {
-    const err = new Error(`Google API error ${res.status}`);
-    (err as any).status = res.status;
-    throw err;
-  }
-
-  const json = await res.json();
-  const text = json?.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!text) throw new Error('Empty response from Google Gemini API');
-  return text;
+  throw lastError || new Error('Google Gemini API calls failed for all models');
 }

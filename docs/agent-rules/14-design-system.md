@@ -95,3 +95,14 @@ export async function generateMetadata() {
 **ALWAYS**: import `getDomainBrand` from `@/lib/utils/getDomainBrand`; call it at the top of every `generateMetadata()`; use `brand.name` for all title/OG fields, `brand.tagline` for descriptions when no specific one exists.
 New page/category/route: copy the `generateMetadata()` pattern from an existing working page; never write the brand name as a string literal — `getDomainBrand()` handles it automatically.
 (Full multi-domain rules: [18-multi-domain-rules.md](18-multi-domain-rules.md).)
+
+## RULE DS5 — Theme Token Binding & Anti-Bloat Proportions (MANDATORY)
+1. **Theme Tokens Binding (Always 100% Customizable via Admin Customizer)**:
+   - All storefront fonts, buttons, headings, accents, borders, prices, badges, and card styles MUST dynamically inherit from the active Theme Customizer tokens (`var(--color-primary)`, `var(--color-secondary)`, `var(--color-accent)`, `var(--color-price)`, `var(--font-heading)`, `var(--font-body)`, `var(--border-radius-btn)`, `var(--border-radius-card)`, `var(--btn-primary-bg)`, `var(--btn-primary-text)`, `var(--btn-primary-hover)`).
+   - NEVER hardcode arbitrary colors (such as `#e94560`, `#1a1a2e`, etc.) or static font-families in storefront components or pages. Every element must adapt immediately when an admin switches presets (Pink/Magenta, Royal Navy, Emerald, Luxury Gold, etc.) or customizes colors/fonts in `/admin/settings/customizer`.
+2. **Anti-Bloat & Smart Proportions (Never 'Over-Zoomed')**:
+   - Storefront UI must be sleek, compact, and balanced like high-end luxury fashion stores (Sapphire, Zara, Mango) — never bloated, oversized, or 'over-zoomed'.
+   - **PDP Gallery**: Main image container must be capped at clean, proportional heights (`max-h-[520px]` or `max-h-[560px]` on desktop, and proportional viewport height on mobile) so the image never blows up to 800px+ height or forces excessive scrolling.
+   - **Product Cards**: Cards must maintain smart compact spacing (`p-2.5` to `p-3`), crisp font sizes (`text-xs` to `text-[13px]`), and disciplined image heights so products look sharp, high-density, and well-aligned.
+   - **Header Clearance**: Sticky navbar and announcement bars must have proper backdrop opacity and spacing so page headings (e.g. 'Featured Products') never overlap or clip behind the navbar.
+

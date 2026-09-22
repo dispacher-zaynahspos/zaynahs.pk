@@ -17,8 +17,12 @@ export default function MobileBottomNav() {
     setMounted(true);
     
     const updateWishlistCount = () => {
-      const wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
-      setWishlistCount(wishlist.length);
+      try {
+        const wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
+        setWishlistCount(Array.isArray(wishlist) ? wishlist.length : 0);
+      } catch {
+        setWishlistCount(0);
+      }
     };
 
     updateWishlistCount();
@@ -36,57 +40,77 @@ export default function MobileBottomNav() {
         const { getCustomerProfile } = await import('@/lib/services/customers');
         const profile = await getCustomerProfile();
         setCustomerSession(profile);
-      } catch (err) {
-        console.error('Failed to load session in bottom nav:', err);
+      } catch {
+        // Session not present, remains guest
       }
     }
     loadSession();
   }, [mounted]);
 
+  // Standard high-conversion native e-commerce sequence: Home -> Shop -> Wishlist -> Cart -> Account
   const navItems = [
     { label: 'Home', href: '/', icon: Home },
-    { label: 'Account', href: customerSession ? '/account' : '/login', icon: User },
     { label: 'Shop', href: '/shop', icon: ShoppingBag },
     { label: 'Wishlist', href: '/wishlist', icon: Heart, badgeCount: wishlistCount },
     { label: 'Cart', href: '/cart', icon: ShoppingCart, badgeCount: totalItems },
+    { label: 'Account', href: customerSession ? '/account' : '/login', icon: User },
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-[#16162a] border-t border-gray-200 dark:border-gray-800 shadow-[0_-4px_16px_rgba(0,0,0,0.06)] md:hidden transition-colors duration-200">
-      <div className="flex items-center justify-around h-16 px-2">
+    <nav 
+      aria-label="Mobile Bottom Navigation"
+      className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-[#121222]/95 backdrop-blur-md border-t border-gray-200/80 dark:border-white/10 shadow-[0_-4px_24px_rgba(0,0,0,0.08)] md:hidden transition-colors duration-200 pb-[max(env(safe-area-inset-bottom),0.25rem)]"
+    >
+      <div className="flex items-center justify-around h-16 px-1">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = item.label === 'Account'
             ? (pathname === '/account' || pathname === '/login' || pathname === '/signup')
-            : pathname === item.href || (item.href === '/shop' && pathname === '/shop');
+            : item.href === '/' 
+              ? pathname === '/'
+              : pathname.startsWith(item.href);
+
           return (
             <Link
-              key={item.href}
+              key={item.label}
               href={item.href}
               id={
                 item.label === 'Wishlist' ? 'mobile-bottom-wishlist-icon' :
                 item.label === 'Cart' ? 'mobile-bottom-cart-icon' :
                 undefined
               }
-              className={`flex flex-col items-center justify-center flex-1 h-full relative text-[10px] font-bold transition-colors ${
+              className={`flex flex-col items-center justify-center flex-1 h-full relative text-[10px] font-bold transition-all duration-150 active:scale-90 ${
                 isActive
-                  ? 'text-[#e94560]'
-                  : 'text-gray-400 dark:text-gray-500 hover:text-gray-950 dark:hover:text-white'
+                  ? 'text-[var(--color-primary,#C2185B)] font-black'
+                  : 'text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
               <div className="relative flex items-center justify-center">
-                <Icon className="h-5.5 w-5.5 mb-0.5 shrink-0" />
+                <Icon className={`h-5 w-5 mb-0.5 shrink-0 transition-transform duration-200 ${isActive ? 'scale-110 stroke-[2.5]' : 'stroke-2'}`} />
+                
+                {/* Live Count Pill Badge */}
                 {mounted && item.badgeCount !== undefined && item.badgeCount > 0 && (
-                  <span className="absolute -top-1.5 -right-2 flex h-4 w-4 items-center justify-center rounded-full bg-[#e94560] text-[8px] font-black text-white ring-2 ring-white dark:ring-[#16162a]">
-                    {item.badgeCount}
+                  <span 
+                    style={{ backgroundColor: 'var(--color-primary, #C2185B)' }}
+                    className="absolute -top-1.5 -right-2.5 min-w-[17px] h-4 px-1 rounded-full text-[8.5px] font-black text-white flex items-center justify-center ring-2 ring-white dark:ring-[#121222] shadow-xs"
+                  >
+                    {item.badgeCount > 99 ? '99+' : item.badgeCount}
                   </span>
                 )}
+
+                {/* Modern Active Indicator Pip */}
+                {isActive && (
+                  <span 
+                    style={{ backgroundColor: 'var(--color-primary, #C2185B)' }}
+                    className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-4 h-1 rounded-full shadow-[0_0_8px_var(--color-primary,#C2185B)]"
+                  />
+                )}
               </div>
-              <span className="mt-0.5 tracking-wide">{item.label}</span>
+              <span className="mt-0.5 tracking-tight leading-none">{item.label}</span>
             </Link>
           );
         })}
       </div>
-    </div>
+    </nav>
   );
 }

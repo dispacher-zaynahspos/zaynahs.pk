@@ -1,6 +1,6 @@
 import React from 'react';
 import { StoreSettings } from '@/lib/types';
-import { THEME_PRESETS } from '@/lib/themePresets';
+import { THEME_PRESETS, ThemePreset } from '@/lib/theme-presets';
 
 interface ThemeStyleRegistryProps {
   settings: StoreSettings;
@@ -9,7 +9,7 @@ interface ThemeStyleRegistryProps {
 export default function ThemeStyleRegistry({ settings }: ThemeStyleRegistryProps) {
   // Get active preset configuration or fallback to classic_white
   const activePresetId = settings.theme_preset || 'classic_white';
-  const defaultPreset = THEME_PRESETS.find(p => p.id === activePresetId) || THEME_PRESETS[0];
+  const defaultPreset = THEME_PRESETS.find((p: ThemePreset) => p.id === activePresetId) || THEME_PRESETS[0];
 
   // Merge database values with default preset values
   const themeConfig = settings.theme_config || defaultPreset.config;
@@ -202,6 +202,14 @@ export default function ThemeStyleRegistry({ settings }: ThemeStyleRegistryProps
     /* Price color override */
     .product-price {
       color: var(--color-price) !important;
+    }
+
+    /* Product title color bound to appearance textPrimary token & hover to primary */
+    .product-card-title {
+      color: var(--color-text-primary) !important;
+    }
+    .group:hover .product-card-title {
+      color: var(--color-primary) !important;
     }
 
     /* Borders hardcoded overrides */

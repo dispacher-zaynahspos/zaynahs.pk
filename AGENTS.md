@@ -38,7 +38,7 @@ Stores: **TotVogue · Zaynahs · MiniMahal · LittleMister** (+ future clones)
 | 11 | [11-storage-images.md](agent-rules/11-storage-images.md) | S1–S6, bucket, compressor, media selector |
 | 12 | [12-testing-verification.md](agent-rules/12-testing-verification.md) | Happy path + edge case rules |
 | 13 | [13-autonomy-boundaries.md](agent-rules/13-autonomy-boundaries.md) | Auto-allowed / confirm-first / never-auto |
-| 14 | [14-design-system.md](agent-rules/14-design-system.md) | Colors, tokens, DS1–DS4, card templates |
+| 14 | [14-design-system.md](agent-rules/14-design-system.md) | Colors, tokens, DS1–DS5, theme customizable, anti-bloat |
 | 15 | [15-shared-components-ui-modules.md](agent-rules/15-shared-components-ui-modules.md) | Component library + mandatory module map |
 | 16 | [16-multi-system-architecture.md](agent-rules/16-multi-system-architecture.md) | /store vs /admin boundaries |
 | 17 | [17-mobile-native-app-style.md](agent-rules/17-mobile-native-app-style.md) | M1–M5, cards, touch, jitter prevention |
@@ -47,7 +47,7 @@ Stores: **TotVogue · Zaynahs · MiniMahal · LittleMister** (+ future clones)
 | 20 | [20-error-diagnostics-matrix.md](agent-rules/20-error-diagnostics-matrix.md) | Copy-pasted error → instant fix matrix |
 | 21 | [21-cloudflare-supabase-api-usage.md](agent-rules/21-cloudflare-supabase-api-usage.md) | API-only ops, curl recipes, self-tests |
 | 22 | [22-credentials-management.md](agent-rules/22-credentials-management.md) | CRED1, VERCEL1, env-backups structure |
-| 23 | [23-code-architecture-modularity.md](agent-rules/23-code-architecture-modularity.md) | O1 — one file per modal/tab, 500-line limit |
+| 23 | [23-code-architecture-modularity.md](agent-rules/23-code-architecture-modularity.md) | O1 — 300–400 line limit, module reuse & code style |
 | 24 | [24-vercel-build-security.md](agent-rules/24-vercel-build-security.md) | V1 — safe client init, no `!` assertions |
 | 25 | [25-ai-seo-copywriting-engine.md](agent-rules/25-ai-seo-copywriting-engine.md) | AI1 — vision + copywriting models |
 | 26 | [26-project-reference-table.md](agent-rules/26-project-reference-table.md) | All store refs, zone IDs, secrets, URLs |

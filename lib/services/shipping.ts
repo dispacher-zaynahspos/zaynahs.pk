@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { ShippingMethod } from '@/lib/types';
-import { revalidateTag } from 'next/cache';
+import { revalidateTagSafe } from '@/lib/revalidate';
 
 export async function getShippingMethods(onlyActive = false): Promise<ShippingMethod[]> {
   const supabase = await createClient();
@@ -71,7 +71,7 @@ export async function createShippingMethod(data: {
     throw error;
   }
 
-  (revalidateTag as any)('shipping_methods');
+  revalidateTagSafe('shipping_methods');
   return {
     id: row.id,
     name: row.name,
@@ -108,7 +108,7 @@ export async function updateShippingMethod(
     throw error;
   }
 
-  (revalidateTag as any)('shipping_methods');
+  revalidateTagSafe('shipping_methods');
   return {
     id: row.id,
     name: row.name,
@@ -131,7 +131,7 @@ export async function reorderShippingMethods(orderedIds: string[]): Promise<void
       throw error;
     }
   }
-  (revalidateTag as any)('shipping_methods');
+  revalidateTagSafe('shipping_methods');
 }
 
 export async function deleteShippingMethod(id: string): Promise<void> {
@@ -146,5 +146,5 @@ export async function deleteShippingMethod(id: string): Promise<void> {
     throw error;
   }
 
-  (revalidateTag as any)('shipping_methods');
+  revalidateTagSafe('shipping_methods');
 }

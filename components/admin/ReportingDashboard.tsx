@@ -2,18 +2,20 @@
 
 import React, { useState, useMemo } from 'react';
 import { Order, StoreSettings, Product } from '@/lib/types';
-import { formatPrice } from '@/lib/utils/whatsapp';
+import { Calendar } from '@/components/common/Icons';
 import {
-  TrendingUp,
-  DollarSign,
-  ShoppingBag,
-  Calendar,
-  Layers,
-  Package
-} from '@/components/common/Icons';
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Line, ComposedChart, Legend
-} from 'recharts';
+  DateRange,
+  StatusFilter,
+  ReportingMetrics,
+  TopProduct,
+  StatusBreakdownRow,
+  InventoryItem,
+  ReportingMetricsGrid,
+  RevenueChartSection,
+  TopProductsSection,
+  StatusBreakdownCard,
+  InventoryReportTable
+} from './reporting';
 
 interface ReportingDashboardProps {
   orders: Order[];
@@ -21,9 +23,6 @@ interface ReportingDashboardProps {
   products?: Product[];
   isEmbed?: boolean;
 }
-
-type DateRange = 'today' | 'yesterday' | 'last7' | 'last30' | 'thisMonth' | 'lastMonth' | 'all' | 'custom';
-type StatusFilter = 'all' | 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled' | 'refunded';
 
 export default function ReportingDashboard({ orders, settings, products = [], isEmbed = false }: ReportingDashboardProps) {
   const [dateFilter, setDateFilter] = useState<DateRange>('last30');
@@ -86,9 +85,8 @@ export default function ReportingDashboard({ orders, settings, products = [], is
     return dateFilteredOrders.filter(o => o.status === statusFilter);
   }, [dateFilteredOrders, statusFilter]);
 
-  const fulfilledStatuses = new Set(['shipped', 'out_for_delivery', 'delivered']);
-
-  const metrics = useMemo(() => {
+  const metrics: ReportingMetrics = useMemo(() => {
+    const fulfilledStatuses = new Set(['shipped', 'out_for_delivery', 'delivered']);
     const revenueOrders = filteredOrders.filter(o => o.status !== 'cancelled' && o.status !== 'refunded');
     const fulfilledOrders = filteredOrders.filter(o => fulfilledStatuses.has(o.status));
 
@@ -152,8 +150,8 @@ export default function ReportingDashboard({ orders, settings, products = [], is
     };
   }, [filteredOrders]);
 
-  const topProducts = useMemo(() => {
-    const productMap: Record<string, { id: string; name: string; qty: number; sales: number; profit: number; cost: number }> = {};
+  const topProducts: TopProduct[] = useMemo(() => {
+    const productMap: Record<string, TopProduct> = {};
 
     filteredOrders.filter(o => o.status !== 'cancelled' && o.status !== 'refunded').forEach(order => {
       order.items.forEach(item => {
@@ -174,7 +172,7 @@ export default function ReportingDashboard({ orders, settings, products = [], is
       .slice(0, 5);
   }, [filteredOrders]);
 
-  const statusBreakdown = useMemo(() => {
+  const statusBreakdown: StatusBreakdownRow[] = useMemo(() => {
     const statusMap: Record<string, { count: number; sales: number; cost: number; delivery: number }> = {
       pending: { count: 0, sales: 0, cost: 0, delivery: 0 },
       confirmed: { count: 0, sales: 0, cost: 0, delivery: 0 },
@@ -217,7 +215,7 @@ export default function ReportingDashboard({ orders, settings, products = [], is
     return Object.values(dayMap).sort((a, b) => a.date.localeCompare(b.date));
   }, [filteredOrders]);
 
-  const inventoryData = useMemo(() => {
+  const inventoryData: InventoryItem[] = useMemo(() => {
     return products
       .filter(p => p.isActive)
       .map(p => {
@@ -239,10 +237,6 @@ export default function ReportingDashboard({ orders, settings, products = [], is
       .filter(i => i.stockUnits > 0)
       .sort((a, b) => b.saleValue - a.saleValue);
   }, [products]);
-
-  const salesMethod = statusFilter === 'all'
-    ? filteredOrders.filter(o => o.status !== 'cancelled' && o.status !== 'refunded')
-    : filteredOrders;
 
   return (
     <div className="space-y-6">
@@ -309,215 +303,17 @@ export default function ReportingDashboard({ orders, settings, products = [], is
         </div>
       )}
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        <div className="bg-white dark:bg-[#16162a] p-4 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xs">
-          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Revenue</span>
-          <span className="text-lg font-black text-gray-950 dark:text-white block mt-1">{formatPrice(metrics.sales, settings.currencySymbol)}</span>
-          <span className="text-[9px] text-emerald-500 font-bold">Non-cancelled orders</span>
-        </div>
-        <div className="bg-white dark:bg-[#16162a] p-4 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xs">
-          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">COGS</span>
-          <span className="text-lg font-black text-gray-950 dark:text-white block mt-1">{formatPrice(metrics.cogs, settings.currencySymbol)}</span>
-          <span className="text-[9px] text-gray-400 font-bold">Product cost × qty</span>
-        </div>
-        <div className="bg-white dark:bg-[#16162a] p-4 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xs">
-          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Delivery Cost</span>
-          <span className="text-lg font-black text-amber-500 block mt-1">{formatPrice(metrics.deliveryCost, settings.currencySymbol)}</span>
-          <span className="text-[9px] text-gray-400 font-bold">Shipping charges</span>
-        </div>
-        <div className="bg-white dark:bg-[#16162a] p-4 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xs">
-          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Gross Profit</span>
-          <span className="text-lg font-black text-emerald-500 block mt-1">{formatPrice(metrics.grossProfit, settings.currencySymbol)}</span>
-          <span className="text-[9px] text-gray-400 font-bold">Rev − COGS</span>
-        </div>
-        <div className="bg-white dark:bg-[#16162a] p-4 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xs">
-          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Net Profit</span>
-          <span className="text-lg font-black text-emerald-600 block mt-1">{formatPrice(metrics.netProfit, settings.currencySymbol)}</span>
-          <span className="text-[9px] text-gray-400 font-bold">Rev − COGS − Delivery</span>
-        </div>
-        <div className="bg-white dark:bg-[#16162a] p-4 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xs">
-          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Net Margin</span>
-          <span className="text-lg font-black text-indigo-500 block mt-1">{metrics.netMargin.toFixed(1)}%</span>
-          <span className="text-[9px] text-gray-400 font-bold">Net profit %</span>
-        </div>
-      </div>
+      <ReportingMetricsGrid metrics={metrics} currencySymbol={settings.currencySymbol} />
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="bg-white dark:bg-[#16162a] p-3 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xs">
-          <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Orders</span>
-          <span className="text-base font-black text-gray-950 dark:text-white block mt-0.5">{metrics.count}</span>
-        </div>
-        <div className="bg-white dark:bg-[#16162a] p-3 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xs">
-          <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">AOV</span>
-          <span className="text-base font-black text-gray-950 dark:text-white block mt-0.5">{formatPrice(metrics.aov, settings.currencySymbol)}</span>
-        </div>
-        <div className="bg-white dark:bg-[#16162a] p-3 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xs">
-          <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Projected COGS</span>
-          <span className="text-base font-black text-amber-500 block mt-0.5">{formatPrice(metrics.projectedCOGS, settings.currencySymbol)}</span>
-          <span className="text-[8px] text-gray-400 font-medium">Unfulfilled orders</span>
-        </div>
-        <div className="bg-white dark:bg-[#16162a] p-3 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xs">
-          <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Cancelled Value</span>
-          <span className="text-base font-black text-red-500 block mt-0.5">{formatPrice(metrics.cancelledTotal, settings.currencySymbol)}</span>
-        </div>
-      </div>
-
-      {chartData.length > 0 && (
-        <div className="bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xs p-5">
-          <h3 className="text-sm font-black text-gray-900 dark:text-white mb-4">Revenue vs Cost vs Profit</h3>
-          <div className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis dataKey="date" tick={{ fontSize: 10 }} tickFormatter={(v) => {
-                  const d = new Date(v + 'T00:00:00');
-                  return d.toLocaleDateString('en-PK', { month: 'short', day: 'numeric' });
-                }} />
-                <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => formatPrice(v, '')} />
-                <Tooltip formatter={(value: any) => formatPrice(Number(value), settings.currencySymbol)} />
-                <Legend />
-                <Bar dataKey="revenue" fill="#3b82f6" name="Revenue" radius={[3, 3, 0, 0]} />
-                <Bar dataKey="cogs" fill="#ef4444" name="COGS" radius={[3, 3, 0, 0]} />
-                <Line type="monotone" dataKey="profit" stroke="#10b981" name="Profit" strokeWidth={2} dot={{ r: 3 }} />
-              </ComposedChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      )}
+      <RevenueChartSection chartData={chartData} currencySymbol={settings.currencySymbol} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xs p-5 space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-800/80">
-            <div className="flex items-center gap-2">
-              <ShoppingBag className="h-4.5 w-4.5 text-gray-400" />
-              <h3 className="text-sm font-black text-gray-900 dark:text-white">Top Products</h3>
-            </div>
-            <span className="text-[10px] font-bold text-gray-400 uppercase">By Revenue</span>
-          </div>
-
-          {topProducts.length === 0 ? (
-            <div className="py-12 text-center text-xs text-gray-400">No items sold in the selected period.</div>
-          ) : (
-            <div className="hidden md:block overflow-x-auto">
-              <table className="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr className="border-b border-gray-100 dark:border-gray-800 text-[10px] font-black uppercase tracking-wider text-gray-400">
-                    <th className="py-3">Product</th>
-                    <th className="py-3 text-center">Qty</th>
-                    <th className="py-3 text-right">Revenue</th>
-                    <th className="py-3 text-right">Cost</th>
-                    <th className="py-3 text-right">Profit</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50 dark:divide-gray-800/50 font-semibold text-gray-700 dark:text-gray-300">
-                  {topProducts.map((p, idx) => (
-                    <tr key={p.id || idx} className="hover:bg-gray-50/30 dark:hover:bg-white/2 transition-colors">
-                      <td className="py-3 font-bold text-gray-900 dark:text-white truncate max-w-xs">{p.name}</td>
-                      <td className="py-3 text-center font-bold">{p.qty}</td>
-                      <td className="py-3 text-right font-black text-gray-900 dark:text-white">{formatPrice(p.sales, settings.currencySymbol)}</td>
-                      <td className="py-3 text-right text-gray-500">{formatPrice(p.cost, settings.currencySymbol)}</td>
-                      <td className="py-3 text-right text-emerald-600 dark:text-emerald-400 font-black">{formatPrice(p.profit, settings.currencySymbol)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          <div className="md:hidden space-y-3">
-            {topProducts.map((p, idx) => (
-              <div key={p.id || idx} className="bg-gray-50 dark:bg-white/5 p-4 rounded-2xl border border-gray-100 dark:border-gray-800/80 shadow-xs space-y-2">
-                <div className="flex items-start justify-between gap-3">
-                  <span className="text-xs font-bold text-gray-900 dark:text-white line-clamp-2">{p.name}</span>
-                  <span className="shrink-0 rounded-full bg-gray-100 dark:bg-gray-800/80 px-2 py-0.5 text-[9px] font-bold text-gray-700 dark:text-gray-300">Qty: {p.qty}</span>
-                </div>
-                <div className="grid grid-cols-3 gap-2 text-xs pt-2 border-t border-gray-100/50 dark:border-gray-800/50">
-                  <div><span className="text-[9px] font-bold text-gray-400 block">Revenue</span><span className="font-extrabold text-gray-900 dark:text-white">{formatPrice(p.sales, settings.currencySymbol)}</span></div>
-                  <div><span className="text-[9px] font-bold text-gray-400 block">Cost</span><span className="font-extrabold text-gray-500">{formatPrice(p.cost, settings.currencySymbol)}</span></div>
-                  <div className="text-right"><span className="text-[9px] font-bold text-gray-400 block">Profit</span><span className="font-extrabold text-emerald-600 dark:text-emerald-400">{formatPrice(p.profit, settings.currencySymbol)}</span></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xs p-5 space-y-4">
-          <div className="flex items-center gap-2 pb-3 border-b border-gray-100 dark:border-gray-800/80">
-            <Layers className="h-4.5 w-4.5 text-gray-400" />
-            <h3 className="text-sm font-black text-gray-900 dark:text-white">Status Breakdown</h3>
-          </div>
-
-          <div className="space-y-4">
-            {statusBreakdown.map((row) => {
-              const totalOrders = filteredOrders.length;
-              const pct = totalOrders > 0 ? (row.count / totalOrders) * 100 : 0;
-              return (
-                <div key={row.status} className="space-y-1.5">
-                  <div className="flex justify-between text-xs font-semibold">
-                    <span className="capitalize font-bold text-gray-800 dark:text-gray-200">{row.status}</span>
-                    <span className="text-gray-500 dark:text-gray-400">
-                      {row.count} · {formatPrice(row.sales, settings.currencySymbol)}
-                    </span>
-                  </div>
-                  <div className="h-2 w-full bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
-                    <div className={`h-full rounded-full transition-all duration-500 ${row.status === 'delivered' ? 'bg-emerald-500' : row.status === 'confirmed' ? 'bg-blue-500' : row.status === 'pending' ? 'bg-amber-500' : row.status === 'cancelled' ? 'bg-red-500' : 'bg-purple-500'}`}
-                      style={{ width: `${pct}%` }} />
-                  </div>
-                  <div className="text-[9px] text-gray-400 font-medium">
-                    Cost: {formatPrice(row.cost, settings.currencySymbol)} · Delivery: {formatPrice(row.delivery, settings.currencySymbol)}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+        <TopProductsSection topProducts={topProducts} currencySymbol={settings.currencySymbol} />
+        <StatusBreakdownCard statusBreakdown={statusBreakdown} totalOrders={filteredOrders.length} currencySymbol={settings.currencySymbol} />
       </div>
 
-      {inventoryData.length > 0 && (
-        <div className="bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xs p-5 space-y-4">
-          <div className="flex items-center gap-2 pb-3 border-b border-gray-100 dark:border-gray-800/80">
-            <Package className="h-4.5 w-4.5 text-gray-400" />
-            <h3 className="text-sm font-black text-gray-900 dark:text-white">Inventory Report</h3>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr className="border-b border-gray-100 dark:border-gray-800 text-[10px] font-black uppercase tracking-wider text-gray-400">
-                  <th className="py-3">Product</th>
-                  <th className="py-3 text-center">Variants</th>
-                  <th className="py-3 text-right">Stock Units</th>
-                  <th className="py-3 text-right">Cost Value</th>
-                  <th className="py-3 text-right">Sale Value</th>
-                  <th className="py-3 text-right">Potential Profit</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50 dark:divide-gray-800/50 font-semibold text-gray-700 dark:text-gray-300">
-                {inventoryData.map((item) => (
-                  <tr key={item.id} className="hover:bg-gray-50/30 dark:hover:bg-white/2 transition-colors">
-                    <td className="py-3 font-bold text-gray-900 dark:text-white truncate max-w-[200px]">{item.name}</td>
-                    <td className="py-3 text-center text-gray-500">{item.variants}</td>
-                    <td className="py-3 text-right font-bold">{item.stockUnits}</td>
-                    <td className="py-3 text-right text-gray-500">{formatPrice(item.costValue, settings.currencySymbol)}</td>
-                    <td className="py-3 text-right font-black text-gray-900 dark:text-white">{formatPrice(item.saleValue, settings.currencySymbol)}</td>
-                    <td className="py-3 text-right font-black text-emerald-600 dark:text-emerald-400">{formatPrice(item.potentialProfit, settings.currencySymbol)}</td>
-                  </tr>
-                ))}
-              </tbody>
-              <tfoot className="border-t-2 border-gray-200 dark:border-gray-700">
-                <tr className="font-black text-gray-900 dark:text-white text-xs">
-                  <td className="py-3">Total ({inventoryData.length} products)</td>
-                  <td></td>
-                  <td className="py-3 text-right">{inventoryData.reduce((s, i) => s + i.stockUnits, 0)}</td>
-                  <td className="py-3 text-right">{formatPrice(inventoryData.reduce((s, i) => s + i.costValue, 0), settings.currencySymbol)}</td>
-                  <td className="py-3 text-right">{formatPrice(inventoryData.reduce((s, i) => s + i.saleValue, 0), settings.currencySymbol)}</td>
-                  <td className="py-3 text-right text-emerald-600">{formatPrice(inventoryData.reduce((s, i) => s + i.potentialProfit, 0), settings.currencySymbol)}</td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
-        </div>
-      )}
+      <InventoryReportTable inventoryData={inventoryData} currencySymbol={settings.currencySymbol} />
     </div>
   );
 }
+

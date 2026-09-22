@@ -1,9 +1,9 @@
-import { headers } from 'next/headers'
 import { getDomainConfig } from '@/lib/config/domains'
 import { getSettings } from '@/lib/services/settings'
 
 export async function getDomainBrand(): Promise<{ name: string; tagline: string; domain: string; protocol: string }> {
   try {
+    const { headers } = await import('next/headers')
     const hdrs = await headers()
     const host = hdrs.get('host') || 'localhost:3000'
     const protocol = host.includes('localhost') || host.includes('127.0.0.1') ? 'http' : 'https'
@@ -25,6 +25,7 @@ export async function getDomainBrand(): Promise<{ name: string; tagline: string;
     return { ...config, domain: 'localhost:3000', protocol: 'http' }
   }
 }
+
 
 export function cleanBrandName(text: string | null | undefined, currentBrandName: string): string {
   if (!text) return '';

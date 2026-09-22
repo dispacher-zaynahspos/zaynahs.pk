@@ -2,21 +2,24 @@
 
 import React, { useEffect, useState, Suspense } from 'react';
 import { getAllReviews, approveReview, deleteReview, hideShowReview } from '@/lib/services/reviews';
-import { getAllSocialProofs, deleteSocialProof, restoreSocialProof } from '@/lib/services/socialProof';
-import { Review, SocialProof } from '@/lib/types';
-import StarRating from '@/components/store/StarRating';
+import { getAllSocialProofs, deleteSocialProof } from '@/lib/services/social-proof';
+import { SocialProof } from '@/lib/types';
 import { formatDistanceToNow, parseISO } from 'date-fns';
-import { Check, Trash2, MessageSquare, Eye, EyeOff, Plus, Image, Edit, ZoomIn } from '@/components/common/Icons';
+import { Plus, Image } from '@/components/common/Icons';
 import { toast } from 'sonner';
 import { useAdminTab } from '@/lib/hooks/useAdminTab';
 import { getClientSiteUrl } from '@/lib/site-url';
-import EmptyState from '@/components/common/EmptyState';
 import { useConfirm } from '@/components/admin/shared/AdminConfirmProvider';
 import ReviewDetailSheet from '@/components/admin/ReviewDetailSheet';
 import PostReviewModal from '@/components/admin/PostReviewModal';
 import ReviewImageZoomModal from '@/components/store/ReviewImageZoomModal';
 
-type ReviewWithProduct = Review & { productName?: string; productImage?: string; productSlug?: string };
+import {
+  ReviewWithProduct,
+  CustomPostsTab,
+  ReviewMediaTab,
+  ReviewsTable,
+} from './components';
 
 function AdminReviewsPageInner() {
   const [reviews, setReviews] = useState<ReviewWithProduct[]>([]);
@@ -240,329 +243,28 @@ function AdminReviewsPageInner() {
           ))}
         </div>
       ) : activeTab === 'custom' ? (
-        /* ── Custom Posts (Social Proof) Tab ── */
-        socialProofs.length === 0 ? (
-          <div className="text-center py-12 bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 flex flex-col items-center justify-center space-y-3">
-            <div className="p-4 bg-gray-50 dark:bg-white/5 rounded-full text-gray-400">
-              <Image className="h-8 w-8" />
-            </div>
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white">No custom posts yet</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Upload WhatsApp screenshots or social proof using the &quot;Post Customer Content&quot; button.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-            {socialProofs.map((proof) => (
-              <div
-                key={proof.id}
-                className="bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden shadow-sm hover:shadow-md transition-shadow"
-              >
-                <div className="relative w-full aspect-[4/3] bg-gray-100 dark:bg-gray-800">
-                  <img src={proof.imageUrl} alt={proof.caption || 'Social proof'} className="w-full h-full object-contain" />
-                </div>
-                <div className="p-3 space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
-                      {proof.sourceType}
-                    </span>
-                    <span className="text-[10px] text-gray-400">{formatDate(proof.createdAt)}</span>
-                  </div>
-                  {proof.caption && (
-                    <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed line-clamp-2">{proof.caption}</p>
-                  )}
-                  {proof.linkedProducts && proof.linkedProducts.length > 0 && (
-                    <div className="flex flex-wrap gap-1 pt-1">
-                      {proof.linkedProducts.map((p) => (
-                        <span key={p.id} className="inline-flex items-center px-2 py-0.5 text-[10px] font-bold rounded-full bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-400 truncate max-w-[140px]">
-                          {p.name}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                  <div className="flex items-center justify-end gap-1.5 pt-1.5 border-t border-gray-100 dark:border-gray-800">
-                    <button
-                      onClick={() => { setEditProof(proof); setShowPostModal(true); }}
-                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 transition-all cursor-pointer"
-                    >
-                      <Edit className="w-3 h-3" />
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDeleteProof(proof.id)}
-                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all cursor-pointer"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )
+        <CustomPostsTab
+          socialProofs={socialProofs}
+          formatDate={formatDate}
+          onEdit={(proof) => { setEditProof(proof); setShowPostModal(true); }}
+          onDelete={handleDeleteProof}
+        />
       ) : activeTab === 'review_media' ? (
-        /* ── Review Media Gallery Grid ── */
-        allReviewPhotos.length === 0 ? (
-          <EmptyState 
-            icon={<Image className="h-8 w-8 text-gray-400" />}
-            title="No review media found" 
-            description="No customer uploaded photos attached to reviews yet." 
-          />
-        ) : (
-          <div className="space-y-4">
-            {/* Storage Info Bar */}
-            <div className="bg-white dark:bg-[#16162a] p-4 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-              <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
-                <span className="font-bold text-gray-700 dark:text-gray-300">Storage:</span>
-                <span>{(allReviewPhotos.length * 18.4).toFixed(1)} KB used across {allReviewPhotos.length} compressed WebP image(s) (&le; 20 KB limit)</span>
-              </div>
-              <div className="w-full sm:max-w-xs bg-gray-200 dark:bg-gray-800 h-2 rounded-full overflow-hidden">
-                <div className="bg-[#e94560] h-full rounded-full transition-all duration-500" style={{ width: `${Math.min(100, (allReviewPhotos.length * 18.4 / 1000) * 100)}%` }} />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
-              {allReviewPhotos.map((photo) => (
-                <div
-                  key={photo.id}
-                  className="group relative bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
-                >
-                  {/* Photo Aspect Square Thumbnail */}
-                  <div className="relative aspect-square bg-gray-100 dark:bg-gray-800 overflow-hidden">
-                    <img
-                      src={photo.url}
-                      alt={`Review photo by ${photo.customerName}`}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                    {/* Size Badge */}
-                    <div className="absolute top-2 right-2 z-10 bg-black/60 backdrop-blur-xs text-white text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-md shadow-xs">
-                      18.4 KB &bull; WEBP
-                    </div>
-
-                    {/* Hover Overlay with Lightbox Zoom & Action buttons */}
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 p-2">
-                      <button
-                        type="button"
-                        onClick={() => setZoomImageUrl(photo.url)}
-                        className="p-2 rounded-xl bg-white/90 text-gray-900 hover:bg-white hover:scale-105 transition-all shadow-md cursor-pointer"
-                        title="Inspect / Zoom Photo"
-                      >
-                        <ZoomIn className="w-4 h-4" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleOpenReview(photo.review)}
-                        className="p-2 rounded-xl bg-white/90 text-gray-900 hover:bg-white hover:scale-105 transition-all shadow-md cursor-pointer"
-                        title="View Review Details"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteSinglePhoto(photo.reviewId, photo.url)}
-                        className="p-2 rounded-xl bg-red-500 text-white hover:bg-red-600 hover:scale-105 transition-all shadow-md cursor-pointer"
-                        title="Move Photo to Trash"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Footer Metadata */}
-                  <div className="p-2.5 space-y-1 bg-white dark:bg-[#16162a] border-t border-gray-100 dark:border-gray-800">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="font-bold text-gray-900 dark:text-white truncate max-w-[100px]">
-                        {photo.customerName}
-                      </span>
-                      <StarRating rating={photo.rating} showText={false} starSize={10} />
-                    </div>
-                    {photo.productName && (
-                      <p className="text-[10px] text-gray-400 truncate leading-tight">
-                        {photo.productName}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )
-      ) : filteredReviews.length === 0 ? (
-        <EmptyState 
-          icon={<MessageSquare className="h-8 w-8 text-gray-400" />}
-          title="No reviews found" 
-          description="There are no reviews in this category." 
+        <ReviewMediaTab
+          allReviewPhotos={allReviewPhotos}
+          onZoomImage={(url) => setZoomImageUrl(url)}
+          onOpenReview={handleOpenReview}
+          onDeleteSinglePhoto={handleDeleteSinglePhoto}
         />
       ) : (
-        /* ── Standard Reviews Table ── */
-        <>
-          {/* Desktop view Table */}
-          <div className="hidden md:block overflow-hidden bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm transition-colors duration-200">
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse text-left text-sm text-gray-500 dark:text-gray-400">
-                <thead className="bg-gray-50 dark:bg-white/5 text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-gray-300 border-b border-gray-200 dark:border-gray-800">
-                  <tr>
-                    <th className="px-6 py-4">Product</th>
-                    <th className="px-6 py-4">Customer</th>
-                    <th className="px-6 py-4">Rating</th>
-                    <th className="px-6 py-4">Comment</th>
-                    <th className="px-6 py-4">Status</th>
-                    <th className="px-6 py-4">Date</th>
-                    <th className="px-6 py-4 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                  {filteredReviews.map((review) => (
-                    <tr key={review.id} className="cursor-pointer hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors" onClick={() => handleOpenReview(review)}>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          {review.productImage ? (
-                            <img src={review.productImage} alt={review.productName || 'Product'} className="w-12 h-12 rounded-md object-cover border border-gray-100 dark:border-gray-700 flex-shrink-0" />
-                          ) : (
-                            <div className="w-12 h-12 rounded-md bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400 text-[10px] font-bold flex-shrink-0">No<br />Img</div>
-                          )}
-                          <span className="font-bold text-gray-900 dark:text-white line-clamp-2 max-w-[200px] text-sm leading-snug">
-                            {review.productName || 'Unknown Product'}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="font-semibold text-gray-800 dark:text-gray-200">{review.customerName}</div>
-                        {review.customerPhone && <div className="text-xs text-gray-400 dark:text-gray-500">{review.customerPhone}</div>}
-                        {review.customerEmail && <div className="text-xs text-gray-400 dark:text-gray-500">{review.customerEmail}</div>}
-                      </td>
-                      <td className="px-6 py-4">
-                        <StarRating rating={review.rating} showText={true} starSize={14} />
-                      </td>
-                      <td className="px-6 py-4 max-w-xs truncate" title={review.comment}>
-                        {review.comment || <span className="text-gray-300 dark:text-gray-700 italic">No comment</span>}
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold rounded-full ${
-                          !review.approved
-                            ? 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400'
-                            : review.hidden
-                            ? 'bg-gray-100 text-gray-700 dark:bg-white/5 dark:text-gray-400'
-                            : 'bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-400'
-                        }`}>
-                          {!review.approved ? 'Pending' : review.hidden ? 'Hidden' : 'Approved'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-xs font-medium text-gray-400 dark:text-gray-500">{formatDate(review.createdAt)}</td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
-                          <button
-                            onClick={() => handleToggleApprove(review.id, review.approved)}
-                            className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-                              review.approved
-                                ? 'text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-500/10'
-                                : 'text-gray-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-500/10'
-                            }`}
-                            title={review.approved ? 'Approved' : 'Approve'}
-                          >
-                            <Check className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => handleToggleHide(review.id, review.hidden ?? false)}
-                            className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-                              review.hidden
-                                ? 'text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-500/10'
-                                : 'text-gray-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-500/10'
-                            }`}
-                            title={review.hidden ? 'Show' : 'Hide'}
-                          >
-                            {review.hidden ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                          </button>
-                          <button
-                            onClick={() => handleDelete(review.id)}
-                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
-                            title="Move to Trash"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Mobile view Cards */}
-          <div className="md:hidden space-y-4">
-            {filteredReviews.map((review) => (
-              <div
-                key={review.id}
-                className="cursor-pointer bg-white dark:bg-[#16162a] p-4 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm space-y-3 transition-colors duration-200 hover:bg-gray-50/50 dark:hover:bg-white/5"
-                onClick={() => handleOpenReview(review)}
-              >
-                <div className="flex justify-between items-start gap-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    {review.productImage ? (
-                      <img src={review.productImage} alt={review.productName || 'Product'} className="w-12 h-12 rounded-md object-cover border border-gray-100 dark:border-gray-700 flex-shrink-0" />
-                    ) : (
-                      <div className="w-12 h-12 rounded-md bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400 text-[10px] font-bold flex-shrink-0">No<br />Img</div>
-                    )}
-                    <div className="min-w-0">
-                      <h3 className="font-bold text-gray-900 dark:text-white text-sm truncate">{review.productName || 'Unknown Product'}</h3>
-                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                        by <span className="font-semibold text-gray-700 dark:text-gray-300">{review.customerName}</span>
-                        {review.customerPhone && ` (${review.customerPhone})`}
-                        {review.customerEmail && <div className="text-xs text-gray-400 dark:text-gray-500">{review.customerEmail}</div>}
-                      </div>
-                    </div>
-                  </div>
-                  <span className={`inline-flex items-center px-2 py-0.5 text-[10px] font-bold rounded-full ${
-                    !review.approved
-                      ? 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400'
-                      : review.hidden
-                      ? 'bg-gray-100 text-gray-700 dark:bg-white/5 dark:text-gray-400'
-                      : 'bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-400'
-                  }`}>
-                    {!review.approved ? 'Pending' : review.hidden ? 'Hidden' : 'Approved'}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <StarRating rating={review.rating} showText={false} starSize={12} />
-                  <span className="text-[10px] text-gray-400 dark:text-gray-500 font-medium">{formatDate(review.createdAt)}</span>
-                </div>
-                {review.comment && (
-                  <p className="text-xs text-gray-650 dark:text-gray-300 italic bg-gray-50 dark:bg-[#0f0f1b]/50 p-2.5 rounded-xl border border-gray-100 dark:border-gray-800/20">&ldquo;{review.comment}&rdquo;</p>
-                )}
-                <div className="flex justify-end gap-2 pt-1.5 border-t border-gray-100 dark:border-gray-800">
-                  <button
-                    onClick={(e) => { e.stopPropagation(); handleToggleApprove(review.id, review.approved); }}
-                    className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                      review.approved
-                        ? 'bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400 hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-600'
-                        : 'bg-gray-100 dark:bg-white/5 text-gray-400 hover:bg-green-50 dark:hover:bg-green-500/10 hover:text-green-600'
-                    }`}
-                  >
-                    <Check className="h-3.5 w-3.5" />
-                    <span>{review.approved ? 'Approved' : 'Approve'}</span>
-                  </button>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); handleToggleHide(review.id, review.hidden ?? false); }}
-                    className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                      review.hidden
-                        ? 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-green-50 dark:hover:bg-green-500/10 hover:text-green-600'
-                        : 'bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400 hover:bg-amber-50 dark:hover:bg-amber-500/10 hover:text-amber-600'
-                    }`}
-                  >
-                    {review.hidden ? <><Eye className="h-3.5 w-3.5" /><span>Show</span></> : <><EyeOff className="h-3.5 w-3.5" /><span>Hide</span></>}
-                  </button>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); handleDelete(review.id); }}
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-600 hover:text-white dark:hover:bg-red-500 dark:hover:text-white text-xs font-bold transition-all cursor-pointer"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                    <span>Delete</span>
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </>
+        <ReviewsTable
+          filteredReviews={filteredReviews}
+          formatDate={formatDate}
+          onOpenReview={handleOpenReview}
+          onToggleApprove={handleToggleApprove}
+          onToggleHide={handleToggleHide}
+          onDelete={handleDelete}
+        />
       )}
 
       {selectedReview && (
@@ -582,6 +284,14 @@ function AdminReviewsPageInner() {
           onClose={() => { setShowPostModal(false); setEditProof(null); }}
           onSuccess={() => loadData()}
           editProof={editProof}
+        />
+      )}
+
+      {zoomImageUrl && (
+        <ReviewImageZoomModal
+          isOpen={Boolean(zoomImageUrl)}
+          imageUrl={zoomImageUrl}
+          onClose={() => setZoomImageUrl(null)}
         />
       )}
     </div>

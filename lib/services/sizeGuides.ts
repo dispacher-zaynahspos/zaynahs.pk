@@ -2,8 +2,8 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { SizeGuide } from '@/lib/types';
-import { unstable_cache, revalidateTag } from 'next/cache';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import { revalidateTagSafe } from '@/lib/revalidate';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder';
@@ -41,14 +41,20 @@ const fetchSizeGuides = async (): Promise<SizeGuide[]> => {
   return (data ?? []).map(mapSizeGuide);
 };
 
-const cachedSizeGuides = unstable_cache(
-  async () => fetchSizeGuides(),
-  ['size-guides-list'],
-  { revalidate: 86400, tags: ['size_guides'] }
-);
-
 export const getSizeGuides = async (): Promise<SizeGuide[]> => {
-  return cachedSizeGuides();
+  if (typeof window !== 'undefined') {
+    return fetchSizeGuides();
+  }
+  try {
+    const { unstable_cache } = await import('next/cache');
+    return unstable_cache(
+      async () => fetchSizeGuides(),
+      ['size-guides-list'],
+      { revalidate: 86400, tags: ['size_guides'] }
+    )();
+  } catch {
+    return fetchSizeGuides();
+  }
 };
 
 export const createSizeGuide = async (guide: {
@@ -69,7 +75,7 @@ export const createSizeGuide = async (guide: {
       .single();
 
     if (error) throw error;
-    (revalidateTag as any)('size_guides');
+    revalidateTagSafe('size_guides');
     return mapSizeGuide(data);
   } catch (error) {
     console.error('[sizeGuides] createSizeGuide failed:', error);
@@ -96,7 +102,7 @@ export const updateSizeGuide = async (
       .single();
 
     if (error) throw error;
-    (revalidateTag as any)('size_guides');
+    revalidateTagSafe('size_guides');
     return mapSizeGuide(data);
   } catch (error) {
     console.error('[sizeGuides] updateSizeGuide failed:', error);
@@ -113,7 +119,7 @@ export const deleteSizeGuide = async (id: string): Promise<void> => {
       .eq('id', id);
 
     if (error) throw error;
-    (revalidateTag as any)('size_guides');
+    revalidateTagSafe('size_guides');
   } catch (error) {
     console.error('[sizeGuides] deleteSizeGuide failed:', error);
     throw error;
@@ -144,7 +150,7 @@ export const restoreSizeGuide = async (id: string): Promise<void> => {
       .update({ deleted_at: null })
       .eq('id', id);
     if (error) throw error;
-    (revalidateTag as any)('size_guides');
+    revalidateTagSafe('size_guides');
   } catch (error) {
     console.error('[sizeGuides] restoreSizeGuide failed:', error);
     throw error;
@@ -159,7 +165,7 @@ export const hardDeleteSizeGuide = async (id: string): Promise<void> => {
       .delete()
       .eq('id', id);
     if (error) throw error;
-    (revalidateTag as any)('size_guides');
+    revalidateTagSafe('size_guides');
   } catch (error) {
     console.error('[sizeGuides] hardDeleteSizeGuide failed:', error);
     throw error;

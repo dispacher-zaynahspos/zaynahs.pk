@@ -6,10 +6,11 @@ import ProductCard from '@/components/store/ProductCard';
 import { getProducts, getProductBySlug, getRelatedProducts } from '@/lib/services/products';
 import { getSettings } from '@/lib/services/settings';
 import { getProductReviews, getAverageRating } from '@/lib/services/reviews';
-import { getSocialProofCountForProduct } from '@/lib/services/socialProof';
+import { getSocialProofCountForProduct } from '@/lib/services/social-proof';
 import { Product } from '@/lib/types';
 import RecentlyViewed from '@/components/store/RecentlyViewed';
 import SocialFeedRibbon from '@/components/store/SocialFeedRibbon';
+import { getResponsiveGridClasses } from '@/lib/utils/responsiveGrid';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { getSiteUrl } from '@/lib/site-url-server';
 import { cleanLocalhostUrls } from '@/lib/site-url';
@@ -288,17 +289,26 @@ export default async function ProductPage({ params }: PageProps) {
             );
           }
           if (block === 'related') {
-            if (relatedProducts.length === 0) return null;
+            if (settings.related_products_enabled === false || relatedProducts.length === 0) return null;
+            const relatedCols = getResponsiveGridClasses({
+              mobile: settings.related_columns_mobile || 2,
+              tablet: settings.related_columns_tablet || 3,
+              desktop: settings.related_columns_desktop || 4,
+            });
+            const displayRelated = relatedProducts.slice(0, settings.related_products_limit || 4);
+
             return (
               <div key="related" className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 border-t border-gray-200 dark:border-gray-800 pt-10">
                 <div className="text-center md:text-left mb-8">
-                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Related Products</h3>
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {settings.related_products_title || 'Related Products'}
+                  </h3>
                   <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mt-1">
-                    You might also like these handpicked recommendations
+                    {settings.related_products_subtitle || 'You might also like these handpicked recommendations'}
                   </p>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {relatedProducts.map((prod: Product) => (
+                <div className={`grid gap-4 ${relatedCols}`}>
+                  {displayRelated.map((prod: Product) => (
                     <ProductCard key={prod.id} product={prod} currencySymbol={settings.currencySymbol} settings={settings} />
                   ))}
                 </div>

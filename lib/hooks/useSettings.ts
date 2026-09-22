@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { StoreSettings } from '@/lib/types';
+import { mapSettings } from '@/lib/services/settings/mappers/dbToSettingsMapper';
 
 /**
  * Fetches live settings directly from the API route (no cache).
@@ -22,10 +23,16 @@ export const useSettings = (initialSettings?: StoreSettings) => {
 
         if (!active) return;
 
-        // Merge raw DB row into initial settings — only override fields we know exist
+        // Map complete DB row to StoreSettings
+        const fullSettings = mapSettings(row);
         setSettings(prev => ({
-          ...prev,
-          // Card display
+          ...fullSettings,
+          ...(prev || {}),
+          // Ensure live database branding and card customizations take full precedence
+          storeName: fullSettings.storeName || prev?.storeName || (process.env.NEXT_PUBLIC_BRAND_NAME || 'Your Store'),
+          logoUrl: fullSettings.logoUrl || prev?.logoUrl || undefined,
+          faviconUrl: fullSettings.faviconUrl || prev?.faviconUrl || undefined,
+          logoWidth: fullSettings.logoWidth || prev?.logoWidth || 120,
           card_style: row.card_style ?? prev?.card_style ?? 'style1',
           card_show_swatches: row.card_show_swatches ?? prev?.card_show_swatches ?? true,
           card_show_sizes: row.card_show_sizes ?? prev?.card_show_sizes ?? true,

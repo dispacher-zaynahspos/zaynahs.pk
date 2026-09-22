@@ -1,14 +1,16 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React from 'react';
 import { HomepageSection, Category, Product } from '@/lib/types';
-import { ChevronUp, ChevronDown, GripVertical, Trash2, Search, X } from '@/components/common/Icons';
-import Image from 'next/image';
+import ManualProductPicker from './product-grid/ManualProductPicker';
+import BottomGridActions from './product-grid/BottomGridActions';
+import ResponsiveGridColumnsControl from '../shared/ResponsiveGridColumnsControl';
 
 interface ProductGridSettingsProps {
   section: HomepageSection;
   categories: Category[];
   products?: Product[];
+  viewportMode?: 'desktop' | 'tablet' | 'mobile';
   onUpdateSection: (updates: Partial<HomepageSection>) => void;
 }
 
@@ -16,6 +18,7 @@ export default function ProductGridSettings({
   section,
   categories,
   products = [],
+  viewportMode = 'desktop',
   onUpdateSection
 }: ProductGridSettingsProps) {
   const settings = section.settings || {};
@@ -29,103 +32,24 @@ export default function ProductGridSettings({
   const sortMethod = settings.sortMethod || (settings.source === 'featured' ? 'featured' : settings.source && settings.source !== 'all' ? 'category' : 'all');
   const manualProductIds: string[] = settings.manualProductIds || [];
 
-  const [pickerSearch, setPickerSearch] = useState('');
-  const [pickerLimit, setPickerLimit] = useState(50);
-  const [draggingId, setDraggingId] = useState<string | null>(null);
-
-  // Reset limit when search changes
-  React.useEffect(() => {
-    setPickerLimit(50);
-  }, [pickerSearch, settings.source]);
-
-  const filteredPickerProducts = useMemo(() => {
-    let list = products;
-    
-    // Filter by selected product source
-    if (settings.source === 'featured') {
-      list = list.filter(p => p.isFeatured);
-    } else if (settings.source && settings.source !== 'all') {
-      list = list.filter(p => 
-        p.categoryId === settings.source || 
-        p.category?.slug === settings.source ||
-        p.category?.id === settings.source ||
-        p.productCategories?.some((pc: any) => pc.categoryId === settings.source || pc.category?.slug === settings.source)
-      );
-    }
-
-    if (pickerSearch.trim()) {
-      const q = pickerSearch.toLowerCase();
-      list = list.filter(p => p.name.toLowerCase().includes(q) || (p.sku && p.sku.toLowerCase().includes(q)));
-    }
-    return list;
-  }, [pickerSearch, products, settings.source]);
-
-  const displayPickerProducts = filteredPickerProducts.slice(0, pickerLimit);
-  const hasMorePickerProducts = displayPickerProducts.length < filteredPickerProducts.length;
-
-  const manualProducts = useMemo(() => {
-    return manualProductIds
-      .map(id => products.find(p => p.id === id))
-      .filter((p): p is Product => !!p);
-  }, [manualProductIds, products]);
-
-  const addProduct = (productId: string) => {
-    handleSettingsChange('manualProductIds', [...manualProductIds, productId]);
-    setPickerSearch('');
-  };
-
-  const removeProduct = (productId: string) => {
-    handleSettingsChange('manualProductIds', manualProductIds.filter(id => id !== productId));
-  };
-
-  const moveProduct = (index: number, direction: 'up' | 'down') => {
-    const newIndex = direction === 'up' ? index - 1 : index + 1;
-    if (newIndex < 0 || newIndex >= manualProductIds.length) return;
-    const copy = [...manualProductIds];
-    const [removed] = copy.splice(index, 1);
-    copy.splice(newIndex, 0, removed);
-    handleSettingsChange('manualProductIds', copy);
-  };
-
-  const handleDragStart = (e: React.DragEvent, idx: number) => {
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', manualProductIds[idx]);
-    setDraggingId(manualProductIds[idx]);
-  };
-  
-  const handleDragOver = (e: React.DragEvent, idx: number) => {
-    e.preventDefault();
-    const threshold = 120;
-    const speed = 15;
-    const cursorY = e.clientY;
-    const viewportH = window.innerHeight;
-    if (cursorY > viewportH - threshold) {
-      window.scrollBy({ top: speed, behavior: 'auto' });
-    } else if (cursorY < threshold) {
-      window.scrollBy({ top: -speed, behavior: 'auto' });
-    }
-
-    if (!draggingId) return;
-    const tgtId = manualProductIds[idx];
-    if (draggingId === tgtId) return;
-
-    const srcIdx = manualProductIds.indexOf(draggingId);
-    const tgtIdx = manualProductIds.indexOf(tgtId);
-    if (srcIdx === -1 || tgtIdx === -1) return;
-
-    const copy = [...manualProductIds];
-    const [dragged] = copy.splice(srcIdx, 1);
-    const adjustedTgt = tgtIdx > srcIdx ? tgtIdx - 1 : tgtIdx;
-    copy.splice(adjustedTgt, 0, dragged);
-    handleSettingsChange('manualProductIds', copy);
-    setDraggingId(tgtId);
-  };
-  
-  const handleDrop = () => setDraggingId(null);
-  const handleDragEnd = () => setDraggingId(null);
-
   return (
     <div className="space-y-4">
+      {/* Show/Hide Section Title Toggle */}
+      <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-800 pb-2.5">
+        <div>
+          <span className="text-xs font-bold text-gray-700 dark:text-gray-300 block">Show Section Title</span>
+          <span className="text-[10px] text-gray-400">Display product grid title heading</span>
+        </div>
+        <label className="relative inline-flex items-center cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={settings.show_title !== false}
+            onChange={(e) => handleSettingsChange('show_title', e.target.checked)}
+            className="sr-only peer"
+          />
+          <div className="w-10 h-5 bg-gray-200 dark:bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#e94560]" />
+        </label>
+      </div>
       <div className="space-y-1.5">
         <label className="text-[11px] font-bold text-gray-500 dark:text-gray-400">
           Product Source
@@ -175,126 +99,12 @@ export default function ProductGridSettings({
       </div>
 
       {sortMethod === 'manual' && (
-        <div className="space-y-3 p-3 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-200 dark:border-gray-800">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Type product name or SKU to add..."
-              value={pickerSearch}
-              onChange={e => setPickerSearch(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 bg-white dark:bg-[#0f0f1b] border border-gray-200 dark:border-gray-700 rounded-xl text-xs focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
-            />
-            {pickerSearch && (
-              <button onClick={() => setPickerSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-                <X className="h-3 w-3" />
-              </button>
-            )}
-          </div>
-
-          <div className="border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-[#0f0f1b] divide-y divide-gray-100 dark:divide-gray-800 max-h-40 overflow-y-auto overscroll-contain">
-            {displayPickerProducts.map(p => {
-              const isChecked = manualProductIds.includes(p.id);
-              return (
-                <label
-                  key={p.id}
-                  className={`flex items-center gap-2.5 px-3 py-2 cursor-pointer transition-colors ${isChecked ? 'bg-blue-50/50 dark:bg-blue-900/10' : 'hover:bg-gray-50 dark:hover:bg-white/5'}`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={isChecked}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        addProduct(p.id);
-                      } else {
-                        removeProduct(p.id);
-                      }
-                    }}
-                    className="shrink-0 rounded border-gray-300 text-[#e94560] focus:ring-[#e94560] h-3.5 w-3.5 cursor-pointer"
-                  />
-                  <div className="relative h-7 w-7 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
-                    {p.images?.[0] && (
-                      <Image src={p.images[0].url} alt={p.name} fill className="object-cover" sizes="28px" />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-xs font-semibold text-gray-900 dark:text-white truncate">{p.name}</div>
-                    {p.sku && <div className="text-[10px] text-gray-400">{p.sku}</div>}
-                  </div>
-                </label>
-              );
-            })}
-            {filteredPickerProducts.length === 0 && (
-              <div className="text-xs text-gray-400 text-center py-4">No products found</div>
-            )}
-            {hasMorePickerProducts && (
-              <button
-                type="button"
-                onClick={() => setPickerLimit(prev => prev + 50)}
-                className="w-full py-2 text-xs font-bold text-[#e94560] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
-              >
-                Load More ({filteredPickerProducts.length - pickerLimit} left)
-              </button>
-            )}
-          </div>
-
-          {manualProducts.length > 0 && (
-            <div className="space-y-1.5 max-h-60 overflow-y-auto">
-              {manualProducts.map((p, idx) => (
-                <div
-                  key={p.id}
-                  className={`flex items-center gap-2 p-2 bg-white dark:bg-[#0f0f1b] rounded-xl border border-gray-200 dark:border-gray-700 transition-all duration-200 ${draggingId === p.id ? 'opacity-50 bg-orange-50/50 dark:bg-orange-950/20' : ''}`}
-                >
-                  <div className="text-xs font-semibold text-slate-400 w-6 text-center shrink-0">#{idx + 1}</div>
-                  <div 
-                    className="flex flex-col items-center gap-0.5"
-                    draggable
-                    onDragStart={(e) => handleDragStart(e, idx)}
-                    onDragOver={(e) => handleDragOver(e, idx)}
-                    onDrop={handleDrop}
-                    onDragEnd={handleDragEnd}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => moveProduct(idx, 'up')}
-                      disabled={idx === 0}
-                      className="p-0.5 text-gray-400 hover:text-gray-600 dark:hover:text-white disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer"
-                    >
-                      <ChevronUp className="h-2.5 w-2.5" />
-                    </button>
-                    <span className="p-0.5 text-gray-400 cursor-grab active:cursor-grabbing touch-none select-none">
-                      <GripVertical className="h-3 w-3" />
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => moveProduct(idx, 'down')}
-                      disabled={idx === manualProducts.length - 1}
-                      className="p-0.5 text-gray-400 hover:text-gray-600 dark:hover:text-white disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer"
-                    >
-                      <ChevronDown className="h-2.5 w-2.5" />
-                    </button>
-                  </div>
-                  <div className="relative h-8 w-8 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
-                    {p.images?.[0] && (
-                      <Image src={p.images[0].url} alt={p.name} fill className="object-cover" sizes="32px" />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-xs font-semibold text-gray-900 dark:text-white truncate">{p.name}</div>
-                    <div className="text-[10px] text-gray-400">{p.sku || 'No SKU'}</div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => removeProduct(p.id)}
-                    className="p-1 text-gray-400 hover:text-red-500 transition-colors cursor-pointer"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        <ManualProductPicker
+          products={products}
+          manualProductIds={manualProductIds}
+          settingsSource={settings.source}
+          onUpdateManualIds={(ids) => handleSettingsChange('manualProductIds', ids)}
+        />
       )}
 
       <div className="space-y-1.5">
@@ -316,163 +126,71 @@ export default function ProductGridSettings({
           className="w-full accent-[#e94560]"
         />
       </div>
-      <hr className="border-gray-200 dark:border-gray-800" />
-
-      <div className="space-y-1.5">
-        <label className="text-[11px] font-bold text-gray-500 dark:text-gray-400">
-          Upper View All Button Text
-        </label>
-        <input
-          type="text"
-          value={settings.viewAllText || ''}
-          onChange={e => handleSettingsChange('viewAllText', e.target.value)}
-          placeholder="View All"
-          className="w-full px-3 py-2 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-gray-800 rounded-xl text-xs font-semibold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
-        />
-      </div>
-      <div className="space-y-1.5">
-        <label className="text-[11px] font-bold text-gray-500 dark:text-gray-400">
-          Upper View All Custom Link
-        </label>
-        <input
-          type="text"
-          value={settings.viewAllUrl || ''}
-          onChange={e => handleSettingsChange('viewAllUrl', e.target.value)}
-          placeholder="e.g. /shop?category=co-ord-sets"
-          className="w-full px-3 py-2 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-gray-800 rounded-xl text-xs font-semibold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
-        />
-        <p className="text-[10px] text-gray-400 leading-normal">
-          If left blank, it will automatically link to the selected category page.
-        </p>
-      </div>
+      {/* Responsive Columns per Device (Mobile: 1-3, Tablet: 2-4, Desktop: 3-8) */}
+      <ResponsiveGridColumnsControl
+        label="Product Grid Columns"
+        viewportMode={viewportMode}
+        desktopCols={Number(settings.columns_desktop) || 4}
+        tabletCols={Number(settings.columns_tablet) || 3}
+        mobileCols={Number(settings.columns_mobile) || 2}
+        onChangeDesktop={(cols) => handleSettingsChange('columns_desktop', cols)}
+        onChangeTablet={(cols) => handleSettingsChange('columns_tablet', cols)}
+        onChangeMobile={(cols) => handleSettingsChange('columns_mobile', cols)}
+      />
 
       <hr className="border-gray-200 dark:border-gray-800" />
 
-      <div className="space-y-3">
-        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Bottom Grid Actions</p>
-
-        <div className="flex items-center justify-between">
-          <label className="text-[11px] font-bold text-gray-700 dark:text-gray-300">Enable Bottom View All Button</label>
-          <label className="relative inline-flex items-center cursor-pointer select-none">
-            <input
-              type="checkbox"
-              checked={settings.bottomEnableViewAll === true}
-              onChange={e => handleSettingsChange('bottomEnableViewAll', e.target.checked)}
-              className="sr-only peer"
-            />
-            <div className="w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#e94560]" />
-          </label>
-        </div>
-
-        {settings.bottomEnableViewAll === true && (
-          <div className="space-y-2 pl-2 border-l-2 border-[#e94560]/30">
-            <input
-              type="text"
-              value={settings.bottomViewAllText || ''}
-              onChange={e => handleSettingsChange('bottomViewAllText', e.target.value)}
-              placeholder="Grid View All"
-              className="w-full px-3 py-2 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-gray-800 rounded-xl text-xs font-semibold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
-            />
-            <div className="flex items-center justify-between">
-              <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400">Bg Color</label>
-              <div className="flex items-center gap-1.5">
-                <input
-                  type="color"
-                  value={settings.bottomViewAllBgColor || '#FFD147'}
-                  onChange={e => handleSettingsChange('bottomViewAllBgColor', e.target.value)}
-                  className="w-7 h-7 rounded-lg border border-gray-200 dark:border-gray-700 cursor-pointer"
-                />
-                <button
-                  type="button"
-                  onClick={() => handleSettingsChange('bottomViewAllBgColor', '')}
-                  className="text-[9px] text-gray-400 hover:text-[#e94560] font-bold uppercase tracking-wider cursor-pointer"
-                >
-                  Reset
-                </button>
-              </div>
-            </div>
-            <div className="flex items-center justify-between">
-              <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400">Text Color</label>
-              <div className="flex items-center gap-1.5">
-                <input
-                  type="color"
-                  value={settings.bottomViewAllTextColor || '#0f172a'}
-                  onChange={e => handleSettingsChange('bottomViewAllTextColor', e.target.value)}
-                  className="w-7 h-7 rounded-lg border border-gray-200 dark:border-gray-700 cursor-pointer"
-                />
-                <button
-                  type="button"
-                  onClick={() => handleSettingsChange('bottomViewAllTextColor', '')}
-                  className="text-[9px] text-gray-400 hover:text-[#e94560] font-bold uppercase tracking-wider cursor-pointer"
-                >
-                  Reset
-                </button>
-              </div>
-            </div>
+      {/* Upper View All Button Link & Toggle */}
+      <div className="space-y-2.5 pb-2 border-b border-gray-200 dark:border-gray-800">
+        <div className="flex justify-between items-center">
+          <div>
+            <span className="text-xs font-bold text-gray-700 dark:text-gray-300 block">Upper View All Link</span>
+            <span className="text-[10px] text-gray-400">Link next to grid title header</span>
           </div>
-        )}
-
-        <div className="flex items-center justify-between">
-          <label className="text-[11px] font-bold text-gray-700 dark:text-gray-300">Enable Bottom Load More Button</label>
           <label className="relative inline-flex items-center cursor-pointer select-none">
             <input
               type="checkbox"
-              checked={settings.bottomEnableLoadMore === true}
-              onChange={e => handleSettingsChange('bottomEnableLoadMore', e.target.checked)}
+              checked={settings.show_upper_view_all !== false}
+              onChange={(e) => handleSettingsChange('show_upper_view_all', e.target.checked)}
               className="sr-only peer"
             />
-            <div className="w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#e94560]" />
+            <div className="w-10 h-5 bg-gray-200 dark:bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#e94560]" />
           </label>
         </div>
 
-        {settings.bottomEnableLoadMore === true && (
-          <div className="space-y-2 pl-2 border-l-2 border-[#e94560]/30">
-            <input
-              type="text"
-              value={settings.bottomLoadMoreText || ''}
-              onChange={e => handleSettingsChange('bottomLoadMoreText', e.target.value)}
-              placeholder="Load More"
-              className="w-full px-3 py-2 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-gray-800 rounded-xl text-xs font-semibold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
-            />
-            <div className="flex items-center justify-between">
-              <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400">Bg Color</label>
-              <div className="flex items-center gap-1.5">
-                <input
-                  type="color"
-                  value={settings.bottomLoadMoreBgColor || '#f1f5f9'}
-                  onChange={e => handleSettingsChange('bottomLoadMoreBgColor', e.target.value)}
-                  className="w-7 h-7 rounded-lg border border-gray-200 dark:border-gray-700 cursor-pointer"
-                />
-                <button
-                  type="button"
-                  onClick={() => handleSettingsChange('bottomLoadMoreBgColor', '')}
-                  className="text-[9px] text-gray-400 hover:text-[#e94560] font-bold uppercase tracking-wider cursor-pointer"
-                >
-                  Reset
-                </button>
-              </div>
+        {settings.show_upper_view_all !== false && (
+          <div className="space-y-2 pt-1 pl-2 border-l-2 border-[#e94560]/30">
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-gray-500 uppercase">Button Text</label>
+              <input
+                type="text"
+                value={settings.viewAllText || ''}
+                onChange={e => handleSettingsChange('viewAllText', e.target.value)}
+                placeholder="View All"
+                className="w-full px-3 py-1.5 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-gray-800 rounded-xl text-xs font-semibold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
+              />
             </div>
-            <div className="flex items-center justify-between">
-              <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400">Text Color</label>
-              <div className="flex items-center gap-1.5">
-                <input
-                  type="color"
-                  value={settings.bottomLoadMoreTextColor || '#1e293b'}
-                  onChange={e => handleSettingsChange('bottomLoadMoreTextColor', e.target.value)}
-                  className="w-7 h-7 rounded-lg border border-gray-200 dark:border-gray-700 cursor-pointer"
-                />
-                <button
-                  type="button"
-                  onClick={() => handleSettingsChange('bottomLoadMoreTextColor', '')}
-                  className="text-[9px] text-gray-400 hover:text-[#e94560] font-bold uppercase tracking-wider cursor-pointer"
-                >
-                  Reset
-                </button>
-              </div>
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-gray-500 uppercase">Custom Link URL</label>
+              <input
+                type="text"
+                value={settings.viewAllUrl || ''}
+                onChange={e => handleSettingsChange('viewAllUrl', e.target.value)}
+                placeholder="e.g. /shop?category=co-ord-sets"
+                className="w-full px-3 py-1.5 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-gray-800 rounded-xl text-xs font-semibold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
+              />
+              <p className="text-[10px] text-gray-400 leading-normal">
+                If left blank, it will automatically link to the selected category page.
+              </p>
             </div>
           </div>
         )}
       </div>
+
+      <BottomGridActions
+        settings={settings}
+        handleSettingsChange={handleSettingsChange}
+      />
     </div>
   );
 }

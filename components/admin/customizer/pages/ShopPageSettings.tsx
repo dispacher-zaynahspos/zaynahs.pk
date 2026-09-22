@@ -1,16 +1,17 @@
-'use client';
-
 import React from 'react';
 import { StoreSettings } from '@/lib/types';
+import ResponsiveGridColumnsControl from '@/components/admin/customizer/shared/ResponsiveGridColumnsControl';
 
 interface ShopPageSettingsProps {
   settings: StoreSettings;
+  viewportMode?: 'desktop' | 'tablet' | 'mobile';
   onUpdateSettings: (updates: Partial<StoreSettings>) => void;
   subTab: 'swatches' | 'layout';
 }
 
 export default function ShopPageSettings({
   settings,
+  viewportMode = 'desktop',
   onUpdateSettings,
   subTab
 }: ShopPageSettingsProps) {
@@ -175,6 +176,52 @@ export default function ShopPageSettings({
             <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#e94560]" />
           </label>
         </div>
+
+        {/* Quick Category Chips Bar Toggle */}
+        <div className="flex items-center justify-between">
+          <div>
+            <span className="text-xs font-bold text-gray-700 dark:text-gray-300 block">Quick Category Chips</span>
+            <span className="text-[10px] text-gray-400">1-tap category bar on top of product catalog</span>
+          </div>
+          <label className="relative inline-flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              checked={settings.shop_category_chips_enabled !== false}
+              onChange={(e) => onUpdateSettings({ shop_category_chips_enabled: e.target.checked })}
+              className="sr-only peer"
+            />
+            <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#e94560]" />
+          </label>
+        </div>
+
+        {/* Infinite Scroll Toggle */}
+        <div className="flex items-center justify-between">
+          <div>
+            <span className="text-xs font-bold text-gray-700 dark:text-gray-300 block">Infinite Scroll</span>
+            <span className="text-[10px] text-gray-400">Auto-load next products when scrolling down</span>
+          </div>
+          <label className="relative inline-flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              checked={settings.shop_infinite_scroll === true}
+              onChange={(e) => onUpdateSettings({ shop_infinite_scroll: e.target.checked })}
+              className="sr-only peer"
+            />
+            <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#e94560]" />
+          </label>
+        </div>
+
+        {/* Responsive Columns per Device (Mobile: 1-3, Tablet: 2-4, Desktop: 3-8) */}
+        <ResponsiveGridColumnsControl
+          label="Shop Catalog Grid Columns"
+          viewportMode={viewportMode}
+          desktopCols={settings.shop_columns_desktop || 4}
+          tabletCols={settings.shop_columns_tablet || 3}
+          mobileCols={settings.shop_columns_mobile || 2}
+          onChangeDesktop={(cols: number) => onUpdateSettings({ shop_columns_desktop: cols })}
+          onChangeTablet={(cols: number) => onUpdateSettings({ shop_columns_tablet: cols })}
+          onChangeMobile={(cols: number) => onUpdateSettings({ shop_columns_mobile: cols })}
+        />
       </div>
     </div>
   );

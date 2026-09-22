@@ -1,9 +1,24 @@
-import { revalidateTag, revalidatePath } from 'next/cache';
 import { getSiteUrl } from '@/lib/site-url-server';
 import { notifyGoogleIndexing } from '@/lib/googleIndexing';
 import { pingIndexNow } from '@/lib/indexNow';
 
-
+async function getCacheMethods() {
+  if (typeof window !== 'undefined') {
+    return {
+      revalidateTag: (_tag: string) => {},
+      revalidatePath: (_path: string, _type?: 'layout' | 'page') => {},
+    };
+  }
+  try {
+    const { revalidateTag, revalidatePath } = await import('next/cache');
+    return { revalidateTag, revalidatePath };
+  } catch {
+    return {
+      revalidateTag: (_tag: string) => {},
+      revalidatePath: (_path: string, _type?: 'layout' | 'page') => {},
+    };
+  }
+}
 
 async function resolveSiteUrl(): Promise<string> {
   try {
@@ -45,13 +60,11 @@ async function purgeCloudflareUrls(urls: string[]) {
     const data = await res.json();
     if (!res.ok || !data.success) {
       console.error('Failed to purge Cloudflare cache:', data);
-      // Removed throw so server actions don't crash when CF fails
     } else {
       console.log('Successfully purged Cloudflare cache:', urls);
     }
   } catch (error) {
     console.error('Error purging Cloudflare cache:', error);
-    // Removed throw
   }
 }
 
@@ -79,18 +92,17 @@ async function purgeCloudflareEverything() {
     const data = await res.json();
     if (!res.ok || !data.success) {
       console.error('Failed to purge everything on Cloudflare:', data);
-      // Removed throw
     } else {
       console.log('Successfully purged everything on Cloudflare');
     }
   } catch (error) {
     console.error('Error purging everything on Cloudflare:', error);
-    // Removed throw
   }
 }
 
 export async function revalidateProduct(slug: string, action: 'UPDATED' | 'DELETED' = 'UPDATED') {
   try {
+    const { revalidateTag, revalidatePath } = await getCacheMethods();
     (revalidateTag as any)(`product-${slug}`);
     (revalidateTag as any)('products');
     (revalidateTag as any)('homepage');
@@ -122,6 +134,7 @@ export async function revalidateProduct(slug: string, action: 'UPDATED' | 'DELET
 
 export async function revalidateBanner() {
   try {
+    const { revalidateTag, revalidatePath } = await getCacheMethods();
     (revalidateTag as any)('banners');
     (revalidateTag as any)('homepage');
     (revalidateTag as any)('homepage_sections');
@@ -144,6 +157,7 @@ export async function revalidateBanner() {
 
 export async function revalidateCategory(slug: string, action: 'UPDATED' | 'DELETED' = 'UPDATED') {
   try {
+    const { revalidateTag, revalidatePath } = await getCacheMethods();
     (revalidateTag as any)(`category-${slug}`);
     (revalidateTag as any)('categories');
     (revalidateTag as any)('products');
@@ -173,6 +187,7 @@ export async function revalidateCategory(slug: string, action: 'UPDATED' | 'DELE
 
 export async function revalidateHomepage() {
   try {
+    const { revalidateTag, revalidatePath } = await getCacheMethods();
     (revalidateTag as any)('homepage');
     (revalidateTag as any)('products');
     (revalidateTag as any)('verticals');
@@ -202,6 +217,7 @@ export async function revalidateHomepage() {
 
 export async function revalidateVertical(slug: string) {
   try {
+    const { revalidateTag, revalidatePath } = await getCacheMethods();
     (revalidateTag as any)('verticals');
     (revalidateTag as any)('homepage');
     (revalidateTag as any)('products');
@@ -226,8 +242,18 @@ export async function revalidateVertical(slug: string) {
   }
 }
 
+export async function revalidateTagSafe(tag: string) {
+  try {
+    const { revalidateTag } = await getCacheMethods();
+    (revalidateTag as any)(tag);
+  } catch (error) {
+    console.error(`Error in revalidateTagSafe for tag ${tag}:`, error);
+  }
+}
+
 export async function revalidateSettings() {
   try {
+    const { revalidateTag, revalidatePath } = await getCacheMethods();
     (revalidateTag as any)('settings');
     (revalidateTag as any)('homepage');
     (revalidateTag as any)('homepage_sections');

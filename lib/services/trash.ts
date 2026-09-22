@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
-import { revalidateTag } from 'next/cache';
+import { revalidateTagSafe } from '@/lib/revalidate';
 
 // Products bulk
 export async function bulkRestoreProducts(ids: string[]): Promise<void> {
@@ -13,7 +13,7 @@ export async function bulkRestoreProducts(ids: string[]): Promise<void> {
       .update({ deleted_at: null })
       .in('id', ids);
     if (error) throw error;
-    (revalidateTag as any)('products');
+    revalidateTagSafe('products');
   } catch (error) {
     console.error('[trash] bulkRestoreProducts failed:', error);
     throw error;
@@ -28,7 +28,7 @@ export async function bulkHardDeleteProducts(ids: string[]): Promise<void> {
       .delete()
       .in('id', ids);
     if (error) throw error;
-    (revalidateTag as any)('products');
+    revalidateTagSafe('products');
   } catch (error) {
     console.error('[trash] bulkHardDeleteProducts failed:', error);
     throw error;
@@ -44,7 +44,7 @@ export async function bulkRestoreCategories(ids: string[]): Promise<void> {
       .update({ deleted_at: null })
       .in('id', ids);
     if (error) throw error;
-    (revalidateTag as any)('categories');
+    revalidateTagSafe('categories');
   } catch (error) {
     console.error('[trash] bulkRestoreCategories failed:', error);
     throw error;
@@ -59,7 +59,7 @@ export async function bulkHardDeleteCategories(ids: string[]): Promise<void> {
       .delete()
       .in('id', ids);
     if (error) throw error;
-    (revalidateTag as any)('categories');
+    revalidateTagSafe('categories');
   } catch (error) {
     console.error('[trash] bulkHardDeleteCategories failed:', error);
     throw error;
@@ -75,8 +75,8 @@ export async function bulkRestoreReviews(ids: string[]): Promise<void> {
       .update({ deleted_at: null })
       .in('id', ids);
     if (error) throw error;
-    (revalidateTag as any)('reviews');
-    (revalidateTag as any)('products');
+    revalidateTagSafe('reviews');
+    revalidateTagSafe('products');
   } catch (error) {
     console.error('[trash] bulkRestoreReviews failed:', error);
     throw error;
@@ -91,8 +91,8 @@ export async function bulkHardDeleteReviews(ids: string[]): Promise<void> {
       .delete()
       .in('id', ids);
     if (error) throw error;
-    (revalidateTag as any)('reviews');
-    (revalidateTag as any)('products');
+    revalidateTagSafe('reviews');
+    revalidateTagSafe('products');
   } catch (error) {
     console.error('[trash] bulkHardDeleteReviews failed:', error);
     throw error;
@@ -254,14 +254,14 @@ export async function bulkRestoreSizeGuides(ids: string[]): Promise<void> {
   const supabase = await createClient();
   const { error } = await supabase.from('size_guides').update({ deleted_at: null }).in('id', ids);
   if (error) throw error;
-  (revalidateTag as any)('size_guides');
+  revalidateTagSafe('size_guides');
 }
 
 export async function bulkHardDeleteSizeGuides(ids: string[]): Promise<void> {
   const supabase = await createClient();
   const { error } = await supabase.from('size_guides').delete().in('id', ids);
   if (error) throw error;
-  (revalidateTag as any)('size_guides');
+  revalidateTagSafe('size_guides');
 }
 
 // Variant Presets bulk

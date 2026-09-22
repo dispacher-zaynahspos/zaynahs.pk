@@ -1,5 +1,6 @@
 'use client'
 
+import React from 'react'
 import { ChevronLeft, ChevronRight } from '@/components/common/Icons'
 
 interface PaginationFooterProps {
@@ -37,10 +38,10 @@ export default function PaginationFooter({
   }
 
   return (
-    <div className="border-t border-gray-200 dark:border-gray-700 px-4 py-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
+    <div className="border-t border-gray-100 dark:border-gray-800/80 px-4 py-3.5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between select-none">
+      <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400 font-semibold">
         <span>
-          Showing {startItem}–{endItem} of {totalItems} entries
+          Showing <strong className="text-gray-900 dark:text-white">{startItem}–{endItem}</strong> of <strong className="text-gray-900 dark:text-white">{totalItems}</strong> entries
         </span>
         <div className="flex items-center gap-1.5">
           <span className="whitespace-nowrap">Show:</span>
@@ -50,7 +51,7 @@ export default function PaginationFooter({
               onPageSizeChange(Number(e.target.value))
               onPageChange(1)
             }}
-            className="border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1 text-xs bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="border border-gray-200/80 dark:border-gray-800/80 rounded-xl px-2.5 py-1 text-xs font-bold bg-white dark:bg-[#16162a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#e94560]/20 cursor-pointer"
           >
             {PAGE_SIZES.map((size) => (
               <option key={size} value={size}>
@@ -62,20 +63,20 @@ export default function PaginationFooter({
         </div>
       </div>
 
-      <nav className="flex items-center gap-1">
+      <nav aria-label="Pagination" className="flex items-center gap-1">
         <button
           type="button"
           disabled={currentPage <= 1}
           onClick={() => onPageChange(currentPage - 1)}
-          className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-xl border border-gray-200/80 dark:border-gray-800/80 bg-white dark:bg-[#16162a] text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
         >
-          <ChevronLeft size={14} />
+          <ChevronLeft className="h-3.5 w-3.5" />
           Prev
         </button>
 
         {pages.map((page, idx) =>
           page === '...' ? (
-            <span key={`ellipsis-${idx}`} className="px-1.5 text-xs text-gray-400 dark:text-gray-500">
+            <span key={`ellipsis-${idx}`} className="px-1.5 text-xs text-gray-400 dark:text-gray-500 font-bold">
               ...
             </span>
           ) : (
@@ -83,10 +84,10 @@ export default function PaginationFooter({
               key={page}
               type="button"
               onClick={() => onPageChange(page)}
-              className={`min-w-[32px] px-2 py-1.5 text-xs font-medium rounded-md border transition-colors ${
+              className={`min-w-[32px] h-8 px-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${
                 page === currentPage
-                  ? 'bg-indigo-600 text-white border-indigo-600'
-                  : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                  ? 'bg-[#1a1a2e] dark:bg-[#e94560] text-white shadow-xs font-black'
+                  : 'border border-gray-200/80 dark:border-gray-800/80 bg-white dark:bg-[#16162a] text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5'
               }`}
             >
               {page}
@@ -98,12 +99,13 @@ export default function PaginationFooter({
           type="button"
           disabled={currentPage >= totalPages}
           onClick={() => onPageChange(currentPage + 1)}
-          className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-xl border border-gray-200/80 dark:border-gray-800/80 bg-white dark:bg-[#16162a] text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
         >
           Next
-          <ChevronRight size={14} />
+          <ChevronRight className="h-3.5 w-3.5" />
         </button>
       </nav>
     </div>
   )
 }
+

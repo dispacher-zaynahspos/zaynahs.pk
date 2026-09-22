@@ -3,11 +3,13 @@
 import React, { useState } from 'react';
 import { HomepageSection, Category, Collection } from '@/lib/types';
 import { Trash2, ChevronUp, ChevronDown } from '@/components/common/Icons';
+import ResponsiveGridColumnsControl from '../shared/ResponsiveGridColumnsControl';
 
 interface CollectionsGridSettingsProps {
   section: HomepageSection;
   collections?: Collection[];
   categories?: Category[]; // Still available if needed
+  viewportMode?: 'desktop' | 'tablet' | 'mobile';
   onUpdateSection: (updates: Partial<HomepageSection>) => void;
   onSelectMedia: (
     fieldPath: 'settings' | 'content_data',
@@ -21,6 +23,7 @@ export default function CollectionsGridSettings({
   section,
   collections = [],
   categories = [],
+  viewportMode = 'desktop',
   onUpdateSection,
   onSelectMedia
 }: CollectionsGridSettingsProps) {
@@ -61,6 +64,95 @@ export default function CollectionsGridSettings({
 
   return (
     <div className="space-y-4">
+      {/* Show/Hide Section Title Toggle */}
+      <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-800 pb-2.5">
+        <div>
+          <span className="text-xs font-bold text-gray-700 dark:text-gray-300 block">Show Section Title</span>
+          <span className="text-[10px] text-gray-400">Display collection grid title heading</span>
+        </div>
+        <label className="relative inline-flex items-center cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={section.settings?.show_title !== false}
+            onChange={(e) => {
+              onUpdateSection({
+                settings: {
+                  ...section.settings,
+                  show_title: e.target.checked
+                }
+              });
+            }}
+            className="sr-only peer"
+          />
+          <div className="w-10 h-5 bg-gray-200 dark:bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#e94560]" />
+        </label>
+      </div>
+
+      {/* Upper View All / All Categories Link */}
+      <div className="space-y-2.5 pb-3 border-b border-gray-200 dark:border-gray-800">
+        <div className="flex justify-between items-center">
+          <div>
+            <span className="text-xs font-bold text-gray-700 dark:text-gray-300 block">Upper View All Link</span>
+            <span className="text-[10px] text-gray-400">e.g. &quot;All Categories&quot; link next to title</span>
+          </div>
+          <label className="relative inline-flex items-center cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={section.settings?.show_upper_view_all !== false}
+              onChange={(e) => {
+                onUpdateSection({
+                  settings: {
+                    ...section.settings,
+                    show_upper_view_all: e.target.checked
+                  }
+                });
+              }}
+              className="sr-only peer"
+            />
+            <div className="w-10 h-5 bg-gray-200 dark:bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#e94560]" />
+          </label>
+        </div>
+
+        {section.settings?.show_upper_view_all !== false && (
+          <div className="space-y-2 pt-1 pl-2 border-l-2 border-[#e94560]/30">
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-gray-500 uppercase">Link Text</label>
+              <input
+                type="text"
+                value={section.settings?.upper_view_all_text ?? 'All Categories'}
+                onChange={(e) => {
+                  onUpdateSection({
+                    settings: {
+                      ...section.settings,
+                      upper_view_all_text: e.target.value
+                    }
+                  });
+                }}
+                placeholder="All Categories"
+                className="w-full px-3 py-1.5 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-gray-800 rounded-xl text-xs font-semibold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-gray-500 uppercase">Custom Link URL</label>
+              <input
+                type="text"
+                value={section.settings?.upper_view_all_url ?? '/shop'}
+                onChange={(e) => {
+                  onUpdateSection({
+                    settings: {
+                      ...section.settings,
+                      upper_view_all_url: e.target.value
+                    }
+                  });
+                }}
+                placeholder="/shop"
+                className="w-full px-3 py-1.5 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-gray-800 rounded-xl text-xs font-semibold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Aspect Ratio Selector */}
       <div className="space-y-1.5 pb-2 border-b border-gray-200 dark:border-gray-800">
         <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider block">
@@ -84,29 +176,112 @@ export default function CollectionsGridSettings({
         </select>
       </div>
 
-      {/* Desktop Columns Selector */}
-      <div className="space-y-1.5 pb-2 border-b border-gray-200 dark:border-gray-800">
-        <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider block">
-          Desktop Grid Columns
-        </label>
-        <select
-          value={section.settings?.desktop_columns || 'auto'}
-          onChange={(e) => {
-            onUpdateSection({
-              settings: {
-                ...section.settings,
-                desktop_columns: e.target.value
-              }
-            });
-          }}
-          className="w-full px-2 py-1 text-xs rounded border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] text-gray-900 dark:text-gray-100 focus:outline-none"
-        >
-          <option value="auto">Auto (Best fit based on count)</option>
-          <option value="2">2 Columns (Wide)</option>
-          <option value="3">3 Columns</option>
-          <option value="4">4 Columns</option>
-          <option value="5">5 Columns</option>
-        </select>
+      {/* Responsive Columns per Device (Mobile: 1-3, Tablet: 2-4, Desktop: 3-8) */}
+      <ResponsiveGridColumnsControl
+        label="Collections Grid Columns"
+        viewportMode={viewportMode}
+        desktopCols={Number(section.settings?.desktop_columns) || 4}
+        tabletCols={Number(section.settings?.tablet_columns) || 3}
+        mobileCols={Number(section.settings?.mobile_columns) || 2}
+        onChangeDesktop={(cols) => onUpdateSection({ settings: { ...section.settings, desktop_columns: cols } })}
+        onChangeTablet={(cols) => onUpdateSection({ settings: { ...section.settings, tablet_columns: cols } })}
+        onChangeMobile={(cols) => onUpdateSection({ settings: { ...section.settings, mobile_columns: cols } })}
+      />
+
+      {/* Bottom View All Button */}
+      <div className="space-y-2.5 pb-3 border-b border-gray-200 dark:border-gray-800">
+        <div className="flex justify-between items-center">
+          <div>
+            <span className="text-xs font-bold text-gray-700 dark:text-gray-300 block">Bottom View All Button</span>
+            <span className="text-[10px] text-gray-400">Large button below collection cards</span>
+          </div>
+          <label className="relative inline-flex items-center cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={section.settings?.enable_bottom_view_all === true}
+              onChange={(e) => {
+                onUpdateSection({
+                  settings: {
+                    ...section.settings,
+                    enable_bottom_view_all: e.target.checked
+                  }
+                });
+              }}
+              className="sr-only peer"
+            />
+            <div className="w-10 h-5 bg-gray-200 dark:bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#e94560]" />
+          </label>
+        </div>
+
+        {section.settings?.enable_bottom_view_all && (
+          <div className="space-y-2 pt-1 pl-2 border-l-2 border-[#e94560]/30">
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-gray-500 uppercase">Button Text</label>
+              <input
+                type="text"
+                value={section.settings?.bottom_view_all_text || 'View All Categories'}
+                onChange={(e) => {
+                  onUpdateSection({
+                    settings: {
+                      ...section.settings,
+                      bottom_view_all_text: e.target.value
+                    }
+                  });
+                }}
+                placeholder="View All Categories"
+                className="w-full px-3 py-1.5 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-gray-800 rounded-xl text-xs font-semibold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-gray-500 uppercase">Button URL</label>
+              <input
+                type="text"
+                value={section.settings?.bottom_view_all_url || '/shop'}
+                onChange={(e) => {
+                  onUpdateSection({
+                    settings: {
+                      ...section.settings,
+                      bottom_view_all_url: e.target.value
+                    }
+                  });
+                }}
+                placeholder="/shop"
+                className="w-full px-3 py-1.5 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-gray-800 rounded-xl text-xs font-semibold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-gray-500 uppercase">Background Color</label>
+              <div className="flex gap-2">
+                <input
+                  type="color"
+                  value={section.settings?.bottom_view_all_bg_color || '#e94560'}
+                  onChange={(e) => {
+                    onUpdateSection({
+                      settings: {
+                        ...section.settings,
+                        bottom_view_all_bg_color: e.target.value
+                      }
+                    });
+                  }}
+                  className="h-8 w-10 p-0 border border-gray-200 dark:border-gray-800 rounded cursor-pointer"
+                />
+                <input
+                  type="text"
+                  value={section.settings?.bottom_view_all_bg_color || '#e94560'}
+                  onChange={(e) => {
+                    onUpdateSection({
+                      settings: {
+                        ...section.settings,
+                        bottom_view_all_bg_color: e.target.value
+                      }
+                    });
+                  }}
+                  className="flex-1 px-3 py-1.5 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-gray-800 rounded-xl text-xs font-semibold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
+                />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Show/Hide Card Title Badges Toggle */}

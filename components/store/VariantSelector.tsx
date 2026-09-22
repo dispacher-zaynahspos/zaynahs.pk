@@ -3,6 +3,8 @@
 import React from 'react';
 import { ProductVariant, StoreSettings } from '@/lib/types';
 import { getSwatchStyle } from '@/lib/utils/swatch';
+import { useVariantSelectorState } from './variant-selector/useVariantSelectorState';
+import { getSwatchClasses } from './variant-selector/swatchStyles';
 
 interface VariantSelectorProps {
   variants: ProductVariant[];
@@ -23,112 +25,26 @@ export default function VariantSelector({
   settings,
   variationOrder
 }: VariantSelectorProps) {
-  const activeVariants = React.useMemo(() => variants.filter(v => v.active), [variants]);
-
-  const colors = React.useMemo(() => Array.from(new Set(activeVariants.map(v => v.color).filter(Boolean))) as string[], [activeVariants]);
-  const sizes = React.useMemo(() => Array.from(new Set(activeVariants.map(v => v.size).filter(Boolean))) as string[], [activeVariants]);
-  const materials = React.useMemo(() => Array.from(new Set(activeVariants.map(v => v.material).filter(Boolean))) as string[], [activeVariants]);
-
-  const customOptionName = activeVariants[0]?.customOption;
-  const customValues = React.useMemo(() => Array.from(new Set(activeVariants.map(v => v.customValue).filter(Boolean))) as string[], [activeVariants]);
-
-  const [selectedColor, setSelectedColor] = React.useState<string | undefined>(selectedVariant?.color);
-  const [selectedSize, setSelectedSize] = React.useState<string | undefined>(selectedVariant?.size);
-  const [selectedMaterial, setSelectedMaterial] = React.useState<string | undefined>(selectedVariant?.material);
-  const [selectedCustomValue, setSelectedCustomValue] = React.useState<string | undefined>(selectedVariant?.customValue);
-
-  React.useEffect(() => {
-    if (selectedVariant) {
-      setSelectedColor(selectedVariant.color);
-      setSelectedSize(selectedVariant.size);
-      setSelectedMaterial(selectedVariant.material);
-      setSelectedCustomValue(selectedVariant.customValue);
-    }
-  }, [selectedVariant]);
-
-  React.useEffect(() => {
-    // Only auto-match when ALL required axes have been selected by user
-    const colorOk = !colors.length || !!selectedColor;
-    const sizeOk = !sizes.length || !!selectedSize;
-    const materialOk = !materials.length || !!selectedMaterial;
-    const customOk = !customValues.length || !!selectedCustomValue;
-    if (!colorOk || !sizeOk || !materialOk || !customOk) return;
-
-    const match = activeVariants.find(v => {
-      const colorMatch = !colors.length || v.color === selectedColor;
-      const sizeMatch = !sizes.length || v.size === selectedSize;
-      const materialMatch = !materials.length || v.material === selectedMaterial;
-      const customMatch = !customValues.length || v.customValue === selectedCustomValue;
-      return colorMatch && sizeMatch && materialMatch && customMatch;
-    });
-    if (match && (!selectedVariant || match.id !== selectedVariant.id)) {
-      onChangeSelectedVariant(match);
-    }
-  }, [selectedColor, selectedSize, selectedMaterial, selectedCustomValue, activeVariants, colors.length, sizes.length, materials.length, customValues.length, selectedVariant, onChangeSelectedVariant]);
+  const {
+    activeVariants,
+    colors,
+    sizes,
+    materials,
+    customOptionName,
+    customValues,
+    selectedColor, setSelectedColor,
+    selectedSize, setSelectedSize,
+    selectedMaterial, setSelectedMaterial,
+    selectedCustomValue, setSelectedCustomValue,
+  } = useVariantSelectorState({
+    variants,
+    selectedVariant,
+    onChangeSelectedVariant,
+  });
 
   const showSwatches = (enableSwatches !== false) && (settings?.enableVariantSwatches ?? true);
   const productSwatchSize = settings?.productSwatchSize ?? settings?.swatchSize ?? 'md';
   const swatchShape = settings?.swatchShape || 'circle';
-
-  const getSwatchClasses = (type: 'color' | 'text', sizeKey: string, text: string) => {
-    const heightMap: Record<string, string> = {
-      xxs: 'h-5',
-      xs: 'h-6',
-      sm: 'h-8',
-      md: 'h-10',
-      lg: 'h-12',
-      xl: 'h-14',
-      xxl: 'h-16'
-    };
-    const widthMap: Record<string, string> = {
-      xxs: 'w-5',
-      xs: 'w-6',
-      sm: 'w-8',
-      md: 'w-10',
-      lg: 'w-12',
-      xl: 'w-14',
-      xxl: 'w-16'
-    };
-    const fontMap: Record<string, string> = {
-      xxs: 'text-[8px]',
-      xs: 'text-[10px]',
-      sm: 'text-xs',
-      md: 'text-sm',
-      lg: 'text-base',
-      xl: 'text-lg',
-      xxl: 'text-xl'
-    };
-
-    const height = heightMap[sizeKey] || heightMap.md;
-    const fontClass = fontMap[sizeKey] || fontMap.md;
-
-    if (type === 'color') {
-      const width = widthMap[sizeKey] || widthMap.md;
-      return `${height} ${width}`;
-    } else {
-      const minWidthClass =
-        sizeKey === 'xxs' ? 'min-w-[20px] px-1' :
-        sizeKey === 'xs' ? 'min-w-[26px] px-1.5' :
-        sizeKey === 'sm' ? 'min-w-[32px] px-1.5' :
-        sizeKey === 'lg' ? 'min-w-[48px] px-2.5' :
-        sizeKey === 'xl' ? 'min-w-[56px] px-3' :
-        sizeKey === 'xxl' ? 'min-w-[64px] px-3.5' :
-        'min-w-[40px] px-2';
-
-      let adjustedFont = fontClass;
-      if (text.length > 3) {
-        adjustedFont =
-          sizeKey === 'xxs' ? 'text-[6.5px]' :
-          sizeKey === 'xs' ? 'text-[8px]' :
-          sizeKey === 'sm' ? 'text-[9.5px]' :
-          sizeKey === 'lg' ? 'text-xs' :
-          sizeKey === 'xl' ? 'text-sm' :
-          sizeKey === 'xxl' ? 'text-base' :
-          'text-[11px]';
-      }
-      return `${height} ${minWidthClass} ${adjustedFont}`;
-    }
-  };
 
   const shapeMap: Record<string, string> = {
     circle: 'rounded-full',

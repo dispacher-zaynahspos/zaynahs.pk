@@ -1,6 +1,6 @@
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { EmailTemplate } from '@/lib/types';
-import { revalidateTag } from 'next/cache';
+import { revalidateTagSafe } from '@/lib/revalidate';
 
 const mapTemplate = (row: any): EmailTemplate => ({
   id: row.id,
@@ -65,7 +65,7 @@ export const updateEmailTemplate = async (
       .single();
 
     if (error) throw error;
-    (revalidateTag as any)('email-templates');
+    revalidateTagSafe('email-templates');
     return mapTemplate(data);
   } catch (error) {
     console.error(`[emailTemplates] updateEmailTemplate(${emailType}) failed:`, error);
@@ -83,7 +83,7 @@ export const resetEmailTemplate = async (emailType: string): Promise<EmailTempla
       .single();
 
     if (error) throw error;
-    (revalidateTag as any)('email-templates');
+    revalidateTagSafe('email-templates');
     return mapTemplate(data);
   } catch (error) {
     console.error(`[emailTemplates] resetEmailTemplate(${emailType}) failed:`, error);

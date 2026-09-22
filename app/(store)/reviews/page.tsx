@@ -1,7 +1,7 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import { getGlobalReviews } from '@/lib/services/reviews';
-import { getSocialProofs } from '@/lib/services/socialProof';
+import { getSocialProofs } from '@/lib/services/social-proof';
 import { getSettings } from '@/lib/services/settings';
 import { getSiteUrl } from '@/lib/site-url-server';
 import { getDomainConfig } from '@/lib/config/domains';

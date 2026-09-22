@@ -8,8 +8,9 @@ interface AdminCardProps {
 
 export default function AdminCard({ children, className = '', noPadding = false }: AdminCardProps) {
   return (
-    <div className={`bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden ${className}`}>
-      {noPadding ? children : <div className="p-4 sm:p-6">{children}</div>}
+    <div className={`bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200/80 dark:border-gray-800/80 shadow-xs hover:shadow-sm transition-all duration-200 overflow-hidden ${className}`}>
+      {noPadding ? children : <div className="p-5 sm:p-6">{children}</div>}
     </div>
   );
 }
+

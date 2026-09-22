@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
-import { callAI, getAISettings } from '@/lib/aiEngine';
+import { callAI, getAISettings } from '@/lib/ai';
 import { buildSystemPrompt, buildSEOPrompt } from '@/lib/seoPrompts';
 import { pingIndexNow } from '@/lib/indexNow';
 import { getSiteUrl } from '@/lib/site-url-server';
@@ -97,7 +97,7 @@ export async function POST(request: Request) {
       }, { status: 200 });
     }
 
-    // Check if keys are configured
+    // Check if keys are configured (either in settings or environment)
     const keysRaw =
       settings.ai_model_credentials?.content?.[settings.content_provider] ||
       settings.content_keys ||
@@ -107,11 +107,13 @@ export async function POST(request: Request) {
       .map((k: string) => k.trim())
       .filter(Boolean);
 
-    if (keys.length === 0) {
+    const envHasKey = !!(process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || process.env.GROQ_API_KEY);
+
+    if (keys.length === 0 && !envHasKey) {
       return NextResponse.json({ 
         success: false, 
         skipped: true, 
-        message: 'SEO optimization skipped: AI keys not configured in settings.' 
+        message: 'SEO optimization skipped: AI keys not configured in settings or environment.' 
       }, { status: 200 });
     }
 

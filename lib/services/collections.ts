@@ -2,8 +2,9 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { Collection, Category } from '@/lib/types';
-import { unstable_cache, revalidateTag } from 'next/cache';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import { revalidateTagSafe } from '@/lib/revalidate';
+import { safeAction } from '@/lib/utils/serverAction';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder';
@@ -71,14 +72,20 @@ export const fetchCollections = async (): Promise<Collection[]> => {
   }
 };
 
-const cachedCollections = unstable_cache(
-  async () => fetchCollections(),
-  ['collections-list'],
-  { tags: ['collections', 'categories'] }
-);
-
-export const getCollections = async () => {
-  return cachedCollections();
+export const getCollections = async (): Promise<Collection[]> => {
+  if (typeof window !== 'undefined') {
+    return fetchCollections();
+  }
+  try {
+    const { unstable_cache } = await import('next/cache');
+    return unstable_cache(
+      async () => fetchCollections(),
+      ['collections-list'],
+      { tags: ['collections', 'categories'] }
+    )();
+  } catch {
+    return fetchCollections();
+  }
 };
 
 export const fetchCollectionBySlug = async (slug: string): Promise<Collection | null> => {
@@ -103,7 +110,7 @@ export const createCollection = async (collection: { name: string; slug: string;
     .single();
 
   if (error) throw error;
-  (revalidateTag as any)('collections');
+  revalidateTagSafe('collections');
   return data;
 };
 
@@ -126,7 +133,7 @@ export const updateCollection = async (id: string, collection: { name?: string; 
     .single();
 
   if (error) throw error;
-  (revalidateTag as any)('collections');
+  revalidateTagSafe('collections');
   return data;
 };
 
@@ -138,7 +145,7 @@ export const deleteCollection = async (id: string): Promise<void> => {
     .eq('id', id);
 
   if (error) throw error;
-  (revalidateTag as any)('collections');
+  revalidateTagSafe('collections');
 };
 
 // Assignment Operations
@@ -154,7 +161,7 @@ export const assignCategoryToCollection = async (collectionId: string, categoryI
       throw error;
     }
   }
-  (revalidateTag as any)('collections');
+  revalidateTagSafe('collections');
 };
 
 export const removeCategoryFromCollection = async (collectionId: string, categoryId: string): Promise<void> => {
@@ -166,7 +173,7 @@ export const removeCategoryFromCollection = async (collectionId: string, categor
     .eq('category_id', categoryId);
 
   if (error) throw error;
-  (revalidateTag as any)('collections');
+  revalidateTagSafe('collections');
 };
 
 export const reorderCollectionCategories = async (collectionId: string, categoryIds: string[]): Promise<void> => {
@@ -179,11 +186,8 @@ export const reorderCollectionCategories = async (collectionId: string, category
       .eq('collection_id', collectionId)
       .eq('category_id', categoryIds[i]);
   }
-  (revalidateTag as any)('collections');
+  revalidateTagSafe('collections');
 };
-
-// Safe action wrappers
-import { safeAction } from '@/lib/utils/serverAction';
 
 export const createCollectionSafe = async (...args: Parameters<typeof createCollection>) => safeAction(createCollection(...args));
 export const updateCollectionSafe = async (...args: Parameters<typeof updateCollection>) => safeAction(updateCollection(...args));

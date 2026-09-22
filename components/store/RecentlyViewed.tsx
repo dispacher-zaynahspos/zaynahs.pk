@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Product, StoreSettings } from '@/lib/types';
 import ProductCard from './ProductCard';
 import { getProductsByIdsClient } from '@/lib/services/products-client';
+import { getResponsiveGridClasses } from '@/lib/utils/responsiveGrid';
 
 interface RecentlyViewedProps {
   products?: Product[];
@@ -74,15 +75,23 @@ export default function RecentlyViewed({ products, settings, currentProductId }:
 
   if (recentProducts.length === 0) return null;
 
+  const recentCols = getResponsiveGridClasses({
+    mobile: settings?.recently_viewed_columns_mobile || (settings?.card_mobile_columns === 1 ? 1 : 2),
+    tablet: settings?.recently_viewed_columns_tablet || 3,
+    desktop: settings?.recently_viewed_columns_desktop || 4,
+  });
+
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 border-t border-gray-200 dark:border-gray-800 pt-10 animate-fade-in">
       <div className="text-center md:text-left mb-8">
-        <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Recently Viewed</h3>
+        <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+          {settings?.recently_viewed_title || 'Recently Viewed'}
+        </h3>
         <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mt-1">
-          Products you have recently browsed
+          {settings?.recently_viewed_subtitle || 'Products you have recently browsed'}
         </p>
       </div>
-      <div className={`grid ${settings?.card_mobile_columns === 1 ? 'grid-cols-1' : 'grid-cols-2'} md:grid-cols-4 gap-4`}>
+      <div className={`grid gap-4 ${recentCols}`}>
         {recentProducts.map((prod, index) => (
           <ProductCard key={prod.id} product={prod} currencySymbol={settings.currencySymbol} settings={settings} priority={index < 4} />
         ))}

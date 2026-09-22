@@ -1,16 +1,27 @@
 'use client';
 
 import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
-import { createPortal } from 'react-dom';
-import Link from 'next/link';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { ShoppingCart, LayoutDashboard, Search, X, Heart, ChevronDown, ChevronRight, User, HelpCircle, RefreshCw, Shield, Star } from '@/components/common/Icons';
+import { usePathname, useRouter } from 'next/navigation';
 import { useCart } from '@/lib/hooks/useCart';
-import ThemeToggle from '@/components/common/ThemeToggle';
-import { useSearchStore } from '@/store/searchStore';
-import { Product, StoreSettings, NavigationItem } from '@/lib/types';
+import { StoreSettings, NavigationItem } from '@/lib/types';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
+import {
+  NavbarAnnouncementBar,
+  NavbarSearchModal,
+  NavbarMobileDrawer,
+  NavbarLogo,
+  NavbarMobileNavItem,
+  useNavbarSearch,
+  NavbarHeaderBar,
+  NavSearchButton,
+  NavWishlistLink,
+  NavCartLink,
+  NavAccountLink,
+  NavAdminLink,
+  NavMobileMenuButton,
+} from './store-navbar';
+import { useNavbarState } from './store-navbar/useNavbarState';
 
 interface NavbarProps {
   storeName?: string;
@@ -27,7 +38,6 @@ export default function Navbar({
 }: NavbarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const searchParams = useSearchParams();
   const totalItems = useCart((state) => state.totalItems());
   const isAdmin = pathname?.startsWith('/admin') && pathname !== '/admin/settings/customizer/preview';
 
@@ -68,7 +78,7 @@ export default function Navbar({
   const desktopCartAlign = settings?.headerDesktopCartAlign ?? 'right';
   const desktopThemeAlign = settings?.headerDesktopThemeAlign ?? 'right';
 
-  // Mobile logo always centered (as per design rules)
+  // Mobile logo alignment
   const mobileLogoAlign = 'center';
   const mobileMenuAlign = settings?.headerMobileMenuAlign ?? 'left';
   const mobileSearchAlign = settings?.headerMobileSearchAlign ?? 'right';
@@ -78,7 +88,6 @@ export default function Navbar({
   // Mobile menu states
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Split newsletter text by newlines to support multiple announcements rotating automatically
   const announcementLines = useMemo(() => {
     return (newsletterText || '').split('\n').map(line => line.trim()).filter(Boolean);
   }, [newsletterText]);
@@ -86,413 +95,135 @@ export default function Navbar({
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true }, [
     Autoplay({ delay: 4000, stopOnInteraction: false })
   ]);
-  // Mobile accordion open states for custom nav items with children
   const [mobileAccordionOpen, setMobileAccordionOpen] = useState<Record<string, boolean>>({});
-  // Desktop hover open state for dropdowns
   const [desktopHoverOpen, setDesktopHoverOpen] = useState<string | null>(null);
   const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Overflow nav: tracks how many top-level items fit in the available nav width
   const navContainerRef = useRef<HTMLDivElement>(null);
-  const [visibleCount, setVisibleCount] = useState<number>(999); // default: show all
-  const moreOpenRef = useRef(false);
-  const [moreDropdownOpen, setMoreDropdownOpen] = useState(false);
+  const [visibleCount, setVisibleCount] = useState<number>(999);
 
   const navigationMenu: NavigationItem[] = settings?.navigationMenu ?? [];
-
-  // Prepend a "Collections" dropdown linking to the hub + each sub-store
-  // whenever multi-vertical mode has active collections.
-  const navItems: NavigationItem[] = useMemo(() => {
-    return navigationMenu;
-  }, [navigationMenu]);
+  const navItems: NavigationItem[] = useMemo(() => navigationMenu, [navigationMenu]);
   const headerDesktopMenuAlign = settings?.headerDesktopMenuAlign ?? 'center';
 
-  // Search store state
-  const searchQuery = useSearchStore((state) => state.searchQuery);
-  const setSearchQuery = useSearchStore((state) => state.setSearchQuery);
-  const searchOpen = useSearchStore((state) => state.isOpen);
-  const setSearchOpen = useSearchStore((state) => state.setIsOpen);
+  const {
+    searchQuery,
+    setSearchQuery,
+    searchOpen,
+    setSearchOpen,
+    searchInputRef,
+    containerRef,
+    products,
+    loading,
+    suggestions,
+    showSuggestions,
+    setShowSuggestions,
+    handleCloseSearch,
+  } = useNavbarSearch();
 
-  const searchInputRef = useRef<HTMLInputElement>(null);
+  const {
+    mounted,
+    wishlistCount,
+    customerSession,
+    isPreview,
+    moreOpenRef,
+    moreDropdownOpen,
+    setMoreDropdownOpen,
+  } = useNavbarState(mobileMenuOpen, searchOpen);
 
-  // Live Ajax search state
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  // Fetch active products client-side on-demand when search is opened
-  useEffect(() => {
-    if (searchOpen && products.length === 0) {
-      const loadProducts = async () => {
-        setLoading(true);
-        try {
-          const { getProductsClient } = await import('@/lib/services/products-client');
-          const data = await getProductsClient();
-          setProducts(data);
-        } catch (err) {
-          console.error('Failed to load products for live search:', err);
-        } finally {
-          setLoading(false);
-        }
-      };
-      loadProducts();
-    }
-  }, [searchOpen, products.length]);
-
-  // Click outside to close suggestion dropdown
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setShowSuggestions(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  // Compute live Ajax search suggestions matching titles, category name, or variants
-  const suggestions = useMemo(() => {
-    const q = searchQuery.toLowerCase().trim();
-    if (!q || products.length === 0) return [];
-
-    return products.filter(product => {
-      return (
-        product.name.toLowerCase().includes(q) ||
-        (product.description && product.description.toLowerCase().includes(q)) ||
-        (product.shortDescription && product.shortDescription.toLowerCase().includes(q)) ||
-        (product.sku && product.sku.toLowerCase().includes(q)) ||
-        (product.tags && product.tags.some(tag => tag.toLowerCase().includes(q))) ||
-        (product.category?.name && product.category.name.toLowerCase().includes(q)) ||
-        (product.variants && product.variants.some(v =>
-          v.active && (
-            (v.color && v.color.toLowerCase().includes(q)) ||
-            (v.size && v.size.toLowerCase().includes(q)) ||
-            (v.material && v.material.toLowerCase().includes(q)) ||
-            (v.sku && v.sku.toLowerCase().includes(q)) ||
-            (v.customValue && v.customValue.toLowerCase().includes(q))
-          )
-        ))
-      );
-    }).slice(0, 5); // Limit suggestions to 5 items
-  }, [products, searchQuery]);
-
-  // Prevent hydration mismatch — cart count comes from localStorage (client-only)
-  const [mounted, setMounted] = useState(false);
-  const [wishlistCount, setWishlistCount] = useState(0);
-  const [customerSession, setCustomerSession] = useState<any>(null);
-  const [isPreview, setIsPreview] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setMounted(true);
-      if (typeof window !== 'undefined' && window.self !== window.top) {
-        setIsPreview(true);
-      }
-    }, 0);
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Fetch active customer session client-side
-  useEffect(() => {
-    if (!mounted) return;
-    async function loadSession() {
-      try {
-        const { getCustomerProfile } = await import('@/lib/services/customers');
-        const profile = await getCustomerProfile();
-        setCustomerSession(profile);
-      } catch { }
-    }
-    loadSession();
-  }, [mounted]);
-
-  useEffect(() => {
-    if (!mounted) return;
-
-    const updateWishlistCount = () => {
-      const wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
-      setWishlistCount(wishlist.length);
-    };
-
-    updateWishlistCount();
-
-    window.addEventListener('wishlist-updated', updateWishlistCount);
-    return () => {
-      window.removeEventListener('wishlist-updated', updateWishlistCount);
-    };
-  }, [mounted]);
-
-  useEffect(() => {
-    if (searchOpen && searchInputRef.current) {
-      searchInputRef.current.focus();
-    }
-  }, [searchOpen]);
-
-  // Lock body scroll when mobile menu or search modal is open
-  useEffect(() => {
-    if (mobileMenuOpen || searchOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [mobileMenuOpen, searchOpen]);
-
-  // Escape key handler to close search
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && searchOpen) {
-        setSearchOpen(false);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [searchOpen, setSearchOpen]);
-
-  // Reset search query on pathname/searchParams change
-  // to prevent stale search results on page transitions
-  useEffect(() => {
-    setSearchQuery('');
-  }, [pathname, searchParams, setSearchQuery]);
-
-  // Scroll window to top on page navigation (pathname change only)
-  // Does NOT fire on same-page searchParams changes (e.g. pagination, filter)
-  // because those should preserve the user's scroll position.
-  // Exception: when a scroll restoration is scheduled (store_scroll_restore)
-  useEffect(() => {
-    if (moreOpenRef.current) {
-      setMoreDropdownOpen(false);
-      moreOpenRef.current = false;
-    }
-    if (typeof window !== 'undefined') {
-      const raw = sessionStorage.getItem('store_scroll_restore');
-      let shouldRestore = false;
-      if (raw) {
-        try {
-          const data = JSON.parse(raw);
-          const currentPath = window.location.pathname + window.location.search;
-          if (data.path === currentPath) {
-            shouldRestore = true;
-          }
-        } catch {}
-      }
-      if (!shouldRestore) {
-        window.scrollTo({ top: 0, behavior: 'instant' });
-      }
-    }
-  }, [pathname]);
-
-  // Helper renderers for dynamic alignment
   const customTextColorStyle = headerTextColor !== '#1a1a2e' ? { color: headerTextColor } : {};
-  const customBorderColorStyle = headerBorderColor !== '#e5e7eb' ? { borderColor: headerBorderColor } : {};
 
-  const renderLogo = () => (
-    <Link
-      href="/"
+  const logoNode = (
+    <NavbarLogo
       key="logo"
-      className="flex items-center gap-2 shrink-0 select-none active:scale-95 active:opacity-80 transition-all duration-200"
-      onClick={(e) => {
-        setSearchOpen(false);
-        setMobileMenuOpen(false);
-        if (pathname === '/') {
-          if (typeof window !== 'undefined' && window.scrollY > 0) {
-            e.preventDefault();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }
-        } else {
-          // Fallback to hard navigation if client-side routing gets stuck
-          if (typeof window !== 'undefined') {
-            const currentPath = window.location.pathname;
-            setTimeout(() => {
-              if (window.location.pathname === currentPath) {
-                window.location.href = '/';
-              }
-            }, 800);
-          }
-        }
-      }}
-    >
-      {logoUrl ? (
-        <div
-          style={{ width: `${logoWidth}px`, maxWidth: `${logoWidth}px` }}
-          className="flex items-center shrink-0 transition-all duration-200"
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={logoUrl}
-            alt={storeName}
-            style={{ width: `${logoWidth}px`, height: 'auto', maxWidth: '100%', display: 'block' }}
-            className="object-contain max-h-16 md:max-h-20"
-            fetchPriority="high"
-          />
-        </div>
-      ) : (
-        <span className="text-lg sm:text-xl font-black tracking-tight md:text-2xl" style={customTextColorStyle}>
-          {storeName}
-        </span>
-      )}
-    </Link>
+      pathname={pathname}
+      logoUrl={logoUrl}
+      logoWidth={logoWidth}
+      storeName={storeName}
+      customTextColorStyle={customTextColorStyle}
+      setSearchOpen={setSearchOpen}
+      setMobileMenuOpen={setMobileMenuOpen}
+    />
   );
 
-
-  const renderSearch = () => !isAdmin && (
-    <button
+  const searchNode = (
+    <NavSearchButton
       key="search"
-      onClick={() => setSearchOpen(true)}
-      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-[#1a1a2e] dark:hover:text-white transition-all cursor-pointer animate-fade-in"
-      title="Search Store"
-    >
-      <Search className="h-5 w-5" style={customTextColorStyle} />
-    </button>
+      isAdmin={isAdmin}
+      setSearchOpen={setSearchOpen}
+      customTextColorStyle={customTextColorStyle}
+    />
   );
 
-  const renderThemeToggle = () => (
-    <div key="theme-toggle" className="shrink-0">
-      <ThemeToggle />
-    </div>
+  const wishlistDesktopNode = (
+    <NavWishlistLink
+      key="wishlist-desktop"
+      isAdmin={isAdmin}
+      mounted={mounted}
+      wishlistCount={wishlistCount}
+      customTextColorStyle={customTextColorStyle}
+      isMobile={false}
+    />
   );
 
-  const renderWishlist = (isMobile?: boolean) => !isAdmin && (
-    <Link
-      href="/wishlist"
-      key="wishlist"
-      id={isMobile ? "header-wishlist-icon-mobile" : "header-wishlist-icon-desktop"}
-      className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-[#1a1a2e] dark:hover:text-white transition-all"
-      title="My Wishlist"
-    >
-      <Heart className="h-5 w-5" style={customTextColorStyle} />
-      {mounted && wishlistCount > 0 && (
-        <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-white dark:ring-[#0f0f1b]">
-          {wishlistCount}
-        </span>
-      )}
-    </Link>
+  const wishlistMobileNode = (
+    <NavWishlistLink
+      key="wishlist-mobile"
+      isAdmin={isAdmin}
+      mounted={mounted}
+      wishlistCount={wishlistCount}
+      customTextColorStyle={customTextColorStyle}
+      isMobile={true}
+    />
   );
 
-  const renderCart = (isMobile?: boolean) => !isAdmin && (
-    <Link
-      href="/cart"
-      key="cart"
-      id={isMobile ? "header-cart-icon-mobile" : "header-cart-icon-desktop"}
-      className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-[#1a1a2e] dark:hover:text-white transition-all cursor-pointer"
-    >
-      <ShoppingCart className="h-5 w-5" style={customTextColorStyle} />
-      {mounted && totalItems > 0 && (
-        <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-[#e94560] text-[10px] font-bold text-white ring-2 ring-white dark:ring-[#0f0f1b]">
-          {totalItems}
-        </span>
-      )}
-    </Link>
+  const cartDesktopNode = (
+    <NavCartLink
+      key="cart-desktop"
+      isAdmin={isAdmin}
+      mounted={mounted}
+      totalItems={totalItems}
+      customTextColorStyle={customTextColorStyle}
+      isMobile={false}
+    />
   );
 
-  const renderAccountLink = () => !isAdmin && (
-    <Link
-      href={customerSession ? "/account" : "/login"}
+  const cartMobileNode = (
+    <NavCartLink
+      key="cart-mobile"
+      isAdmin={isAdmin}
+      mounted={mounted}
+      totalItems={totalItems}
+      customTextColorStyle={customTextColorStyle}
+      isMobile={true}
+    />
+  );
+
+  const accountNode = (
+    <NavAccountLink
       key="account"
-      className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-[#1a1a2e] dark:hover:text-white transition-all"
-      title={customerSession ? "My Account" : "Login / Register"}
-    >
-      <User className="h-5 w-5" style={customTextColorStyle} />
-    </Link>
+      isAdmin={isAdmin}
+      customerSession={customerSession}
+      customTextColorStyle={customTextColorStyle}
+    />
   );
 
-  const renderAdminLink = () => isAdmin ? (
-    <Link
-      href="/"
+  const adminLinkNode = (
+    <NavAdminLink
       key="admin-link"
-      className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 hover:text-[#e94560] transition-colors shrink-0"
-      style={customTextColorStyle}
-    >
-      <span>Go to Shop</span>
-    </Link>
-  ) : null;
-
-  const renderMobileMenuButton = () => (
-    <button
-      key="mobile-menu"
-      onClick={() => setMobileMenuOpen(true)}
-      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-[#1a1a2e] dark:hover:text-white transition-all cursor-pointer"
-      title="Open Menu"
-    >
-      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={customTextColorStyle}>
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 6h16M4 12h16M4 18h16" />
-      </svg>
-    </button>
+      isAdmin={isAdmin}
+      customTextColorStyle={customTextColorStyle}
+    />
   );
 
-  // Desktop navigation dropdown menu renderer (Hierarchical vertical dropdown list showing all nested levels upfront)
-  const renderDesktopDropdown = (item: NavigationItem) => {
-    const children = item.children || [];
-    if (children.length === 0) return null;
+  const mobileMenuButtonNode = (
+    <NavMobileMenuButton
+      key="mobile-menu"
+      setMobileMenuOpen={setMobileMenuOpen}
+      customTextColorStyle={customTextColorStyle}
+    />
+  );
 
-    // Recursive function to render a menu item and its children with indentation
-    const renderDropdownItem = (node: NavigationItem, depth = 0): React.ReactNode => {
-      const nodeChildren = node.children || [];
-      const hasChildren = nodeChildren.length > 0;
-
-      // Define styling classes and vertical padding based on depth
-      let textClass = "text-sm font-bold text-gray-900 dark:text-white";
-      let pyClass = "py-2.5";
-
-      if (depth === 1) {
-        textClass = "text-xs font-semibold text-gray-600 dark:text-gray-400 hover:text-[#e94560] dark:hover:text-white";
-        pyClass = "py-2";
-      } else if (depth >= 2) {
-        textClass = "text-[11px] font-semibold text-gray-500 dark:text-gray-400 hover:text-[#e94560] dark:hover:text-white";
-        pyClass = "py-1.5";
-      }
-
-      // Calculate precise padding left mathematically based on depth
-      const paddingLeftValue = `${20 + depth * 16}px`;
-
-      return (
-        <React.Fragment key={node.id}>
-          <div className="flex flex-col">
-            <Link
-              href={node.url}
-              style={{ paddingLeft: paddingLeftValue }}
-              className={`block w-full text-left pr-5 transition-colors hover:bg-gray-50 dark:hover:bg-white/5 whitespace-nowrap ${pyClass} ${textClass}`}
-            >
-              <span className="flex items-center gap-2">
-                {depth > 0 && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-gray-700 shrink-0" />
-                )}
-                {node.label}
-              </span>
-            </Link>
-          </div>
-          {hasChildren && (
-            <div className="flex flex-col">
-              {nodeChildren.map((child) => renderDropdownItem(child, depth + 1))}
-            </div>
-          )}
-        </React.Fragment>
-      );
-    };
-
-    return (
-      <div
-        className="absolute top-full left-0 mt-2 min-w-[220px] bg-white dark:bg-[#16162a] border border-gray-200 dark:border-gray-800 rounded-2xl shadow-2xl py-2 z-50 animate-fade-in flex flex-col"
-      >
-        {children.map((child, idx) => (
-          <React.Fragment key={child.id}>
-            {/* Clean divider line between Level 1 sections */}
-            {idx > 0 && (
-              <div className="border-t border-gray-100 dark:border-gray-800 my-1.5" />
-            )}
-            {renderDropdownItem(child, 0)}
-          </React.Fragment>
-        ))}
-      </div>
-    );
-  };
-
-
-  // ── Overflow-aware desktop nav ──────────────────────────────────────────────
-  // Invisible measurement row: render ALL items off-screen to get their widths,
-  // then show only as many as fit, collapsing the rest into "More ▼".
   const itemWidthsRef = useRef<number[]>([]);
   const measureRowRef = useRef<HTMLDivElement>(null);
 
@@ -502,7 +233,8 @@ export default function Navbar({
     if (!container || !measureRow) return;
 
     const availableWidth = container.offsetWidth;
-    const MORE_BTN_WIDTH = 80; // reserve space for "More" button
+    if (availableWidth <= 0) return;
+    const MORE_BTN_WIDTH = 80;
     const children = Array.from(measureRow.children) as HTMLElement[];
     itemWidthsRef.current = children.map((el) => el.offsetWidth);
 
@@ -521,21 +253,17 @@ export default function Navbar({
     setVisibleCount(count);
   }, [navItems]);
 
-  // Re-measure whenever the container resizes
   useEffect(() => {
     const container = navContainerRef.current;
     if (!container) return;
     const ro = new ResizeObserver(() => recalcVisibleCount());
     ro.observe(container);
-    // Also measure after a tick so fonts/layout are painted
     const t = setTimeout(recalcVisibleCount, 60);
     return () => { ro.disconnect(); clearTimeout(t); };
   }, [recalcVisibleCount]);
 
-  // Close "More" dropdown on outside click
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
-      // Don't close if clicking inside the more button or the overflow row itself
       const target = e.target as HTMLElement;
       if (target.closest('.more-dropdown-container') || target.closest('.more-button-toggle')) {
         return;
@@ -549,736 +277,111 @@ export default function Navbar({
     return () => document.removeEventListener('mousedown', handleClick);
   }, []);
 
-  // Single nav item renderer (reused for both visible and More dropdown)
-  const renderNavItem = (item: NavigationItem, compact = false) => {
-    const hasChildren = item.children && item.children.length > 0;
-    const isOpen = desktopHoverOpen === item.id;
-    const px = compact ? 'px-2.5' : 'px-3';
-    const textSize = compact ? 'text-xs' : 'text-sm';
-    return (
-      <div
-        key={item.id}
-        className="relative shrink-0"
-        onMouseEnter={() => {
-          if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
-          setDesktopHoverOpen(item.id);
-        }}
-        onMouseLeave={() => {
-          hoverTimerRef.current = setTimeout(() => setDesktopHoverOpen(null), 150);
-        }}
-      >
-        <Link
-          href={item.url}
-          className={`flex items-center gap-1 ${px} py-2 rounded-xl ${textSize} font-semibold transition-all duration-200 whitespace-nowrap relative group/nav-item ${isOpen
-            ? 'text-[#e94560] bg-gray-50 dark:bg-white/5'
-            : 'text-gray-700 dark:text-gray-200 hover:text-[#e94560] hover:bg-gray-50 dark:hover:bg-white/5'
-            }`}
-          style={customTextColorStyle}
-        >
-          <span>{item.label}</span>
-          {hasChildren && (
-            <ChevronDown
-              className={`h-3.5 w-3.5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
-            />
-          )}
-          <span
-            className={`absolute bottom-0.5 left-2 right-2 h-[2px] bg-[#e94560] rounded-full transition-all duration-300 transform origin-left ${isOpen ? 'scale-x-100 opacity-100' : 'scale-x-0 opacity-0 group-hover/nav-item:scale-x-100 group-hover/nav-item:opacity-100'
-              }`}
-          />
-        </Link>
-        {hasChildren && isOpen && renderDesktopDropdown(item)}
-      </div>
-    );
-  };
-
-  // Desktop dynamic navigation menu renderer (first row: visible items + More button)
-  const renderDesktopNavMenu = () => {
-    if (isAdmin || navItems.length === 0 || headerDesktopMenuAlign === 'hidden') return null;
-
-    const visibleItems = navItems.slice(0, visibleCount);
-    const overflowItems = navItems.slice(visibleCount);
-    const hasOverflow = overflowItems.length > 0;
-
-    return (
-      <div ref={navContainerRef} key="desktop-nav" className="flex items-center gap-0 min-w-0 w-full">
-        {/* Hidden measurement row — renders all items off-screen to measure widths */}
-        <div
-          ref={measureRowRef}
-          aria-hidden="true"
-          className="absolute opacity-0 pointer-events-none flex items-center gap-0 top-0 left-0"
-          style={{ visibility: 'hidden', zIndex: -1 }}
-        >
-          {navItems.map((item) => (
-            <div key={item.id} className="flex items-center gap-1 px-3 py-2 text-sm font-semibold whitespace-nowrap shrink-0">
-              <span>{item.label}</span>
-              {item.children && item.children.length > 0 && <ChevronDown className="h-3.5 w-3.5" />}
-            </div>
-          ))}
-        </div>
-
-        {/* Visible items */}
-        <nav className="flex items-center gap-0">
-          {visibleItems.map((item) => renderNavItem(item))}
-        </nav>
-
-        {/* More button — toggles second row */}
-        {hasOverflow && (
-          <button
-            type="button"
-            className="more-button-toggle flex items-center gap-1 px-3 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition-all duration-200 text-gray-700 dark:text-gray-200 hover:text-[#e94560] hover:bg-gray-50 dark:hover:bg-white/5 cursor-pointer shrink-0"
-            onClick={() => {
-              const next = !moreDropdownOpen;
-              setMoreDropdownOpen(next);
-              moreOpenRef.current = next;
-            }}
-            style={customTextColorStyle}
-          >
-            <span>More</span>
-            <ChevronDown
-              className={`h-3.5 w-3.5 transition-transform duration-200 ${moreDropdownOpen ? 'rotate-180' : ''}`}
-            />
-          </button>
-        )}
-      </div>
-    );
-  };
-
-  // Overflow items row — shown below the header when More is clicked
-  const renderOverflowRow = () => {
-    if (isAdmin || navItems.length === 0 || headerDesktopMenuAlign === 'hidden') return null;
-    const overflowItems = navItems.slice(visibleCount);
-    if (overflowItems.length === 0 || !moreDropdownOpen) return null;
-
-    return (
-      <div
-        className="more-dropdown-container hidden md:block w-full border-t border-gray-100 dark:border-gray-800 animate-fade-in"
-        style={{
-          backgroundColor: headerBg !== '#ffffff' ? headerBg : undefined,
-        }}
-      >
-        <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-wrap items-center justify-center gap-0 py-1">
-          {overflowItems.map((item) => renderNavItem(item))}
-        </nav>
-      </div>
-    );
-  };
-
-
-  // Helper to recursively collect all descendant item IDs under a navigation item
-  const getDescendantIds = (node: NavigationItem): string[] => {
-    const ids: string[] = [];
-    const traverse = (n: NavigationItem) => {
-      const children = n.children || [];
-      children.forEach((c) => {
-        ids.push(c.id);
-        traverse(c);
-      });
-    };
-    traverse(node);
-    return ids;
-  };
-
-  // Recursive mobile drawer accordion menu renderer
-  const renderMobileNavItem = (item: NavigationItem, depth = 0) => {
-    const hasChildren = item.children && item.children.length > 0;
-    const isAccOpen = mobileAccordionOpen[item.id];
-
-    return (
-      <div key={item.id} className="w-full">
-        <div className="flex items-center justify-between">
-          <Link
-            href={item.url}
-            onClick={() => { if (!hasChildren) setMobileMenuOpen(false); }}
-            className="flex-1 py-2 text-sm font-bold text-gray-900 dark:text-white hover:text-[#e94560] transition-colors"
-          >
-            {item.label || (item as any).title}
-          </Link>
-          {hasChildren && (
-            <button
-              type="button"
-              onClick={() => {
-                const nextState = !isAccOpen;
-                setMobileAccordionOpen((prev) => {
-                  const updated = { ...prev, [item.id]: nextState };
-                  if (nextState) {
-                    // Automatically expand all nested sub-items/descendants
-                    getDescendantIds(item).forEach((id) => {
-                      updated[id] = true;
-                    });
-                  }
-                  return updated;
-                });
-              }}
-              className="p-1.5 text-gray-400 hover:text-[#e94560] transition-colors cursor-pointer"
-            >
-              <ChevronDown
-                className={`h-4 w-4 transition-transform duration-200 ${isAccOpen ? 'rotate-180' : ''}`}
-              />
-            </button>
-          )}
-        </div>
-        {/* Accordion sub-items */}
-        {hasChildren && isAccOpen && (
-          <div className="ml-4 mt-1 space-y-1 border-l border-gray-200 dark:border-gray-800 pl-3 animate-fade-in">
-            {item.children!.map((child) => renderMobileNavItem(child, depth + 1))}
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  // Group desktop items by alignment settings
-  const desktopLeftElements: React.ReactNode[] = [];
-  const desktopCenterElements: React.ReactNode[] = [];
-  const desktopRightElements: React.ReactNode[] = [];
-
-  const addToDesktopSlot = (align: string, element: React.ReactNode) => {
-    if (align === 'left') desktopLeftElements.push(element);
-    else if (align === 'center') desktopCenterElements.push(element);
-    else if (align === 'right') desktopRightElements.push(element);
-  };
-
-  addToDesktopSlot(desktopLogoAlign, renderLogo());
-  // Add the dynamic menu to the configured desktop alignment slot
-  addToDesktopSlot(headerDesktopMenuAlign, renderDesktopNavMenu());
-  addToDesktopSlot(desktopSearchAlign, renderSearch());
-  addToDesktopSlot(desktopWishlistAlign, renderAccountLink());
-  addToDesktopSlot(desktopWishlistAlign, renderWishlist(false));
-  addToDesktopSlot(desktopCartAlign, renderCart(false));
-  addToDesktopSlot(desktopThemeAlign, renderAdminLink());
-
-  // Group mobile items by alignment settings
-  const mobileLeftElements: React.ReactNode[] = [];
-  const mobileCenterElements: React.ReactNode[] = [];
-  const mobileRightElements: React.ReactNode[] = [];
-
-  const addToMobileSlot = (align: string, element: React.ReactNode) => {
-    if (align === 'left') mobileLeftElements.push(element);
-    else if (align === 'center') mobileCenterElements.push(element);
-    else if (align === 'right') mobileRightElements.push(element);
-  };
-
-  addToMobileSlot(mobileMenuAlign, renderMobileMenuButton());
-  addToMobileSlot(mobileLogoAlign, renderLogo());
-  addToMobileSlot(mobileSearchAlign, renderSearch());
-  addToMobileSlot(mobileWishlistAlign, renderAccountLink());
-  addToMobileSlot(mobileWishlistAlign, renderWishlist(true));
-  addToMobileSlot(mobileCartAlign, renderCart(true));
-  addToMobileSlot('right', renderAdminLink());
-
-  // Clear query on close
-  const handleCloseSearch = () => {
-    setSearchQuery('');
-    setSearchOpen(false);
-  };
+  const renderMobileNavItem = (item: NavigationItem, depth = 0) => (
+    <NavbarMobileNavItem
+      key={item.id}
+      item={item}
+      depth={depth}
+      mobileAccordionOpen={mobileAccordionOpen}
+      setMobileAccordionOpen={setMobileAccordionOpen}
+      setMobileMenuOpen={setMobileMenuOpen}
+    />
+  );
 
   return (
     <>
       {/* Top Bar Contacts & Announcements */}
-      {(showTopBar || showNewsletter) && (
-        <div
-          onClick={(e) => {
-            if (isPreview) {
-              e.preventDefault();
-              e.stopPropagation();
-              window.parent.postMessage({ type: 'select_section', sectionId: 'announcement_bar' }, '*');
-            }
-          }}
-          className={`w-full text-xs py-1 md:py-2 px-4 flex flex-col md:flex-row items-center justify-between gap-2 border-b transition-colors font-semibold ${isPreview ? 'cursor-pointer hover:ring-2 hover:ring-[#e94560] hover:ring-offset-2' : ''
-            }`}
-          style={{
-            backgroundColor: topBarBg,
-            color: topBarTextColor,
-            borderColor: headerBorderColor
-          }}
-        >
-          {/* Top Bar Contacts (Hidden on mobile/tablet, shown on desktop) */}
-          {showTopBar ? (
-            <div className="hidden md:flex flex-wrap items-center gap-4 text-[10px] sm:text-[11px] font-bold">
-              {topBarPhone && (
-                <a href={`tel:${topBarPhone.replace(/\D/g, '')}`} className="hover:opacity-85 transition-opacity flex items-center gap-1.5">
-                  <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M6.62 10.79a15.15 15.15 0 006.57 6.57l2.2-2.2a1 1 0 01.9-.27 11.36 11.36 0 00.57 3.58 1 1 0 01-.27.9l-2.2 2.2z" />
-                  </svg>
-                  <span>{topBarPhone}</span>
-                </a>
-              )}
-              {topBarEmail && (
-                <a href={`mailto:${topBarEmail}`} className="hover:opacity-85 transition-opacity flex items-center gap-1.5">
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
-                  </svg>
-                  <span>{topBarEmail}</span>
-                </a>
-              )}
-            </div>
-          ) : (
-            <div className="hidden md:block shrink-0 w-32" />
-          )}
-
-          {/* Announcement Ticker */}
-          {showNewsletter && announcementLines.length > 0 && (
-            <div className="flex-1 max-w-xl flex items-center justify-center gap-1 sm:gap-2">
-              {announcementLines.length > 1 && (
-                <button
-                  type="button"
-                  onClick={() => emblaApi?.scrollPrev()}
-                  className="w-8 h-8 flex items-center justify-center hover:opacity-85 transition-opacity cursor-pointer shrink-0 z-10 -my-1"
-                  aria-label="Previous announcement"
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                  </svg>
-                </button>
-              )}
-
-              <div className="overflow-hidden flex-1 select-none" ref={emblaRef}>
-                <div className="flex">
-                  {announcementLines.map((line, idx) => (
-                    <div
-                      key={idx}
-                      className="flex-[0_0_100%] min-w-0 text-center font-black tracking-wider truncate px-1 text-[10px] sm:text-[11px] uppercase min-h-[16px] flex items-center justify-center"
-                    >
-                      {line}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {announcementLines.length > 1 && (
-                <button
-                  type="button"
-                  onClick={() => emblaApi?.scrollNext()}
-                  className="w-8 h-8 flex items-center justify-center hover:opacity-85 transition-opacity cursor-pointer shrink-0 z-10 -my-1"
-                  aria-label="Next announcement"
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
-              )}
-            </div>
-          )}
-
-          <div className="hidden md:block shrink-0 w-32" />
-        </div>
-      )}
+      <NavbarAnnouncementBar
+        showTopBar={showTopBar}
+        showNewsletter={showNewsletter}
+        topBarPhone={topBarPhone}
+        topBarEmail={topBarEmail}
+        topBarBg={topBarBg}
+        topBarTextColor={topBarTextColor}
+        headerBorderColor={headerBorderColor}
+        announcementLines={announcementLines}
+        isPreview={isPreview}
+        emblaRef={emblaRef}
+        emblaApi={emblaApi}
+      />
 
       {/* Main Header */}
-      <header
-        onClick={(e) => {
-          if (isPreview) {
-            e.preventDefault();
-            e.stopPropagation();
-            window.parent.postMessage({ type: 'select_global_tab', subTab: 'header' }, '*');
-          }
-        }}
-        className={`${stickyClass} z-[100] w-full border-b border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-[#0f0f1b]/85  transition-colors duration-200 ${isPreview ? 'cursor-pointer hover:ring-2 hover:ring-[#e94560] hover:ring-offset-2' : ''
-          }`}
-        style={{
-          backgroundColor: headerBg !== '#ffffff' ? headerBg : undefined,
-          borderColor: headerBorderColor !== '#e5e7eb' ? headerBorderColor : undefined,
-          color: headerTextColor !== '#1a1a2e' ? headerTextColor : undefined
-        }}
-      >
-        {/* Desktop Header Layout */}
-        <div className="mx-auto hidden md:flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8 gap-3">
-          <div className="flex items-center gap-3 justify-start shrink-0">
-            {desktopLeftElements}
-          </div>
-          <div className="flex items-center justify-center flex-1 min-w-0 overflow-visible">
-            {desktopCenterElements}
-          </div>
-          <div className="flex items-center gap-2 justify-end shrink-0">
-            {desktopRightElements}
-          </div>
-        </div>
-        {/* Overflow nav row — appears when More is clicked */}
-        {renderOverflowRow()}
-
-        {/* Mobile Header Layout */}
-        <div className="mx-auto md:hidden flex h-14 items-center justify-between px-4 relative">
-          <div className="flex-1 flex items-center gap-2 justify-start shrink-0 relative z-30 pointer-events-none [&>*]:pointer-events-auto">
-            {mobileLeftElements}
-          </div>
-          <div className="absolute inset-x-0 top-0 bottom-0 flex items-center justify-center pointer-events-none z-40">
-            <div className="pointer-events-auto flex items-center max-w-[65%] justify-center">
-              {mobileCenterElements}
-            </div>
-          </div>
-          <div className="flex-1 flex items-center gap-2 justify-end shrink-0 relative z-30 pointer-events-none [&>*]:pointer-events-auto">
-            {mobileRightElements}
-          </div>
-        </div>
-      </header>
+      <NavbarHeaderBar
+        stickyClass={stickyClass}
+        isPreview={isPreview}
+        headerBg={headerBg}
+        headerBorderColor={headerBorderColor}
+        headerTextColor={headerTextColor}
+        customTextColorStyle={customTextColorStyle}
+        desktopLogoAlign={desktopLogoAlign}
+        desktopSearchAlign={desktopSearchAlign}
+        desktopWishlistAlign={desktopWishlistAlign}
+        desktopCartAlign={desktopCartAlign}
+        desktopThemeAlign={desktopThemeAlign}
+        headerDesktopMenuAlign={headerDesktopMenuAlign}
+        mobileLogoAlign={mobileLogoAlign}
+        mobileMenuAlign={mobileMenuAlign}
+        mobileSearchAlign={mobileSearchAlign}
+        mobileCartAlign={mobileCartAlign}
+        mobileWishlistAlign={mobileWishlistAlign}
+        logoNode={logoNode}
+        searchNode={searchNode}
+        wishlistDesktopNode={wishlistDesktopNode}
+        wishlistMobileNode={wishlistMobileNode}
+        cartDesktopNode={cartDesktopNode}
+        cartMobileNode={cartMobileNode}
+        accountNode={accountNode}
+        adminLinkNode={adminLinkNode}
+        mobileMenuButtonNode={mobileMenuButtonNode}
+        isAdmin={isAdmin}
+        navItems={navItems}
+        visibleCount={visibleCount}
+        moreDropdownOpen={moreDropdownOpen}
+        setMoreDropdownOpen={setMoreDropdownOpen}
+        moreOpenRef={moreOpenRef}
+        navContainerRef={navContainerRef}
+        measureRowRef={measureRowRef}
+        desktopHoverOpen={desktopHoverOpen}
+        setDesktopHoverOpen={setDesktopHoverOpen}
+        hoverTimerRef={hoverTimerRef}
+      />
 
       {/* MOBILE DRAWER MENU */}
-      {mounted && mobileMenuOpen && createPortal(
-        <div
-          onClick={() => setMobileMenuOpen(false)}
-          className="fixed inset-0 z-[150] bg-black/70 flex justify-start transition-all duration-300 animate-fade-in"
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="bg-white dark:bg-[#16162a] w-4/5 max-w-xs h-[100dvh] shadow-2xl relative flex flex-col overflow-hidden scale-up duration-200 will-change-transform"
-          >
-            {/* Scrollable content area */}
-            <div className="flex-1 overflow-y-auto overscroll-contain touch-pan-y p-6 pb-24">
-              {/* Drawer Header */}
-              <div className="flex items-center justify-between mb-6">
-                <span className="font-black text-gray-900 dark:text-white uppercase tracking-wider">Menu</span>
-                <div className="flex items-center gap-2">
+      <NavbarMobileDrawer
+        mounted={mounted}
+        mobileMenuOpen={mobileMenuOpen}
+        setMobileMenuOpen={setMobileMenuOpen}
+        isAdmin={isAdmin}
+        navItems={navItems}
+        customerSession={customerSession}
+        totalItems={totalItems}
+        wishlistCount={wishlistCount}
+        settings={settings}
+        topBarPhone={topBarPhone}
+        topBarEmail={topBarEmail}
+        storeName={storeName}
+        renderMobileNavItem={renderMobileNavItem}
+      />
 
-                  <button
-                    type="button"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors cursor-pointer flex h-10 w-10 items-center justify-center rounded-xl hover:bg-gray-100 dark:hover:bg-white/5"
-                    title="Close Menu"
-                  >
-                    <X className="h-5 w-5" />
-                  </button>
-                </div>
-              </div>
-
-
-              {/* 1. Custom Navigation Menu - FIRST SECTION (accordion) */}
-              {!isAdmin && navItems.length > 0 && (
-                <div className="mb-6">
-                  <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider block mb-3">Navigation</span>
-                  <div className="space-y-1">
-                    {navItems.map((item) => renderMobileNavItem(item))}
-                  </div>
-                </div>
-              )}
-
-              {/* 3. Secondary Links - BOTTOM SECTION */}
-              <div className="border-t border-gray-100 dark:border-gray-800 pt-6">
-                <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider block mb-3">Quick Links</span>
-                <div className="space-y-2">
-                  {customerSession ? (
-                    <Link
-                      href="/account"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="flex items-center gap-2.5 py-1.5 text-sm font-bold text-gray-900 dark:text-white hover:text-[#e94560] transition-colors"
-                    >
-                      <User className="h-4 w-4" />
-                      <span>My Account ({customerSession.name})</span>
-                    </Link>
-                  ) : (
-                    <Link
-                      href="/login"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="flex items-center gap-2.5 py-1.5 text-sm font-bold text-gray-900 dark:text-white hover:text-[#e94560] transition-colors"
-                    >
-                      <User className="h-4 w-4" />
-                      <span>Login / Register</span>
-                    </Link>
-                  )}
-                  <Link
-                    href="/cart"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex w-full items-center gap-2.5 py-1.5 text-sm font-bold text-gray-900 dark:text-white hover:text-[#e94560] transition-colors cursor-pointer"
-                  >
-                    <ShoppingCart className="h-4 w-4" />
-                    <span>Shopping Cart {mounted && totalItems > 0 && `(${totalItems})`}</span>
-                  </Link>
-                  <Link
-                    href="/wishlist"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-2.5 py-1.5 text-sm font-bold text-gray-900 dark:text-white hover:text-[#e94560] transition-colors"
-                  >
-                    <Heart className="h-4 w-4" />
-                    <span>My Wishlist {mounted && wishlistCount > 0 && `(${wishlistCount})`}</span>
-                  </Link>
-                  {settings?.showFaqInNav !== false && (
-                    <Link
-                      href="/faq"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="flex items-center gap-2.5 py-1.5 text-sm font-bold text-gray-900 dark:text-white hover:text-[#e94560] transition-colors"
-                    >
-                      <HelpCircle className="h-4 w-4" />
-                      <span>FAQ</span>
-                    </Link>
-                  )}
-                  <Link
-                    href="/reviews"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-2.5 py-1.5 text-sm font-bold text-gray-900 dark:text-white hover:text-[#e94560] transition-colors"
-                  >
-                    <Star className="h-4 w-4" />
-                    <span>Reviews</span>
-                  </Link>
-                  {settings?.showReturnsInNav !== false && (
-                    <Link
-                      href="/returns"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="flex items-center gap-2.5 py-1.5 text-sm font-bold text-gray-900 dark:text-white hover:text-[#e94560] transition-colors"
-                    >
-                      <RefreshCw className="h-4 w-4" />
-                      <span>Return Policy</span>
-                    </Link>
-                  )}
-                  {settings?.showPrivacyInNav !== false && (
-                    <Link
-                      href="/privacy-policy"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="flex items-center gap-2.5 py-1.5 text-sm font-bold text-gray-900 dark:text-white hover:text-[#e94560] transition-colors"
-                    >
-                      <Shield className="h-4 w-4" />
-                      <span>Privacy Policy</span>
-                    </Link>
-                  )}
-                </div>
-              </div>
-
-              {/* Contacts Section inside Mobile Menu drawer */}
-              {(topBarPhone || topBarEmail) && (
-                <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-800">
-                  <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider block mb-3">Contact Us</span>
-                  <div className="space-y-3">
-                    {topBarPhone && (
-                      <a
-                        href={`tel:${topBarPhone.replace(/\D/g, '')}`}
-                        className="flex items-center gap-2.5 text-xs font-bold text-gray-700 dark:text-gray-300 hover:text-[#e94560] transition-colors"
-                      >
-                        <svg className="w-4 h-4 text-gray-400 shrink-0" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M6.62 10.79a15.15 15.15 0 006.57 6.57l2.2-2.2a1 1 0 01.9-.27 11.36 11.36 0 00.57 3.58 1 1 0 01-.27.9l-2.2 2.2z" />
-                        </svg>
-                        <span>{topBarPhone}</span>
-                      </a>
-                    )}
-                    {topBarEmail && (
-                      <a
-                        href={`mailto:${topBarEmail}`}
-                        className="flex items-center gap-2.5 text-xs font-bold text-gray-700 dark:text-gray-300 hover:text-[#e94560] transition-colors"
-                      >
-                        <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
-                        </svg>
-                        <span className="truncate">{topBarEmail}</span>
-                      </a>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Footer strip */}
-            <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-800 text-[10px] text-gray-400 dark:text-gray-500 font-semibold tracking-wider uppercase shrink-0">
-              &copy; {new Date().getFullYear()} {storeName}
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
-
-      {/* DEDICATED SEARCH POPUP MODAL */}
-      {mounted && searchOpen && !isAdmin && createPortal(
-        <div className="fixed inset-0 z-[150] bg-black/75 flex items-start justify-center pt-24 px-4 transition-all duration-300 animate-fade-in overscroll-contain">
-          <div ref={containerRef} className="bg-white dark:bg-[#16162a] w-full max-w-2xl rounded-3xl border border-gray-200 dark:border-gray-800 shadow-2xl p-6 relative scale-up transition-all will-change-transform">
-
-            {/* Modal Header */}
-            <div className="flex items-center justify-between mb-4 pr-8">
-              <div>
-                <h3 className="text-base font-black text-gray-900 dark:text-white">Search Products</h3>
-                <p className="text-xs text-gray-400 dark:text-gray-500 font-semibold mt-0.5">Find products, categories, colors, sizes instantly</p>
-              </div>
-              <button
-                type="button"
-                onClick={handleCloseSearch}
-                className="absolute top-6 right-6 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors cursor-pointer"
-                title="Close"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            {/* Search Input field */}
-            <div className="relative mb-4 flex gap-2">
-              <div className="relative flex-1">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <input
-                  ref={searchInputRef}
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setShowSuggestions(true);
-                  }}
-                  onFocus={() => setShowSuggestions(true)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      setShowSuggestions(false);
-                      setSearchOpen(false);
-                      router.push(`/shop?search=${encodeURIComponent(searchQuery)}`);
-                    }
-                  }}
-                  placeholder="Type name, category, color, size, sku..."
-                  className="w-full rounded-2xl border border-gray-200 dark:border-gray-800 bg-gray-50/90 dark:bg-[#0f0f1b] py-3.5 pl-12 pr-12 text-sm font-semibold text-gray-900 dark:text-white placeholder-gray-400 focus:border-[#e94560] focus:bg-white dark:focus:bg-[#16162a] focus:outline-none focus:ring-4 focus:ring-[#e94560]/10 transition-all duration-200"
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery('')}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors cursor-pointer"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                )}
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  if (searchQuery.trim()) {
-                    setShowSuggestions(false);
-                    setSearchOpen(false);
-                    router.push(`/shop?search=${encodeURIComponent(searchQuery)}`);
-                  }
-                }}
-                className="rounded-2xl bg-[#e94560] hover:bg-[#d8344f] px-5 flex items-center justify-center text-white transition-all shadow-md active:scale-95 cursor-pointer shrink-0"
-                title="Search"
-              >
-                <Search className="h-5 w-5" />
-              </button>
-            </div>
-
-            {/* Popular Searches when empty */}
-            {searchQuery.trim().length === 0 && (
-              <div className="space-y-3 pt-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">Popular Searches</span>
-                <div className="flex flex-wrap gap-2">
-                  {(settings?.popularSearches
-                    ? settings.popularSearches.split(',').map((s) => s.trim()).filter(Boolean)
-                    : ['Co-ord Sets', 'Sonic', 'Graphic Tee', 'T-shirt', 'Kids']
-                  ).map((term) => (
-                    <button
-                      key={term}
-                      onClick={() => {
-                        setSearchQuery(term);
-                        setShowSuggestions(true);
-                        searchInputRef.current?.focus();
-                      }}
-                      className="px-3.5 py-1.5 bg-gray-50 dark:bg-gray-800 hover:bg-[#e94560] hover:text-white dark:hover:bg-[#e94560] text-gray-600 dark:text-gray-300 text-xs font-semibold rounded-xl transition-all cursor-pointer"
-                    >
-                      {term}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Recommended Products when empty */}
-            {searchQuery.trim().length === 0 && products.length > 0 && (
-              <div className="space-y-3 pt-6">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">Recommended For You</span>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {products.filter(p => p.isFeatured).concat(products.filter(p => !p.isFeatured)).slice(0, 4).map((product) => {
-                    const primaryImage = product.images?.find(img => img.isPrimary) || product.images?.[0];
-                    return (
-                      <Link
-                        key={product.id}
-                        href={`/product/${product.slug}`}
-                        onClick={() => setSearchOpen(false)}
-                        className="flex items-center gap-3 px-3 py-2.5 rounded-2xl hover:bg-gray-50 dark:hover:bg-[#1d1d36] border border-transparent hover:border-gray-100 dark:hover:border-gray-800 transition-colors cursor-pointer group"
-                      >
-                        <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-xl bg-gray-100 dark:bg-gray-800">
-                          {primaryImage ? (
-                            <img src={primaryImage.url} alt={product.name} className="h-full w-full object-cover" />
-                          ) : (
-                            <div className="h-full w-full flex items-center justify-center text-[10px] text-gray-400">No Img</div>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h4 className="text-xs font-bold text-gray-900 dark:text-white truncate group-hover:text-[#e94560] transition-colors">
-                            {product.name}
-                          </h4>
-                          <p className="text-[10px] font-black text-gray-900 dark:text-white mt-0.5">
-                            Rs. {product.price.toLocaleString()}
-                          </p>
-                        </div>
-                      </Link>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-            
-            {showSuggestions && searchQuery.trim().length > 0 && (
-              <div className="mt-2 overflow-hidden py-1 max-h-[320px] overflow-y-auto divide-y divide-gray-100 dark:divide-gray-800/50">
-                {loading ? (
-                  <div className="px-4 py-8 text-xs text-gray-500 dark:text-gray-400 flex flex-col items-center justify-center gap-3">
-                    <div className="w-6 h-6 rounded-full border-2 border-[#e94560] border-t-transparent animate-spin" />
-                    <span className="font-semibold">Searching shop...</span>
-                  </div>
-                ) : suggestions.length > 0 ? (
-                  <div className="space-y-1 pt-1">
-                    <div className="pb-2 text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">
-                      Suggested Products ({suggestions.length})
-                    </div>
-                    {suggestions.map((product) => {
-                      const primaryImage = product.images.find(img => img.isPrimary) || product.images[0];
-                      return (
-                        <Link
-                          key={product.id}
-                          href={`/product/${product.slug}`}
-                          onClick={() => setSearchOpen(false)}
-                          className="flex items-center gap-3 px-3 py-2.5 rounded-2xl hover:bg-gray-50 dark:hover:bg-white/5 transition-colors cursor-pointer group"
-                        >
-                          <div className="relative h-11 w-11 flex-shrink-0 overflow-hidden rounded-xl bg-gray-100 dark:bg-gray-800 border border-gray-100 dark:border-gray-800">
-                            {primaryImage ? (
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img
-                                src={primaryImage.url}
-                                alt={product.name}
-                                className="h-full w-full object-cover"
-                              />
-                            ) : (
-                              <div className="h-full w-full flex items-center justify-center text-[10px] text-gray-400">
-                                No Img
-                              </div>
-                            )}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h4 className="text-xs font-bold text-gray-900 dark:text-white truncate group-hover:text-[#e94560] transition-colors">
-                              {product.name}
-                            </h4>
-                            <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate mt-0.5 flex items-center gap-1">
-                              {product.category?.name || 'Uncategorized'}
-                              {product.sku && <span className="uppercase font-mono bg-gray-100 dark:bg-gray-800 px-1 rounded">SKU: {product.sku}</span>}
-                              {product.variants.length > 0 && ` • ${product.variants.length} options`}
-                            </p>
-                          </div>
-                          <div className="text-right flex-shrink-0">
-                            <span className="text-xs font-black text-gray-900 dark:text-white">
-                              Rs. {product.price.toLocaleString()}
-                            </span>
-                          </div>
-                        </Link>
-                      );
-                    })}
-
-                    <button
-                      onClick={() => {
-                        setSearchOpen(false);
-                        router.push(`/shop?search=${encodeURIComponent(searchQuery)}`);
-                      }}
-                      className="w-full text-center mt-3 text-xs font-black text-[#e94560] hover:underline py-2 cursor-pointer"
-                    >
-                      View all results for "{searchQuery}"
-                    </button>
-                  </div>
-                ) : (
-                  <div className="px-4 py-8 text-center">
-                    <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">No products found</p>
-                    <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">Try searching for another term, category, variant, or color</p>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </div>,
-        document.body
-      )}
+      {/* SEARCH POPUP MODAL */}
+      <NavbarSearchModal
+        mounted={mounted}
+        searchOpen={searchOpen}
+        isAdmin={isAdmin}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        setSearchOpen={setSearchOpen}
+        handleCloseSearch={handleCloseSearch}
+        products={products}
+        loading={loading}
+        suggestions={suggestions}
+        showSuggestions={showSuggestions}
+        setShowSuggestions={setShowSuggestions}
+        searchInputRef={searchInputRef}
+        containerRef={containerRef}
+        settings={settings}
+        router={router}
+      />
     </>
   );
 }

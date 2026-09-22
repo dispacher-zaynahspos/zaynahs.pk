@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { PaymentMethod } from '@/lib/types';
-import { revalidateTag } from 'next/cache';
+import { revalidateTagSafe } from '@/lib/revalidate';
 
 export async function getPaymentMethods(onlyActive = false): Promise<PaymentMethod[]> {
   const supabase = await createClient();
@@ -71,7 +71,7 @@ export async function createPaymentMethod(data: {
     throw error;
   }
 
-  (revalidateTag as any)('payment_methods');
+  revalidateTagSafe('payment_methods');
   return {
     id: row.id,
     name: row.name,
@@ -108,7 +108,7 @@ export async function updatePaymentMethod(
     throw error;
   }
 
-  (revalidateTag as any)('payment_methods');
+  revalidateTagSafe('payment_methods');
   return {
     id: row.id,
     name: row.name,
@@ -131,7 +131,7 @@ export async function reorderPaymentMethods(orderedIds: string[]): Promise<void>
       throw error;
     }
   }
-  (revalidateTag as any)('payment_methods');
+  revalidateTagSafe('payment_methods');
 }
 
 export async function deletePaymentMethod(id: string): Promise<void> {
@@ -146,5 +146,5 @@ export async function deletePaymentMethod(id: string): Promise<void> {
     throw error;
   }
 
-  (revalidateTag as any)('payment_methods');
+  revalidateTagSafe('payment_methods');
 }

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { submitAdminCustomReview } from '@/lib/services/reviews';
-import { submitSocialProof, updateSocialProof } from '@/lib/services/socialProof';
+import { submitSocialProof, updateSocialProof } from '@/lib/services/social-proof';
 
 export async function POST(request: NextRequest) {
   try {

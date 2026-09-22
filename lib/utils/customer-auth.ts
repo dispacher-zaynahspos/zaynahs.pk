@@ -1,5 +1,4 @@
 import crypto from 'crypto';
-import { cookies } from 'next/headers';
 
 const SECRET = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.CUSTOMER_AUTH_SECRET || 'fallback-change-in-env';
 const COOKIE_NAME = 'customer_session';
@@ -74,6 +73,7 @@ export function verifySession(token: string): CustomerSession | null {
  */
 export async function setCustomerSessionCookie(sessionData: Omit<CustomerSession, 'expiresAt'>) {
   const token = signSession(sessionData);
+  const { cookies } = await import('next/headers');
   const cookieStore = await cookies();
   cookieStore.set(COOKIE_NAME, token, {
     httpOnly: true,
@@ -89,6 +89,7 @@ export async function setCustomerSessionCookie(sessionData: Omit<CustomerSession
  */
 export async function getCustomerSession(): Promise<CustomerSession | null> {
   try {
+    const { cookies } = await import('next/headers');
     const cookieStore = await cookies();
     const cookie = cookieStore.get(COOKIE_NAME);
     if (!cookie?.value) return null;
@@ -102,6 +103,8 @@ export async function getCustomerSession(): Promise<CustomerSession | null> {
  * Clear the customer session cookie (Server Action / Route Handler only)
  */
 export async function clearCustomerSessionCookie() {
+  const { cookies } = await import('next/headers');
   const cookieStore = await cookies();
   cookieStore.delete(COOKIE_NAME);
 }
+

@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { Badge } from '@/lib/types';
-import { revalidateTag } from 'next/cache';
+import { revalidateTagSafe } from '@/lib/revalidate';
 
 const mapBadge = (row: any): Badge => ({
   id: row.id,
@@ -49,7 +49,7 @@ export const createBadge = async (badge: {
     .single();
 
   if (error) throw error;
-  (revalidateTag as any)('products');
+  revalidateTagSafe('products');
   return mapBadge(data);
 };
 
@@ -74,7 +74,7 @@ export const updateBadge = async (
     .single();
 
   if (error) throw error;
-  (revalidateTag as any)('products');
+  revalidateTagSafe('products');
   return mapBadge(data);
 };
 
@@ -86,5 +86,5 @@ export const deleteBadge = async (id: string): Promise<void> => {
     .eq('id', id);
 
   if (error) throw error;
-  (revalidateTag as any)('products');
+  revalidateTagSafe('products');
 };

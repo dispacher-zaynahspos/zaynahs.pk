@@ -24,6 +24,14 @@ Supabase relationships can be empty, and unsafe access crashes the entire Next.j
 - **Scroll & focus restoration**: every product card click saves scroll position via `saveScrollPosition(product.id)`; every listing/grid page calls `useScrollRestoration()` on back-navigation. Full detail: [19-navigation-state-restoration.md](19-navigation-state-restoration.md) RULE N1.
 - **Modal/popup performance**: never use CPU-heavy blurs (`backdrop-blur*`) on overlays — use solid/opacity overlays (`bg-black/60`). Add `will-change-transform` + `transform-gpu` to scrollable/modal containers. Apply `overscroll-contain` + smooth touch config.
 
+## Pagination Rule — Never Load Everything at Once
+- Any place rendering a list or table of data (products, orders, customers, admin tables, logs, etc.) MUST NOT fetch or render the entire dataset in one go.
+- Load the **first 20 items** only initially.
+- Show a **"Load More"** button (or infinite scroll trigger) to fetch or render the next 20 items when clicked or reached.
+- Applies **everywhere** — storefront listing pages, admin pages, dashboards, search results, dropdowns, tables, and grids.
+- For server queries, fetch batches via paginated API queries (`limit`/`offset` or cursor) rather than fetching all rows and slicing client-side.
+- Reuse a single shared pagination hook or component (`hooks/use-paginated-list.ts` or `components/shared/LoadMoreButton.tsx`) across all pages instead of writing custom pagination logic per page.
+
 ## RULE C1 — Never `headers()`/`cookies()` in store pages
 See [08-caching-isr-ssr.md](08-caching-isr-ssr.md) — calling these in any store Server Component (especially `generateMetadata`) kills ISR for the whole page (or app, if in root layout). Allowed ONLY in `app/robots.ts`, `app/sitemap.ts`, `app/admin/**`, `app/api/**`.
 

@@ -10,20 +10,21 @@ export default function AdminBulkActionBar({ selectedCount, actions, onClearSele
   if (selectedCount === 0) return null;
 
   return (
-    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-5 w-[90%] max-w-md">
-      <div className="bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-2xl shadow-2xl p-3 flex items-center justify-between border border-gray-800 dark:border-gray-200">
-        <div className="flex items-center gap-3">
-          <div className="bg-gray-800 dark:bg-gray-100 rounded-full h-8 w-8 flex items-center justify-center text-xs font-bold">
+    <div className="fixed bottom-20 md:bottom-6 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-5 w-[92%] max-w-lg select-none">
+      <div className="bg-[#1a1a2e] text-white rounded-2xl shadow-2xl p-3 sm:p-3.5 flex items-center justify-between border border-white/10 backdrop-blur-md">
+        <div className="flex items-center gap-2.5">
+          <div className="bg-[#e94560] text-white rounded-full h-7 w-7 flex items-center justify-center text-xs font-black shadow-xs">
             {selectedCount}
           </div>
-          <span className="text-sm font-medium">Selected</span>
+          <span className="text-xs font-bold tracking-tight text-white">Selected</span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {actions}
           {onClearSelection && (
             <button
+              type="button"
               onClick={onClearSelection}
-              className="px-3 py-1.5 text-xs font-medium bg-gray-800 dark:bg-gray-100 text-white dark:text-gray-900 rounded-lg hover:bg-gray-700 dark:hover:bg-gray-200 transition-colors"
+              className="px-3 py-1.5 text-xs font-bold bg-white/10 hover:bg-white/20 text-white rounded-xl transition-all cursor-pointer"
             >
               Cancel
             </button>
@@ -33,3 +34,4 @@ export default function AdminBulkActionBar({ selectedCount, actions, onClearSele
     </div>
   );
 }
+

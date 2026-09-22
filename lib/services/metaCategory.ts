@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { MetaCategoryMapping } from '@/lib/types';
-import { revalidateTag } from 'next/cache';
+import { revalidateTagSafe } from '@/lib/revalidate';
 
 /**
  * Retrieves all category mappings from storefront categories to standard Meta categories.
@@ -56,7 +56,7 @@ export async function upsertMetaCategoryMapping(
       );
 
     if (error) throw error;
-    (revalidateTag as any)('meta-category-mappings');
+    revalidateTagSafe('meta-category-mappings');
   } catch (error) {
     console.error('[metaCategory] upsertMetaCategoryMapping failed:', error);
     throw error;

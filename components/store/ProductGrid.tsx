@@ -2,22 +2,37 @@ import React from 'react';
 import { Product, StoreSettings } from '@/lib/types';
 import ProductCard from './ProductCard';
 import EmptyState from '../common/EmptyState';
+import { getResponsiveGridClasses } from '@/lib/utils/responsiveGrid';
 
 interface ProductGridProps {
   products: Product[];
   currencySymbol?: string;
   settings?: StoreSettings | null;
+  columnsDesktop?: number;
+  columnsTablet?: number;
+  columnsMobile?: number;
 }
 
-export default function ProductGrid({ products, currencySymbol, settings }: ProductGridProps) {
+export default function ProductGrid({
+  products,
+  currencySymbol,
+  settings,
+  columnsDesktop,
+  columnsTablet,
+  columnsMobile,
+}: ProductGridProps) {
   if (products.length === 0) {
     return <EmptyState />;
   }
 
-  const mobileCols = settings?.card_mobile_columns === 1 ? 'grid-cols-1' : 'grid-cols-2';
+  const gridClasses = getResponsiveGridClasses({
+    mobile: columnsMobile ?? (settings?.card_mobile_columns === 1 ? 1 : 2),
+    tablet: columnsTablet ?? 3,
+    desktop: columnsDesktop ?? 4,
+  });
 
   return (
-    <div className={`grid ${mobileCols} gap-4 sm:grid-cols-3 lg:grid-cols-4`}>
+    <div className={`grid gap-2.5 sm:gap-3.5 md:gap-4 lg:gap-5 ${gridClasses}`}>
       {products.map((product, index) => (
         <ProductCard key={product.id} product={product} currencySymbol={currencySymbol} settings={settings} priority={index < 6} />
       ))}

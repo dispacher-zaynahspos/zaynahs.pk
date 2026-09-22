@@ -416,3 +416,57 @@ main#admin-main-content:has(.fixed.z-50) {
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
 }
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(203, 213, 225, 0.6);
+  border-radius: 9999px;
+}
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(71, 85, 105, 0.6);
+}
+
+/* ============================================================
+   ADMIN SAAS DENSITY, ISOLATION & ZOOM-OUT SYSTEM
+   ============================================================ */
+.admin-shell,
+.admin-shell * {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+}
+
+.admin-shell :is(h1, h2, h3, h4, h5, h6, .font-heading, [class*="font-heading"]) {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.015em !important;
+}
+
+/* Compact form inputs & selects in admin */
+.admin-shell input[type="text"],
+.admin-shell input[type="number"],
+.admin-shell input[type="email"],
+.admin-shell input[type="password"],
+.admin-shell input[type="tel"],
+.admin-shell select {
+  font-size: 12px !important;
+  border-radius: 10px !important;
+}
+
+/* Theme accent highlights in admin */
+.admin-shell .bg-theme-primary {
+  background-color: var(--color-primary, #C2185B) !important;
+  color: #ffffff !important;
+}
+.admin-shell .text-theme-primary {
+  color: var(--color-primary, #C2185B) !important;
+}
+.admin-shell .border-theme-primary {
+  border-color: var(--color-primary, #C2185B) !important;
+}
+
+

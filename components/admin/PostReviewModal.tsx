@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Image, Plus, Package, Send, Check, Search } from '@/components/common/Icons';
 import { submitAdminCustomReview } from '@/lib/services/reviews';
-import { submitSocialProof, updateSocialProof } from '@/lib/services/socialProof';
+import { submitSocialProof, updateSocialProof } from '@/lib/services/social-proof';
 import { getAllProductsAdmin } from '@/lib/services/products';
 import { SocialProof, Product } from '@/lib/types';
 import MediaSelectorModal from './MediaSelectorModal';

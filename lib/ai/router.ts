@@ -79,7 +79,7 @@ async function isNearLimit(provider: string): Promise<boolean> {
   const usage = await getDailyUsage(provider, today);
 
   const limits: Record<string, number> = {
-    google: GOOGLE_FREE_LIMITS['gemini-2.5-flash']?.reqPerDay || 1500,
+    google: GOOGLE_FREE_LIMITS['gemini-3.5-flash']?.reqPerDay || 1500,
     groq: GROQ_FREE_LIMITS.reqPerDay || 14400,
     mistral: 10000,
     openrouter: 5000,
@@ -105,8 +105,8 @@ export async function routeVision(
   if (keys.google) {
     fallbackChain.push({
       provider: 'google',
-      model: 'gemini-2.5-flash',
-      call: () => callGoogle(keys.google!, 'gemini-2.5-flash', prompt, systemPrompt, true, base64, mimeType),
+      model: 'gemini-3.5-flash',
+      call: () => callGoogle(keys.google!, 'gemini-3.5-flash', prompt, systemPrompt, true, base64, mimeType),
     });
   }
   if (keys.groq) {
@@ -126,8 +126,8 @@ export async function routeVision(
   if (keys.openrouter) {
     fallbackChain.push({
       provider: 'openrouter',
-      model: 'google/gemini-2.5-flash-preview:free',
-      call: () => callOpenRouter(keys.openrouter!, 'google/gemini-2.5-flash-preview:free', prompt, systemPrompt, true, base64, mimeType),
+      model: 'meta-llama/llama-3.2-11b-vision-instruct:free',
+      call: () => callOpenRouter(keys.openrouter!, 'meta-llama/llama-3.2-11b-vision-instruct:free', prompt, systemPrompt, true, base64, mimeType),
     });
   }
 
@@ -169,8 +169,8 @@ export async function routeText(
   if (keys.google) {
     fallbackChain.push({
       provider: 'google',
-      model: 'gemini-2.5-flash',
-      call: () => callGoogle(keys.google!, 'gemini-2.5-flash', prompt, systemPrompt, false),
+      model: 'gemini-3.5-flash',
+      call: () => callGoogle(keys.google!, 'gemini-3.5-flash', prompt, systemPrompt, false),
     });
   }
   if (keys.mistral) {
@@ -262,6 +262,30 @@ export function extractKeys(settings: AISettings): { vision: Record<string, stri
     } else if (provider === 'google') {
       text['gemini'] = cleanKey;
     }
+  }
+
+  // Fallback to environment keys if not configured in settings
+  const envGemini = (process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY)?.trim();
+  if (envGemini) {
+    if (!vision.google) vision.google = envGemini;
+    if (!vision.gemini) vision.gemini = envGemini;
+    if (!text.google) text.google = envGemini;
+    if (!text.gemini) text.gemini = envGemini;
+  }
+  const envGroq = process.env.GROQ_API_KEY?.trim();
+  if (envGroq) {
+    if (!text.groq) text.groq = envGroq;
+    if (!vision.groq) vision.groq = envGroq;
+  }
+  const envMistral = process.env.MISTRAL_API_KEY?.trim();
+  if (envMistral) {
+    if (!text.mistral) text.mistral = envMistral;
+    if (!vision.mistral) vision.mistral = envMistral;
+  }
+  const envOpenRouter = process.env.OPENROUTER_API_KEY?.trim();
+  if (envOpenRouter) {
+    if (!text.openrouter) text.openrouter = envOpenRouter;
+    if (!vision.openrouter) vision.openrouter = envOpenRouter;
   }
 
   return { vision, text };

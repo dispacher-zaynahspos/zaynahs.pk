@@ -5,7 +5,7 @@ import { getCategories } from '@/lib/services/categories';
 import { getSettings } from '@/lib/services/settings';
 import { getTopReviews } from '@/lib/services/reviews';
 import { getHomepageSections } from '@/lib/services/sections';
-import { getActiveSocialProofCount } from '@/lib/services/socialProof';
+import { getActiveSocialProofCount } from '@/lib/services/social-proof';
 import { getDomainBrand } from '@/lib/utils/getDomainBrand';
 import { Metadata } from 'next';
 

@@ -4,6 +4,101 @@
 
 ---
 
+### [2026-09-08] v6.3.0 — Recently Viewed Custom Titles, Shop Quick Category Chips & Infinite Scroll (Multi-Project Applied)
+**Files Updated:**
+- [supabase/schema/SUPER_MASTER_SCHEMA.sql](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/supabase/schema/SUPER_MASTER_SCHEMA.sql)
+- [lib/types/settings.ts](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/lib/types/settings.ts)
+- [lib/services/settings/mappers/types.ts](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/lib/services/settings/mappers/types.ts)
+- [lib/services/settings/mappers/dbToSettingsMapper.ts](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/lib/services/settings/mappers/dbToSettingsMapper.ts)
+- [lib/services/settings/mutations.ts](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/lib/services/settings/mutations.ts)
+- [components/admin/customizer/pages/ProductDetailPageSettings.tsx](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/components/admin/customizer/pages/ProductDetailPageSettings.tsx)
+- [components/admin/customizer/pages/ShopPageSettings.tsx](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/components/admin/customizer/pages/ShopPageSettings.tsx)
+- [components/store/RecentlyViewed.tsx](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/components/store/RecentlyViewed.tsx)
+- [app/admin/settings/customizer/preview/preview-client/ProductPageBlocks.tsx](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/app/admin/settings/customizer/preview/preview-client/ProductPageBlocks.tsx)
+- [components/store/ShopPage.tsx](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/components/store/ShopPage.tsx)
+- [components/store/shared/ProductGridSkeleton.tsx](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/components/store/shared/ProductGridSkeleton.tsx)
+
+**Changes:**
+1. Added `recently_viewed_title` (TEXT DEFAULT 'Recently Viewed') and `recently_viewed_subtitle` (TEXT DEFAULT 'Products you have recently browsed') to `store_settings`:
+   - Configurable in Customizer under Product Detail Settings > Recently Viewed.
+   - Dynamic in live storefront PDP and Admin Preview Client.
+2. Added `shop_category_chips_enabled` (BOOLEAN DEFAULT true) to `store_settings`:
+   - Horizontal category chips bar on `/shop` for instant 1-tap category switching without opening filter drawer.
+   - Toggleable in Customizer under Shop Page Settings > Layout.
+3. Added `shop_infinite_scroll` (BOOLEAN DEFAULT false) to `store_settings`:
+   - Supports smooth automated loading of next products on scroll via IntersectionObserver.
+   - Toggleable in Customizer under Shop Page Settings > Layout (Infinite Scroll vs Load More button).
+4. Created `ProductGridSkeleton.tsx` with responsive columns and shimmer gradient.
+5. **Executed & Verified across all 4 production project DBs** via Supabase Management API:
+   - Zaynahs (`unfdpfmjqljbjydgsccr`) — 201 OK
+   - TotVogue (`ziucrfpebpxijqhwmqre`) — 201 OK
+   - MiniMahal (`mgwkcumurrllhpjvfezz`) — 201 OK
+   - LittleMister (`ljknmwianiswkalifueb`) — 201 OK
+
+---
+
+### [2026-09-08] v6.2.0 — Responsive Grid Columns & Section Controls Sync (Multi-Project Applied)
+**Files Updated:**
+- [supabase/schema/SUPER_MASTER_SCHEMA.sql](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/supabase/schema/SUPER_MASTER_SCHEMA.sql)
+- [lib/types/settings.ts](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/lib/types/settings.ts)
+- [lib/services/settings/mappers/types.ts](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/lib/services/settings/mappers/types.ts)
+- [lib/services/settings/mappers/dbToSettingsMapper.ts](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/lib/services/settings/mappers/dbToSettingsMapper.ts)
+- [lib/services/settings/mutations.ts](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/lib/services/settings/mutations.ts)
+- [lib/utils/responsiveGrid.ts](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/lib/utils/responsiveGrid.ts)
+- [components/admin/customizer/shared/ResponsiveGridColumnsControl.tsx](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/components/admin/customizer/shared/ResponsiveGridColumnsControl.tsx)
+- [components/admin/customizer/sections/CollectionsGridSettings.tsx](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/components/admin/customizer/sections/CollectionsGridSettings.tsx)
+- [components/admin/customizer/sections/ProductGridSettings.tsx](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/components/admin/customizer/sections/ProductGridSettings.tsx)
+- [components/admin/customizer/pages/ProductDetailPageSettings.tsx](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/components/admin/customizer/pages/ProductDetailPageSettings.tsx)
+- [components/admin/customizer/pages/ShopPageSettings.tsx](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/components/admin/customizer/pages/ShopPageSettings.tsx)
+- [components/store/ShopPage.tsx](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/components/store/ShopPage.tsx)
+- [components/store/ProductGrid.tsx](file:///Users/store/ProductGrid.tsx)
+- [components/store/RecentlyViewed.tsx](file:///Users/store/RecentlyViewed.tsx)
+- [app/(store)/product/[slug]/page.tsx](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/app/(store)/product/[slug]/page.tsx)
+
+**Changes:**
+1. Added responsive columns (Mobile: 1-3, Tablet: 2-4, Desktop: 3-8) to `store_settings`:
+   - `recently_viewed_columns_desktop`, `recently_viewed_columns_tablet`, `recently_viewed_columns_mobile`
+   - `related_columns_desktop`, `related_columns_tablet`, `related_columns_mobile`
+   - `shop_columns_desktop`, `shop_columns_tablet`, `shop_columns_mobile`
+   - `related_products_enabled`, `related_products_title`, `related_products_subtitle`, `related_products_limit`
+2. Collections Grid & Product Grid Controls Synchronized:
+   - Section Title enable/disable toggle
+   - Upper View All link (toggle, text, url)
+   - Bottom View All button (toggle, text, url, bg color)
+   - Responsive grid columns controller hooked to topbar device switcher (`[Desktop] [Tablet] [Mobile]`).
+3. `/shop` Catalog Filter & Categories Sidebar:
+   - Made independently scrollable (`sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto overscroll-contain scrollbar-thin`) separate from the product catalog grid.
+4. **Executed & Verified across all 4 production project DBs** via Supabase Management API:
+   - Zaynahs (`unfdpfmjqljbjydgsccr`) — 201 OK
+   - TotVogue (`ziucrfpebpxijqhwmqre`) — 201 OK
+   - MiniMahal (`mgwkcumurrllhpjvfezz`) — 201 OK
+   - LittleMister (`ljknmwianiswkalifueb`) — 201 OK
+
+---
+
+### [2026-09-08] v6.1.0 — Product Detail Quick WhatsApp Toggle (Multi-Project Applied)
+**Files Updated:**
+- [supabase/schema/SUPER_MASTER_SCHEMA.sql](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/supabase/schema/SUPER_MASTER_SCHEMA.sql)
+- [lib/types.ts](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/lib/types.ts)
+- [lib/services/settings/mappers/types.ts](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/lib/services/settings/mappers/types.ts)
+- [lib/services/settings/mappers/settingsMapper.ts](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/lib/services/settings/mappers/settingsMapper.ts)
+- [lib/services/settings/mutations.ts](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/lib/services/settings/mutations.ts)
+- [components/admin/customizer/pages/ProductDetailPageSettings.tsx](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/components/admin/customizer/pages/ProductDetailPageSettings.tsx)
+- [components/store/product-detail/ProductDetailInfo.tsx](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/components/store/product-detail/ProductDetailInfo.tsx)
+- [components/store/product-detail/ProductDetailStickyBar.tsx](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/components/store/product-detail/ProductDetailStickyBar.tsx)
+
+**Changes:**
+1. Added `enable_product_quick_whatsapp` BOOLEAN DEFAULT true column to `store_settings`.
+2. Added toggle in Admin Customizer under Product Detail Settings (below Swatch Size).
+3. Converted PDP Quick WhatsApp button to sleek, compact, smart button and made it conditionally rendered based on settings.
+4. **Executed & Verified across all 4 production project DBs** via Supabase Management API:
+   - Zaynahs (`unfdpfmjqljbjydgsccr`) — 201 OK
+   - TotVogue (`ziucrfpebpxijqhwmqre`) — 201 OK
+   - MiniMahal (`mgwkcumurrllhpjvfezz`) — 201 OK
+   - LittleMister (`ljknmwianiswkalifueb`) — 201 OK
+
+---
+
 ### [2026-08-03] v6.0.0 — Multi-Vertical Sub-Store System (Landing Hub → Sub-Stores)
 **Files Updated:**
 - [supabase/schema/SUPER_MASTER_SCHEMA.sql](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/supabase/schema/SUPER_MASTER_SCHEMA.sql) (v2.4.0)

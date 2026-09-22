@@ -1,18 +1,23 @@
 export const OPENROUTER_FREE_TEXT = [
   'meta-llama/llama-3.3-70b-instruct:free',
-  'meta-llama/llama-4-maverick:free',
-  'meta-llama/llama-4-scout:free',
   'deepseek/deepseek-r1:free',
   'deepseek/deepseek-chat:free',
   'qwen/qwen3-235b-a22b:free',
+  'qwen/qwen3-30b-a3b:free',
+  'google/gemma-3-27b-it:free',
+  'google/gemma-3-12b-it:free',
+  'meta-llama/llama-3.1-8b-instruct:free',
+  'meta-llama/llama-4-scout:free',
 ] as const;
 
 export const OPENROUTER_FREE_VISION = [
-  'google/gemini-2.5-flash-preview:free',
-  'meta-llama/llama-4-maverick:free',
-  'meta-llama/llama-4-scout:free',
   'meta-llama/llama-3.2-11b-vision-instruct:free',
+  'qwen/qwen2.5-vl-72b-instruct:free',
   'qwen/qwen2.5-vl-7b-instruct:free',
+  'mistralai/pixtral-12b:free',
+  'meta-llama/llama-4-scout:free',
+  'meta-llama/llama-4-maverick:free',
+  'google/gemma-3-27b-it:free',
   'microsoft/phi-4-multimodal-instruct:free',
 ] as const;
 
@@ -35,14 +40,19 @@ export async function callOpenRouter(
     ];
   }
 
-  const body = {
+  const wantsJson = /json|\{|\}/i.test(prompt) || /json/i.test(systemPrompt);
+
+  const body: any = {
     model,
     messages: [
       { role: 'system', content: systemPrompt },
       { role: 'user', content: userContent },
     ],
-    response_format: { type: 'json_object' },
   };
+
+  if (wantsJson) {
+    body.response_format = { type: 'json_object' };
+  }
 
   const res = await fetch(url, {
     method: 'POST',

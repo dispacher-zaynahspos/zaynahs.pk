@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAISettings } from '@/lib/aiEngine';
+import { getAISettings } from '@/lib/ai';
 import { routeVision, extractKeys } from '@/lib/ai/router';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 

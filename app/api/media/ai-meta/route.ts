@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
-import { getAISettings } from '@/lib/aiEngine';
+import { getAISettings } from '@/lib/ai';
 import { routeVision, extractKeys } from '@/lib/ai/router';
 
 export async function POST(request: Request) {

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { uploadImage } from '@/lib/uploadImage';
-import { getAISettings } from '@/lib/aiEngine';
+import { getAISettings } from '@/lib/ai';
 import { routeVision, extractKeys } from '@/lib/ai/router';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 
