@@ -8,14 +8,12 @@ const jakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
   variable: '--font-heading',
   display: 'swap',
-  weight: ['400', '500', '600', '700', '800'],
 });
 
 const outfit = Outfit({
   subsets: ['latin'],
   variable: '--font-body',
   display: 'swap',
-  weight: ['300', '400', '500', '600'],
 });
 
 import ThemeStyleRegistry from '@/components/common/ThemeStyleRegistry';
