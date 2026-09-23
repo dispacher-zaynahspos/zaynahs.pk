@@ -62,19 +62,22 @@ async function purgeStore(file) {
 
   // 2. Next.js Revalidate Webhook
   if (site && site.startsWith('http')) {
+    const cleanSite = site.replace(/\/+$/, '');
     try {
-      const res = await fetch(`${site}/api/revalidate`, {
+      const res = await fetch(`${cleanSite}/api/revalidate`, {
         method: 'POST',
         headers: {
+          'x-revalidate-secret': revalidateSecret,
           'Authorization': `Bearer ${revalidateSecret}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ paths: ['/', '/shop', '/reviews'] })
+        body: JSON.stringify({ table: 'deploy', type: 'deploy' })
       });
       if (res.ok) {
         console.log(`  ✅ Next.js On-Demand ISR Revalidated: OK (${res.status})`);
       } else {
-        console.log(`  ℹ️ Next.js Revalidate response: HTTP ${res.status}`);
+        const text = await res.text().catch(() => '');
+        console.log(`  ℹ️ Next.js Revalidate response: HTTP ${res.status} (${text})`);
       }
     } catch (e) {
       console.log(`  ℹ️ Revalidate webhook notice: ${e.message}`);
