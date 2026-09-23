@@ -12,6 +12,7 @@ import { getPresetImageUrl } from '@/lib/utils/imageUrl';
 import { ProductCardSwatches, VariationGroup } from './product-card/ProductCardSwatches';
 import { ProductCardShowcases } from './product-card/ProductCardShowcases';
 import { StandardProductCard } from './product-card/StandardProductCard';
+import { saveScrollPosition } from '@/lib/hooks/useScrollRestoration';
 
 // Lazy load QuickViewModal to reduce initial JS bundle
 const QuickViewModal = dynamic(() => import('./QuickViewModal'), {
@@ -44,6 +45,44 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
   const showQuickcart = settings?.card_show_quickcart !== false;
   const cardAlignment = settings?.card_alignment || 'left';
   const elementsOrder = settings?.card_elements_order || ['title', 'rating', 'price', 'swatches'];
+
+  // Persistent touch/focus management across catalog cards
+  useEffect(() => {
+    if (!touchActive) return;
+
+    const handleOutsideInteraction = (e: MouseEvent | TouchEvent) => {
+      const cardEl = document.getElementById(`product-card-${product.id}`);
+      if (cardEl && !cardEl.contains(e.target as Node)) {
+        setTouchActive(false);
+      }
+    };
+
+    const handleCardFocusEvent = (e: Event) => {
+      const customEvent = e as CustomEvent<{ activeId: string }>;
+      if (customEvent.detail?.activeId !== product.id) {
+        setTouchActive(false);
+      }
+    };
+
+    window.addEventListener('pointerdown', handleOutsideInteraction as EventListener, true);
+    window.addEventListener('product-card-focus', handleCardFocusEvent as EventListener);
+
+    return () => {
+      window.removeEventListener('pointerdown', handleOutsideInteraction as EventListener, true);
+      window.removeEventListener('product-card-focus', handleCardFocusEvent as EventListener);
+    };
+  }, [touchActive, product.id]);
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    const isTouch = typeof window !== 'undefined' && window.matchMedia('(hover: none), (pointer: coarse)').matches;
+    if (isTouch && !touchActive) {
+      e.preventDefault();
+      setTouchActive(true);
+      window.dispatchEvent(new CustomEvent('product-card-focus', { detail: { activeId: product.id } }));
+      return;
+    }
+    saveScrollPosition(product.id);
+  };
 
   useEffect(() => {
     const checkWishlist = () => {
@@ -313,6 +352,7 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
           onToggleWishlist={handleToggleWishlist}
           onOpenQuickView={handleOpenQuickView}
           onAddToCart={handleAddToCart}
+          onCardClick={handleCardClick}
         />
       ) : (
         <StandardProductCard
@@ -344,6 +384,7 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
           onToggleWishlist={handleToggleWishlist}
           onOpenQuickView={handleOpenQuickView}
           onAddToCart={handleAddToCart}
+          onCardClick={handleCardClick}
         />
       )}
 

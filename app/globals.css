@@ -79,12 +79,12 @@
 
 /* Typography Scale */
 h1 {
-  @apply font-heading text-3xl font-bold tracking-tight;
+  @apply font-heading tracking-tight;
   text-wrap: balance;
 }
 
 h2 {
-  @apply font-heading text-2xl font-bold tracking-tight;
+  @apply font-heading tracking-tight;
   text-wrap: balance;
 }
 

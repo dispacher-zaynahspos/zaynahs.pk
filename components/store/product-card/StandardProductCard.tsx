@@ -37,6 +37,7 @@ interface StandardProductCardProps {
   onToggleWishlist: (e: React.MouseEvent) => void;
   onOpenQuickView: (e: React.MouseEvent) => void;
   onAddToCart: (e: React.MouseEvent) => void;
+  onCardClick?: (e: React.MouseEvent) => void;
 }
 
 export const StandardProductCard: React.FC<StandardProductCardProps> = ({
@@ -68,6 +69,7 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
   onToggleWishlist,
   onOpenQuickView,
   onAddToCart,
+  onCardClick,
 }) => {
   const renderElement = (element: string) => {
     switch (element) {
@@ -135,12 +137,9 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
     <Link
       id={`product-card-${product.id}`}
       href={`/product/${product.slug}`}
-      onClick={() => saveScrollPosition(product.id)}
-      onTouchStart={() => setTouchActive(true)}
-      onTouchEnd={() => setTouchActive(false)}
-      onTouchCancel={() => setTouchActive(false)}
+      onClick={onCardClick || (() => saveScrollPosition(product.id))}
       style={{ borderRadius: 'var(--border-radius-card, 16px)' }}
-      className="group flex flex-col overflow-hidden border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] shadow-xs hover:shadow-md transition-all duration-300"
+      className={`group flex flex-col overflow-hidden border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] shadow-xs hover:shadow-md transition-all duration-300 ${touchActive ? 'touch-active' : ''}`}
     >
       <div className={`relative ${aspectClass} w-full overflow-hidden bg-gray-50 dark:bg-black/10`}>
         <Image

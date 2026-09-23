@@ -249,7 +249,7 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
                     {product.category.name}
                   </span>
                 )}
-                <h2 className="text-base sm:text-lg md:text-xl font-heading font-extrabold text-gray-900 dark:text-white leading-snug tracking-tight break-words [text-wrap:balance]">
+                <h2 className="text-sm sm:text-base md:text-lg font-heading font-semibold text-gray-900 dark:text-white leading-snug tracking-normal break-words [text-wrap:balance]">
                   {product.name}
                 </h2>
               </div>
