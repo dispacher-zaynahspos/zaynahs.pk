@@ -3,7 +3,11 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Product, Category } from '@/lib/types';
-import { updateProductFieldsAction as updateProductFields, updateProductVariantFieldsAction as updateProductVariantFields } from '@/lib/services/products/actions';
+import { 
+  bulkUpdateInventoryAction,
+  BulkInventoryUpdateItem,
+  BulkInventoryVariantUpdateItem
+} from '@/lib/services/products/actions';
 import { toast } from 'sonner';
 import { 
   SlidersHorizontal,
@@ -17,6 +21,7 @@ import ImagePreviewModal from '@/components/admin/ImagePreviewModal';
 
 import { InventoryTable } from './inventory-manager/InventoryTable';
 import { InventoryMobileCards } from './inventory-manager/InventoryMobileCards';
+import { InventorySaveBar } from './inventory-manager/InventorySaveBar';
 
 interface InventoryManagerProps {
   products: Product[];
@@ -34,7 +39,13 @@ export default function InventoryManager({ products: initialProducts, categories
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
-  const [updatingIds, setUpdatingIds] = useState<Record<string, boolean>>({});
+
+  // Staged pending changes state (key = productId or variantId, value = new edited number or raw string)
+  const [pendingProductStock, setPendingProductStock] = useState<Record<string, number | string>>({});
+  const [pendingProductThreshold, setPendingProductThreshold] = useState<Record<string, number | string>>({});
+  const [pendingVariantStock, setPendingVariantStock] = useState<Record<string, number | string>>({});
+  const [pendingVariantThreshold, setPendingVariantThreshold] = useState<Record<string, number | string>>({});
+  const [isSavingAll, setIsSavingAll] = useState(false);
 
   /** Save inventory nav context then open product edit page */
   const handleEditProduct = (productId: string) => {
@@ -53,118 +64,222 @@ export default function InventoryManager({ products: initialProducts, categories
     }));
   };
 
-  // Inline updater for non-variant products
-  const handleUpdateProductStock = async (productId: string, newStock: number) => {
-    const idKey = `stock-${productId}`;
-    setUpdatingIds(prev => ({ ...prev, [idKey]: true }));
-    try {
-      await updateProductFields(productId, { stock: newStock });
-      setProducts(prev => prev.map(p => p.id === productId ? { ...p, stock: newStock } : p));
-      toast.success('Stock updated successfully');
-    } catch (err) {
-      toast.error('Failed to update stock');
-    } finally {
-      setUpdatingIds(prev => ({ ...prev, [idKey]: false }));
+  // Staging handlers for non-variant products
+  const handlePendingProductStockChange = (productId: string, rawVal: number | string) => {
+    const original = products.find(p => p.id === productId)?.stock ?? 0;
+    if (String(rawVal) === String(original)) {
+      setPendingProductStock(prev => {
+        const next = { ...prev };
+        delete next[productId];
+        return next;
+      });
+    } else {
+      setPendingProductStock(prev => ({ ...prev, [productId]: rawVal }));
     }
   };
 
-  const handleUpdateProductThreshold = async (productId: string, newThreshold: number) => {
-    const idKey = `threshold-${productId}`;
-    setUpdatingIds(prev => ({ ...prev, [idKey]: true }));
-    try {
-      await updateProductFields(productId, { inventoryThreshold: newThreshold });
-      setProducts(prev => prev.map(p => p.id === productId ? { ...p, inventoryThreshold: newThreshold } : p));
-      toast.success('Threshold updated successfully');
-    } catch (err) {
-      toast.error('Failed to update threshold');
-    } finally {
-      setUpdatingIds(prev => ({ ...prev, [idKey]: false }));
+  const handlePendingProductThresholdChange = (productId: string, rawVal: number | string) => {
+    const prod = products.find(p => p.id === productId);
+    const original = prod?.inventoryThreshold !== undefined && prod?.inventoryThreshold !== null ? prod.inventoryThreshold : 5;
+    if (String(rawVal) === String(original)) {
+      setPendingProductThreshold(prev => {
+        const next = { ...prev };
+        delete next[productId];
+        return next;
+      });
+    } else {
+      setPendingProductThreshold(prev => ({ ...prev, [productId]: rawVal }));
     }
   };
 
-  // Inline updater for variants
-  const handleUpdateVariantStock = async (productId: string, variantId: string, newStock: number) => {
-    const idKey = `stock-${variantId}`;
-    setUpdatingIds(prev => ({ ...prev, [idKey]: true }));
+  // Staging handlers for variants
+  const handlePendingVariantStockChange = (productId: string, variantId: string, rawVal: number | string) => {
+    const prod = products.find(p => p.id === productId);
+    const variant = prod?.variants?.find(v => v.id === variantId);
+    const original = variant?.stock ?? 0;
+    if (String(rawVal) === String(original)) {
+      setPendingVariantStock(prev => {
+        const next = { ...prev };
+        delete next[variantId];
+        return next;
+      });
+    } else {
+      setPendingVariantStock(prev => ({ ...prev, [variantId]: rawVal }));
+    }
+  };
+
+  const handlePendingVariantThresholdChange = (productId: string, variantId: string, rawVal: number | string) => {
+    const prod = products.find(p => p.id === productId);
+    const variant = prod?.variants?.find(v => v.id === variantId);
+    const original = variant?.inventoryThreshold !== undefined && variant?.inventoryThreshold !== null ? variant.inventoryThreshold : 5;
+    if (String(rawVal) === String(original)) {
+      setPendingVariantThreshold(prev => {
+        const next = { ...prev };
+        delete next[variantId];
+        return next;
+      });
+    } else {
+      setPendingVariantThreshold(prev => ({ ...prev, [variantId]: rawVal }));
+    }
+  };
+
+  // Bulk staging handlers for selected variants within a product
+  const handleBulkStageVariantStock = (productId: string, variantIds: string[], newStock: number) => {
+    const prod = products.find(p => p.id === productId);
+    setPendingVariantStock(prev => {
+      const next = { ...prev };
+      for (const vId of variantIds) {
+        const variant = prod?.variants?.find(v => v.id === vId);
+        const original = variant?.stock ?? 0;
+        if (newStock === original) {
+          delete next[vId];
+        } else {
+          next[vId] = newStock;
+        }
+      }
+      return next;
+    });
+    setSelectedVariantIds(prev => prev.filter(id => !variantIds.includes(id)));
+    toast.info(`Updated stock for ${variantIds.length} variants (click Save All Changes to apply)`);
+  };
+
+  const handleBulkStageVariantThreshold = (productId: string, variantIds: string[], newThreshold: number) => {
+    const prod = products.find(p => p.id === productId);
+    setPendingVariantThreshold(prev => {
+      const next = { ...prev };
+      for (const vId of variantIds) {
+        const variant = prod?.variants?.find(v => v.id === vId);
+        const original = variant?.inventoryThreshold !== undefined && variant?.inventoryThreshold !== null ? variant.inventoryThreshold : 5;
+        if (newThreshold === original) {
+          delete next[vId];
+        } else {
+          next[vId] = newThreshold;
+        }
+      }
+      return next;
+    });
+    setSelectedVariantIds(prev => prev.filter(id => !variantIds.includes(id)));
+    toast.info(`Updated threshold for ${variantIds.length} variants (click Save All Changes to apply)`);
+  };
+
+  // Count total distinct items (products or variants) modified
+  const pendingEditedItemIds = new Set<string>([
+    ...Object.keys(pendingProductStock),
+    ...Object.keys(pendingProductThreshold),
+    ...Object.keys(pendingVariantStock),
+    ...Object.keys(pendingVariantThreshold),
+  ]);
+  const totalPendingChanges = pendingEditedItemIds.size;
+  const hasUnsavedChanges = totalPendingChanges > 0;
+
+  // Discard all staged changes
+  const handleDiscardAll = () => {
+    setPendingProductStock({});
+    setPendingProductThreshold({});
+    setPendingVariantStock({});
+    setPendingVariantThreshold({});
+    toast.info('Discarded all unsaved inventory changes');
+  };
+
+  // Save all staged changes in 1 single network request
+  const handleSaveAllChanges = async () => {
+    if (!hasUnsavedChanges) return;
+    setIsSavingAll(true);
     try {
-      await updateProductVariantFields(variantId, { stock: newStock });
-      setProducts(prev => prev.map(p => {
-        if (p.id !== productId) return p;
-        const updatedVariants = p.variants.map(v => v.id === variantId ? { ...v, stock: newStock } : v);
-        const computedStock = updatedVariants.reduce((sum, v) => sum + v.stock, 0);
+      // 1. Build products payload
+      const changedProdIds = new Set<string>([
+        ...Object.keys(pendingProductStock),
+        ...Object.keys(pendingProductThreshold),
+      ]);
+      const productsPayload: BulkInventoryUpdateItem[] = Array.from(changedProdIds).map(id => {
+        const stockVal = pendingProductStock[id] !== undefined ? parseInt(String(pendingProductStock[id]), 10) : undefined;
+        const threshVal = pendingProductThreshold[id] !== undefined ? parseInt(String(pendingProductThreshold[id]), 10) : undefined;
         return {
-          ...p,
-          variants: updatedVariants,
-          stock: computedStock
+          id,
+          stock: !isNaN(stockVal as number) ? stockVal : undefined,
+          inventoryThreshold: !isNaN(threshVal as number) ? threshVal : undefined,
         };
-      }));
-      toast.success('Variant stock updated successfully');
+      });
+
+      // 2. Build variants payload
+      const changedVarIds = new Set<string>([
+        ...Object.keys(pendingVariantStock),
+        ...Object.keys(pendingVariantThreshold),
+      ]);
+      const variantsPayload: BulkInventoryVariantUpdateItem[] = Array.from(changedVarIds).map(vId => {
+        const parentProd = products.find(p => p.variants?.some(v => v.id === vId));
+        const stockVal = pendingVariantStock[vId] !== undefined ? parseInt(String(pendingVariantStock[vId]), 10) : undefined;
+        const threshVal = pendingVariantThreshold[vId] !== undefined ? parseInt(String(pendingVariantThreshold[vId]), 10) : undefined;
+        return {
+          id: vId,
+          productId: parentProd?.id,
+          stock: !isNaN(stockVal as number) ? stockVal : undefined,
+          inventoryThreshold: !isNaN(threshVal as number) ? threshVal : undefined,
+        };
+      });
+
+      await bulkUpdateInventoryAction({
+        products: productsPayload,
+        variants: variantsPayload,
+      });
+
+      // 3. Update local state
+      setProducts(prevProducts => {
+        return prevProducts.map(prod => {
+          let updatedProd = { ...prod };
+
+          if (pendingProductStock[prod.id] !== undefined) {
+            const val = parseInt(String(pendingProductStock[prod.id]), 10);
+            if (!isNaN(val)) updatedProd.stock = val;
+          }
+          if (pendingProductThreshold[prod.id] !== undefined) {
+            const val = parseInt(String(pendingProductThreshold[prod.id]), 10);
+            if (!isNaN(val)) updatedProd.inventoryThreshold = val;
+          }
+
+          if (prod.hasVariants && prod.variants) {
+            let variantsChanged = false;
+            const updatedVariants = prod.variants.map(v => {
+              let updatedV = { ...v };
+              if (pendingVariantStock[v.id] !== undefined) {
+                const val = parseInt(String(pendingVariantStock[v.id]), 10);
+                if (!isNaN(val)) {
+                  updatedV.stock = val;
+                  variantsChanged = true;
+                }
+              }
+              if (pendingVariantThreshold[v.id] !== undefined) {
+                const val = parseInt(String(pendingVariantThreshold[v.id]), 10);
+                if (!isNaN(val)) {
+                  updatedV.inventoryThreshold = val;
+                  variantsChanged = true;
+                }
+              }
+              return updatedV;
+            });
+
+            if (variantsChanged) {
+              updatedProd.variants = updatedVariants;
+              updatedProd.stock = updatedVariants.reduce((sum, v) => sum + v.stock, 0);
+            }
+          }
+
+          return updatedProd;
+        });
+      });
+
+      // 4. Reset pending states
+      setPendingProductStock({});
+      setPendingProductThreshold({});
+      setPendingVariantStock({});
+      setPendingVariantThreshold({});
+
+      toast.success(`Saved all changes successfully (${totalPendingChanges} item(s) updated)`);
     } catch (err) {
-      toast.error('Failed to update variant stock');
+      console.error('Failed to save bulk inventory:', err);
+      toast.error('Failed to save inventory changes. Please try again.');
     } finally {
-      setUpdatingIds(prev => ({ ...prev, [idKey]: false }));
-    }
-  };
-
-  const handleUpdateVariantThreshold = async (productId: string, variantId: string, newThreshold: number) => {
-    const idKey = `threshold-${variantId}`;
-    setUpdatingIds(prev => ({ ...prev, [idKey]: true }));
-    try {
-      await updateProductVariantFields(variantId, { inventoryThreshold: newThreshold });
-      setProducts(prev => prev.map(p => {
-        if (p.id !== productId) return p;
-        const updatedVariants = p.variants.map(v => v.id === variantId ? { ...v, inventoryThreshold: newThreshold } : v);
-        return {
-          ...p,
-          variants: updatedVariants
-        };
-      }));
-      toast.success('Variant threshold updated successfully');
-    } catch (err) {
-      toast.error('Failed to update variant threshold');
-    } finally {
-      setUpdatingIds(prev => ({ ...prev, [idKey]: false }));
-    }
-  };
-
-  // Bulk updater for variants
-  const handleBulkUpdateVariantStock = async (productId: string, variantIds: string[], newStock: number) => {
-    const toastId = toast.loading(`Updating stock for ${variantIds.length} variants...`);
-    try {
-      await Promise.all(variantIds.map(id => updateProductVariantFields(id, { stock: newStock })));
-      setProducts(prev => prev.map(p => {
-        if (p.id !== productId) return p;
-        const updatedVariants = p.variants.map(v => variantIds.includes(v.id) ? { ...v, stock: newStock } : v);
-        const computedStock = updatedVariants.reduce((sum, v) => sum + v.stock, 0);
-        return {
-          ...p,
-          variants: updatedVariants,
-          stock: computedStock
-        };
-      }));
-      setSelectedVariantIds(prev => prev.filter(id => !variantIds.includes(id)));
-      toast.success('Selected variant stocks updated successfully', { id: toastId });
-    } catch (err) {
-      toast.error('Failed to update variant stock', { id: toastId });
-    }
-  };
-
-  const handleBulkUpdateVariantThreshold = async (productId: string, variantIds: string[], newThreshold: number) => {
-    const toastId = toast.loading(`Updating thresholds for ${variantIds.length} variants...`);
-    try {
-      await Promise.all(variantIds.map(id => updateProductVariantFields(id, { inventoryThreshold: newThreshold })));
-      setProducts(prev => prev.map(p => {
-        if (p.id !== productId) return p;
-        const updatedVariants = p.variants.map(v => variantIds.includes(v.id) ? { ...v, inventoryThreshold: newThreshold } : v);
-        return {
-          ...p,
-          variants: updatedVariants
-        };
-      }));
-      setSelectedVariantIds(prev => prev.filter(id => !variantIds.includes(id)));
-      toast.success('Selected variant thresholds updated successfully', { id: toastId });
-    } catch (err) {
-      toast.error('Failed to update variant thresholds', { id: toastId });
+      setIsSavingAll(false);
     }
   };
 
@@ -192,14 +307,20 @@ export default function InventoryManager({ products: initialProducts, categories
 
     if (showLowStockOnly) {
       if (product.hasVariants) {
-        const hasLowStockVariant = product.variants.some(v => {
-          const threshold = v.inventoryThreshold !== undefined && v.inventoryThreshold !== null ? v.inventoryThreshold : 5;
-          return v.stock <= threshold;
+        const hasLowStockVariant = product.variants?.some(v => {
+          const pVal = pendingVariantStock[v.id];
+          const stock = pVal !== undefined ? (parseInt(String(pVal), 10) || 0) : v.stock;
+          const pThresh = pendingVariantThreshold[v.id];
+          const threshold = pThresh !== undefined ? (parseInt(String(pThresh), 10) || 0) : (v.inventoryThreshold ?? 5);
+          return stock <= threshold;
         });
         if (!hasLowStockVariant) return false;
       } else {
-        const threshold = product.inventoryThreshold !== undefined && product.inventoryThreshold !== null ? product.inventoryThreshold : 5;
-        if (product.stock > threshold) return false;
+        const pVal = pendingProductStock[product.id];
+        const stock = pVal !== undefined ? (parseInt(String(pVal), 10) || 0) : product.stock;
+        const pThresh = pendingProductThreshold[product.id];
+        const threshold = pThresh !== undefined ? (parseInt(String(pThresh), 10) || 0) : (product.inventoryThreshold ?? 5);
+        if (stock > threshold) return false;
       }
     }
 
@@ -213,12 +334,12 @@ export default function InventoryManager({ products: initialProducts, categories
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative pb-16">
       {/* Header section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Inventory Management</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Manage stock quantities and alert thresholds inline</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Manage stock quantities and alert thresholds with 1-time bulk saving</p>
         </div>
       </div>
 
@@ -274,13 +395,16 @@ export default function InventoryManager({ products: initialProducts, categories
             toggleExpand={toggleExpand}
             selectedVariantIds={selectedVariantIds}
             setSelectedVariantIds={setSelectedVariantIds}
-            updatingIds={updatingIds}
-            handleUpdateProductStock={handleUpdateProductStock}
-            handleUpdateProductThreshold={handleUpdateProductThreshold}
-            handleUpdateVariantStock={handleUpdateVariantStock}
-            handleUpdateVariantThreshold={handleUpdateVariantThreshold}
-            handleBulkUpdateVariantStock={handleBulkUpdateVariantStock}
-            handleBulkUpdateVariantThreshold={handleBulkUpdateVariantThreshold}
+            pendingProductStock={pendingProductStock}
+            pendingProductThreshold={pendingProductThreshold}
+            pendingVariantStock={pendingVariantStock}
+            pendingVariantThreshold={pendingVariantThreshold}
+            onPendingProductStockChange={handlePendingProductStockChange}
+            onPendingProductThresholdChange={handlePendingProductThresholdChange}
+            onPendingVariantStockChange={handlePendingVariantStockChange}
+            onPendingVariantThresholdChange={handlePendingVariantThresholdChange}
+            onBulkStageVariantStock={handleBulkStageVariantStock}
+            onBulkStageVariantThreshold={handleBulkStageVariantThreshold}
             handleEditProduct={handleEditProduct}
             setPreviewImageUrl={setPreviewImageUrl}
           />
@@ -292,13 +416,16 @@ export default function InventoryManager({ products: initialProducts, categories
             toggleExpand={toggleExpand}
             selectedVariantIds={selectedVariantIds}
             setSelectedVariantIds={setSelectedVariantIds}
-            updatingIds={updatingIds}
-            handleUpdateProductStock={handleUpdateProductStock}
-            handleUpdateProductThreshold={handleUpdateProductThreshold}
-            handleUpdateVariantStock={handleUpdateVariantStock}
-            handleUpdateVariantThreshold={handleUpdateVariantThreshold}
-            handleBulkUpdateVariantStock={handleBulkUpdateVariantStock}
-            handleBulkUpdateVariantThreshold={handleBulkUpdateVariantThreshold}
+            pendingProductStock={pendingProductStock}
+            pendingProductThreshold={pendingProductThreshold}
+            pendingVariantStock={pendingVariantStock}
+            pendingVariantThreshold={pendingVariantThreshold}
+            onPendingProductStockChange={handlePendingProductStockChange}
+            onPendingProductThresholdChange={handlePendingProductThresholdChange}
+            onPendingVariantStockChange={handlePendingVariantStockChange}
+            onPendingVariantThresholdChange={handlePendingVariantThresholdChange}
+            onBulkStageVariantStock={handleBulkStageVariantStock}
+            onBulkStageVariantThreshold={handleBulkStageVariantThreshold}
             setPreviewImageUrl={setPreviewImageUrl}
           />
 
@@ -311,6 +438,15 @@ export default function InventoryManager({ products: initialProducts, categories
           />
         </div>
       )}
+
+      {/* Floating 1-Time Bulk Save Bar */}
+      <InventorySaveBar
+        hasUnsavedChanges={hasUnsavedChanges}
+        pendingChangesCount={totalPendingChanges}
+        isSaving={isSavingAll}
+        onSave={handleSaveAllChanges}
+        onDiscard={handleDiscardAll}
+      />
       
       <ImagePreviewModal 
         url={previewImageUrl} 

@@ -48,7 +48,7 @@ export function ProductDetailPriceTimer({
                   <span className="text-sm text-gray-400 line-through font-semibold font-body">
                     {formatPrice(currentComparePrice, settings.currencySymbol)}
                   </span>
-                  <span className="rounded-md bg-[#0f172a] px-2 py-0.5 text-[10px] font-black text-white tracking-wide">
+                  <span className="rounded-md bg-[#10b981] px-2 py-0.5 text-[10px] font-black text-white tracking-wide">
                     -{pct}%
                   </span>
                 </div>
@@ -73,7 +73,7 @@ export function ProductDetailPriceTimer({
                     <span className="text-xs text-gray-400 line-through font-semibold font-body">
                       {formatPrice(currentComparePrice, settings.currencySymbol)}
                     </span>
-                    <span className="rounded-md bg-[#0f172a] px-1.5 py-0.5 text-[9px] font-black text-white tracking-wide leading-none">
+                    <span className="rounded-md bg-[#10b981] px-1.5 py-0.5 text-[9px] font-black text-white tracking-wide leading-none">
                       -{pct}%
                     </span>
                   </span>

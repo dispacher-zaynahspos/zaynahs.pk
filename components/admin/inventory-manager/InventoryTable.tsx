@@ -1,13 +1,11 @@
 'use client';
 
 import React from 'react';
-import { ChevronDown, ChevronRight, Loader2, Edit } from '@/components/common/Icons';
+import { ChevronDown, ChevronRight, Edit } from '@/components/common/Icons';
 import { Product } from '@/lib/types';
-import { getSwatchStyle } from '@/lib/utils/swatch';
 import TableThumbnail from '@/components/admin/TableThumbnail';
-import { getStockBadge, renderProductStatus } from './inventoryUtils';
+import { renderProductStatus } from './inventoryUtils';
 import { InventoryVariantSubtable } from './InventoryVariantSubtable';
-import { toast } from 'sonner';
 
 interface InventoryTableProps {
   paginatedProducts: Product[];
@@ -15,13 +13,16 @@ interface InventoryTableProps {
   toggleExpand: (productId: string) => void;
   selectedVariantIds: string[];
   setSelectedVariantIds: React.Dispatch<React.SetStateAction<string[]>>;
-  updatingIds: Record<string, boolean>;
-  handleUpdateProductStock: (productId: string, newStock: number) => Promise<void>;
-  handleUpdateProductThreshold: (productId: string, newThreshold: number) => Promise<void>;
-  handleUpdateVariantStock: (productId: string, variantId: string, newStock: number) => Promise<void>;
-  handleUpdateVariantThreshold: (productId: string, variantId: string, newThreshold: number) => Promise<void>;
-  handleBulkUpdateVariantStock: (productId: string, variantIds: string[], newStock: number) => Promise<void>;
-  handleBulkUpdateVariantThreshold: (productId: string, variantIds: string[], newThreshold: number) => Promise<void>;
+  pendingProductStock: Record<string, number | string>;
+  pendingProductThreshold: Record<string, number | string>;
+  pendingVariantStock: Record<string, number | string>;
+  pendingVariantThreshold: Record<string, number | string>;
+  onPendingProductStockChange: (productId: string, val: number | string) => void;
+  onPendingProductThresholdChange: (productId: string, val: number | string) => void;
+  onPendingVariantStockChange: (productId: string, variantId: string, val: number | string) => void;
+  onPendingVariantThresholdChange: (productId: string, variantId: string, val: number | string) => void;
+  onBulkStageVariantStock: (productId: string, variantIds: string[], newStock: number) => void;
+  onBulkStageVariantThreshold: (productId: string, variantIds: string[], newThreshold: number) => void;
   handleEditProduct: (productId: string) => void;
   setPreviewImageUrl: (url: string | null) => void;
 }
@@ -32,13 +33,16 @@ export function InventoryTable({
   toggleExpand,
   selectedVariantIds,
   setSelectedVariantIds,
-  updatingIds,
-  handleUpdateProductStock,
-  handleUpdateProductThreshold,
-  handleUpdateVariantStock,
-  handleUpdateVariantThreshold,
-  handleBulkUpdateVariantStock,
-  handleBulkUpdateVariantThreshold,
+  pendingProductStock,
+  pendingProductThreshold,
+  pendingVariantStock,
+  pendingVariantThreshold,
+  onPendingProductStockChange,
+  onPendingProductThresholdChange,
+  onPendingVariantStockChange,
+  onPendingVariantThresholdChange,
+  onBulkStageVariantStock,
+  onBulkStageVariantThreshold,
   handleEditProduct,
   setPreviewImageUrl,
 }: InventoryTableProps) {
@@ -59,7 +63,38 @@ export function InventoryTable({
           <tbody className="divide-y divide-gray-100 dark:divide-gray-800 text-xs">
             {paginatedProducts.map(product => {
               const isExpanded = expandedProducts[product.id] ?? false;
-              const threshold = product.inventoryThreshold !== undefined && product.inventoryThreshold !== null ? product.inventoryThreshold : 5;
+              const originalThreshold = product.inventoryThreshold !== undefined && product.inventoryThreshold !== null ? product.inventoryThreshold : 5;
+              
+              const isStockModified = pendingProductStock[product.id] !== undefined && String(pendingProductStock[product.id]) !== String(product.stock);
+              const currentStockVal = pendingProductStock[product.id] !== undefined ? pendingProductStock[product.id] : product.stock;
+              const effectiveStock = isStockModified ? (parseInt(String(currentStockVal), 10) || 0) : product.stock;
+
+              const isThresholdModified = pendingProductThreshold[product.id] !== undefined && String(pendingProductThreshold[product.id]) !== String(originalThreshold);
+              const currentThresholdVal = pendingProductThreshold[product.id] !== undefined ? pendingProductThreshold[product.id] : originalThreshold;
+              const effectiveThreshold = isThresholdModified ? (parseInt(String(currentThresholdVal), 10) || 0) : originalThreshold;
+
+              const anyVariantStockModified = product.hasVariants && product.variants?.some(
+                v => pendingVariantStock[v.id] !== undefined && String(pendingVariantStock[v.id]) !== String(v.stock)
+              );
+
+              const computedTotalStockWithVariants = product.hasVariants && product.variants
+                ? product.variants.reduce((sum, v) => {
+                    const pVal = pendingVariantStock[v.id];
+                    return sum + (pVal !== undefined ? (parseInt(String(pVal), 10) || 0) : v.stock);
+                  }, 0)
+                : effectiveStock;
+
+              // Construct effective product to reflect changes in the status badge dynamically
+              const effectiveProductForStatus: Product = {
+                ...product,
+                stock: computedTotalStockWithVariants,
+                inventoryThreshold: effectiveThreshold,
+                variants: product.hasVariants && product.variants ? product.variants.map(v => ({
+                  ...v,
+                  stock: pendingVariantStock[v.id] !== undefined ? (parseInt(String(pendingVariantStock[v.id]), 10) || 0) : v.stock,
+                  inventoryThreshold: pendingVariantThreshold[v.id] !== undefined ? (parseInt(String(pendingVariantThreshold[v.id]), 10) || 0) : (v.inventoryThreshold ?? 5),
+                })) : product.variants,
+              };
               
               return (
                 <React.Fragment key={product.id}>
@@ -69,7 +104,7 @@ export function InventoryTable({
                         <button
                           type="button"
                           onClick={() => toggleExpand(product.id)}
-                          className="text-gray-400 hover:text-gray-700 dark:hover:text-white p-1 rounded-md hover:bg-gray-100 dark:hover:bg-[#252542] transition-all"
+                          className="text-gray-400 hover:text-gray-700 dark:hover:text-white p-1 rounded-md hover:bg-gray-100 dark:hover:bg-[#252542] transition-all cursor-pointer"
                         >
                           {isExpanded ? (
                             <ChevronDown className="h-4 w-4" />
@@ -109,38 +144,29 @@ export function InventoryTable({
                     </td>
                     <td className="py-2.5 px-3">
                       {product.hasVariants ? (
-                        <span className="font-bold text-xs text-gray-500 dark:text-gray-400">
-                          {product.stock} (total across variants)
-                        </span>
+                        <div className="flex items-center gap-1.5">
+                          <span className={`font-bold text-xs ${anyVariantStockModified ? 'text-amber-600 dark:text-amber-400 font-black' : 'text-gray-500 dark:text-gray-400'}`}>
+                            {computedTotalStockWithVariants} (total across variants)
+                          </span>
+                          {anyVariantStockModified && (
+                            <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse flex-shrink-0" title="Unsaved variant edits" />
+                          )}
+                        </div>
                       ) : (
                         <div className="flex items-center gap-2 max-w-[120px]">
-                          <div className="flex items-center border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-[#0f0f1b] focus-within:border-primary transition-all">
+                          <div className={`flex items-center border rounded-lg overflow-hidden bg-white dark:bg-[#0f0f1b] transition-all ${
+                            isStockModified
+                              ? 'border-amber-400 dark:border-amber-500 ring-2 ring-amber-400/40 bg-amber-50/40 dark:bg-amber-950/20'
+                              : 'border-gray-200 dark:border-gray-700 focus-within:border-primary'
+                          }`}>
                             <input
                               type="number"
-                              defaultValue={product.stock}
+                              value={currentStockVal}
                               style={{ borderWidth: 0 }}
                               className="w-16 bg-transparent text-xs text-center font-bold text-gray-900 dark:text-white px-2 py-1.5 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                              onBlur={(e) => {
-                                const val = parseInt(e.target.value, 10);
-                                if (!isNaN(val) && val !== product.stock) {
-                                  handleUpdateProductStock(product.id, val);
-                                }
-                              }}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                  e.preventDefault();
-                                  const val = parseInt((e.target as HTMLInputElement).value, 10);
-                                  if (!isNaN(val)) {
-                                    handleUpdateProductStock(product.id, val);
-                                    (e.target as HTMLInputElement).blur();
-                                  }
-                                }
-                              }}
+                              onChange={(e) => onPendingProductStockChange(product.id, e.target.value)}
                             />
                           </div>
-                          {updatingIds[`stock-${product.id}`] && (
-                            <Loader2 className="h-3.5 w-3.5 animate-spin text-[#e94560]" />
-                          )}
                         </div>
                       )}
                     </td>
@@ -149,39 +175,25 @@ export function InventoryTable({
                         <span className="text-xs text-gray-400">Set per variant</span>
                       ) : (
                         <div className="flex items-center gap-2 max-w-[120px]">
-                          <div className="flex items-center border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-[#0f0f1b] focus-within:border-primary transition-all">
+                          <div className={`flex items-center border rounded-lg overflow-hidden bg-white dark:bg-[#0f0f1b] transition-all ${
+                            isThresholdModified
+                              ? 'border-amber-400 dark:border-amber-500 ring-2 ring-amber-400/40 bg-amber-50/40 dark:bg-amber-950/20'
+                              : 'border-gray-200 dark:border-gray-700 focus-within:border-primary'
+                          }`}>
                             <input
                               type="number"
-                              defaultValue={threshold}
+                              value={currentThresholdVal}
                               style={{ borderWidth: 0 }}
                               className="w-16 bg-transparent text-xs text-center font-bold text-gray-900 dark:text-white px-2 py-1.5 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                              onBlur={(e) => {
-                                const val = parseInt(e.target.value, 10);
-                                if (!isNaN(val) && val !== threshold) {
-                                  handleUpdateProductThreshold(product.id, val);
-                                }
-                              }}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                  e.preventDefault();
-                                  const val = parseInt((e.target as HTMLInputElement).value, 10);
-                                  if (!isNaN(val)) {
-                                    handleUpdateProductThreshold(product.id, val);
-                                    (e.target as HTMLInputElement).blur();
-                                  }
-                                }
-                              }}
+                              onChange={(e) => onPendingProductThresholdChange(product.id, e.target.value)}
                             />
                           </div>
-                          {updatingIds[`threshold-${product.id}`] && (
-                            <Loader2 className="h-3.5 w-3.5 animate-spin text-[#e94560]" />
-                          )}
                         </div>
                       )}
                     </td>
                     <td className="py-2.5 px-4 text-right whitespace-nowrap">
                       <div className="flex items-center justify-end gap-2 whitespace-nowrap">
-                        {renderProductStatus(product)}
+                        {renderProductStatus(effectiveProductForStatus)}
                         <button
                           type="button"
                           onClick={() => handleEditProduct(product.id)}
@@ -200,11 +212,12 @@ export function InventoryTable({
                       product={product}
                       selectedVariantIds={selectedVariantIds}
                       setSelectedVariantIds={setSelectedVariantIds}
-                      updatingIds={updatingIds}
-                      handleUpdateVariantStock={handleUpdateVariantStock}
-                      handleUpdateVariantThreshold={handleUpdateVariantThreshold}
-                      handleBulkUpdateVariantStock={handleBulkUpdateVariantStock}
-                      handleBulkUpdateVariantThreshold={handleBulkUpdateVariantThreshold}
+                      pendingVariantStock={pendingVariantStock}
+                      pendingVariantThreshold={pendingVariantThreshold}
+                      onPendingVariantStockChange={onPendingVariantStockChange}
+                      onPendingVariantThresholdChange={onPendingVariantThresholdChange}
+                      onBulkStageVariantStock={onBulkStageVariantStock}
+                      onBulkStageVariantThreshold={onBulkStageVariantThreshold}
                     />
                   )}
                 </React.Fragment>

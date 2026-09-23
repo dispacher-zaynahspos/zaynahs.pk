@@ -93,9 +93,9 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
       href={`/product/${product.slug}`}
       onClick={() => saveScrollPosition(product.id)}
       onTouchStart={() => setTouchActive(true)}
-      onTouchEnd={() => setTouchActive(false)}
+      onTouchEnd={() => setTimeout(() => setTouchActive(false), 2000)}
       onTouchCancel={() => setTouchActive(false)}
-      className={`${scClass} group relative`}
+      className={`${scClass} group relative ${touchActive ? 'touch-active' : ''}`}
     >
       <div className={`img-box relative ${aspectClass} w-full ${imgBgClass}`}>
         <ProductCardBadges
@@ -147,7 +147,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
     return (
       <>
         <ProductCardStyleInjector />
-        <div className="z-card-container flex flex-col h-full">
+        <div className={`z-card-container flex flex-col h-full ${touchActive ? 'touch-active' : ''}`}>
           <div className="sc3-wrap">
             {renderContent}
           </div>
@@ -159,7 +159,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
   return (
     <>
       <ProductCardStyleInjector />
-      <div className="z-card-container flex flex-col h-full">
+      <div className={`z-card-container flex flex-col h-full ${touchActive ? 'touch-active' : ''}`}>
         {renderContent}
       </div>
     </>

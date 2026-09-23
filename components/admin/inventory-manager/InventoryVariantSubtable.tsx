@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { Loader2 } from '@/components/common/Icons';
 import { Product } from '@/lib/types';
 import { getSwatchStyle } from '@/lib/utils/swatch';
 import { getStockBadge } from './inventoryUtils';
@@ -11,22 +10,24 @@ interface InventoryVariantSubtableProps {
   product: Product;
   selectedVariantIds: string[];
   setSelectedVariantIds: React.Dispatch<React.SetStateAction<string[]>>;
-  updatingIds: Record<string, boolean>;
-  handleUpdateVariantStock: (productId: string, variantId: string, newStock: number) => Promise<void>;
-  handleUpdateVariantThreshold: (productId: string, variantId: string, newThreshold: number) => Promise<void>;
-  handleBulkUpdateVariantStock: (productId: string, variantIds: string[], newStock: number) => Promise<void>;
-  handleBulkUpdateVariantThreshold: (productId: string, variantIds: string[], newThreshold: number) => Promise<void>;
+  pendingVariantStock: Record<string, number | string>;
+  pendingVariantThreshold: Record<string, number | string>;
+  onPendingVariantStockChange: (productId: string, variantId: string, val: number | string) => void;
+  onPendingVariantThresholdChange: (productId: string, variantId: string, val: number | string) => void;
+  onBulkStageVariantStock: (productId: string, variantIds: string[], newStock: number) => void;
+  onBulkStageVariantThreshold: (productId: string, variantIds: string[], newThreshold: number) => void;
 }
 
 export function InventoryVariantSubtable({
   product,
   selectedVariantIds,
   setSelectedVariantIds,
-  updatingIds,
-  handleUpdateVariantStock,
-  handleUpdateVariantThreshold,
-  handleBulkUpdateVariantStock,
-  handleBulkUpdateVariantThreshold,
+  pendingVariantStock,
+  pendingVariantThreshold,
+  onPendingVariantStockChange,
+  onPendingVariantThresholdChange,
+  onBulkStageVariantStock,
+  onBulkStageVariantThreshold,
 }: InventoryVariantSubtableProps) {
   return (
     <tr>
@@ -53,13 +54,13 @@ export function InventoryVariantSubtable({
                     const val = parseInt(input?.value, 10);
                     if (!isNaN(val)) {
                       const vIds = product.variants.filter(v => selectedVariantIds.includes(v.id)).map(v => v.id);
-                      handleBulkUpdateVariantStock(product.id, vIds, val);
+                      onBulkStageVariantStock(product.id, vIds, val);
                       if (input) input.value = '';
                     } else {
                       toast.error('Please enter a valid stock number');
                     }
                   }}
-                  className="px-3 py-1.5 bg-[#e94560] hover:bg-[#e94560]/95 text-white rounded-lg text-xs font-bold transition-all"
+                  className="px-3 py-1.5 bg-[#e94560] hover:bg-[#e94560]/95 text-white rounded-lg text-xs font-bold transition-all cursor-pointer"
                 >
                   Apply
                 </button>
@@ -81,13 +82,13 @@ export function InventoryVariantSubtable({
                     const val = parseInt(input?.value, 10);
                     if (!isNaN(val)) {
                       const vIds = product.variants.filter(v => selectedVariantIds.includes(v.id)).map(v => v.id);
-                      handleBulkUpdateVariantThreshold(product.id, vIds, val);
+                      onBulkStageVariantThreshold(product.id, vIds, val);
                       if (input) input.value = '';
                     } else {
                       toast.error('Please enter a valid threshold number');
                     }
                   }}
-                  className="px-3 py-1.5 bg-[#e94560] hover:bg-[#e94560]/95 text-white rounded-lg text-xs font-bold transition-all"
+                  className="px-3 py-1.5 bg-[#e94560] hover:bg-[#e94560]/95 text-white rounded-lg text-xs font-bold transition-all cursor-pointer"
                 >
                   Apply
                 </button>
@@ -99,7 +100,7 @@ export function InventoryVariantSubtable({
                   const vIds = product.variants.map(v => v.id);
                   setSelectedVariantIds(prev => prev.filter(id => !vIds.includes(id)));
                 }}
-                className="px-3 py-1.5 bg-gray-200 hover:bg-gray-250 dark:bg-gray-800 dark:hover:bg-gray-750 text-gray-700 dark:text-gray-350 rounded-lg text-xs font-bold transition-all"
+                className="px-3 py-1.5 bg-gray-200 hover:bg-gray-250 dark:bg-gray-800 dark:hover:bg-gray-750 text-gray-700 dark:text-gray-350 rounded-lg text-xs font-bold transition-all cursor-pointer"
               >
                 Cancel
               </button>
@@ -137,6 +138,14 @@ export function InventoryVariantSubtable({
                 const variantLabel = [variant.color, variant.size, variant.material, variant.customValue].filter(Boolean).join(' / ') || 'Default';
                 const variantThreshold = variant.inventoryThreshold !== undefined && variant.inventoryThreshold !== null ? variant.inventoryThreshold : 5;
                 
+                const isStockModified = pendingVariantStock[variant.id] !== undefined && String(pendingVariantStock[variant.id]) !== String(variant.stock);
+                const currentStockVal = pendingVariantStock[variant.id] !== undefined ? pendingVariantStock[variant.id] : variant.stock;
+                const effectiveStock = isStockModified ? (parseInt(String(currentStockVal), 10) || 0) : variant.stock;
+
+                const isThresholdModified = pendingVariantThreshold[variant.id] !== undefined && String(pendingVariantThreshold[variant.id]) !== String(variantThreshold);
+                const currentThresholdVal = pendingVariantThreshold[variant.id] !== undefined ? pendingVariantThreshold[variant.id] : variantThreshold;
+                const effectiveThreshold = isThresholdModified ? (parseInt(String(currentThresholdVal), 10) || 0) : variantThreshold;
+
                 return (
                   <tr key={variant.id} className="hover:bg-gray-150/20 dark:hover:bg-[#1e1e3b]/20 transition-colors">
                     <td className="py-2.5 px-4 text-center">
@@ -166,69 +175,41 @@ export function InventoryVariantSubtable({
                     </td>
                     <td className="py-2.5 px-4">
                       <div className="flex items-center gap-2">
-                        <div className="flex items-center border border-gray-250 dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-[#0f0f1b] focus-within:border-primary transition-all">
+                        <div className={`flex items-center border rounded-lg overflow-hidden bg-white dark:bg-[#0f0f1b] transition-all ${
+                          isStockModified
+                            ? 'border-amber-400 dark:border-amber-500 ring-2 ring-amber-400/40 bg-amber-50/40 dark:bg-amber-950/20'
+                            : 'border-gray-250 dark:border-gray-700 focus-within:border-primary'
+                        }`}>
                           <input
                             type="number"
-                            defaultValue={variant.stock}
+                            value={currentStockVal}
                             style={{ borderWidth: 0 }}
                             className="w-14 bg-transparent text-xs text-center font-bold text-gray-900 dark:text-white px-2 py-1 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                            onBlur={(e) => {
-                              const val = parseInt(e.target.value, 10);
-                              if (!isNaN(val) && val !== variant.stock) {
-                                handleUpdateVariantStock(product.id, variant.id, val);
-                              }
-                            }}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                e.preventDefault();
-                                const val = parseInt((e.target as HTMLInputElement).value, 10);
-                                if (!isNaN(val)) {
-                                  handleUpdateVariantStock(product.id, variant.id, val);
-                                  (e.target as HTMLInputElement).blur();
-                                }
-                              }
-                            }}
+                            onChange={(e) => onPendingVariantStockChange(product.id, variant.id, e.target.value)}
                           />
                         </div>
-                        {updatingIds[`stock-${variant.id}`] && (
-                          <Loader2 className="h-3 w-3 animate-spin text-[#e94560]" />
-                        )}
                       </div>
                     </td>
                     <td className="py-2.5 px-4">
                       <div className="flex items-center gap-2">
-                        <div className="flex items-center border border-gray-250 dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-[#0f0f1b] focus-within:border-primary transition-all">
+                        <div className={`flex items-center border rounded-lg overflow-hidden bg-white dark:bg-[#0f0f1b] transition-all ${
+                          isThresholdModified
+                            ? 'border-amber-400 dark:border-amber-500 ring-2 ring-amber-400/40 bg-amber-50/40 dark:bg-amber-950/20'
+                            : 'border-gray-250 dark:border-gray-700 focus-within:border-primary'
+                        }`}>
                           <input
                             type="number"
-                            defaultValue={variantThreshold}
+                            value={currentThresholdVal}
                             style={{ borderWidth: 0 }}
                             className="w-14 bg-transparent text-xs text-center font-bold text-gray-900 dark:text-white px-2 py-1 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                            onBlur={(e) => {
-                              const val = parseInt(e.target.value, 10);
-                              if (!isNaN(val) && val !== variantThreshold) {
-                                handleUpdateVariantThreshold(product.id, variant.id, val);
-                              }
-                            }}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                e.preventDefault();
-                                const val = parseInt((e.target as HTMLInputElement).value, 10);
-                                if (!isNaN(val)) {
-                                  handleUpdateVariantThreshold(product.id, variant.id, val);
-                                  (e.target as HTMLInputElement).blur();
-                                }
-                              }
-                            }}
+                            onChange={(e) => onPendingVariantThresholdChange(product.id, variant.id, e.target.value)}
                           />
                         </div>
-                        {updatingIds[`threshold-${variant.id}`] && (
-                          <Loader2 className="h-3 w-3 animate-spin text-[#e94560]" />
-                        )}
                       </div>
                     </td>
                     <td className="py-2.5 px-4 text-right whitespace-nowrap">
                       <div className="flex justify-end whitespace-nowrap">
-                        {getStockBadge(variant.stock, variantThreshold)}
+                        {getStockBadge(effectiveStock, effectiveThreshold)}
                       </div>
                     </td>
                   </tr>

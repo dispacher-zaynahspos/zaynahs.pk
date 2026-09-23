@@ -132,7 +132,7 @@ export default function ProductDetailGallery({
             if (currentCompare && currentPrc && currentCompare > currentPrc) {
               return (
                 <span
-                  style={{ backgroundColor: '#0f172a' }}
+                  style={{ backgroundColor: '#10b981' }}
                   className="rounded-full px-3 py-1 text-[10px] font-black text-white shadow-sm uppercase tracking-wider"
                 >
                   -{Math.round(((currentCompare - currentPrc) / currentCompare) * 100)}%

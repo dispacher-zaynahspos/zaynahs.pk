@@ -29,9 +29,9 @@ export const customCss = `
       letter-spacing: 1px; text-transform: uppercase;
       line-height: 1;
     }
-    .z-card-container .bdg-new { background: #10b981; color: #fff; }
-    .z-card-container .bdg-hot { background: #ff9500; color: #fff; }
-    .z-card-container .bdg-sale { background: #0f172a; color: #fff; }
+    .z-card-container .bdg-new { background: #d97706; color: #fff; }
+    .z-card-container .bdg-hot { background: #ea580c; color: #fff; }
+    .z-card-container .bdg-sale { background: #10b981; color: #fff; }
     .z-card-container .bdg-featured { background: #e94560; color: #fff; }
 
     /* Universal Quick Action Controls Overlay */
@@ -39,9 +39,11 @@ export const customCss = `
     .z-card-container .aic {
       position: absolute; right: 8px; top: 8px;
       display: flex; flex-direction: column; gap: 5px;
-      z-index: 25; opacity: 1 !important; transform: none !important;
-      transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-      pointer-events: auto !important;
+      z-index: 25;
+      opacity: 0;
+      transform: translateX(8px);
+      pointer-events: none;
+      transition: opacity 0.28s cubic-bezier(0.4, 0, 0.2, 1), transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .z-card-container:hover .card-actions,
     .z-card-container:hover .aic,
@@ -56,9 +58,15 @@ export const customCss = `
     .z-card-container .sc9:hover .card-actions,
     .z-card-container .sc10:hover .card-actions,
     .group:hover .card-actions,
-    .group:hover .aic {
+    .group:hover .aic,
+    .group:active .card-actions,
+    .group:active .aic,
+    .z-card-container.touch-active .card-actions,
+    .z-card-container.touch-active .aic,
+    .touch-active .card-actions,
+    .touch-active .aic {
       opacity: 1 !important;
-      transform: none !important;
+      transform: translateX(0) !important;
       pointer-events: auto !important;
     }
 
@@ -99,17 +107,29 @@ export const customCss = `
     .z-card-container .ai:hover .tt,
     .z-card-container .action-btn:hover .tt { opacity: 1; }
 
-    /* Touch & Mobile Screen Support: always visible and responsive */
+    /* Touch & Mobile Screen Support: smooth spawn on touch */
     @media (max-width: 768px), (hover: none) {
       .z-card-container .card-actions,
       .z-card-container .aic {
-        opacity: 1 !important;
-        transform: none !important;
-        pointer-events: auto !important;
         right: 6px !important;
         top: 6px !important;
         gap: 5px !important;
       }
+      .z-card-container:hover .card-actions,
+      .z-card-container:hover .aic,
+      .z-card-container:active .card-actions,
+      .z-card-container:active .aic,
+      .z-card-container.touch-active .card-actions,
+      .z-card-container.touch-active .aic,
+      .touch-active .card-actions,
+      .touch-active .aic,
+      .group:active .card-actions,
+      .group:active .aic {
+        opacity: 1 !important;
+        transform: translateX(0) !important;
+        pointer-events: auto !important;
+      }
+    }
       .z-card-container .action-btn,
       .z-card-container .ai {
         width: 28px !important;

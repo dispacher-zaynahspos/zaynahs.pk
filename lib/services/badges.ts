@@ -42,11 +42,11 @@ export const getBadges = async (): Promise<Badge[]> => {
 
     // Ensure all 4 built-in system badges (Featured, Hot, Sale, New) exist in DB and list
     for (const sysBadge of SYSTEM_BADGE_CONFIGS) {
-      const exists = badgeList.some(
+      const existingBadge = badgeList.find(
         b => b.id === sysBadge.id || b.name.trim().toLowerCase() === sysBadge.name.toLowerCase()
       );
 
-      if (!exists) {
+      if (!existingBadge) {
         try {
           const { data: inserted, error: insertError } = await supabase
             .from('badges')
@@ -72,6 +72,26 @@ export const getBadges = async (): Promise<Badge[]> => {
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
           });
+        }
+      } else {
+        // Auto-migrate old system default colors if they match known old defaults
+        const nameLower = sysBadge.name.toLowerCase();
+        const shouldMigrate = 
+          (nameLower === 'sale' && existingBadge.bgColor === '#0f172a') ||
+          (nameLower === 'new' && (existingBadge.bgColor === '#10b981' || existingBadge.bgColor === '#0f172a')) ||
+          (nameLower === 'hot' && (existingBadge.bgColor === '#ff9500' || existingBadge.bgColor === '#0f172a'));
+
+        if (shouldMigrate) {
+          try {
+            await supabase
+              .from('badges')
+              .update({ bg_color: sysBadge.bgColor, text_color: sysBadge.textColor })
+              .eq('id', existingBadge.id);
+            existingBadge.bgColor = sysBadge.bgColor;
+            existingBadge.textColor = sysBadge.textColor;
+          } catch (updateErr) {
+            console.warn(`[badges] Failed to auto-update ${sysBadge.name} system badge color:`, updateErr);
+          }
         }
       }
     }

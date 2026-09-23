@@ -38,14 +38,14 @@ export default function BadgeManager({ initialBadges }: BadgeManagerProps) {
   
   // Form fields
   const [name, setName] = useState('');
-  const [bgColor, setBgColor] = useState('#0f172a');
+  const [bgColor, setBgColor] = useState('#e94560');
   const [textColor, setTextColor] = useState('#ffffff');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleOpenNew = () => {
     setEditId(null);
     setName('');
-    setBgColor('#0f172a');
+    setBgColor('#e94560');
     setTextColor('#ffffff');
     setIsOpen(true);
   };
@@ -224,10 +224,10 @@ export default function BadgeManager({ initialBadges }: BadgeManagerProps) {
                   <div className="flex flex-wrap gap-1.5">
                     {[
                       { label: 'Featured', name: 'FEATURED', bg: '#e94560', text: '#ffffff' },
-                      { label: 'Hot', name: 'HOT', bg: '#ff9500', text: '#ffffff' },
-                      { label: 'Sale', name: 'SALE', bg: '#0f172a', text: '#ffffff' },
-                      { label: 'New', name: 'NEW', bg: '#10b981', text: '#ffffff' },
-                      { label: 'Limited', name: 'LIMITED', bg: '#d97706', text: '#ffffff' },
+                      { label: 'Hot', name: 'HOT', bg: '#ea580c', text: '#ffffff' },
+                      { label: 'Sale', name: 'SALE', bg: '#10b981', text: '#ffffff' },
+                      { label: 'New', name: 'NEW', bg: '#d97706', text: '#ffffff' },
+                      { label: 'Limited', name: 'LIMITED', bg: '#8b5cf6', text: '#ffffff' },
                     ].map(p => (
                       <button
                         key={p.label}

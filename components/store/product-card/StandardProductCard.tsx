@@ -167,7 +167,7 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
         <div className="absolute top-2 left-2 flex flex-col gap-1 z-10 items-start pointer-events-none">
           {currentComparePrice && currentComparePrice > currentPrice && (
             <span
-              style={{ backgroundColor: '#0f172a' }}
+              style={{ backgroundColor: '#10b981' }}
               className="rounded-full px-2.5 py-0.5 text-[9px] font-black text-white shadow-xs uppercase tracking-wide"
             >
               -{Math.round(((currentComparePrice - currentPrice) / currentComparePrice) * 100)}%
@@ -203,7 +203,11 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
         </div>
 
         <div
-          className="absolute right-1.5 sm:right-2 top-1.5 sm:top-2 flex flex-col gap-1 sm:gap-1.5 z-20 opacity-100 pointer-events-auto"
+          className={`absolute right-1.5 sm:right-2 top-1.5 sm:top-2 flex flex-col gap-1 sm:gap-1.5 z-20 transition-all duration-300 ease-out ${
+            touchActive
+              ? 'opacity-100 translate-x-0 pointer-events-auto'
+              : 'opacity-0 translate-x-2 pointer-events-none group-hover:opacity-100 group-hover:translate-x-0 group-hover:pointer-events-auto'
+          }`}
           onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
           onTouchStart={(e) => e.stopPropagation()}
           onTouchEnd={(e) => e.stopPropagation()}

@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { Loader2 } from '@/components/common/Icons';
 import { ProductVariant } from '@/lib/types';
 import { getSwatchStyle } from '@/lib/utils/swatch';
 import { getStockBadge } from './inventoryUtils';
@@ -11,9 +10,10 @@ interface InventoryMobileVariantCardProps {
   variant: ProductVariant;
   selectedVariantIds: string[];
   setSelectedVariantIds: React.Dispatch<React.SetStateAction<string[]>>;
-  updatingIds: Record<string, boolean>;
-  handleUpdateVariantStock: (productId: string, variantId: string, newStock: number) => Promise<void>;
-  handleUpdateVariantThreshold: (productId: string, variantId: string, newThreshold: number) => Promise<void>;
+  pendingVariantStock: Record<string, number | string>;
+  pendingVariantThreshold: Record<string, number | string>;
+  onPendingVariantStockChange: (productId: string, variantId: string, val: number | string) => void;
+  onPendingVariantThresholdChange: (productId: string, variantId: string, val: number | string) => void;
 }
 
 export function InventoryMobileVariantCard({
@@ -21,12 +21,21 @@ export function InventoryMobileVariantCard({
   variant,
   selectedVariantIds,
   setSelectedVariantIds,
-  updatingIds,
-  handleUpdateVariantStock,
-  handleUpdateVariantThreshold,
+  pendingVariantStock,
+  pendingVariantThreshold,
+  onPendingVariantStockChange,
+  onPendingVariantThresholdChange,
 }: InventoryMobileVariantCardProps) {
   const variantLabel = [variant.color, variant.size, variant.material, variant.customValue].filter(Boolean).join(' / ') || 'Default';
   const variantThreshold = variant.inventoryThreshold !== undefined && variant.inventoryThreshold !== null ? variant.inventoryThreshold : 5;
+
+  const isStockModified = pendingVariantStock[variant.id] !== undefined && String(pendingVariantStock[variant.id]) !== String(variant.stock);
+  const currentStockVal = pendingVariantStock[variant.id] !== undefined ? pendingVariantStock[variant.id] : variant.stock;
+  const effectiveStock = isStockModified ? (parseInt(String(currentStockVal), 10) || 0) : variant.stock;
+
+  const isThresholdModified = pendingVariantThreshold[variant.id] !== undefined && String(pendingVariantThreshold[variant.id]) !== String(variantThreshold);
+  const currentThresholdVal = pendingVariantThreshold[variant.id] !== undefined ? pendingVariantThreshold[variant.id] : variantThreshold;
+  const effectiveThreshold = isThresholdModified ? (parseInt(String(currentThresholdVal), 10) || 0) : variantThreshold;
 
   return (
     <div className="bg-gray-50/50 dark:bg-[#0f0f1b]/50 p-3 rounded-xl border border-gray-150 dark:border-gray-800 space-y-2.5">
@@ -50,7 +59,7 @@ export function InventoryMobileVariantCard({
           {variantLabel}
         </span>
         <div className="flex justify-end">
-          {getStockBadge(variant.stock, variantThreshold)}
+          {getStockBadge(effectiveStock, effectiveThreshold)}
         </div>
       </div>
 
@@ -64,66 +73,38 @@ export function InventoryMobileVariantCard({
         <div>
           <label className="block text-[9px] font-bold text-gray-400 uppercase mb-1">Stock</label>
           <div className="flex items-center gap-2">
-            <div className="flex-1 flex items-center border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-[#0f0f1b] focus-within:border-primary transition-all">
+            <div className={`flex-1 flex items-center border rounded-lg overflow-hidden bg-white dark:bg-[#0f0f1b] transition-all ${
+              isStockModified
+                ? 'border-amber-400 dark:border-amber-500 ring-2 ring-amber-400/40 bg-amber-50/40 dark:bg-amber-950/20'
+                : 'border-gray-200 dark:border-gray-700 focus-within:border-primary'
+            }`}>
               <input
                 type="number"
-                defaultValue={variant.stock}
+                value={currentStockVal}
                 style={{ borderWidth: 0 }}
-                className="w-full bg-transparent text-xs text-gray-900 dark:text-white px-2.5 py-2 focus:outline-none min-h-[40px]"
-                onBlur={(e) => {
-                  const val = parseInt(e.target.value, 10);
-                  if (!isNaN(val) && val !== variant.stock) {
-                    handleUpdateVariantStock(productId, variant.id, val);
-                  }
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    const val = parseInt((e.target as HTMLInputElement).value, 10);
-                    if (!isNaN(val)) {
-                      handleUpdateVariantStock(productId, variant.id, val);
-                      (e.target as HTMLInputElement).blur();
-                    }
-                  }
-                }}
+                className="w-full bg-transparent text-xs text-gray-900 dark:text-white px-2.5 py-2 focus:outline-none min-h-[40px] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                onChange={(e) => onPendingVariantStockChange(productId, variant.id, e.target.value)}
               />
             </div>
-            {updatingIds[`stock-${variant.id}`] && (
-              <Loader2 className="h-4 w-4 animate-spin text-[#e94560] flex-shrink-0" />
-            )}
           </div>
         </div>
 
         <div>
           <label className="block text-[9px] font-bold text-gray-400 uppercase mb-1">Threshold</label>
           <div className="flex items-center gap-2">
-            <div className="flex-1 flex items-center border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-[#0f0f1b] focus-within:border-primary transition-all">
+            <div className={`flex-1 flex items-center border rounded-lg overflow-hidden bg-white dark:bg-[#0f0f1b] transition-all ${
+              isThresholdModified
+                ? 'border-amber-400 dark:border-amber-500 ring-2 ring-amber-400/40 bg-amber-50/40 dark:bg-amber-950/20'
+                : 'border-gray-200 dark:border-gray-700 focus-within:border-primary'
+            }`}>
               <input
                 type="number"
-                defaultValue={variantThreshold}
+                value={currentThresholdVal}
                 style={{ borderWidth: 0 }}
-                className="w-full bg-transparent text-xs text-gray-900 dark:text-white px-2.5 py-2 focus:outline-none min-h-[40px]"
-                onBlur={(e) => {
-                  const val = parseInt(e.target.value, 10);
-                  if (!isNaN(val) && val !== variantThreshold) {
-                    handleUpdateVariantThreshold(productId, variant.id, val);
-                  }
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    const val = parseInt((e.target as HTMLInputElement).value, 10);
-                    if (!isNaN(val)) {
-                      handleUpdateVariantThreshold(productId, variant.id, val);
-                      (e.target as HTMLInputElement).blur();
-                    }
-                  }
-                }}
+                className="w-full bg-transparent text-xs text-gray-900 dark:text-white px-2.5 py-2 focus:outline-none min-h-[40px] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                onChange={(e) => onPendingVariantThresholdChange(productId, variant.id, e.target.value)}
               />
             </div>
-            {updatingIds[`threshold-${variant.id}`] && (
-              <Loader2 className="h-4 w-4 animate-spin text-[#e94560] flex-shrink-0" />
-            )}
           </div>
         </div>
       </div>

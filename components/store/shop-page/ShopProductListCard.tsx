@@ -72,7 +72,7 @@ export default function ShopProductListCard({ product, settings, addItem }: Shop
         {/* Badge */}
         <div className="absolute top-2 left-2 flex flex-col gap-1 z-10 items-start pointer-events-none">
           {initialComparePrice && initialComparePrice > initialPrice && (
-            <span className="rounded-md bg-[#0f172a] px-2 py-0.5 text-[9px] font-extrabold text-white tracking-wide shadow-sm animate-none">
+            <span className="rounded-md bg-[#10b981] px-2 py-0.5 text-[9px] font-extrabold text-white tracking-wide shadow-sm animate-none">
               -{Math.round(((initialComparePrice - initialPrice) / initialComparePrice) * 100)}%
             </span>
           )}

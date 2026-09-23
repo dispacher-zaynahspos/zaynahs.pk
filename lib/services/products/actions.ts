@@ -514,3 +514,97 @@ export async function updateProductSafe(
     return { success: false as const, data: null, error: extractErrorMessage(err, 'Failed to update product') };
   }
 }
+
+export interface BulkInventoryUpdateItem {
+  id: string;
+  stock?: number;
+  inventoryThreshold?: number;
+}
+
+export interface BulkInventoryVariantUpdateItem {
+  id: string;
+  productId?: string;
+  stock?: number;
+  inventoryThreshold?: number;
+}
+
+export interface BulkInventoryPayload {
+  products?: BulkInventoryUpdateItem[];
+  variants?: BulkInventoryVariantUpdateItem[];
+}
+
+export async function bulkUpdateInventoryAction(payload: BulkInventoryPayload): Promise<void> {
+  const supabase = supabaseAdmin;
+  const productSlugsToRevalidate = new Set<string>();
+
+  // 1. Update Products
+  if (payload.products && payload.products.length > 0) {
+    for (const item of payload.products) {
+      const updateData: Record<string, number> = {};
+      if (item.stock !== undefined) updateData.stock = item.stock;
+      if (item.inventoryThreshold !== undefined) updateData.inventory_threshold = item.inventoryThreshold;
+
+      if (Object.keys(updateData).length > 0) {
+        const { data: prod } = await supabase
+          .from('products')
+          .update(updateData)
+          .eq('id', item.id)
+          .select('slug')
+          .single();
+        if (prod?.slug) productSlugsToRevalidate.add(prod.slug);
+      }
+    }
+  }
+
+  // 2. Update Variants
+  if (payload.variants && payload.variants.length > 0) {
+    for (const item of payload.variants) {
+      const updateData: Record<string, number> = {};
+      if (item.stock !== undefined) updateData.stock = item.stock;
+      if (item.inventoryThreshold !== undefined) updateData.inventory_threshold = item.inventoryThreshold;
+
+      if (Object.keys(updateData).length > 0) {
+        await supabase
+          .from('product_variants')
+          .update(updateData)
+          .eq('id', item.id);
+
+        if (item.productId) {
+          const { data: prod } = await supabase
+            .from('products')
+            .select('slug')
+            .eq('id', item.productId)
+            .single();
+          if (prod?.slug) productSlugsToRevalidate.add(prod.slug);
+        }
+      }
+    }
+
+    // Recompute total stock on parent products
+    const parentProductIds = [...new Set(payload.variants.map(v => v.productId).filter(Boolean))] as string[];
+    for (const parentId of parentProductIds) {
+      const { data: vars } = await supabase
+        .from('product_variants')
+        .select('stock')
+        .eq('product_id', parentId);
+      if (vars) {
+        const totalStock = vars.reduce((sum, v) => sum + (v.stock || 0), 0);
+        await supabase
+          .from('products')
+          .update({ stock: totalStock })
+          .eq('id', parentId);
+      }
+    }
+  }
+
+  // 3. Revalidate ISR cache
+  for (const slug of productSlugsToRevalidate) {
+    try {
+      await revalidateProduct(slug);
+    } catch (err) {
+      console.warn('[inventory] Revalidate slug failed:', slug, err);
+    }
+  }
+  revalidateTagSafe('products');
+}
+

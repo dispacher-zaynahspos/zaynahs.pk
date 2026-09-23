@@ -269,7 +269,7 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
                       <span className="text-sm text-gray-400 line-through font-semibold font-body">
                         {formatPrice(comparePrice, settings.currencySymbol)}
                       </span>
-                      <span className="rounded-md bg-[#0f172a] px-1.5 py-0.5 text-[9px] font-black text-white tracking-wide animate-none">
+                      <span className="rounded-md bg-[#10b981] px-1.5 py-0.5 text-[9px] font-black text-white tracking-wide animate-none">
                         -{Math.round(((comparePrice - basePrice) / comparePrice) * 100)}%
                       </span>
                     </div>
@@ -286,7 +286,7 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
                         <span className="text-[10px] text-gray-400 line-through font-semibold font-body">
                           {formatPrice(comparePrice, settings.currencySymbol)}
                         </span>
-                        <span className="rounded bg-[#0f172a] px-1 py-0.5 text-[8px] font-black text-white leading-none">
+                        <span className="rounded bg-[#10b981] px-1 py-0.5 text-[8px] font-black text-white leading-none">
                           -{Math.round(((comparePrice - basePrice) / comparePrice) * 100)}%
                         </span>
                       </span>

@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { ChevronDown, ChevronRight, Loader2 } from '@/components/common/Icons';
+import { ChevronDown, ChevronRight } from '@/components/common/Icons';
 import { Product } from '@/lib/types';
 import TableThumbnail from '@/components/admin/TableThumbnail';
 import { renderProductStatus } from './inventoryUtils';
@@ -14,13 +14,16 @@ interface InventoryMobileCardsProps {
   toggleExpand: (productId: string) => void;
   selectedVariantIds: string[];
   setSelectedVariantIds: React.Dispatch<React.SetStateAction<string[]>>;
-  updatingIds: Record<string, boolean>;
-  handleUpdateProductStock: (productId: string, newStock: number) => Promise<void>;
-  handleUpdateProductThreshold: (productId: string, newThreshold: number) => Promise<void>;
-  handleUpdateVariantStock: (productId: string, variantId: string, newStock: number) => Promise<void>;
-  handleUpdateVariantThreshold: (productId: string, variantId: string, newThreshold: number) => Promise<void>;
-  handleBulkUpdateVariantStock: (productId: string, variantIds: string[], newStock: number) => Promise<void>;
-  handleBulkUpdateVariantThreshold: (productId: string, variantIds: string[], newThreshold: number) => Promise<void>;
+  pendingProductStock: Record<string, number | string>;
+  pendingProductThreshold: Record<string, number | string>;
+  pendingVariantStock: Record<string, number | string>;
+  pendingVariantThreshold: Record<string, number | string>;
+  onPendingProductStockChange: (productId: string, val: number | string) => void;
+  onPendingProductThresholdChange: (productId: string, val: number | string) => void;
+  onPendingVariantStockChange: (productId: string, variantId: string, val: number | string) => void;
+  onPendingVariantThresholdChange: (productId: string, variantId: string, val: number | string) => void;
+  onBulkStageVariantStock: (productId: string, variantIds: string[], newStock: number) => void;
+  onBulkStageVariantThreshold: (productId: string, variantIds: string[], newThreshold: number) => void;
   setPreviewImageUrl: (url: string | null) => void;
 }
 
@@ -30,21 +33,54 @@ export function InventoryMobileCards({
   toggleExpand,
   selectedVariantIds,
   setSelectedVariantIds,
-  updatingIds,
-  handleUpdateProductStock,
-  handleUpdateProductThreshold,
-  handleUpdateVariantStock,
-  handleUpdateVariantThreshold,
-  handleBulkUpdateVariantStock,
-  handleBulkUpdateVariantThreshold,
+  pendingProductStock,
+  pendingProductThreshold,
+  pendingVariantStock,
+  pendingVariantThreshold,
+  onPendingProductStockChange,
+  onPendingProductThresholdChange,
+  onPendingVariantStockChange,
+  onPendingVariantThresholdChange,
+  onBulkStageVariantStock,
+  onBulkStageVariantThreshold,
   setPreviewImageUrl,
 }: InventoryMobileCardsProps) {
   return (
     <div className="md:hidden space-y-4">
       {paginatedProducts.map(product => {
         const isExpanded = expandedProducts[product.id] ?? false;
-        const threshold = product.inventoryThreshold !== undefined && product.inventoryThreshold !== null ? product.inventoryThreshold : 5;
+        const originalThreshold = product.inventoryThreshold !== undefined && product.inventoryThreshold !== null ? product.inventoryThreshold : 5;
         
+        const isStockModified = pendingProductStock[product.id] !== undefined && String(pendingProductStock[product.id]) !== String(product.stock);
+        const currentStockVal = pendingProductStock[product.id] !== undefined ? pendingProductStock[product.id] : product.stock;
+        const effectiveStock = isStockModified ? (parseInt(String(currentStockVal), 10) || 0) : product.stock;
+
+        const isThresholdModified = pendingProductThreshold[product.id] !== undefined && String(pendingProductThreshold[product.id]) !== String(originalThreshold);
+        const currentThresholdVal = pendingProductThreshold[product.id] !== undefined ? pendingProductThreshold[product.id] : originalThreshold;
+        const effectiveThreshold = isThresholdModified ? (parseInt(String(currentThresholdVal), 10) || 0) : originalThreshold;
+
+        const anyVariantStockModified = product.hasVariants && product.variants?.some(
+          v => pendingVariantStock[v.id] !== undefined && String(pendingVariantStock[v.id]) !== String(v.stock)
+        );
+
+        const computedTotalStockWithVariants = product.hasVariants && product.variants
+          ? product.variants.reduce((sum, v) => {
+              const pVal = pendingVariantStock[v.id];
+              return sum + (pVal !== undefined ? (parseInt(String(pVal), 10) || 0) : v.stock);
+            }, 0)
+          : effectiveStock;
+
+        const effectiveProductForStatus: Product = {
+          ...product,
+          stock: computedTotalStockWithVariants,
+          inventoryThreshold: effectiveThreshold,
+          variants: product.hasVariants && product.variants ? product.variants.map(v => ({
+            ...v,
+            stock: pendingVariantStock[v.id] !== undefined ? (parseInt(String(pendingVariantStock[v.id]), 10) || 0) : v.stock,
+            inventoryThreshold: pendingVariantThreshold[v.id] !== undefined ? (parseInt(String(pendingVariantThreshold[v.id]), 10) || 0) : (v.inventoryThreshold ?? 5),
+          })) : product.variants,
+        };
+
         return (
           <div 
             key={product.id}
@@ -82,7 +118,7 @@ export function InventoryMobileCards({
                 </div>
               </div>
               <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                {renderProductStatus(product)}
+                {renderProductStatus(effectiveProductForStatus)}
               </div>
             </div>
 
@@ -90,13 +126,16 @@ export function InventoryMobileCards({
             {product.hasVariants ? (
               <div className="space-y-3">
                 <div className="flex items-center justify-between bg-gray-50 dark:bg-[#0f0f1b] p-3 rounded-xl">
-                  <span className="text-xs font-bold text-gray-500 dark:text-gray-400">
-                    Total Stock: <span className="text-gray-900 dark:text-white font-black">{product.stock}</span>
+                  <span className={`text-xs font-bold ${anyVariantStockModified ? 'text-amber-600 dark:text-amber-400' : 'text-gray-500 dark:text-gray-400'}`}>
+                    Total Stock: <span className="font-black text-gray-900 dark:text-white">{computedTotalStockWithVariants}</span>
+                    {anyVariantStockModified && (
+                      <span className="ml-1.5 inline-block w-2 h-2 rounded-full bg-amber-500 animate-pulse" title="Unsaved variant edits" />
+                    )}
                   </span>
                   <button
                     type="button"
                     onClick={() => toggleExpand(product.id)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-[#1d1d36] border border-gray-200 dark:border-gray-700 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-[#252542] transition-all min-h-[36px]"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-[#1d1d36] border border-gray-200 dark:border-gray-700 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-[#252542] transition-all min-h-[36px] cursor-pointer"
                   >
                     <span>{isExpanded ? 'Hide Variants' : 'Show Variants'}</span>
                     {isExpanded ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
@@ -137,7 +176,7 @@ export function InventoryMobileCards({
                               const vIds = product.variants.map(v => v.id);
                               setSelectedVariantIds(prev => prev.filter(id => !vIds.includes(id)));
                             }}
-                            className="text-[10px] text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-255 font-bold"
+                            className="text-[10px] text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-255 font-bold cursor-pointer"
                           >
                             Cancel
                           </button>
@@ -148,7 +187,7 @@ export function InventoryMobileCards({
                               type="number"
                               placeholder="Set Stock"
                               id={`bulk-stock-input-mobile-${product.id}`}
-                              className="flex-1 px-3 py-2 bg-white dark:bg-[#0f0f1b] border border-gray-200 dark:border-gray-700 rounded-xl text-xs focus:outline-none focus:border-primary text-gray-900 dark:text-white min-h-[40px]"
+                              className="flex-1 px-3 py-2 bg-white dark:bg-[#0f0f1b] border border-gray-200 dark:border-gray-700 rounded-xl text-xs focus:outline-none focus:border-primary text-gray-900 dark:text-white min-h-[40px] font-medium"
                             />
                             <button
                               type="button"
@@ -157,13 +196,13 @@ export function InventoryMobileCards({
                                 const val = parseInt(input?.value, 10);
                                 if (!isNaN(val)) {
                                   const vIds = product.variants.filter(v => selectedVariantIds.includes(v.id)).map(v => v.id);
-                                  handleBulkUpdateVariantStock(product.id, vIds, val);
+                                  onBulkStageVariantStock(product.id, vIds, val);
                                   if (input) input.value = '';
                                 } else {
                                   toast.error('Please enter a valid stock number');
                                 }
                               }}
-                              className="px-3 py-2 bg-[#e94560] hover:bg-[#e94560]/95 text-white rounded-xl text-xs font-bold min-h-[40px]"
+                              className="px-3 py-2 bg-[#e94560] hover:bg-[#e94560]/95 text-white rounded-xl text-xs font-bold min-h-[40px] cursor-pointer"
                             >
                               Apply
                             </button>
@@ -174,7 +213,7 @@ export function InventoryMobileCards({
                               type="number"
                               placeholder="Set Threshold"
                               id={`bulk-threshold-input-mobile-${product.id}`}
-                              className="flex-1 px-3 py-2 bg-white dark:bg-[#0f0f1b] border border-gray-200 dark:border-gray-700 rounded-xl text-xs focus:outline-none focus:border-primary text-gray-900 dark:text-white min-h-[40px]"
+                              className="flex-1 px-3 py-2 bg-white dark:bg-[#0f0f1b] border border-gray-200 dark:border-gray-700 rounded-xl text-xs focus:outline-none focus:border-primary text-gray-900 dark:text-white min-h-[40px] font-medium"
                             />
                             <button
                               type="button"
@@ -183,13 +222,13 @@ export function InventoryMobileCards({
                                 const val = parseInt(input?.value, 10);
                                 if (!isNaN(val)) {
                                   const vIds = product.variants.filter(v => selectedVariantIds.includes(v.id)).map(v => v.id);
-                                  handleBulkUpdateVariantThreshold(product.id, vIds, val);
+                                  onBulkStageVariantThreshold(product.id, vIds, val);
                                   if (input) input.value = '';
                                 } else {
                                   toast.error('Please enter a valid threshold number');
                                 }
                               }}
-                              className="px-3 py-2 bg-[#e94560] hover:bg-[#e94560]/95 text-white rounded-xl text-xs font-bold min-h-[40px]"
+                              className="px-3 py-2 bg-[#e94560] hover:bg-[#e94560]/95 text-white rounded-xl text-xs font-bold min-h-[40px] cursor-pointer"
                             >
                               Apply
                             </button>
@@ -205,9 +244,10 @@ export function InventoryMobileCards({
                         variant={variant}
                         selectedVariantIds={selectedVariantIds}
                         setSelectedVariantIds={setSelectedVariantIds}
-                        updatingIds={updatingIds}
-                        handleUpdateVariantStock={handleUpdateVariantStock}
-                        handleUpdateVariantThreshold={handleUpdateVariantThreshold}
+                        pendingVariantStock={pendingVariantStock}
+                        pendingVariantThreshold={pendingVariantThreshold}
+                        onPendingVariantStockChange={onPendingVariantStockChange}
+                        onPendingVariantThresholdChange={onPendingVariantThresholdChange}
                       />
                     ))}
                   </div>
@@ -218,66 +258,38 @@ export function InventoryMobileCards({
                 <div>
                   <label className="block text-[9px] font-bold text-gray-400 uppercase mb-1">Stock Level</label>
                   <div className="flex items-center gap-2">
-                    <div className="flex-1 flex items-center border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-[#0f0f1b] focus-within:border-[#e94560] transition-all">
+                    <div className={`flex-1 flex items-center border rounded-lg overflow-hidden bg-white dark:bg-[#0f0f1b] transition-all ${
+                      isStockModified
+                        ? 'border-amber-400 dark:border-amber-500 ring-2 ring-amber-400/40 bg-amber-50/40 dark:bg-amber-950/20'
+                        : 'border-gray-200 dark:border-gray-700 focus-within:border-[#e94560]'
+                    }`}>
                       <input
                         type="number"
-                        defaultValue={product.stock}
+                        value={currentStockVal}
                         style={{ borderWidth: 0 }}
-                        className="w-full bg-transparent text-xs text-gray-900 dark:text-white px-2.5 py-2 focus:outline-none min-h-[40px]"
-                        onBlur={(e) => {
-                          const val = parseInt(e.target.value, 10);
-                          if (!isNaN(val) && val !== product.stock) {
-                            handleUpdateProductStock(product.id, val);
-                          }
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault();
-                            const val = parseInt((e.target as HTMLInputElement).value, 10);
-                            if (!isNaN(val)) {
-                              handleUpdateProductStock(product.id, val);
-                              (e.target as HTMLInputElement).blur();
-                            }
-                          }
-                        }}
+                        className="w-full bg-transparent text-xs text-gray-900 dark:text-white px-2.5 py-2 focus:outline-none min-h-[40px] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        onChange={(e) => onPendingProductStockChange(product.id, e.target.value)}
                       />
                     </div>
-                    {updatingIds[`stock-${product.id}`] && (
-                      <Loader2 className="h-4 w-4 animate-spin text-[#e94560] flex-shrink-0" />
-                    )}
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-[9px] font-bold text-gray-400 uppercase mb-1">Alert Threshold</label>
                   <div className="flex items-center gap-2">
-                    <div className="flex-1 flex items-center border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-[#0f0f1b] focus-within:border-[#e94560] transition-all">
+                    <div className={`flex-1 flex items-center border rounded-lg overflow-hidden bg-white dark:bg-[#0f0f1b] transition-all ${
+                      isThresholdModified
+                        ? 'border-amber-400 dark:border-amber-500 ring-2 ring-amber-400/40 bg-amber-50/40 dark:bg-amber-950/20'
+                        : 'border-gray-200 dark:border-gray-700 focus-within:border-[#e94560]'
+                    }`}>
                       <input
                         type="number"
-                        defaultValue={threshold}
+                        value={currentThresholdVal}
                         style={{ borderWidth: 0 }}
-                        className="w-full bg-transparent text-xs text-gray-900 dark:text-white px-2.5 py-2 focus:outline-none min-h-[40px]"
-                        onBlur={(e) => {
-                          const val = parseInt(e.target.value, 10);
-                          if (!isNaN(val) && val !== threshold) {
-                            handleUpdateProductThreshold(product.id, val);
-                          }
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault();
-                            const val = parseInt((e.target as HTMLInputElement).value, 10);
-                            if (!isNaN(val)) {
-                              handleUpdateProductThreshold(product.id, val);
-                              (e.target as HTMLInputElement).blur();
-                            }
-                          }
-                        }}
+                        className="w-full bg-transparent text-xs text-gray-900 dark:text-white px-2.5 py-2 focus:outline-none min-h-[40px] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        onChange={(e) => onPendingProductThresholdChange(product.id, e.target.value)}
                       />
                     </div>
-                    {updatingIds[`threshold-${product.id}`] && (
-                      <Loader2 className="h-4 w-4 animate-spin text-[#e94560] flex-shrink-0" />
-                    )}
                   </div>
                 </div>
               </div>
@@ -288,4 +300,3 @@ export function InventoryMobileCards({
     </div>
   );
 }
-
