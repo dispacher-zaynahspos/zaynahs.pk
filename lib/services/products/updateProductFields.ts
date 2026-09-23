@@ -1,13 +1,13 @@
 import { Product } from '@/lib/types';
 import { revalidateProduct, revalidateTagSafe } from '@/lib/revalidate';
-import { staticSupabase } from './mappers';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 
 export const updateProductFields = async (
   id: string,
   fields: Partial<Product>
 ): Promise<void> => {
   try {
-    const supabase = staticSupabase;
+    const supabase = supabaseAdmin;
     const updatePayload: Record<string, any> = {};
     if (fields.name !== undefined) updatePayload.name = fields.name;
     if (fields.slug !== undefined) updatePayload.slug = fields.slug;

@@ -20,10 +20,17 @@ export default async function Pixels() {
               t.src=v;s=b.getElementsByTagName(e)[0];
               s.parentNode.insertBefore(t,s)}(window, document,'script',
               'https://connect.facebook.net/en_US/fbevents.js');
-              if(!window._metaPixelInitialized) {
-                window._metaPixelInitialized = true;
-                fbq('init', '${settings.meta_pixel_id}');
-                fbq('track', 'PageView');
+              window._metaPixelInitializedIds = window._metaPixelInitializedIds || {};
+              if (!window._metaPixelInitializedIds['${settings.meta_pixel_id}']) {
+                window._metaPixelInitializedIds['${settings.meta_pixel_id}'] = true;
+                try {
+                  if (!window.fbq?.instance?.pixelsByID?.['${settings.meta_pixel_id}']) {
+                    fbq('init', '${settings.meta_pixel_id}');
+                    fbq('track', 'PageView');
+                  }
+                } catch (e) {
+                  // Ignore if already initialized
+                }
               }
             `}
           </Script>

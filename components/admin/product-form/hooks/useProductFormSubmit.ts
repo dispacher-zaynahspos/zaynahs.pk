@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Product } from '@/lib/types';
-import { createProductSafe, updateProductSafe } from '@/lib/services/products';
+import { createProductSafe, updateProductSafe } from '@/lib/services/products/actions';
 import { toast } from 'sonner';
 
 interface ProductSubmitPayloadParams {
@@ -122,7 +122,10 @@ export function useProductFormSubmit() {
           params.modifiers
         );
         if (!result.success) {
-          toast.error(result.error);
+          const msg = (typeof result.error === 'string' && result.error.trim())
+            ? result.error.trim()
+            : 'Failed to update product. Please check the product details and try again.';
+          toast.error(msg);
           setIsSubmitting(false);
           return;
         }
@@ -136,7 +139,10 @@ export function useProductFormSubmit() {
           params.modifiers
         );
         if (!result.success) {
-          toast.error(result.error);
+          const msg = (typeof result.error === 'string' && result.error.trim())
+            ? result.error.trim()
+            : 'Failed to create product. Please check the product details and try again.';
+          toast.error(msg);
           setIsSubmitting(false);
           return;
         }
@@ -145,9 +151,14 @@ export function useProductFormSubmit() {
         router.push(`/admin/products/${newProduct.id}`);
         router.refresh();
       }
-    } catch (err) {
+    } catch (err: unknown) {
       console.error(err);
-      const errMsg = err instanceof Error ? err.message : 'Failed to save product';
+      let errMsg = 'Failed to save product. An unexpected error occurred.';
+      if (typeof err === 'string' && err.trim()) {
+        errMsg = err.trim();
+      } else if (err instanceof Error && err.message?.trim()) {
+        errMsg = err.message.trim();
+      }
       toast.error(errMsg);
     } finally {
       setIsSubmitting(false);

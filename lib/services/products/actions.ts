@@ -1,15 +1,16 @@
-import { Product, ProductImage, ProductVariant, ProductModifier } from '@/lib/types';
-import { revalidateProduct } from '@/lib/revalidate';
-import { safeAction } from '@/lib/utils/serverAction';
+'use server';
+
 import { supabaseAdmin } from '@/lib/supabase/admin';
+import { Product, ProductImage, ProductVariant, ProductModifier } from '@/lib/types';
+import { revalidateProduct, revalidateTagSafe } from '@/lib/revalidate';
 import { getProductById } from './queries';
 
-export const createProduct = async (
+export async function createProductAction(
   product: Omit<Product, 'id' | 'images' | 'variants' | 'modifiers' | 'category' | 'createdAt' | 'updatedAt'>,
-  images: Omit<ProductImage, 'id' | 'productId' | 'createdAt'>[],
-  variants: Omit<ProductVariant, 'id' | 'productId'>[],
-  modifiers: Omit<ProductModifier, 'id' | 'productId'>[]
-): Promise<Product> => {
+  images: Omit<ProductImage, 'id' | 'productId' | 'createdAt'>[] = [],
+  variants: Omit<ProductVariant, 'id' | 'productId'>[] = [],
+  modifiers: Omit<ProductModifier, 'id' | 'productId'>[] = []
+): Promise<Product> {
   try {
     const supabase = supabaseAdmin;
 
@@ -21,7 +22,7 @@ export const createProduct = async (
         description: product.description,
         short_description: product.shortDescription,
         price: product.price,
-        compare_price: product.comparePrice,
+        compare_price: product.comparePrice ?? null,
         cost: product.cost,
         sku: product.sku,
         category_id: product.categoryId,
@@ -121,21 +122,26 @@ export const createProduct = async (
 
     const updatedProduct = await getProductById(productId);
     if (!updatedProduct) throw new Error('Product created but could not be retrieved');
-    await revalidateProduct(updatedProduct.slug);
+    try {
+      await revalidateProduct(updatedProduct.slug);
+      revalidateTagSafe('products');
+    } catch (revalErr) {
+      console.warn('[products] createProductAction revalidation warning:', revalErr);
+    }
     return updatedProduct;
   } catch (error) {
-    console.error('[products] createProduct failed:', error);
+    console.error('[products] createProductAction failed:', error);
     throw error;
   }
-};
+}
 
-export const updateProduct = async (
+export async function updateProductAction(
   id: string,
   product: Partial<Omit<Product, 'id' | 'images' | 'variants' | 'modifiers' | 'category' | 'createdAt' | 'updatedAt'>>,
-  images: Omit<ProductImage, 'id' | 'productId' | 'createdAt'>[],
-  variants: Omit<ProductVariant, 'id' | 'productId'>[],
-  modifiers: Omit<ProductModifier, 'id' | 'productId'>[]
-): Promise<Product> => {
+  images: Omit<ProductImage, 'id' | 'productId' | 'createdAt'>[] = [],
+  variants: Omit<ProductVariant, 'id' | 'productId'>[] = [],
+  modifiers: Omit<ProductModifier, 'id' | 'productId'>[] = []
+): Promise<Product> {
   try {
     const supabase = supabaseAdmin;
 
@@ -273,27 +279,238 @@ export const updateProduct = async (
 
     const updatedProduct = await getProductById(id);
     if (!updatedProduct) throw new Error('Product updated but could not be retrieved');
-    await revalidateProduct(updatedProduct.slug);
+    try {
+      await revalidateProduct(updatedProduct.slug);
+      revalidateTagSafe('products');
+    } catch (revalErr) {
+      console.warn('[products] updateProductAction revalidation warning:', revalErr);
+    }
     return updatedProduct;
   } catch (error) {
-    console.error('[products] updateProduct failed:', error);
+    console.error('[products] updateProductAction failed:', error);
     throw error;
   }
-};
+}
 
-export { updateProductFields } from './updateProductFields';
+export async function updateProductFieldsAction(
+  id: string,
+  fields: Partial<Product>
+): Promise<void> {
+  try {
+    const supabase = supabaseAdmin;
+    const updatePayload: Record<string, any> = {};
+    if (fields.name !== undefined) updatePayload.name = fields.name;
+    if (fields.slug !== undefined) updatePayload.slug = fields.slug;
+    if (fields.description !== undefined) updatePayload.description = fields.description;
+    if (fields.shortDescription !== undefined) updatePayload.short_description = fields.shortDescription;
+    if (fields.price !== undefined) updatePayload.price = fields.price;
+    if (fields.comparePrice !== undefined) updatePayload.compare_price = fields.comparePrice;
+    if (fields.cost !== undefined) updatePayload.cost = fields.cost;
+    if (fields.sku !== undefined) updatePayload.sku = fields.sku;
+    if (fields.categoryId !== undefined) updatePayload.category_id = fields.categoryId;
+    if (fields.stock !== undefined) updatePayload.stock = fields.stock;
+    if (fields.hasVariants !== undefined) updatePayload.has_variants = fields.hasVariants;
+    if (fields.isService !== undefined) updatePayload.is_service = fields.isService;
+    if (fields.isFeatured !== undefined) updatePayload.is_featured = fields.isFeatured;
+    if (fields.isActive !== undefined) updatePayload.is_active = fields.isActive;
+    if (fields.enableSwatches !== undefined) updatePayload.enable_swatches = fields.enableSwatches;
+    if (fields.showSwatchesOnArchive !== undefined) updatePayload.show_swatches_on_archive = fields.showSwatchesOnArchive;
+    if (fields.customBadgeId !== undefined) updatePayload.custom_badge_id = fields.customBadgeId || null;
+    if (fields.badgeEnabled !== undefined) updatePayload.badge_enabled = fields.badgeEnabled;
+    if (fields.sizeGuideId !== undefined) updatePayload.size_guide_id = fields.sizeGuideId || null;
+    if (fields.frequentlyBoughtTogetherIds !== undefined) updatePayload.frequently_bought_together_ids = fields.frequentlyBoughtTogetherIds;
+    if (fields.flashSaleEnabled !== undefined) updatePayload.flash_sale_enabled = fields.flashSaleEnabled;
+    if (fields.flashSaleStartDate !== undefined) updatePayload.flash_sale_start_date = fields.flashSaleStartDate || null;
+    if (fields.flashSaleEndDate !== undefined) updatePayload.flash_sale_end_date = fields.flashSaleEndDate || null;
+    if (fields.flashSaleDiscountType !== undefined) updatePayload.flash_sale_discount_type = fields.flashSaleDiscountType;
+    if (fields.flashSaleDiscountValue !== undefined) updatePayload.flash_sale_discount_value = fields.flashSaleDiscountValue;
+    if (fields.tags !== undefined) updatePayload.tags = fields.tags;
+    if (fields.rating !== undefined) updatePayload.rating = fields.rating;
+    if (fields.reviewsCount !== undefined) updatePayload.reviews_count = fields.reviewsCount;
+    if (fields.inventoryThreshold !== undefined) updatePayload.inventory_threshold = fields.inventoryThreshold;
+    if (fields.sortOrder !== undefined) updatePayload.sort_order = fields.sortOrder;
 
-export const createProductSafe = async (
+    const { data: prodData } = await supabase
+      .from('products')
+      .select('slug')
+      .eq('id', id)
+      .single();
+
+    const { error } = await supabase
+      .from('products')
+      .update(updatePayload)
+      .eq('id', id);
+
+    if (error) throw error;
+
+    if (fields.productCategories !== undefined || fields.categoryId !== undefined) {
+      let categoryIdsToUpdate = fields.productCategories?.map(pc => pc.categoryId) || [];
+      if (categoryIdsToUpdate.length === 0 && fields.categoryId) {
+        categoryIdsToUpdate.push(fields.categoryId);
+      }
+      if (!categoryIdsToUpdate.includes('00000000-0000-4000-8000-000000000099')) {
+        categoryIdsToUpdate.push('00000000-0000-4000-8000-000000000099');
+      }
+
+      const { error: pcDelError } = await supabase
+        .from('product_categories')
+        .delete()
+        .eq('product_id', id);
+      if (pcDelError) throw pcDelError;
+
+      if (categoryIdsToUpdate.length > 0) {
+        const { error: pcInsError } = await supabase
+          .from('product_categories')
+          .insert(categoryIdsToUpdate.map(categoryId => ({
+            product_id: id,
+            category_id: categoryId
+          })));
+        if (pcInsError) throw pcInsError;
+      }
+    }
+
+    if (prodData?.slug) {
+      try {
+        await revalidateProduct(prodData.slug);
+      } catch (revalErr) {
+        console.error('[products] revalidateProduct failed during updateProductFieldsAction:', revalErr);
+      }
+    }
+    revalidateTagSafe('products');
+  } catch (error) {
+    console.error('[products] updateProductFieldsAction failed:', error);
+    throw error;
+  }
+}
+
+export async function deleteProductAction(id: string): Promise<void> {
+  try {
+    const supabase = supabaseAdmin;
+
+    const { data: prodData } = await supabase
+      .from('products')
+      .select('slug')
+      .eq('id', id)
+      .single();
+
+    const { error } = await supabase
+      .from('products')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('id', id);
+
+    if (error) throw error;
+
+    if (prodData?.slug) {
+      try {
+        await revalidateProduct(prodData.slug);
+      } catch (revalErr) {
+        console.error('[products] revalidateProduct failed during deleteProductAction:', revalErr);
+      }
+    }
+    revalidateTagSafe('products');
+  } catch (error) {
+    console.error('[products] deleteProductAction failed:', error);
+    throw error;
+  }
+}
+
+export async function updateProductVariantFieldsAction(
+  variantId: string,
+  fields: Partial<ProductVariant>
+): Promise<void> {
+  try {
+    const supabase = supabaseAdmin;
+    const updatePayload: Record<string, any> = {};
+    if (fields.stock !== undefined) updatePayload.stock = fields.stock;
+    if (fields.price !== undefined) updatePayload.price = fields.price;
+    if (fields.comparePrice !== undefined) updatePayload.compare_price = fields.comparePrice;
+    if (fields.inventoryThreshold !== undefined) updatePayload.inventory_threshold = fields.inventoryThreshold;
+    if (fields.sku !== undefined) updatePayload.sku = fields.sku;
+    if (fields.active !== undefined) updatePayload.active = fields.active;
+
+    const { data: varData } = await supabase
+      .from('product_variants')
+      .select('product_id')
+      .eq('id', variantId)
+      .single();
+
+    const { error } = await supabase
+      .from('product_variants')
+      .update(updatePayload)
+      .eq('id', variantId);
+
+    if (error) throw error;
+
+    if (varData?.product_id) {
+      const { data: prodData } = await supabase
+        .from('products')
+        .select('slug')
+        .eq('id', varData.product_id)
+        .single();
+
+      if (prodData?.slug) {
+        try {
+          await revalidateProduct(prodData.slug);
+        } catch (revalErr) {
+          console.error('[products] revalidateProduct failed during updateProductVariantFieldsAction:', revalErr);
+        }
+      }
+    }
+    revalidateTagSafe('products');
+  } catch (error) {
+    console.error('[products] updateProductVariantFieldsAction failed:', error);
+    throw error;
+  }
+}
+
+function extractErrorMessage(err: unknown, fallback: string): string {
+  if (!err) return fallback;
+  if (typeof err === 'string' && err.trim().length > 0) return err.trim();
+  if (err instanceof Error && err.message && err.message.trim().length > 0) return err.message.trim();
+  if (typeof err === 'object') {
+    const record = err as Record<string, any>;
+    if (typeof record.message === 'string' && record.message.trim().length > 0) return record.message.trim();
+    if (typeof record.error_description === 'string' && record.error_description.trim().length > 0) return record.error_description.trim();
+    if (typeof record.details === 'string' && record.details.trim().length > 0) return record.details.trim();
+    if (typeof record.hint === 'string' && record.hint.trim().length > 0) return record.hint.trim();
+    try {
+      const json = JSON.stringify(err);
+      if (json && json !== '{}') return json;
+    } catch {
+      // ignore
+    }
+  }
+  return fallback;
+}
+
+// Aliases for seamless drop-in backwards compatibility with safeAction call sites
+export async function createProductSafe(
   productPayload: any,
   images: any[],
   variants: any[],
   modifiers: any[]
-) => safeAction(createProduct(productPayload, images, variants, modifiers));
+) {
+  try {
+    const data = await createProductAction(productPayload, images, variants, modifiers);
+    return { success: true as const, data, error: null };
+  } catch (err: unknown) {
+    console.error('[createProductSafe] error:', err);
+    return { success: false as const, data: null, error: extractErrorMessage(err, 'Failed to create product') };
+  }
+}
 
-export const updateProductSafe = async (
+export async function updateProductSafe(
   productId: string,
   productPayload: any,
   images: any[],
   variants: any[],
   modifiers: any[]
-) => safeAction(updateProduct(productId, productPayload, images, variants, modifiers));
+) {
+  try {
+    const data = await updateProductAction(productId, productPayload, images, variants, modifiers);
+    return { success: true as const, data, error: null };
+  } catch (err: unknown) {
+    console.error('[updateProductSafe] error:', err);
+    return { success: false as const, data: null, error: extractErrorMessage(err, 'Failed to update product') };
+  }
+}

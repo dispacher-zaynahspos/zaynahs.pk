@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Product, StoreSettings } from '@/lib/types';
-import { deleteProduct, updateProductFields } from '@/lib/services/products';
+import { deleteProductAction as deleteProduct, updateProductFieldsAction as updateProductFields } from '@/lib/services/products/actions';
 import { triggerMetaSync } from '@/lib/services/metaSyncAction';
 import { toast } from 'sonner';
 import { useConfirm } from '@/components/admin/shared/AdminConfirmProvider';

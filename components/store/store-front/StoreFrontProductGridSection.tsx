@@ -88,7 +88,26 @@ export function StoreFrontProductGridSection({
       prodList = [...prodList].sort((a, b) => (b.name || '').localeCompare(a.name || ''));
     }
 
-    return prodList.slice(0, effectiveLimit);
+    const cols = Number(section.settings?.columns_desktop) || 4;
+    let targetCount = effectiveLimit;
+    if (cols > 1 && prodList.length >= cols) {
+      const remainder = effectiveLimit % cols;
+      if (remainder !== 0) {
+        const nextMultiple = effectiveLimit + (cols - remainder);
+        if (prodList.length >= nextMultiple) {
+          targetCount = nextMultiple;
+        } else {
+          targetCount = Math.floor(effectiveLimit / cols) * cols;
+        }
+      } else {
+        if (prodList.length < targetCount) {
+          targetCount = Math.floor(prodList.length / cols) * cols;
+        }
+      }
+    }
+    if (targetCount === 0) targetCount = prodList.length;
+
+    return prodList.slice(0, targetCount);
   })();
 
   const viewAllLink = (() => {

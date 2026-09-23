@@ -193,11 +193,8 @@ export default async function RootLayout({
       suppressHydrationWarning
       className={`${jakarta.variable} ${outfit.variable} h-full antialiased overflow-x-clip`}
     >
-      <head>
-        <ThemeStyleRegistry settings={settings} />
-        <meta name="theme-color" content={settings.theme_config?.colors?.primary || '#1a1a2e'} />
-      </head>
       <body suppressHydrationWarning className={`${jakarta.variable} ${outfit.variable} font-body min-h-full flex flex-col bg-gray-50 dark:bg-[#0f0f1b] text-gray-900 dark:text-gray-100 overflow-x-clip`}>
+        <ThemeStyleRegistry settings={settings} />
         {/* Conditional Script Injection for Tracking Pixels */}
         <Pixels />
         <ThemeProvider

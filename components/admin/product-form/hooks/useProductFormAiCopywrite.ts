@@ -64,11 +64,16 @@ export function useProductFormAiCopywrite({
         },
       };
 
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
+
       const response = await fetch('/api/seo/optimize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
+        signal: controller.signal,
       });
+      clearTimeout(timeoutId);
 
       const resData = await response.json();
       if (!response.ok || !resData.success) throw new Error(resData.error || 'AI generation failed');

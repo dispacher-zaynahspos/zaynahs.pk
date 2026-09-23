@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Product, Category } from '@/lib/types';
-import { updateProductFields, updateProductVariantFields } from '@/lib/services/products';
+import { updateProductFieldsAction as updateProductFields, updateProductVariantFieldsAction as updateProductVariantFields } from '@/lib/services/products/actions';
 import { toast } from 'sonner';
 import { 
   SlidersHorizontal,

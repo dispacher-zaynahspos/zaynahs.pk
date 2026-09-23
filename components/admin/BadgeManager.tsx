@@ -184,8 +184,36 @@ export default function BadgeManager({ initialBadges }: BadgeManagerProps) {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="mt-1.5 w-full rounded-xl border border-gray-200 dark:border-gray-850 bg-gray-50 dark:bg-[#0f0f1b] px-4 py-2.5 text-sm font-medium focus:border-[#1a1a2e] dark:focus:border-[#e94560] focus:bg-white dark:focus:bg-[#16162a] focus:outline-none transition-all text-gray-900 dark:text-white"
-                  placeholder="e.g. New, Hot, Sale"
+                  placeholder="e.g. FEATURED, SALE, HOT"
                 />
+
+                {/* Quick Presets */}
+                <div className="mt-2.5">
+                  <span className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">Quick Presets</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {[
+                      { label: 'Featured', name: 'FEATURED', bg: '#0f172a', text: '#ffffff' },
+                      { label: 'Sale', name: 'SALE', bg: '#f97316', text: '#ffffff' },
+                      { label: 'Hot', name: 'HOT', bg: '#ef4444', text: '#ffffff' },
+                      { label: 'New', name: 'NEW', bg: '#10b981', text: '#ffffff' },
+                      { label: 'Limited', name: 'LIMITED', bg: '#d97706', text: '#ffffff' },
+                    ].map(p => (
+                      <button
+                        key={p.label}
+                        type="button"
+                        onClick={() => {
+                          setName(p.name);
+                          setBgColor(p.bg);
+                          setTextColor(p.text);
+                        }}
+                        className="px-2.5 py-1 rounded-lg text-[10px] font-bold border border-gray-200 dark:border-gray-700 hover:scale-105 transition-all cursor-pointer shadow-2xs"
+                        style={{ backgroundColor: p.bg, color: p.text }}
+                      >
+                        {p.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">

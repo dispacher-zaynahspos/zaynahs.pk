@@ -39,11 +39,11 @@ export default function CustomerBuyersTable({
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-[#0f0f1b]/10 text-[10px] font-black uppercase tracking-wider text-gray-400 dark:text-gray-500">
-              <th className="py-4 px-6">Customer Info</th>
-              <th className="py-4 px-6">Joined</th>
-              <th className="py-4 px-6 text-center">Orders</th>
-              <th className="py-4 px-6 text-right">Lifetime Spent</th>
-              <th className="py-4 px-6 text-center">Actions</th>
+              <th className="py-2.5 px-3 md:px-4">Customer Info</th>
+              <th className="py-2.5 px-3 md:px-4">Joined</th>
+              <th className="py-2.5 px-3 md:px-4 text-center">Orders</th>
+              <th className="py-2.5 px-3 md:px-4 text-right">Lifetime Spent</th>
+              <th className="py-2.5 px-3 md:px-4 text-center">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 dark:divide-gray-800/80 text-xs font-semibold text-gray-700 dark:text-gray-300">
@@ -51,26 +51,26 @@ export default function CustomerBuyersTable({
               const joinDate = new Date(customer.createdAt).toLocaleDateString('en-PK', { year: 'numeric', month: 'short', day: 'numeric' });
               return (
                 <tr key={customer.id} className="hover:bg-gray-50/30 dark:hover:bg-white/5 transition-colors">
-                  <td className="py-4 px-6">
+                  <td className="py-2.5 px-3 md:px-4">
                     <div className="font-bold text-gray-950 dark:text-white text-sm">{customer.name}</div>
                     <div className="flex flex-col gap-0.5 mt-1 text-[10px] text-gray-400 dark:text-gray-500">
                       {customer.email && <span>{customer.email}</span>}
                       {customer.phone && <span>{customer.phone}</span>}
                     </div>
                   </td>
-                  <td className="py-4 px-6 font-medium text-gray-500 dark:text-gray-400">
+                  <td className="py-2.5 px-3 md:px-4 font-medium text-gray-500 dark:text-gray-400">
                     <div className="flex items-center gap-1.5">
                       <Calendar className="h-3.5 w-3.5 text-gray-400" />
                       <span>{joinDate}</span>
                     </div>
                   </td>
-                  <td className="py-4 px-6 text-center font-bold text-gray-900 dark:text-white">
+                  <td className="py-2.5 px-3 md:px-4 text-center font-bold text-gray-900 dark:text-white">
                     {customer.ordersCount}
                   </td>
-                  <td className="py-4 px-6 text-right font-black text-gray-950 dark:text-white">
+                  <td className="py-2.5 px-3 md:px-4 text-right font-black text-gray-950 dark:text-white whitespace-nowrap">
                     {formatPrice(customer.totalSpent)}
                   </td>
-                  <td className="py-4 px-6">
+                  <td className="py-2.5 px-3 md:px-4">
                     <div className="flex items-center justify-center gap-2">
                       <button
                         type="button"

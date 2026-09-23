@@ -39,56 +39,56 @@ export default function ReviewsTable({
       <div className="hidden md:block overflow-hidden bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm transition-colors duration-200">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-left text-sm text-gray-500 dark:text-gray-400">
-            <thead className="bg-gray-50 dark:bg-white/5 text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-gray-300 border-b border-gray-200 dark:border-gray-800">
+            <thead className="bg-gray-50 dark:bg-white/5 text-[11px] font-bold uppercase tracking-wider text-gray-600 dark:text-gray-300 border-b border-gray-200 dark:border-gray-800">
               <tr>
-                <th className="px-6 py-4">Product</th>
-                <th className="px-6 py-4">Customer</th>
-                <th className="px-6 py-4">Rating</th>
-                <th className="px-6 py-4">Comment</th>
-                <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4">Date</th>
-                <th className="px-6 py-4 text-right">Actions</th>
+                <th className="px-3 py-2.5">Product</th>
+                <th className="px-3 py-2.5">Customer</th>
+                <th className="px-3 py-2.5">Rating</th>
+                <th className="px-3 py-2.5">Comment</th>
+                <th className="px-3 py-2.5">Status</th>
+                <th className="px-3 py-2.5">Date</th>
+                <th className="px-3 py-2.5 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
               {filteredReviews.map((review) => (
                 <tr
                   key={review.id}
-                  className="cursor-pointer hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors"
+                  className="cursor-pointer hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors text-xs"
                   onClick={() => onOpenReview(review)}
                 >
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
+                  <td className="px-3 py-2.5">
+                    <div className="flex items-center gap-2.5">
                       {review.productImage ? (
                         <img
                           src={review.productImage}
                           alt={review.productName || 'Product'}
-                          className="w-12 h-12 rounded-md object-cover border border-gray-100 dark:border-gray-700 flex-shrink-0"
+                          className="w-10 h-10 rounded-md object-cover border border-gray-100 dark:border-gray-700 flex-shrink-0"
                         />
                       ) : (
-                        <div className="w-12 h-12 rounded-md bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400 text-[10px] font-bold flex-shrink-0">
+                        <div className="w-10 h-10 rounded-md bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400 text-[9px] font-bold flex-shrink-0">
                           No<br />Img
                         </div>
                       )}
-                      <span className="font-bold text-gray-900 dark:text-white line-clamp-2 max-w-[200px] text-sm leading-snug">
+                      <span className="font-bold text-gray-900 dark:text-white line-clamp-1 max-w-[150px] text-xs leading-snug">
                         {review.productName || 'Unknown Product'}
                       </span>
                     </div>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-3 py-2.5">
                     <div className="font-semibold text-gray-800 dark:text-gray-200">{review.customerName}</div>
-                    {review.customerPhone && <div className="text-xs text-gray-400 dark:text-gray-500">{review.customerPhone}</div>}
-                    {review.customerEmail && <div className="text-xs text-gray-400 dark:text-gray-500">{review.customerEmail}</div>}
+                    {review.customerPhone && <div className="text-[11px] text-gray-400 dark:text-gray-500">{review.customerPhone}</div>}
+                    {review.customerEmail && <div className="text-[11px] text-gray-400 dark:text-gray-500">{review.customerEmail}</div>}
                   </td>
-                  <td className="px-6 py-4">
-                    <StarRating rating={review.rating} showText={true} starSize={14} />
+                  <td className="px-3 py-2.5">
+                    <StarRating rating={review.rating} showText={true} starSize={12} />
                   </td>
-                  <td className="px-6 py-4 max-w-xs truncate" title={review.comment}>
+                  <td className="px-3 py-2.5 max-w-[160px] truncate" title={review.comment}>
                     {review.comment || <span className="text-gray-300 dark:text-gray-700 italic">No comment</span>}
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-3 py-2.5">
                     <span
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold rounded-full ${
+                      className={`inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold rounded-full ${
                         !review.approved
                           ? 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400'
                           : review.hidden
@@ -99,10 +99,10 @@ export default function ReviewsTable({
                       {!review.approved ? 'Pending' : review.hidden ? 'Hidden' : 'Approved'}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-xs font-medium text-gray-400 dark:text-gray-500">
+                  <td className="px-3 py-2.5 text-[11px] font-medium text-gray-400 dark:text-gray-500 whitespace-nowrap">
                     {formatDate(review.createdAt)}
                   </td>
-                  <td className="px-6 py-4 text-right">
+                  <td className="px-3 py-2.5 text-right">
                     <div className="flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
                       <button
                         onClick={() => onToggleApprove(review.id, review.approved)}

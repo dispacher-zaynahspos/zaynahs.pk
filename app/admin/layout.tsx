@@ -165,7 +165,7 @@ function AdminLayoutContent({
   }
 
   return (
-    <div className="admin-shell flex h-screen w-screen flex-col md:flex-row bg-slate-50 dark:bg-[#0b0b14] overflow-hidden text-[13px] font-sans antialiased">
+    <div className="admin-shell flex h-screen w-full max-w-full flex-col md:flex-row bg-slate-50 dark:bg-[#0b0b14] overflow-hidden text-[13px] font-sans antialiased">
       <AdminMobileDrawer
         isMobileMenuOpen={isMobileMenuOpen}
         setIsMobileMenuOpen={setIsMobileMenuOpen}
@@ -191,13 +191,13 @@ function AdminLayoutContent({
       />
 
       {/* Main content area */}
-      <div className="admin-layout-wrapper flex-1 flex flex-col min-w-0 overflow-hidden">
+      <div className="admin-layout-wrapper flex-1 flex flex-col min-w-0 max-w-full overflow-hidden">
         <AdminHeader
           pageTitle={getPageTitle()}
           setIsMobileMenuOpen={setIsMobileMenuOpen}
         />
 
-        <main id="admin-main-content" className="flex-1 px-4 sm:px-6 md:px-7 pt-14 md:pt-6 pb-14 md:pb-6 overflow-y-auto overflow-x-hidden bg-slate-50/70 dark:bg-[#0b0b14] transition-colors duration-200">
+        <main id="admin-main-content" className="flex-1 w-full max-w-full px-3 sm:px-4 md:px-5 pt-14 md:pt-4 pb-14 md:pb-6 overflow-y-auto overflow-x-hidden bg-slate-50/70 dark:bg-[#0b0b14] transition-colors duration-200">
           {children}
         </main>
       </div>

@@ -58,7 +58,7 @@ export default function ProductListTable({
           <table className="w-full text-left text-sm text-gray-700 dark:text-gray-300">
             <thead className="text-[11px] font-black text-gray-400 dark:text-gray-400 uppercase tracking-wider bg-gray-50/80 dark:bg-white/2 border-b border-gray-100 dark:border-gray-800 select-none">
               <tr>
-                <th className="py-3 px-4 md:py-3.5 md:px-6 w-12 text-center">
+                <th className="py-2.5 px-1.5 w-8 text-center">
                   <input
                     type="checkbox"
                     checked={paginatedProducts.length > 0 && paginatedProducts.every(p => selectedProductIds.includes(p.id))}
@@ -69,17 +69,17 @@ export default function ProductListTable({
                         setSelectedProductIds([]);
                       }
                     }}
-                    className="rounded border-gray-300 text-[#e94560] focus:ring-[#e94560] h-4 w-4 cursor-pointer accent-[#e94560]"
+                    className="rounded border-gray-300 text-[#e94560] focus:ring-[#e94560] h-3.5 w-3.5 cursor-pointer accent-[#e94560]"
                   />
                 </th>
-                <th className="py-3 px-4 md:py-3.5 md:px-6">Product</th>
-                <th className="py-3 px-4 md:py-3.5 md:px-6 hidden md:table-cell">SKU</th>
-                <th className="py-3 px-4 md:py-3.5 md:px-6">Price</th>
-                <th className="py-3 px-4 md:py-3.5 md:px-6 hidden md:table-cell">Stock Level</th>
-                <th className="py-3 px-4 md:py-3.5 md:px-6 hidden md:table-cell text-center">Visible</th>
-                <th className="py-3 px-4 md:py-3.5 md:px-6 hidden md:table-cell text-center">Featured</th>
-                {settings.meta_sync_enabled && <th className="py-3 px-4 md:py-3.5 md:px-6 hidden md:table-cell">Meta Sync</th>}
-                <th className="py-3 px-4 md:py-3.5 md:px-6 text-center">Actions</th>
+                <th className="py-2.5 px-2.5 min-w-[140px]">Product</th>
+                <th className="py-2.5 px-2 hidden 2xl:table-cell w-24">SKU</th>
+                <th className="py-2.5 px-2 w-20">Price</th>
+                <th className="py-2.5 px-2 hidden sm:table-cell w-24">Stock</th>
+                <th className="py-2.5 px-1 hidden md:table-cell text-center w-14">Visible</th>
+                <th className="py-2.5 px-1 hidden xl:table-cell text-center w-14">Featured</th>
+                {settings.meta_sync_enabled && <th className="py-2.5 px-1 hidden 2xl:table-cell w-20 text-center">Meta Sync</th>}
+                <th className="py-2.5 px-1.5 text-center w-18">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-gray-800/60 font-medium">
@@ -91,7 +91,7 @@ export default function ProductListTable({
                     key={product.id} 
                     className={`hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors ${selectedProductIds.includes(product.id) ? 'bg-indigo-50/30 dark:bg-indigo-950/20' : ''}`}
                   >
-                    <td className="py-3.5 px-4 md:px-6 w-12 text-center">
+                    <td className="py-2.5 px-1.5 w-8 text-center">
                       <input
                         type="checkbox"
                         checked={selectedProductIds.includes(product.id)}
@@ -102,67 +102,72 @@ export default function ProductListTable({
                             setSelectedProductIds(prev => prev.filter(id => id !== product.id));
                           }
                         }}
-                        className="rounded border-gray-300 text-[#e94560] focus:ring-[#e94560] h-4 w-4 cursor-pointer accent-[#e94560]"
+                        className="rounded border-gray-300 text-[#e94560] focus:ring-[#e94560] h-3.5 w-3.5 cursor-pointer accent-[#e94560]"
                       />
                     </td>
-                    <td className="py-3.5 px-4 md:px-6 flex items-center gap-2.5 md:gap-3">
-                      <TableThumbnail 
-                        url={primaryImage} 
-                        alt={product.name} 
-                        onPreview={setPreviewImageUrl} 
-                      />
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <p className="font-bold text-gray-900 dark:text-white text-xs md:text-sm max-w-[180px] lg:max-w-[400px] line-clamp-1">
-                            {product.name}
-                          </p>
-                        </div>
-                        {product.productCategories && product.productCategories.length > 0 ? (
-                          <div className="flex flex-wrap gap-1 mt-0.5">
-                            {product.productCategories.map((pc) => pc.category ? (
-                              <span key={pc.categoryId} className="inline-flex items-center px-2 py-0.5 rounded-full bg-indigo-50/70 dark:bg-indigo-950/30 text-[10px] font-bold text-indigo-600 dark:text-indigo-400 leading-tight">
-                                {pc.category.name}
-                              </span>
-                            ) : null)}
+                    <td className="py-2.5 px-2.5 min-w-[140px]">
+                      <div className="flex items-center gap-2 md:gap-2.5">
+                        <TableThumbnail 
+                          url={primaryImage} 
+                          alt={product.name} 
+                          onPreview={setPreviewImageUrl} 
+                        />
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <p className="font-bold text-gray-900 dark:text-white text-xs md:text-sm max-w-[140px] xl:max-w-[220px] truncate" title={product.name}>
+                              {product.name}
+                            </p>
                           </div>
-                        ) : product.category ? (
-                          <span className="text-[10px] font-bold text-gray-400 ml-0.5">{product.category.name}</span>
-                        ) : null}
+                          {product.productCategories && product.productCategories.length > 0 ? (
+                            <div className="flex flex-wrap items-center gap-1 mt-0.5">
+                              {product.productCategories.slice(0, 2).map((pc) => pc.category ? (
+                                <span key={pc.categoryId} className="inline-flex items-center px-1.5 py-0.2 rounded-full bg-indigo-50/70 dark:bg-indigo-950/30 text-[9px] font-bold text-indigo-600 dark:text-indigo-400 leading-tight">
+                                  {pc.category.name}
+                                </span>
+                              ) : null)}
+                              {product.productCategories.length > 2 && (
+                                <span className="text-[9px] font-bold text-gray-400">+{product.productCategories.length - 2}</span>
+                              )}
+                            </div>
+                          ) : product.category ? (
+                            <span className="text-[10px] font-bold text-gray-400 ml-0.5">{product.category.name}</span>
+                          ) : null}
+                        </div>
                       </div>
                     </td>
-                    <td className="py-3.5 px-4 md:px-6 font-semibold text-xs text-gray-500 dark:text-gray-400 hidden md:table-cell">
-                      <span className="px-2 py-0.5 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-mono text-[11px]">
+                    <td className="py-2.5 px-2 font-semibold text-xs text-gray-500 dark:text-gray-400 hidden 2xl:table-cell">
+                      <span className="px-1.5 py-0.5 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-mono text-[10px]">
                         {product.sku || '—'}
                       </span>
                     </td>
-                    <td className="py-3.5 px-4 md:px-6 font-black text-gray-900 dark:text-white text-xs md:text-sm whitespace-nowrap">
+                    <td className="py-2.5 px-2 font-black text-gray-900 dark:text-white text-xs md:text-sm whitespace-nowrap w-20">
                       {formatPrice(product.price, settings.currencySymbol)}
                     </td>
-                    <td className="py-3.5 px-4 md:px-6 font-semibold text-xs hidden md:table-cell">
+                    <td className="py-2.5 px-2 font-semibold text-xs hidden sm:table-cell w-24">
                       {product.hasVariants && product.variants ? (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-black bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 whitespace-nowrap">
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-black bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 whitespace-nowrap">
                           Variants ({product.variants.reduce((sum, v) => sum + v.stock, 0)})
                         </span>
                       ) : product.stock === 0 ? (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-black bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 whitespace-nowrap">
-                          Out of stock
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-black bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 whitespace-nowrap">
+                          Out
                         </span>
                       ) : product.stock < 5 ? (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-black bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 whitespace-nowrap">
-                          Low: {product.stock} left
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-black bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 whitespace-nowrap">
+                          Low: {product.stock}
                         </span>
                       ) : (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-black bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 whitespace-nowrap">
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-black bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 whitespace-nowrap">
                           {product.stock} in stock
                         </span>
                       )}
                     </td>
-                    <td className="py-3.5 px-4 md:px-6 hidden md:table-cell text-center">
+                    <td className="py-2.5 px-1 hidden md:table-cell text-center w-14">
                       <div className="flex items-center justify-center">
                         <button
                           type="button"
                           onClick={() => handleToggleActive(product)}
-                          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                          className={`relative inline-flex h-4.5 w-8 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
                             product.isActive ? 'bg-emerald-500' : 'bg-gray-200 dark:bg-gray-800'
                           }`}
                           role="switch"
@@ -170,19 +175,19 @@ export default function ProductListTable({
                           title={product.isActive ? 'Visible on store' : 'Hidden from store'}
                         >
                           <span
-                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
-                              product.isActive ? 'translate-x-5' : 'translate-x-0'
+                            className={`pointer-events-none inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                              product.isActive ? 'translate-x-3.5' : 'translate-x-0'
                             }`}
                           />
                         </button>
                       </div>
                     </td>
-                    <td className="py-3.5 px-4 md:px-6 hidden md:table-cell text-center">
+                    <td className="py-2.5 px-1 hidden xl:table-cell text-center w-14">
                       <div className="flex items-center justify-center">
                         <button
                           type="button"
                           onClick={() => handleToggleFeatured(product)}
-                          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                          className={`relative inline-flex h-4.5 w-8 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
                             product.isFeatured ? 'bg-amber-500' : 'bg-gray-200 dark:bg-gray-800'
                           }`}
                           role="switch"
@@ -190,52 +195,52 @@ export default function ProductListTable({
                           title={product.isFeatured ? 'Remove from Featured' : 'Mark as Featured'}
                         >
                           <span
-                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
-                              product.isFeatured ? 'translate-x-5' : 'translate-x-0'
+                            className={`pointer-events-none inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                              product.isFeatured ? 'translate-x-3.5' : 'translate-x-0'
                             }`}
                           />
                         </button>
                       </div>
                     </td>
                     {settings.meta_sync_enabled && (
-                      <td className="py-3.5 px-4 md:px-6 hidden md:table-cell">
+                      <td className="py-2.5 px-1 hidden 2xl:table-cell text-center w-20">
                         {product.meta_sync_status === 'synced' ? (
-                          <span suppressHydrationWarning={true} className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20" title={product.meta_last_synced_at ? `Synced at: ${new Date(product.meta_last_synced_at).toLocaleString()}` : 'Synced'}>🟢 Synced</span>
+                          <span suppressHydrationWarning={true} className="inline-flex items-center gap-1 text-[9px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded-full border border-emerald-500/20" title={product.meta_last_synced_at ? `Synced at: ${new Date(product.meta_last_synced_at).toLocaleString()}` : 'Synced'}>🟢 Synced</span>
                         ) : product.meta_sync_status === 'error' ? (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-red-600 dark:text-red-400 bg-red-500/10 px-2 py-0.5 rounded-full border border-red-500/20 cursor-help" title={product.meta_sync_error || 'Sync failed'}>🔴 Error</span>
+                          <span className="inline-flex items-center gap-1 text-[9px] font-bold text-red-600 dark:text-red-400 bg-red-500/10 px-1.5 py-0.5 rounded-full border border-red-500/20 cursor-help" title={product.meta_sync_error || 'Sync failed'}>🔴 Error</span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">🟡 Pending</span>
+                          <span className="inline-flex items-center gap-1 text-[9px] font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded-full border border-amber-500/20">🟡 Pending</span>
                         )}
                       </td>
                     )}
-                    <td className="py-3.5 px-4 md:px-6 text-center">
-                      <div className="flex items-center justify-center gap-1.5 md:gap-2">
+                    <td className="py-2.5 px-1.5 text-center w-18">
+                      <div className="flex items-center justify-center gap-1">
                         {settings.meta_sync_enabled && (
                           <button 
                             type="button"
                             onClick={() => handleSingleSync(product.id)} 
                             disabled={isSyncing}
-                            className="p-2 rounded-xl border border-gray-200/80 dark:border-gray-800/80 text-gray-600 dark:text-gray-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all cursor-pointer" 
+                            className="p-1 rounded-md border border-gray-200/80 dark:border-gray-800/80 text-gray-600 dark:text-gray-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all cursor-pointer" 
                             title="Force Meta Sync"
                           >
-                            {isSyncing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                            {isSyncing ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
                           </button>
                         )}
                         <button 
                           type="button"
                           onClick={() => handleEditProduct(product.id, filteredProducts)}
-                          className="p-2 rounded-xl border border-gray-200/80 dark:border-gray-800/80 text-gray-600 dark:text-gray-400 hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:text-blue-600 dark:hover:text-blue-400 transition-all cursor-pointer" 
+                          className="p-1 rounded-md border border-gray-200/80 dark:border-gray-800/80 text-gray-600 dark:text-gray-400 hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:text-blue-600 dark:hover:text-blue-400 transition-all cursor-pointer" 
                           title="Edit Product"
                         >
-                          <Edit className="h-4 w-4" />
+                          <Edit className="h-3 w-3" />
                         </button>
                         <button 
                           type="button"
                           onClick={() => handleDelete(product.id)}
-                          className="p-2 rounded-xl border border-gray-200/80 dark:border-gray-800/80 text-red-500 hover:bg-red-50/50 dark:hover:bg-red-950/30 transition-all cursor-pointer" 
+                          className="p-1 rounded-md border border-gray-200/80 dark:border-gray-800/80 text-red-500 hover:bg-red-50/50 dark:hover:bg-red-950/30 transition-all cursor-pointer" 
                           title="Move to Trash"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-3 w-3" />
                         </button>
                       </div>
                     </td>

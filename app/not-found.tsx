@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Home, ShoppingBag, Store, ArrowRight } from '@/components/common/Icons';
+import { Home, ShoppingBag, ArrowRight } from '@/components/common/Icons';
 
 export default function NotFound() {
   return (
@@ -39,14 +39,6 @@ export default function NotFound() {
           >
             <ShoppingBag className="w-4 h-4" />
             <span>Browse Products</span>
-          </Link>
-
-          <Link
-            href="/admin"
-            className="flex items-center justify-center gap-2 w-full min-h-[44px] px-6 py-3 rounded-xl border border-dashed border-gray-200 dark:border-gray-800 hover:border-gray-355 dark:hover:border-gray-700 text-gray-500 dark:text-gray-400 font-bold text-xs transition-all cursor-pointer"
-          >
-            <Store className="w-3.5 h-3.5" />
-            <span>Admin Dashboard</span>
           </Link>
         </div>
       </div>

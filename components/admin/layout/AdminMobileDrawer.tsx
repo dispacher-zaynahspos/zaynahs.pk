@@ -131,11 +131,11 @@ export function AdminMobileDrawer({
                           onClick={() => setIsMobileMenuOpen(false)}
                           className={`flex items-center gap-2 px-2.5 py-1.5 min-h-[32px] rounded-lg text-xs font-bold transition-all ${
                             active
-                              ? 'bg-white/25 text-white shadow-xs border border-white/25 font-black backdrop-blur-xs'
-                              : 'text-white/80 hover:text-white hover:bg-white/10'
+                              ? 'bg-white text-gray-950 font-black shadow-sm'
+                              : 'text-white/80 hover:text-white hover:bg-white/10 font-semibold'
                           }`}
                         >
-                          <Icon className={`h-3.5 w-3.5 flex-shrink-0 ${active ? 'text-white' : 'text-white/70'}`} />
+                          <Icon className={`h-3.5 w-3.5 flex-shrink-0 ${active ? 'text-[var(--color-primary,#C2185B)]' : 'text-white/70'}`} />
                           <span className="truncate">{item.label}</span>
                           {(item.label === 'Orders Log' || item.label === 'Abandoned Carts' || item.label === 'WhatsApp Leads') && (
                             (() => {
@@ -144,7 +144,7 @@ export function AdminMobileDrawer({
                                   : todayCounts.leads;
                               if (count !== undefined && count > 0) return (
                                 <span className={`ml-auto text-[8px] font-black px-1.5 py-0.5 rounded-full leading-none ${
-                                  active ? 'bg-white text-[var(--color-primary,#C2185B)]' : 'bg-white/90 text-[var(--color-primary,#C2185B)]'
+                                  active ? 'bg-[var(--color-primary,#C2185B)] text-white shadow-2xs' : 'bg-white/90 text-[var(--color-primary,#C2185B)]'
                                 }`}>
                                   {count > 99 ? '99+' : count}
                                 </span>

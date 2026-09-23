@@ -24,77 +24,61 @@ export const ProductCardActions: React.FC<ProductCardActionsProps> = ({
   onToggleWishlist,
   onOpenQuickView,
   onAddToCart,
-  variant = 'floating',
+  variant = 'action-btn',
 }) => {
-  if (variant === 'action-btn') {
-    return (
-      <div className="card-actions" onClick={(e) => e.preventDefault()}>
-        {showWishlist && (
-          <button
-            type="button"
-            onClick={onToggleWishlist}
-            className="action-btn animate-fade-in"
-            title={isInWishlist ? "Remove from Wishlist" : "Add to Wishlist"}
-          >
-            <Heart className={`h-4 w-4 ${isInWishlist ? 'fill-red-500 text-red-500' : ''}`} />
-          </button>
-        )}
-        {showQuickview && (
-          <button
-            type="button"
-            onClick={onOpenQuickView}
-            className="action-btn animate-fade-in"
-            title="Quick View"
-          >
-            <Eye className="h-4 w-4" />
-          </button>
-        )}
-        {showQuickcart && (
-          <button
-            type="button"
-            onClick={onAddToCart}
-            className="action-btn animate-fade-in"
-            title="Add to Cart"
-          >
-            <ShoppingCart className="h-4 w-4" />
-          </button>
-        )}
-      </div>
-    );
-  }
+  const handleTouch = (e: React.TouchEvent, handler: (e: any) => void) => {
+    e.preventDefault();
+    e.stopPropagation();
+    handler(e);
+  };
+
+  const containerClass = variant === 'action-btn' ? 'card-actions' : 'aic';
+  const btnClass = variant === 'action-btn' ? 'action-btn' : 'ai';
 
   return (
-    <div className="aic">
+    <div
+      className={containerClass}
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      }}
+      onTouchStart={(e) => e.stopPropagation()}
+      onTouchEnd={(e) => e.stopPropagation()}
+    >
       {showWishlist && (
         <button
           type="button"
           onClick={onToggleWishlist}
-          className="ai"
+          onTouchEnd={(e) => handleTouch(e, onToggleWishlist)}
+          className={btnClass}
+          aria-label={isInWishlist ? "Remove from Wishlist" : "Add to Wishlist"}
           title={isInWishlist ? "Remove from Wishlist" : "Add to Wishlist"}
         >
-          <Heart className={`h-3.5 w-3.5 ${isInWishlist ? 'fill-red-500 text-red-500' : ''}`} />
+          <Heart className={`h-4 w-4 ${isInWishlist ? 'fill-red-500 text-red-500' : ''}`} />
         </button>
       )}
-
       {showQuickview && (
         <button
           type="button"
           onClick={onOpenQuickView}
-          className="ai"
+          onTouchEnd={(e) => handleTouch(e, onOpenQuickView)}
+          className={btnClass}
+          aria-label="Quick View"
           title="Quick View"
         >
-          <Eye className="h-3.5 w-3.5" />
+          <Eye className="h-4 w-4" />
         </button>
       )}
-
       {showQuickcart && (
         <button
           type="button"
           onClick={onAddToCart}
-          className="ai"
+          onTouchEnd={(e) => handleTouch(e, onAddToCart)}
+          className={btnClass}
+          aria-label={hasVariants ? "Choose Options" : "Add to Cart"}
           title={hasVariants ? "Choose Options" : "Add to Cart"}
         >
-          <ShoppingCart className="h-3.5 w-3.5" />
+          <ShoppingCart className="h-4 w-4" />
         </button>
       )}
     </div>

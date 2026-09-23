@@ -48,15 +48,15 @@ export function InventoryTable({
         <table className="w-full text-left text-sm text-gray-700 dark:text-gray-300">
           <thead className="bg-gray-50 dark:bg-[#0f0f1b] border-b border-gray-200 dark:border-gray-800 font-bold uppercase text-[10px] tracking-wider text-gray-500">
             <tr>
-              <th className="py-3.5 px-4 w-10"></th>
-              <th className="py-3.5 px-4">Product</th>
-              <th className="py-3.5 px-4">SKU</th>
-              <th className="py-3.5 px-4">Stock Level</th>
-              <th className="py-3.5 px-4">Alert Threshold</th>
-              <th className="py-3.5 px-4 text-right">Status</th>
+              <th className="py-2.5 px-2 w-8 text-center"></th>
+              <th className="py-2.5 px-3">Product</th>
+              <th className="py-2.5 px-3 w-28">SKU</th>
+              <th className="py-2.5 px-3 w-36">Stock Level</th>
+              <th className="py-2.5 px-3 w-32">Alert Threshold</th>
+              <th className="py-2.5 px-3 text-right w-24">Status</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+          <tbody className="divide-y divide-gray-100 dark:divide-gray-800 text-xs">
             {paginatedProducts.map(product => {
               const isExpanded = expandedProducts[product.id] ?? false;
               const threshold = product.inventoryThreshold !== undefined && product.inventoryThreshold !== null ? product.inventoryThreshold : 5;
@@ -64,7 +64,7 @@ export function InventoryTable({
               return (
                 <React.Fragment key={product.id}>
                   <tr className="hover:bg-gray-50/50 dark:hover:bg-[#1d1d36]/30 transition-colors">
-                    <td className="py-4 px-4 text-center">
+                    <td className="py-2.5 px-2 text-center w-8">
                       {product.hasVariants ? (
                         <button
                           type="button"
@@ -79,35 +79,35 @@ export function InventoryTable({
                         </button>
                       ) : null}
                     </td>
-                    <td className="py-4 px-4 font-semibold text-gray-900 dark:text-white">
-                      <div className="flex items-center gap-3">
+                    <td className="py-2.5 px-3 font-semibold text-gray-900 dark:text-white">
+                      <div className="flex items-center gap-2.5">
                         <TableThumbnail 
                           url={product.images?.[0]?.url || null} 
                           alt={product.name} 
                           onPreview={setPreviewImageUrl} 
                         />
-                        <div>
-                          <div className="text-sm font-bold text-gray-900 dark:text-white">{product.name}</div>
+                        <div className="min-w-0">
+                          <div className="text-xs font-bold text-gray-900 dark:text-white truncate max-w-[200px] xl:max-w-xs">{product.name}</div>
                           {product.productCategories && product.productCategories.length > 0 ? (
-                            <div className="flex flex-wrap gap-1 mt-1">
+                            <div className="flex flex-wrap gap-1 mt-0.5">
                               {product.productCategories.map((pc) => pc.category ? (
-                                <span key={pc.categoryId} className="inline-flex items-center px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/20 text-[10px] font-bold text-indigo-600 dark:text-indigo-400 leading-tight">
+                                <span key={pc.categoryId} className="inline-flex items-center px-1.5 py-0.2 rounded-full bg-indigo-50 dark:bg-indigo-950/20 text-[9px] font-bold text-indigo-600 dark:text-indigo-400 leading-tight">
                                   {pc.category.name}
                                 </span>
                               ) : null)}
                             </div>
                           ) : product.category ? (
-                            <div className="text-[10px] text-gray-400 uppercase mt-0.5 font-bold">
+                            <div className="text-[9px] text-gray-400 uppercase mt-0.5 font-bold">
                               {product.category.name}
                             </div>
                           ) : null}
                         </div>
                       </div>
                     </td>
-                    <td className="py-4 px-4 font-mono text-xs text-gray-600 dark:text-gray-400">
+                    <td className="py-2.5 px-3 font-mono text-[11px] text-gray-600 dark:text-gray-400">
                       {product.sku || '—'}
                     </td>
-                    <td className="py-4 px-4">
+                    <td className="py-2.5 px-3">
                       {product.hasVariants ? (
                         <span className="font-bold text-xs text-gray-500 dark:text-gray-400">
                           {product.stock} (total across variants)

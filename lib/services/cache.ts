@@ -1,6 +1,6 @@
 'use server';
 
-import { revalidateSettings } from '@/lib/revalidate';
+import { revalidateSettings, revalidateHomepage, revalidateBanner } from '@/lib/revalidate';
 import { safeAction } from '@/lib/utils/serverAction';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 
@@ -11,6 +11,8 @@ export const purgeAllCache = async () => {
     (async () => {
       // 1. Revalidate Next.js cache (tags & paths)
       await revalidateSettings();
+      await revalidateHomepage();
+      await revalidateBanner();
       
       const vercelTime = new Date().toISOString();
       const { error: vError } = await supabaseAdmin.from('store_settings').update({ last_vercel_purge: vercelTime }).eq('id', SETTINGS_ID);

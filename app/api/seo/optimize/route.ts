@@ -150,6 +150,23 @@ export async function POST(request: Request) {
       }, { status: 200 });
     }
 
+    // Sanitize generated descriptions to ensure ZERO raw URLs or external links
+    const stripUrls = (text: string) => {
+      if (!text) return text;
+      return text
+        .replace(/<a\b[^>]*>(.*?)<\/a>/gi, '$1')
+        .replace(/https?:\/\/[^\s<>"']+/gi, '')
+        .replace(/\bwww\.[^\s<>"']+/gi, '')
+        .replace(/\s{2,}/g, ' ')
+        .trim();
+    };
+    if (seoData.long_description) {
+      seoData.long_description = stripUrls(seoData.long_description);
+    }
+    if (seoData.meta_description) {
+      seoData.meta_description = stripUrls(seoData.meta_description);
+    }
+
     // 6. Check if entity_id is a valid UUID to write to the DB
     const isValidUuid = (id: string) => {
       const regex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

@@ -81,9 +81,13 @@ export const ProductCardShowcaseContent: React.FC<ProductCardShowcaseContentProp
         switch (element) {
           case 'title':
             return (
-              <h3 key="title" className={`card-title ${titleClampClass}`}>
+              <div
+                key="title"
+                className={`card-title product-card-title text-[11px] sm:text-xs font-semibold normal-case tracking-normal leading-snug line-clamp-2 text-gray-900 dark:text-white pb-0.5 ${titleClampClass}`}
+                style={{ fontFamily: 'var(--font-body, system-ui, sans-serif)' }}
+              >
                 {product.name}
-              </h3>
+              </div>
             );
           case 'rating':
             if (!showStars) return null;

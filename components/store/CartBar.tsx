@@ -26,37 +26,57 @@ export default function CartBar({ currencySymbol = 'Rs.' }: CartBarProps) {
   if (!mounted || totalItems === 0 || pathname === '/cart' || pathname === '/checkout') return null;
 
   return (
-    <div className="fixed bottom-[calc(4.35rem+env(safe-area-inset-bottom,0px))] left-3 right-3 sm:left-5 sm:right-5 z-40 md:hidden pointer-events-none animate-in fade-in slide-in-from-bottom-3 duration-200">
+    <div className="fixed bottom-[calc(4.25rem+env(safe-area-inset-bottom,0px))] left-0 right-0 z-40 md:hidden flex justify-center px-4 pointer-events-none animate-in fade-in slide-in-from-bottom-2 duration-200">
       <Link
         href="/cart"
         style={{
-          background: 'linear-gradient(135deg, var(--color-primary, #C2185B) 0%, var(--color-secondary, #880E4F) 100%)'
+          background: 'linear-gradient(135deg, var(--color-primary, #C2185B) 0%, var(--color-secondary, #880E4F) 100%)',
+          borderRadius: '9999px !important',
+          boxShadow: '0 8px 24px -2px rgba(0,0,0,0.3), 0 3px 6px -2px rgba(0,0,0,0.15)',
         }}
-        className="pointer-events-auto flex items-center justify-between rounded-2xl text-white px-4.5 py-3 shadow-[0_8px_25px_rgba(0,0,0,0.25)] border border-white/20 active:scale-[0.97] transition-all duration-150 cursor-pointer group"
+        className="pointer-events-auto w-full max-w-[360px] flex items-center justify-between !rounded-full text-white px-3 py-1.5 border border-white/30 active:scale-[0.98] transition-all duration-150 cursor-pointer group backdrop-blur-md"
       >
-        <div className="flex items-center gap-3 min-w-0">
+        {/* Left: Dynamic Shopping Bag Emblem */}
+        <div className="flex items-center gap-2.5 min-w-0">
           <div className="relative flex-shrink-0">
-            <div className="h-8.5 w-8.5 rounded-xl bg-white/20 border border-white/25 flex items-center justify-center shadow-xs">
-              <ShoppingBag className="h-4.5 w-4.5 text-white" />
+            <div 
+              style={{ borderRadius: '9999px !important' }}
+              className="h-8.5 w-8.5 !rounded-full bg-white text-[var(--color-primary,#C2185B)] flex items-center justify-center shadow-md ring-2 ring-white/30 transition-transform group-hover:scale-105"
+            >
+              <ShoppingBag className="h-4.5 w-4.5 text-[var(--color-primary,#C2185B)]" />
             </div>
-            <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-white text-[9px] font-black text-[var(--color-primary,#C2185B)] shadow-xs">
+            <span 
+              style={{ borderRadius: '9999px !important' }}
+              className="absolute -top-1 -right-1 flex h-4 min-w-[16px] px-1 items-center justify-center !rounded-full bg-gray-900 text-[9px] font-black text-white shadow-xs ring-1.5 ring-white"
+            >
               {totalItems > 99 ? '99+' : totalItems}
             </span>
           </div>
-          <div className="min-w-0">
-            <span className="text-xs font-black tracking-tight block text-white">View Bag</span>
-            <span className="text-[10px] font-medium text-white/80 block leading-none">
-              {totalItems} {totalItems === 1 ? 'item' : 'items'} ready
+
+          <div className="min-w-0 text-left">
+            <div className="text-[12px] font-black tracking-tight text-white leading-tight flex items-center gap-1">
+              <span>View Bag</span>
+              <span className="inline-block w-1 h-1 rounded-full bg-white/70"></span>
+              <span className="text-[10px] font-medium text-white/90">
+                {totalItems} {totalItems === 1 ? 'item' : 'items'}
+              </span>
+            </div>
+            <span className="text-[9.5px] font-medium text-white/75 block leading-tight mt-0.5">
+              Tap to review & checkout
             </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <span className="text-sm font-black tracking-tight text-white">
+        {/* Right: Price & Sleek Pill Action Button */}
+        <div className="flex items-center gap-2 flex-shrink-0 pl-2">
+          <span className="text-xs sm:text-sm font-black tracking-tight text-white drop-shadow-xs">
             {formatPrice(totalPrice, currencySymbol)}
           </span>
-          <div className="h-6 w-6 rounded-full bg-white/20 flex items-center justify-center group-hover:translate-x-0.5 transition-transform">
-            <ArrowRight className="h-3 w-3 text-white" />
+          <div 
+            style={{ borderRadius: '9999px !important' }}
+            className="h-7 w-7 !rounded-full bg-white/25 border border-white/30 flex items-center justify-center group-hover:translate-x-0.5 transition-transform"
+          >
+            <ArrowRight className="h-3.5 w-3.5 text-white" />
           </div>
         </div>
       </Link>

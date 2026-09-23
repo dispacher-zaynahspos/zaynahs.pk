@@ -174,11 +174,17 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
             </span>
           )}
           {product.isFeatured && (
-            <span className="rounded-full bg-gray-950 dark:bg-black px-2.5 py-0.5 text-[9px] font-black text-white shadow-xs uppercase tracking-wide">
-              FEATURED
+            <span
+              className="rounded-full px-2.5 py-0.5 text-[9px] font-black shadow-xs uppercase tracking-wide"
+              style={{
+                backgroundColor: product.customBadge?.name?.toLowerCase() === 'featured' ? product.customBadge.bgColor : '#0f172a',
+                color: product.customBadge?.name?.toLowerCase() === 'featured' ? product.customBadge.textColor : '#ffffff'
+              }}
+            >
+              {product.customBadge?.name?.toLowerCase() === 'featured' ? product.customBadge.name : 'FEATURED'}
             </span>
           )}
-          {product.badgeEnabled && product.customBadge && (
+          {product.badgeEnabled && product.customBadge && (!product.isFeatured || product.customBadge.name.toLowerCase() !== 'featured') && (
             <span
               className="rounded-full px-2.5 py-0.5 text-[9px] font-black text-white shadow-sm uppercase tracking-wide"
               style={{
@@ -196,11 +202,17 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
           )}
         </div>
 
-        <div className="absolute right-2 top-2.5 flex flex-col gap-1.5 z-20 transition-all duration-300 opacity-100 md:opacity-0 md:group-hover:opacity-100">
+        <div
+          className="absolute right-2 top-2.5 flex flex-col gap-1.5 z-20 transition-all duration-300 opacity-100 md:opacity-0 md:group-hover:opacity-100"
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+          onTouchStart={(e) => e.stopPropagation()}
+          onTouchEnd={(e) => e.stopPropagation()}
+        >
           {showWishlist && (
             <button
               type="button"
               onClick={onToggleWishlist}
+              onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); onToggleWishlist(e as any); }}
               className="flex h-7 w-7 items-center justify-center rounded-full bg-white dark:bg-[#16162a] shadow-md border border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/10 hover:text-[var(--color-primary,#C2185B)] dark:hover:text-[var(--color-primary,#C2185B)] transition-all cursor-pointer active:scale-90"
               title={isInWishlist ? "Remove from Wishlist" : "Add to Wishlist"}
             >
@@ -212,6 +224,7 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
             <button
               type="button"
               onClick={onOpenQuickView}
+              onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); onOpenQuickView(e as any); }}
               className="flex h-7 w-7 items-center justify-center rounded-full bg-white dark:bg-[#16162a] shadow-md border border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/10 hover:text-[var(--color-primary,#C2185B)] dark:hover:text-[var(--color-primary,#C2185B)] transition-all cursor-pointer active:scale-90"
               title="Quick View"
             >
@@ -223,6 +236,7 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
             <button
               type="button"
               onClick={onAddToCart}
+              onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); onAddToCart(e as any); }}
               className="flex h-7 w-7 items-center justify-center rounded-full bg-white dark:bg-[#16162a] shadow-md border border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/10 hover:text-[var(--color-primary,#C2185B)] dark:hover:text-[var(--color-primary,#C2185B)] transition-all cursor-pointer active:scale-90"
               title={product.hasVariants ? "Choose Options" : "Add to Cart"}
             >

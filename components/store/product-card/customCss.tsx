@@ -32,21 +32,62 @@ export const customCss = `
     .z-card-container .bdg-new { background: #10b981; color: #fff; }
     .z-card-container .bdg-hot { background: #ef4444; color: #fff; }
     .z-card-container .bdg-sale { background: #f59e0b; color: #fff; }
+    .z-card-container .bdg-featured { background: #0f172a; color: #fff; }
 
+    /* Universal Quick Action Controls Overlay */
+    .z-card-container .card-actions,
     .z-card-container .aic {
-      position: absolute; right: 6px; top: 6px;
-      display: flex; flex-direction: column; gap: 5px;
-      z-index: 20; opacity: 0; transform: translateX(18px);
-      transition: var(--trans);
+      position: absolute; right: 8px; top: 8px;
+      display: flex; flex-direction: column; gap: 6px;
+      z-index: 25; opacity: 0; transform: translateY(-4px);
+      transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      pointer-events: none;
     }
-    .z-card-container:hover .aic { opacity: 1; transform: translateX(0); }
+    .z-card-container:hover .card-actions,
+    .z-card-container:hover .aic,
+    .z-card-container .sc1:hover .card-actions,
+    .z-card-container .sc2:hover .card-actions,
+    .z-card-container .sc3:hover .card-actions,
+    .z-card-container .sc4:hover .card-actions,
+    .z-card-container .sc5:hover .card-actions,
+    .z-card-container .sc6:hover .card-actions,
+    .z-card-container .sc7:hover .card-actions,
+    .z-card-container .sc8:hover .card-actions,
+    .z-card-container .sc9:hover .card-actions,
+    .z-card-container .sc10:hover .card-actions,
+    .group:hover .card-actions,
+    .group:hover .aic {
+      opacity: 1 !important;
+      transform: translateY(0) !important;
+      pointer-events: auto !important;
+    }
 
+    /* Universal Action Button Styling */
+    .z-card-container .action-btn,
     .z-card-container .ai {
-      width: 30px; height: 30px; border-radius: 50%; border: none;
+      width: 32px; height: 32px; border-radius: 50%;
+      background: #ffffff; color: #1f2937;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
       cursor: pointer; display: flex; align-items: center; justify-content: center;
-      font-size: .78rem; transition: var(--trans); position: relative;
+      font-size: 0.8rem; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
     }
-    .z-card-container .ai .tt {
+    .z-card-container .action-btn:hover,
+    .z-card-container .ai:hover {
+      transform: scale(1.1);
+      background: var(--color-primary, #e94560);
+      color: #ffffff;
+      border-color: transparent;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+    .z-card-container .action-btn:active,
+    .z-card-container .ai:active {
+      transform: scale(0.92);
+    }
+
+    .z-card-container .ai .tt,
+    .z-card-container .action-btn .tt {
       position: absolute; right: calc(100% + 8px); top: 50%;
       transform: translateY(-50%);
       background: rgba(0,0,0,.88); color: #fff;
@@ -55,7 +96,28 @@ export const customCss = `
       opacity: 0; pointer-events: none;
       transition: opacity .2s; font-weight: 700;
     }
-    .z-card-container .ai:hover .tt { opacity: 1; }
+    .z-card-container .ai:hover .tt,
+    .z-card-container .action-btn:hover .tt { opacity: 1; }
+
+    /* Touch & Mobile Screen Support: always visible and responsive */
+    @media (max-width: 768px), (hover: none) {
+      .z-card-container .card-actions,
+      .z-card-container .aic {
+        opacity: 1 !important;
+        transform: none !important;
+        pointer-events: auto !important;
+        right: 6px !important;
+        top: 6px !important;
+        gap: 5px !important;
+      }
+      .z-card-container .action-btn,
+      .z-card-container .ai {
+        width: 28px !important;
+        height: 28px !important;
+        background: rgba(255, 255, 255, 0.95) !important;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15) !important;
+      }
+    }
 
     .z-card-container .rat { display: flex; align-items: center; gap: 3px; margin-bottom: 3px; }
     .z-card-container .rat .st { color: #f59e0b; font-size: .62rem; }
@@ -275,6 +337,30 @@ export const customCss = `
         .grid-cols-2 .z-card-container .sc5,
         .grid-cols-2 .z-card-container .sc6 {
             padding: 6px !important;
+        }
+    }
+
+    /* Enforce disciplined compact typography for product card titles in all showcases */
+    .z-card-container .card-title,
+    .z-card-container .product-card-title,
+    .z-card-container .ttl,
+    .card-title,
+    .product-card-title {
+        font-family: var(--font-body, system-ui, sans-serif) !important;
+        font-size: 0.72rem !important;
+        line-height: 1.25 !important;
+        font-weight: 600 !important;
+        text-transform: none !important;
+        letter-spacing: normal !important;
+        margin-bottom: 3px !important;
+    }
+    @media (min-width: 640px) {
+        .z-card-container .card-title,
+        .z-card-container .product-card-title,
+        .z-card-container .ttl,
+        .card-title,
+        .product-card-title {
+            font-size: 0.82rem !important;
         }
     }
 `;

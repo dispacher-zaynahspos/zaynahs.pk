@@ -54,15 +54,15 @@ export default function AbandonedCartTable({
           <div className="hidden md:block">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm text-gray-700 dark:text-gray-300">
-                <thead className="text-xs font-bold text-gray-400 uppercase bg-gray-50/50 dark:bg-white/5 border-b border-gray-100 dark:border-gray-800">
+                <thead className="text-[11px] font-bold text-gray-400 uppercase bg-gray-50/50 dark:bg-white/5 border-b border-gray-100 dark:border-gray-800">
                   <tr>
-                    <th className="py-4 px-6">Cart ID / Session</th>
-                    <th className="py-4 px-6">Customer Info</th>
-                    <th className="py-4 px-6">Items Left in Cart</th>
-                    <th className="py-4 px-6">Subtotal</th>
-                    <th className="py-4 px-6">Recovery Status</th>
-                    <th className="py-4 px-6">Last Activity</th>
-                    <th className="py-4 px-6 text-center">Actions</th>
+                    <th className="py-2.5 px-3">Cart / Session</th>
+                    <th className="py-2.5 px-3">Customer Info</th>
+                    <th className="py-2.5 px-3">Items Left</th>
+                    <th className="py-2.5 px-3">Subtotal</th>
+                    <th className="py-2.5 px-3">Status</th>
+                    <th className="py-2.5 px-3">Last Activity</th>
+                    <th className="py-2.5 px-3 text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-gray-800/80">
@@ -70,15 +70,15 @@ export default function AbandonedCartTable({
                     <tr 
                       key={cart.id} 
                       onClick={() => setSelectedCartId(cart.id)}
-                      className="hover:bg-gray-50/50 dark:hover:bg-white/3 transition-all align-top cursor-pointer"
+                      className="hover:bg-gray-50/50 dark:hover:bg-white/3 transition-all align-top cursor-pointer text-xs"
                     >
                       {/* Session/Cart ID */}
-                      <td className="py-4 px-6 font-bold text-[#1a1a2e] dark:text-white max-w-[150px] truncate">
+                      <td className="py-2.5 px-3 font-bold text-[#1a1a2e] dark:text-white max-w-[130px] truncate">
                         {cart.customerName ? `Cart of ${cart.customerName}` : cart.sessionId.replace('cs_', '')}
                       </td>
 
                       {/* Customer Info */}
-                      <td className="py-4 px-6" onClick={(e) => e.stopPropagation()}>
+                      <td className="py-2.5 px-3" onClick={(e) => e.stopPropagation()}>
                         <p className="font-bold text-[#1a1a2e] dark:text-white">{cart.customerName || 'Anonymous'}</p>
                         {cart.customerPhone && (
                           <a 
@@ -92,20 +92,20 @@ export default function AbandonedCartTable({
                           </a>
                         )}
                         {cart.customerEmail && (
-                          <span className="text-xs text-gray-400 dark:text-gray-500 font-semibold block">{cart.customerEmail}</span>
+                          <span className="text-[11px] text-gray-400 dark:text-gray-500 font-semibold block">{cart.customerEmail}</span>
                         )}
                       </td>
 
                       {/* Items left */}
-                      <td className="py-4 px-6 max-w-xs">
-                        <div className="space-y-1">
+                      <td className="py-2.5 px-3 max-w-[200px]">
+                        <div className="space-y-0.5">
                           {cart.items.map((item, idx) => {
                             const variantParts = [];
                             if (item.selectedVariant?.color) variantParts.push(item.selectedVariant.color);
                             if (item.selectedVariant?.size) variantParts.push(item.selectedVariant.size);
                             const variantStr = variantParts.length ? ` (${variantParts.join(', ')})` : '';
                             return (
-                              <div key={idx} className="text-xs font-semibold text-gray-600 dark:text-gray-400 line-clamp-2">
+                              <div key={idx} className="text-[11px] font-semibold text-gray-600 dark:text-gray-400 line-clamp-1">
                                 • {item.product?.name || 'Product'}{variantStr} x{item.quantity}
                               </div>
                             );
@@ -114,29 +114,29 @@ export default function AbandonedCartTable({
                       </td>
 
                       {/* Subtotal */}
-                      <td className="py-4 px-6 font-bold text-[#1a1a2e] dark:text-white">
+                      <td className="py-2.5 px-3 font-bold text-[#1a1a2e] dark:text-white whitespace-nowrap">
                         {formatPrice(cart.subtotal)}
                       </td>
 
                       {/* Status badge */}
-                      <td className="py-4 px-6">
-                        <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase border ${getStatusBadgeStyles(cart)}`}>
+                      <td className="py-2.5 px-3">
+                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full uppercase border ${getStatusBadgeStyles(cart)}`}>
                           {cart.orderPlaced ? 'Recovered' : cart.emailSent ? 'Email Sent' : 'Pending'}
                         </span>
                       </td>
 
                       {/* Last Activity */}
-                      <td className="py-4 px-6 text-xs text-gray-500 dark:text-gray-400 font-medium">
+                      <td className="py-2.5 px-3 text-[11px] text-gray-500 dark:text-gray-400 font-medium whitespace-nowrap">
                         {new Date(cart.lastActivity).toLocaleDateString()}<br />
                         <span className="text-gray-400 dark:text-gray-500 font-semibold">{timeAgo(cart.lastActivity)}</span>
                       </td>
 
                       {/* Actions */}
-                      <td className="py-4 px-6 text-center" onClick={(e) => e.stopPropagation()}>
+                      <td className="py-2.5 px-3 text-center" onClick={(e) => e.stopPropagation()}>
                         <button
                           onClick={() => handleDelete(cart.id)}
                           disabled={deleting === cart.id}
-                          className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-all"
+                          className="p-1 rounded-md text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-all"
                           title="Delete cart record"
                         >
                           <Trash2 className="h-4 w-4" />

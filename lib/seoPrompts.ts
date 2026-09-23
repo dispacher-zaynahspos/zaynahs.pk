@@ -107,7 +107,7 @@ ${customPromptInstructions ? `SPECIFIC WRITING PARAMETERS:${customPromptInstruct
 STRICT SEO & COPYWRITING INSTRUCTIONS:
 1. The Primary Focus Keyword MUST appear in the first sentence of the meta description and long description.
 2. The long description MUST be formatted in rich, informative, engaging markdown-like HTML (using <h2>, <p>, <ul>, <li> tags). Do not include <html>, <head>, or <body> tags. Adhere to any length constraints specified above (default to 1000+ words for product descriptions and 150+ words for category descriptions if no limit is set).
-3. Incorporate the store website URL (${resolvedUrl}) naturally 2-3 times as contextual internal links.
+3. CRITICAL: NEVER output raw URLs, website addresses (e.g. no "https://...", "www...."), or markdown/HTML hyperlinks in the long_description or meta_description. Focus purely on fabric composition, craftsmanship, styling suggestions, size/fit reassurance, and brand quality.
 4. FAQ Schema MUST contain 3-5 relevant questions and answers providing structured information about sizing, materials, delivery, and exchange, utilizing the brand contact and address details if relevant.
 5. CRITICAL: You MUST ALWAYS use the EXACT Brand Name provided above ("${settings.brand_name || storeSettings?.store_name || process.env.NEXT_PUBLIC_BRAND_NAME || 'Your Store'}"). NEVER use old placeholder names like "Zaynahs" or "Zaynahs E-Store".
 6. You must output ONLY a valid, parseable JSON object fitting the requested schema. Do not output any thinking tags, markdown wrapper blocks (like \`\`\`json), or conversational text. Return only raw JSON.`;

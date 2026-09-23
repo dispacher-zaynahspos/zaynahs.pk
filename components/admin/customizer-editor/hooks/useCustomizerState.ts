@@ -11,7 +11,7 @@ import {
   deleteHomepageSection 
 } from '@/lib/services/sections';
 import { updateSettings } from '@/lib/services/settings';
-import { updateProductFields } from '@/lib/services/products';
+import { updateProductFieldsAction as updateProductFields } from '@/lib/services/products/actions';
 import { toast } from 'sonner';
 import { useCustomizerIframeSync } from './useCustomizerIframeSync';
 
