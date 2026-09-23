@@ -119,7 +119,7 @@ export function InventoryTable({
                               type="number"
                               defaultValue={product.stock}
                               style={{ borderWidth: 0 }}
-                              className="w-16 bg-transparent text-xs text-gray-900 dark:text-white px-2.5 py-1.5 focus:outline-none"
+                              className="w-16 bg-transparent text-xs text-center font-bold text-gray-900 dark:text-white px-2 py-1.5 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                               onBlur={(e) => {
                                 const val = parseInt(e.target.value, 10);
                                 if (!isNaN(val) && val !== product.stock) {
@@ -154,7 +154,7 @@ export function InventoryTable({
                               type="number"
                               defaultValue={threshold}
                               style={{ borderWidth: 0 }}
-                              className="w-16 bg-transparent text-xs text-gray-900 dark:text-white px-2.5 py-1.5 focus:outline-none"
+                              className="w-16 bg-transparent text-xs text-center font-bold text-gray-900 dark:text-white px-2 py-1.5 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                               onBlur={(e) => {
                                 const val = parseInt(e.target.value, 10);
                                 if (!isNaN(val) && val !== threshold) {

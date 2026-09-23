@@ -457,6 +457,19 @@ main#admin-main-content:has(.fixed.z-50) {
   border-radius: 10px !important;
 }
 
+/* Remove number input spin-buttons in admin tables & cards */
+.admin-shell input[type="number"]::-webkit-outer-spin-button,
+.admin-shell input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none !important;
+  margin: 0 !important;
+}
+.admin-shell input[type="number"],
+input[type="number"] {
+  -moz-appearance: textfield !important;
+}
+
 /* Theme accent highlights in admin */
 .admin-shell .bg-theme-primary {
   background-color: var(--color-primary, #C2185B) !important;

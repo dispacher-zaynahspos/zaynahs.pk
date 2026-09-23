@@ -171,7 +171,7 @@ export function InventoryVariantSubtable({
                             type="number"
                             defaultValue={variant.stock}
                             style={{ borderWidth: 0 }}
-                            className="w-14 bg-transparent text-xs text-gray-900 dark:text-white px-2 py-1 focus:outline-none"
+                            className="w-14 bg-transparent text-xs text-center font-bold text-gray-900 dark:text-white px-2 py-1 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                             onBlur={(e) => {
                               const val = parseInt(e.target.value, 10);
                               if (!isNaN(val) && val !== variant.stock) {
@@ -202,7 +202,7 @@ export function InventoryVariantSubtable({
                             type="number"
                             defaultValue={variantThreshold}
                             style={{ borderWidth: 0 }}
-                            className="w-14 bg-transparent text-xs text-gray-900 dark:text-white px-2 py-1 focus:outline-none"
+                            className="w-14 bg-transparent text-xs text-center font-bold text-gray-900 dark:text-white px-2 py-1 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                             onBlur={(e) => {
                               const val = parseInt(e.target.value, 10);
                               if (!isNaN(val) && val !== variantThreshold) {

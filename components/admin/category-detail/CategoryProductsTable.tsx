@@ -98,9 +98,9 @@ export function CategoryProductsTable({
               )}
               <th className="py-3.5 px-4 w-10"></th>
               <th className="py-3.5 px-4">Product</th>
-              <th className="py-3.5 px-4">Price</th>
-              <th className="py-3.5 px-4">Compare Price</th>
-              <th className="py-3.5 px-4">Stock</th>
+              <th className="py-3.5 px-4 whitespace-nowrap">Price</th>
+              <th className="py-3.5 px-4 whitespace-nowrap">Compare Price</th>
+              <th className="py-3.5 px-4 min-w-[130px] whitespace-nowrap">Stock</th>
               <th className="py-3.5 px-4 text-center">Actions</th>
             </tr>
           </thead>
@@ -206,14 +206,14 @@ export function CategoryProductsTable({
                         </div>
                       </div>
                     </td>
-                    <td className="py-4 px-4 font-mono font-semibold text-gray-900 dark:text-white">
-                      Rs. {formatPrice(product.price)}
+                    <td className="py-4 px-4 font-mono font-semibold text-gray-900 dark:text-white whitespace-nowrap">
+                      {formatPrice(product.price)}
                     </td>
-                    <td className="py-4 px-4 font-mono text-gray-400">
-                      {product.comparePrice ? `Rs. ${formatPrice(product.comparePrice)}` : '-'}
+                    <td className="py-4 px-4 font-mono text-gray-400 whitespace-nowrap">
+                      {product.comparePrice ? formatPrice(product.comparePrice) : '-'}
                     </td>
-                    <td className="py-4 px-4">
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
+                    <td className="py-4 px-4 whitespace-nowrap">
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold whitespace-nowrap flex-shrink-0 leading-none ${
                         product.stock > 10 ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-400' :
                         product.stock > 0 ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-400' :
                         'bg-rose-100 text-rose-800 dark:bg-rose-950/40 dark:text-rose-400'
@@ -264,9 +264,9 @@ export function CategoryProductsTable({
                                   </span>
                                   {v.sku && <span className="font-mono text-gray-400 text-[11px]">{v.sku}</span>}
                                 </div>
-                                <div className="flex items-center gap-4">
-                                  <span className="font-mono font-semibold text-gray-900 dark:text-white">Rs. {formatPrice(v.price)}</span>
-                                  <span className={`px-2 py-0.5 rounded-md text-[11px] font-bold ${
+                                <div className="flex items-center gap-4 whitespace-nowrap">
+                                  <span className="font-mono font-semibold text-gray-900 dark:text-white whitespace-nowrap">{formatPrice(v.price)}</span>
+                                  <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold whitespace-nowrap flex-shrink-0 leading-none ${
                                     v.stock > 0 ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400' : 'bg-rose-50 text-rose-700 dark:bg-rose-950/30 dark:text-rose-400'
                                   }`}>
                                     {v.stock} in stock
