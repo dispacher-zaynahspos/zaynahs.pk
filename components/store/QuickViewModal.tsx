@@ -249,7 +249,7 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
                     {product.category.name}
                   </span>
                 )}
-                <h2 className="text-sm sm:text-base md:text-lg font-heading font-semibold text-gray-900 dark:text-white leading-snug tracking-normal break-words [text-wrap:balance]">
+                <h2 className="text-lg sm:text-xl md:text-2xl font-heading font-medium text-gray-900 dark:text-white leading-snug tracking-tight break-words [text-wrap:balance]">
                   {product.name}
                 </h2>
               </div>
@@ -266,7 +266,7 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
                   </span>
                   {!hasPriceRange && comparePrice && comparePrice > basePrice && (
                     <div className="flex items-center gap-1.5">
-                      <span className="text-sm text-gray-400 line-through font-semibold font-body">
+                      <span className="text-sm text-gray-400 line-through decoration-red-500 decoration-[1.5px] font-semibold font-body">
                         {formatPrice(comparePrice, settings.currencySymbol)}
                       </span>
                       <span className="rounded-md bg-[#10b981] px-1.5 py-0.5 text-[9px] font-black text-white tracking-wide animate-none">
@@ -283,7 +283,7 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
                     </span>
                     {comparePrice && comparePrice > basePrice && (
                       <span className="inline-flex items-center gap-1 ml-1">
-                        <span className="text-[10px] text-gray-400 line-through font-semibold font-body">
+                        <span className="text-[10px] text-gray-400 line-through decoration-red-500 decoration-[1.5px] font-semibold font-body">
                           {formatPrice(comparePrice, settings.currencySymbol)}
                         </span>
                         <span className="rounded bg-[#10b981] px-1 py-0.5 text-[8px] font-black text-white leading-none">

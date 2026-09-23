@@ -166,7 +166,7 @@ export const customCss = `
     }
 
     .z-card-container .prow { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
-    .z-card-container .pold { text-decoration: line-through; color: #888; font-size: .7rem; }
+    .z-card-container .pold { text-decoration: line-through; text-decoration-color: #ef4444; text-decoration-thickness: 1.5px; color: #888; font-size: .7rem; }
 
     .z-card-container .abtn {
       width: 100%; border: none; border-radius: 50px;

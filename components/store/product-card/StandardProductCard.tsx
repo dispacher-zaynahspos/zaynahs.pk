@@ -115,7 +115,7 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
               )}
             </span>
             {!hasPriceRange && currentComparePrice && currentComparePrice > currentPrice && (
-              <span className="text-[9px] text-gray-400 line-through">
+              <span className="text-[9px] text-gray-400 line-through decoration-red-500 decoration-[1.5px]">
                 {formatPrice(currentComparePrice, currencySymbol)}
               </span>
             )}

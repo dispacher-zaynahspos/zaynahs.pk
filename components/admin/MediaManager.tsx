@@ -53,6 +53,9 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
     typeFilter, setTypeFilter,
     selectedIds, setSelectedIds,
     selectedLibraryUrls,
+    currentPage, setCurrentPage,
+    pageSize, setPageSize,
+    handleConfirmSelection,
     cleanerUsedSelected,
     cleanerUnusedSelected,
     cleanerSearch, setCleanerSearch,
@@ -274,8 +277,85 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
               ))}
             </div>
           )}
+
+          {/* Pagination Controls */}
+          {filteredMedia.length > 0 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white dark:bg-[#16162a] p-4 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-xs mt-4 text-xs font-bold text-gray-700 dark:text-gray-300">
+              <div className="flex items-center gap-2">
+                <span>Show per page:</span>
+                <select
+                  value={pageSize}
+                  onChange={(e) => {
+                    setPageSize(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] px-2.5 py-1.5 focus:outline-none focus:border-blue-500 cursor-pointer"
+                >
+                  <option value={15}>15</option>
+                  <option value={30}>30</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                  <option value={200}>200</option>
+                </select>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage((prev: number) => Math.max(1, prev - 1))}
+                  className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
+                >
+                  Previous
+                </button>
+                <span className="px-2">
+                  Page {currentPage} of {Math.max(1, Math.ceil(filteredMedia.length / pageSize))}
+                </span>
+                <button
+                  type="button"
+                  disabled={currentPage >= Math.ceil(filteredMedia.length / pageSize)}
+                  onClick={() => setCurrentPage((prev: number) => Math.min(Math.ceil(filteredMedia.length / pageSize), prev + 1))}
+                  className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
+                >
+                  Next
+                </button>
+              </div>
+              <div className="text-gray-500 dark:text-gray-400 font-medium">
+                Showing {Math.min(filteredMedia.length, (currentPage - 1) * pageSize + 1)}-{Math.min(filteredMedia.length, currentPage * pageSize)} of {filteredMedia.length} files
+              </div>
+            </div>
+          )}
         </div>
       ) : null}
+
+      {/* Selector Mode Footer */}
+      {mode === 'selector' && (
+        <div className="flex-none px-6 py-4 border-t border-gray-150 dark:border-gray-800 flex items-center justify-between bg-white dark:bg-[#121222] z-10 shadow-xs">
+          <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+            {selectedLibraryUrls?.size > 0 ? (
+              <span className="text-[#e94560] font-bold">{selectedLibraryUrls.size} item(s) selected</span>
+            ) : (
+              'Click an image to select'
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 rounded-xl text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleConfirmSelection}
+              disabled={!selectedLibraryUrls || selectedLibraryUrls.size === 0}
+              className="px-5 py-2 rounded-xl text-xs font-bold min-w-[130px] bg-[#1a1a2e] dark:bg-[#e94560] hover:bg-[#2e2e4e] dark:hover:bg-[#d8344e] text-white shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 cursor-pointer"
+            >
+              Add Selected ({selectedLibraryUrls?.size || 0})
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* CLEANER TAB */}
       {mode === 'library' && mainTab === 'cleaner' && (

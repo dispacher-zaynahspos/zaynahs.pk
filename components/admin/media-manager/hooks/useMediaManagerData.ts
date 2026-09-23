@@ -65,7 +65,7 @@ export function useMediaManagerData({ mode, multiple, onSelect, onClose }: UseMe
   const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'yesterday' | 'last_7' | 'last_30'>('all');
 
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(50);
+  const [pageSize, setPageSize] = useState(mode === 'selector' ? 15 : 50);
   const [onlyUnused, setOnlyUnused] = useState(false);
 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);

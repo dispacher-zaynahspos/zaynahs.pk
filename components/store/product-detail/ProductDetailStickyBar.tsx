@@ -48,8 +48,8 @@ export function ProductDetailStickyBar({
   if (!show) return null;
 
   return (
-    <div className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom,0px))] left-0 right-0 z-40 md:hidden bg-white/95 dark:bg-[#121222]/95 backdrop-blur-xl border-t border-gray-200/80 dark:border-white/10 px-3.5 py-2 shadow-[0_-6px_24px_rgba(0,0,0,0.08)] transition-all duration-200 animate-in fade-in slide-in-from-bottom-2">
-      <div className="flex items-center justify-between gap-2.5 max-w-lg mx-auto">
+    <div className="fixed bottom-[calc(4.25rem+env(safe-area-inset-bottom,0px))] left-3 right-3 max-w-md mx-auto z-40 md:hidden bg-white/95 dark:bg-[#16162a]/95 backdrop-blur-xl border border-gray-200/90 dark:border-white/10 px-3 py-2 rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.12)] transition-all duration-300 animate-in fade-in slide-in-from-bottom-3">
+      <div className="flex items-center justify-between gap-3">
         {/* Product Snapshot & Price */}
         <div className="flex items-center gap-2.5 min-w-0 flex-1">
           <div className="relative h-10 w-10 rounded-xl overflow-hidden border border-black/10 dark:border-white/15 bg-gray-50 dark:bg-black/30 shadow-xs flex-shrink-0">
@@ -71,7 +71,7 @@ export function ProductDetailStickyBar({
           </div>
         </div>
 
-        {/* Smart Modern Action Buttons */}
+        {/* Smart Modern Icon Action Area */}
         <div className="flex items-center gap-2 flex-shrink-0">
           {/* Direct WhatsApp Order CTA */}
           {enableQuickWhatsapp && (
@@ -79,7 +79,7 @@ export function ProductDetailStickyBar({
               href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-[#25D366] hover:bg-[#20bd5a] text-white shadow-xs active:scale-95 transition-all cursor-pointer flex-shrink-0"
+              className="relative flex h-10 w-10 items-center justify-center rounded-full bg-[#25D366] hover:bg-[#20bd5a] text-white shadow-md shadow-[#25D366]/20 active:scale-90 transition-all cursor-pointer flex-shrink-0"
               title="Order via WhatsApp"
               aria-label="Order via WhatsApp"
             >
@@ -87,17 +87,29 @@ export function ProductDetailStickyBar({
             </a>
           )}
 
-          {/* Add to Bag CTA */}
-          <button
-            type="button"
-            onClick={onAddToCart}
-            disabled={stockAvailable <= 0}
-            style={{ backgroundColor: 'var(--color-primary, #C2185B)' }}
-            className="flex items-center justify-center gap-1.5 text-white px-4 h-10 rounded-full text-xs font-bold uppercase tracking-wider shadow-md shadow-[var(--color-primary,#C2185B)]/20 hover:brightness-110 active:scale-95 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
-          >
-            <ShoppingCart className="h-4 w-4 stroke-[2.2]" />
-            <span>{stockAvailable <= 0 ? 'Sold Out' : 'Add to Bag'}</span>
-          </button>
+          {/* Smart Icon-Only Add to Bag CTA */}
+          {stockAvailable <= 0 ? (
+            <div
+              className="h-10 px-3 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 text-[10px] font-bold uppercase tracking-wider flex items-center justify-center border border-gray-200 dark:border-gray-700 cursor-not-allowed select-none"
+              title="Out of Stock"
+            >
+              Sold Out
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={onAddToCart}
+              style={{ backgroundColor: 'var(--color-primary, #C2185B)' }}
+              className="relative flex h-10 w-10 items-center justify-center rounded-full text-white shadow-lg shadow-[var(--color-primary,#C2185B)]/30 hover:brightness-110 active:scale-90 transition-all cursor-pointer flex-shrink-0"
+              title="Add to Bag"
+              aria-label="Add to Bag"
+            >
+              <ShoppingCart className="h-4.5 w-4.5 stroke-[2.2]" />
+              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-white dark:bg-[#16162a] text-[var(--color-primary,#C2185B)] font-black text-[10px] shadow-sm leading-none border border-black/10 dark:border-white/10">
+                +
+              </span>
+            </button>
+          )}
         </div>
       </div>
     </div>

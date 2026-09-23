@@ -86,7 +86,7 @@ export default function ProductDetailInfo({
               {product.category.name}
             </span>
           )}
-          <h1 className="text-base sm:text-lg md:text-xl lg:text-2xl font-heading font-semibold text-gray-900 dark:text-white tracking-normal leading-snug sm:leading-tight break-words [text-wrap:balance]">
+          <h1 className="text-2xl sm:text-2xl md:text-3xl lg:text-3xl font-heading font-medium tracking-tight text-gray-900 dark:text-white leading-snug break-words [text-wrap:balance]">
             {product.name}
           </h1>
 

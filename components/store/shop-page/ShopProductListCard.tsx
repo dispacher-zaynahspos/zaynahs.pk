@@ -134,7 +134,7 @@ export default function ShopProductListCard({ product, settings, addItem }: Shop
               {formatPrice(initialPrice, settings.currencySymbol)}
             </span>
             {initialComparePrice && initialComparePrice > initialPrice && (
-              <span className="text-xs text-gray-400 line-through">
+              <span className="text-xs text-gray-400 line-through decoration-red-500 decoration-[1.5px]">
                 {formatPrice(initialComparePrice, settings.currencySymbol)}
               </span>
             )}
