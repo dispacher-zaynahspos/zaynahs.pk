@@ -38,6 +38,8 @@ interface StandardProductCardProps {
   onOpenQuickView: (e: React.MouseEvent) => void;
   onAddToCart: (e: React.MouseEvent) => void;
   onCardClick?: (e: React.MouseEvent) => void;
+  onTouchStart?: (e: React.TouchEvent) => void;
+  onTouchEnd?: (e: React.TouchEvent) => void;
 }
 
 export const StandardProductCard: React.FC<StandardProductCardProps> = ({
@@ -70,6 +72,8 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
   onOpenQuickView,
   onAddToCart,
   onCardClick,
+  onTouchStart,
+  onTouchEnd,
 }) => {
   const renderElement = (element: string) => {
     switch (element) {
@@ -138,8 +142,11 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
       id={`product-card-${product.id}`}
       href={`/product/${product.slug}`}
       onClick={onCardClick || (() => saveScrollPosition(product.id))}
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
+      prefetch={true}
       style={{ borderRadius: 'var(--border-radius-card, 16px)' }}
-      className={`group flex flex-col overflow-hidden border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] shadow-xs hover:shadow-md transition-all duration-300 ${touchActive ? 'touch-active' : ''}`}
+      className={`z-card-container group flex flex-col overflow-hidden border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] shadow-xs hover:shadow-md transition-all duration-300 ${touchActive ? 'touch-active' : ''}`}
     >
       <div className={`relative ${aspectClass} w-full overflow-hidden bg-gray-50 dark:bg-black/10`}>
         <Image

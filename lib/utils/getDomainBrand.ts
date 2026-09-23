@@ -3,26 +3,39 @@ import { getSettings } from '@/lib/services/settings'
 
 export async function getDomainBrand(): Promise<{ name: string; tagline: string; domain: string; protocol: string }> {
   try {
-    const { headers } = await import('next/headers')
-    const hdrs = await headers()
-    const host = hdrs.get('host') || 'localhost:3000'
-    const protocol = host.includes('localhost') || host.includes('127.0.0.1') ? 'http' : 'https'
-    const config = getDomainConfig(host)
-    try {
-      const settings = await getSettings()
-      if (settings?.storeName) {
-        config.name = settings.storeName
-      }
-      if (settings?.tagline) {
-        config.tagline = settings.tagline
-      }
-    } catch (e) {
-      // Ignore settings fetch errors here to fallback to config
+    let host = 'localhost:3000';
+    let protocol = 'http';
+
+    const settings = await getSettings().catch(() => null);
+
+    if (settings?.storeUrl) {
+      try {
+        const parsed = new URL(settings.storeUrl);
+        host = parsed.host;
+        protocol = parsed.protocol.replace(':', '');
+      } catch {}
+    } else if (process.env.NEXT_PUBLIC_SITE_URL) {
+      try {
+        const parsed = new URL(process.env.NEXT_PUBLIC_SITE_URL);
+        host = parsed.host;
+        protocol = parsed.protocol.replace(':', '');
+      } catch {}
+    } else if (process.env.VERCEL_URL) {
+      host = process.env.VERCEL_URL;
+      protocol = 'https';
     }
-    return { ...config, domain: host, protocol }
+
+    const config = getDomainConfig(host);
+    if (settings?.storeName) {
+      config.name = settings.storeName;
+    }
+    if (settings?.tagline) {
+      config.tagline = settings.tagline;
+    }
+    return { ...config, domain: host, protocol };
   } catch {
-    const config = getDomainConfig('localhost:3000')
-    return { ...config, domain: 'localhost:3000', protocol: 'http' }
+    const config = getDomainConfig('localhost:3000');
+    return { ...config, domain: 'localhost:3000', protocol: 'http' };
   }
 }
 

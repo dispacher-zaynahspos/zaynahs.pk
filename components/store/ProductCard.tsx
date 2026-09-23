@@ -47,6 +47,28 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
   const elementsOrder = settings?.card_elements_order || ['title', 'rating', 'price', 'swatches'];
 
   // Persistent touch/focus management across catalog cards
+  const touchStartRef = React.useRef<{ x: number; y: number; time: number } | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    touchStartRef.current = { x: touch.clientX, y: touch.clientY, time: Date.now() };
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!touchStartRef.current) return;
+    const touch = e.changedTouches[0];
+    const diffX = Math.abs(touch.clientX - touchStartRef.current.x);
+    const diffY = Math.abs(touch.clientY - touchStartRef.current.y);
+
+    // If tap or release on card without dragging (movement < 15px)
+    if (diffX < 15 && diffY < 15) {
+      if (!touchActive) {
+        setTouchActive(true);
+        window.dispatchEvent(new CustomEvent('product-card-focus', { detail: { activeId: product.id } }));
+      }
+    }
+  };
+
   useEffect(() => {
     if (!touchActive) return;
 
@@ -64,22 +86,30 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
       }
     };
 
-    window.addEventListener('pointerdown', handleOutsideInteraction as EventListener, true);
+    const timer = setTimeout(() => {
+      window.addEventListener('click', handleOutsideInteraction as EventListener, true);
+      window.addEventListener('touchend', handleOutsideInteraction as EventListener, true);
+    }, 100);
+
     window.addEventListener('product-card-focus', handleCardFocusEvent as EventListener);
 
     return () => {
-      window.removeEventListener('pointerdown', handleOutsideInteraction as EventListener, true);
+      clearTimeout(timer);
+      window.removeEventListener('click', handleOutsideInteraction as EventListener, true);
+      window.removeEventListener('touchend', handleOutsideInteraction as EventListener, true);
       window.removeEventListener('product-card-focus', handleCardFocusEvent as EventListener);
     };
   }, [touchActive, product.id]);
 
   const handleCardClick = (e: React.MouseEvent) => {
     const isTouch = typeof window !== 'undefined' && window.matchMedia('(hover: none), (pointer: coarse)').matches;
-    if (isTouch && !touchActive) {
-      e.preventDefault();
-      setTouchActive(true);
-      window.dispatchEvent(new CustomEvent('product-card-focus', { detail: { activeId: product.id } }));
-      return;
+    if (isTouch) {
+      if (!touchActive) {
+        e.preventDefault();
+        setTouchActive(true);
+        window.dispatchEvent(new CustomEvent('product-card-focus', { detail: { activeId: product.id } }));
+        return;
+      }
     }
     saveScrollPosition(product.id);
   };
@@ -353,6 +383,8 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
           onOpenQuickView={handleOpenQuickView}
           onAddToCart={handleAddToCart}
           onCardClick={handleCardClick}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
         />
       ) : (
         <StandardProductCard
@@ -385,6 +417,8 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
           onOpenQuickView={handleOpenQuickView}
           onAddToCart={handleAddToCart}
           onCardClick={handleCardClick}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
         />
       )}
 

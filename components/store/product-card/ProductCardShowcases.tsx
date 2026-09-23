@@ -40,6 +40,8 @@ interface ProductCardShowcaseProps {
   onOpenQuickView: (e: React.MouseEvent) => void;
   onAddToCart: (e: React.MouseEvent) => void;
   onCardClick?: (e: React.MouseEvent) => void;
+  onTouchStart?: (e: React.TouchEvent) => void;
+  onTouchEnd?: (e: React.TouchEvent) => void;
 }
 
 export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
@@ -72,6 +74,8 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
   onOpenQuickView,
   onAddToCart,
   onCardClick,
+  onTouchStart,
+  onTouchEnd,
 }) => {
   const styleClassMap: Record<string, string> = {
     showcase_1: 'sc1',
@@ -94,7 +98,10 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
       id={`product-card-${product.id}`}
       href={`/product/${product.slug}`}
       onClick={onCardClick || (() => saveScrollPosition(product.id))}
-      className={`${scClass} group relative ${touchActive ? 'touch-active' : ''}`}
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
+      prefetch={true}
+      className={`z-card-container ${scClass} group relative ${touchActive ? 'touch-active' : ''}`}
     >
       <div className={`img-box relative ${aspectClass} w-full ${imgBgClass}`}>
         <ProductCardBadges

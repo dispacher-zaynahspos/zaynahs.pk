@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Product, StoreSettings, ProductVariant, ProductModifier } from '@/lib/types';
-import { getProductsClient } from '@/lib/services/products-client';
+import { getProductsByIdsClient } from '@/lib/services/products-client';
 import { trackEvent } from '@/lib/trackEvent';
 
 interface UseProductDetailStateProps {
@@ -97,8 +97,7 @@ export function useProductDetailState({ product, settings }: UseProductDetailSta
     const loadBundleData = async () => {
       try {
         if (product.frequentlyBoughtTogetherIds && product.frequentlyBoughtTogetherIds.length > 0) {
-          const data = await getProductsClient();
-          const filtered = data.filter((p: Product) => product.frequentlyBoughtTogetherIds?.includes(p.id));
+          const filtered = await getProductsByIdsClient(product.frequentlyBoughtTogetherIds);
           setBundleProducts(filtered);
           setSelectedBundleIds(filtered.map((p: Product) => p.id));
           const defaultSelections: Record<string, string> = {};

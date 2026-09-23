@@ -193,6 +193,10 @@ export async function revalidateHomepage() {
     (revalidateTag as any)('verticals');
 
     revalidatePath('/');
+    (revalidatePath as any)('/', 'page');
+    (revalidatePath as any)('/', 'layout');
+    (revalidatePath as any)('/(store)', 'layout');
+    (revalidatePath as any)('/(store)', 'page');
     revalidatePath('/shop');
     revalidatePath('/store', 'layout');
     revalidatePath('/admin', 'layout');

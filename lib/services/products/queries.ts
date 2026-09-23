@@ -1,3 +1,4 @@
+import { cache } from 'react';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { Product } from '@/lib/types';
 import {
@@ -64,7 +65,7 @@ const fetchRelatedProducts = async (productId: string, categoryId?: string, limi
   }
 };
 
-export const getRelatedProducts = async (productId: string, categoryId?: string, limit = 4) => {
+export const getRelatedProducts = cache(async (productId: string, categoryId?: string, limit = 4) => {
   if (typeof window !== 'undefined') {
     return fetchRelatedProducts(productId, categoryId, limit);
   }
@@ -79,7 +80,7 @@ export const getRelatedProducts = async (productId: string, categoryId?: string,
   } catch {
     return fetchRelatedProducts(productId, categoryId, limit);
   }
-};
+});
 
 const fetchProductBySlug = async (slug: string): Promise<Product | null> => {
   try {
@@ -105,7 +106,7 @@ const fetchProductBySlug = async (slug: string): Promise<Product | null> => {
   }
 };
 
-export const getProductBySlug = async (slug: string) => {
+export const getProductBySlug = cache(async (slug: string) => {
   if (typeof window !== 'undefined') {
     return fetchProductBySlug(slug);
   }
@@ -120,7 +121,7 @@ export const getProductBySlug = async (slug: string) => {
   } catch {
     return fetchProductBySlug(slug);
   }
-};
+});
 
 export const getProductById = async (id: string): Promise<Product | null> => {
   try {

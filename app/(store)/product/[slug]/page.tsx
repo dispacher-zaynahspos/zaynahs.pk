@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { cache } from 'react';
 import { notFound } from 'next/navigation';
 import ProductDetail from '@/components/store/ProductDetail';
 import ProductReviews from '@/components/store/ProductReviews';
@@ -12,10 +12,8 @@ import RecentlyViewed from '@/components/store/RecentlyViewed';
 import SocialFeedRibbon from '@/components/store/SocialFeedRibbon';
 import { getResponsiveGridClasses } from '@/lib/utils/responsiveGrid';
 import { supabaseAdmin } from '@/lib/supabase/admin';
-import { getSiteUrl } from '@/lib/site-url-server';
 import { cleanLocalhostUrls } from '@/lib/site-url';
 import { getDomainBrand, cleanBrandName } from '@/lib/utils/getDomainBrand';
-import { getDomainConfig } from '@/lib/config/domains';
 import { Metadata } from 'next';
 import Breadcrumb from '@/components/Breadcrumb';
 
@@ -31,10 +29,19 @@ export async function generateStaticParams() {
   }
 }
 
-
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
+
+const getProductSeoMeta = cache(async (productId: string) => {
+  const { data } = await supabaseAdmin
+    .from('seo_meta')
+    .select('*')
+    .eq('entity_type', 'product')
+    .eq('entity_id', productId)
+    .maybeSingle();
+  return data;
+});
 
 function cleanMetaDescription(htmlText: string, siteUrl: string): string {
   if (!htmlText) return '';
@@ -53,19 +60,15 @@ function cleanMetaDescription(htmlText: string, siteUrl: string): string {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   try {
-    const brand = await getDomainBrand();
     const { slug } = await params;
-    const product = await getProductBySlug(slug);
+    const [brand, product, settings] = await Promise.all([
+      getDomainBrand(),
+      getProductBySlug(slug),
+      getSettings()
+    ]);
     if (!product) return {};
 
-    const { data: seoMeta } = await supabaseAdmin
-      .from('seo_meta')
-      .select('*')
-      .eq('entity_type', 'product')
-      .eq('entity_id', product.id)
-      .maybeSingle();
-
-    const settings = await getSettings();
+    const seoMeta = await getProductSeoMeta(product.id);
     const siteUrl = `${brand.protocol}://${brand.domain}`;
 
     const title = cleanBrandName(seoMeta?.seo_title, brand.name) || `${product.name} | ${brand.name}`;
@@ -121,40 +124,29 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function ProductPage({ params }: PageProps) {
   const { slug } = await params;
   
-  const product = await getProductBySlug(slug);
+  const [product, settings, brand] = await Promise.all([
+    getProductBySlug(slug),
+    getSettings(),
+    getDomainBrand()
+  ]);
 
   if (!product) {
     notFound();
   }
 
-  // Get seo meta details
-  const { data: seoMeta } = await supabaseAdmin
-    .from('seo_meta')
-    .select('*')
-    .eq('entity_type', 'product')
-    .eq('entity_id', product.id)
-    .maybeSingle();
-
-  const [settings, reviews, averageRating, relatedProducts] = await Promise.all([
-    getSettings(),
+  // Concurrent parallel execution for all secondary data
+  const [seoMeta, reviews, averageRating, relatedProducts, socialProofCount] = await Promise.all([
+    getProductSeoMeta(product.id),
     getProductReviews(product.id),
     getAverageRating(product.id),
-    getRelatedProducts(product.id, product.categoryId, 4)
+    getRelatedProducts(product.id, product.categoryId, 4),
+    getSocialProofCountForProduct(product.id).catch(() => 0)
   ]);
-
-  const socialProofCount = await getSocialProofCountForProduct(product.id);
 
   const layout = settings.productPageLayout || ['details', 'ticker', 'reviews', 'related', 'recently_viewed', 'social_feed'];
 
-  let schemaBrandName = 'Store';
-  let siteUrl = settings?.storeUrl?.replace(/\/+$/, '') || 'https://zaynahs.pk';
-  try {
-    const brand = await getDomainBrand();
-    schemaBrandName = brand.name;
-    if (!settings?.storeUrl) {
-      siteUrl = `${brand.protocol}://${brand.domain}`;
-    }
-  } catch {}
+  const schemaBrandName = brand.name || settings?.storeName || 'Store';
+  const siteUrl = settings?.storeUrl?.replace(/\/+$/, '') || `${brand.protocol}://${brand.domain}`;
 
   const productSchema: any = {
     "@context": "https://schema.org",
