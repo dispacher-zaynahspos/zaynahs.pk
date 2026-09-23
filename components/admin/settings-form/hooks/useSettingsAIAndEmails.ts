@@ -36,9 +36,9 @@ export function useSettingsAIAndEmails({ initialSettings }: UseSettingsAIAndEmai
   );
   const [visionProvider, setVisionProvider] = useState(initialSettings.vision_provider || 'gemini');
   const [visionModel, setVisionModel] = useState(
-    initialSettings.vision_model && !initialSettings.vision_model.includes('2.5') && !initialSettings.vision_model.includes('1.5') && !initialSettings.vision_model.includes('2.0')
+    initialSettings.vision_model && !initialSettings.vision_model.includes('2.5') && !initialSettings.vision_model.includes('1.5') && !initialSettings.vision_model.includes('2.0') && !initialSettings.vision_model.includes('3.5') && !initialSettings.vision_model.includes('3.1')
       ? initialSettings.vision_model
-      : 'gemini-3.5-flash'
+      : 'gemini-3.6-flash'
   );
 
   const pConfig: {

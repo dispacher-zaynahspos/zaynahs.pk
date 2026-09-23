@@ -227,66 +227,15 @@ export function useProductVariantsState({
       return;
     }
 
-    const combinations: Record<string, AxisValue>[] = [{}];
-    for (const axis of validAxes) {
-      const temp: Record<string, AxisValue>[] = [];
-      for (const comb of combinations) {
-        for (const val of axis.values) {
-          temp.push({ ...comb, [axis.type]: val });
-        }
-      }
-      combinations.length = 0;
-      combinations.push(...temp);
-    }
-
-    const basePrice = parseFloat(price) || 0;
-    const baseComparePrice = comparePrice.trim() ? parseFloat(comparePrice) : undefined;
-    const baseSku = sku.trim();
-
-    const newVariants: Omit<ProductVariant, 'id' | 'productId'>[] = combinations.map((comb, idx) => {
-      const colorVal = comb['color'];
-      const sizeVal = comb['size'];
-      const matVal = comb['material'];
-      const custVal = comb['custom'];
-
-      const parts = [colorVal?.label, sizeVal?.label, matVal?.label, custVal?.label].filter(Boolean);
-      const varSku = baseSku ? `${baseSku}-${parts.join('-').toUpperCase().replace(/\s+/g, '')}` : undefined;
-
-      const existing = variants.find(v =>
-        (colorVal ? v.color === colorVal.label : !v.color) &&
-        (sizeVal ? v.size === sizeVal.label : !v.size) &&
-        (matVal ? v.material === matVal.label : !v.material) &&
-        (custVal ? v.customValue === custVal.label : !v.customValue)
-      );
-
-      if (existing) {
-        return {
-          ...existing,
-          colorHex: colorVal?.hex || existing.colorHex,
-          imageUrl: colorVal?.imageUrl || existing.imageUrl,
-          showImageSwatch: colorVal?.showImageSwatch ?? existing.showImageSwatch ?? false,
-          sortOrder: idx + 1
-        };
-      }
-
-      return {
-        color: colorVal?.label,
-        size: sizeVal?.label,
-        material: matVal?.label,
-        customOption: custVal ? (validAxes.find(a => a.type === 'custom')?.name || 'Custom') : undefined,
-        customValue: custVal?.label,
-        colorHex: colorVal?.hex || (colorVal ? extractColorsFromName(colorVal.label) || '#888888' : undefined),
-        imageUrl: colorVal?.imageUrl,
-        showImageSwatch: colorVal?.showImageSwatch ?? false,
-        price: basePrice,
-        comparePrice: baseComparePrice,
-        stock: parseInt(stock) || 0,
-        sku: varSku,
-        active: true,
-        sortOrder: idx + 1,
-        inventoryThreshold: parseInt(inventoryThreshold) || 0
-      };
-    });
+    const newVariants = buildVariantCombinations(
+      variantAxes,
+      parseFloat(price) || 0,
+      comparePrice.trim() ? parseFloat(comparePrice) : undefined,
+      parseInt(stock) || 0,
+      sku.trim(),
+      parseInt(inventoryThreshold) || 0,
+      variants
+    );
 
     setVariants(newVariants);
     setAxisOrderChanged(false);
@@ -339,3 +288,74 @@ export function useProductVariantsState({
     ...bulkActions,
   };
 }
+
+export function buildVariantCombinations(
+  variantAxes: VariantAxis[],
+  basePrice: number,
+  baseComparePrice?: number,
+  baseStock: number = 0,
+  baseSku: string = '',
+  baseThreshold: number = 0,
+  existingVariants: Omit<ProductVariant, 'id' | 'productId'>[] = []
+): Omit<ProductVariant, 'id' | 'productId'>[] {
+  const validAxes = variantAxes.filter(a => a.values && a.values.length > 0);
+  if (validAxes.length === 0) return [];
+
+  const combinations: Record<string, AxisValue>[] = [{}];
+  for (const axis of validAxes) {
+    const temp: Record<string, AxisValue>[] = [];
+    for (const comb of combinations) {
+      for (const val of axis.values) {
+        temp.push({ ...comb, [axis.type]: val });
+      }
+    }
+    combinations.length = 0;
+    combinations.push(...temp);
+  }
+
+  return combinations.map((comb, idx) => {
+    const colorVal = comb['color'];
+    const sizeVal = comb['size'];
+    const matVal = comb['material'];
+    const custVal = comb['custom'];
+
+    const parts = [colorVal?.label, sizeVal?.label, matVal?.label, custVal?.label].filter(Boolean);
+    const varSku = baseSku ? `${baseSku}-${parts.join('-').toUpperCase().replace(/\s+/g, '')}` : undefined;
+
+    const existing = existingVariants.find(v =>
+      (colorVal ? v.color === colorVal.label : !v.color) &&
+      (sizeVal ? v.size === sizeVal.label : !v.size) &&
+      (matVal ? v.material === matVal.label : !v.material) &&
+      (custVal ? v.customValue === custVal.label : !v.customValue)
+    );
+
+    if (existing) {
+      return {
+        ...existing,
+        colorHex: colorVal?.hex || existing.colorHex,
+        imageUrl: colorVal?.imageUrl || existing.imageUrl,
+        showImageSwatch: colorVal?.showImageSwatch ?? existing.showImageSwatch ?? false,
+        sortOrder: idx + 1
+      };
+    }
+
+    return {
+      color: colorVal?.label,
+      size: sizeVal?.label,
+      material: matVal?.label,
+      customOption: custVal ? (validAxes.find(a => a.type === 'custom')?.name || 'Custom') : undefined,
+      customValue: custVal?.label,
+      colorHex: colorVal?.hex || (colorVal ? extractColorsFromName(colorVal.label) || '#888888' : undefined),
+      imageUrl: colorVal?.imageUrl,
+      showImageSwatch: colorVal?.showImageSwatch ?? false,
+      price: basePrice,
+      comparePrice: baseComparePrice,
+      stock: baseStock,
+      sku: varSku,
+      active: true,
+      sortOrder: idx + 1,
+      inventoryThreshold: baseThreshold
+    };
+  });
+}
+

@@ -1,23 +1,19 @@
 export const GOOGLE_MODELS = {
-  text: ['gemini-3.5-flash', 'gemini-3.1-flash-lite', 'gemini-3.6-flash', 'gemini-flash-latest'],
-  vision: ['gemini-3.5-flash', 'gemini-3.1-flash-lite', 'gemini-3.6-flash', 'gemini-flash-latest'],
+  text: ['gemini-3.6-flash', 'gemini-flash-latest'],
+  vision: ['gemini-3.6-flash', 'gemini-flash-latest'],
 } as const;
 
 export const GOOGLE_FREE_LIMITS = {
-  'gemini-3.5-flash': { reqPerDay: 1500, rpm: 15 },
-  'gemini-3.1-flash-lite': { reqPerDay: 4000, rpm: 30 },
   'gemini-3.6-flash': { reqPerDay: 1500, rpm: 15 },
   'gemini-flash-latest': { reqPerDay: 1500, rpm: 15 },
 };
 
 export function normalizeGoogleModel(requestedModel: string): string {
   const m = (requestedModel || '').toLowerCase();
-  if (m.includes('lite')) return 'gemini-3.1-flash-lite';
-  if (m.includes('3.5')) return 'gemini-3.5-flash';
+  if (m.includes('latest')) return 'gemini-flash-latest';
   if (m.includes('3.6')) return 'gemini-3.6-flash';
-  if (m.includes('3.1')) return 'gemini-3.1-flash-lite';
-  // Legacy aliases like gemini-1.5-flash, gemini-2.0-flash, gemini-2.5-flash, gemini-pro
-  return 'gemini-3.5-flash';
+  // Default to verified active free Google model
+  return 'gemini-3.6-flash';
 }
 
 export async function callGoogle(
@@ -30,7 +26,7 @@ export async function callGoogle(
   mimeType?: string,
 ): Promise<string> {
   const primaryModel = normalizeGoogleModel(model);
-  const fallbackModel = primaryModel === 'gemini-3.1-flash-lite' ? 'gemini-3.5-flash' : 'gemini-3.1-flash-lite';
+  const fallbackModel = primaryModel === 'gemini-3.6-flash' ? 'gemini-flash-latest' : 'gemini-3.6-flash';
   const modelsToTry = [primaryModel, fallbackModel];
 
   const wantsJson = /json|\{|\}/i.test(prompt) || /json/i.test(systemPrompt);

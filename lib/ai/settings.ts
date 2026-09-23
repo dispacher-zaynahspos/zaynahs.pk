@@ -47,7 +47,7 @@ export async function getAISettings(): Promise<AISettings> {
         ? JSON.parse(data.ai_model_credentials)
         : (data.ai_model_credentials ?? {}),
     vision_provider: data.vision_provider ?? 'gemini',
-    vision_model: (data.vision_model && !data.vision_model.includes('2.5') && !data.vision_model.includes('1.5') && !data.vision_model.includes('2.0')) ? data.vision_model : 'gemini-3.5-flash',
+    vision_model: (data.vision_model && !data.vision_model.includes('2.5') && !data.vision_model.includes('1.5') && !data.vision_model.includes('2.0') && !data.vision_model.includes('3.5') && !data.vision_model.includes('3.1')) ? data.vision_model : 'gemini-3.6-flash',
     vision_keys: data.vision_keys ?? '',
     brand_name: data.store_name ?? '',
     store_type: productTypesFlat || 'General',

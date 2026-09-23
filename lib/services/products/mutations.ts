@@ -198,34 +198,41 @@ export const updateProduct = async (
       if (imgInsError) throw imgInsError;
     }
 
-    const { error: varDelError } = await supabase
-      .from('product_variants')
-      .delete()
-      .eq('product_id', id);
-    if (varDelError) throw varDelError;
+    // Only delete/replace variants if hasVariants is explicitly false (switching to simple product)
+    // or if new valid variants are being inserted.
+    // If hasVariants is true and variants is empty, do NOT delete existing variants to prevent data loss!
+    const shouldManageVariants = product.hasVariants === false || (variants && variants.length > 0);
 
-    if ((product.hasVariants ?? true) && variants.length > 0) {
-      const { error: varInsError } = await supabase
+    if (shouldManageVariants) {
+      const { error: varDelError } = await supabase
         .from('product_variants')
-        .insert(variants.map(v => ({
-          product_id: id,
-          color: v.color,
-          size: v.size,
-          material: v.material,
-          custom_option: v.customOption,
-          custom_value: v.customValue,
-          color_hex: v.colorHex,
-          price: v.price,
-          compare_price: v.comparePrice,
-          stock: v.stock,
-          sku: v.sku,
-          image_url: v.imageUrl,
-          show_image_swatch: v.showImageSwatch,
-          active: v.active,
-          sort_order: v.sortOrder,
-          inventory_threshold: v.inventoryThreshold || 0
-        })));
-      if (varInsError) throw varInsError;
+        .delete()
+        .eq('product_id', id);
+      if (varDelError) throw varDelError;
+
+      if ((product.hasVariants ?? true) && variants.length > 0) {
+        const { error: varInsError } = await supabase
+          .from('product_variants')
+          .insert(variants.map(v => ({
+            product_id: id,
+            color: v.color,
+            size: v.size,
+            material: v.material,
+            custom_option: v.customOption,
+            custom_value: v.customValue,
+            color_hex: v.colorHex,
+            price: v.price,
+            compare_price: v.comparePrice,
+            stock: v.stock,
+            sku: v.sku,
+            image_url: v.imageUrl,
+            show_image_swatch: v.showImageSwatch,
+            active: v.active,
+            sort_order: v.sortOrder,
+            inventory_threshold: v.inventoryThreshold || 0
+          })));
+        if (varInsError) throw varInsError;
+      }
     }
 
     const { error: modDelError } = await supabase

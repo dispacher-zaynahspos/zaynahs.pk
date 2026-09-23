@@ -245,7 +245,7 @@ export const mapSettings = (row: SettingsRow): StoreSettings => ({
   content_model: row.content_model ?? 'llama-3.3-70b-versatile',
   content_keys: row.content_keys ?? '',
   vision_provider: row.vision_provider ?? 'gemini',
-  vision_model: (row.vision_model && !row.vision_model.includes('2.5') && !row.vision_model.includes('1.5') && !row.vision_model.includes('2.0')) ? row.vision_model : 'gemini-3.5-flash',
+  vision_model: (row.vision_model && !row.vision_model.includes('2.5') && !row.vision_model.includes('1.5') && !row.vision_model.includes('2.0') && !row.vision_model.includes('3.5') && !row.vision_model.includes('3.1')) ? row.vision_model : 'gemini-3.6-flash',
   vision_keys: row.vision_keys ?? '',
   ai_tone: row.ai_tone ?? 'Professional',
   ai_language: row.ai_language ?? 'English',

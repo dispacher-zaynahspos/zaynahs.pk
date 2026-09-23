@@ -1,10 +1,12 @@
 export const GROQ_TEXT_MODELS = [
-  'llama-3.1-8b-instant',
+  'meta-llama/llama-4-scout-17b-16e-instruct',
   'llama-3.3-70b-versatile',
+  'llama-3.1-8b-instant',
   'llama-3.1-70b-versatile',
 ] as const;
 
 export const GROQ_VISION_MODELS = [
+  'meta-llama/llama-4-scout-17b-16e-instruct',
   'llama-3.2-11b-vision-preview',
   'llama-3.2-90b-vision-preview',
 ] as const;

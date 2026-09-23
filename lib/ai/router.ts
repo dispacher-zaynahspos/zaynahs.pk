@@ -79,7 +79,7 @@ async function isNearLimit(provider: string): Promise<boolean> {
   const usage = await getDailyUsage(provider, today);
 
   const limits: Record<string, number> = {
-    google: GOOGLE_FREE_LIMITS['gemini-3.5-flash']?.reqPerDay || 1500,
+    google: GOOGLE_FREE_LIMITS['gemini-3.6-flash']?.reqPerDay || 1500,
     groq: GROQ_FREE_LIMITS.reqPerDay || 14400,
     mistral: 10000,
     openrouter: 5000,
@@ -105,8 +105,8 @@ export async function routeVision(
   if (keys.google) {
     fallbackChain.push({
       provider: 'google',
-      model: 'gemini-3.5-flash',
-      call: () => callGoogle(keys.google!, 'gemini-3.5-flash', prompt, systemPrompt, true, base64, mimeType),
+      model: 'gemini-3.6-flash',
+      call: () => callGoogle(keys.google!, 'gemini-3.6-flash', prompt, systemPrompt, true, base64, mimeType),
     });
   }
   if (keys.groq) {
@@ -169,8 +169,8 @@ export async function routeText(
   if (keys.google) {
     fallbackChain.push({
       provider: 'google',
-      model: 'gemini-3.5-flash',
-      call: () => callGoogle(keys.google!, 'gemini-3.5-flash', prompt, systemPrompt, false),
+      model: 'gemini-3.6-flash',
+      call: () => callGoogle(keys.google!, 'gemini-3.6-flash', prompt, systemPrompt, false),
     });
   }
   if (keys.mistral) {

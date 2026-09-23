@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Product } from '@/lib/types';
 import { createProductSafe, updateProductSafe } from '@/lib/services/products/actions';
 import { toast } from 'sonner';
+import { buildVariantCombinations } from './useProductVariantsState';
 
 interface ProductSubmitPayloadParams {
   name: string;
@@ -67,8 +68,34 @@ export function useProductFormSubmit() {
         .map((t) => t.trim())
         .filter(Boolean);
 
+      let finalVariants = [...(params.variants || [])];
+
+      if (params.hasVariants) {
+        const validAxes = (params.variantAxes || []).filter((a: any) => a.values && a.values.length > 0);
+
+        // Auto-generate combinations if merchant added attribute values but didn't press Generate All Combinations
+        if (finalVariants.length === 0 && validAxes.length > 0) {
+          finalVariants = buildVariantCombinations(
+            params.variantAxes,
+            parseFloat(params.price) || 0,
+            params.comparePrice.trim() ? parseFloat(params.comparePrice) : undefined,
+            parseInt(params.stock) || 0,
+            params.sku.trim(),
+            parseInt(params.inventoryThreshold) || 0,
+            []
+          );
+        }
+
+        // Safeguard: If hasVariants is turned on but no variation values exist at all
+        if (finalVariants.length === 0 && validAxes.length === 0) {
+          toast.error('Please add variation values (e.g. Sizes or Colors) before saving, or uncheck "This product has multiple options".');
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
       const computedStock = params.hasVariants
-        ? params.variants.reduce((sum, v) => sum + (v.stock || 0), 0)
+        ? finalVariants.reduce((sum, v) => sum + (v.stock || 0), 0)
         : parseInt(params.stock) || 0;
 
       const productPayload = {
@@ -118,7 +145,7 @@ export function useProductFormSubmit() {
           params.initialProduct.id,
           productPayload,
           params.images,
-          params.variants,
+          finalVariants,
           params.modifiers
         );
         if (!result.success) {
@@ -135,7 +162,7 @@ export function useProductFormSubmit() {
         const result = await createProductSafe(
           productPayload,
           params.images,
-          params.variants,
+          finalVariants,
           params.modifiers
         );
         if (!result.success) {

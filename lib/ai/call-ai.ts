@@ -71,7 +71,7 @@ export async function callAI(
     const envGemini = (process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY)?.trim();
     if (envGemini) {
       provider = 'gemini';
-      model = 'gemini-3.5-flash';
+      model = 'gemini-3.6-flash';
       keys.push(envGemini);
     }
   }
@@ -95,8 +95,8 @@ export async function callAI(
   }
 
   const freeHint = isVision
-    ? ' Try switching to: Gemini 2.5 Flash (1500 req/day free), Groq llama-4-scout (14400 req/day), or OpenRouter free models.'
-    : ' Try switching to: Groq llama-4-scout (fastest, 14400 req/day), Gemini 2.5 Flash, or Mistral mistral-small-2506.';
+    ? ' Try switching to: Groq llama-4-scout (14,400 req/day FREE), Gemini 3.6 Flash (1,500 req/day FREE), or OpenRouter free models.'
+    : ' Try switching to: Groq llama-4-scout (fastest, 14,400 req/day FREE) or Gemini 3.6 Flash (1,500 req/day FREE).';
   throw new Error(`All ${provider} API keys exhausted (rate limited).${freeHint} Update keys or switch provider in Settings → AI Models.`);
 }
 
@@ -126,7 +126,7 @@ async function executeRequest(
   switch (provider.toLowerCase()) {
     case 'gemini': {
       const primaryModel = normalizeGoogleModel(model);
-      const fallbackModel = primaryModel === 'gemini-3.1-flash-lite' ? 'gemini-3.5-flash' : 'gemini-3.1-flash-lite';
+      const fallbackModel = primaryModel === 'gemini-3.6-flash' ? 'gemini-flash-latest' : 'gemini-3.6-flash';
       const modelsToTry = [primaryModel, fallbackModel];
       const wantsJson = /json|\{|\}/i.test(prompt) || /json/i.test(systemPrompt);
 

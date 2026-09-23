@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { ExternalLink, Loader2, ShieldCheck } from '@/components/common/Icons';
-import { TEXT_MODELS, VISION_MODELS, PROVIDER_KEY_LINKS } from './aiModelsData';
+import { TEXT_MODELS, VISION_MODELS, PROVIDER_KEY_LINKS, getModelLabel } from './aiModelsData';
 
 interface AIModelsSectionProps {
   contentProvider: string;
@@ -124,7 +124,7 @@ export function AIModelsSection({
             className="mt-1.5 w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-[#0f0f1b]/50 px-4 py-2.5 text-sm font-semibold text-gray-900 dark:text-white focus:border-[#1a1a2e] dark:focus:border-[#e94560] focus:bg-white dark:focus:bg-[#16162a] focus:outline-none transition-all cursor-pointer"
           >
             {(TEXT_MODELS[contentProvider] || []).map((model) => (
-              <option key={model} value={model}>{model}</option>
+              <option key={model} value={model}>{getModelLabel(contentProvider, model)}</option>
             ))}
           </select>
         </div>
@@ -212,7 +212,7 @@ export function AIModelsSection({
             className="mt-1.5 w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-[#0f0f1b]/50 px-4 py-2.5 text-sm font-semibold text-gray-900 dark:text-white focus:border-[#1a1a2e] dark:focus:border-[#e94560] focus:bg-white dark:focus:bg-[#16162a] focus:outline-none transition-all cursor-pointer"
           >
             {(VISION_MODELS[visionProvider] || []).map((model) => (
-              <option key={model} value={model}>{model}</option>
+              <option key={model} value={model}>{getModelLabel(visionProvider, model)}</option>
             ))}
           </select>
         </div>
