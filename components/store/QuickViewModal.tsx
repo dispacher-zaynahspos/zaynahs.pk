@@ -243,13 +243,13 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
             {/* ── Product Info ───────────────────────────────────────────── */}
             <div className="p-5 flex flex-col gap-4">
               {/* Name */}
-              <div>
+              <div className="space-y-1">
                 {product.category && (
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                  <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-gray-400 block">
                     {product.category.name}
                   </span>
                 )}
-                <h2 className="text-lg font-bold text-gray-900 dark:text-white leading-snug mt-0.5">
+                <h2 className="text-base sm:text-lg md:text-xl font-heading font-extrabold text-gray-900 dark:text-white leading-snug tracking-tight break-words [text-wrap:balance]">
                   {product.name}
                 </h2>
               </div>

@@ -80,13 +80,15 @@ export default function ProductDetailInfo({
   return (
     <div className="flex flex-col justify-between space-y-6">
       <div className="space-y-4">
-        <div className="space-y-1">
+        <div className="space-y-1.5 sm:space-y-2">
           {product.category && (
-            <span className="text-xs font-bold uppercase tracking-wider text-gray-400">
+            <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-gray-400 block mb-0.5">
               {product.category.name}
             </span>
           )}
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{product.name}</h2>
+          <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-heading font-extrabold text-gray-900 dark:text-white tracking-tight leading-snug sm:leading-tight break-words [text-wrap:balance]">
+            {product.name}
+          </h1>
 
           {/* Ratings and Reviews count */}
           {mounted && (displayCount > 0 || displayRating > 0) && (

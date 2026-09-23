@@ -80,10 +80,17 @@
 /* Typography Scale */
 h1 {
   @apply font-heading text-3xl font-bold tracking-tight;
+  text-wrap: balance;
 }
 
 h2 {
   @apply font-heading text-2xl font-bold tracking-tight;
+  text-wrap: balance;
+}
+
+.text-balance,
+[text-wrap\:balance] {
+  text-wrap: balance;
 }
 
 h3 {
