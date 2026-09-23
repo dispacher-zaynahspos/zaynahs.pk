@@ -45,22 +45,28 @@ export const customCss = `
       pointer-events: none;
       transition: opacity 0.28s cubic-bezier(0.4, 0, 0.2, 1), transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    .z-card-container:hover .card-actions,
-    .z-card-container:hover .aic,
-    .z-card-container .sc1:hover .card-actions,
-    .z-card-container .sc2:hover .card-actions,
-    .z-card-container .sc3:hover .card-actions,
-    .z-card-container .sc4:hover .card-actions,
-    .z-card-container .sc5:hover .card-actions,
-    .z-card-container .sc6:hover .card-actions,
-    .z-card-container .sc7:hover .card-actions,
-    .z-card-container .sc8:hover .card-actions,
-    .z-card-container .sc9:hover .card-actions,
-    .z-card-container .sc10:hover .card-actions,
-    .group:hover .card-actions,
-    .group:hover .aic,
-    .group:active .card-actions,
-    .group:active .aic,
+    /* Hover Effects strictly scoped to desktop devices with fine pointer (mouse) */
+    @media (hover: hover) and (pointer: fine) {
+      .z-card-container:hover .card-actions,
+      .z-card-container:hover .aic,
+      .group:hover .card-actions,
+      .group:hover .aic {
+        opacity: 1 !important;
+        transform: translateX(0) !important;
+        pointer-events: auto !important;
+      }
+      .z-card-container:hover .hover-zoom {
+        transform: scale(1.05);
+      }
+      .z-card-container:hover .hover-fade-out {
+        opacity: 0 !important;
+      }
+      .z-card-container:hover .hover-fade-in {
+        opacity: 1 !important;
+      }
+    }
+
+    /* Mobile / Touch Active State: activates ONLY on deliberate card tap */
     .z-card-container.touch-active .card-actions,
     .z-card-container.touch-active .aic,
     .touch-active .card-actions,
@@ -68,6 +74,18 @@ export const customCss = `
       opacity: 1 !important;
       transform: translateX(0) !important;
       pointer-events: auto !important;
+    }
+    .z-card-container.touch-active .hover-zoom,
+    .touch-active .hover-zoom {
+      transform: scale(1.05);
+    }
+    .z-card-container.touch-active .hover-fade-out,
+    .touch-active .hover-fade-out {
+      opacity: 0 !important;
+    }
+    .z-card-container.touch-active .hover-fade-in,
+    .touch-active .hover-fade-in {
+      opacity: 1 !important;
     }
 
     /* Universal Action Button Styling */
@@ -107,35 +125,22 @@ export const customCss = `
     .z-card-container .ai:hover .tt,
     .z-card-container .action-btn:hover .tt { opacity: 1; }
 
-    /* Touch & Mobile Screen Support: smooth spawn on touch */
+    /* Touch & Mobile Screen Support: clean 40x40 tap targets */
     @media (max-width: 768px), (hover: none) {
       .z-card-container .card-actions,
       .z-card-container .aic {
-        right: 6px !important;
-        top: 6px !important;
-        gap: 5px !important;
+        right: 8px !important;
+        top: 8px !important;
+        gap: 8px !important;
       }
-      .z-card-container:hover .card-actions,
-      .z-card-container:hover .aic,
-      .z-card-container:active .card-actions,
-      .z-card-container:active .aic,
-      .z-card-container.touch-active .card-actions,
-      .z-card-container.touch-active .aic,
-      .touch-active .card-actions,
-      .touch-active .aic,
-      .group:active .card-actions,
-      .group:active .aic {
-        opacity: 1 !important;
-        transform: translateX(0) !important;
-        pointer-events: auto !important;
-      }
-    }
       .z-card-container .action-btn,
       .z-card-container .ai {
-        width: 28px !important;
-        height: 28px !important;
-        background: rgba(255, 255, 255, 0.95) !important;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15) !important;
+        width: 40px !important;
+        height: 40px !important;
+        min-width: 40px !important;
+        min-height: 40px !important;
+        background: rgba(255, 255, 255, 0.96) !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18) !important;
       }
     }
 

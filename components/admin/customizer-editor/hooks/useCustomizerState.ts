@@ -303,12 +303,16 @@ export function useCustomizerState({
         await Promise.all(productUpdates);
 
         setEditedProducts({});
-        toast.success('Customizer settings and layout saved successfully');
 
         try {
-          await fetch('/api/revalidate-customizer', { method: 'POST' });
+          const res = await fetch('/api/revalidate-customizer', { method: 'POST' });
+          if (res.ok) {
+            toast.success('Customizer settings saved & Edge cache purged successfully!');
+          } else {
+            toast.warning('Settings saved. Edge cache will update in background.');
+          }
         } catch {
-          // Silent
+          toast.success('Customizer settings saved successfully.');
         }
       } catch (err) {
         toast.error('Failed to save layout adjustments and settings');

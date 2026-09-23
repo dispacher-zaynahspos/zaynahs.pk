@@ -266,7 +266,16 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
                   </span>
                   {!hasPriceRange && comparePrice && comparePrice > basePrice && (
                     <div className="flex items-center gap-1.5">
-                      <span className="text-sm text-gray-400 line-through decoration-red-500 decoration-[1.5px] font-semibold font-body">
+                      <span
+                        className="text-sm text-gray-400 line-through decoration-red-500 decoration-[1.5px] font-semibold font-body"
+                        style={{
+                          textDecoration: 'line-through',
+                          textDecorationColor: '#ef4444',
+                          WebkitTextDecorationColor: '#ef4444',
+                          textDecorationThickness: '1.5px',
+                          color: '#9ca3af',
+                        }}
+                      >
                         {formatPrice(comparePrice, settings.currencySymbol)}
                       </span>
                       <span className="rounded-md bg-[#10b981] px-1.5 py-0.5 text-[9px] font-black text-white tracking-wide animate-none">
@@ -283,7 +292,16 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
                     </span>
                     {comparePrice && comparePrice > basePrice && (
                       <span className="inline-flex items-center gap-1 ml-1">
-                        <span className="text-[10px] text-gray-400 line-through decoration-red-500 decoration-[1.5px] font-semibold font-body">
+                        <span
+                          className="text-[10px] text-gray-400 line-through decoration-red-500 decoration-[1.5px] font-semibold font-body"
+                          style={{
+                            textDecoration: 'line-through',
+                            textDecorationColor: '#ef4444',
+                            WebkitTextDecorationColor: '#ef4444',
+                            textDecorationThickness: '1.5px',
+                            color: '#9ca3af',
+                          }}
+                        >
                           {formatPrice(comparePrice, settings.currencySymbol)}
                         </span>
                         <span className="rounded bg-[#10b981] px-1 py-0.5 text-[8px] font-black text-white leading-none">

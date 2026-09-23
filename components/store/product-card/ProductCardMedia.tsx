@@ -25,12 +25,10 @@ export const ProductCardMedia: React.FC<ProductCardMediaProps> = ({
   touchActive,
   fitClass = 'object-contain',
 }) => {
-  const zoomClass = settings?.imageHoverStyle === 'zoom'
-    ? (touchActive ? 'scale-105' : 'group-hover:scale-105 group-active:scale-105')
-    : '';
-  const fadeClass = (secondImage && !hoveredImage)
-    ? (touchActive ? 'opacity-0' : 'opacity-100 group-hover:opacity-0 group-active:opacity-0')
-    : '';
+  const hoverStyle = settings?.imageHoverStyle ?? 'second_image';
+  const isZoom = hoverStyle === 'zoom';
+  const isSecondImage = hoverStyle === 'second_image';
+  const showSecond = isSecondImage && Boolean(secondImage) && !hoveredImage;
 
   return (
     <>
@@ -39,17 +37,17 @@ export const ProductCardMedia: React.FC<ProductCardMediaProps> = ({
         alt={productName}
         fill
         sizes="(max-width: 768px) 50vw, 25vw"
-        className={`${fitClass} transition-transform duration-500 ${zoomClass} ${fadeClass}`}
+        className={`${fitClass} transition-all duration-500 ${isZoom ? 'hover-zoom' : ''} ${showSecond ? 'hover-fade-out' : 'opacity-100'}`}
         priority={priority}
         loading={priority ? undefined : "lazy"}
       />
-      {secondImage && !hoveredImage && (
+      {showSecond && secondImage && (
         <Image
           src={secondImage}
           alt={`${productName} alternate`}
           fill
           sizes="(max-width: 768px) 50vw, 25vw"
-          className={`${fitClass} absolute inset-0 transition-opacity duration-500 ${touchActive ? 'opacity-100' : 'opacity-0'} group-hover:opacity-100 group-active:opacity-100`}
+          className={`${fitClass} absolute inset-0 transition-opacity duration-500 hover-fade-in opacity-0`}
           priority={priority}
           loading={priority ? undefined : "lazy"}
         />

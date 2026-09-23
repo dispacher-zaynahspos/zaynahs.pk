@@ -103,7 +103,17 @@ export const ProductCardShowcaseContent: React.FC<ProductCardShowcaseContentProp
             return (
               <div key="price" className="prow">
                 {currentComparePrice && currentComparePrice > currentPrice && (
-                  <span className="pold mr-1.5 line-through decoration-red-500 decoration-[1.5px]" style={poldStyle}>
+                  <span
+                    className="pold mr-1.5 line-through decoration-red-500 decoration-[1.5px]"
+                    style={{
+                      ...poldStyle,
+                      textDecoration: 'line-through',
+                      textDecorationColor: '#ef4444',
+                      WebkitTextDecorationColor: '#ef4444',
+                      textDecorationThickness: '1.5px',
+                      color: poldStyle?.color || '#888',
+                    }}
+                  >
                     {formatPrice(currentComparePrice, currencySymbol)}
                   </span>
                 )}

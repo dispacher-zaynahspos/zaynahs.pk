@@ -69,34 +69,55 @@ async function purgeCloudflareUrls(urls: string[]) {
 }
 
 async function purgeCloudflareEverything() {
-  const CLOUDFLARE_ZONE_ID = process.env.CLOUDFLARE_ZONE_ID;
-  const CLOUDFLARE_API_TOKEN = process.env.CLOUDFLARE_API_TOKEN;
-  if (!CLOUDFLARE_ZONE_ID || !CLOUDFLARE_API_TOKEN) {
+  const multiStoreConfigStr = process.env.MULTI_STORE_CLOUDFLARE_CONFIG;
+  let cfConfigs: Array<{ zoneId: string; apiToken: string; name?: string }> = [];
+
+  if (multiStoreConfigStr) {
+    try {
+      const isBase64 = !multiStoreConfigStr.startsWith('[');
+      const decodedStr = isBase64 ? Buffer.from(multiStoreConfigStr, 'base64').toString('utf-8') : multiStoreConfigStr;
+      cfConfigs = JSON.parse(decodedStr);
+    } catch (e) {
+      console.warn('Failed to parse MULTI_STORE_CLOUDFLARE_CONFIG', e);
+    }
+  }
+
+  if (cfConfigs.length === 0) {
+    const zone = process.env.CLOUDFLARE_ZONE_ID;
+    const token = process.env.CLOUDFLARE_API_TOKEN;
+    if (zone && token) {
+      cfConfigs.push({ zoneId: zone, apiToken: token, name: 'Current Store' });
+    }
+  }
+
+  if (cfConfigs.length === 0) {
     console.warn('Cloudflare credentials missing. Skipping complete cache purge.');
     return;
   }
 
-  try {
-    const res = await fetch(
-      `https://api.cloudflare.com/client/v4/zones/${CLOUDFLARE_ZONE_ID}/purge_cache`,
-      {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${CLOUDFLARE_API_TOKEN}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ purge_everything: true }),
-      }
-    );
+  for (const cfg of cfConfigs) {
+    try {
+      const res = await fetch(
+        `https://api.cloudflare.com/client/v4/zones/${cfg.zoneId}/purge_cache`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${cfg.apiToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ purge_everything: true }),
+        }
+      );
 
-    const data = await res.json();
-    if (!res.ok || !data.success) {
-      console.error('Failed to purge everything on Cloudflare:', data);
-    } else {
-      console.log('Successfully purged everything on Cloudflare');
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        console.error(`Failed to purge Cloudflare for ${cfg.name || cfg.zoneId}:`, data);
+      } else {
+        console.log(`Successfully purged Cloudflare for ${cfg.name || cfg.zoneId}`);
+      }
+    } catch (error) {
+      console.error(`Error purging Cloudflare for ${cfg.name || cfg.zoneId}:`, error);
     }
-  } catch (error) {
-    console.error('Error purging everything on Cloudflare:', error);
   }
 }
 

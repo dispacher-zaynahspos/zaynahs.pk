@@ -118,8 +118,17 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
                 formatPrice(currentPrice, currencySymbol)
               )}
             </span>
-            {!hasPriceRange && currentComparePrice && currentComparePrice > currentPrice && (
-              <span className="text-[9px] text-gray-400 line-through decoration-red-500 decoration-[1.5px]">
+            {currentComparePrice && currentComparePrice > currentPrice && (
+              <span
+                className="text-[9px] text-gray-400 font-medium line-through decoration-red-500 decoration-[1.5px]"
+                style={{
+                  textDecoration: 'line-through',
+                  textDecorationColor: '#ef4444',
+                  WebkitTextDecorationColor: '#ef4444',
+                  textDecorationThickness: '1.5px',
+                  color: '#9ca3af',
+                }}
+              >
                 {formatPrice(currentComparePrice, currencySymbol)}
               </span>
             )}
@@ -136,6 +145,11 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
         return null;
     }
   };
+
+  const hoverStyle = settings?.imageHoverStyle ?? 'second_image';
+  const isZoom = hoverStyle === 'zoom';
+  const isSecondImage = hoverStyle === 'second_image';
+  const showSecond = isSecondImage && Boolean(secondImage) && !hoveredImage;
 
   return (
     <Link
@@ -154,17 +168,17 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
           alt={product.name}
           fill
           sizes="(max-width: 768px) 50vw, 25vw"
-          className={`object-contain p-2 sm:p-3 object-center transition-transform duration-500 ${settings?.imageHoverStyle === 'zoom' ? (touchActive ? 'scale-105' : 'group-hover:scale-105 group-active:scale-105') : ''} ${secondImage && !hoveredImage ? (touchActive ? 'opacity-0' : 'opacity-100 group-hover:opacity-0 group-active:opacity-0') : ''}`}
+          className={`object-contain p-2 sm:p-3 object-center transition-all duration-500 ${isZoom ? 'hover-zoom' : ''} ${showSecond ? 'hover-fade-out' : 'opacity-100'}`}
           priority={false}
           loading="lazy"
         />
-        {secondImage && !hoveredImage && (
+        {showSecond && secondImage && (
           <Image
             src={secondImage}
             alt={`${product.name} alternate`}
             fill
             sizes="(max-width: 768px) 50vw, 25vw"
-            className={`object-contain p-2 sm:p-3 object-center absolute inset-0 transition-opacity duration-500 ${touchActive ? 'opacity-100' : 'opacity-0'} group-hover:opacity-100 group-active:opacity-100`}
+            className="object-contain p-2 sm:p-3 object-center absolute inset-0 transition-opacity duration-500 hover-fade-in opacity-0"
             priority={false}
             loading="lazy"
           />
@@ -209,10 +223,10 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
         </div>
 
         <div
-          className={`absolute right-1.5 sm:right-2 top-1.5 sm:top-2 flex flex-col gap-1 sm:gap-1.5 z-20 transition-all duration-300 ease-out ${
+          className={`card-actions absolute right-1.5 sm:right-2 top-1.5 sm:top-2 flex flex-col gap-1.5 z-20 transition-all duration-300 ease-out ${
             touchActive
               ? 'opacity-100 translate-x-0 pointer-events-auto'
-              : 'opacity-0 translate-x-2 pointer-events-none group-hover:opacity-100 group-hover:translate-x-0 group-hover:pointer-events-auto'
+              : 'opacity-0 translate-x-2 pointer-events-none'
           }`}
           onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
           onTouchStart={(e) => e.stopPropagation()}
@@ -223,11 +237,11 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
               type="button"
               onClick={onToggleWishlist}
               onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); onToggleWishlist(e as any); }}
-              className="flex h-6.5 w-6.5 sm:h-7 sm:w-7 items-center justify-center rounded-full bg-white/95 dark:bg-[#16162a]/95 backdrop-blur-xs shadow-md border border-gray-200/80 dark:border-gray-800 text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-[#16162a] hover:scale-110 active:scale-90 hover:text-[var(--color-primary,#C2185B)] dark:hover:text-[var(--color-primary,#C2185B)] transition-transform duration-200 cursor-pointer"
+              className="action-btn flex h-10 w-10 min-h-[40px] min-w-[40px] sm:h-7 sm:w-7 sm:min-h-[28px] sm:min-w-[28px] items-center justify-center rounded-full bg-white/95 dark:bg-[#16162a]/95 backdrop-blur-xs shadow-md border border-gray-200/80 dark:border-gray-800 text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-[#16162a] hover:scale-110 active:scale-90 hover:text-[var(--color-primary,#C2185B)] dark:hover:text-[var(--color-primary,#C2185B)] transition-transform duration-200 cursor-pointer"
               title={isInWishlist ? "Remove from Wishlist" : "Add to Wishlist"}
               aria-label={isInWishlist ? "Remove from Wishlist" : "Add to Wishlist"}
             >
-              <Heart className={`h-3 w-3 sm:h-3.5 sm:w-3.5 ${isInWishlist ? 'fill-red-500 text-red-500' : ''}`} />
+              <Heart className={`h-4 w-4 sm:h-3.5 sm:w-3.5 ${isInWishlist ? 'fill-red-500 text-red-500' : ''}`} />
             </button>
           )}
 
@@ -236,11 +250,11 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
               type="button"
               onClick={onOpenQuickView}
               onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); onOpenQuickView(e as any); }}
-              className="flex h-6.5 w-6.5 sm:h-7 sm:w-7 items-center justify-center rounded-full bg-white/95 dark:bg-[#16162a]/95 backdrop-blur-xs shadow-md border border-gray-200/80 dark:border-gray-800 text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-[#16162a] hover:scale-110 active:scale-90 hover:text-[var(--color-primary,#C2185B)] dark:hover:text-[var(--color-primary,#C2185B)] transition-transform duration-200 cursor-pointer"
+              className="action-btn flex h-10 w-10 min-h-[40px] min-w-[40px] sm:h-7 sm:w-7 sm:min-h-[28px] sm:min-w-[28px] items-center justify-center rounded-full bg-white/95 dark:bg-[#16162a]/95 backdrop-blur-xs shadow-md border border-gray-200/80 dark:border-gray-800 text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-[#16162a] hover:scale-110 active:scale-90 hover:text-[var(--color-primary,#C2185B)] dark:hover:text-[var(--color-primary,#C2185B)] transition-transform duration-200 cursor-pointer"
               title="Quick View"
               aria-label="Quick View"
             >
-              <Eye className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+              <Eye className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
             </button>
           )}
 
@@ -249,11 +263,11 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
               type="button"
               onClick={onAddToCart}
               onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); onAddToCart(e as any); }}
-              className="flex h-6.5 w-6.5 sm:h-7 sm:w-7 items-center justify-center rounded-full bg-white/95 dark:bg-[#16162a]/95 backdrop-blur-xs shadow-md border border-gray-200/80 dark:border-gray-800 text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-[#16162a] hover:scale-110 active:scale-90 hover:text-[var(--color-primary,#C2185B)] dark:hover:text-[var(--color-primary,#C2185B)] transition-transform duration-200 cursor-pointer"
+              className="action-btn flex h-10 w-10 min-h-[40px] min-w-[40px] sm:h-7 sm:w-7 sm:min-h-[28px] sm:min-w-[28px] items-center justify-center rounded-full bg-white/95 dark:bg-[#16162a]/95 backdrop-blur-xs shadow-md border border-gray-200/80 dark:border-gray-800 text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-[#16162a] hover:scale-110 active:scale-90 hover:text-[var(--color-primary,#C2185B)] dark:hover:text-[var(--color-primary,#C2185B)] transition-transform duration-200 cursor-pointer"
               title={product.hasVariants ? "Choose Options" : "Add to Cart"}
               aria-label={product.hasVariants ? "Choose Options" : "Add to Cart"}
             >
-              <ShoppingCart className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+              <ShoppingCart className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
             </button>
           )}
         </div>

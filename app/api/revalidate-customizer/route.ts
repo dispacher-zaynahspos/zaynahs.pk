@@ -13,21 +13,29 @@ export async function POST(req: NextRequest) {
     const hasValidSecret = secret && secret === process.env.REVALIDATE_SECRET;
 
     if (!hasValidSecret) {
-      // Check admin session via Supabase Auth
+      let isAuthorized = false;
       try {
         const supabase = await createClient();
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          // Check if referer is /admin or internal
-          const referer = req.headers.get('referer') || '';
-          const origin = req.headers.get('origin') || '';
-          const isFromAdmin = referer.includes('/admin') || origin.includes('localhost') || origin.includes('vercel.app');
-          if (!isFromAdmin) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-          }
+        if (user) {
+          isAuthorized = true;
         }
       } catch (authErr) {
         console.warn('[Revalidate Customizer] Auth check warn:', authErr);
+      }
+
+      if (!isAuthorized) {
+        const referer = req.headers.get('referer') || '';
+        const origin = req.headers.get('origin') || '';
+        const host = req.headers.get('host') || '';
+        const isFromAdmin = referer.includes('/admin') ||
+          (origin && host && origin.includes(host)) ||
+          origin.includes('localhost') ||
+          origin.includes('vercel.app');
+
+        if (!isFromAdmin) {
+          return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
       }
     }
 
