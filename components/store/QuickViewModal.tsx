@@ -269,7 +269,7 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
                       <span className="text-sm text-gray-400 line-through font-semibold font-body">
                         {formatPrice(comparePrice, settings.currencySymbol)}
                       </span>
-                      <span className="rounded-md bg-[#e94560]/10 dark:bg-[#e94560]/20 px-1.5 py-0.5 text-[9px] font-black text-[#e94560] tracking-wide animate-none">
+                      <span className="rounded-md bg-[#0f172a] px-1.5 py-0.5 text-[9px] font-black text-white tracking-wide animate-none">
                         -{Math.round(((comparePrice - basePrice) / comparePrice) * 100)}%
                       </span>
                     </div>
@@ -278,7 +278,7 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
                 {hasPriceRange && selectedVariant && (
                   <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[var(--color-primary)]/5 dark:bg-white/5 border border-gray-200 dark:border-gray-800 text-xs font-semibold mt-1 w-fit">
                     <span className="text-gray-500 dark:text-gray-400">Selected option:</span>
-                    <span className="product-price text-sm font-black text-[#e94560] dark:text-[#e94560] leading-none">
+                    <span className="product-price text-sm font-black text-gray-900 dark:text-white leading-none">
                       {formatPrice(basePrice, settings.currencySymbol)}
                     </span>
                     {comparePrice && comparePrice > basePrice && (
@@ -286,7 +286,7 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
                         <span className="text-[10px] text-gray-400 line-through font-semibold font-body">
                           {formatPrice(comparePrice, settings.currencySymbol)}
                         </span>
-                        <span className="rounded bg-[#e94560]/10 dark:bg-[#e94560]/20 px-1 py-0.5 text-[8px] font-black text-[#e94560] leading-none">
+                        <span className="rounded bg-[#0f172a] px-1 py-0.5 text-[8px] font-black text-white leading-none">
                           -{Math.round(((comparePrice - basePrice) / comparePrice) * 100)}%
                         </span>
                       </span>

@@ -70,15 +70,32 @@ export default function ShopProductListCard({ product, settings, addItem }: Shop
           className="object-cover transition-transform duration-500 group-hover:scale-105"
         />
         {/* Badge */}
-        <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
+        <div className="absolute top-2 left-2 flex flex-col gap-1 z-10 items-start pointer-events-none">
           {initialComparePrice && initialComparePrice > initialPrice && (
-            <span className="rounded-md bg-[#e94560] px-2 py-0.5 text-[9px] font-extrabold text-white tracking-wide shadow-sm animate-none">
+            <span className="rounded-md bg-[#0f172a] px-2 py-0.5 text-[9px] font-extrabold text-white tracking-wide shadow-sm animate-none">
               -{Math.round(((initialComparePrice - initialPrice) / initialComparePrice) * 100)}%
             </span>
           )}
           {product.isFeatured && (
-            <span className="rounded-md bg-[#10b981] px-2 py-0.5 text-[9px] font-extrabold text-white tracking-wide shadow-sm">
-              FEATURED
+            <span
+              className="rounded-md px-2 py-0.5 text-[9px] font-extrabold shadow-sm tracking-wide"
+              style={{
+                backgroundColor: product.customBadge?.name?.toLowerCase() === 'featured' ? product.customBadge.bgColor : '#e94560',
+                color: product.customBadge?.name?.toLowerCase() === 'featured' ? product.customBadge.textColor : '#ffffff'
+              }}
+            >
+              {product.customBadge?.name?.toLowerCase() === 'featured' ? product.customBadge.name : 'FEATURED'}
+            </span>
+          )}
+          {product.badgeEnabled && product.customBadge && (!product.isFeatured || product.customBadge.name.toLowerCase() !== 'featured') && (
+            <span
+              className="rounded-md px-2 py-0.5 text-[9px] font-extrabold shadow-sm tracking-wide"
+              style={{
+                backgroundColor: product.customBadge.bgColor,
+                color: product.customBadge.textColor
+              }}
+            >
+              {product.customBadge.name}
             </span>
           )}
         </div>

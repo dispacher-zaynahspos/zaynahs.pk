@@ -48,7 +48,7 @@ export function ProductDetailPriceTimer({
                   <span className="text-sm text-gray-400 line-through font-semibold font-body">
                     {formatPrice(currentComparePrice, settings.currencySymbol)}
                   </span>
-                  <span className="rounded-md bg-[#e94560]/10 dark:bg-[#e94560]/20 px-2 py-0.5 text-[10px] font-black text-[#e94560] tracking-wide">
+                  <span className="rounded-md bg-[#0f172a] px-2 py-0.5 text-[10px] font-black text-white tracking-wide">
                     -{pct}%
                   </span>
                 </div>
@@ -61,7 +61,7 @@ export function ProductDetailPriceTimer({
         {hasPriceRange && selectedVariant && (
           <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[var(--color-primary)]/5 dark:bg-white/5 border border-gray-200 dark:border-gray-800 text-sm font-semibold mt-2.5 w-fit">
             <span className="text-gray-500 dark:text-gray-400">Selected option:</span>
-            <span className="product-price text-base font-black text-[#e94560] dark:text-[#e94560] leading-none">
+            <span className="product-price text-base font-black text-gray-900 dark:text-white leading-none">
               {formatPrice(unitPrice, settings.currencySymbol)}
             </span>
             {(() => {
@@ -73,7 +73,7 @@ export function ProductDetailPriceTimer({
                     <span className="text-xs text-gray-400 line-through font-semibold font-body">
                       {formatPrice(currentComparePrice, settings.currencySymbol)}
                     </span>
-                    <span className="rounded-md bg-[#e94560]/10 dark:bg-[#e94560]/20 px-1.5 py-0.5 text-[9px] font-black text-[#e94560] tracking-wide leading-none">
+                    <span className="rounded-md bg-[#0f172a] px-1.5 py-0.5 text-[9px] font-black text-white tracking-wide leading-none">
                       -{pct}%
                     </span>
                   </span>

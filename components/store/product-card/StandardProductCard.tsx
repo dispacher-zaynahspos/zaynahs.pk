@@ -167,7 +167,7 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
         <div className="absolute top-2 left-2 flex flex-col gap-1 z-10 items-start pointer-events-none">
           {currentComparePrice && currentComparePrice > currentPrice && (
             <span
-              style={{ backgroundColor: 'var(--color-primary, #C2185B)' }}
+              style={{ backgroundColor: '#0f172a' }}
               className="rounded-full px-2.5 py-0.5 text-[9px] font-black text-white shadow-xs uppercase tracking-wide"
             >
               -{Math.round(((currentComparePrice - currentPrice) / currentComparePrice) * 100)}%

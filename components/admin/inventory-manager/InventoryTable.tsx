@@ -53,7 +53,7 @@ export function InventoryTable({
               <th className="py-2.5 px-3 w-28">SKU</th>
               <th className="py-2.5 px-3 w-36">Stock Level</th>
               <th className="py-2.5 px-3 w-32">Alert Threshold</th>
-              <th className="py-2.5 px-3 text-right w-24">Status</th>
+              <th className="py-2.5 px-4 text-right min-w-[170px] whitespace-nowrap">Status</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 dark:divide-gray-800 text-xs">
@@ -179,8 +179,8 @@ export function InventoryTable({
                         </div>
                       )}
                     </td>
-                    <td className="py-4 px-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
+                    <td className="py-2.5 px-4 text-right whitespace-nowrap">
+                      <div className="flex items-center justify-end gap-2 whitespace-nowrap">
                         {renderProductStatus(product)}
                         <button
                           type="button"

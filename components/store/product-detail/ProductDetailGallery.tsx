@@ -132,7 +132,7 @@ export default function ProductDetailGallery({
             if (currentCompare && currentPrc && currentCompare > currentPrc) {
               return (
                 <span
-                  style={{ backgroundColor: 'var(--color-primary, #C2185B)' }}
+                  style={{ backgroundColor: '#0f172a' }}
                   className="rounded-full px-3 py-1 text-[10px] font-black text-white shadow-sm uppercase tracking-wider"
                 >
                   -{Math.round(((currentCompare - currentPrc) / currentCompare) * 100)}%
@@ -142,11 +142,17 @@ export default function ProductDetailGallery({
             return null;
           })()}
           {product.isFeatured && (
-            <span className="rounded-full bg-gray-900 dark:bg-black px-3 py-1 text-[10px] font-black text-white shadow-sm uppercase tracking-wider">
-              FEATURED
+            <span
+              className="rounded-full px-3 py-1 text-[10px] font-black shadow-sm uppercase tracking-wider"
+              style={{
+                backgroundColor: product.customBadge?.name?.toLowerCase() === 'featured' ? product.customBadge.bgColor : '#e94560',
+                color: product.customBadge?.name?.toLowerCase() === 'featured' ? product.customBadge.textColor : '#ffffff'
+              }}
+            >
+              {product.customBadge?.name?.toLowerCase() === 'featured' ? product.customBadge.name : 'FEATURED'}
             </span>
           )}
-          {product.badgeEnabled && product.customBadge && (
+          {product.badgeEnabled && product.customBadge && (!product.isFeatured || product.customBadge.name.toLowerCase() !== 'featured') && (
             <span
               className="rounded-full px-3 py-1 text-[10px] font-black text-white shadow-sm uppercase tracking-wider"
               style={{

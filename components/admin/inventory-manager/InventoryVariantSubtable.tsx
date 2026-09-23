@@ -129,7 +129,7 @@ export function InventoryVariantSubtable({
                 <th className="py-2.5 px-4">SKU</th>
                 <th className="py-2.5 px-4">Stock Level</th>
                 <th className="py-2.5 px-4">Alert Threshold</th>
-                <th className="py-2.5 px-4 text-right">Status</th>
+                <th className="py-2.5 px-4 text-right min-w-[150px] whitespace-nowrap">Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-150 dark:divide-gray-800 bg-white/50 dark:bg-[#16162a]/50">
@@ -226,8 +226,8 @@ export function InventoryVariantSubtable({
                         )}
                       </div>
                     </td>
-                    <td className="py-2.5 px-4 text-right">
-                      <div className="flex justify-end">
+                    <td className="py-2.5 px-4 text-right whitespace-nowrap">
+                      <div className="flex justify-end whitespace-nowrap">
                         {getStockBadge(variant.stock, variantThreshold)}
                       </div>
                     </td>

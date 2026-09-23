@@ -38,14 +38,14 @@ export default function BadgeManager({ initialBadges }: BadgeManagerProps) {
   
   // Form fields
   const [name, setName] = useState('');
-  const [bgColor, setBgColor] = useState('#e94560');
+  const [bgColor, setBgColor] = useState('#0f172a');
   const [textColor, setTextColor] = useState('#ffffff');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleOpenNew = () => {
     setEditId(null);
     setName('');
-    setBgColor('#e94560');
+    setBgColor('#0f172a');
     setTextColor('#ffffff');
     setIsOpen(true);
   };
