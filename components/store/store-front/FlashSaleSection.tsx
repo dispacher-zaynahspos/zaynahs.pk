@@ -138,7 +138,26 @@ export function FlashSaleSection({ section, products, currencySymbol, settings, 
   const bottomEnableViewAll = section.settings?.bottomEnableViewAll === true;
   const bottomEnableLoadMore = section.settings?.bottomEnableLoadMore === true;
 
-  const displayProducts = allMatchedProducts.slice(0, effectiveLimit);
+  const cols = Number(section.settings?.columns_desktop) || 4;
+  let targetCount = effectiveLimit;
+  if (cols > 1 && allMatchedProducts.length >= cols) {
+    const remainder = effectiveLimit % cols;
+    if (remainder !== 0) {
+      const nextMultiple = effectiveLimit + (cols - remainder);
+      if (allMatchedProducts.length >= nextMultiple) {
+        targetCount = nextMultiple;
+      } else {
+        targetCount = Math.floor(effectiveLimit / cols) * cols;
+      }
+    } else {
+      if (allMatchedProducts.length < targetCount) {
+        targetCount = Math.floor(allMatchedProducts.length / cols) * cols;
+      }
+    }
+  }
+  if (targetCount === 0) targetCount = allMatchedProducts.length;
+
+  const displayProducts = allMatchedProducts.slice(0, targetCount);
   const hasMore = displayProducts.length < allMatchedProducts.length && displayProducts.length >= effectiveLimit;
 
   if (displayProducts.length === 0) {
@@ -212,6 +231,9 @@ export function FlashSaleSection({ section, products, currencySymbol, settings, 
         products={displayProducts} 
         currencySymbol={currencySymbol} 
         settings={settings}
+        columnsDesktop={Number(section.settings?.columns_desktop) || 4}
+        columnsTablet={Number(section.settings?.columns_tablet) || 3}
+        columnsMobile={Number(section.settings?.columns_mobile) || 2}
       />
 
       {(bottomEnableLoadMore || bottomEnableViewAll) && (

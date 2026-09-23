@@ -30,18 +30,18 @@ export const customCss = `
       line-height: 1;
     }
     .z-card-container .bdg-new { background: #10b981; color: #fff; }
-    .z-card-container .bdg-hot { background: #ef4444; color: #fff; }
-    .z-card-container .bdg-sale { background: #f59e0b; color: #fff; }
-    .z-card-container .bdg-featured { background: #0f172a; color: #fff; }
+    .z-card-container .bdg-hot { background: #ff9500; color: #fff; }
+    .z-card-container .bdg-sale { background: #0f172a; color: #fff; }
+    .z-card-container .bdg-featured { background: #e94560; color: #fff; }
 
     /* Universal Quick Action Controls Overlay */
     .z-card-container .card-actions,
     .z-card-container .aic {
       position: absolute; right: 8px; top: 8px;
-      display: flex; flex-direction: column; gap: 6px;
-      z-index: 25; opacity: 0; transform: translateY(-4px);
+      display: flex; flex-direction: column; gap: 5px;
+      z-index: 25; opacity: 1 !important; transform: none !important;
       transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-      pointer-events: none;
+      pointer-events: auto !important;
     }
     .z-card-container:hover .card-actions,
     .z-card-container:hover .aic,
@@ -58,7 +58,7 @@ export const customCss = `
     .group:hover .card-actions,
     .group:hover .aic {
       opacity: 1 !important;
-      transform: translateY(0) !important;
+      transform: none !important;
       pointer-events: auto !important;
     }
 

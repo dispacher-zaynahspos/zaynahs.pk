@@ -5,15 +5,32 @@ import { Plus, Edit, Trash2, X } from '@/components/common/Icons';
 import { useConfirm } from '@/components/admin/shared/AdminConfirmProvider';
 import { Badge } from '@/lib/types';
 import { createBadge, updateBadge, deleteBadge } from '@/lib/services/badges';
+import { isSystemBadgeName } from '@/lib/services/badges-constants';
 import { toast } from 'sonner';
 
 interface BadgeManagerProps {
   initialBadges: Badge[];
 }
 
+const sortBadgesWithSystemFirst = (list: Badge[]) => {
+  const systemOrder = ['featured', 'hot', 'sale', 'new'];
+  return [...list].sort((a, b) => {
+    const aSys = isSystemBadgeName(a.name);
+    const bSys = isSystemBadgeName(b.name);
+    if (aSys && !bSys) return -1;
+    if (!aSys && bSys) return 1;
+    if (aSys && bSys) {
+      const idxA = systemOrder.indexOf(a.name.trim().toLowerCase());
+      const idxB = systemOrder.indexOf(b.name.trim().toLowerCase());
+      return (idxA !== -1 ? idxA : 99) - (idxB !== -1 ? idxB : 99);
+    }
+    return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+  });
+};
+
 export default function BadgeManager({ initialBadges }: BadgeManagerProps) {
   const { confirm } = useConfirm();
-  const [badges, setBadges] = useState<Badge[]>(initialBadges);
+  const [badges, setBadges] = useState<Badge[]>(() => sortBadgesWithSystemFirst(initialBadges));
   
   // Modal states
   const [isOpen, setIsOpen] = useState(false);
@@ -74,11 +91,11 @@ export default function BadgeManager({ initialBadges }: BadgeManagerProps) {
     try {
       if (editId) {
         const updated = await updateBadge(editId, payload);
-        setBadges(prev => prev.map(b => b.id === editId ? updated : b));
+        setBadges(prev => sortBadgesWithSystemFirst(prev.map(b => b.id === editId ? updated : b)));
         toast.success('Badge updated successfully');
       } else {
         const created = await createBadge(payload);
-        setBadges(prev => [created, ...prev]);
+        setBadges(prev => sortBadgesWithSystemFirst([created, ...prev]));
         toast.success('Badge created successfully');
       }
       setIsOpen(false);
@@ -90,12 +107,14 @@ export default function BadgeManager({ initialBadges }: BadgeManagerProps) {
     }
   };
 
+  const displayBadges = sortBadgesWithSystemFirst(badges);
+
   return (
     <div className="space-y-6">
       {/* Header action */}
       <div className="flex justify-between items-center bg-white dark:bg-[#16162a] p-4 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm">
         <div className="text-xs font-semibold text-gray-500 dark:text-gray-400">
-          Total Saved Badges: {badges.length}
+          Total Saved Badges: {displayBadges.length}
         </div>
         <button
           onClick={handleOpenNew}
@@ -108,52 +127,64 @@ export default function BadgeManager({ initialBadges }: BadgeManagerProps) {
 
       {/* Grid listing */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {badges.map(badge => (
-          <div 
-            key={badge.id} 
-            className="bg-white dark:bg-[#16162a] p-5 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm flex flex-col justify-between space-y-5 text-gray-900 dark:text-white transition-colors"
-          >
-            <div>
-              <div className="flex justify-between items-start">
-                <h3 className="font-bold text-gray-900 dark:text-white text-base truncate max-w-[150px]">{badge.name}</h3>
-                <span 
-                  className="px-2.5 py-0.5 text-xs font-extrabold uppercase rounded-lg shadow-sm tracking-wider"
-                  style={{ backgroundColor: badge.bgColor, color: badge.textColor }}
-                >
-                  {badge.name}
-                </span>
-              </div>
-              
-              <div className="mt-4 flex gap-4 text-xs font-medium text-gray-500 dark:text-gray-400">
-                <div>
-                  <span className="block font-bold text-[10px] uppercase text-gray-400">Background</span>
-                  <code className="bg-gray-50 dark:bg-[#0f0f1b] px-1.5 py-0.5 rounded font-mono text-[11px]">{badge.bgColor}</code>
+        {displayBadges.map(badge => {
+          const isSystemBadge = isSystemBadgeName(badge.name);
+          return (
+            <div 
+              key={badge.id} 
+              className="bg-white dark:bg-[#16162a] p-5 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm flex flex-col justify-between space-y-5 text-gray-900 dark:text-white transition-colors"
+            >
+              <div>
+                <div className="flex justify-between items-start">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="font-bold text-gray-900 dark:text-white text-base truncate max-w-[150px]">{badge.name}</h3>
+                    {isSystemBadge && (
+                      <span className="text-[9px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/30 px-1.5 py-0.5 rounded uppercase border border-indigo-200 dark:border-indigo-800">
+                        System
+                      </span>
+                    )}
+                  </div>
+                  <span 
+                    className="px-2.5 py-0.5 text-xs font-extrabold uppercase rounded-lg shadow-sm tracking-wider"
+                    style={{ backgroundColor: badge.bgColor, color: badge.textColor }}
+                  >
+                    {badge.name}
+                  </span>
                 </div>
-                <div>
-                  <span className="block font-bold text-[10px] uppercase text-gray-400">Text Color</span>
-                  <code className="bg-gray-50 dark:bg-[#0f0f1b] px-1.5 py-0.5 rounded font-mono text-[11px]">{badge.textColor}</code>
+                
+                <div className="mt-4 flex gap-4 text-xs font-medium text-gray-500 dark:text-gray-400">
+                  <div>
+                    <span className="block font-bold text-[10px] uppercase text-gray-400">Background</span>
+                    <code className="bg-gray-50 dark:bg-[#0f0f1b] px-1.5 py-0.5 rounded font-mono text-[11px]">{badge.bgColor}</code>
+                  </div>
+                  <div>
+                    <span className="block font-bold text-[10px] uppercase text-gray-400">Text Color</span>
+                    <code className="bg-gray-50 dark:bg-[#0f0f1b] px-1.5 py-0.5 rounded font-mono text-[11px]">{badge.textColor}</code>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="flex gap-3 pt-3.5 border-t border-gray-100 dark:border-gray-800 justify-end">
-              <button
-                onClick={() => handleOpenEdit(badge)}
-                className="flex items-center gap-1 text-xs font-semibold text-gray-600 dark:text-gray-300 hover:text-[#e94560] bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 px-3 py-2 rounded-lg cursor-pointer transition-colors"
-              >
-                <Edit className="h-3.5 w-3.5" />
-                <span>Edit</span>
-              </button>
-              <button
-                onClick={() => handleDelete(badge.id)}
-                className="flex items-center gap-1 text-xs font-semibold text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 px-3 py-2 rounded-lg cursor-pointer transition-colors"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-                <span>Delete</span>
-              </button>
+              <div className="flex gap-3 pt-3.5 border-t border-gray-100 dark:border-gray-800 justify-end">
+                <button
+                  onClick={() => handleOpenEdit(badge)}
+                  className="flex items-center gap-1 text-xs font-semibold text-gray-600 dark:text-gray-300 hover:text-[#e94560] bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 px-3 py-2 rounded-lg cursor-pointer transition-colors"
+                >
+                  <Edit className="h-3.5 w-3.5" />
+                  <span>Edit</span>
+                </button>
+                {!isSystemBadge && (
+                  <button
+                    onClick={() => handleDelete(badge.id)}
+                    className="flex items-center gap-1 text-xs font-semibold text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 px-3 py-2 rounded-lg cursor-pointer transition-colors"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    <span>Delete</span>
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {badges.length === 0 && (
@@ -192,9 +223,9 @@ export default function BadgeManager({ initialBadges }: BadgeManagerProps) {
                   <span className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">Quick Presets</span>
                   <div className="flex flex-wrap gap-1.5">
                     {[
-                      { label: 'Featured', name: 'FEATURED', bg: '#0f172a', text: '#ffffff' },
-                      { label: 'Sale', name: 'SALE', bg: '#f97316', text: '#ffffff' },
-                      { label: 'Hot', name: 'HOT', bg: '#ef4444', text: '#ffffff' },
+                      { label: 'Featured', name: 'FEATURED', bg: '#e94560', text: '#ffffff' },
+                      { label: 'Hot', name: 'HOT', bg: '#ff9500', text: '#ffffff' },
+                      { label: 'Sale', name: 'SALE', bg: '#0f172a', text: '#ffffff' },
                       { label: 'New', name: 'NEW', bg: '#10b981', text: '#ffffff' },
                       { label: 'Limited', name: 'LIMITED', bg: '#d97706', text: '#ffffff' },
                     ].map(p => (

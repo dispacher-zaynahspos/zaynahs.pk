@@ -158,10 +158,14 @@ export default function FloatingContacts({ settings }: FloatingContactsProps) {
           href={whatsappUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex h-11 w-11 items-center justify-center rounded-full bg-[#25d366] text-white shadow-lg hover:scale-110 active:scale-95 transition-all duration-200"
-          title="WhatsApp Chat"
+          className="group relative flex h-10 w-10 items-center justify-center rounded-full bg-[#25D366] text-white shadow-md hover:shadow-lg ring-2 ring-white/90 dark:ring-gray-900/90 hover:scale-108 active:scale-95 transition-all duration-200 cursor-pointer"
+          title="Chat with us on WhatsApp"
+          aria-label="Chat with us on WhatsApp"
         >
-          <WhatsAppIcon className="h-6 w-6 text-white fill-current" />
+          <WhatsAppIcon className="h-5 w-5 text-white fill-current drop-shadow-2xs" />
+          <span className="absolute left-full ml-2.5 hidden sm:group-hover:inline-flex items-center px-2 py-1 text-[10px] font-bold text-white bg-gray-900/90 backdrop-blur-xs rounded-lg shadow-md whitespace-nowrap pointer-events-none transition-opacity">
+            Chat with us
+          </span>
         </a>
       )}
     </div>

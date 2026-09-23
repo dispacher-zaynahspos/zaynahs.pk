@@ -31,7 +31,7 @@ export const ProductCardBadges: React.FC<ProductCardBadgesProps> = ({
         key="featured"
         className={`${badgeClass} bdg-featured`}
         style={{
-          backgroundColor: featuredCustom?.bgColor || '#0f172a',
+          backgroundColor: featuredCustom?.bgColor || '#e94560',
           color: featuredCustom?.textColor || '#ffffff',
           fontWeight: 800,
           textTransform: 'uppercase',

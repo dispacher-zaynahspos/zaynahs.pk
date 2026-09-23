@@ -112,6 +112,15 @@ CREATE TABLE IF NOT EXISTS badges (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Seed default built-in system badges
+INSERT INTO badges (id, name, bg_color, text_color)
+VALUES
+  ('00000000-0000-4000-8000-000000000002', 'Featured', '#e94560', '#ffffff'),
+  ('00000000-0000-4000-8000-000000000004', 'HOT', '#ff9500', '#ffffff'),
+  ('00000000-0000-4000-8000-000000000003', 'Sale', '#0f172a', '#ffffff'),
+  ('00000000-0000-4000-8000-000000000005', 'New', '#10b981', '#ffffff')
+ON CONFLICT (id) DO NOTHING;
+
 -- ============================================================
 -- PRODUCTS
 -- ============================================================

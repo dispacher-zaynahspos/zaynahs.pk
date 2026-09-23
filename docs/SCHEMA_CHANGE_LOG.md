@@ -4,6 +4,28 @@
 
 ---
 
+### [2026-09-22] v6.4.0 — Built-in Pre-Added System Badges (Featured, HOT, Sale, New) & Product Card Actions
+**Files Updated:**
+- [supabase/schema/SUPER_MASTER_SCHEMA.sql](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/supabase/schema/SUPER_MASTER_SCHEMA.sql)
+- [supabase/migrations/20260923000000_seed_system_badges.sql](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/supabase/migrations/20260923000000_seed_system_badges.sql)
+- [lib/services/badges.ts](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/lib/services/badges.ts)
+- [lib/services/badges-constants.ts](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/lib/services/badges-constants.ts)
+- [components/admin/BadgeManager.tsx](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/components/admin/BadgeManager.tsx)
+- [components/store/product-card/StandardProductCard.tsx](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/components/store/product-card/StandardProductCard.tsx)
+- [components/store/product-card/ProductCardBadges.tsx](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/components/store/product-card/ProductCardBadges.tsx)
+- [components/store/product-card/customCss.tsx](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/components/store/product-card/customCss.tsx)
+
+**Changes:**
+1. Built-in system badges seeded in `badges` table with fixed UUIDs:
+   - `Featured` (`#e94560` Red, non-deletable, editable)
+   - `HOT` (`#ff9500` Amber/Orange, non-deletable, editable)
+   - `Sale` (`#0f172a` Navy/Slate, non-deletable, editable)
+   - `New` (`#10b981` Emerald, non-deletable, editable)
+2. `BadgeManager.tsx`: System badges always render first with `SYSTEM` badge pill; deletion prevented, color/text edits supported. Custom user badges appear afterwards.
+3. Product card quick action buttons (Heart, Eye, Cart) rendered `opacity-100 pointer-events-auto` across all screen sizes and column counts (2–8 cols), preventing disappearing issues.
+
+---
+
 ### [2026-09-08] v6.3.0 — Recently Viewed Custom Titles, Shop Quick Category Chips & Infinite Scroll (Multi-Project Applied)
 **Files Updated:**
 - [supabase/schema/SUPER_MASTER_SCHEMA.sql](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/supabase/schema/SUPER_MASTER_SCHEMA.sql)

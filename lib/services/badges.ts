@@ -3,13 +3,11 @@
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { Badge } from '@/lib/types';
 import { revalidateTagSafe } from '@/lib/revalidate';
-
-const DEFAULT_SYSTEM_BADGES = [
-  { name: 'Featured', bgColor: '#0f172a', textColor: '#ffffff' },
-  { name: 'Sale', bgColor: '#f97316', textColor: '#ffffff' },
-  { name: 'Hot', bgColor: '#ef4444', textColor: '#ffffff' },
-  { name: 'New', bgColor: '#10b981', textColor: '#ffffff' },
-];
+import {
+  SYSTEM_BADGE_CONFIGS,
+  SYSTEM_FEATURED_BADGE_ID,
+  isSystemBadgeName
+} from './badges-constants';
 
 const mapBadge = (row: any): Badge => ({
   id: row.id,
@@ -26,12 +24,12 @@ export const getBadges = async (): Promise<Badge[]> => {
     const { data, error } = await supabase
       .from('badges')
       .select('*')
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: true });
 
     if (error) {
       console.warn('[badges] getBadges table lookup failed:', error.message);
-      return DEFAULT_SYSTEM_BADGES.map((b, i) => ({
-        id: `default-${i}`,
+      return SYSTEM_BADGE_CONFIGS.map((b, i) => ({
+        id: b.id || `default-${i}`,
         name: b.name,
         bgColor: b.bgColor,
         textColor: b.textColor,
@@ -40,40 +38,66 @@ export const getBadges = async (): Promise<Badge[]> => {
       }));
     }
 
-    if (!data || data.length === 0) {
-      // Auto-seed default system badges so admin and storefront always have editable badges
-      try {
-        const { data: seeded, error: seedError } = await supabase
-          .from('badges')
-          .insert(DEFAULT_SYSTEM_BADGES.map(b => ({
-            name: b.name,
-            bg_color: b.bgColor,
-            text_color: b.textColor
-          })))
-          .select('*');
+    let badgeList = data ? data.map(mapBadge) : [];
 
-        if (!seedError && seeded && seeded.length > 0) {
-          return seeded.map(mapBadge);
+    // Ensure all 4 built-in system badges (Featured, Hot, Sale, New) exist in DB and list
+    for (const sysBadge of SYSTEM_BADGE_CONFIGS) {
+      const exists = badgeList.some(
+        b => b.id === sysBadge.id || b.name.trim().toLowerCase() === sysBadge.name.toLowerCase()
+      );
+
+      if (!exists) {
+        try {
+          const { data: inserted, error: insertError } = await supabase
+            .from('badges')
+            .insert({
+              id: sysBadge.id,
+              name: sysBadge.name,
+              bg_color: sysBadge.bgColor,
+              text_color: sysBadge.textColor
+            })
+            .select('*')
+            .single();
+
+          if (!insertError && inserted) {
+            badgeList.push(mapBadge(inserted));
+          }
+        } catch (insertErr) {
+          console.warn(`[badges] Failed to auto-insert ${sysBadge.name} system badge:`, insertErr);
+          badgeList.push({
+            id: sysBadge.id,
+            name: sysBadge.name,
+            bgColor: sysBadge.bgColor,
+            textColor: sysBadge.textColor,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          });
         }
-      } catch (seedErr) {
-        console.warn('[badges] Auto-seed failed:', seedErr);
       }
-
-      return DEFAULT_SYSTEM_BADGES.map((b, i) => ({
-        id: `default-${i}`,
-        name: b.name,
-        bgColor: b.bgColor,
-        textColor: b.textColor,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      }));
     }
 
-    return data.map(mapBadge);
+    // Sort order: System badges first in fixed order (Featured, Hot, Sale, New), then custom badges
+    const orderIndex = (b: Badge) => {
+      const n = b.name.trim().toLowerCase();
+      if (n === 'featured') return 0;
+      if (n === 'hot') return 1;
+      if (n === 'sale') return 2;
+      if (n === 'new') return 3;
+      return 100;
+    };
+
+    badgeList.sort((a, b) => {
+      const ordA = orderIndex(a);
+      const ordB = orderIndex(b);
+      if (ordA !== ordB) return ordA - ordB;
+      return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+    });
+
+    return badgeList;
   } catch (error) {
     console.error('[badges] getBadges failed:', error);
-    return DEFAULT_SYSTEM_BADGES.map((b, i) => ({
-      id: `default-${i}`,
+    return SYSTEM_BADGE_CONFIGS.map((b, i) => ({
+      id: b.id || `default-${i}`,
       name: b.name,
       bgColor: b.bgColor,
       textColor: b.textColor,
@@ -136,7 +160,15 @@ export const updateBadge = async (
 
 export const deleteBadge = async (id: string): Promise<void> => {
   if (id.startsWith('default-')) return;
+
   const supabase = supabaseAdmin;
+
+  // Check if target badge is a built-in system badge
+  const { data: target } = await supabase.from('badges').select('name').eq('id', id).single();
+  if (target && isSystemBadgeName(target.name)) {
+    throw new Error(`System badge '${target.name}' is built-in and cannot be deleted.`);
+  }
+
   const { error } = await supabase
     .from('badges')
     .delete()

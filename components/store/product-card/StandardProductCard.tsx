@@ -177,7 +177,7 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
             <span
               className="rounded-full px-2.5 py-0.5 text-[9px] font-black shadow-xs uppercase tracking-wide"
               style={{
-                backgroundColor: product.customBadge?.name?.toLowerCase() === 'featured' ? product.customBadge.bgColor : '#0f172a',
+                backgroundColor: product.customBadge?.name?.toLowerCase() === 'featured' ? product.customBadge.bgColor : '#e94560',
                 color: product.customBadge?.name?.toLowerCase() === 'featured' ? product.customBadge.textColor : '#ffffff'
               }}
             >
@@ -203,7 +203,7 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
         </div>
 
         <div
-          className="absolute right-2 top-2.5 flex flex-col gap-1.5 z-20 transition-all duration-300 opacity-100 md:opacity-0 md:group-hover:opacity-100"
+          className="absolute right-1.5 sm:right-2 top-1.5 sm:top-2 flex flex-col gap-1 sm:gap-1.5 z-20 opacity-100 pointer-events-auto"
           onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
           onTouchStart={(e) => e.stopPropagation()}
           onTouchEnd={(e) => e.stopPropagation()}
@@ -213,10 +213,11 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
               type="button"
               onClick={onToggleWishlist}
               onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); onToggleWishlist(e as any); }}
-              className="flex h-7 w-7 items-center justify-center rounded-full bg-white dark:bg-[#16162a] shadow-md border border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/10 hover:text-[var(--color-primary,#C2185B)] dark:hover:text-[var(--color-primary,#C2185B)] transition-all cursor-pointer active:scale-90"
+              className="flex h-6.5 w-6.5 sm:h-7 sm:w-7 items-center justify-center rounded-full bg-white/95 dark:bg-[#16162a]/95 backdrop-blur-xs shadow-md border border-gray-200/80 dark:border-gray-800 text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-[#16162a] hover:scale-110 active:scale-90 hover:text-[var(--color-primary,#C2185B)] dark:hover:text-[var(--color-primary,#C2185B)] transition-transform duration-200 cursor-pointer"
               title={isInWishlist ? "Remove from Wishlist" : "Add to Wishlist"}
+              aria-label={isInWishlist ? "Remove from Wishlist" : "Add to Wishlist"}
             >
-              <Heart className={`h-3.5 w-3.5 ${isInWishlist ? 'fill-red-500 text-red-500' : ''}`} />
+              <Heart className={`h-3 w-3 sm:h-3.5 sm:w-3.5 ${isInWishlist ? 'fill-red-500 text-red-500' : ''}`} />
             </button>
           )}
 
@@ -225,10 +226,11 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
               type="button"
               onClick={onOpenQuickView}
               onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); onOpenQuickView(e as any); }}
-              className="flex h-7 w-7 items-center justify-center rounded-full bg-white dark:bg-[#16162a] shadow-md border border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/10 hover:text-[var(--color-primary,#C2185B)] dark:hover:text-[var(--color-primary,#C2185B)] transition-all cursor-pointer active:scale-90"
+              className="flex h-6.5 w-6.5 sm:h-7 sm:w-7 items-center justify-center rounded-full bg-white/95 dark:bg-[#16162a]/95 backdrop-blur-xs shadow-md border border-gray-200/80 dark:border-gray-800 text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-[#16162a] hover:scale-110 active:scale-90 hover:text-[var(--color-primary,#C2185B)] dark:hover:text-[var(--color-primary,#C2185B)] transition-transform duration-200 cursor-pointer"
               title="Quick View"
+              aria-label="Quick View"
             >
-              <Eye className="h-3.5 w-3.5" />
+              <Eye className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
             </button>
           )}
 
@@ -237,10 +239,11 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
               type="button"
               onClick={onAddToCart}
               onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); onAddToCart(e as any); }}
-              className="flex h-7 w-7 items-center justify-center rounded-full bg-white dark:bg-[#16162a] shadow-md border border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/10 hover:text-[var(--color-primary,#C2185B)] dark:hover:text-[var(--color-primary,#C2185B)] transition-all cursor-pointer active:scale-90"
+              className="flex h-6.5 w-6.5 sm:h-7 sm:w-7 items-center justify-center rounded-full bg-white/95 dark:bg-[#16162a]/95 backdrop-blur-xs shadow-md border border-gray-200/80 dark:border-gray-800 text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-[#16162a] hover:scale-110 active:scale-90 hover:text-[var(--color-primary,#C2185B)] dark:hover:text-[var(--color-primary,#C2185B)] transition-transform duration-200 cursor-pointer"
               title={product.hasVariants ? "Choose Options" : "Add to Cart"}
+              aria-label={product.hasVariants ? "Choose Options" : "Add to Cart"}
             >
-              <ShoppingCart className="h-3.5 w-3.5" />
+              <ShoppingCart className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
             </button>
           )}
         </div>
