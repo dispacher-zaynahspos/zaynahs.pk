@@ -75,8 +75,10 @@ export const ProductCardShowcaseContent: React.FC<ProductCardShowcaseContentProp
     ? 'z-card-content-geo flex-grow flex flex-col justify-end'
     : 'card-content';
 
-  return (
-    <div className={`${contentClass} ${alignClass}`}>
+  const needsCbWrapper = ['sc7', 'sc8', 'sc9', 'sc10'].includes(styleClass);
+
+  const inner = (
+    <>
       {elementsOrder.map(element => {
         switch (element) {
           case 'title':
@@ -137,6 +139,12 @@ export const ProductCardShowcaseContent: React.FC<ProductCardShowcaseContentProp
           {displayDescription}
         </p>
       )}
-    </div>
+    </>
+  );
+
+  return needsCbWrapper ? (
+    <div className={`cb ${alignClass}`}>{inner}</div>
+  ) : (
+    <div className={`${contentClass} ${alignClass}`}>{inner}</div>
   );
 };
