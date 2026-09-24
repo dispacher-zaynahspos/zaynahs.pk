@@ -5,14 +5,15 @@ import { useEffect, useRef, useState } from 'react';
 /**
  * Mobile Card Focus Coordinator
  * 
- * In mobile 1-column or 2-column product catalog grids:
- * 1. Coordinates focus so the active row currently in the viewport's central zone
- *    (both left and right cards in the row) receives `.is-in-focus`.
- * 2. Action icons (Wishlist, Quick View, Cart) animate smoothly in on the focused card(s).
- * 3. Admin-configured hover effects (secondary image swap, zoom) activate smoothly.
- * 4. Cards outside the active focus zone smoothly transition their icons out.
- * 5. Manual touch/tap immediately focuses the touched card.
- * 6. Desktop (:hover) is completely untouched and continues to use native CSS hover.
+ * In mobile product catalog grids:
+ * 1. Guarantees that EXACTLY ONE product card is flagged with `.is-in-focus` / `.active-card` at any time.
+ * 2. Uses thumb/touch position (`lastTouchX`) and central viewport zone (`targetY`)
+ *    so whether the user scrolls on the left or right side, the corresponding card focuses naturally.
+ * 3. Tapping either card directly immediately transfers focus to that single card.
+ * 4. Action icons (Wishlist, Quick View, Cart) animate smoothly in on the single focused card.
+ * 5. Admin-configured hover effects (secondary image swap, zoom) activate smoothly on that single card.
+ * 6. As soon as the card leaves focus, icons and effects smoothly transition out.
+ * 7. Desktop (:hover) is completely untouched and continues to use native CSS hover.
  */
 
 class MobileCardFocusManager {
@@ -20,9 +21,10 @@ class MobileCardFocusManager {
   private observer: IntersectionObserver | null = null;
   private registeredCards = new Map<HTMLElement, (focused: boolean) => void>();
   private intersectingEntries = new Map<HTMLElement, IntersectionObserverEntry>();
-  private currentFocusedEls = new Set<HTMLElement>();
+  private currentFocusedEl: HTMLElement | null = null;
+  private lastTouchX: number = typeof window !== 'undefined' ? window.innerWidth * 0.5 : 200;
   private rafId: number | null = null;
-  private isScrollListening = false;
+  private isListening = false;
 
   public static getInstance(): MobileCardFocusManager {
     if (!MobileCardFocusManager.instance) {
@@ -59,12 +61,28 @@ class MobileCardFocusManager {
       }
     );
 
-    if (!this.isScrollListening) {
+    if (!this.isListening) {
       window.addEventListener('scroll', this.onScroll, { passive: true });
       window.addEventListener('resize', this.onResize, { passive: true });
-      this.isScrollListening = true;
+      window.addEventListener('touchstart', this.onTouchStart, { passive: true });
+      window.addEventListener('pointerdown', this.onPointerDown, { passive: true });
+      this.isListening = true;
     }
   }
+
+  private onTouchStart = (e: TouchEvent) => {
+    if (e.touches && e.touches[0]) {
+      this.lastTouchX = e.touches[0].clientX;
+      this.scheduleEvaluation();
+    }
+  };
+
+  private onPointerDown = (e: PointerEvent) => {
+    if (e.pointerType === 'touch') {
+      this.lastTouchX = e.clientX;
+      this.scheduleEvaluation();
+    }
+  };
 
   private onScroll = () => {
     this.scheduleEvaluation();
@@ -78,31 +96,33 @@ class MobileCardFocusManager {
     if (this.rafId !== null) return;
     this.rafId = requestAnimationFrame(() => {
       this.rafId = null;
-      this.evaluateFocusedCards();
+      this.evaluateFocusedCard();
     });
   }
 
-  private evaluateFocusedCards() {
+  private evaluateFocusedCard() {
     if (!this.isTouchDevice()) {
-      if (this.currentFocusedEls.size > 0) {
-        this.currentFocusedEls.forEach((el) => this.setElementFocus(el, false));
-        this.currentFocusedEls.clear();
+      if (this.currentFocusedEl) {
+        this.setElementFocus(this.currentFocusedEl, false);
+        this.currentFocusedEl = null;
       }
       return;
     }
 
     if (this.intersectingEntries.size === 0) {
-      if (this.currentFocusedEls.size > 0) {
-        this.currentFocusedEls.forEach((el) => this.setElementFocus(el, false));
-        this.currentFocusedEls.clear();
+      if (this.currentFocusedEl) {
+        this.setElementFocus(this.currentFocusedEl, false);
+        this.currentFocusedEl = null;
       }
       return;
     }
 
     // Natural eye/thumb focus on mobile viewport (around 42% from top)
     const targetY = window.innerHeight * 0.42;
+    const targetX = this.lastTouchX;
+
+    let bestEl: HTMLElement | null = null;
     let minDistance = Infinity;
-    const candidates: Array<{ el: HTMLElement; dist: number }> = [];
 
     this.intersectingEntries.forEach((_, el) => {
       if (!el.isConnected) {
@@ -110,44 +130,35 @@ class MobileCardFocusManager {
         return;
       }
       const rect = el.getBoundingClientRect();
+      const cardCenterX = rect.left + rect.width / 2;
       const cardCenterY = rect.top + rect.height / 2;
-      let dist = Math.abs(cardCenterY - targetY);
 
-      // Hysteresis: give currently focused cards a 35px advantage so micro-scrolls don't jitter
-      if (this.currentFocusedEls.has(el)) {
-        dist -= 35;
+      // Weight vertical distance strongly to choose the centered row,
+      // and horizontal distance to targetX (thumb/touch column) to choose between left vs right card
+      const dy = Math.abs(cardCenterY - targetY);
+      const dx = Math.abs(cardCenterX - targetX);
+      let dist = dy * 2.2 + dx * 0.8;
+
+      // Hysteresis: give currently focused card an advantage so micro-movements don't flicker
+      if (el === this.currentFocusedEl) {
+        dist -= 45;
       }
 
-      candidates.push({ el, dist });
       if (dist < minDistance) {
         minDistance = dist;
+        bestEl = el;
       }
     });
 
-    // In a 2-column mobile grid, both left and right cards in the active row have virtually identical
-    // vertical distance to targetY (within 35px). We focus all cards in the active row so neither column is neglected!
-    const nextFocusedEls = new Set<HTMLElement>();
-    candidates.forEach(({ el, dist }) => {
-      if (Math.abs(dist - minDistance) <= 35) {
-        nextFocusedEls.add(el);
+    if (bestEl !== this.currentFocusedEl) {
+      if (this.currentFocusedEl) {
+        this.setElementFocus(this.currentFocusedEl, false);
       }
-    });
-
-    // Remove focus from cards no longer in the active row
-    this.currentFocusedEls.forEach((el) => {
-      if (!nextFocusedEls.has(el)) {
-        this.setElementFocus(el, false);
+      this.currentFocusedEl = bestEl;
+      if (this.currentFocusedEl) {
+        this.setElementFocus(this.currentFocusedEl, true);
       }
-    });
-
-    // Add focus to new cards in the active row
-    nextFocusedEls.forEach((el) => {
-      if (!this.currentFocusedEls.has(el)) {
-        this.setElementFocus(el, true);
-      }
-    });
-
-    this.currentFocusedEls = nextFocusedEls;
+    }
   }
 
   private setElementFocus(el: HTMLElement, focused: boolean) {
@@ -175,9 +186,9 @@ class MobileCardFocusManager {
     if (this.observer) {
       this.observer.unobserve(el);
     }
-    if (this.currentFocusedEls.has(el)) {
+    if (this.currentFocusedEl === el) {
       this.setElementFocus(el, false);
-      this.currentFocusedEls.delete(el);
+      this.currentFocusedEl = null;
       this.scheduleEvaluation();
     }
     if (this.registeredCards.size === 0) {
@@ -187,14 +198,15 @@ class MobileCardFocusManager {
 
   public setManualFocus(el: HTMLElement) {
     if (!this.isTouchDevice()) return;
-    this.currentFocusedEls.forEach((otherEl) => {
-      if (otherEl !== el) {
-        this.setElementFocus(otherEl, false);
+    const rect = el.getBoundingClientRect();
+    this.lastTouchX = rect.left + rect.width / 2;
+    if (this.currentFocusedEl !== el) {
+      if (this.currentFocusedEl) {
+        this.setElementFocus(this.currentFocusedEl, false);
       }
-    });
-    this.currentFocusedEls.clear();
-    this.currentFocusedEls.add(el);
-    this.setElementFocus(el, true);
+      this.currentFocusedEl = el;
+      this.setElementFocus(el, true);
+    }
   }
 
   private destroy() {
@@ -202,16 +214,18 @@ class MobileCardFocusManager {
       this.observer.disconnect();
       this.observer = null;
     }
-    if (this.isScrollListening && typeof window !== 'undefined') {
+    if (this.isListening && typeof window !== 'undefined') {
       window.removeEventListener('scroll', this.onScroll);
       window.removeEventListener('resize', this.onResize);
-      this.isScrollListening = false;
+      window.removeEventListener('touchstart', this.onTouchStart);
+      window.removeEventListener('pointerdown', this.onPointerDown);
+      this.isListening = false;
     }
     if (this.rafId !== null) {
       cancelAnimationFrame(this.rafId);
       this.rafId = null;
     }
-    this.currentFocusedEls.clear();
+    this.currentFocusedEl = null;
     this.intersectingEntries.clear();
   }
 }

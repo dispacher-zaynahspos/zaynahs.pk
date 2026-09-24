@@ -16,8 +16,6 @@ interface StandardProductCardProps {
   activeImage: string;
   secondImage: string | null;
   hoveredImage: string | null;
-  touchActive?: boolean;
-  setTouchActive?: (val: boolean) => void;
   isInWishlist: boolean;
   showWishlist: boolean;
   showQuickview: boolean;
@@ -39,8 +37,6 @@ interface StandardProductCardProps {
   onOpenQuickView: (e: React.MouseEvent) => void;
   onAddToCart: (e: React.MouseEvent) => void;
   onCardClick?: (e: React.MouseEvent) => void;
-  onTouchStart?: (e: React.TouchEvent) => void;
-  onTouchEnd?: (e: React.TouchEvent) => void;
 }
 
 export const StandardProductCard: React.FC<StandardProductCardProps> = ({
@@ -74,47 +70,11 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
 }) => {
   // ── Touch & Mobile Focus state ────────────────────────────────────────────────
   const { cardRef, isFocused, setManualFocus } = useMobileCardFocus();
-  const [isActive, setIsActive] = React.useState(false);
-  const resetTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  React.useEffect(() => {
-    return () => { if (resetTimerRef.current) clearTimeout(resetTimerRef.current); };
-  }, []);
-
-  const activate = () => {
-    if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
-    setIsActive(true);
-  };
-
-  const deactivate = (delay = 0) => {
-    if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
-    if (delay > 0) {
-      resetTimerRef.current = setTimeout(() => setIsActive(false), delay);
-    } else {
-      setIsActive(false);
-    }
-  };
-
-  // Touch-only pointer handlers. Mouse hover = CSS only (no state).
   const handlePointerDown = (e: React.PointerEvent) => {
     if (e.pointerType === 'touch') {
-      activate();
       setManualFocus();
     }
-  };
-  const handlePointerUp = (e: React.PointerEvent) => {
-    if (e.pointerType === 'touch') {
-      // Stay visible: tap navigates away. Fallback reset in 1.5s if no navigation.
-      deactivate(1500);
-    }
-  };
-  const handlePointerCancel = () => {
-    // Browser took over (scroll started) → reset immediately.
-    deactivate(0);
-  };
-  const handlePointerLeave = (e: React.PointerEvent) => {
-    // Finger moved off card boundary (scroll past)
-    if (e.pointerType === 'touch') deactivate(0);
   };
 
   // ── Image hover style ─────────────────────────────────────────────────────────
@@ -122,13 +82,6 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
   const isZoom = hoverStyle === 'zoom';
   const isSecondImage = hoverStyle === 'second_image';
   const showSecond = isSecondImage && Boolean(secondImage) && !hoveredImage;
-
-  // Image styles: NO touch/mobile overrides — image swap & zoom are CSS-only
-  // (scoped to @media (hover: hover) and (pointer: fine) in customCss.tsx).
-  // This prevents the jarring image swap when users scroll past cards on mobile.
-  const img1Style: React.CSSProperties = {};
-  const img2Style: React.CSSProperties = {};
-  // isZoom touch-active intentionally removed — zoom on touch is disorienting.
 
   const productUrl = `/product/${product.slug}`;
   const handleNav = () => saveScrollPosition(product.id);
@@ -205,9 +158,6 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
       id={`product-card-${product.id}`}
       data-hover-effect={hoverStyle}
       onPointerDown={handlePointerDown}
-      onPointerUp={handlePointerUp}
-      onPointerCancel={handlePointerCancel}
-      onPointerLeave={handlePointerLeave}
       style={{ borderRadius: 'var(--border-radius-card, 16px)', touchAction: 'pan-y' }}
       className={`z-card-container group relative flex flex-col overflow-hidden border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] shadow-xs hover:shadow-md transition-all duration-300 ${isFocused ? 'is-in-focus active-card' : ''}`}
     >
@@ -231,7 +181,6 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
           fill
           sizes="(max-width: 768px) 50vw, 25vw"
           className={`object-contain p-2 sm:p-3 object-center transition-opacity duration-200 pointer-events-none${isZoom ? ' hover-zoom' : ''}${showSecond ? ' hover-fade-out' : ''}`}
-          style={img1Style}
           priority={false}
           loading="lazy"
         />
@@ -244,7 +193,6 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
             fill
             sizes="(max-width: 768px) 50vw, 25vw"
             className="object-contain p-2 sm:p-3 object-center absolute inset-0 transition-opacity duration-200 pointer-events-none hover-fade-in"
-            style={img2Style}
             priority={false}
             loading="lazy"
           />

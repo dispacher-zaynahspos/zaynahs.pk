@@ -19,8 +19,6 @@ interface ProductCardShowcaseProps {
   activeImage: string;
   secondImage: string | null;
   hoveredImage: string | null;
-  touchActive?: boolean;
-  setTouchActive?: (val: boolean) => void;
   isInWishlist: boolean;
   showWishlist: boolean;
   showQuickview: boolean;
@@ -41,8 +39,6 @@ interface ProductCardShowcaseProps {
   onOpenQuickView: (e: React.MouseEvent) => void;
   onAddToCart: (e: React.MouseEvent) => void;
   onCardClick?: (e: React.MouseEvent) => void;
-  onTouchStart?: (e: React.TouchEvent) => void;
-  onTouchEnd?: (e: React.TouchEvent) => void;
 }
 
 export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
@@ -76,39 +72,11 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
 }) => {
   // ── Touch & Mobile Focus state ────────────────────────────────────────────────
   const { cardRef, isFocused, setManualFocus } = useMobileCardFocus();
-  const [isActive, setIsActive] = React.useState(false);
-  const resetTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  React.useEffect(() => {
-    return () => { if (resetTimerRef.current) clearTimeout(resetTimerRef.current); };
-  }, []);
-
-  const activate = () => {
-    if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
-    setIsActive(true);
-  };
-
-  const deactivate = (delay = 0) => {
-    if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
-    if (delay > 0) {
-      resetTimerRef.current = setTimeout(() => setIsActive(false), delay);
-    } else {
-      setIsActive(false);
-    }
-  };
 
   const handlePointerDown = (e: React.PointerEvent) => {
     if (e.pointerType === 'touch') {
-      activate();
       setManualFocus();
     }
-  };
-  const handlePointerUp = (e: React.PointerEvent) => {
-    if (e.pointerType === 'touch') deactivate(1500);
-  };
-  const handlePointerCancel = () => { deactivate(0); };
-  const handlePointerLeave = (e: React.PointerEvent) => {
-    if (e.pointerType === 'touch') deactivate(0);
   };
 
   const styleClassMap: Record<string, string> = {
@@ -142,9 +110,6 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
       id={`product-card-${product.id}`}
       data-hover-effect={hoverStyle}
       onPointerDown={handlePointerDown}
-      onPointerUp={handlePointerUp}
-      onPointerCancel={handlePointerCancel}
-      onPointerLeave={handlePointerLeave}
       style={{ touchAction: 'pan-y' }}
       className={`z-card-container ${scClass} group relative ${isFocused ? 'is-in-focus active-card' : ''}`}
     >
@@ -171,7 +136,6 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
           hoveredImage={hoveredImage}
           productName={product.name}
           settings={settings}
-          isPressed={isActive || isFocused}
           fitClass="object-contain"
         />
         <ProductCardActions
@@ -184,7 +148,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
           onOpenQuickView={onOpenQuickView}
           onAddToCart={onAddToCart}
           variant="action-btn"
-          isActive={isActive || isFocused}
+          isActive={isFocused}
         />
       </div>
 
