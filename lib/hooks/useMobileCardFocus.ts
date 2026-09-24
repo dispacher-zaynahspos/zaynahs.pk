@@ -5,13 +5,13 @@ import { useEffect, useRef, useState } from 'react';
 /**
  * Mobile Card Focus Coordinator
  * 
- * Ensures that on mobile/touch screens:
- * 1. Only ONE product card is flagged with `.is-in-focus` at any given time.
- * 2. As the user scrolls, the card entering the central focus zone (middle 60% of viewport)
- *    smoothly receives `.is-in-focus`.
- * 3. Action icons (Wishlist, Quick View, Cart) animate smoothly in on the focused card.
- * 4. Admin-configured hover effects (secondary image swap, zoom) activate smoothly.
- * 5. As soon as the card leaves focus, icons and effects smoothly transition out.
+ * In mobile 1-column or 2-column product catalog grids:
+ * 1. Coordinates focus so the active row currently in the viewport's central zone
+ *    (both left and right cards in the row) receives `.is-in-focus`.
+ * 2. Action icons (Wishlist, Quick View, Cart) animate smoothly in on the focused card(s).
+ * 3. Admin-configured hover effects (secondary image swap, zoom) activate smoothly.
+ * 4. Cards outside the active focus zone smoothly transition their icons out.
+ * 5. Manual touch/tap immediately focuses the touched card.
  * 6. Desktop (:hover) is completely untouched and continues to use native CSS hover.
  */
 
@@ -20,7 +20,7 @@ class MobileCardFocusManager {
   private observer: IntersectionObserver | null = null;
   private registeredCards = new Map<HTMLElement, (focused: boolean) => void>();
   private intersectingEntries = new Map<HTMLElement, IntersectionObserverEntry>();
-  private currentFocusedEl: HTMLElement | null = null;
+  private currentFocusedEls = new Set<HTMLElement>();
   private rafId: number | null = null;
   private isScrollListening = false;
 
@@ -78,31 +78,31 @@ class MobileCardFocusManager {
     if (this.rafId !== null) return;
     this.rafId = requestAnimationFrame(() => {
       this.rafId = null;
-      this.evaluateFocusedCard();
+      this.evaluateFocusedCards();
     });
   }
 
-  private evaluateFocusedCard() {
+  private evaluateFocusedCards() {
     if (!this.isTouchDevice()) {
-      if (this.currentFocusedEl) {
-        this.setElementFocus(this.currentFocusedEl, false);
-        this.currentFocusedEl = null;
+      if (this.currentFocusedEls.size > 0) {
+        this.currentFocusedEls.forEach((el) => this.setElementFocus(el, false));
+        this.currentFocusedEls.clear();
       }
       return;
     }
 
     if (this.intersectingEntries.size === 0) {
-      if (this.currentFocusedEl) {
-        this.setElementFocus(this.currentFocusedEl, false);
-        this.currentFocusedEl = null;
+      if (this.currentFocusedEls.size > 0) {
+        this.currentFocusedEls.forEach((el) => this.setElementFocus(el, false));
+        this.currentFocusedEls.clear();
       }
       return;
     }
 
     // Natural eye/thumb focus on mobile viewport (around 42% from top)
     const targetY = window.innerHeight * 0.42;
-    let closestEl: HTMLElement | null = null;
     let minDistance = Infinity;
+    const candidates: Array<{ el: HTMLElement; dist: number }> = [];
 
     this.intersectingEntries.forEach((_, el) => {
       if (!el.isConnected) {
@@ -113,26 +113,41 @@ class MobileCardFocusManager {
       const cardCenterY = rect.top + rect.height / 2;
       let dist = Math.abs(cardCenterY - targetY);
 
-      // Hysteresis: give currently focused card a 45px advantage so micro-scrolls don't jitter
-      if (el === this.currentFocusedEl) {
-        dist -= 45;
+      // Hysteresis: give currently focused cards a 35px advantage so micro-scrolls don't jitter
+      if (this.currentFocusedEls.has(el)) {
+        dist -= 35;
       }
 
+      candidates.push({ el, dist });
       if (dist < minDistance) {
         minDistance = dist;
-        closestEl = el;
       }
     });
 
-    if (closestEl !== this.currentFocusedEl) {
-      if (this.currentFocusedEl) {
-        this.setElementFocus(this.currentFocusedEl, false);
+    // In a 2-column mobile grid, both left and right cards in the active row have virtually identical
+    // vertical distance to targetY (within 35px). We focus all cards in the active row so neither column is neglected!
+    const nextFocusedEls = new Set<HTMLElement>();
+    candidates.forEach(({ el, dist }) => {
+      if (Math.abs(dist - minDistance) <= 35) {
+        nextFocusedEls.add(el);
       }
-      this.currentFocusedEl = closestEl;
-      if (this.currentFocusedEl) {
-        this.setElementFocus(this.currentFocusedEl, true);
+    });
+
+    // Remove focus from cards no longer in the active row
+    this.currentFocusedEls.forEach((el) => {
+      if (!nextFocusedEls.has(el)) {
+        this.setElementFocus(el, false);
       }
-    }
+    });
+
+    // Add focus to new cards in the active row
+    nextFocusedEls.forEach((el) => {
+      if (!this.currentFocusedEls.has(el)) {
+        this.setElementFocus(el, true);
+      }
+    });
+
+    this.currentFocusedEls = nextFocusedEls;
   }
 
   private setElementFocus(el: HTMLElement, focused: boolean) {
@@ -160,9 +175,9 @@ class MobileCardFocusManager {
     if (this.observer) {
       this.observer.unobserve(el);
     }
-    if (this.currentFocusedEl === el) {
+    if (this.currentFocusedEls.has(el)) {
       this.setElementFocus(el, false);
-      this.currentFocusedEl = null;
+      this.currentFocusedEls.delete(el);
       this.scheduleEvaluation();
     }
     if (this.registeredCards.size === 0) {
@@ -172,13 +187,14 @@ class MobileCardFocusManager {
 
   public setManualFocus(el: HTMLElement) {
     if (!this.isTouchDevice()) return;
-    if (this.currentFocusedEl !== el) {
-      if (this.currentFocusedEl) {
-        this.setElementFocus(this.currentFocusedEl, false);
+    this.currentFocusedEls.forEach((otherEl) => {
+      if (otherEl !== el) {
+        this.setElementFocus(otherEl, false);
       }
-      this.currentFocusedEl = el;
-      this.setElementFocus(el, true);
-    }
+    });
+    this.currentFocusedEls.clear();
+    this.currentFocusedEls.add(el);
+    this.setElementFocus(el, true);
   }
 
   private destroy() {
@@ -195,7 +211,7 @@ class MobileCardFocusManager {
       cancelAnimationFrame(this.rafId);
       this.rafId = null;
     }
-    this.currentFocusedEl = null;
+    this.currentFocusedEls.clear();
     this.intersectingEntries.clear();
   }
 }
