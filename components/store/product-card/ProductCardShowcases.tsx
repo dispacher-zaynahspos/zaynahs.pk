@@ -73,6 +73,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
   onAddToCart,
   onCardClick,
 }) => {
+  // ── Touch state (same Shopify pattern as StandardProductCard) ─────────────────
   const [isActive, setIsActive] = React.useState(false);
   const resetTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -97,30 +98,18 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
   const handlePointerDown = (e: React.PointerEvent) => {
     if (e.pointerType === 'touch') activate();
   };
-
   const handlePointerUp = (e: React.PointerEvent) => {
-    if (e.pointerType === 'touch') deactivate(300);
+    if (e.pointerType === 'touch') deactivate(1500);
   };
-
-  const handlePointerCancel = () => {
-    deactivate(0);
-  };
-
+  const handlePointerCancel = () => { deactivate(0); };
   const handlePointerLeave = (e: React.PointerEvent) => {
     if (e.pointerType === 'touch') deactivate(0);
   };
 
   const styleClassMap: Record<string, string> = {
-    showcase_1: 'sc1',
-    showcase_2: 'sc2',
-    showcase_3: 'sc3',
-    showcase_4: 'sc4',
-    showcase_5: 'sc5',
-    showcase_6: 'sc6',
-    showcase_7: 'sc7',
-    showcase_8: 'sc8',
-    showcase_9: 'sc9',
-    showcase_10: 'sc10',
+    showcase_1: 'sc1', showcase_2: 'sc2', showcase_3: 'sc3', showcase_4: 'sc4',
+    showcase_5: 'sc5', showcase_6: 'sc6', showcase_7: 'sc7', showcase_8: 'sc8',
+    showcase_9: 'sc9', showcase_10: 'sc10',
   };
 
   const scClass = styleClassMap[activeStyle] || 'sc1';
@@ -132,19 +121,35 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
     scClass === 'sc10' ? 'bg-gradient-to-br from-[#fdf6ec] to-[#f5e6d0] rounded-t-[24px]' :
     '';
 
+  const productUrl = `/product/${product.slug}`;
+  const handleNav = () => saveScrollPosition(product.id);
+
+  // ── SHOPIFY PATTERN: outer div + transparent overlay Link ─────────────────────
+  // • Outer div handles touch state (not a Link → no double-tap issue)
+  // • Transparent overlay Link at z-[1] = single-tap navigates anywhere on card
+  // • Actions at z-[25] = icon taps win over overlay, don't navigate
+  // • Title Link at z-[2] in ShowcaseContent = semantic title navigation
   const renderContent = (
-    <Link
+    <div
       id={`product-card-${product.id}`}
-      href={`/product/${product.slug}`}
-      onClick={onCardClick || (() => saveScrollPosition(product.id))}
       onPointerDown={handlePointerDown}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerCancel}
       onPointerLeave={handlePointerLeave}
-      prefetch={true}
       style={{ touchAction: 'pan-y' }}
       className={`z-card-container ${scClass} group relative`}
     >
+      {/* Full-card transparent overlay link — single-tap = navigate, no double-tap */}
+      <Link
+        href={productUrl}
+        onClick={onCardClick || handleNav}
+        prefetch={true}
+        className="absolute inset-0 z-[1]"
+        aria-label={`View ${product.name}`}
+        tabIndex={-1}
+      />
+
+      {/* Image box */}
       <div className={`img-box relative ${aspectClass} w-full ${imgBgClass}`}>
         <ProductCardBadges
           product={product}
@@ -173,23 +178,29 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
           isActive={isActive}
         />
       </div>
-      <ProductCardShowcaseContent
-        styleClass={scClass}
-        elementsOrder={elementsOrder}
-        alignClass={alignClass}
-        titleClampClass={titleClampClass}
-        product={product}
-        showStars={showStars}
-        currencySymbol={currencySymbol}
-        minPrice={minPrice}
-        maxPrice={maxPrice}
-        hasPriceRange={hasPriceRange}
-        currentPrice={currentPrice}
-        currentComparePrice={currentComparePrice}
-        displayDescription={displayDescription}
-        finalRenderedGroups={finalRenderedGroups}
-      />
-    </Link>
+
+      {/* Card content — z-[2] so it sits above overlay link, title is its own Link */}
+      <div className="relative z-[2]">
+        <ProductCardShowcaseContent
+          styleClass={scClass}
+          elementsOrder={elementsOrder}
+          alignClass={alignClass}
+          titleClampClass={titleClampClass}
+          product={product}
+          showStars={showStars}
+          currencySymbol={currencySymbol}
+          minPrice={minPrice}
+          maxPrice={maxPrice}
+          hasPriceRange={hasPriceRange}
+          currentPrice={currentPrice}
+          currentComparePrice={currentComparePrice}
+          displayDescription={displayDescription}
+          finalRenderedGroups={finalRenderedGroups}
+          productUrl={productUrl}
+          onCardClick={onCardClick || handleNav}
+        />
+      </div>
+    </div>
   );
 
   if (activeStyle === 'showcase_3') {
@@ -197,9 +208,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
       <>
         <ProductCardStyleInjector />
         <div className="z-card-container flex flex-col h-full">
-          <div className="sc3-wrap">
-            {renderContent}
-          </div>
+          <div className="sc3-wrap">{renderContent}</div>
         </div>
       </>
     );

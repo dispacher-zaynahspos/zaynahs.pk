@@ -82,6 +82,11 @@ export const customCss = `
       .z-card-container:hover .hover-fade-in {
         opacity: 1 !important;
       }
+      /* Title color on desktop hover only — NEVER triggers on mobile */
+      .z-card-container:hover .product-card-title,
+      .z-card-container:hover .card-title {
+        color: var(--color-primary, #C2185B) !important;
+      }
     }
 
     /* Universal Action Button Styling */

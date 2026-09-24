@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { Product } from '@/lib/types';
 import { formatPrice } from '@/lib/utils/whatsapp';
 
@@ -19,6 +20,9 @@ interface ProductCardShowcaseContentProps {
   currentComparePrice?: number | null;
   displayDescription: string;
   finalRenderedGroups: React.ReactNode;
+  // Shopify pattern: title is a Link, not just a div
+  productUrl: string;
+  onCardClick: (() => void) | ((e: React.MouseEvent) => void);
 }
 
 export const ProductCardShowcaseContent: React.FC<ProductCardShowcaseContentProps> = ({
@@ -33,43 +37,45 @@ export const ProductCardShowcaseContent: React.FC<ProductCardShowcaseContentProp
   currentComparePrice,
   displayDescription,
   finalRenderedGroups,
+  productUrl,
+  onCardClick,
 }) => {
   const starsColor =
     styleClass === 'sc2' ? 'rgba(255,255,255,.8)' :
-      styleClass === 'sc3' ? 'rgba(255,255,255,.9)' :
-        styleClass === 'sc4' ? '#ffeaa7' :
-          styleClass === 'sc6' ? '#d4af37' :
-            styleClass === 'sc7' ? '#000' :
-              styleClass === 'sc8' ? '#000' :
-                styleClass === 'sc9' ? '#6750a4' :
-                  styleClass === 'sc10' ? '#8e44ad' :
-                    '#f59e0b';
+    styleClass === 'sc3' ? 'rgba(255,255,255,.9)' :
+    styleClass === 'sc4' ? '#ffeaa7' :
+    styleClass === 'sc6' ? '#d4af37' :
+    styleClass === 'sc7' ? '#000' :
+    styleClass === 'sc8' ? '#000' :
+    styleClass === 'sc9' ? '#6750a4' :
+    styleClass === 'sc10' ? '#8e44ad' :
+    '#f59e0b';
 
   const countColor =
     styleClass === 'sc2' ? 'rgba(255,255,255,.4)' :
-      styleClass === 'sc3' ? 'rgba(255,255,255,.5)' :
-        styleClass === 'sc4' ? 'rgba(255,255,255,.6)' :
-          styleClass === 'sc7' ? '#555' :
-            styleClass === 'sc8' ? '#666' :
-              styleClass === 'sc9' ? '#666' :
-                '#888';
+    styleClass === 'sc3' ? 'rgba(255,255,255,.5)' :
+    styleClass === 'sc4' ? 'rgba(255,255,255,.6)' :
+    styleClass === 'sc7' ? '#555' :
+    styleClass === 'sc8' ? '#666' :
+    styleClass === 'sc9' ? '#666' :
+    '#888';
 
   const poldStyle =
     styleClass === 'sc2' ? { color: 'rgba(255,255,255,.5)' } :
-      styleClass === 'sc3' ? { color: 'rgba(255,255,255,.6)' } :
-        styleClass === 'sc4' ? { color: 'rgba(255,255,255,.6)' } :
-          styleClass === 'sc6' ? { color: 'rgba(255,255,255,.4)' } :
-            undefined;
+    styleClass === 'sc3' ? { color: 'rgba(255,255,255,.6)' } :
+    styleClass === 'sc4' ? { color: 'rgba(255,255,255,.6)' } :
+    styleClass === 'sc6' ? { color: 'rgba(255,255,255,.4)' } :
+    undefined;
 
   const descClass =
     styleClass === 'sc2' ? 'text-white/70' :
-      styleClass === 'sc3' ? 'text-white/80' :
-        styleClass === 'sc4' ? 'text-white/80' :
-          styleClass === 'sc6' ? 'text-[#d4af37]/70' :
-            styleClass === 'sc7' ? 'text-gray-700' :
-              styleClass === 'sc8' ? 'text-gray-500' :
-                styleClass === 'sc10' ? 'text-gray-500' :
-                  'text-gray-500';
+    styleClass === 'sc3' ? 'text-white/80' :
+    styleClass === 'sc4' ? 'text-white/80' :
+    styleClass === 'sc6' ? 'text-[#d4af37]/70' :
+    styleClass === 'sc7' ? 'text-gray-700' :
+    styleClass === 'sc8' ? 'text-gray-500' :
+    styleClass === 'sc10' ? 'text-gray-500' :
+    'text-gray-500';
 
   const contentClass = styleClass === 'sc8'
     ? 'z-card-content-geo flex-grow flex flex-col justify-end'
@@ -83,13 +89,17 @@ export const ProductCardShowcaseContent: React.FC<ProductCardShowcaseContentProp
         switch (element) {
           case 'title':
             return (
-              <div
+              // Shopify: title is a Link at z-[2], above overlay link at z-[1]
+              <Link
                 key="title"
-                className={`card-title product-card-title text-[11px] sm:text-xs font-semibold normal-case tracking-normal leading-snug line-clamp-2 text-gray-900 dark:text-white pb-0.5 ${titleClampClass}`}
+                href={productUrl}
+                onClick={onCardClick as React.MouseEventHandler}
+                prefetch={true}
+                className={`card-title product-card-title block relative z-[2] text-[11px] sm:text-xs font-semibold normal-case tracking-normal leading-snug line-clamp-2 pb-0.5 ${titleClampClass}`}
                 style={{ fontFamily: 'var(--font-body, system-ui, sans-serif)' }}
               >
                 {product.name}
-              </div>
+              </Link>
             );
           case 'rating':
             if (!showStars) return null;
@@ -125,7 +135,7 @@ export const ProductCardShowcaseContent: React.FC<ProductCardShowcaseContentProp
           case 'swatches':
             if (product.showSwatchesOnArchive === false || !finalRenderedGroups) return null;
             return (
-              <div key="swatches" className="w-full mt-2" onClick={(e) => e.preventDefault()}>
+              <div key="swatches" className="relative z-[2] w-full mt-2" onClick={(e) => e.stopPropagation()}>
                 {finalRenderedGroups}
               </div>
             );
