@@ -126,24 +126,31 @@ export const customCss = `
     .z-card-container .ai:hover .tt,
     .z-card-container .action-btn:hover .tt { opacity: 1; }
 
-    /* Touch & Mobile Screen Support: clean tap targets, no hover artifacts */
+    /* Touch & Mobile Screen Support: icons always visible, no hover artifacts */
     @media (max-width: 768px), (hover: none) {
+      /* Lock out image swap & zoom on touch — CSS hover should never fire but belt+suspenders */
+      .z-card-container .hover-fade-out { opacity: 1 !important; }
+      .z-card-container .hover-fade-in  { opacity: 0 !important; }
+      .z-card-container .hover-zoom     { transform: none !important; }
+
+      /* Action icons: always visible on mobile (no pop-in/pop-out jarring effect) */
       .z-card-container .card-actions,
       .z-card-container .aic {
-        right: 8px !important;
-        top: 8px !important;
-        gap: 8px !important;
-        /* Never show via CSS on touch — JS controls opacity via inline style */
-        pointer-events: none !important;
+        opacity: 1 !important;
+        transform: translateX(0) !important;
+        pointer-events: auto !important;
+        right: 6px !important;
+        top: 6px !important;
+        gap: 5px !important;
       }
       .z-card-container .action-btn,
       .z-card-container .ai {
-        width: 40px !important;
-        height: 40px !important;
-        min-width: 40px !important;
-        min-height: 40px !important;
-        background: rgba(255, 255, 255, 0.96) !important;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18) !important;
+        width: 28px !important;
+        height: 28px !important;
+        min-width: 28px !important;
+        min-height: 28px !important;
+        background: rgba(255, 255, 255, 0.90) !important;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15) !important;
       }
     }
 

@@ -31,18 +31,11 @@ export const ProductCardMedia: React.FC<ProductCardMediaProps> = ({
   const isSecondImage = hoverStyle === 'second_image';
   const showSecond = isSecondImage && Boolean(secondImage) && !hoveredImage;
 
-  // Touch: isPressed controls inline style for immediate feedback
-  // Desktop: CSS classes hover-zoom / hover-fade-in / hover-fade-out handle it
+  // Image styles: CSS-only — no touch/mobile overrides.
+  // Image swap & zoom are scoped to @media (hover: hover) and (pointer: fine)
+  // in customCss.tsx, so they never fire on mobile touchscreens.
   const img1Style: React.CSSProperties = {};
   const img2Style: React.CSSProperties = {};
-
-  if (showSecond && isPressed) {
-    img1Style.opacity = 0;
-    img2Style.opacity = 1;
-  }
-  if (isZoom && isPressed) {
-    img1Style.transform = 'scale(1.05)';
-  }
 
   return (
     <>

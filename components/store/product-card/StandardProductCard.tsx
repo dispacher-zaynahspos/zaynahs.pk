@@ -120,11 +120,12 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
   const isSecondImage = hoverStyle === 'second_image';
   const showSecond = isSecondImage && Boolean(secondImage) && !hoveredImage;
 
-  // Touch-active inline styles (applied on mobile press, CSS handles desktop hover)
+  // Image styles: NO touch/mobile overrides — image swap & zoom are CSS-only
+  // (scoped to @media (hover: hover) and (pointer: fine) in customCss.tsx).
+  // This prevents the jarring image swap when users scroll past cards on mobile.
   const img1Style: React.CSSProperties = {};
   const img2Style: React.CSSProperties = {};
-  if (showSecond && isActive) { img1Style.opacity = 0; img2Style.opacity = 1; }
-  if (isZoom && isActive) { img1Style.transform = 'scale(1.05)'; }
+  // isZoom touch-active intentionally removed — zoom on touch is disorienting.
 
   const productUrl = `/product/${product.slug}`;
   const handleNav = () => saveScrollPosition(product.id);
@@ -271,13 +272,10 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
 
         {/* Action icons — z-[25], above overlay link. Container: pointer-events:none */}
         {/* Each button: pointer-events:auto. stopPropagation prevents overlay link tap. */}
+        {/* On mobile: always visible (CSS makes them persistent). Desktop: fade in on CSS hover. */}
         <div
           className="card-actions absolute right-1.5 sm:right-2 top-1.5 sm:top-2 flex flex-col gap-1.5 z-[25] transition-all duration-200 ease-out"
-          style={{
-            pointerEvents: 'none',
-            opacity: isActive ? 1 : undefined,
-            transform: isActive ? 'translateX(0)' : undefined,
-          }}
+          style={{ pointerEvents: 'none' }}
         >
           {showWishlist && (
             <button type="button"
