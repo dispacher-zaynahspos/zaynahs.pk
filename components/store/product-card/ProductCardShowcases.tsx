@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { Product, StoreSettings } from '@/lib/types';
 import { saveScrollPosition } from '@/lib/hooks/useScrollRestoration';
+import { useMobileCardFocus } from '@/lib/hooks/useMobileCardFocus';
 import { ProductCardStyleInjector } from './ProductCardStyles';
 import { ProductCardBadges } from './ProductCardBadges';
 import { ProductCardMedia } from './ProductCardMedia';
@@ -73,7 +74,8 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
   onAddToCart,
   onCardClick,
 }) => {
-  // ── Touch state (same Shopify pattern as StandardProductCard) ─────────────────
+  // ── Touch & Mobile Focus state ────────────────────────────────────────────────
+  const { cardRef, isFocused, setManualFocus } = useMobileCardFocus();
   const [isActive, setIsActive] = React.useState(false);
   const resetTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -96,7 +98,10 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
   };
 
   const handlePointerDown = (e: React.PointerEvent) => {
-    if (e.pointerType === 'touch') activate();
+    if (e.pointerType === 'touch') {
+      activate();
+      setManualFocus();
+    }
   };
   const handlePointerUp = (e: React.PointerEvent) => {
     if (e.pointerType === 'touch') deactivate(1500);
@@ -124,6 +129,8 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
   const productUrl = `/product/${product.slug}`;
   const handleNav = () => saveScrollPosition(product.id);
 
+  const hoverStyle = settings?.imageHoverStyle ?? 'second_image';
+
   // ── SHOPIFY PATTERN: outer div + transparent overlay Link ─────────────────────
   // • Outer div handles touch state (not a Link → no double-tap issue)
   // • Transparent overlay Link at z-[1] = single-tap navigates anywhere on card
@@ -131,13 +138,15 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
   // • Title Link at z-[2] in ShowcaseContent = semantic title navigation
   const renderContent = (
     <div
+      ref={cardRef}
       id={`product-card-${product.id}`}
+      data-hover-effect={hoverStyle}
       onPointerDown={handlePointerDown}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerCancel}
       onPointerLeave={handlePointerLeave}
       style={{ touchAction: 'pan-y' }}
-      className={`z-card-container ${scClass} group relative`}
+      className={`z-card-container ${scClass} group relative ${isFocused ? 'is-in-focus active-card' : ''}`}
     >
       {/* Full-card transparent overlay link — single-tap = navigate, no double-tap */}
       <Link
@@ -162,7 +171,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
           hoveredImage={hoveredImage}
           productName={product.name}
           settings={settings}
-          isPressed={isActive}
+          isPressed={isActive || isFocused}
           fitClass="object-contain"
         />
         <ProductCardActions
@@ -175,7 +184,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
           onOpenQuickView={onOpenQuickView}
           onAddToCart={onAddToCart}
           variant="action-btn"
-          isActive={isActive}
+          isActive={isActive || isFocused}
         />
       </div>
 

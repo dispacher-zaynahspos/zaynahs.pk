@@ -126,31 +126,105 @@ export const customCss = `
     .z-card-container .ai:hover .tt,
     .z-card-container .action-btn:hover .tt { opacity: 1; }
 
-    /* Touch & Mobile Screen Support: icons always visible, no hover artifacts */
+    /* ── Touch & Mobile Screen: Scroll Focus & Action Button Overlay ── */
     @media (max-width: 768px), (hover: none) {
-      /* Lock out image swap & zoom on touch — CSS hover should never fire but belt+suspenders */
-      .z-card-container .hover-fade-out { opacity: 1 !important; }
-      .z-card-container .hover-fade-in  { opacity: 0 !important; }
-      .z-card-container .hover-zoom     { transform: none !important; }
-
-      /* Action icons: always visible on mobile (no pop-in/pop-out jarring effect) */
+      /* Base: Action icons hidden by default on mobile */
       .z-card-container .card-actions,
       .z-card-container .aic {
-        opacity: 1 !important;
-        transform: translateX(0) !important;
-        pointer-events: auto !important;
+        opacity: 0 !important;
+        transform: translateX(12px) !important;
+        pointer-events: none !important;
         right: 6px !important;
         top: 6px !important;
         gap: 5px !important;
+        transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1), transform 0.28s cubic-bezier(0.16, 1, 0.3, 1) !important;
       }
+
       .z-card-container .action-btn,
       .z-card-container .ai {
         width: 28px !important;
         height: 28px !important;
         min-width: 28px !important;
         min-height: 28px !important;
-        background: rgba(255, 255, 255, 0.90) !important;
-        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15) !important;
+        background: rgba(255, 255, 255, 0.92) !important;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.14) !important;
+        transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease !important;
+      }
+
+      /* Base: Images normal state when not in focus */
+      .z-card-container .hover-fade-out {
+        opacity: 1 !important;
+        transition: opacity 0.35s ease !important;
+      }
+      .z-card-container .hover-fade-in {
+        opacity: 0 !important;
+        transition: opacity 0.35s ease !important;
+      }
+      .z-card-container .hover-zoom {
+        transform: scale(1) !important;
+        transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+      }
+
+      /* ── ACTIVE / FOCUSED CARD STATE (.is-in-focus / .active-card) ── */
+      /* 1. Reveal Action Icons with smooth slide-in */
+      .z-card-container.is-in-focus .card-actions,
+      .z-card-container.is-in-focus .aic,
+      .z-card-container.active-card .card-actions,
+      .z-card-container.active-card .aic {
+        opacity: 1 !important;
+        transform: translateX(0) !important;
+        pointer-events: auto !important;
+      }
+
+      /* Staggered in-animation for action buttons */
+      .z-card-container.is-in-focus .card-actions > *:nth-child(1),
+      .z-card-container.is-in-focus .aic > *:nth-child(1),
+      .z-card-container.active-card .card-actions > *:nth-child(1),
+      .z-card-container.active-card .aic > *:nth-child(1) {
+        transition-delay: 0ms !important;
+      }
+      .z-card-container.is-in-focus .card-actions > *:nth-child(2),
+      .z-card-container.is-in-focus .aic > *:nth-child(2),
+      .z-card-container.active-card .card-actions > *:nth-child(2),
+      .z-card-container.active-card .aic > *:nth-child(2) {
+        transition-delay: 40ms !important;
+      }
+      .z-card-container.is-in-focus .card-actions > *:nth-child(3),
+      .z-card-container.is-in-focus .aic > *:nth-child(3),
+      .z-card-container.active-card .card-actions > *:nth-child(3),
+      .z-card-container.active-card .aic > *:nth-child(3) {
+        transition-delay: 80ms !important;
+      }
+
+      /* 2. Title color highlights on focused card */
+      .z-card-container.is-in-focus .product-card-title,
+      .z-card-container.is-in-focus .card-title,
+      .z-card-container.active-card .product-card-title,
+      .z-card-container.active-card .card-title {
+        color: var(--color-primary, #C2185B) !important;
+        transition: color 0.25s ease !important;
+      }
+
+      /* 3. Image Hover Effects triggered on focused card */
+      .z-card-container.is-in-focus .hover-fade-out,
+      .z-card-container.active-card .hover-fade-out,
+      .z-card-container.is-in-focus[data-hover-effect="second_image"] .hover-fade-out,
+      .z-card-container.active-card[data-hover-effect="second_image"] .hover-fade-out {
+        opacity: 0 !important;
+      }
+
+      .z-card-container.is-in-focus .hover-fade-in,
+      .z-card-container.active-card .hover-fade-in,
+      .z-card-container.is-in-focus[data-hover-effect="second_image"] .hover-fade-in,
+      .z-card-container.active-card[data-hover-effect="second_image"] .hover-fade-in {
+        opacity: 1 !important;
+      }
+
+      .z-card-container.is-in-focus .hover-zoom,
+      .z-card-container.active-card .hover-zoom,
+      .z-card-container.is-in-focus[data-hover-effect="zoom"] .hover-zoom,
+      .z-card-container.active-card[data-hover-effect="zoom"] .hover-zoom {
+        transform: scale(1.05) !important;
       }
     }
 
@@ -652,12 +726,19 @@ export const customCss = `
     }
 
     @media (max-width: 640px) {
-        .grid-cols-2 .z-card-container .aic {
-            opacity: 1 !important;
-            transform: none !important;
+        .grid-cols-2 .z-card-container .aic,
+        .grid-cols-2 .z-card-container .card-actions {
             right: 4px !important;
             top: 4px !important;
             gap: 4px !important;
+        }
+        .grid-cols-2 .z-card-container.is-in-focus .aic,
+        .grid-cols-2 .z-card-container.is-in-focus .card-actions,
+        .grid-cols-2 .z-card-container.active-card .aic,
+        .grid-cols-2 .z-card-container.active-card .card-actions {
+            opacity: 1 !important;
+            transform: translateX(0) !important;
+            pointer-events: auto !important;
         }
         .grid-cols-2 .z-card-container .ai {
             width: 24px !important;
@@ -713,6 +794,35 @@ export const customCss = `
         .product-card-title {
             font-size: 0.82rem !important;
         }
+    }
+
+    /* ── Reliable CSS Line-Clamp bound to Admin Settings ── */
+    .title-clamp-1,
+    .z-card-container .title-clamp-1 {
+      display: -webkit-box !important;
+      -webkit-box-orient: vertical !important;
+      -webkit-line-clamp: 1 !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      word-break: break-word !important;
+    }
+
+    .title-clamp-2,
+    .z-card-container .title-clamp-2 {
+      display: -webkit-box !important;
+      -webkit-box-orient: vertical !important;
+      -webkit-line-clamp: 2 !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      word-break: break-word !important;
+    }
+
+    .title-clamp-none,
+    .z-card-container .title-clamp-none {
+      display: block !important;
+      -webkit-line-clamp: unset !important;
+      overflow: visible !important;
+      text-overflow: clip !important;
     }
 `;
 

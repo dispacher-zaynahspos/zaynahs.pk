@@ -28,12 +28,17 @@ export function getSharedAspectClass(ratio?: string): string {
   }
 }
 
-export function getSharedTitleClampClass(limit?: string): string {
-  switch (limit) {
-    case '1': return 'line-clamp-1 min-h-[14px] sm:min-h-[16px]';
-    case 'none': return 'line-clamp-none';
+export function getSharedTitleClampClass(limit?: string | number): string {
+  const normalized = String(limit || '2').toLowerCase().trim();
+  switch (normalized) {
+    case '1': 
+      return 'title-clamp-1 line-clamp-1 min-h-[14px] sm:min-h-[16px]';
+    case 'none': 
+    case 'unlimited':
+    case '0':
+      return 'title-clamp-none line-clamp-none';
     case '2':
     default:
-      return 'line-clamp-2 min-h-[28px] sm:min-h-[32px]';
+      return 'title-clamp-2 line-clamp-2 min-h-[28px] sm:min-h-[32px]';
   }
 }

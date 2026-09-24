@@ -256,7 +256,8 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
   };
 
   const aspectClass = getSharedAspectClass(settings?.imageAspectRatio);
-  const titleClampClass = getSharedTitleClampClass(settings?.titleLineLimit);
+  const rawTitleLimit = (settings as any)?.title_line_limit ?? settings?.titleLineLimit ?? '2';
+  const titleClampClass = getSharedTitleClampClass(rawTitleLimit);
 
   const hasSecondImage = product.images?.length > 1;
   const secondImage = hasSecondImage ? getPresetImageUrl(product.images?.[1]?.url || product.images?.[0]?.url, 'card') : null;

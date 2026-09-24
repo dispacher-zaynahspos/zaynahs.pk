@@ -95,7 +95,7 @@ export const ProductCardShowcaseContent: React.FC<ProductCardShowcaseContentProp
                 href={productUrl}
                 onClick={onCardClick as React.MouseEventHandler}
                 prefetch={true}
-                className={`card-title product-card-title block relative z-[2] text-[11px] sm:text-xs font-semibold normal-case tracking-normal leading-snug line-clamp-2 pb-0.5 ${titleClampClass}`}
+                className={`card-title product-card-title relative z-[2] text-[11px] sm:text-xs font-semibold normal-case tracking-normal leading-snug pb-0.5 ${titleClampClass}`}
                 style={{ fontFamily: 'var(--font-body, system-ui, sans-serif)' }}
               >
                 {product.name}

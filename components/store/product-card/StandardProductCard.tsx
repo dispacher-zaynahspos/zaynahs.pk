@@ -7,6 +7,7 @@ import { Product, StoreSettings } from '@/lib/types';
 import { ShoppingCart, Heart, Eye } from '@/components/common/Icons';
 import { formatPrice } from '@/lib/utils/whatsapp';
 import { saveScrollPosition } from '@/lib/hooks/useScrollRestoration';
+import { useMobileCardFocus } from '@/lib/hooks/useMobileCardFocus';
 
 interface StandardProductCardProps {
   product: Product;
@@ -71,9 +72,8 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
   onAddToCart,
   onCardClick,
 }) => {
-  // ── Touch active state ────────────────────────────────────────────────────────
-  // isActive = true while finger is pressing this card.
-  // Desktop hover is handled PURELY by CSS — no JS state needed for mouse.
+  // ── Touch & Mobile Focus state ────────────────────────────────────────────────
+  const { cardRef, isFocused, setManualFocus } = useMobileCardFocus();
   const [isActive, setIsActive] = React.useState(false);
   const resetTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -97,7 +97,10 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
 
   // Touch-only pointer handlers. Mouse hover = CSS only (no state).
   const handlePointerDown = (e: React.PointerEvent) => {
-    if (e.pointerType === 'touch') activate();
+    if (e.pointerType === 'touch') {
+      activate();
+      setManualFocus();
+    }
   };
   const handlePointerUp = (e: React.PointerEvent) => {
     if (e.pointerType === 'touch') {
@@ -134,13 +137,12 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
     switch (element) {
       case 'title':
         return (
-          // Shopify pattern: title is a Link at z-[2], above the card overlay link (z-[1])
           <Link
             key="title"
             href={productUrl}
             onClick={onCardClick || handleNav}
             prefetch={true}
-            className={`product-card-title relative z-[2] block font-semibold text-[11px] sm:text-xs text-gray-900 dark:text-white leading-tight pb-0.5 ${titleClampClass}`}
+            className={`product-card-title relative z-[2] font-semibold text-[11px] sm:text-xs text-gray-900 dark:text-white leading-tight pb-0.5 ${titleClampClass}`}
           >
             {product.name}
           </Link>
@@ -199,13 +201,15 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
     // Title Link at z-[2] → tap on title navigates directly.
     // ─────────────────────────────────────────────────────────────────────────────
     <div
+      ref={cardRef}
       id={`product-card-${product.id}`}
+      data-hover-effect={hoverStyle}
       onPointerDown={handlePointerDown}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerCancel}
       onPointerLeave={handlePointerLeave}
       style={{ borderRadius: 'var(--border-radius-card, 16px)', touchAction: 'pan-y' }}
-      className="z-card-container group relative flex flex-col overflow-hidden border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] shadow-xs hover:shadow-md transition-all duration-300"
+      className={`z-card-container group relative flex flex-col overflow-hidden border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] shadow-xs hover:shadow-md transition-all duration-300 ${isFocused ? 'is-in-focus active-card' : ''}`}
     >
       {/* ── Shopify-style full-card transparent overlay link ── */}
       {/* Sits at z-[1], covers entire card, enables single-tap navigation on mobile */}
