@@ -49,8 +49,6 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
   activeImage,
   secondImage,
   hoveredImage,
-  touchActive,
-  setTouchActive,
   isInWishlist,
   showWishlist,
   showQuickview,
@@ -72,8 +70,6 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
   onOpenQuickView,
   onAddToCart,
   onCardClick,
-  onTouchStart,
-  onTouchEnd,
 }) => {
   const renderElement = (element: string) => {
     switch (element) {
@@ -146,29 +142,59 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
     }
   };
 
+  // isActive: true while finger/mouse is pressing the card
   const [isActive, setIsActive] = React.useState(false);
+  // isTouchDevice: detected on first touch pointer event
+  const isTouchRef = React.useRef(false);
+  // Timer ref to keep active state visible briefly after pointerup on touch
+  const resetTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const handlePointerDown = (e: React.PointerEvent) => {
-    if (e.pointerType === 'mouse' && e.button !== 0) return;
+  const activate = () => {
+    if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
     setIsActive(true);
   };
 
-  const handlePointerEnter = (e: React.PointerEvent) => {
-    if (e.pointerType === 'touch') {
-      setIsActive(true);
+  const deactivate = (delay = 0) => {
+    if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
+    if (delay > 0) {
+      resetTimerRef.current = setTimeout(() => setIsActive(false), delay);
+    } else {
+      setIsActive(false);
     }
   };
 
-  const handlePointerUp = () => {
-    setIsActive(false);
+  // Cleanup on unmount
+  React.useEffect(() => {
+    return () => {
+      if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
+    };
+  }, []);
+
+  const handlePointerDown = (e: React.PointerEvent) => {
+    if (e.pointerType === 'touch') {
+      isTouchRef.current = true;
+      activate();
+    } else if (e.pointerType === 'mouse') {
+      // Mouse: activate on hover via CSS, no special state needed
+    }
+  };
+
+  const handlePointerUp = (e: React.PointerEvent) => {
+    if (e.pointerType === 'touch') {
+      // Keep active briefly so user sees the feedback, then reset
+      deactivate(300);
+    }
   };
 
   const handlePointerCancel = () => {
-    setIsActive(false);
+    deactivate(0);
   };
 
-  const handlePointerLeave = () => {
-    setIsActive(false);
+  const handlePointerLeave = (e: React.PointerEvent) => {
+    if (e.pointerType === 'touch') {
+      // Touch left the element (e.g. scroll started)
+      deactivate(0);
+    }
   };
 
   const hoverStyle = settings?.imageHoverStyle ?? 'second_image';
@@ -176,13 +202,18 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
   const isSecondImage = hoverStyle === 'second_image';
   const showSecond = isSecondImage && Boolean(secondImage) && !hoveredImage;
 
+  // For mobile: show second image when isActive
+  // For desktop: CSS handles hover via .hover-fade-in/.hover-fade-out classes
+  const img1Opacity = showSecond && isActive ? 0 : undefined;
+  const img2Opacity = showSecond && isActive ? 1 : undefined;
+  const zoomTransform = isZoom && isActive ? 'scale(1.05)' : undefined;
+
   return (
     <Link
       id={`product-card-${product.id}`}
       href={`/product/${product.slug}`}
       onClick={onCardClick || (() => saveScrollPosition(product.id))}
       onPointerDown={handlePointerDown}
-      onPointerEnter={handlePointerEnter}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerCancel}
       onPointerLeave={handlePointerLeave}
@@ -191,42 +222,40 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
       className="z-card-container group flex flex-col overflow-hidden border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] shadow-xs hover:shadow-md transition-all duration-300"
     >
       <div className={`relative ${aspectClass} w-full overflow-hidden bg-gray-50 dark:bg-black/10`}>
+        {/* Primary image */}
         <Image
           src={activeImage}
           alt={product.name}
           fill
           sizes="(max-width: 768px) 50vw, 25vw"
-          className={`object-contain p-2 sm:p-3 object-center transition-opacity duration-200 pointer-events-none ${
-            isZoom ? (isActive ? 'scale-105' : 'hover-zoom') : ''
-          } ${
-            showSecond
-              ? (isActive ? 'opacity-0' : 'hover-fade-out opacity-100')
-              : 'opacity-100'
-          }`}
+          className={`object-contain p-2 sm:p-3 object-center transition-opacity duration-200 pointer-events-none${
+            isZoom ? ' hover-zoom' : ''
+          }${showSecond ? ' hover-fade-out' : ''}`}
           style={{
-            opacity: showSecond && isActive ? 0 : undefined,
-            transform: isZoom && isActive ? 'scale(1.05)' : undefined,
+            opacity: img1Opacity,
+            transform: zoomTransform,
           }}
           priority={false}
           loading="lazy"
         />
+
+        {/* Second image (hover/touch swap) */}
         {showSecond && secondImage && (
           <Image
             src={secondImage}
             alt={`${product.name} alternate`}
             fill
             sizes="(max-width: 768px) 50vw, 25vw"
-            className={`object-contain p-2 sm:p-3 object-center absolute inset-0 transition-opacity duration-200 pointer-events-none ${
-              isActive ? 'opacity-100' : 'hover-fade-in opacity-0'
-            }`}
+            className="object-contain p-2 sm:p-3 object-center absolute inset-0 transition-opacity duration-200 pointer-events-none hover-fade-in"
             style={{
-              opacity: isActive ? 1 : undefined,
+              opacity: img2Opacity,
             }}
             priority={false}
             loading="lazy"
           />
         )}
 
+        {/* Badges */}
         <div className="absolute top-2 left-2 flex flex-col gap-1 z-10 items-start pointer-events-none">
           {currentComparePrice && currentComparePrice > currentPrice && (
             <span
@@ -265,12 +294,9 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
           )}
         </div>
 
+        {/* Action icons — hidden by default; shown on desktop hover (CSS) OR touch isActive (inline style) */}
         <div
-          className={`card-actions absolute right-1.5 sm:right-2 top-1.5 sm:top-2 flex flex-col gap-1.5 z-20 transition-all duration-200 ease-out pointer-events-none ${
-            isActive
-              ? 'opacity-100 translate-x-0'
-              : 'opacity-0 translate-x-2 group-hover:opacity-100 group-hover:translate-x-0'
-          }`}
+          className="card-actions absolute right-1.5 sm:right-2 top-1.5 sm:top-2 flex flex-col gap-1.5 z-20 transition-all duration-200 ease-out"
           style={{
             pointerEvents: 'none',
             opacity: isActive ? 1 : undefined,

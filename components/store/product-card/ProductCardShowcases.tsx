@@ -74,28 +74,40 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
   onCardClick,
 }) => {
   const [isActive, setIsActive] = React.useState(false);
+  const resetTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const handlePointerDown = (e: React.PointerEvent) => {
-    if (e.pointerType === 'mouse' && e.button !== 0) return;
+  React.useEffect(() => {
+    return () => { if (resetTimerRef.current) clearTimeout(resetTimerRef.current); };
+  }, []);
+
+  const activate = () => {
+    if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
     setIsActive(true);
   };
 
-  const handlePointerEnter = (e: React.PointerEvent) => {
-    if (e.pointerType === 'touch') {
-      setIsActive(true);
+  const deactivate = (delay = 0) => {
+    if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
+    if (delay > 0) {
+      resetTimerRef.current = setTimeout(() => setIsActive(false), delay);
+    } else {
+      setIsActive(false);
     }
   };
 
-  const handlePointerUp = () => {
-    setIsActive(false);
+  const handlePointerDown = (e: React.PointerEvent) => {
+    if (e.pointerType === 'touch') activate();
+  };
+
+  const handlePointerUp = (e: React.PointerEvent) => {
+    if (e.pointerType === 'touch') deactivate(300);
   };
 
   const handlePointerCancel = () => {
-    setIsActive(false);
+    deactivate(0);
   };
 
-  const handlePointerLeave = () => {
-    setIsActive(false);
+  const handlePointerLeave = (e: React.PointerEvent) => {
+    if (e.pointerType === 'touch') deactivate(0);
   };
 
   const styleClassMap: Record<string, string> = {
@@ -120,7 +132,6 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
       href={`/product/${product.slug}`}
       onClick={onCardClick || (() => saveScrollPosition(product.id))}
       onPointerDown={handlePointerDown}
-      onPointerEnter={handlePointerEnter}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerCancel}
       onPointerLeave={handlePointerLeave}

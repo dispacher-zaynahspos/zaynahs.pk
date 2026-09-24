@@ -43,9 +43,10 @@ export const customCss = `
       opacity: 0;
       transform: translateX(8px);
       pointer-events: none;
-      transition: opacity 0.28s cubic-bezier(0.4, 0, 0.2, 1), transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: opacity 0.22s cubic-bezier(0.4, 0, 0.2, 1), transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    /* Hover Effects strictly scoped to desktop devices with fine pointer (mouse) */
+
+    /* Desktop hover: mouse/trackpad only */
     @media (hover: hover) and (pointer: fine) {
       .z-card-container:hover .card-actions,
       .z-card-container:hover .aic,
@@ -55,6 +56,7 @@ export const customCss = `
         transform: translateX(0) !important;
         pointer-events: auto !important;
       }
+      /* Image hover effects — desktop only */
       .z-card-container:hover .hover-zoom {
         transform: scale(1.05);
       }
@@ -103,13 +105,15 @@ export const customCss = `
     .z-card-container .ai:hover .tt,
     .z-card-container .action-btn:hover .tt { opacity: 1; }
 
-    /* Touch & Mobile Screen Support: clean 40x40 tap targets */
+    /* Touch & Mobile Screen Support: clean tap targets, no hover artifacts */
     @media (max-width: 768px), (hover: none) {
       .z-card-container .card-actions,
       .z-card-container .aic {
         right: 8px !important;
         top: 8px !important;
         gap: 8px !important;
+        /* Never show via CSS on touch — JS controls opacity via inline style */
+        pointer-events: none !important;
       }
       .z-card-container .action-btn,
       .z-card-container .ai {
