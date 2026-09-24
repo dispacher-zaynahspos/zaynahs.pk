@@ -130,6 +130,10 @@ export async function revalidateProduct(slug: string, action: 'UPDATED' | 'DELET
     (revalidateTag as any)('reviews');
 
     revalidatePath('/');
+    (revalidatePath as any)('/', 'page');
+    (revalidatePath as any)('/', 'layout');
+    (revalidatePath as any)('/(store)', 'layout');
+    (revalidatePath as any)('/(store)', 'page');
     revalidatePath('/shop');
     revalidatePath('/admin', 'layout');
     if (action !== 'DELETED') revalidatePath(`/product/${slug}`);
@@ -164,6 +168,10 @@ export async function revalidateBanner() {
 
     // Purge page routing cache
     revalidatePath('/');
+    (revalidatePath as any)('/', 'page');
+    (revalidatePath as any)('/', 'layout');
+    (revalidatePath as any)('/(store)', 'layout');
+    (revalidatePath as any)('/(store)', 'page');
     revalidatePath('/shop');
     revalidatePath('/store', 'layout');
     revalidatePath('/admin', 'layout');

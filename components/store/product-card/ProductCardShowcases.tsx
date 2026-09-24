@@ -73,49 +73,30 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
   onAddToCart,
   onCardClick,
 }) => {
-  const [isPressed, setIsPressed] = React.useState(false);
-  const touchStartPos = React.useRef<{ x: number; y: number } | null>(null);
+  const [isActive, setIsActive] = React.useState(false);
 
   const handlePointerDown = (e: React.PointerEvent) => {
     if (e.pointerType === 'mouse' && e.button !== 0) return;
-    touchStartPos.current = { x: e.clientX, y: e.clientY };
-    setIsPressed(true);
+    setIsActive(true);
   };
 
-  const handlePointerUp = () => {
-    setIsPressed(false);
-    touchStartPos.current = null;
-  };
-
-  const handlePointerCancel = () => {
-    setIsPressed(false);
-    touchStartPos.current = null;
-  };
-
-  const handlePointerLeave = () => {
-    setIsPressed(false);
-    touchStartPos.current = null;
-  };
-
-  const handlePointerMove = (e: React.PointerEvent) => {
-    if (!touchStartPos.current) return;
-    const diffX = Math.abs(e.clientX - touchStartPos.current.x);
-    const diffY = Math.abs(e.clientY - touchStartPos.current.y);
-    if (diffX > 6 || diffY > 6) {
-      setIsPressed(false);
+  const handlePointerEnter = (e: React.PointerEvent) => {
+    if (e.pointerType === 'touch') {
+      setIsActive(true);
     }
   };
 
-  React.useEffect(() => {
-    if (!isPressed) return;
-    const handleScroll = () => {
-      setIsPressed(false);
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, [isPressed]);
+  const handlePointerUp = () => {
+    setIsActive(false);
+  };
+
+  const handlePointerCancel = () => {
+    setIsActive(false);
+  };
+
+  const handlePointerLeave = () => {
+    setIsActive(false);
+  };
 
   const styleClassMap: Record<string, string> = {
     showcase_1: 'sc1',
@@ -139,11 +120,12 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
       href={`/product/${product.slug}`}
       onClick={onCardClick || (() => saveScrollPosition(product.id))}
       onPointerDown={handlePointerDown}
+      onPointerEnter={handlePointerEnter}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerCancel}
       onPointerLeave={handlePointerLeave}
-      onPointerMove={handlePointerMove}
       prefetch={true}
+      style={{ touchAction: 'pan-y' }}
       className={`z-card-container ${scClass} group relative`}
     >
       <div className={`img-box relative ${aspectClass} w-full ${imgBgClass}`}>
@@ -158,7 +140,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
           hoveredImage={hoveredImage}
           productName={product.name}
           settings={settings}
-          isPressed={isPressed}
+          isPressed={isActive}
           fitClass="object-contain"
         />
         <ProductCardActions
@@ -171,6 +153,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
           onOpenQuickView={onOpenQuickView}
           onAddToCart={onAddToCart}
           variant="action-btn"
+          isActive={isActive}
         />
       </div>
       <ProductCardShowcaseContent

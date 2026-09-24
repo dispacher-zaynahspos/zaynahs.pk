@@ -146,49 +146,30 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
     }
   };
 
-  const [isPressed, setIsPressed] = React.useState(false);
-  const touchStartPos = React.useRef<{ x: number; y: number } | null>(null);
+  const [isActive, setIsActive] = React.useState(false);
 
   const handlePointerDown = (e: React.PointerEvent) => {
     if (e.pointerType === 'mouse' && e.button !== 0) return;
-    touchStartPos.current = { x: e.clientX, y: e.clientY };
-    setIsPressed(true);
+    setIsActive(true);
   };
 
-  const handlePointerUp = () => {
-    setIsPressed(false);
-    touchStartPos.current = null;
-  };
-
-  const handlePointerCancel = () => {
-    setIsPressed(false);
-    touchStartPos.current = null;
-  };
-
-  const handlePointerLeave = () => {
-    setIsPressed(false);
-    touchStartPos.current = null;
-  };
-
-  const handlePointerMove = (e: React.PointerEvent) => {
-    if (!touchStartPos.current) return;
-    const diffX = Math.abs(e.clientX - touchStartPos.current.x);
-    const diffY = Math.abs(e.clientY - touchStartPos.current.y);
-    if (diffX > 6 || diffY > 6) {
-      setIsPressed(false);
+  const handlePointerEnter = (e: React.PointerEvent) => {
+    if (e.pointerType === 'touch') {
+      setIsActive(true);
     }
   };
 
-  React.useEffect(() => {
-    if (!isPressed) return;
-    const handleScroll = () => {
-      setIsPressed(false);
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, [isPressed]);
+  const handlePointerUp = () => {
+    setIsActive(false);
+  };
+
+  const handlePointerCancel = () => {
+    setIsActive(false);
+  };
+
+  const handlePointerLeave = () => {
+    setIsActive(false);
+  };
 
   const hoverStyle = settings?.imageHoverStyle ?? 'second_image';
   const isZoom = hoverStyle === 'zoom';
@@ -201,12 +182,12 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
       href={`/product/${product.slug}`}
       onClick={onCardClick || (() => saveScrollPosition(product.id))}
       onPointerDown={handlePointerDown}
+      onPointerEnter={handlePointerEnter}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerCancel}
       onPointerLeave={handlePointerLeave}
-      onPointerMove={handlePointerMove}
       prefetch={true}
-      style={{ borderRadius: 'var(--border-radius-card, 16px)' }}
+      style={{ borderRadius: 'var(--border-radius-card, 16px)', touchAction: 'pan-y' }}
       className="z-card-container group flex flex-col overflow-hidden border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] shadow-xs hover:shadow-md transition-all duration-300"
     >
       <div className={`relative ${aspectClass} w-full overflow-hidden bg-gray-50 dark:bg-black/10`}>
@@ -216,15 +197,15 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
           fill
           sizes="(max-width: 768px) 50vw, 25vw"
           className={`object-contain p-2 sm:p-3 object-center transition-opacity duration-200 pointer-events-none ${
-            isZoom ? (isPressed ? 'scale-105' : 'hover-zoom') : ''
+            isZoom ? (isActive ? 'scale-105' : 'hover-zoom') : ''
           } ${
             showSecond
-              ? (isPressed ? 'opacity-0' : 'hover-fade-out opacity-100')
+              ? (isActive ? 'opacity-0' : 'hover-fade-out opacity-100')
               : 'opacity-100'
           }`}
           style={{
-            opacity: showSecond && isPressed ? 0 : undefined,
-            transform: isZoom && isPressed ? 'scale(1.05)' : undefined,
+            opacity: showSecond && isActive ? 0 : undefined,
+            transform: isZoom && isActive ? 'scale(1.05)' : undefined,
           }}
           priority={false}
           loading="lazy"
@@ -236,10 +217,10 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
             fill
             sizes="(max-width: 768px) 50vw, 25vw"
             className={`object-contain p-2 sm:p-3 object-center absolute inset-0 transition-opacity duration-200 pointer-events-none ${
-              isPressed ? 'opacity-100' : 'hover-fade-in opacity-0'
+              isActive ? 'opacity-100' : 'hover-fade-in opacity-0'
             }`}
             style={{
-              opacity: isPressed ? 1 : undefined,
+              opacity: isActive ? 1 : undefined,
             }}
             priority={false}
             loading="lazy"
@@ -285,15 +266,28 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
         </div>
 
         <div
-          className="card-actions absolute right-1.5 sm:right-2 top-1.5 sm:top-2 flex flex-col gap-1.5 z-20 transition-all duration-300 ease-out opacity-0 translate-x-2 pointer-events-none group-hover:opacity-100 group-hover:translate-x-0 group-hover:pointer-events-auto"
-          onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-          onPointerDown={(e) => e.stopPropagation()}
+          className={`card-actions absolute right-1.5 sm:right-2 top-1.5 sm:top-2 flex flex-col gap-1.5 z-20 transition-all duration-200 ease-out pointer-events-none ${
+            isActive
+              ? 'opacity-100 translate-x-0'
+              : 'opacity-0 translate-x-2 group-hover:opacity-100 group-hover:translate-x-0'
+          }`}
+          style={{
+            pointerEvents: 'none',
+            opacity: isActive ? 1 : undefined,
+            transform: isActive ? 'translateX(0)' : undefined,
+          }}
         >
           {showWishlist && (
             <button
               type="button"
-              onClick={onToggleWishlist}
-              className="action-btn flex h-7 w-7 items-center justify-center rounded-full bg-white/95 dark:bg-[#16162a]/95 backdrop-blur-xs shadow-md border border-gray-200/80 dark:border-gray-800 text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-[#16162a] hover:scale-110 active:scale-90 hover:text-[var(--color-primary,#C2185B)] dark:hover:text-[var(--color-primary,#C2185B)] transition-transform duration-200 cursor-pointer"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onToggleWishlist(e);
+              }}
+              onPointerDown={(e) => e.stopPropagation()}
+              onPointerUp={(e) => e.stopPropagation()}
+              className="action-btn pointer-events-auto flex h-7 w-7 items-center justify-center rounded-full bg-white/95 dark:bg-[#16162a]/95 backdrop-blur-xs shadow-md border border-gray-200/80 dark:border-gray-800 text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-[#16162a] hover:scale-110 active:scale-90 hover:text-[var(--color-primary,#C2185B)] dark:hover:text-[var(--color-primary,#C2185B)] transition-transform duration-200 cursor-pointer"
               title={isInWishlist ? "Remove from Wishlist" : "Add to Wishlist"}
               aria-label={isInWishlist ? "Remove from Wishlist" : "Add to Wishlist"}
             >
@@ -304,8 +298,14 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
           {showQuickview && (
             <button
               type="button"
-              onClick={onOpenQuickView}
-              className="action-btn flex h-7 w-7 items-center justify-center rounded-full bg-white/95 dark:bg-[#16162a]/95 backdrop-blur-xs shadow-md border border-gray-200/80 dark:border-gray-800 text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-[#16162a] hover:scale-110 active:scale-90 hover:text-[var(--color-primary,#C2185B)] dark:hover:text-[var(--color-primary,#C2185B)] transition-transform duration-200 cursor-pointer"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onOpenQuickView(e);
+              }}
+              onPointerDown={(e) => e.stopPropagation()}
+              onPointerUp={(e) => e.stopPropagation()}
+              className="action-btn pointer-events-auto flex h-7 w-7 items-center justify-center rounded-full bg-white/95 dark:bg-[#16162a]/95 backdrop-blur-xs shadow-md border border-gray-200/80 dark:border-gray-800 text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-[#16162a] hover:scale-110 active:scale-90 hover:text-[var(--color-primary,#C2185B)] dark:hover:text-[var(--color-primary,#C2185B)] transition-transform duration-200 cursor-pointer"
               title="Quick View"
               aria-label="Quick View"
             >
@@ -316,8 +316,14 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
           {showQuickcart && (
             <button
               type="button"
-              onClick={onAddToCart}
-              className="action-btn flex h-7 w-7 items-center justify-center rounded-full bg-white/95 dark:bg-[#16162a]/95 backdrop-blur-xs shadow-md border border-gray-200/80 dark:border-gray-800 text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-[#16162a] hover:scale-110 active:scale-90 hover:text-[var(--color-primary,#C2185B)] dark:hover:text-[var(--color-primary,#C2185B)] transition-transform duration-200 cursor-pointer"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onAddToCart(e);
+              }}
+              onPointerDown={(e) => e.stopPropagation()}
+              onPointerUp={(e) => e.stopPropagation()}
+              className="action-btn pointer-events-auto flex h-7 w-7 items-center justify-center rounded-full bg-white/95 dark:bg-[#16162a]/95 backdrop-blur-xs shadow-md border border-gray-200/80 dark:border-gray-800 text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-[#16162a] hover:scale-110 active:scale-90 hover:text-[var(--color-primary,#C2185B)] dark:hover:text-[var(--color-primary,#C2185B)] transition-transform duration-200 cursor-pointer"
               title={product.hasVariants ? "Choose Options" : "Add to Cart"}
               aria-label={product.hasVariants ? "Choose Options" : "Add to Cart"}
             >

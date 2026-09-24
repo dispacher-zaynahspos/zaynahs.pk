@@ -13,6 +13,7 @@ interface ProductCardActionsProps {
   onOpenQuickView: (e: React.MouseEvent) => void;
   onAddToCart: (e: React.MouseEvent) => void;
   variant?: 'floating' | 'action-btn';
+  isActive?: boolean;
 }
 
 export const ProductCardActions: React.FC<ProductCardActionsProps> = ({
@@ -25,32 +26,35 @@ export const ProductCardActions: React.FC<ProductCardActionsProps> = ({
   onOpenQuickView,
   onAddToCart,
   variant = 'action-btn',
+  isActive = false,
 }) => {
-  const handleTouch = (e: React.TouchEvent, handler: (e: any) => void) => {
-    e.preventDefault();
-    e.stopPropagation();
-    handler(e);
-  };
-
   const containerClass = variant === 'action-btn' ? 'card-actions' : 'aic';
   const btnClass = variant === 'action-btn' ? 'action-btn' : 'ai';
 
   return (
     <div
-      className={containerClass}
-      onClick={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
+      className={`${containerClass} pointer-events-none transition-all duration-200 ease-out ${
+        isActive
+          ? 'opacity-100 translate-x-0'
+          : 'opacity-0 translate-x-2'
+      }`}
+      style={{
+        pointerEvents: 'none',
+        opacity: isActive ? 1 : undefined,
+        transform: isActive ? 'translateX(0)' : undefined,
       }}
-      onTouchStart={(e) => e.stopPropagation()}
-      onTouchEnd={(e) => e.stopPropagation()}
     >
       {showWishlist && (
         <button
           type="button"
-          onClick={onToggleWishlist}
-          onTouchEnd={(e) => handleTouch(e, onToggleWishlist)}
-          className={btnClass}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onToggleWishlist(e);
+          }}
+          onPointerDown={(e) => e.stopPropagation()}
+          onPointerUp={(e) => e.stopPropagation()}
+          className={`${btnClass} pointer-events-auto`}
           aria-label={isInWishlist ? "Remove from Wishlist" : "Add to Wishlist"}
           title={isInWishlist ? "Remove from Wishlist" : "Add to Wishlist"}
         >
@@ -60,9 +64,14 @@ export const ProductCardActions: React.FC<ProductCardActionsProps> = ({
       {showQuickview && (
         <button
           type="button"
-          onClick={onOpenQuickView}
-          onTouchEnd={(e) => handleTouch(e, onOpenQuickView)}
-          className={btnClass}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onOpenQuickView(e);
+          }}
+          onPointerDown={(e) => e.stopPropagation()}
+          onPointerUp={(e) => e.stopPropagation()}
+          className={`${btnClass} pointer-events-auto`}
           aria-label="Quick View"
           title="Quick View"
         >
@@ -72,9 +81,14 @@ export const ProductCardActions: React.FC<ProductCardActionsProps> = ({
       {showQuickcart && (
         <button
           type="button"
-          onClick={onAddToCart}
-          onTouchEnd={(e) => handleTouch(e, onAddToCart)}
-          className={btnClass}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onAddToCart(e);
+          }}
+          onPointerDown={(e) => e.stopPropagation()}
+          onPointerUp={(e) => e.stopPropagation()}
+          className={`${btnClass} pointer-events-auto`}
           aria-label={hasVariants ? "Choose Options" : "Add to Cart"}
           title={hasVariants ? "Choose Options" : "Add to Cart"}
         >
