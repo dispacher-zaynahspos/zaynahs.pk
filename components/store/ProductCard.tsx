@@ -34,10 +34,6 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
   const primaryImage = getPresetImageUrl(product.images?.find(img => img.isPrimary)?.url || product.images?.[0]?.url || fallbackPlaceholder, 'card');
 
   const [hoveredImage, setHoveredImage] = useState<string | null>(null);
-  const [touchActive, setTouchActive] = useState(false);
-  const touchActiveRef = React.useRef(false);
-  touchActiveRef.current = touchActive;
-  const justActivatedRef = React.useRef(false);
 
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [quickViewOpen, setQuickViewOpen] = useState(false);
@@ -51,80 +47,7 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
   const cardAlignment = settings?.card_alignment || 'left';
   const elementsOrder = settings?.card_elements_order || ['title', 'rating', 'price', 'swatches'];
 
-  // Persistent touch/focus management across catalog cards
-  const touchStartRef = React.useRef<{ x: number; y: number; time: number } | null>(null);
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    const touch = e.touches[0];
-    touchStartRef.current = { x: touch.clientX, y: touch.clientY, time: Date.now() };
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (!touchStartRef.current) return;
-    const touch = e.changedTouches[0];
-    const diffX = Math.abs(touch.clientX - touchStartRef.current.x);
-    const diffY = Math.abs(touch.clientY - touchStartRef.current.y);
-
-    // If tap on card without dragging (clean tap with movement < 12px)
-    if (diffX < 12 && diffY < 12) {
-      if (!touchActiveRef.current) {
-        justActivatedRef.current = true;
-        setTouchActive(true);
-        window.dispatchEvent(new CustomEvent('product-card-focus', { detail: { activeId: product.id } }));
-        setTimeout(() => {
-          justActivatedRef.current = false;
-        }, 400);
-      }
-    }
-  };
-
-  useEffect(() => {
-    if (!touchActive) return;
-
-    const handleOutsideClick = (e: MouseEvent) => {
-      const cardEl = document.getElementById(`product-card-${product.id}`);
-      if (cardEl && !cardEl.contains(e.target as Node)) {
-        setTouchActive(false);
-      }
-    };
-
-    const handleCardFocusEvent = (e: Event) => {
-      const customEvent = e as CustomEvent<{ activeId: string }>;
-      if (customEvent.detail?.activeId !== product.id) {
-        setTouchActive(false);
-      }
-    };
-
-    const timer = setTimeout(() => {
-      window.addEventListener('click', handleOutsideClick, true);
-    }, 150);
-
-    window.addEventListener('product-card-focus', handleCardFocusEvent as EventListener);
-
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener('click', handleOutsideClick, true);
-      window.removeEventListener('product-card-focus', handleCardFocusEvent as EventListener);
-    };
-  }, [touchActive, product.id]);
-
-  const handleCardClick = (e: React.MouseEvent) => {
-    const isTouch = typeof window !== 'undefined' && window.matchMedia('(hover: none), (pointer: coarse)').matches;
-    if (isTouch) {
-      if (!touchActiveRef.current || justActivatedRef.current) {
-        e.preventDefault();
-        e.stopPropagation();
-        if (!touchActiveRef.current) {
-          justActivatedRef.current = true;
-          setTouchActive(true);
-          window.dispatchEvent(new CustomEvent('product-card-focus', { detail: { activeId: product.id } }));
-          setTimeout(() => {
-            justActivatedRef.current = false;
-          }, 400);
-        }
-        return;
-      }
-    }
+  const handleCardClick = () => {
     saveScrollPosition(product.id);
   };
 
@@ -376,8 +299,6 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
           activeImage={activeImage}
           secondImage={secondImage}
           hoveredImage={hoveredImage}
-          touchActive={touchActive}
-          setTouchActive={setTouchActive}
           isInWishlist={isInWishlist}
           showWishlist={showWishlist}
           showQuickview={showQuickview}
@@ -398,8 +319,6 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
           onOpenQuickView={handleOpenQuickView}
           onAddToCart={handleAddToCart}
           onCardClick={handleCardClick}
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
         />
       ) : (
         <StandardProductCard
@@ -409,8 +328,6 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
           activeImage={activeImage}
           secondImage={secondImage}
           hoveredImage={hoveredImage}
-          touchActive={touchActive}
-          setTouchActive={setTouchActive}
           isInWishlist={isInWishlist}
           showWishlist={showWishlist}
           showQuickview={showQuickview}
@@ -432,8 +349,6 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
           onOpenQuickView={handleOpenQuickView}
           onAddToCart={handleAddToCart}
           onCardClick={handleCardClick}
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
         />
       )}
 

@@ -66,28 +66,6 @@ export const customCss = `
       }
     }
 
-    /* Mobile / Touch Active State: activates ONLY on deliberate card tap */
-    .z-card-container.touch-active .card-actions,
-    .z-card-container.touch-active .aic,
-    .touch-active .card-actions,
-    .touch-active .aic {
-      opacity: 1 !important;
-      transform: translateX(0) !important;
-      pointer-events: auto !important;
-    }
-    .z-card-container.touch-active .hover-zoom,
-    .touch-active .hover-zoom {
-      transform: scale(1.05);
-    }
-    .z-card-container.touch-active .hover-fade-out,
-    .touch-active .hover-fade-out {
-      opacity: 0 !important;
-    }
-    .z-card-container.touch-active .hover-fade-in,
-    .touch-active .hover-fade-in {
-      opacity: 1 !important;
-    }
-
     /* Universal Action Button Styling */
     .z-card-container .action-btn,
     .z-card-container .ai {

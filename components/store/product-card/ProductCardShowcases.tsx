@@ -18,8 +18,8 @@ interface ProductCardShowcaseProps {
   activeImage: string;
   secondImage: string | null;
   hoveredImage: string | null;
-  touchActive: boolean;
-  setTouchActive: (val: boolean) => void;
+  touchActive?: boolean;
+  setTouchActive?: (val: boolean) => void;
   isInWishlist: boolean;
   showWishlist: boolean;
   showQuickview: boolean;
@@ -52,8 +52,6 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
   activeImage,
   secondImage,
   hoveredImage,
-  touchActive,
-  setTouchActive,
   isInWishlist,
   showWishlist,
   showQuickview,
@@ -74,9 +72,51 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
   onOpenQuickView,
   onAddToCart,
   onCardClick,
-  onTouchStart,
-  onTouchEnd,
 }) => {
+  const [isPressed, setIsPressed] = React.useState(false);
+  const touchStartPos = React.useRef<{ x: number; y: number } | null>(null);
+
+  const handlePointerDown = (e: React.PointerEvent) => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    touchStartPos.current = { x: e.clientX, y: e.clientY };
+    setIsPressed(true);
+  };
+
+  const handlePointerUp = () => {
+    setIsPressed(false);
+    touchStartPos.current = null;
+  };
+
+  const handlePointerCancel = () => {
+    setIsPressed(false);
+    touchStartPos.current = null;
+  };
+
+  const handlePointerLeave = () => {
+    setIsPressed(false);
+    touchStartPos.current = null;
+  };
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!touchStartPos.current) return;
+    const diffX = Math.abs(e.clientX - touchStartPos.current.x);
+    const diffY = Math.abs(e.clientY - touchStartPos.current.y);
+    if (diffX > 6 || diffY > 6) {
+      setIsPressed(false);
+    }
+  };
+
+  React.useEffect(() => {
+    if (!isPressed) return;
+    const handleScroll = () => {
+      setIsPressed(false);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [isPressed]);
+
   const styleClassMap: Record<string, string> = {
     showcase_1: 'sc1',
     showcase_2: 'sc2',
@@ -98,10 +138,13 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
       id={`product-card-${product.id}`}
       href={`/product/${product.slug}`}
       onClick={onCardClick || (() => saveScrollPosition(product.id))}
-      onTouchStart={onTouchStart}
-      onTouchEnd={onTouchEnd}
+      onPointerDown={handlePointerDown}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerCancel}
+      onPointerLeave={handlePointerLeave}
+      onPointerMove={handlePointerMove}
       prefetch={true}
-      className={`z-card-container ${scClass} group relative ${touchActive ? 'touch-active' : ''}`}
+      className={`z-card-container ${scClass} group relative`}
     >
       <div className={`img-box relative ${aspectClass} w-full ${imgBgClass}`}>
         <ProductCardBadges
@@ -115,7 +158,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
           hoveredImage={hoveredImage}
           productName={product.name}
           settings={settings}
-          touchActive={touchActive}
+          isPressed={isPressed}
           fitClass="object-contain"
         />
         <ProductCardActions
@@ -153,7 +196,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
     return (
       <>
         <ProductCardStyleInjector />
-        <div className={`z-card-container flex flex-col h-full ${touchActive ? 'touch-active' : ''}`}>
+        <div className="z-card-container flex flex-col h-full">
           <div className="sc3-wrap">
             {renderContent}
           </div>
@@ -165,7 +208,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
   return (
     <>
       <ProductCardStyleInjector />
-      <div className={`z-card-container flex flex-col h-full ${touchActive ? 'touch-active' : ''}`}>
+      <div className="z-card-container flex flex-col h-full">
         {renderContent}
       </div>
     </>
