@@ -46,6 +46,18 @@ export const customCss = `
       transition: opacity 0.22s cubic-bezier(0.4, 0, 0.2, 1), transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
+    /* Image swap base states — MUST be global, not inside hover media query */
+    /* hover-fade-out = primary image: visible by default, hides on hover/touch */
+    .z-card-container .hover-fade-out {
+      opacity: 1;
+      transition: opacity 0.2s ease;
+    }
+    /* hover-fade-in = secondary image: hidden by default, shows on hover/touch */
+    .z-card-container .hover-fade-in {
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
     /* Desktop hover: mouse/trackpad only */
     @media (hover: hover) and (pointer: fine) {
       .z-card-container:hover .card-actions,
