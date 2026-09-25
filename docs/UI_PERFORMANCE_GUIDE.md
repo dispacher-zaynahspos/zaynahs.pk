@@ -161,3 +161,108 @@ The canonical working implementation is `components/store/ShopPage.tsx` (handler
 3. **Routing Cache Trap**: Do NOT use `e.preventDefault()` with `router.push('/')` on logo clicks. This pattern is vulnerable to silent failures (frozen page) during Cloudflare cache mismatches (`ChunkLoadError`). Always use the native Next.js `<Link>` behavior, coupled with an 800ms `setTimeout` fallback that forces `window.location.href = '/'` if client-side routing gets stuck.
 
 ---
+
+## 7. Mobile Product Card Scroll-Focus & Action Icon Spawning (MANDATORY)
+
+**Context**: In multi-column mobile catalog grids (2-column layouts on smartphones), desktop CSS `:hover` states do not exist. Naive implementations cause three major UX failures:
+1. **Ghost / Sticky Clutter**: Action buttons (Wishlist, Quick View, Cart) stay permanently visible across all visible cards simultaneously, cluttering the UI.
+2. **Column Flickering & Ghost Focus**: When users scroll, focus rapidly jitters between adjacent columns or jumps erratically to upper/lower cards.
+3. **Static Offset Failure**: Hardcoded pixel offsets fail when cards have dynamic heights or aspect ratios (natural, 1:1 square, 3:4 portrait, compact, or custom theme heights).
+
+### 7.1 Core Architecture & Principles
+Every current and future store must implement the **Mobile Single-Card Focus Coordinator** pattern:
+1. **Strict Single-Card Focus**: At any time, strictly **one** card in the entire viewport holds `.is-in-focus` / `.active-card`. All other cards remain in their resting idle state.
+2. **Dynamic Bounding-Box Detection**:
+   - Never rely on static pixel heights (e.g. `300px` or `400px`).
+   - Query runtime dimensions dynamically via `el.getBoundingClientRect()`.
+   - Adapts seamlessly to any customizer aspect ratio (`aspect-square`, `aspect-[3/4]`, natural height).
+3. **Center-Proximity Sweet-Spot Algorithm**:
+   - **Eye-Level Focal Anchor**: Target anchor is set to `window.innerHeight * 0.45` (natural 45% mobile eye-level reading line).
+   - **Touch & Thumb Tracking**: Target horizontal axis tracks `lastTouchX` (recorded via passive `touchstart` / `touchmove` / `pointerdown`) to determine which column the user is browsing.
+   - **Weighted Euclidean Distance**:
+     $$\text{distance} = \sqrt{(\text{cardCenterX} - \text{targetX})^2 + ((\text{cardCenterY} - \text{targetY}) \times 1.4)^2}$$
+     Vertical scrolling intent is weighted at $1.4\times$ to avoid premature column jumping during vertical swipes.
+4. **18% Hysteresis / Threshold Lock (Anti-Jitter)**:
+   - Once a card gains focus, it receives an 18% mathematical advantage:
+     $$\text{effectiveDistance} = \text{isCurrentlyFocused} \ ? \ (\text{distance} \times 0.82) : \text{distance}$$
+   - A neighboring card can **never** steal focus until the user scrolls enough to bring the new card **>18% closer** to the focal sweet spot.
+5. **Direct Touch & Tap Override (Sticky Lock)**:
+   - When a user directly touches or taps a card, `setManualFocus(el)` immediately awards focus and activates a 750ms lock (`manualLockUntil = Date.now() + 750`).
+   - Inertia micro-scrolls immediately following a finger tap will NOT cancel or shift focus away while the card remains in view.
+6. **Automatic Cleanup & Pagination / Infinite Scroll**:
+   - Cards register on mount (`register(el)`) and unregister on unmount (`unregister(el)`).
+   - On each evaluation pass, any disconnected elements (`!el.isConnected`) are pruned from memory to eliminate memory leaks during pagination or "Load More".
+   - `rebindAll()` utility allows re-binding dynamically loaded cards from AJAX / Infinite Scroll.
+7. **60 FPS Performance**:
+   - All evaluation calls are throttled and coalesced via `requestAnimationFrame` (rAF).
+   - Window listeners use `{ passive: true }`.
+
+---
+
+### 7.2 Hardware-Accelerated CSS Implementation
+Action icons and hover animations must be hardware-accelerated using `translate3d` and `will-change`.
+
+```css
+/* Base: Action icons hidden & translated on mobile */
+@media (max-width: 768px), (hover: none) {
+  .z-card-container .card-actions,
+  .z-card-container .aic {
+    opacity: 0 !important;
+    transform: translate3d(10px, 0, 0) !important;
+    will-change: transform, opacity;
+    pointer-events: none !important;
+    right: 6px !important;
+    top: 6px !important;
+    gap: 5px !important;
+    transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1), transform 0.28s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+
+  .z-card-container .action-btn,
+  .z-card-container .ai {
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+    min-height: 28px !important;
+    background: rgba(255, 255, 255, 0.92) !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.14) !important;
+    will-change: transform, opacity;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease !important;
+  }
+
+  /* ACTIVE / FOCUSED CARD STATE: Spawn icons smoothly */
+  .z-card-container.is-in-focus .card-actions,
+  .z-card-container.is-in-focus .aic,
+  .z-card-container.active-card .card-actions,
+  .z-card-container.active-card .aic {
+    opacity: 1 !important;
+    transform: translate3d(0, 0, 0) !important;
+    pointer-events: auto !important;
+  }
+
+  /* Staggered in-animation for action buttons */
+  .z-card-container.is-in-focus .card-actions > *:nth-child(1),
+  .z-card-container.active-card .card-actions > *:nth-child(1) { transition-delay: 0ms !important; }
+  .z-card-container.is-in-focus .card-actions > *:nth-child(2),
+  .z-card-container.active-card .card-actions > *:nth-child(2) { transition-delay: 40ms !important; }
+  .z-card-container.is-in-focus .card-actions > *:nth-child(3),
+  .z-card-container.active-card .card-actions > *:nth-child(3) { transition-delay: 80ms !important; }
+
+  /* Active card title highlight */
+  .z-card-container.is-in-focus .product-card-title,
+  .z-card-container.active-card .product-card-title {
+    color: var(--color-primary, #C2185B) !important;
+    transition: color 0.25s ease !important;
+  }
+}
+```
+
+---
+
+### 7.3 Reference Files
+- Hook & Manager: `lib/hooks/useMobileCardFocus.ts`
+- Product Card Integration: `components/store/product-card/StandardProductCard.tsx`
+- Showcase Cards Integration: `components/store/product-card/ProductCardShowcases.tsx`
+- CSS Rules & Hover Animations: `components/store/product-card/customCss.tsx`
+

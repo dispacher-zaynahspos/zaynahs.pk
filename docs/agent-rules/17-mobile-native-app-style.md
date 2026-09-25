@@ -55,3 +55,13 @@ All overlays, popups, filters, search-suggestion pools, and mobile drawer menus 
 
 ## RULE M5 — Desktop/mobile jitter prevention
 CPU-heavy blur styles (`backdrop-blur-sm`, `backdrop-blur-xs`) on modals/filter overlays are forbidden — only high-contrast solid options (`bg-black/60`). GPU acceleration triggers `will-change-transform` + `transform-gpu` are mandatory on scrollable layers.
+
+## RULE M6 — Single-Card Focus & Dynamic Proximity Algorithm (v1.0.9)
+In 2-column mobile product catalog grids, exactly **one** card may hold `.is-in-focus` / `.active-card` at a time.
+- **Dynamic Bounding Box**: Read dimensions via `el.getBoundingClientRect()`. Never hardcode static heights. Compatible with all theme aspect ratios (`square`, `3/4`, natural).
+- **Sweet-Spot Distance**: Calculate weighted Euclidean distance from card center to mobile focal target (`window.innerHeight * 0.45`, `targetX = lastTouchX`).
+- **18% Hysteresis Lock**: Active card retains focus until neighboring card is >18% closer (`effectiveDist = active ? dist * 0.82 : dist`).
+- **Direct Tap Override**: Tapping a card locks focus for 750ms (`manualLockUntil`) so micro-scroll inertia doesn't dismiss it.
+- **Action Icons**: Spawn with hardware-accelerated `translate3d(0, 0, 0)`, `will-change: transform, opacity`, and staggered delays.
+- Full guide & implementation: see `docs/UI_PERFORMANCE_GUIDE.md` Section 7 and `lib/hooks/useMobileCardFocus.ts`.
+
