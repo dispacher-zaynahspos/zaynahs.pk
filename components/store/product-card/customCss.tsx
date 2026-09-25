@@ -206,7 +206,8 @@ export const customCss = `
       .z-card-container .card-actions,
       .z-card-container .aic {
         opacity: 0 !important;
-        transform: translateX(12px) !important;
+        transform: translate3d(10px, 0, 0) !important;
+        will-change: transform, opacity;
         pointer-events: none !important;
         right: 6px !important;
         top: 6px !important;
@@ -222,6 +223,9 @@ export const customCss = `
         min-height: 28px !important;
         background: rgba(255, 255, 255, 0.92) !important;
         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.14) !important;
+        will-change: transform, opacity;
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
         transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease !important;
       }
 
@@ -246,7 +250,7 @@ export const customCss = `
       .z-card-container.active-card .card-actions,
       .z-card-container.active-card .aic {
         opacity: 1 !important;
-        transform: translateX(0) !important;
+        transform: translate3d(0, 0, 0) !important;
         pointer-events: auto !important;
       }
 

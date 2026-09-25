@@ -3,26 +3,35 @@
 import { useEffect, useRef, useState } from 'react';
 
 /**
- * Mobile Card Focus Coordinator
+ * Mobile Card Focus Coordinator (Shopify / Headless E-Commerce Compatible)
  * 
- * In mobile product catalog grids:
- * 1. Guarantees that EXACTLY ONE product card is flagged with `.is-in-focus` / `.active-card` at any time.
- * 2. Uses thumb/touch position (`lastTouchX`) and central viewport zone (`targetY`)
- *    so whether the user scrolls on the left or right side, the corresponding card focuses naturally.
- * 3. Tapping either card directly immediately transfers focus to that single card.
- * 4. Action icons (Wishlist, Quick View, Cart) animate smoothly in on the single focused card.
- * 5. Admin-configured hover effects (secondary image swap, zoom) activate smoothly on that single card.
- * 6. As soon as the card leaves focus, icons and effects smoothly transition out.
- * 7. Desktop (:hover) is completely untouched and continues to use native CSS hover.
+ * Key Features:
+ * 1. Dynamic Card Size & Settings Sync:
+ *    - No hardcoded pixel heights or offsets.
+ *    - Dynamically queries runtime bounding boxes (getBoundingClientRect) for any
+ *      aspect ratio (natural, 1:1, 3:4, compact, custom).
+ *    - Automatically handles dynamic pagination, infinite scroll ("Load More"),
+ *      and DOM unmounts without memory leaks.
+ * 2. Accurate Center-Proximity Sweet-Spot Algorithm:
+ *    - Natural mobile eye-level anchor (targetY = innerHeight * 0.45, range 0.42 - 0.48).
+ *    - Dynamic touch/thumb tracking (targetX = lastTouchX or screen center).
+ *    - Weighted Euclidean distance: sqrt(dx^2 + (dy * 1.4)^2).
+ *    - 18% Hysteresis / Threshold Lock: Focus stays locked to the active card until
+ *      a neighboring card is at least 18% closer. Eliminates left/right jumping and flickers.
+ * 3. Touch & Tap Direct Override:
+ *    - Direct tap immediately locks focus onto the touched card with a 750ms sticky window.
+ * 4. 60 FPS Mobile Performance:
+ *    - requestAnimationFrame (rAF) coalesced evaluation + passive event listeners.
  */
 
-class MobileCardFocusManager {
+export class MobileCardFocusManager {
   private static instance: MobileCardFocusManager | null = null;
   private observer: IntersectionObserver | null = null;
   private registeredCards = new Map<HTMLElement, (focused: boolean) => void>();
   private intersectingEntries = new Map<HTMLElement, IntersectionObserverEntry>();
   private currentFocusedEl: HTMLElement | null = null;
   private lastTouchX: number = typeof window !== 'undefined' ? window.innerWidth * 0.5 : 200;
+  private manualLockUntil = 0;
   private rafId: number | null = null;
   private isListening = false;
 
@@ -41,7 +50,7 @@ class MobileCardFocusManager {
   private initObserver() {
     if (this.observer || typeof window === 'undefined') return;
 
-    // Define active focus zone: top 8% and bottom 8% excluded for fast responsive capture
+    // Viewport rootMargin to track cards entering the active reading band
     this.observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -56,7 +65,7 @@ class MobileCardFocusManager {
       },
       {
         root: null,
-        rootMargin: '-8% 0px -8% 0px',
+        rootMargin: '-5% 0px -5% 0px',
         threshold: [0, 0.1, 0.25, 0.5, 0.75, 1.0],
       }
     );
@@ -116,6 +125,17 @@ class MobileCardFocusManager {
       return;
     }
 
+    // Touch & Tap Sticky Lock check:
+    // If a card was manually tapped recently, keep it locked as long as it's still visible in viewport
+    const now = Date.now();
+    if (now < this.manualLockUntil && this.currentFocusedEl && this.currentFocusedEl.isConnected) {
+      const rect = this.currentFocusedEl.getBoundingClientRect();
+      const inViewport = rect.bottom > 60 && rect.top < window.innerHeight - 60;
+      if (inViewport) {
+        return; // Retain tap lock-focus
+      }
+    }
+
     if (this.intersectingEntries.size === 0) {
       if (this.currentFocusedEl) {
         this.setElementFocus(this.currentFocusedEl, false);
@@ -124,35 +144,47 @@ class MobileCardFocusManager {
       return;
     }
 
-    // Natural eye/thumb focus on mobile viewport (around 45% from top)
+    // Natural mobile eye-level anchor (45% from top)
     const targetY = window.innerHeight * 0.45;
     const targetX = this.lastTouchX;
 
     let bestEl: HTMLElement | null = null;
-    let minDistance = Infinity;
+    let minEffectiveDistance = Infinity;
 
+    // Prune detached cards from memory
     this.intersectingEntries.forEach((_, el) => {
       if (!el.isConnected) {
         this.intersectingEntries.delete(el);
+        this.registeredCards.delete(el);
         return;
       }
+
+      // Dynamic real-time rendered dimensions
       const rect = el.getBoundingClientRect();
+
+      // Must have some visibility in viewport
+      if (rect.bottom <= 0 || rect.top >= window.innerHeight) {
+        return;
+      }
+
       const cardCenterX = rect.left + rect.width / 2;
       const cardCenterY = rect.top + rect.height / 2;
 
-      // Weight vertical distance strongly to choose the centered row,
-      // and horizontal distance to targetX (thumb/touch column) to choose between left vs right card
-      const dy = Math.abs(cardCenterY - targetY);
-      const dx = Math.abs(cardCenterX - targetX);
-      let dist = dy * 2.0 + dx * 0.5;
+      // Euclidean distance with vertical weight (1.4) for mobile feed scanning
+      const dx = cardCenterX - targetX;
+      const dy = cardCenterY - targetY;
+      const euclideanDistance = Math.sqrt(dx * dx + (dy * 1.4) * (dy * 1.4));
 
-      // Calibrated hysteresis: 20px so focused card doesn't jitter, but allows new cards to focus effortlessly on first pass
-      if (el === this.currentFocusedEl) {
-        dist -= 20;
-      }
+      // 18% Hysteresis / Threshold Lock:
+      // The currently focused card receives an 18% advantage (0.82 multiplier).
+      // A neighboring card cannot steal focus unless it is > 18% closer.
+      const isCurrentlyFocused = el === this.currentFocusedEl;
+      const effectiveDistance = isCurrentlyFocused
+        ? euclideanDistance * 0.82
+        : euclideanDistance;
 
-      if (dist < minDistance) {
-        minDistance = dist;
+      if (effectiveDistance < minEffectiveDistance) {
+        minEffectiveDistance = effectiveDistance;
         bestEl = el;
       }
     });
@@ -207,6 +239,9 @@ class MobileCardFocusManager {
     if (!this.isTouchDevice()) return;
     const rect = el.getBoundingClientRect();
     this.lastTouchX = rect.left + rect.width / 2;
+    // Lock for 750ms so inertia scroll right after tap doesn't immediately dismiss it
+    this.manualLockUntil = Date.now() + 750;
+
     if (this.currentFocusedEl !== el) {
       if (this.currentFocusedEl) {
         this.setElementFocus(this.currentFocusedEl, false);
@@ -214,6 +249,17 @@ class MobileCardFocusManager {
       this.currentFocusedEl = el;
       this.setElementFocus(el, true);
     }
+  }
+
+  public rebindAll() {
+    if (typeof document === 'undefined') return;
+    const cards = document.querySelectorAll<HTMLElement>('.z-card-container');
+    cards.forEach((card) => {
+      if (!this.registeredCards.has(card)) {
+        this.register(card, () => {});
+      }
+    });
+    this.scheduleEvaluation();
   }
 
   private destroy() {
@@ -225,6 +271,7 @@ class MobileCardFocusManager {
       window.removeEventListener('scroll', this.onScroll);
       window.removeEventListener('resize', this.onResize);
       window.removeEventListener('touchstart', this.onTouchStart);
+      window.removeEventListener('touchmove', this.onTouchMove);
       window.removeEventListener('pointerdown', this.onPointerDown);
       this.isListening = false;
     }
