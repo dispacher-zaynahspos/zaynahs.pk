@@ -80,7 +80,7 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
   // ── Image hover style ─────────────────────────────────────────────────────────
   const hoverStyle = settings?.imageHoverStyle ?? 'second_image';
   const isZoom = hoverStyle === 'zoom';
-  const isSecondImage = hoverStyle === 'second_image';
+  const isSecondImage = hoverStyle !== 'none' && hoverStyle !== 'zoom';
   const showSecond = isSecondImage && Boolean(secondImage) && !hoveredImage;
 
   const productUrl = `/product/${product.slug}`;

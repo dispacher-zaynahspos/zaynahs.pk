@@ -52,7 +52,7 @@ export const mapSettings = (row: SettingsRow): StoreSettings => ({
   swatchSize: (row.swatch_size as 'sm' | 'md' | 'lg') ?? 'md',
   swatchLimit: row.swatch_limit ?? 8,
   defaultVariantIndex: row.default_variant_index ?? 1,
-  imageHoverStyle: (row.image_hover_style as 'second_image' | 'zoom' | 'none') ?? 'second_image',
+  imageHoverStyle: (row.image_hover_style as 'second_image' | 'zoom' | 'slide_left' | 'zoom_swap' | 'fade_up' | 'blur_crossfade' | 'flip_3d' | 'none') ?? 'second_image',
   imageAspectRatio: row.image_aspect_ratio ?? '1:1',
   titleLineLimit: (row.title_line_limit as '1' | '2' | 'none') ?? '2',
   archiveSwatchSize: (row.archive_swatch_size as any) ?? 'md',

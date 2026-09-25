@@ -44,7 +44,7 @@ export function useSettingsTrustAndProducts({ initialSettings }: UseSettingsTrus
   const [swatchSize, setSwatchSize] = useState<'sm' | 'md' | 'lg'>(initialSettings.swatchSize ?? 'md');
   const [swatchLimit, setSwatchLimit] = useState<number>(initialSettings.swatchLimit ?? 8);
   const [defaultVariantIndex, setDefaultVariantIndex] = useState<number>(initialSettings.defaultVariantIndex ?? 1);
-  const [imageHoverStyle, setImageHoverStyle] = useState<'second_image' | 'zoom' | 'none'>(
+  const [imageHoverStyle, setImageHoverStyle] = useState<'second_image' | 'zoom' | 'slide_left' | 'zoom_swap' | 'fade_up' | 'blur_crossfade' | 'flip_3d' | 'none'>(
     initialSettings.imageHoverStyle ?? 'second_image'
   );
   const [imageAspectRatio, setImageAspectRatio] = useState(initialSettings.imageAspectRatio ?? '1:1');

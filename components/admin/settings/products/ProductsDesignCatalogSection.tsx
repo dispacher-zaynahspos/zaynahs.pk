@@ -3,8 +3,8 @@
 import React from 'react';
 
 interface ProductsDesignCatalogSectionProps {
-  imageHoverStyle: 'second_image' | 'zoom' | 'none';
-  setImageHoverStyle: (val: 'second_image' | 'zoom' | 'none') => void;
+  imageHoverStyle: 'second_image' | 'zoom' | 'slide_left' | 'zoom_swap' | 'fade_up' | 'blur_crossfade' | 'flip_3d' | 'none';
+  setImageHoverStyle: (val: any) => void;
   imageAspectRatio: string;
   setImageAspectRatio: (val: string) => void;
   titleLineLimit: '1' | '2' | 'none';
@@ -41,9 +41,14 @@ export function ProductsDesignCatalogSection({
             onChange={(e) => setImageHoverStyle(e.target.value as any)}
             className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f0f1b] px-4 py-2.5 text-sm focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
           >
-            <option value="second_image">Show Second Image</option>
-            <option value="zoom">Zoom Effect</option>
-            <option value="none">None</option>
+            <option value="second_image">Second Image (Fade Swap)</option>
+            <option value="slide_left">Slide Left (Zara Style)</option>
+            <option value="zoom_swap">Zoom & Swap (Luxury Editorial)</option>
+            <option value="fade_up">Fade & Rise (Upward Drift)</option>
+            <option value="blur_crossfade">Blur & Reveal (Apple Aesthetic)</option>
+            <option value="flip_3d">3D Card Turn (Jewelry/Accessories)</option>
+            <option value="zoom">Primary Image Zoom</option>
+            <option value="none">None (Static Image)</option>
           </select>
           <p className="text-[10px] text-gray-400 mt-1">Select the visual effect when hovering over product catalog images.</p>
         </div>

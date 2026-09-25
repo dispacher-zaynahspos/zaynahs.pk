@@ -19,8 +19,8 @@ interface ProductsTabProps {
   setProductSwatchSize: (val: 'xxs' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'xxl') => void;
   defaultVariantIndex: number;
   setDefaultVariantIndex: (val: number) => void;
-  imageHoverStyle: 'second_image' | 'zoom' | 'none';
-  setImageHoverStyle: (val: 'second_image' | 'zoom' | 'none') => void;
+  imageHoverStyle: 'second_image' | 'zoom' | 'slide_left' | 'zoom_swap' | 'fade_up' | 'blur_crossfade' | 'flip_3d' | 'none';
+  setImageHoverStyle: (val: any) => void;
   imageAspectRatio: string;
   setImageAspectRatio: (val: string) => void;
   titleLineLimit: '1' | '2' | 'none';

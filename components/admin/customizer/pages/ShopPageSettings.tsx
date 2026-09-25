@@ -116,9 +116,14 @@ export default function ShopPageSettings({
             onChange={(e) => onUpdateSettings({ imageHoverStyle: e.target.value as any })}
             className="w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#0f0f1b] px-3 py-2 text-xs font-semibold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
           >
-            <option value="second_image">Show Second Image</option>
-            <option value="zoom">Zoom Effect</option>
-            <option value="none">None</option>
+            <option value="second_image">Second Image (Fade Swap)</option>
+            <option value="slide_left">Slide Left (Zara Style)</option>
+            <option value="zoom_swap">Zoom & Swap (Luxury Editorial)</option>
+            <option value="fade_up">Fade & Rise (Upward Drift)</option>
+            <option value="blur_crossfade">Blur & Reveal (Apple Aesthetic)</option>
+            <option value="flip_3d">3D Card Turn (Jewelry/Accessories)</option>
+            <option value="zoom">Primary Image Zoom</option>
+            <option value="none">None (Static Image)</option>
           </select>
         </div>
 

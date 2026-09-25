@@ -41,12 +41,12 @@ class MobileCardFocusManager {
   private initObserver() {
     if (this.observer || typeof window === 'undefined') return;
 
-    // Define central active focus zone: top 20% and bottom 20% excluded
+    // Define active focus zone: top 8% and bottom 8% excluded for fast responsive capture
     this.observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           const el = entry.target as HTMLElement;
-          if (entry.isIntersecting && entry.intersectionRatio > 0.1) {
+          if (entry.isIntersecting) {
             this.intersectingEntries.set(el, entry);
           } else {
             this.intersectingEntries.delete(el);
@@ -56,8 +56,8 @@ class MobileCardFocusManager {
       },
       {
         root: null,
-        rootMargin: '-20% 0px -20% 0px',
-        threshold: [0, 0.2, 0.4, 0.6, 0.8, 1.0],
+        rootMargin: '-8% 0px -8% 0px',
+        threshold: [0, 0.1, 0.25, 0.5, 0.75, 1.0],
       }
     );
 
@@ -65,6 +65,7 @@ class MobileCardFocusManager {
       window.addEventListener('scroll', this.onScroll, { passive: true });
       window.addEventListener('resize', this.onResize, { passive: true });
       window.addEventListener('touchstart', this.onTouchStart, { passive: true });
+      window.addEventListener('touchmove', this.onTouchMove, { passive: true });
       window.addEventListener('pointerdown', this.onPointerDown, { passive: true });
       this.isListening = true;
     }
@@ -74,6 +75,12 @@ class MobileCardFocusManager {
     if (e.touches && e.touches[0]) {
       this.lastTouchX = e.touches[0].clientX;
       this.scheduleEvaluation();
+    }
+  };
+
+  private onTouchMove = (e: TouchEvent) => {
+    if (e.touches && e.touches[0]) {
+      this.lastTouchX = e.touches[0].clientX;
     }
   };
 
@@ -117,8 +124,8 @@ class MobileCardFocusManager {
       return;
     }
 
-    // Natural eye/thumb focus on mobile viewport (around 42% from top)
-    const targetY = window.innerHeight * 0.42;
+    // Natural eye/thumb focus on mobile viewport (around 45% from top)
+    const targetY = window.innerHeight * 0.45;
     const targetX = this.lastTouchX;
 
     let bestEl: HTMLElement | null = null;
@@ -137,11 +144,11 @@ class MobileCardFocusManager {
       // and horizontal distance to targetX (thumb/touch column) to choose between left vs right card
       const dy = Math.abs(cardCenterY - targetY);
       const dx = Math.abs(cardCenterX - targetX);
-      let dist = dy * 2.2 + dx * 0.8;
+      let dist = dy * 2.0 + dx * 0.5;
 
-      // Hysteresis: give currently focused card an advantage so micro-movements don't flicker
+      // Calibrated hysteresis: 20px so focused card doesn't jitter, but allows new cards to focus effortlessly on first pass
       if (el === this.currentFocusedEl) {
-        dist -= 45;
+        dist -= 20;
       }
 
       if (dist < minDistance) {

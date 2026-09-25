@@ -106,7 +106,7 @@ export interface StoreSettings {
   enable_product_quick_whatsapp?: boolean;
   swatchLimit: number;
   defaultVariantIndex: number;
-  imageHoverStyle?: 'second_image' | 'zoom' | 'none';
+  imageHoverStyle?: 'second_image' | 'zoom' | 'slide_left' | 'zoom_swap' | 'fade_up' | 'blur_crossfade' | 'flip_3d' | 'none';
   imageAspectRatio?: string;
   titleLineLimit?: '1' | '2' | 'none';
   productPageLayout?: string[];
