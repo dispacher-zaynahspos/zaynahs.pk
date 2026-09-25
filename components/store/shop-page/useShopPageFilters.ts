@@ -41,7 +41,6 @@ export function useShopPageFilters({
   const urlAvailabilityParam = (searchParams.get('availability') || '').split(',').filter(Boolean);
   const urlMinPriceParam = searchParams.get('minPrice');
   const urlMaxPriceParam = searchParams.get('maxPrice');
-  const PAGE_SIZE = 12;
 
   const SYSTEM_CATEGORY_ID = '00000000-0000-4000-8000-000000000099';
 
@@ -77,6 +76,7 @@ export function useShopPageFilters({
 
   const { settings: liveSettings } = useSettings(settings);
   const activeSettings = isPreview ? settings : (liveSettings ?? settings);
+  const PAGE_SIZE = Number(activeSettings?.shop_products_per_page) || 12;
 
   useScrollRestoration();
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);

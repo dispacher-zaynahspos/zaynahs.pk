@@ -165,6 +165,7 @@ export const mapSettings = (row: SettingsRow): StoreSettings => ({
   shop_columns_desktop: row.shop_columns_desktop ?? 4,
   shop_columns_tablet: row.shop_columns_tablet ?? 3,
   shop_columns_mobile: row.shop_columns_mobile ?? 2,
+  shop_products_per_page: (row as any).shop_products_per_page ?? 12,
   shop_category_chips_enabled: row.shop_category_chips_enabled ?? true,
   shop_infinite_scroll: row.shop_infinite_scroll ?? false,
   recent_buyers_enabled: row.recent_buyers_enabled ?? true,

@@ -178,6 +178,7 @@ export const updateSettings = async (settings: Partial<StoreSettings>): Promise<
     if (settings.shop_columns_desktop !== undefined) updatePayload.shop_columns_desktop = settings.shop_columns_desktop;
     if (settings.shop_columns_tablet !== undefined) updatePayload.shop_columns_tablet = settings.shop_columns_tablet;
     if (settings.shop_columns_mobile !== undefined) updatePayload.shop_columns_mobile = settings.shop_columns_mobile;
+    if (settings.shop_products_per_page !== undefined) updatePayload.shop_products_per_page = settings.shop_products_per_page;
     if (settings.shop_category_chips_enabled !== undefined) updatePayload.shop_category_chips_enabled = settings.shop_category_chips_enabled;
     if (settings.shop_infinite_scroll !== undefined) updatePayload.shop_infinite_scroll = settings.shop_infinite_scroll;
     if (settings.recent_buyers_enabled !== undefined) updatePayload.recent_buyers_enabled = settings.recent_buyers_enabled;

@@ -172,6 +172,7 @@ export interface SettingsRow {
   shop_columns_desktop?: number | null;
   shop_columns_tablet?: number | null;
   shop_columns_mobile?: number | null;
+  shop_products_per_page?: number | null;
   shop_category_chips_enabled?: boolean | null;
   shop_infinite_scroll?: boolean | null;
   recent_buyers_enabled?: boolean | null;

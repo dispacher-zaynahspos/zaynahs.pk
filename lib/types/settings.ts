@@ -232,6 +232,7 @@ export interface StoreSettings {
   shop_columns_desktop?: number;
   shop_columns_tablet?: number;
   shop_columns_mobile?: number;
+  shop_products_per_page?: number;
   shop_category_chips_enabled?: boolean;
   shop_infinite_scroll?: boolean;
   recent_buyers_enabled?: boolean;

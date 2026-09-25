@@ -227,6 +227,46 @@ export default function ShopPageSettings({
           onChangeTablet={(cols: number) => onUpdateSettings({ shop_columns_tablet: cols })}
           onChangeMobile={(cols: number) => onUpdateSettings({ shop_columns_mobile: cols })}
         />
+
+        {/* Products Per Page / Load More Limit */}
+        <div className="space-y-2 p-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-white/[0.02]">
+          <div className="flex justify-between items-center">
+            <label className="text-[11px] font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider block">
+              Products per Page / Batch Limit
+            </label>
+            <span className="text-xs font-black text-[#e94560]">
+              {settings.shop_products_per_page || 12} products
+            </span>
+          </div>
+          <input
+            type="range"
+            min="6"
+            max="48"
+            step="2"
+            value={settings.shop_products_per_page || 12}
+            onChange={(e) => onUpdateSettings({ shop_products_per_page: parseInt(e.target.value) })}
+            className="w-full accent-[#e94560] cursor-pointer"
+          />
+          <div className="flex gap-1.5 pt-1">
+            {[8, 12, 16, 24, 36, 48].map((preset) => (
+              <button
+                key={preset}
+                type="button"
+                onClick={() => onUpdateSettings({ shop_products_per_page: preset })}
+                className={`flex-1 py-1 rounded-lg border text-[10px] font-bold transition-all cursor-pointer ${
+                  (settings.shop_products_per_page || 12) === preset
+                    ? 'border-[#e94560] bg-[#e94560]/10 text-[#e94560] font-black'
+                    : 'border-gray-200 dark:border-gray-800 text-gray-500 hover:text-gray-900 dark:hover:text-white bg-white dark:bg-[#16162a]'
+                }`}
+              >
+                {preset}
+              </button>
+            ))}
+          </div>
+          <p className="text-[10px] text-gray-400">
+            Number of products shown initially and loaded on each &quot;Load More&quot; click or infinite scroll batch.
+          </p>
+        </div>
       </div>
     </div>
   );

@@ -5,6 +5,7 @@ import { StoreSettings } from '@/lib/types';
 import { ChevronUp, ChevronDown } from '@/components/common/Icons';
 import { ProductCardVisibilitySection } from './product-card/ProductCardVisibilitySection';
 import { ProductCardSwatchSettingsSection } from './product-card/ProductCardSwatchSettingsSection';
+import { ProductCardPreviewStudio } from './product-card/ProductCardPreviewStudio';
 
 interface ProductCardSettingsProps {
   settings: StoreSettings;
@@ -73,32 +74,87 @@ export default function ProductCardSettings({ settings, onUpdateSettings }: Prod
           </select>
         </div>
 
-        {/* Mobile Columns Option */}
+        {/* Image Hover Style Selector */}
         <div className="space-y-1.5 pt-2">
           <label className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest block">
-            Mobile Grid Columns
+            Image Hover / Scroll Animation Style
           </label>
-          <div className="flex gap-2">
-            {[
-              { id: 1, label: '1 Column (Large Cards)' },
-              { id: 2, label: '2 Columns (Standard Grid)' }
-            ].map(colOption => {
-              const isActive = (settings.card_mobile_columns || 2) === colOption.id;
-              return (
-                <button
-                  key={colOption.id}
-                  type="button"
-                  onClick={() => onUpdateSettings({ card_mobile_columns: colOption.id })}
-                  className={`flex-1 py-2 rounded-xl border text-[10px] font-extrabold tracking-wide uppercase transition-all cursor-pointer ${isActive
-                    ? 'border-[#e94560] bg-[#e94560]/5 text-[#e94560] font-black'
-                    : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 text-gray-500 bg-white dark:bg-[#16162a]'
-                    }`}
-                >
-                  {colOption.label}
-                </button>
-              );
-            })}
+          <select
+            value={settings.imageHoverStyle || 'second_image'}
+            onChange={(e) => onUpdateSettings({ imageHoverStyle: e.target.value as any })}
+            className="w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-[#f8f8f8] dark:bg-[#0f0f1b] px-3 py-2 text-xs font-bold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
+          >
+            <option value="second_image">Second Image (Fade Swap)</option>
+            <option value="slide_left">Slide Left (Zara Style)</option>
+            <option value="zoom_swap">Zoom &amp; Swap (Luxury Editorial)</option>
+            <option value="fade_up">Fade &amp; Rise (Upward Drift)</option>
+            <option value="blur_crossfade">Blur &amp; Reveal (Apple Aesthetic)</option>
+            <option value="flip_3d">3D Card Turn (Jewelry/Accessories)</option>
+            <option value="zoom">Primary Image Zoom</option>
+            <option value="none">None (Static Image)</option>
+          </select>
+          <p className="text-[10px] text-gray-400">
+            Select the visual animation when hovering on desktop or scrolling past cards on mobile.
+          </p>
+        </div>
+
+        {/* Live Animation & Hover Preview Studio */}
+        <ProductCardPreviewStudio settings={settings} />
+
+        {/* Image Aspect Ratio */}
+        <div className="space-y-1.5 pt-2">
+          <label className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest block">
+            Image Aspect Ratio
+          </label>
+          <select
+            value={settings.imageAspectRatio || '3:4'}
+            onChange={(e) => onUpdateSettings({ imageAspectRatio: e.target.value })}
+            className="w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-[#f8f8f8] dark:bg-[#0f0f1b] px-3 py-2 text-xs font-bold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
+          >
+            <option value="3:4">3:4 (Portrait - Fashion &amp; Apparel)</option>
+            <option value="1:1">1:1 (Square - Jewelry &amp; Accessories)</option>
+            <option value="4:3">4:3 (Landscape)</option>
+            <option value="auto">Auto (Natural height)</option>
+          </select>
+          <p className="text-[10px] text-gray-400">
+            Specify image aspect ratio across all catalog grids.
+          </p>
+        </div>
+
+        {/* Title Line Limit */}
+        <div className="space-y-1.5 pt-2">
+          <label className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest block">
+            Archive Title Line Limit
+          </label>
+          <select
+            value={settings.titleLineLimit || '2'}
+            onChange={(e) => onUpdateSettings({ titleLineLimit: e.target.value as any })}
+            className="w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-[#f8f8f8] dark:bg-[#0f0f1b] px-3 py-2 text-xs font-bold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
+          >
+            <option value="1">1 Line Limit</option>
+            <option value="2">2 Lines Limit (Default)</option>
+            <option value="none">Full Title (Unlimited)</option>
+          </select>
+          <p className="text-[10px] text-gray-400">
+            Clamp long titles to maintain uniform card heights.
+          </p>
+        </div>
+
+        {/* Show Catalog Short Descriptions Toggle */}
+        <div className="flex items-center justify-between pt-2 pb-1 border-t border-gray-100 dark:border-gray-800">
+          <div>
+            <span className="text-xs font-bold text-gray-700 dark:text-gray-300 block">Show Catalog Descriptions</span>
+            <span className="text-[10px] text-gray-400">Display short descriptions below titles on catalog grids</span>
           </div>
+          <label className="relative inline-flex items-center cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={settings.card_show_description === true}
+              onChange={(e) => onUpdateSettings({ card_show_description: e.target.checked })}
+              className="sr-only peer"
+            />
+            <div className="w-10 h-5 bg-gray-200 dark:bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#e94560]" />
+          </label>
         </div>
       </div>
 
