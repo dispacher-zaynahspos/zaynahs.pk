@@ -162,6 +162,7 @@ CREATE TABLE IF NOT EXISTS products (
   badge_enabled BOOLEAN DEFAULT true,
   size_guide_id UUID,
   frequently_bought_together_ids UUID[] DEFAULT '{}'::uuid[],
+  premium_themes_enabled BOOLEAN DEFAULT false,
   flash_sale_enabled BOOLEAN DEFAULT false,
   flash_sale_start_date TIMESTAMPTZ,
   flash_sale_end_date TIMESTAMPTZ,

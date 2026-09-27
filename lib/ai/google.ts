@@ -1,31 +1,56 @@
 // Real, currently-valid Google Generative Language API model IDs.
-// `gemini-3.6-flash` (previously hardcoded here) is NOT a real Google model — it 404s.
-export const DEFAULT_GOOGLE_MODEL = 'gemini-2.0-flash';
-export const GOOGLE_FALLBACK_MODEL = 'gemini-1.5-flash';
+// Gemini 3.5 Flash is Google's active 1,500 req/day FREE model supporting both Text & Vision.
+export const DEFAULT_GOOGLE_MODEL = 'gemini-3.5-flash';
+export const GOOGLE_FALLBACK_MODEL = 'gemini-flash-latest';
 
 export const GOOGLE_MODELS = {
-  text: ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-flash-latest'],
-  vision: ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-flash-latest'],
+  text: [
+    'gemini-3.5-flash',
+    'gemini-3.8-flash',
+    'gemini-flash-latest',
+    'gemini-3.5-flash-lite',
+    'gemini-3.7-flash',
+    'gemini-3.6-flash',
+    'gemini-3.1-flash-lite',
+    'gemma-4-31b-it',
+    'gemma-4-26b-a4b-it'
+  ],
+  vision: [
+    'gemini-3.5-flash',
+    'gemini-3.8-flash',
+    'gemini-flash-latest',
+    'gemini-3.5-flash-lite',
+    'gemini-3.7-flash',
+    'gemini-3.6-flash'
+  ],
 } as const;
 
 export const GOOGLE_FREE_LIMITS: Record<string, { reqPerDay: number; rpm: number }> = {
-  'gemini-2.5-flash': { reqPerDay: 1500, rpm: 15 },
-  'gemini-2.0-flash': { reqPerDay: 1500, rpm: 15 },
-  'gemini-1.5-flash': { reqPerDay: 1500, rpm: 15 },
-  'gemini-1.5-pro': { reqPerDay: 50, rpm: 2 },
+  'gemini-3.5-flash': { reqPerDay: 1500, rpm: 15 },
+  'gemini-3.8-flash': { reqPerDay: 1500, rpm: 15 },
   'gemini-flash-latest': { reqPerDay: 1500, rpm: 15 },
+  'gemini-3.5-flash-lite': { reqPerDay: 1500, rpm: 15 },
+  'gemini-3.7-flash': { reqPerDay: 1500, rpm: 15 },
+  'gemini-3.6-flash': { reqPerDay: 1500, rpm: 15 },
+  'gemini-3.1-flash-lite': { reqPerDay: 1500, rpm: 15 },
 };
 
 /**
  * Resolve the admin-selected Google model to a real API model ID.
- * Respects any genuine `gemini-*` / `gemma-*` model the admin picked; coerces the
- * fictitious `gemini-3.x` strings (and blanks) to the safe current default.
+ * Automatically upgrades retired models (gemini-1.5-flash, gemini-2.0-flash, gemini-2.5-flash)
+ * to gemini-3.5-flash to prevent 404 NOT_FOUND errors.
  */
 export function normalizeGoogleModel(requestedModel: string): string {
   const m = (requestedModel || '').trim().toLowerCase();
   if (!m) return DEFAULT_GOOGLE_MODEL;
-  // Fictitious / non-existent Google models that were previously hardcoded → default.
-  if (m.startsWith('gemini-3.')) return DEFAULT_GOOGLE_MODEL;
+  if (
+    m === 'gemini-1.5-flash' ||
+    m === 'gemini-1.5-pro' ||
+    m === 'gemini-2.0-flash' ||
+    m === 'gemini-2.5-flash'
+  ) {
+    return DEFAULT_GOOGLE_MODEL;
+  }
   if (m.startsWith('gemini-') || m.startsWith('gemma-')) return m;
   return DEFAULT_GOOGLE_MODEL;
 }
@@ -40,8 +65,13 @@ export async function callGoogle(
   mimeType?: string,
 ): Promise<string> {
   const primaryModel = normalizeGoogleModel(model);
-  const fallbackModel = primaryModel === GOOGLE_FALLBACK_MODEL ? DEFAULT_GOOGLE_MODEL : GOOGLE_FALLBACK_MODEL;
-  const modelsToTry = [primaryModel, fallbackModel];
+  const modelsToTry = Array.from(new Set([
+    primaryModel,
+    DEFAULT_GOOGLE_MODEL,
+    'gemini-flash-latest',
+    'gemini-3.8-flash',
+    'gemini-3.5-flash-lite'
+  ]));
 
   const wantsJson = /json|\{|\}/i.test(prompt) || /json/i.test(systemPrompt);
 

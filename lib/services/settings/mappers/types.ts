@@ -8,6 +8,7 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder';
 
 export const staticSupabase = createSupabaseClient(supabaseUrl, supabaseAnonKey, {
+  auth: { persistSession: false, autoRefreshToken: false },
   global: { fetch: (url, init) => fetch(url, { ...init, cache: 'no-store' }) }
 });
 
@@ -165,6 +166,7 @@ export interface SettingsRow {
   recently_viewed_title?: string | null;
   recently_viewed_subtitle?: string | null;
   related_products_enabled?: boolean | null;
+  premium_themes_enabled?: boolean | null;
   related_products_title?: string | null;
   related_products_subtitle?: string | null;
   related_products_limit?: number | null;

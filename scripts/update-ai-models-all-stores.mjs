@@ -73,10 +73,10 @@ async function updateStoreAI(envFile) {
     creds.content.gemini = geminiKey;
   }
 
-  const newVisionModel = 'gemini-2.0-flash';
+  const newVisionModel = 'gemini-3.5-flash';
   let newContentModel = current.content_model || 'llama-3.3-70b-versatile';
-  if (current.content_provider === 'gemini' || newContentModel.includes('gemini-3.')) {
-    newContentModel = 'gemini-2.0-flash';
+  if (current.content_provider === 'gemini' || newContentModel.includes('gemini-') || newContentModel.includes('gemini-3.')) {
+    newContentModel = 'gemini-3.5-flash';
   }
 
   const { data: updated, error: updateErr } = await supabase

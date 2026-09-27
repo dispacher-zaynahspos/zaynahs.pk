@@ -49,7 +49,7 @@ export function AdminMobileDrawer({
         style={{ 
           background: 'linear-gradient(180deg, var(--color-primary, #C2185B) 0%, var(--color-secondary, #880E4F) 100%)' 
         }}
-        className={`fixed inset-y-0 left-0 w-64 max-w-[80vw] text-white z-50 transform transition-transform duration-300 md:hidden flex flex-col h-full border-r border-white/10 shadow-2xl ${
+        className={`fixed inset-y-0 left-0 w-64 max-w-[80vw] text-white z-50 transform transition-transform duration-300 md:hidden flex flex-col h-full border-r border-white/10 shadow-2xl pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)] ${
           isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >

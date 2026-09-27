@@ -24,7 +24,7 @@ If any zone/token fails → fix immediately, never skip.
 ## RULE AUTO1 — Agent automation flow (clone/setup)
 When the user provides these 7 values (project ref ID auto-extracted from URL):
 1. Supabase URL (ref auto-extracted) + service role key
-2. Cloudflare zone ID + API token
+2. Cloudflare zone ID + API token (`cfut_...`)
 3. Vercel API token (Settings → Tokens → Create)
 4. GitHub personal access token (repo + contents write)
 5. Domain name
@@ -36,3 +36,22 @@ The agent automatically:
 - **Verify**: cache headers (HIT/MISS/BYPASS), webhook (`revalidated:true`), CF purge API, page rules active.
 
 Full details: `docs/NEW_PROJECT_SETUP_GUIDE.md#agent-automation--full-setup-flow`.
+
+---
+
+## RULE CLONE1 — Mandatory Autonomous Clone Setup by Agent (STRICT)
+⚠️ **Never ask the user to manually configure dashboards or run setup steps.**
+Whenever the user asks to clone, fork, or set up a new store:
+1. **Agent collects credentials only**: If not already present in `env-backups/<store>.env.local` or `.env.local`, request ONLY the required store credentials from the user:
+   * Supabase URL & Service Role Key
+   * Cloudflare Zone ID & API Purge Token (`cfut_...`)
+   * Vercel Project Name & Token (or CLI login)
+   * Domain name
+2. **Agent executes 100% autonomously via CLI & APIs**:
+   * **Stage 1 (Environment)**: Sets up `.env.local` and creates `env-backups/<store>.env.local` with separate credentials (RULE CRED1).
+   * **Stage 2 (Database)**: Applies `supabase/schema/SUPER_MASTER_SCHEMA.sql` directly to the new Supabase project via Management API or script.
+   * **Stage 3 (Cache Webhooks)**: Creates the 5 auto-purge triggers on Supabase pointing to `https://<domain>/api/revalidate` with `REVALIDATE_SECRET=zaynahs_secret_cache_revalidate_2026`.
+   * **Stage 4 (Cloudflare Caching)**: Creates the 4 Cloudflare Cache Rules and DNS records via Cloudflare API (no manual dashboard work).
+   * **Stage 5 (Vercel Sync)**: Pushes environment variables to Vercel and links domain.
+   * **Stage 6 (Audit & Verify)**: Executes `node scripts/post-deploy-fix.mjs` to purge all caches and verify HTTP 200 and `{ revalidated: true }`.
+3. **Report to user**: Once complete, provide a concise summary showing all 6 stages verified green (`OK ✅`).

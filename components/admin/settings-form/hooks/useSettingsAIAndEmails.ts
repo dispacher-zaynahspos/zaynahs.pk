@@ -35,7 +35,7 @@ export function useSettingsAIAndEmails({ initialSettings }: UseSettingsAIAndEmai
     initialSettings.ai_model_credentials || {}
   );
   const [visionProvider, setVisionProvider] = useState(initialSettings.vision_provider || 'gemini');
-  const [visionModel, setVisionModel] = useState(initialSettings.vision_model || 'gemini-2.0-flash');
+  const [visionModel, setVisionModel] = useState(initialSettings.vision_model || 'gemini-3.5-flash');
 
   const pConfig: {
     tone?: string;

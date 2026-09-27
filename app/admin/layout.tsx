@@ -197,7 +197,7 @@ function AdminLayoutContent({
           setIsMobileMenuOpen={setIsMobileMenuOpen}
         />
 
-        <main id="admin-main-content" className="flex-1 w-full max-w-full px-3 sm:px-4 md:px-5 pt-14 md:pt-4 pb-14 md:pb-6 overflow-y-auto overflow-x-hidden bg-slate-50/70 dark:bg-[#0b0b14] transition-colors duration-200">
+        <main id="admin-main-content" className="flex-1 w-full max-w-full px-3 sm:px-4 md:px-5 pt-[calc(3.5rem+env(safe-area-inset-top,0px))] md:pt-4 pb-[calc(4.75rem+env(safe-area-inset-bottom,0px))] md:pb-6 overflow-y-auto overflow-x-hidden bg-slate-50/70 dark:bg-[#0b0b14] transition-colors duration-200">
           {children}
         </main>
       </div>

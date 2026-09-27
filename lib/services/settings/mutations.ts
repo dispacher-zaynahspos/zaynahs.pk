@@ -170,6 +170,7 @@ export const updateSettings = async (settings: Partial<StoreSettings>): Promise<
     if (settings.recently_viewed_title !== undefined) updatePayload.recently_viewed_title = settings.recently_viewed_title;
     if (settings.recently_viewed_subtitle !== undefined) updatePayload.recently_viewed_subtitle = settings.recently_viewed_subtitle;
     if (settings.related_products_enabled !== undefined) updatePayload.related_products_enabled = settings.related_products_enabled;
+    if (settings.premium_themes_enabled !== undefined) updatePayload.premium_themes_enabled = settings.premium_themes_enabled;
     if (settings.related_products_title !== undefined) updatePayload.related_products_title = settings.related_products_title;
     if (settings.related_products_subtitle !== undefined) updatePayload.related_products_subtitle = settings.related_products_subtitle;
     if (settings.related_products_limit !== undefined) updatePayload.related_products_limit = settings.related_products_limit;

@@ -221,6 +221,7 @@ export interface StoreSettings {
   recently_viewed_columns_tablet?: number;
   recently_viewed_columns_mobile?: number;
   related_products_enabled?: boolean;
+  premium_themes_enabled?: boolean;
   related_products_title?: string;
   related_products_subtitle?: string;
   related_products_limit?: number;

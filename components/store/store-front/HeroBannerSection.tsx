@@ -70,7 +70,7 @@ export function HeroBannerSection({ section, settings }: HeroBannerSectionProps)
     ];
   }, [section, settings, bannerUrl]);
 
-  const autoplayPlugin = React.useRef(Autoplay({ delay: autoplaySpeed, stopOnInteraction: false }));
+  const autoplayPlugin = React.useRef(Autoplay({ delay: autoplaySpeed, stopOnInteraction: false, playOnInit: false }));
 
   const [emblaRef, emblaApi] = useEmblaCarousel(
     { loop: slides.length > 1, align: 'center', skipSnaps: false },
@@ -95,10 +95,18 @@ export function HeroBannerSection({ section, settings }: HeroBannerSectionProps)
     const autoplay = emblaApi.plugins().autoplay;
     if (!autoplay) return;
 
-    if (isAutoplay && slides.length > 1) {
-      autoplay.play();
-    } else {
-      autoplay.stop();
+    // Guard: the autoplay plugin's play() reads the engine's scroll snaps, which
+    // can be empty if the carousel isn't measured yet (e.g. hidden/0-width in the
+    // customizer preview iframe on mobile) → "Cannot read properties of undefined
+    // (reading '0')". reInit first, and never let it crash the whole preview.
+    try {
+      if (isAutoplay && slides.length > 1) {
+        if (emblaApi.scrollSnapList().length > 0) autoplay.play();
+      } else {
+        autoplay.stop();
+      }
+    } catch (err) {
+      console.warn('[HeroBanner] autoplay toggle skipped:', err);
     }
   }, [emblaApi, isAutoplay, slides.length]);
 

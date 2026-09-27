@@ -6,6 +6,7 @@
 - Local build/test
 - Feature-branch commit + push
 - Preview deploy
+- Autonomous store clone setup via CLI & APIs (RULE CLONE1 — Schema, Webhooks, Cloudflare rules, Vercel sync)
 
 ## ⚠️ Confirm-first (explain, then proceed)
 - Schema migration

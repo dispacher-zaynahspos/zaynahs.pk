@@ -28,7 +28,8 @@ export type PremiumFeature =
   | 'cart_timer'
   | 'size_guide'
   | 'coupon_codes'
-  | 'related_products';
+  | 'related_products'
+  | 'premium_themes';
 
 /** feature key -> the `store_settings` boolean column that gates it */
 export const PREMIUM_FEATURE_FLAG: Record<PremiumFeature, keyof StoreSettings> = {
@@ -46,6 +47,7 @@ export const PREMIUM_FEATURE_FLAG: Record<PremiumFeature, keyof StoreSettings> =
   size_guide: 'size_guide_enabled',
   coupon_codes: 'coupon_codes_enabled',
   related_products: 'related_products_enabled',
+  premium_themes: 'premium_themes_enabled',
 };
 
 /** human-facing labels used by admin toasts / lock badges */
@@ -64,6 +66,7 @@ export const PREMIUM_FEATURE_LABEL: Record<PremiumFeature, string> = {
   size_guide: 'Size Guide',
   coupon_codes: 'Coupon Codes',
   related_products: 'Related Products',
+  premium_themes: 'Premium Themes',
 };
 
 /**

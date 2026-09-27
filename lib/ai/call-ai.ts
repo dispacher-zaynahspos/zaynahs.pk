@@ -95,8 +95,8 @@ export async function callAI(
   }
 
   const freeHint = isVision
-    ? ' Try switching to: Groq llama-4-scout (14,400 req/day FREE), Gemini 2.0 Flash (1,500 req/day FREE), or OpenRouter free models.'
-    : ' Try switching to: Groq llama-4-scout (fastest, 14,400 req/day FREE) or Gemini 2.0 Flash (1,500 req/day FREE).';
+    ? ' Try switching to: Groq llama-4-scout (14,400 req/day FREE), Gemini 3.5 Flash (1,500 req/day FREE), or OpenRouter free models.'
+    : ' Try switching to: Groq llama-4-scout (fastest, 14,400 req/day FREE) or Gemini 3.5 Flash (1,500 req/day FREE).';
   throw new Error(`All ${provider} API keys exhausted (rate limited).${freeHint} Update keys or switch provider in Settings → AI Models.`);
 }
 
@@ -126,8 +126,13 @@ async function executeRequest(
   switch (provider.toLowerCase()) {
     case 'gemini': {
       const primaryModel = normalizeGoogleModel(model);
-      const fallbackModel = primaryModel === GOOGLE_FALLBACK_MODEL ? DEFAULT_GOOGLE_MODEL : GOOGLE_FALLBACK_MODEL;
-      const modelsToTry = [primaryModel, fallbackModel];
+      const modelsToTry = Array.from(new Set([
+        primaryModel,
+        DEFAULT_GOOGLE_MODEL,
+        'gemini-flash-latest',
+        'gemini-3.8-flash',
+        'gemini-3.5-flash-lite'
+      ]));
       const wantsJson = /json|\{|\}/i.test(prompt) || /json/i.test(systemPrompt);
 
       const parts: any[] = [];

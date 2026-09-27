@@ -48,7 +48,7 @@ export async function getAISettings(): Promise<AISettings> {
         ? JSON.parse(data.ai_model_credentials)
         : (data.ai_model_credentials ?? {}),
     vision_provider: data.vision_provider ?? 'gemini',
-    vision_model: data.vision_model || 'gemini-2.0-flash',
+    vision_model: data.vision_model || 'gemini-3.5-flash',
     vision_keys: data.vision_keys ?? '',
     brand_name: data.store_name ?? '',
     store_type: productTypesFlat || 'General',

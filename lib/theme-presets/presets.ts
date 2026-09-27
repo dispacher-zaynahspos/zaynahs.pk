@@ -4,6 +4,8 @@ export interface ThemePreset {
   id: string;
   name: string;
   feel: string;
+  /** Premium ("PRO") theme — gated behind the `premium_themes` feature flag. */
+  premium?: boolean;
   config: ThemeConfig;
 }
 
@@ -438,6 +440,83 @@ export const THEME_PRESETS: ThemePreset[] = [
       cards: {
         borderRadius: 28,
       },
+    },
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // PREMIUM ("PRO") THEMES — gated behind the `premium_themes` feature flag
+  // (Settings ▸ Premium). Like Shopify's paid themes: curated, higher-end looks.
+  // ─────────────────────────────────────────────────────────────────────────
+  {
+    id: 'noir_luxe',
+    name: '✦ Noir Luxe',
+    feel: 'High-end dark editorial (PRO)',
+    premium: true,
+    config: {
+      colors: {
+        primary: '#0A0A0A', secondary: '#2A2A2A', accent: '#C9A227',
+        background: '#0E0E10', surface: '#17171A', textPrimary: '#F5F5F5',
+        textSecondary: '#A8A8A8', border: '#2A2A2E', textHeading: '#FFFFFF',
+        textAccent: '#C9A227', price: '#C9A227',
+      },
+      fonts: { heading: 'Cormorant Garamond', body: 'Inter' },
+      typography: { fontSizeBase: 16 },
+      buttons: { borderRadius: 2, primaryBg: '#C9A227', primaryText: '#0A0A0A', primaryHover: '#B8911F' },
+      cards: { borderRadius: 4 },
+    },
+  },
+  {
+    id: 'emerald_atelier',
+    name: '✦ Emerald Atelier',
+    feel: 'Boutique jewelry elegance (PRO)',
+    premium: true,
+    config: {
+      colors: {
+        primary: '#0F3D2E', secondary: '#1B5E43', accent: '#D4AF37',
+        background: '#FBFAF7', surface: '#FFFFFF', textPrimary: '#14231D',
+        textSecondary: '#5C6B63', border: '#E7E3D8', textHeading: '#0F3D2E',
+        textAccent: '#D4AF37', price: '#0F3D2E',
+      },
+      fonts: { heading: 'Playfair Display', body: 'Jost' },
+      typography: { fontSizeBase: 16 },
+      buttons: { borderRadius: 8, primaryBg: '#0F3D2E', primaryText: '#FFFFFF', primaryHover: '#14231D' },
+      cards: { borderRadius: 14 },
+    },
+  },
+  {
+    id: 'sunset_boutique',
+    name: '✦ Sunset Boutique',
+    feel: 'Warm modern fashion gradient (PRO)',
+    premium: true,
+    config: {
+      colors: {
+        primary: '#E4572E', secondary: '#F3A712', accent: '#8338EC',
+        background: '#FFF8F3', surface: '#FFFFFF', textPrimary: '#2B2118',
+        textSecondary: '#7A6A5C', border: '#F1E4D8', textHeading: '#E4572E',
+        textAccent: '#8338EC', price: '#E4572E',
+      },
+      fonts: { heading: 'Poppins', body: 'Inter' },
+      typography: { fontSizeBase: 16 },
+      buttons: { borderRadius: 14, primaryBg: '#E4572E', primaryText: '#FFFFFF', primaryHover: '#C6461F' },
+      cards: { borderRadius: 20 },
+    },
+  },
+  {
+    id: 'midnight_tech',
+    name: '✦ Midnight Tech',
+    feel: 'Sleek modern electronics (PRO)',
+    premium: true,
+    config: {
+      colors: {
+        primary: '#3B82F6', secondary: '#6366F1', accent: '#22D3EE',
+        background: '#0B1120', surface: '#131C31', textPrimary: '#E8EEF9',
+        textSecondary: '#94A3B8', border: '#1E293B', textHeading: '#FFFFFF',
+        textAccent: '#22D3EE', price: '#22D3EE',
+      },
+      fonts: { heading: 'Space Grotesk', body: 'Inter' },
+      typography: { fontSizeBase: 16 },
+      buttons: { borderRadius: 10, primaryBg: '#3B82F6', primaryText: '#FFFFFF', primaryHover: '#2563EB' },
+      cards: { borderRadius: 16 },
     },
   },
 ];

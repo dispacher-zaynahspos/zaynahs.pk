@@ -9,7 +9,7 @@ import { safeAction } from '@/lib/utils/serverAction';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder';
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || supabaseAnonKey;
-const staticSupabase = createSupabaseClient(supabaseUrl, supabaseServiceKey, { global: { fetch: (url, init) => fetch(url, { ...init, cache: 'no-store' }) } });
+const staticSupabase = createSupabaseClient(supabaseUrl, supabaseServiceKey, { auth: { persistSession: false, autoRefreshToken: false }, global: { fetch: (url, init) => fetch(url, { ...init, cache: 'no-store' }) } });
 
 export const fetchCollections = async (): Promise<Collection[]> => {
   try {

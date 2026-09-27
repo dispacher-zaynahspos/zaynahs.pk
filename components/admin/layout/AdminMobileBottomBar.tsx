@@ -19,7 +19,7 @@ export function AdminMobileBottomBar({ pathname, todayCounts }: AdminMobileBotto
   ];
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-[#16162a]/95 backdrop-blur-md border-t border-gray-200/80 dark:border-gray-800/80 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] transition-colors duration-200">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-[#16162a]/95 backdrop-blur-md border-t border-gray-200/80 dark:border-gray-800/80 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] transition-colors duration-200 pb-[env(safe-area-inset-bottom,0px)]">
       <div className="flex items-center justify-around h-16 px-1">
         {tabs.map(tab => {
           const Icon = tab.icon;

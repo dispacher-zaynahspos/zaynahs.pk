@@ -134,6 +134,7 @@ export function CustomizerLeftSidebar({
             </div>
             <AppearancePresetsList
               settings={storeSettings}
+              onUpdateSettings={(updates) => setStoreSettings(prev => ({ ...prev, ...updates }))}
               onSelectPreset={(presetId: string, presetConfig: ThemeConfig) => {
                 setStoreSettings(prev => ({
                   ...prev,
