@@ -7,6 +7,7 @@ import { Product, StoreSettings } from '@/lib/types';
 import { ShoppingCart, Heart, Eye } from '@/components/common/Icons';
 import { formatPrice } from '@/lib/utils/whatsapp';
 import { saveScrollPosition } from '@/lib/hooks/useScrollRestoration';
+import { useMobileCardFocus } from '@/lib/hooks/useMobileCardFocus';
 
 interface StandardProductCardProps {
   product: Product;
@@ -67,6 +68,15 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
   onAddToCart,
   onCardClick,
 }) => {
+  // ── Mobile scroll-focus (Shopify-style): the card nearest the reading band gets
+  //    `is-in-focus active-card` → its hover image plays + action icons spawn.
+  //    Desktop keeps pure CSS :hover. A direct touch also locks focus onto the card. ──
+  const { cardRef, isFocused, setManualFocus } = useMobileCardFocus();
+
+  const handlePointerDown = (e: React.PointerEvent) => {
+    if (e.pointerType === 'touch') setManualFocus();
+  };
+
   // ── Image hover style ─────────────────────────────────────────────────────────
   const hoverStyle = settings?.image_hover_style ?? 'second_image';
   const isZoom = hoverStyle === 'zoom';
@@ -140,17 +150,19 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
     // ── SHOPIFY PATTERN ──────────────────────────────────────────────────────────
     // Outer div: NOT a Link (avoids mobile double-tap issue).
     // Transparent overlay Link at z-[1] covers entire card → single tap navigates
-    // DIRECTLY to the product (no scroll/focus intermediate state — RULE UI card-interaction).
-    // Icons at z-[25] win over overlay → icon taps don't navigate.
+    // DIRECTLY to the product. Icons at z-[25] win over overlay → icon taps don't navigate.
     // Title Link at z-[2] → tap on title navigates directly.
-    // Action icons: always visible on touch devices; hover-reveal ONLY on hover-capable
-    // pointer devices (@media hover:hover in customCss). Scroll position never drives this.
+    // Action icons + hover image: revealed on mobile when the card is the scroll-focused
+    // one (`is-in-focus active-card`, driven by useMobileCardFocus); on hover-capable
+    // devices they reveal on real CSS :hover (customCss @media hover:hover).
     // ─────────────────────────────────────────────────────────────────────────────
     <div
+      ref={cardRef}
       id={`product-card-${product.id}`}
       data-hover-effect={hoverStyle}
+      onPointerDown={handlePointerDown}
       style={{ borderRadius: 'var(--border-radius-card, 16px)', touchAction: 'pan-y' }}
-      className={`z-card-container group relative flex flex-col overflow-hidden border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] shadow-xs hover:shadow-md transition-all duration-300`}
+      className={`z-card-container group relative flex flex-col overflow-hidden border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] shadow-xs hover:shadow-md transition-all duration-300 ${isFocused ? 'is-in-focus active-card' : ''}`}
     >
       {/* ── Shopify-style full-card transparent overlay link ── */}
       {/* Sits at z-[1], covers entire card, enables single-tap navigation on mobile */}
@@ -215,7 +227,7 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
 
         {/* Action icons — z-[25], above overlay link. Container: pointer-events:none */}
         {/* Each button: pointer-events:auto. stopPropagation prevents overlay link tap. */}
-        {/* On mobile: always visible (CSS makes them persistent). Desktop: fade in on CSS hover. */}
+        {/* Mobile: revealed when the card is scroll-focused (.active-card). Desktop: CSS :hover. */}
         <div
           className="card-actions absolute right-1.5 sm:right-2 top-1.5 sm:top-2 flex flex-col gap-1.5 z-[25] transition-all duration-200 ease-out"
           style={{ pointerEvents: 'none' }}

@@ -56,18 +56,30 @@ All overlays, popups, filters, search-suggestion pools, and mobile drawer menus 
 ## RULE M5 — Desktop/mobile jitter prevention
 CPU-heavy blur styles (`backdrop-blur-sm`, `backdrop-blur-xs`) on modals/filter overlays are forbidden — only high-contrast solid options (`bg-black/60`). GPU acceleration triggers `will-change-transform` + `transform-gpu` are mandatory on scrollable layers.
 
-## RULE M6 — Product Card action-icon interaction (REPLACES old scroll-focus algorithm)
-> ⚠️ The old "Single-Card Focus & Dynamic Proximity" scroll algorithm (v1.0.9) has been **REMOVED**.
-> A scroll/IntersectionObserver-driven `.is-in-focus`/`.active-card` state made quick-action icons
-> appear on cards while merely scrolling past them (no tap) — a confirmed bug. `useMobileCardFocus` /
-> `MobileCardFocusManager` is deleted. Scroll position must never drive card UI.
+## RULE M6 — Single-Card Scroll Focus & Dynamic Proximity Algorithm
+On touch/mobile catalog grids, exactly **one** card at a time holds `.is-in-focus` / `.active-card`
+— the card nearest the mobile reading band. That focused card plays its hover image (2nd image /
+zoom / slide etc.) AND spawns the quick-action icons (wishlist / quick-view / cart). This is the
+Shopify-style behavior the store owner requires.
 
-Current behavior (SSOT: `docs/UI_RULES.md` §10 — RULE UI-CARD-INTERACTION):
-- **Touch devices**: action icons (wishlist / quick-view / cart) are **always visible**; a tap on the
-  card tile navigates **directly** to the product — no tap-to-focus/reveal step.
-- **Hover-capable pointer devices only** (`@media (hover: hover) and (pointer: fine)`): icons reveal on
-  real `:hover`.
-- No IntersectionObserver / scroll / proximity logic may control the overlay. The admin customizer
-  preview may still toggle `.is-in-focus`/`.active-card` explicitly (deliberate simulation, allowed).
-- Full guide: `docs/UI_RULES.md` §10 + `docs/UI_PERFORMANCE_GUIDE.md` Section 7.
+Implementation is the ONE shared coordinator `lib/hooks/useMobileCardFocus.ts`
+(`MobileCardFocusManager` — a rAF-coalesced IntersectionObserver singleton). Do not hand-roll a
+second scroll/focus mechanism (RULE SSOT1).
+- **Dynamic Bounding Box**: read dimensions via `el.getBoundingClientRect()` every eval — never
+  hardcode heights. Works with all theme aspect ratios (`square`, `3/4`, natural, compact).
+- **Sweet-Spot Distance**: weighted Euclidean distance from card center to the mobile focal target
+  (`window.innerHeight * 0.45`, `targetX = lastTouchX`); vertical weight 1.4.
+- **18% Hysteresis Lock**: active card keeps focus until a neighbor is >18% closer
+  (`effectiveDist = active ? dist * 0.82 : dist`) → no left/right flicker.
+- **Direct Tap Override**: tapping a card locks focus for 750ms (`manualLockUntil`) so micro-scroll
+  inertia doesn't dismiss it.
+- **Action Icons**: hidden by default on touch; spawn on `.active-card` with hardware-accelerated
+  `translate3d(0,0,0)`, `will-change: transform, opacity`, staggered delays (see `customCss.tsx`).
+- **Navigation (Shopify single-tap)**: transparent full-card overlay `Link` at `z-[1]` → tap anywhere
+  on the tile (image included) navigates directly to the product; title `Link` at `z-[2]`; action
+  icons at `z-[25]` win over the overlay so their taps fire their own action, never navigate.
+- **Desktop** (`@media (hover: hover) and (pointer: fine)`): pure CSS `:hover` drives the same reveal.
+- The admin customizer preview toggles `.is-in-focus`/`.active-card` explicitly (deliberate
+  simulation, allowed).
+- Full guide: `docs/UI_RULES.md` §10 (RULE UI-CARD-INTERACTION) + `lib/hooks/useMobileCardFocus.ts`.
 

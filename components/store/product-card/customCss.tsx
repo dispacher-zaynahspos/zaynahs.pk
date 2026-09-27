@@ -348,16 +348,19 @@ export const customCss = `
     .z-card-container .ai:hover .tt,
     .z-card-container .action-btn:hover .tt { opacity: 1; }
 
-    /* ── Touch & Mobile Screen: Action Button Overlay ── */
-    /* Touch devices can't hover, and tapping the card now navigates DIRECTLY to the
-       product (no scroll/focus reveal). So the quick-action icons are ALWAYS visible
-       here — deliberate, touch-friendly, and never driven by scroll position. */
+    /* ── Touch & Mobile Screen: Scroll-Focus Action Overlay ── */
+    /* Touch devices can't hover, so the Shopify-style scroll-focus coordinator
+       (useMobileCardFocus) adds .is-in-focus.active-card to the card nearest the
+       reading band. Icons are HIDDEN by default here and SPAWN on the focused card
+       (rules above). A direct tap also locks focus onto the touched card. */
     @media (max-width: 768px), (hover: none) {
+      /* Base: action icons hidden until the card becomes scroll-focused */
       .z-card-container .card-actions,
       .z-card-container .aic {
-        opacity: 1 !important;
-        transform: translate3d(0, 0, 0) !important;
-        pointer-events: auto !important;
+        opacity: 0 !important;
+        transform: translate3d(10px, 0, 0) !important;
+        will-change: transform, opacity;
+        pointer-events: none !important;
         right: 6px !important;
         top: 6px !important;
         gap: 5px !important;

@@ -100,22 +100,26 @@ list can exceed the viewport). Reference implementations: `components/store/Quic
 when touched.
 
 ## 10. Product Card interactive overlays — interaction trigger (RULE: UI-CARD-INTERACTION)
-Product Card interactive overlays (wishlist, quick-view, add-to-cart icons) must only be triggered
-by genuine user interaction:
-- On **hover-capable pointer devices only** (`@media (hover: hover) and (pointer: fine)`), reveal on
-  real `:hover`/`:focus`.
-- On **touch devices**, the icons are ALWAYS visible (deliberate, touch-friendly) and a tap on the
-  card tile navigates DIRECTLY to the product page — there is no "tap-to-focus / reveal" intermediate
-  state.
-- Scroll position, viewport visibility, or IntersectionObserver state must NEVER drive this UI. Any
-  scroll/proximity-based "focus" mechanism is forbidden here (the removed
-  `useMobileCardFocus`/`MobileCardFocusManager` was the confirmed root cause of icons appearing on
-  cards while merely scrolling past them — do not reintroduce it).
+Product Card interactive overlays (wishlist, quick-view, add-to-cart icons) and the second-image
+hover effect are revealed by genuine interaction, Shopify-style:
+- On **hover-capable pointer devices** (`@media (hover: hover) and (pointer: fine)`), reveal on real
+  `:hover`/`:focus` (pure CSS).
+- On **touch devices**, exactly **one** card at a time holds `.is-in-focus`/`.active-card` — the card
+  nearest the mobile reading band (weighted-Euclidean proximity to `innerHeight * 0.45`, `targetX =
+  lastTouchX`, 18% hysteresis lock). That focused card plays its hover image AND spawns the action
+  icons. This is driven by the ONE shared coordinator `lib/hooks/useMobileCardFocus.ts`
+  (`MobileCardFocusManager`, a rAF-coalesced IntersectionObserver singleton). Do not hand-roll a
+  second scroll/focus mechanism (RULE SSOT1).
+- Navigation is Shopify-style single-tap: a transparent full-card overlay `Link` at `z-[1]` means a
+  tap anywhere on the tile (including the image after it is focused) navigates DIRECTLY to the product;
+  the title is its own `Link` at `z-[2]`; action icons at `z-[25]` win over the overlay so their taps
+  fire their own action and never navigate.
+- A direct touch on a card also locks focus onto it for 750ms so scroll inertia doesn't dismiss it.
 
 This applies to the single shared Product Card component used everywhere (home, shop, category,
-collections, search results, customizer preview) — no per-grid exceptions (RULE SSOT1). The admin
-customizer preview may still toggle `.is-in-focus`/`.active-card` explicitly to SIMULATE a hover
-state — that is a deliberate control, not scroll-driven, and is allowed.
+collections, search results) — no per-grid exceptions (RULE SSOT1). The admin customizer preview
+toggles `.is-in-focus`/`.active-card` explicitly to SIMULATE the focus state — a deliberate control,
+allowed.
 
 ## 9. Price display order (RULE PRICE1 — established, price-order bug fix)
 - Discounted price order is **fixed app-wide: SALE price FIRST (prominent), then the STRIKETHROUGH original price SECOND.** Never the reverse, anywhere (shop/home/category/collections/search grid cards, product detail, quick view, wishlist, cart lines, order summaries, customizer preview).

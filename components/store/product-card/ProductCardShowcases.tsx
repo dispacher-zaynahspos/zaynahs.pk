@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { Product, StoreSettings } from '@/lib/types';
 import { saveScrollPosition } from '@/lib/hooks/useScrollRestoration';
+import { useMobileCardFocus } from '@/lib/hooks/useMobileCardFocus';
 import { ProductCardStyleInjector } from './ProductCardStyles';
 import { ProductCardBadges } from './ProductCardBadges';
 import { ProductCardMedia } from './ProductCardMedia';
@@ -69,6 +70,15 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
   onAddToCart,
   onCardClick,
 }) => {
+  // ── Mobile scroll-focus (Shopify-style): the card nearest the reading band gets
+  //    `is-in-focus active-card` → hover image plays + action icons spawn.
+  //    Desktop keeps pure CSS :hover. A direct touch also locks focus onto the card. ──
+  const { cardRef, isFocused, setManualFocus } = useMobileCardFocus();
+
+  const handlePointerDown = (e: React.PointerEvent) => {
+    if (e.pointerType === 'touch') setManualFocus();
+  };
+
   const styleClassMap: Record<string, string> = {
     showcase_1: 'sc1', showcase_2: 'sc2', showcase_3: 'sc3', showcase_4: 'sc4',
     showcase_5: 'sc5', showcase_6: 'sc6', showcase_7: 'sc7', showcase_8: 'sc8',
@@ -92,15 +102,18 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
   // ── SHOPIFY PATTERN: outer div + transparent overlay Link ─────────────────────
   // • Outer div (not a Link → no double-tap issue)
   // • Transparent overlay Link at z-[1] = single-tap navigates DIRECTLY to the product
-  //   (no scroll/focus intermediate state — RULE UI card-interaction)
   // • Actions at z-[25] = icon taps win over overlay, don't navigate
   // • Title Link at z-[2] in ShowcaseContent = semantic title navigation
+  // • Mobile: hover image + action icons reveal when this card is scroll-focused
+  //   (`is-in-focus active-card` via useMobileCardFocus); desktop uses CSS :hover.
   const renderContent = (
     <div
+      ref={cardRef}
       id={`product-card-${product.id}`}
       data-hover-effect={hoverStyle}
+      onPointerDown={handlePointerDown}
       style={{ touchAction: 'pan-y' }}
-      className={`z-card-container ${scClass} group relative`}
+      className={`z-card-container ${scClass} group relative ${isFocused ? 'is-in-focus active-card' : ''}`}
     >
       {/* Full-card transparent overlay link — single-tap = navigate, no double-tap */}
       <Link

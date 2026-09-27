@@ -63,7 +63,7 @@ Full-system audit + permanent fixes are documented in `docs/AUDIT_PASS{0..10}_*.
 | 27 | [27-single-source-of-truth.md](docs/agent-rules/27-single-source-of-truth.md) | SSOT1 — zero duplicate implementations, one shared source per feature |
 
 ## 🔗 External Docs (unchanged locations)
-- `docs/UI_RULES.md` — design-system UI reference. **§9 popup/modal/bottom-sheet scroll standard** (shared `lib/hooks/useBodyScrollLock.ts`, `flex-1 min-h-0 overflow-y-auto overscroll-contain`) and **§10 product-card interaction trigger** (touch = always-visible icons + tap opens product directly; hover-reveal only via `@media (hover:hover)`; scroll/IntersectionObserver must never drive card overlays) live here.
+- `docs/UI_RULES.md` — design-system UI reference. **§9 popup/modal/bottom-sheet scroll standard** (shared `lib/hooks/useBodyScrollLock.ts`, `flex-1 min-h-0 overflow-y-auto overscroll-contain`) and **§10 product-card interaction trigger** (Shopify-style: touch = single scroll-focused card plays hover image + spawns icons via shared `lib/hooks/useMobileCardFocus.ts`; hover devices use CSS `@media (hover:hover)`; full-card overlay `Link` = single-tap opens product, icons win at `z-[25]`) live here.
 - `docs/SCHEMA_CHANGE_LOG.md` — every DB change, dated
 - `docs/STORE_GUIDE.md` — GitHub & Supabase credentials
 - `docs/CLOUDFLARE_SUPABASE_SETUP.md` — cache rules, webhooks, ISR guide, 1-click setup scripts
