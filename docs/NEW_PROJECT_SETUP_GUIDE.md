@@ -49,6 +49,12 @@ env-backups/
 node scripts/post-deploy-fix.mjs
 ```
 
+Security / schema health (read-only, safe — run after any DB change):
+```bash
+node scripts/verify-rls-status.mjs     # RLS ON/OFF + policies for every sensitive table, per store
+```
+Expected: every listed table shows `RLS ✓` (never `RLS ✗ (OPEN)`) after the v7.0.0 schema.
+
 Or manual live check:
 ```bash
 node -e "
@@ -87,6 +93,12 @@ Jab bhi aap koi **naya e-commerce project** banayenge, toh yeh 3 step process ho
 ### Step 1: Schema (Supabase mein)
 * **Code change NAHI karna.** Code (Next.js) sab projects ka 100% SAME hai. 
 * Supabase ke SQL editor mein direct `SUPER_MASTER_SCHEMA.sql` copy-paste karke run karna hai. Yeh sari tables, policies aur base logic bana dega.
+* **v7.0.0 se:** master schema mein **RLS har table pe already included** hai (sections/subscribers/templates/schema_version + products/orders/customers/settings). Fresh clone pe kuch alag se enable nahi karna. Existing store ko sync karna ho to:
+  ```bash
+  node scripts/apply-s1-rls.mjs        # RLS enable on any store still missing it (idempotent)
+  node scripts/apply-schema-sync.mjs   # snake_case column parity + JSONB backfill (idempotent, safe)
+  node scripts/verify-rls-status.mjs   # confirm
+  ```
 
 ### Step 2: Triggers (Setup time, Terminal se)
 * Ab aapko manually trigger copy-paste nahi karne. 
@@ -108,6 +120,25 @@ Jab bhi aap koi **naya e-commerce project** banayenge, toh yeh 3 step process ho
 * **Triggers Bug:** Pehle Supabase triggers empty body `{}` bhej rahe thay. Islye frontend cache update nahi hota tha. Ab `setup-triggers.mjs` hamesha proper JSON bhejta hai.
 * **Vercel Env Vars:** Zaynahs aur dusray projects mein ghalat Cloudflare/Supabase tokens lagay thay. Ab har project ka token strict separate hoga (`env-backups/` files mein).
 * **Flash Sale Bug:** UI mein dates clear karne par `undefined` ja raha tha. Ab TypeScript aur Form dono `null` bhejte hain taake DB usay sahi delete karay.
+
+### 🧱 Architecture Invariants (v7.0.0 — DEEP_AUDIT_PLAN ke baad, ALWAYS TRUE)
+* **snake_case end-to-end** — DB columns, API, frontend state, JSONB keys sab snake_case (RULE D13). Koi camelCase conversion layer nahi. Order/cart JSONB legacy camel read-time normalize hota hai + DB backfilled.
+* **RLS har table pe** — public read sirf jahan storefront ko chahiye; secrets/PII service-role only. `whatsapp_subscribers` public SELECT NAHI (signup service-role server action se: `lib/services/sections/subscribe-actions.ts`).
+* **Atomic writes (RULE D15)** — har multi-table write (product create/update, social-proof, import-overwrite) snapshot + rollback karta hai; mid-write fail pe kuch bhi half-saved nahi.
+* **Single Source of Truth (RULE SSOT1)** — duplicate UI/logic banned. Shared sources: `lib/constants/productCardOptions.ts`, `lib/constants/headerAnnouncementFields.ts` + `components/admin/shared/HeaderAnnouncementFields.tsx`, `components/admin/shared/reporting-widgets/*`. Naya field UI banane se pehle grep karo ke woh column kahin aur to edit nahi hota.
+* **WhatsApp phone sanitize** ek hi jagah — write boundary `updateSettings` (mutations.ts). UI raw input leta hai.
+* **Cache invalidation (RULE C10)** — har write path `revalidateEntity`/tags se sab layers purge karta hai.
+* **Known-pending (S2):** `store_settings` secrets + `customers`/`orders` abhi bhi anon-readable — fix ke liye `docs/SECURITY_STORE_SETTINGS_SECRETS_PLAN.md` (public-safe view + code-split, staging QA maangta hai). Ise blindly apply mat karna — storefront `select('*')` toot jaayega.
+
+### 🛠️ Maintenance / DB scripts (all read env-backups/<store>.env.local, idempotent)
+| Script | Kaam |
+|---|---|
+| `scripts/verify-rls-status.mjs` | READ-ONLY — RLS + policies report per store |
+| `scripts/apply-s1-rls.mjs` | RLS enable on the 4 sensitive tables (all stores) |
+| `scripts/apply-schema-sync.mjs` | snake_case column parity + order/cart JSONB backfill |
+| `scripts/run-migration.mjs <file>` | ek migration file kisi ek store pe (root `.env.local`) |
+| `scripts/run-all-env-backups-migrations.mjs` | ek migration sab stores pe |
+| Rollback | `supabase/migrations/20260926140001_rollback_enable_rls_unprotected_tables.sql` |
 
 ---
 
