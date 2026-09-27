@@ -272,6 +272,8 @@ export function buildSettingsPayload(data: {
     meta_description: popupsPixels.metaDescription.trim(),
     ai_enabled: aiEmails.aiEnabled,
     ai_model_credentials: aiEmails.aiModelCredentials,
+    content_keys: (aiEmails.aiModelCredentials?.content?.[aiEmails.contentProvider.trim()] || '').trim(),
+    vision_keys: (aiEmails.aiModelCredentials?.vision?.[aiEmails.visionProvider.trim()] || '').trim(),
     ai_persona_config: aiEmails.aiPersonaConfig,
     content_provider: aiEmails.contentProvider.trim(),
     content_model: aiEmails.contentModel.trim(),

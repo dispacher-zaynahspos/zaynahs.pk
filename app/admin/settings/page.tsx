@@ -1,11 +1,11 @@
 import React, { Suspense } from 'react';
 import SettingsForm from '@/components/admin/SettingsForm';
-import { getSettings } from '@/lib/services/settings';
+import { getAdminSettings } from '@/lib/services/settings';
 
 export const revalidate = 0; // Dynamic server rendering
 
 export default async function AdminSettingsPage() {
-  const settings = await getSettings();
+  const settings = await getAdminSettings();
 
   return (
     <div className="space-y-6">

@@ -65,7 +65,7 @@ export function useProductFormAiCopywrite({
       };
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000);
+      const timeoutId = setTimeout(() => controller.abort(), 120000);
 
       const response = await fetch('/api/seo/optimize', {
         method: 'POST',
@@ -105,7 +105,11 @@ export function useProductFormAiCopywrite({
         toast.success('AI description, short description, and tags generated successfully!');
       }
     } catch (err: any) {
-      toast.error(err.message || 'AI generation failed');
+      if (err.name === 'AbortError' || err.message?.includes('abort') || err.message?.includes('aborted')) {
+        toast.error('AI generation timed out. Please try again or switch model provider in Settings.');
+      } else {
+        toast.error(err.message || 'AI generation failed');
+      }
     } finally {
       setIsAiGenerating(false);
     }

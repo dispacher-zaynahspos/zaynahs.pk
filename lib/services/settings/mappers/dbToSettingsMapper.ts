@@ -307,3 +307,23 @@ export const mapSettings = (row: SettingsRow): StoreSettings => ({
 
   updated_at: row.updated_at
 });
+
+export const mapAdminSettings = (row: any): StoreSettings => {
+  const settings = mapSettings(row);
+  let creds: Record<string, Record<string, string>> = {};
+  try {
+    creds = typeof row.ai_model_credentials === 'string'
+      ? JSON.parse(row.ai_model_credentials)
+      : (row.ai_model_credentials || {});
+  } catch {
+    creds = {};
+  }
+  return {
+    ...settings,
+    ai_model_credentials: creds,
+    content_keys: row.content_keys ?? '',
+    vision_keys: row.vision_keys ?? '',
+    smtp_app_password: row.smtp_app_password ?? '',
+    postex_api_token: row.postex_api_token ?? '',
+  };
+};

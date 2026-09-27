@@ -1,7 +1,8 @@
 import { createClient } from '@/lib/supabase/server';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 import { StoreSettings } from '@/lib/types';
 import { logDbError } from '@/lib/utils/dbErrorHandler';
-import { staticSupabase, SETTINGS_ID, mapSettings } from './mappers';
+import { staticSupabase, SETTINGS_ID, mapSettings, mapAdminSettings } from './mappers';
 
 export const fetchSettings = async (): Promise<StoreSettings> => {
   try {
@@ -72,6 +73,24 @@ export const getSettings = async (): Promise<StoreSettings> => {
     );
     return cachedFn();
   } catch {
+    return fetchSettings();
+  }
+};
+
+export const getAdminSettings = async (): Promise<StoreSettings> => {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('store_settings')
+      .select('*')
+      .eq('id', SETTINGS_ID)
+      .maybeSingle();
+
+    if (error || !data) {
+      return fetchSettings();
+    }
+    return mapAdminSettings(data);
+  } catch (err) {
+    console.error('[getAdminSettings] Error fetching admin settings:', err);
     return fetchSettings();
   }
 };

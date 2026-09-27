@@ -6,6 +6,7 @@ import { revalidateSettings, revalidateAfterResponse } from '@/lib/revalidate';
 import { logDbError } from '@/lib/utils/dbErrorHandler';
 import { safeAction } from '@/lib/utils/serverAction';
 import { cleanWhatsAppPhone } from '@/lib/utils/whatsapp';
+import { AI_SETTINGS_ID } from '@/lib/config/singleton-ids';
 import { SETTINGS_ID, mapSettings } from './mappers';
 
 export const updateSettings = async (settings: Partial<StoreSettings>): Promise<StoreSettings> => {
@@ -326,6 +327,27 @@ export const updateSettings = async (settings: Partial<StoreSettings>): Promise<
       .single();
 
     if (error) throw error;
+
+    // Direct sync to ai_settings table to ensure both tables are permanently in sync
+    const aiFields: Record<string, any> = {};
+    if (updatePayload.ai_enabled !== undefined) aiFields.ai_enabled = updatePayload.ai_enabled;
+    if (updatePayload.ai_model_credentials !== undefined) aiFields.ai_model_credentials = updatePayload.ai_model_credentials;
+    if (updatePayload.content_provider !== undefined) aiFields.content_provider = updatePayload.content_provider;
+    if (updatePayload.content_model !== undefined) aiFields.content_model = updatePayload.content_model;
+    if (updatePayload.content_keys !== undefined) aiFields.content_keys = updatePayload.content_keys;
+    if (updatePayload.vision_provider !== undefined) aiFields.vision_provider = updatePayload.vision_provider;
+    if (updatePayload.vision_model !== undefined) aiFields.vision_model = updatePayload.vision_model;
+    if (updatePayload.vision_keys !== undefined) aiFields.vision_keys = updatePayload.vision_keys;
+    if (updatePayload.auto_content_seo !== undefined) aiFields.auto_content_seo = updatePayload.auto_content_seo;
+    if (updatePayload.auto_media_ai !== undefined) aiFields.auto_media_ai = updatePayload.auto_media_ai;
+
+    if (Object.keys(aiFields).length > 0) {
+      await supabaseAdmin
+        .from('ai_settings')
+        .update({ ...aiFields, updated_at: new Date().toISOString() })
+        .eq('id', AI_SETTINGS_ID);
+    }
+
     // Fast save: schedule cache invalidation (incl. the slow Cloudflare zone purge)
     // AFTER the response so the admin save returns instantly instead of hanging.
     try {

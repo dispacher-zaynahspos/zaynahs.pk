@@ -67,10 +67,10 @@ export async function callGoogle(
   const primaryModel = normalizeGoogleModel(model);
   const modelsToTry = Array.from(new Set([
     primaryModel,
-    DEFAULT_GOOGLE_MODEL,
+    'gemini-3.5-flash-lite',
     'gemini-flash-latest',
     'gemini-3.8-flash',
-    'gemini-3.5-flash-lite'
+    DEFAULT_GOOGLE_MODEL,
   ]));
 
   const wantsJson = /json|\{|\}/i.test(prompt) || /json/i.test(systemPrompt);
@@ -98,11 +98,15 @@ export async function callGoogle(
       body.generationConfig = { responseMimeType: 'application/json' };
     }
 
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 40000);
+
     try {
       const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
+        signal: controller.signal,
       });
 
       if (!res.ok) {
@@ -128,10 +132,13 @@ export async function callGoogle(
       return text;
     } catch (fetchErr: any) {
       lastError = fetchErr;
-      if (fetchErr.status === 503 || fetchErr.status === 404 || fetchErr.status === 429) {
+      if (fetchErr.status === 503 || fetchErr.status === 404 || fetchErr.status === 429 || fetchErr.name === 'AbortError') {
+        console.warn(`[callGoogle] ${currentModel} failed (${fetchErr.message}). Trying fallback...`);
         continue;
       }
       throw fetchErr;
+    } finally {
+      clearTimeout(timer);
     }
   }
 

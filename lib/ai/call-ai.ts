@@ -128,10 +128,10 @@ async function executeRequest(
       const primaryModel = normalizeGoogleModel(model);
       const modelsToTry = Array.from(new Set([
         primaryModel,
-        DEFAULT_GOOGLE_MODEL,
+        'gemini-3.5-flash-lite',
         'gemini-flash-latest',
         'gemini-3.8-flash',
-        'gemini-3.5-flash-lite'
+        DEFAULT_GOOGLE_MODEL,
       ]));
       const wantsJson = /json|\{|\}/i.test(prompt) || /json/i.test(systemPrompt);
 
@@ -329,19 +329,34 @@ async function executeRequest(
   }
 }
 
-async function makeFetch(url: string, headers: Record<string, string>, body: any): Promise<string> {
-  const response = await fetch(url, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify(body)
-  });
+async function makeFetch(url: string, headers: Record<string, string>, body: any, timeoutMs: number = 40000): Promise<string> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
 
-  if (!response.ok) {
-    const errText = await response.text();
-    const error: any = new Error(`API Error ${response.status}: ${errText}`);
-    error.status = response.status;
-    throw error;
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      const error: any = new Error(`API Error ${response.status}: ${errText}`);
+      error.status = response.status;
+      throw error;
+    }
+
+    return response.text();
+  } catch (err: any) {
+    if (err.name === 'AbortError' || err.message?.includes('aborted')) {
+      const timeoutErr: any = new Error(`Request timed out after ${timeoutMs / 1000}s`);
+      timeoutErr.status = 503;
+      throw timeoutErr;
+    }
+    throw err;
+  } finally {
+    clearTimeout(timer);
   }
-
-  return response.text();
 }
