@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireAdmin } from '@/lib/auth/requireAdmin';
 
 // Always use production API for token validation (get-merchant-address, get-order-types)
 // — matches Zaynahs Courier Manger behaviour exactly (postexApi.ts always uses POSTEX_HOST = 'https://api.postex.pk')
@@ -36,6 +37,8 @@ function isSuccess(body: any): boolean {
 }
 
 export async function POST(req: NextRequest) {
+  const _denied = await requireAdmin(req);
+  if (_denied) return _denied;
   try {
     const { apiToken } = await req.json();
 

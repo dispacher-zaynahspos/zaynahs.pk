@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { STORE_SETTINGS_ID, AI_SETTINGS_ID } from '@/lib/config/singleton-ids';
 import { createClient } from '@/lib/supabase/client';
 import Link from 'next/link';
 import { 
@@ -41,12 +42,12 @@ export default function CategoriesSEOClient() {
           supabase
             .from('ai_settings')
             .select('ai_enabled')
-            .eq('id', '00000000-0000-4000-8000-000000000002')
+            .eq('id', AI_SETTINGS_ID)
             .single(),
           supabase
             .from('store_settings')
             .select('store_url, store_name')
-            .eq('id', '00000000-0000-4000-8000-000000000001')
+            .eq('id', STORE_SETTINGS_ID)
             .single()
         ]);
         setAiEnabled(aiRes.data?.ai_enabled ?? false);

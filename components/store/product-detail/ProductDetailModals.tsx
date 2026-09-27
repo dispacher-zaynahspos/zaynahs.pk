@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Copy, Check } from '@/components/common/Icons';
 import { StoreSettings, Product } from '@/lib/types';
+import { isFeatureEnabled } from '@/lib/features/premium';
 import { toast } from 'sonner';
 
 interface ProductDetailModalsProps {
@@ -143,7 +144,7 @@ export default function ProductDetailModals({
       )}
 
       {/* Sizing Guide Modal */}
-      {showSizeGuide && settings.size_guide_enabled !== false && sizeGuide && createPortal(
+      {showSizeGuide && isFeatureEnabled(settings, 'size_guide') && sizeGuide && createPortal(
         <div
           className="fixed inset-0 z-[150] flex items-center justify-center bg-black/60 p-4 overscroll-contain animate-fade-in"
           onClick={() => setShowSizeGuide(false)}

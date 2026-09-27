@@ -2,7 +2,7 @@
 
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { StoreSettings } from '@/lib/types';
-import { revalidateSettings } from '@/lib/revalidate';
+import { revalidateSettings, revalidateAfterResponse } from '@/lib/revalidate';
 import { logDbError } from '@/lib/utils/dbErrorHandler';
 import { safeAction } from '@/lib/utils/serverAction';
 import { cleanWhatsAppPhone } from '@/lib/utils/whatsapp';
@@ -257,14 +257,14 @@ export const updateSettings = async (settings: Partial<StoreSettings>): Promise<
     if (settings.meta_title_suffix !== undefined) updatePayload.meta_title_suffix = settings.meta_title_suffix;
 
     if (settings.ai_enabled !== undefined) updatePayload.ai_enabled = settings.ai_enabled;
-    if (settings.ai_model_credentials !== undefined) updatePayload.ai_model_credentials = settings.ai_model_credentials;
+    if (settings.ai_model_credentials && Object.keys(settings.ai_model_credentials).length > 0) updatePayload.ai_model_credentials = settings.ai_model_credentials; // secret: write-only-if-provided
     if (settings.ai_persona_config !== undefined) updatePayload.ai_persona_config = settings.ai_persona_config;
     if (settings.content_provider !== undefined) updatePayload.content_provider = settings.content_provider;
     if (settings.content_model !== undefined) updatePayload.content_model = settings.content_model;
-    if (settings.content_keys !== undefined) updatePayload.content_keys = settings.content_keys;
+    if (settings.content_keys) updatePayload.content_keys = settings.content_keys; // secret: write-only-if-provided
     if (settings.vision_provider !== undefined) updatePayload.vision_provider = settings.vision_provider;
     if (settings.vision_model !== undefined) updatePayload.vision_model = settings.vision_model;
-    if (settings.vision_keys !== undefined) updatePayload.vision_keys = settings.vision_keys;
+    if (settings.vision_keys) updatePayload.vision_keys = settings.vision_keys; // secret: write-only-if-provided
     if (settings.ai_tone !== undefined) updatePayload.ai_tone = settings.ai_tone;
     if (settings.ai_language !== undefined) updatePayload.ai_language = settings.ai_language;
     if (settings.ai_custom_instructions !== undefined) updatePayload.ai_custom_instructions = settings.ai_custom_instructions;
@@ -283,7 +283,7 @@ export const updateSettings = async (settings: Partial<StoreSettings>): Promise<
     if (settings.collection_description_limit !== undefined) updatePayload.collection_description_limit = settings.collection_description_limit;
 
     if (settings.smtp_email !== undefined) updatePayload.smtp_email = settings.smtp_email;
-    if (settings.smtp_app_password !== undefined) updatePayload.smtp_app_password = settings.smtp_app_password;
+    if (settings.smtp_app_password) updatePayload.smtp_app_password = settings.smtp_app_password; // secret: write-only-if-provided
     if (settings.smtp_from_name !== undefined) updatePayload.smtp_from_name = settings.smtp_from_name;
     if (settings.admin_notification_email !== undefined) updatePayload.admin_notification_email = settings.admin_notification_email;
     if (settings.email_notifications !== undefined) updatePayload.email_notifications = typeof settings.email_notifications === 'string' ? JSON.parse(settings.email_notifications) : settings.email_notifications;
@@ -294,7 +294,7 @@ export const updateSettings = async (settings: Partial<StoreSettings>): Promise<
     if (settings.abandoned_cart_email_template !== undefined) updatePayload.abandoned_cart_email_template = settings.abandoned_cart_email_template;
     if (settings.popular_searches !== undefined) updatePayload.popular_searches = settings.popular_searches;
     if (settings.postex_enabled !== undefined) updatePayload.postex_enabled = settings.postex_enabled;
-    if (settings.postex_api_token !== undefined) updatePayload.postex_api_token = settings.postex_api_token;
+    if (settings.postex_api_token) updatePayload.postex_api_token = settings.postex_api_token; // secret: write-only-if-provided
     if (settings.postex_mode !== undefined) updatePayload.postex_mode = settings.postex_mode;
     if (settings.postex_pickup_address !== undefined) updatePayload.postex_pickup_address = settings.postex_pickup_address;
     if (settings.postex_return_address !== undefined) updatePayload.postex_return_address = settings.postex_return_address;
@@ -325,8 +325,10 @@ export const updateSettings = async (settings: Partial<StoreSettings>): Promise<
       .single();
 
     if (error) throw error;
+    // Fast save: schedule cache invalidation (incl. the slow Cloudflare zone purge)
+    // AFTER the response so the admin save returns instantly instead of hanging.
     try {
-      await revalidateSettings();
+      await revalidateAfterResponse(() => revalidateSettings());
     } catch (revalErr) {
       console.error('[settings] revalidateSettings failed during update:', revalErr);
     }

@@ -57,7 +57,9 @@ export const getDeletedProducts = async (): Promise<Product[]> => {
       .order('deleted_at', { ascending: false });
 
     if (error) throw error;
-    return (data ?? []).map(mapProduct);
+    // Supabase infers a non-DBProductRow union for this multi-relation select
+    // (badges/size_guides embeds); mapProduct correctly maps the runtime rows.
+    return ((data ?? []) as any[]).map(mapProduct);
   } catch (error) {
     console.error('[products] getDeletedProducts failed:', error);
     throw error;

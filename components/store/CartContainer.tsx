@@ -6,6 +6,7 @@ import {
   ChevronLeft, Trash2, ShoppingCart, Truck, Lock, ArrowRight, Clock
 } from '@/components/common/Icons';
 import { StoreSettings } from '@/lib/types';
+import { isFeatureEnabled } from '@/lib/features/premium';
 import { formatPrice } from '@/lib/utils/whatsapp';
 import { toast } from 'sonner';
 import {
@@ -136,7 +137,7 @@ export default function CartContainer({ settings }: CartContainerProps) {
                 </h1>
               </div>
 
-              {settings.cart_timer_enabled !== false && timeLeftStr && (
+              {isFeatureEnabled(settings, 'cart_timer') && timeLeftStr && (
                 <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold ${
                   isTimerExpired
                     ? 'text-rose-500 bg-rose-500/10 dark:text-rose-400/90'

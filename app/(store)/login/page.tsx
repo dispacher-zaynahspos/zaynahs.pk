@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState, useEffect, useTransition } from 'react';
+import React, { useState, useTransition } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Mail, Phone, Lock, Eye, EyeOff, Store, ArrowRight } from '@/components/common/Icons';
 import { customerLogin, requestCustomerPasswordReset } from '@/lib/services/customers';
-import { getSettings } from '@/lib/services/settings';
+import { useSettings } from '@/lib/hooks/useSettings';
 import { toast } from 'sonner';
 
 export default function LoginPage() {
@@ -20,12 +20,9 @@ export default function LoginPage() {
   // Forgot password states
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [forgotEmailOrPhone, setForgotEmailOrPhone] = useState('');
-  const [storeSettings, setStoreSettings] = useState<any>(null);
+  // Settings via the secret-stripped /api/settings (never expose secrets to the client)
+  const { settings: storeSettings } = useSettings();
   const [isForgotPending, startForgotTransition] = useTransition();
-
-  useEffect(() => {
-    getSettings().then(setStoreSettings).catch(console.error);
-  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

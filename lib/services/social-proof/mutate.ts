@@ -2,7 +2,7 @@
 
 import { SocialProof } from '@/lib/types';
 import { supabaseAdmin } from '@/lib/supabase/admin';
-import { revalidateTagSafe } from '@/lib/revalidate';
+import { revalidateStorefrontEdge } from '@/lib/revalidate';
 import { DBSocialProof, mapSocialProof, attachLinkedProducts } from './types';
 
 export const submitSocialProof = async (proof: {
@@ -42,7 +42,7 @@ export const submitSocialProof = async (proof: {
       }
     }
 
-    revalidateTagSafe('social_proof');
+    await revalidateStorefrontEdge('social_proof');
 
     const [fullProof] = await attachLinkedProducts([mapSocialProof(data as DBSocialProof)]);
     return fullProof;
@@ -104,7 +104,7 @@ export const updateSocialProof = async (id: string, updates: {
       }
     }
 
-    revalidateTagSafe('social_proof');
+    await revalidateStorefrontEdge('social_proof');
 
     const { data: refreshed } = await supabaseAdmin
       .from('social_proof')
@@ -126,7 +126,7 @@ export const deleteSocialProof = async (id: string): Promise<void> => {
       .update({ deleted_at: new Date().toISOString() })
       .eq('id', id);
     if (error) throw error;
-    revalidateTagSafe('social_proof');
+    await revalidateStorefrontEdge('social_proof');
   } catch (error) {
     console.error('[socialProof] deleteSocialProof failed:', error);
     throw error;
@@ -140,7 +140,7 @@ export const restoreSocialProof = async (id: string): Promise<void> => {
       .update({ deleted_at: null })
       .eq('id', id);
     if (error) throw error;
-    revalidateTagSafe('social_proof');
+    await revalidateStorefrontEdge('social_proof');
   } catch (error) {
     console.error('[socialProof] restoreSocialProof failed:', error);
     throw error;
@@ -154,7 +154,7 @@ export const hardDeleteSocialProof = async (id: string): Promise<void> => {
       .delete()
       .eq('id', id);
     if (error) throw error;
-    revalidateTagSafe('social_proof');
+    await revalidateStorefrontEdge('social_proof');
   } catch (error) {
     console.error('[socialProof] hardDeleteSocialProof failed:', error);
     throw error;

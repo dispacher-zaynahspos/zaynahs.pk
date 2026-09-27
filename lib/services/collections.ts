@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { Collection, Category } from '@/lib/types';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
-import { revalidateTagSafe } from '@/lib/revalidate';
+import { revalidateStorefrontEdge } from '@/lib/revalidate';
 import { safeAction } from '@/lib/utils/serverAction';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
@@ -110,7 +110,7 @@ export const createCollection = async (collection: { name: string; slug: string;
     .single();
 
   if (error) throw error;
-  revalidateTagSafe('collections');
+  await revalidateStorefrontEdge('collections');
   return data;
 };
 
@@ -133,7 +133,7 @@ export const updateCollection = async (id: string, collection: { name?: string; 
     .single();
 
   if (error) throw error;
-  revalidateTagSafe('collections');
+  await revalidateStorefrontEdge('collections');
   return data;
 };
 
@@ -145,7 +145,7 @@ export const deleteCollection = async (id: string): Promise<void> => {
     .eq('id', id);
 
   if (error) throw error;
-  revalidateTagSafe('collections');
+  await revalidateStorefrontEdge('collections');
 };
 
 // Assignment Operations
@@ -161,7 +161,7 @@ export const assignCategoryToCollection = async (collectionId: string, categoryI
       throw error;
     }
   }
-  revalidateTagSafe('collections');
+  await revalidateStorefrontEdge('collections');
 };
 
 export const removeCategoryFromCollection = async (collectionId: string, categoryId: string): Promise<void> => {
@@ -173,7 +173,7 @@ export const removeCategoryFromCollection = async (collectionId: string, categor
     .eq('category_id', categoryId);
 
   if (error) throw error;
-  revalidateTagSafe('collections');
+  await revalidateStorefrontEdge('collections');
 };
 
 export const reorderCollectionCategories = async (collectionId: string, categoryIds: string[]): Promise<void> => {
@@ -186,7 +186,7 @@ export const reorderCollectionCategories = async (collectionId: string, category
       .eq('collection_id', collectionId)
       .eq('category_id', categoryIds[i]);
   }
-  revalidateTagSafe('collections');
+  await revalidateStorefrontEdge('collections');
 };
 
 export const createCollectionSafe = async (...args: Parameters<typeof createCollection>) => safeAction(createCollection(...args));

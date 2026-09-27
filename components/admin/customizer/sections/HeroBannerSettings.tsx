@@ -3,6 +3,7 @@
 import React from 'react';
 import { HomepageSection } from '@/lib/types';
 import { toast } from 'sonner';
+import { moveItemInArray } from '@/lib/utils/arrayMove';
 import {
   HeroSlide,
   parsePxValue,
@@ -31,7 +32,10 @@ export default function HeroBannerSettings({
   const slides: HeroSlide[] = contentData.slides || [];
   const [activeSlideId, setActiveSlideId] = React.useState<string | null>(null);
 
-  // Auto-migrate old single-banner setup to slides array format on load
+  // Auto-migrate old single-banner setup to slides array format on load.
+  // Deps are intentionally primitive (section id + slide count + active id) so
+  // this does NOT re-run on every render from the unstable `contentData`/`slides`
+  // object references (which previously caused panel churn / activeSlideId resets).
   React.useEffect(() => {
     if (!contentData.slides || contentData.slides.length === 0) {
       const initialSlide: HeroSlide = {
@@ -53,10 +57,11 @@ export default function HeroBannerSettings({
         }
       });
       setActiveSlideId(initialSlide.id);
-    } else if (slides.length > 0 && !activeSlideId) {
-      setActiveSlideId(slides[0].id);
+    } else if (contentData.slides.length > 0 && !activeSlideId) {
+      setActiveSlideId(contentData.slides[0].id);
     }
-  }, [contentData.slides, slides, activeSlideId, contentData, onUpdateSection, section.title]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [section.id, contentData.slides?.length, activeSlideId]);
 
   const handleSettingsChange = (key: string, value: any) => {
     onUpdateSection({
@@ -105,15 +110,8 @@ export default function HeroBannerSettings({
   };
 
   const handleMoveSlide = (index: number, direction: 'up' | 'down') => {
-    if (direction === 'up' && index === 0) return;
-    if (direction === 'down' && index === slides.length - 1) return;
-
-    const targetIdx = direction === 'up' ? index - 1 : index + 1;
-    const newSlides = [...slides];
-    const temp = newSlides[index];
-    newSlides[index] = newSlides[targetIdx];
-    newSlides[targetIdx] = temp;
-
+    const newSlides = moveItemInArray(slides, index, direction);
+    if (newSlides === slides) return;
     onUpdateSection({
       content_data: { ...contentData, slides: newSlides }
     });

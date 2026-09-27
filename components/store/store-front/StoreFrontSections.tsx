@@ -4,6 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { HomepageSection, StoreSettings } from '@/lib/types';
+import { isFeatureEnabled } from '@/lib/features/premium';
 import { getSharedAspectClass } from '@/lib/utils/styles';
 import { getResponsiveGridClasses } from '@/lib/utils/responsiveGrid';
 import SocialFeedRibbon from '../SocialFeedRibbon';
@@ -27,14 +28,16 @@ export function PromoBannerSection({ section }: PromoBannerSectionProps) {
       {section.content_data?.text && (
         <p className="text-sm max-w-xl mx-auto opacity-95 leading-relaxed">{section.content_data.text}</p>
       )}
-      <div className="pt-2">
-        <Link
-          href={link}
-          className="px-6 py-2.5 bg-white text-gray-950 hover:bg-gray-100 text-xs font-bold uppercase rounded-xl transition-all shadow-md active:scale-95 inline-block cursor-pointer"
-        >
-          {section.content_data?.button_text || 'Shop Offer'}
-        </Link>
-      </div>
+      {section.content_data?.show_button !== false && (
+        <div className="pt-2">
+          <Link
+            href={link}
+            className="px-6 py-2.5 bg-white text-gray-950 hover:bg-gray-100 text-xs font-bold uppercase rounded-xl transition-all shadow-md active:scale-95 inline-block cursor-pointer"
+          >
+            {section.content_data?.button_text || 'Shop Offer'}
+          </Link>
+        </div>
+      )}
     </div>
   );
 }
@@ -179,7 +182,7 @@ interface SocialFeedSectionProps {
 }
 
 export function SocialFeedSection({ section, activeSettings, isPreview }: SocialFeedSectionProps) {
-  if (activeSettings.social_feeds_enabled === false) {
+  if (!isFeatureEnabled(activeSettings, 'social_feeds')) {
     if (isPreview) {
       return (
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 mb-6 border border-dashed border-gray-300 dark:border-gray-700 rounded-3xl bg-gray-50 dark:bg-white/5 flex flex-col items-center justify-center text-center space-y-2 min-h-[150px]">
@@ -213,6 +216,9 @@ export function SocialFeedSection({ section, activeSettings, isPreview }: Social
         desc={section.content_data?.desc}
         limit={section.settings?.limit}
         items={section.content_data?.items}
+        columnsDesktop={Number(section.settings?.columns_desktop) || undefined}
+        columnsTablet={Number(section.settings?.columns_tablet) || undefined}
+        columnsMobile={Number(section.settings?.columns_mobile) || undefined}
         isHomepage={true}
       />
     </div>

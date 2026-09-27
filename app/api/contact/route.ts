@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,6 +15,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Invalid email address.' }, { status: 400 });
     }
 
+    // Persist the message first so it is never lost (fixes F0-1: form previously
+    // fired an email and stored nothing). Best-effort: if the contact_messages
+    // migration hasn't been applied yet, log and continue with the notification.
+    try {
+      const { error: insertError } = await supabaseAdmin
+        .from('contact_messages')
+        .insert({ name, email, subject: subject || null, message });
+      if (insertError) {
+        console.warn('[API Contact] Could not persist contact message:', insertError.message);
+      }
+    } catch (persistErr) {
+      console.warn('[API Contact] contact_messages persist skipped:', persistErr);
+    }
+
+    // Admin notification (transactional notice, not a customer email-ordering flow).
     const { onContactForm } = await import('@/lib/email/triggers');
     await onContactForm({ name, email, subject: subject || 'Contact Form Message', message });
 

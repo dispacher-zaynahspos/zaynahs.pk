@@ -1,17 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
-import { createClient } from '@/lib/supabase/server';
+import { requireAdmin } from '@/lib/auth/requireAdmin';
 import { ExportBundle } from '@/lib/types';
+import { SHOP_CATEGORY_ID } from '@/lib/config/singleton-ids';
 import { processProductImages, processProductVariants } from './helpers';
 
 export async function POST(request: NextRequest) {
   try {
-    // Authenticate admin session
-    const supabase = await createClient();
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    // Authenticate admin (session + admin-email allow-list — single source of truth)
+    const denied = await requireAdmin(request);
+    if (denied) return denied;
 
     const formData = await request.formData();
     const file = formData.get('file') as File | null;
@@ -323,8 +321,7 @@ export async function POST(request: NextRequest) {
               }
             }
 
-            const SHOP_CATEGORY_ID = '00000000-0000-4000-8000-000000000099';
-            if (!categoryIdsToLink.includes(SHOP_CATEGORY_ID)) {
+                    if (!categoryIdsToLink.includes(SHOP_CATEGORY_ID)) {
               categoryIdsToLink.push(SHOP_CATEGORY_ID);
             }
 

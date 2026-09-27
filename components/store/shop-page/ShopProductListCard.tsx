@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Heart, ShoppingCart } from '@/components/common/Icons';
@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { animateFlyTo } from '@/lib/utils/flyAnimation';
 import { getSharedAspectClass } from '@/lib/utils/styles';
 import { getPresetImageUrl } from '@/lib/utils/imageUrl';
+import { useWishlist } from '@/components/store/product-card/hooks/useWishlist';
 
 interface ShopProductListCardProps {
   product: Product;
@@ -27,33 +28,8 @@ export default function ShopProductListCard({ product, settings, addItem }: Shop
   const initialPrice = (defaultVar && defaultVar.price) ? defaultVar.price : product.price;
   const initialComparePrice = (defaultVar && defaultVar.compare_price) ? defaultVar.compare_price : product.compare_price;
 
-  // Check wishlist
-  const [inWish, setInWish] = useState(false);
-  useEffect(() => {
-    const wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
-    setInWish(wishlist.includes(product.id));
-  }, [product.id]);
-
-  const handleWishClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
-    let newW;
-    if (inWish) {
-      newW = wishlist.filter((id: string) => id !== product.id);
-      toast.success('Removed from wishlist');
-    } else {
-      newW = [...wishlist, product.id];
-      toast.success('Added to wishlist');
-
-      const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-      const targetId = isMobile ? 'mobile-bottom-wishlist-icon' : 'header-wishlist-icon-desktop';
-      animateFlyTo(e.currentTarget as HTMLElement, targetId, primaryImage);
-    }
-    localStorage.setItem('wishlist', JSON.stringify(newW));
-    setInWish(!inWish);
-    window.dispatchEvent(new Event('wishlist-updated'));
-  };
+  // Wishlist (shared single-source hook)
+  const { isInWishlist: inWish, toggleWishlist: handleWishClick } = useWishlist(product.id, primaryImage);
 
   return (
     <div

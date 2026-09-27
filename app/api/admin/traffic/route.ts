@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireAdmin } from '@/lib/auth/requireAdmin';
 import { getVisitors } from '@/lib/traffic/store';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { triggerTrafficUpdate } from '@/lib/traffic/pusher-server';
@@ -276,6 +277,8 @@ async function fetchOrderCities(range: string) {
 }
 
 export async function GET(request: NextRequest) {
+  const _denied = await requireAdmin(request);
+  if (_denied) return _denied;
   try {
     const range = request.nextUrl.searchParams.get('range') || '24h';
     const rangeMs = RANGE_MS[range] || 86400000;

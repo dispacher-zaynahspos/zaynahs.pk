@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
+import { requireAdmin } from '@/lib/auth/requireAdmin';
 import { getEmailTemplates } from '@/lib/services/emailTemplates';
 
 export async function GET() {
+  const _denied = await requireAdmin();
+  if (_denied) return _denied;
   try {
     const templates = await getEmailTemplates();
     

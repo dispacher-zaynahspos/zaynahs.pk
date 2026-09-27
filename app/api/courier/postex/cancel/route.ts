@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireAdmin } from '@/lib/auth/requireAdmin';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 
 const POSTEX_HOST = 'https://api.postex.pk';
 
 export async function POST(req: NextRequest) {
+  const _denied = await requireAdmin(req);
+  if (_denied) return _denied;
   try {
     const { orderId } = await req.json();
 

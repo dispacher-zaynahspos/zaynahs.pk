@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireAdmin } from '@/lib/auth/requireAdmin';
 import { submitAdminCustomReview } from '@/lib/services/reviews';
 import { submitSocialProof, updateSocialProof } from '@/lib/services/social-proof';
 
 export async function POST(request: NextRequest) {
+  const _denied = await requireAdmin(request);
+  if (_denied) return _denied;
   try {
     const body = await request.json();
     const { type, ...data } = body;
@@ -35,6 +38,8 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
+  const _denied = await requireAdmin(request);
+  if (_denied) return _denied;
   try {
     const body = await request.json();
     const { type, id, ...data } = body;

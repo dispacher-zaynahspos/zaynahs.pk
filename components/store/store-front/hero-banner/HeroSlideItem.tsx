@@ -180,7 +180,7 @@ export function HeroSlideItem({
             </p>
           )}
 
-          {(slide.button_text || slide.button_secondary_text) && (
+          {slide.buttons_enabled !== false && (slide.button_text || slide.button_secondary_text) && (
             <div className="mt-6 flex flex-wrap gap-3 items-center">
               {slide.button_text && (
                 <Link
@@ -244,7 +244,7 @@ export function HeroSlideItem({
             </p>
           )}
 
-          {(tabletButtonText || tabletButtonSecondaryText) && (
+          {slide.buttons_enabled !== false && (tabletButtonText || tabletButtonSecondaryText) && (
             <div className="mt-6 flex flex-wrap gap-3 items-center">
               {tabletButtonText && (
                 <Link
@@ -308,7 +308,7 @@ export function HeroSlideItem({
             </p>
           )}
 
-          {(mobileButtonText || mobileButtonSecondaryText) && (
+          {slide.buttons_enabled !== false && (mobileButtonText || mobileButtonSecondaryText) && (
             <div className="mt-6 flex flex-wrap gap-3 items-center">
               {mobileButtonText && (
                 <Link

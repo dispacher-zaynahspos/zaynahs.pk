@@ -42,7 +42,6 @@ export function useProductDetailState({ product, settings }: UseProductDetailSta
 
   const [mounted, setMounted] = useState(false);
   const [viewerCount, setViewerCount] = useState(23);
-  const [isWishlisted, setIsWishlisted] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [productUrl, setProductUrl] = useState('');
@@ -61,8 +60,6 @@ export function useProductDetailState({ product, settings }: UseProductDetailSta
     const max = settings.max_views ?? 50;
     setViewerCount(Math.floor(Math.random() * (max - min + 1)) + min);
     setProductUrl(window.location.href);
-    const wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
-    setIsWishlisted(wishlist.includes(product.id));
 
     if (!product.has_variants || !product.variants || product.variants.filter(v => v.active).length === 0) {
       trackEvent('ViewContent', {
@@ -223,8 +220,6 @@ export function useProductDetailState({ product, settings }: UseProductDetailSta
     handleVariantChange,
     mounted,
     viewerCount,
-    isWishlisted,
-    setIsWishlisted,
     isShareOpen,
     setIsShareOpen,
     copied,

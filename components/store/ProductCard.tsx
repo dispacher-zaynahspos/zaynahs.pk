@@ -7,6 +7,7 @@ import { useCartStore } from '@/store/cartStore';
 import { toast } from 'sonner';
 import dynamic from 'next/dynamic';
 import { animateFlyTo } from '@/lib/utils/flyAnimation';
+import { useWishlist } from '@/components/store/product-card/hooks/useWishlist';
 import { getPresetImageUrl } from '@/lib/utils/imageUrl';
 
 import { ProductCardSwatches, VariationGroup } from './product-card/ProductCardSwatches';
@@ -35,7 +36,7 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
 
   const [hoveredImage, setHoveredImage] = useState<string | null>(null);
 
-  const [isInWishlist, setIsInWishlist] = useState(false);
+  const { isInWishlist, toggleWishlist: handleToggleWishlist } = useWishlist(product.id, primaryImage);
   const [quickViewOpen, setQuickViewOpen] = useState(false);
   const [userSelectedColor, setUserSelectedColor] = useState(false);
 
@@ -50,18 +51,6 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
   const handleCardClick = () => {
     saveScrollPosition(product.id);
   };
-
-  useEffect(() => {
-    const checkWishlist = () => {
-      const wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
-      setIsInWishlist(wishlist.includes(product.id));
-    };
-    checkWishlist();
-    window.addEventListener('wishlist-updated', checkWishlist);
-    return () => {
-      window.removeEventListener('wishlist-updated', checkWishlist);
-    };
-  }, [product.id]);
 
   const activeVariants = product.variants.filter(v => v.active);
   const defaultIndex = (settings?.default_variant_index || 1) - 1;
@@ -118,26 +107,6 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
     const targetId = isMobile ? 'header-cart-icon-mobile' : 'header-cart-icon-desktop';
     animateFlyTo(e.currentTarget as HTMLElement, targetId, primaryImage);
-  };
-
-  const handleToggleWishlist = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
-    let newWishlist;
-    if (isInWishlist) {
-      newWishlist = wishlist.filter((id: string) => id !== product.id);
-      toast.success('Removed from wishlist');
-    } else {
-      newWishlist = [...wishlist, product.id];
-      toast.success('Added to wishlist');
-
-      const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-      const targetId = isMobile ? 'mobile-bottom-wishlist-icon' : 'header-wishlist-icon-desktop';
-      animateFlyTo(e.currentTarget as HTMLElement, targetId, primaryImage);
-    }
-    localStorage.setItem('wishlist', JSON.stringify(newWishlist));
-    window.dispatchEvent(new Event('wishlist-updated'));
   };
 
   const handleOpenQuickView = (e: React.MouseEvent) => {

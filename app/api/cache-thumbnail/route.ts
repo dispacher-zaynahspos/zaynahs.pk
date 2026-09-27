@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireAdmin } from '@/lib/auth/requireAdmin';
 import sharp from 'sharp';
 import { createClient } from '@supabase/supabase-js';
 
@@ -33,6 +34,8 @@ async function getInstagramThumbnail(code: string): Promise<string> {
 }
 
 export async function POST(request: NextRequest) {
+  const _denied = await requireAdmin(request);
+  if (_denied) return _denied;
   const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
     process.env.SUPABASE_SERVICE_ROLE_KEY || 'placeholder',

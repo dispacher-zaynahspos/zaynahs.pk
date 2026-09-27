@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { getAiEnabled } from '@/lib/services/ai/ai-settings-client';
 import { createClient } from '@/lib/supabase/client';
 import Link from 'next/link';
 import { ChevronRight, Loader2, Zap, X } from '@/components/common/Icons';
@@ -41,15 +42,8 @@ export default function BulkConsoleClient() {
   const fetchInitData = async () => {
     try {
       setLoading(true);
-      const supabase = createClient();
 
-      const { data: aiData } = await supabase
-        .from('ai_settings')
-        .select('ai_enabled')
-        .eq('id', '00000000-0000-4000-8000-000000000002')
-        .single();
-
-      const enabled = aiData?.ai_enabled ?? false;
+      const enabled = await getAiEnabled();
       setAiEnabled(enabled);
 
       if (enabled) {

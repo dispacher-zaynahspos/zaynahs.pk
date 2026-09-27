@@ -1,9 +1,12 @@
 import { NextResponse } from 'next/server';
+import { requireAdmin } from '@/lib/auth/requireAdmin';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { getAISettings } from '@/lib/ai';
 import { routeVision, extractKeys } from '@/lib/ai/router';
 
 export async function POST(request: Request) {
+  const _denied = await requireAdmin(request);
+  if (_denied) return _denied;
   try {
     const { image_url, media_id } = await request.json();
 

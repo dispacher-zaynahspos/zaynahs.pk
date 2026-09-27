@@ -11,6 +11,7 @@ export interface HeroSlide {
   tagline?: string;
   title?: string;
   subtitle?: string;
+  buttons_enabled?: boolean;
   button_text?: string;
   button_link?: string;
   button_secondary_text?: string;

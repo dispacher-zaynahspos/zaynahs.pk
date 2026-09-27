@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { HomepageSection } from '@/lib/types';
+import ResponsiveGridColumnsControl from '@/components/admin/customizer/shared/ResponsiveGridColumnsControl';
 import SocialFeedItemsEditor from './SocialFeedItemsEditor';
 
 interface SocialFeedSettingsProps {
@@ -77,6 +78,18 @@ export default function SocialFeedSettings({
           value={settings.limit || 8}
           onChange={e => handleSettingsChange('limit', parseInt(e.target.value))}
           className="w-full accent-[#e94560] cursor-pointer"
+        />
+      </div>
+
+      <div className="pt-2 border-t border-gray-100 dark:border-gray-800">
+        <ResponsiveGridColumnsControl
+          label="Social Feed Grid Columns"
+          desktopCols={Number(settings.columns_desktop) || 4}
+          tabletCols={Number(settings.columns_tablet) || 4}
+          mobileCols={Number(settings.columns_mobile) || 2}
+          onChangeDesktop={(cols) => handleSettingsChange('columns_desktop', cols)}
+          onChangeTablet={(cols) => handleSettingsChange('columns_tablet', cols)}
+          onChangeMobile={(cols) => handleSettingsChange('columns_mobile', cols)}
         />
       </div>
 

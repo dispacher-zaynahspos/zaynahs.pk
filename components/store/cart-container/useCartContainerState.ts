@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { StoreSettings } from '@/lib/types';
+import { isFeatureEnabled } from '@/lib/features/premium';
 import { useCartStore } from '@/store/cartStore';
 import { generateWhatsAppMessage, buildWhatsAppURL, formatPrice } from '@/lib/utils/whatsapp';
 import { createOrder } from '@/lib/services/orders';
@@ -93,7 +94,7 @@ export function useCartContainerState(settings: StoreSettings) {
   const itemCount = items.reduce((s, i) => s + i.quantity, 0);
 
   const freeShippingThreshold = settings.free_shipping_threshold ?? 2000;
-  const qualifiesForFreeShipping = settings.free_shipping_bar_enabled !== false && subtotal >= freeShippingThreshold;
+  const qualifiesForFreeShipping = isFeatureEnabled(settings, 'free_shipping_bar') && subtotal >= freeShippingThreshold;
   const shippingCost = qualifiesForFreeShipping ? 0 : baseShippingCost;
   const amountToFreeShipping = Math.max(0, freeShippingThreshold - subtotal);
   const shippingPercent = Math.min((subtotal / freeShippingThreshold) * 100, 100);
@@ -101,7 +102,7 @@ export function useCartContainerState(settings: StoreSettings) {
   const volumeDiscountThreshold = settings.volume_discount_threshold ?? 3;
   const volumeDiscountPercentage = settings.volume_discount_percentage ?? 10;
   const qualifiesForVolumeDiscount =
-    settings.volume_discounts_enabled !== false && itemCount >= volumeDiscountThreshold;
+    isFeatureEnabled(settings, 'volume_discounts') && itemCount >= volumeDiscountThreshold;
   const volumeDiscountAmount = qualifiesForVolumeDiscount
     ? Math.round((subtotal * volumeDiscountPercentage) / 100)
     : 0;

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { requireAdmin } from '@/lib/auth/requireAdmin';
 import { getSettings, updateSettings } from '@/lib/services/settings';
 
 export const revalidate = 0; // Disable dynamic caching for this API route
@@ -17,6 +18,8 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const _denied = await requireAdmin(request);
+  if (_denied) return _denied;
   try {
     const body = await request.json();
     const { theme_preset, theme_config } = body;

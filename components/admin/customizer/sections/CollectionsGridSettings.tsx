@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { HomepageSection, Category, Collection } from '@/lib/types';
 import { Trash2, ChevronUp, ChevronDown } from '@/components/common/Icons';
+import { moveItemInArray } from '@/lib/utils/arrayMove';
 import ResponsiveGridColumnsControl from '../shared/ResponsiveGridColumnsControl';
 
 interface CollectionsGridSettingsProps {
@@ -382,26 +383,14 @@ export default function CollectionsGridSettings({
             <div key={index} className="bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-800 rounded-xl p-3 relative group">
               <div className="absolute right-2 top-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
-                  onClick={() => {
-                    if (index > 0) {
-                      const newItems = [...items];
-                      [newItems[index], newItems[index - 1]] = [newItems[index - 1], newItems[index]];
-                      handleItemsChange(newItems);
-                    }
-                  }}
+                  onClick={() => handleItemsChange(moveItemInArray(items, index, 'up'))}
                   className="p-1 bg-white dark:bg-gray-800 text-gray-500 hover:text-gray-900 dark:hover:text-white rounded shadow-sm border border-gray-200 dark:border-gray-700"
                   disabled={index === 0}
                 >
                   <ChevronUp className="h-3 w-3" />
                 </button>
                 <button
-                  onClick={() => {
-                    if (index < items.length - 1) {
-                      const newItems = [...items];
-                      [newItems[index], newItems[index + 1]] = [newItems[index + 1], newItems[index]];
-                      handleItemsChange(newItems);
-                    }
-                  }}
+                  onClick={() => handleItemsChange(moveItemInArray(items, index, 'down'))}
                   className="p-1 bg-white dark:bg-gray-800 text-gray-500 hover:text-gray-900 dark:hover:text-white rounded shadow-sm border border-gray-200 dark:border-gray-700"
                   disabled={index === items.length - 1}
                 >

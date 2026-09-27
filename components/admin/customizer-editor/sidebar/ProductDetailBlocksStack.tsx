@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { StoreSettings } from '@/lib/types';
+import { isFeatureEnabled } from '@/lib/features/premium';
 import { GripVertical, EyeOff, ChevronUp, ChevronDown } from '@/components/common/Icons';
 import { toast } from 'sonner';
 
@@ -24,7 +25,7 @@ export default function ProductDetailBlocksStack({
   setActiveSubTab,
   currentProduct,
 }: ProductDetailBlocksStackProps) {
-  const isFlashSaleDisabled = storeSettings.flash_sale_enabled === false;
+  const isFlashSaleDisabled = !isFeatureEnabled(storeSettings, 'flash_sale');
   const currentLayout = storeSettings.product_page_layout || [
     'details',
     'ticker',
@@ -119,7 +120,7 @@ export default function ProductDetailBlocksStack({
                   <GripVertical className="h-4 w-4 text-gray-400 flex-shrink-0" />
                   {(() => {
                     const isFeatureDisabled =
-                      blockId === 'social_feed' && storeSettings.social_feeds_enabled === false;
+                      blockId === 'social_feed' && !isFeatureEnabled(storeSettings, 'social_feeds');
 
                     return (
                       <div className="min-w-0 flex-1">
@@ -196,7 +197,7 @@ export default function ProductDetailBlocksStack({
           <div className="grid grid-cols-2 gap-1.5">
             {availableBlocks.map((block) => {
               const isFeatureDisabled =
-                block.id === 'social_feed' && storeSettings.social_feeds_enabled === false;
+                block.id === 'social_feed' && !isFeatureEnabled(storeSettings, 'social_feeds');
 
               return (
                 <button

@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { SHOP_CATEGORY_ID } from '@/lib/config/singleton-ids';
 import { Plus, Download, Upload } from '@/components/common/Icons';
 import { Category } from '@/lib/types';
 import MediaSelectorModal from './MediaSelectorModal';
@@ -123,7 +124,7 @@ export default function CategoryManager({ initialCategories, aiEnabled, storeUrl
             <button
               type="button"
               onClick={() => {
-                const exportableCategories = filteredAndSortedCategories.filter(c => c.id !== '00000000-0000-4000-8000-000000000099');
+                const exportableCategories = filteredAndSortedCategories.filter(c => c.id !== SHOP_CATEGORY_ID);
                 if (selectedCategoryIds.size === exportableCategories.length) {
                   setSelectedCategoryIds(new Set());
                 } else {
@@ -132,7 +133,7 @@ export default function CategoryManager({ initialCategories, aiEnabled, storeUrl
               }}
               className="text-[10px] text-gray-550 dark:text-gray-400 hover:text-[#e94560] font-bold uppercase tracking-wider cursor-pointer"
             >
-              {selectedCategoryIds.size > 0 && selectedCategoryIds.size === filteredAndSortedCategories.filter(c => c.id !== '00000000-0000-4000-8000-000000000099').length ? 'Deselect All' : 'Select All'}
+              {selectedCategoryIds.size > 0 && selectedCategoryIds.size === filteredAndSortedCategories.filter(c => c.id !== SHOP_CATEGORY_ID).length ? 'Deselect All' : 'Select All'}
             </button>
           )}
           {selectedCategoryIds.size > 0 && (

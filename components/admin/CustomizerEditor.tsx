@@ -134,7 +134,15 @@ export default function CustomizerEditor(props: CustomizerEditorProps) {
       {/* 4. MEDIA SELECTOR MODAL CONTAINER */}
       <MediaSelectorModal
         isOpen={state.isMediaModalOpen}
-        onClose={() => state.setIsMediaModalOpen(false)}
+        onClose={() => {
+          // Always reset BOTH picker dispatch modes on close so a picker that
+          // was opened and dismissed without a selection can never leak its
+          // stale callback/target into the next picker (root cause of the
+          // "banner video selector lands on the wrong section / errors out" bug).
+          state.setIsMediaModalOpen(false);
+          state.setMediaSelectCallback(null);
+          state.setMediaUploadTarget(null);
+        }}
         onSelect={state.handleMediaSelected}
         multiple={false}
       />

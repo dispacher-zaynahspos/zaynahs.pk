@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { StoreSettings } from '@/lib/types';
+import { isFeatureEnabled } from '@/lib/features/premium';
 import { useCartStore } from '@/store/cartStore';
 
 export function useCartTimer(settings: StoreSettings) {
@@ -26,7 +27,7 @@ export function useCartTimer(settings: StoreSettings) {
   }, []);
 
   useEffect(() => {
-    if (!mounted || settings.cart_timer_enabled === false || !cartCreatedAt || items.length === 0) return;
+    if (!mounted || !isFeatureEnabled(settings, 'cart_timer') || !cartCreatedAt || items.length === 0) return;
 
     const timerLimitMinutes = settings.cart_timer_minutes ?? 10;
     const limitMs = timerLimitMinutes * 60 * 1000;

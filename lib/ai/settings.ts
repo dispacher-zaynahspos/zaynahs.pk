@@ -1,4 +1,5 @@
 import { supabaseAdmin } from '@/lib/supabase/admin';
+import { STORE_SETTINGS_ID } from '@/lib/config/singleton-ids';
 import { AISettings } from './types';
 
 /**
@@ -10,7 +11,7 @@ export async function getAISettings(): Promise<AISettings> {
   const { data, error } = await supabaseAdmin
     .from('store_settings')
     .select('*')
-    .eq('id', '00000000-0000-4000-8000-000000000001')
+    .eq('id', STORE_SETTINGS_ID)
     .single();
 
   if (error || !data) {

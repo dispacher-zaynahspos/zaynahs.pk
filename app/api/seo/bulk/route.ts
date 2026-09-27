@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { requireAdmin } from '@/lib/auth/requireAdmin';
 
 interface BulkItem {
   entity_type: 'product' | 'category' | 'page';
@@ -8,6 +9,8 @@ interface BulkItem {
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export async function POST(request: Request) {
+  const _denied = await requireAdmin(request);
+  if (_denied) return _denied;
   try {
     const { items } = await request.json();
 

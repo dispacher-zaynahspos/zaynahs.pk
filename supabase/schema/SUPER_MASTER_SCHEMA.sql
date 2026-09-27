@@ -2037,3 +2037,56 @@ CREATE TRIGGER "revalidate-collection_categories"
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON collections TO anon, authenticated, service_role;
 GRANT SELECT, INSERT, UPDATE, DELETE ON collection_categories TO anon, authenticated, service_role;
+
+-- ============================================================================
+-- CONTACT MESSAGES (storefront "Contact Us" persistence) — added Pass 6/DB
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS public.contact_messages (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name        TEXT NOT NULL,
+  email       TEXT NOT NULL,
+  subject     TEXT,
+  message     TEXT NOT NULL,
+  status      TEXT NOT NULL DEFAULT 'new',   -- new | read | archived
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  deleted_at  TIMESTAMPTZ
+);
+CREATE INDEX IF NOT EXISTS idx_contact_messages_created_at ON public.contact_messages (created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_contact_messages_status     ON public.contact_messages (status);
+CREATE INDEX IF NOT EXISTS idx_contact_messages_deleted_at ON public.contact_messages (deleted_at);
+ALTER TABLE public.contact_messages ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public insert contact_messages" ON public.contact_messages;
+CREATE POLICY "Public insert contact_messages" ON public.contact_messages FOR INSERT WITH CHECK (true);
+-- reads/updates admin-only via service role (no public SELECT policy)
+GRANT INSERT ON public.contact_messages TO anon, authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.contact_messages TO service_role;
+
+-- ============================================================================
+-- PERFORMANCE INDEXES (hot query paths) — added Pass 8
+-- ============================================================================
+CREATE INDEX IF NOT EXISTS idx_product_categories_category ON public.product_categories (category_id);
+CREATE INDEX IF NOT EXISTS idx_orders_created_at ON public.orders (created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_orders_status ON public.orders (status);
+CREATE INDEX IF NOT EXISTS idx_products_active ON public.products (is_active) WHERE deleted_at IS NULL;
+CREATE INDEX IF NOT EXISTS idx_products_featured ON public.products (is_featured) WHERE is_featured = true AND deleted_at IS NULL;
+
+-- ============================================================================
+-- store_settings_public — secret-free view for anon/storefront reads (Pass 6)
+-- fetchSettings() reads THIS view; secrets stay server-only. Recreate this
+-- block whenever a new store_settings column is added.
+-- ============================================================================
+DO $$
+DECLARE cols text;
+BEGIN
+  SELECT string_agg(quote_ident(column_name), ', ' ORDER BY ordinal_position) INTO cols
+  FROM information_schema.columns
+  WHERE table_schema = 'public' AND table_name = 'store_settings'
+    AND column_name NOT IN ('smtp_app_password','postex_api_token','content_keys','vision_keys','ai_model_credentials');
+  EXECUTE format('CREATE OR REPLACE VIEW public.store_settings_public AS SELECT %s FROM public.store_settings', cols);
+END $$;
+GRANT SELECT ON public.store_settings_public TO anon, authenticated;
+
+-- After a fresh clone is deployed with the current app code, harden secrets:
+--   REVOKE SELECT (smtp_app_password, postex_api_token, content_keys, vision_keys, ai_model_credentials)
+--     ON public.store_settings FROM anon, authenticated;
+-- (see supabase/migrations/20260926180000_REVIEW_revoke_secret_columns_POST_DEPLOY.sql)

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Product, StoreSettings, HomepageSection } from '@/lib/types';
+import { isFeatureEnabled } from '@/lib/features/premium';
 
 export function useLiveProducts(
   productsList: Product[],
@@ -7,7 +8,7 @@ export function useLiveProducts(
   settings: StoreSettings
 ): Product[] {
   return React.useMemo(() => {
-    if (settings.flash_sale_enabled === false) {
+    if (!isFeatureEnabled(settings, 'flash_sale')) {
       return productsList;
     }
     const now = Date.now();

@@ -3,6 +3,7 @@
 import React from 'react';
 import { Tag, Truck, CheckCircle2, Shield } from '@/components/common/Icons';
 import { CartItem, StoreSettings } from '@/lib/types';
+import { isFeatureEnabled } from '@/lib/features/premium';
 import { formatPrice } from '@/lib/utils/whatsapp';
 import PaymentBadges from '@/components/common/PaymentBadges';
 import CartItemCard from './CartItemCard';
@@ -87,7 +88,7 @@ export default function CartSummaryPanel({
       )}
 
       {/* Discount input */}
-      {settings.coupon_codes_enabled !== false && (
+      {isFeatureEnabled(settings, 'coupon_codes') && (
         <div className="flex gap-2">
           {appliedCoupon ? (
             <div className="flex items-center justify-between bg-emerald-50 dark:bg-emerald-950/10 border border-emerald-100 dark:border-emerald-900/20 px-3 py-2.5 rounded-xl text-xs font-bold text-emerald-600 dark:text-emerald-400 w-full">
@@ -136,7 +137,7 @@ export default function CartSummaryPanel({
       )}
 
       {/* Free Shipping Tracker */}
-      {settings.free_shipping_bar_enabled !== false && (
+      {isFeatureEnabled(settings, 'free_shipping_bar') && (
         <div className="space-y-1.5 py-1">
           <div className="flex justify-between text-xs font-bold text-gray-700 dark:text-gray-300">
             {qualifiesForFreeShipping ? (
@@ -158,7 +159,7 @@ export default function CartSummaryPanel({
       )}
 
       {/* Volume Discount Hint */}
-      {!qualifiesForVolumeDiscount && settings.volume_discounts_enabled !== false && (
+      {!qualifiesForVolumeDiscount && isFeatureEnabled(settings, 'volume_discounts') && (
         <div className="text-[10px] text-amber-600 dark:text-amber-400 font-bold bg-amber-500/10 dark:bg-amber-500/10 px-2.5 py-1.5 rounded-lg w-full text-center flex items-center justify-center gap-1 border border-amber-500/20 select-none">
           <span>💡 Buy {volumeDiscountThreshold} items to get {volumeDiscountPercentage}% off!</span>
         </div>

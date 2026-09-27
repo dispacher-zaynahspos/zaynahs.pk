@@ -1,16 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { STORE_SETTINGS_ID } from '@/lib/config/singleton-ids';
 import { supabaseAdmin } from '@/lib/supabase/admin';
-import { createClient } from '@/lib/supabase/server';
+import { requireAdmin } from '@/lib/auth/requireAdmin';
 import { ExportBundle, ExportedProduct } from '@/lib/types';
 
 export async function POST(request: NextRequest) {
   try {
-    // Authenticate admin session
-    const supabase = await createClient();
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    // Authenticate admin (session + admin-email allow-list — single source of truth)
+    const denied = await requireAdmin(request);
+    if (denied) return denied;
 
     const body = await request.json();
     const { productIds } = body;
@@ -23,7 +21,7 @@ export async function POST(request: NextRequest) {
     const { data: settings } = await supabaseAdmin
       .from('store_settings')
       .select('store_name')
-      .eq('id', '00000000-0000-4000-8000-000000000001')
+      .eq('id', STORE_SETTINGS_ID)
       .single();
     const storeName = settings?.store_name || process.env.NEXT_PUBLIC_BRAND_NAME || 'Your Store';
 
@@ -234,7 +232,7 @@ export async function POST(request: NextRequest) {
         has_variants: product.has_variants || false,
         is_service: product.is_service || false,
         is_featured: product.is_featured || false,
-        active: product.active ?? true,
+        active: product.is_active ?? true,
         enable_swatches: product.enable_swatches ?? true,
         show_swatches_on_archive: product.show_swatches_on_archive ?? true,
         tags: product.tags || [],

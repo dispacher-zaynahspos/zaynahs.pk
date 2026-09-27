@@ -1373,3 +1373,48 @@ for ENV in env-backups/*.env.local; do
   echo "  Vercel: $VCL_STATUS"
 done
 ```
+
+---
+
+## 🔐 Auth & Secret Hardening (added 2026-09 deep audit — MANDATORY for every clone)
+
+The admin panel is protected **server-side** now. For a new clone these are required, else "anyone can open /admin":
+
+1. **`NEXT_PUBLIC_ADMIN_EMAIL`** must be set (comma-separated for multiple admins). This is the allow-list enforced by root `middleware.ts` + `lib/auth/requireAdmin.ts`. Empty = any authenticated Supabase user becomes admin.
+2. **Supabase → Authentication → disable/restrict public sign-ups** so nobody can self-register an account and reach admin.
+3. `middleware.ts` is **fail-closed**: any error / no session → `/admin/login`. It only takes effect after `next build` + deploy.
+4. Every privileged API route calls `requireAdmin` — never add a privileged route without it.
+
+**Secrets are server-only.** `smtp_app_password, postex_api_token, content_keys, vision_keys, ai_model_credentials` are NEVER sent to the client:
+- Storefront reads settings from the `store_settings_public` **view** (secret-free) via `fetchSettings`.
+- `/api/settings` strips secrets; `dbToSettingsMapper` doesn't map them; admin secret inputs are write-only ("leave blank to keep").
+- Server reads secrets via `lib/services/settings/server-secrets.ts` (SMTP) and `getAISettings()` (AI keys).
+
+**DB objects a clone needs (all in `SUPER_MASTER_SCHEMA.sql`):** `contact_messages` table (contact form persistence + `/admin/messages`), the Pass-8 performance indexes, and the `store_settings_public` view.
+
+**Two-step secret-column hardening (deploy-order-safe):**
+1. Apply `store_settings_public` view (additive) — already in master schema.
+2. AFTER the app is deployed, run `supabase/migrations/20260926180000_REVIEW_revoke_secret_columns_POST_DEPLOY.sql` to REVOKE the secret columns from `anon` on the base table. (Breaking for old `select('*')` code, so post-deploy only.)
+
+**Applying migrations to all stores:** `node scripts/apply-safe-migrations.mjs` (uses `SUPABASE_MGMT_TOKEN` + `SUPABASE_PROJECT_REF` from each `env-backups/*.env.local`; runs only the additive-safe set).
+
+### First-admin creation (script) — `scripts/create-admin.mjs`
+Creates a confirmed Supabase Auth admin. Email/password from env, args, or interactive prompt:
+```bash
+# uses .env.local, prompts for email + password
+node scripts/create-admin.mjs
+
+# non-interactive (env or args)
+ADMIN_EMAIL=you@store.com ADMIN_PASSWORD=strongpass node scripts/create-admin.mjs --env .env.local
+node scripts/create-admin.mjs --env env-backups/zaynahs.env.local --email you@store.com --password strongpass
+```
+It reads `NEXT_PUBLIC_SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` from the env file, creates the user (email pre-confirmed), and reminds you to add the email to `NEXT_PUBLIC_ADMIN_EMAIL` (the authorization allow-list). Idempotent — re-running for an existing email is a no-op.
+
+### Clone bring-up checklist (auth + DB), in order
+1. Set env: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_PROJECT_REF`, `SUPABASE_MGMT_TOKEN`, `NEXT_PUBLIC_ADMIN_EMAIL`.
+2. Apply schema: run `SUPER_MASTER_SCHEMA.sql` (UUID PKs + snake_case + RLS + `store_settings_public` view + `contact_messages` + indexes are all in it).
+3. Create first admin: `node scripts/create-admin.mjs` → add its email to `NEXT_PUBLIC_ADMIN_EMAIL`.
+4. Disable/restrict Supabase public sign-ups.
+5. Deploy. Middleware (`/admin/**`) + `requireAdmin` (API) enforce auth server-side.
+6. POST-DEPLOY only: run `supabase/migrations/20260926180000_REVIEW_revoke_secret_columns_POST_DEPLOY.sql` to lock secret columns from anon.
+7. Verify (RLS/UUID/secrets): the read-only checks in the "Security / schema health" section above.

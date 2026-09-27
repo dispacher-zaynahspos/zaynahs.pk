@@ -3,6 +3,7 @@
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { Product, ProductImage, ProductVariant, ProductModifier } from '@/lib/types';
 import { revalidateProduct, revalidateTagSafe } from '@/lib/revalidate';
+import { SHOP_CATEGORY_ID } from '@/lib/config/singleton-ids';
 import { getProductById } from './queries';
 
 /**
@@ -134,8 +135,8 @@ export async function createProductAction(
       if (categoryIdsToInsert.length === 0 && product.category_id) {
         categoryIdsToInsert.push(product.category_id);
       }
-      if (!categoryIdsToInsert.includes('00000000-0000-4000-8000-000000000099')) {
-        categoryIdsToInsert.push('00000000-0000-4000-8000-000000000099');
+      if (!categoryIdsToInsert.includes(SHOP_CATEGORY_ID)) {
+        categoryIdsToInsert.push(SHOP_CATEGORY_ID);
       }
 
       const { error: pcInsErr } = await supabase
@@ -350,8 +351,8 @@ export async function updateProductAction(
       if (categoryIdsToUpdate.length === 0 && product.category_id) {
         categoryIdsToUpdate.push(product.category_id);
       }
-      if (!categoryIdsToUpdate.includes('00000000-0000-4000-8000-000000000099')) {
-        categoryIdsToUpdate.push('00000000-0000-4000-8000-000000000099');
+      if (!categoryIdsToUpdate.includes(SHOP_CATEGORY_ID)) {
+        categoryIdsToUpdate.push(SHOP_CATEGORY_ID);
       }
 
       const { error: pcDelError } = await supabase
@@ -446,8 +447,8 @@ export async function updateProductFieldsAction(
       if (categoryIdsToUpdate.length === 0 && fields.category_id) {
         categoryIdsToUpdate.push(fields.category_id);
       }
-      if (!categoryIdsToUpdate.includes('00000000-0000-4000-8000-000000000099')) {
-        categoryIdsToUpdate.push('00000000-0000-4000-8000-000000000099');
+      if (!categoryIdsToUpdate.includes(SHOP_CATEGORY_ID)) {
+        categoryIdsToUpdate.push(SHOP_CATEGORY_ID);
       }
 
       const { error: pcDelError } = await supabase

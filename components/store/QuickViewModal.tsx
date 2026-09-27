@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import Link from 'next/link';
-import useEmblaCarousel from 'embla-carousel-react';
+import { useEmblaGallery } from '@/components/store/product-card/hooks/useEmblaGallery';
 import {
   X,
   ShoppingCart,
@@ -48,23 +48,11 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
 
   const [activeIdx, setActiveIdx] = useState(initialActiveIdx.current);
 
-  // Embla carousel for mobile touch swipe
-  const [emblaRef, emblaApi] = useEmblaCarousel({
+  // Embla carousel (shared wiring: swipe ⇄ activeIdx)
+  const { emblaRef, emblaApi } = useEmblaGallery(activeIdx, setActiveIdx, {
     loop: true,
-    startIndex: initialActiveIdx.current
+    startIndex: initialActiveIdx.current,
   });
-
-  // Keep activeIdx in sync when user swipes
-  useEffect(() => {
-    if (!emblaApi) return;
-    const onSelect = () => {
-      setActiveIdx(emblaApi.selectedScrollSnap());
-    };
-    emblaApi.on('select', onSelect);
-    return () => {
-      emblaApi.off('select', onSelect);
-    };
-  }, [emblaApi]);
 
   const activeVariants = product.variants.filter(v => v.active);
 

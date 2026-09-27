@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { StoreSettings, Product } from '@/lib/types';
+import { isFeatureEnabled } from '@/lib/features/premium';
 import ProductDetail from '@/components/store/ProductDetail';
 import ProductReviews from '@/components/store/ProductReviews';
 import ProductCard from '@/components/store/ProductCard';
@@ -107,7 +108,7 @@ export default function ProductPageBlocks({
           );
         }
         if (block === 'related') {
-          if (settings.related_products_enabled === false) return null;
+          if (!isFeatureEnabled(settings, 'related_products')) return null;
           return (
             <div
               key="related"
@@ -171,7 +172,7 @@ export default function ProductPageBlocks({
           );
         }
         if (block === 'social_feed') {
-          if (settings.social_feeds_enabled === false) return null;
+          if (!isFeatureEnabled(settings, 'social_feeds')) return null;
           if (settings.social_feeds_product_enabled === false) return null;
           return (
             <div

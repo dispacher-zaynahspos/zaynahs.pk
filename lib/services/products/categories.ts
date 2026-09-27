@@ -1,4 +1,5 @@
 import { supabaseAdmin } from '@/lib/supabase/admin';
+import { SHOP_CATEGORY_ID } from '@/lib/config/singleton-ids';
 import { revalidateProduct, revalidateTagSafe } from '@/lib/revalidate';
 import { staticSupabase } from './mappers';
 
@@ -109,7 +110,7 @@ export const removeProductFromCategory = async (
   categoryId: string
 ): Promise<void> => {
   try {
-    if (categoryId === '00000000-0000-4000-8000-000000000099') return;
+    if (categoryId === SHOP_CATEGORY_ID) return;
 
     const supabase = staticSupabase;
 
@@ -162,7 +163,7 @@ export const removeProductsFromCategory = async (
   categoryId: string
 ): Promise<void> => {
   try {
-    if (categoryId === '00000000-0000-4000-8000-000000000099') return;
+    if (categoryId === SHOP_CATEGORY_ID) return;
     if (!productIds || productIds.length === 0) return;
 
     const supabase = staticSupabase;

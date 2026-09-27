@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { requireAdmin } from '@/lib/auth/requireAdmin';
 import { syncProductToMeta } from '@/lib/meta/syncProduct';
 import { getProductById } from '@/lib/services/products';
 
@@ -9,12 +10,11 @@ import { getProductById } from '@/lib/services/products';
  */
 export async function POST(req: NextRequest) {
   try {
-    // Authenticate admin session
+    // Authenticate admin (session + admin-email allow-list — single source of truth)
+    const denied = await requireAdmin(req);
+    if (denied) return denied;
+
     const supabase = await createClient();
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
 
     const body = await req.json().catch(() => ({}));
     const { productId } = body;

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { StoreSettings, Product, Order } from '@/lib/types';
+import { isFeatureEnabled } from '@/lib/features/premium';
 import { getProductsClient } from '@/lib/services/products-client';
 import { getOrdersClient } from '@/lib/services/orders-client';
 
@@ -44,7 +45,7 @@ export function useRecentBuyerTicker({ settings, isCheckout }: UseRecentBuyerTic
 
   // Recent Purchases Ticker Loop
   useEffect(() => {
-    if (settings.recent_buyers_enabled === false || products.length === 0) return;
+    if (!isFeatureEnabled(settings, 'recent_buyers') || products.length === 0) return;
     if (isCheckout && settings.recent_buyers_show_on_checkout === false) {
       setShowTicker(false);
       return;

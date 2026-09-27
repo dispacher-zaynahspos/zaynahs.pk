@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+import { requireAdmin } from '@/lib/auth/requireAdmin';
+import { STORE_SETTINGS_ID } from '@/lib/config/singleton-ids';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { callAI, getAISettings } from '@/lib/ai';
 import { buildSystemPrompt, buildSEOPrompt } from '@/lib/seoPrompts';
@@ -6,6 +8,8 @@ import { pingIndexNow } from '@/lib/indexNow';
 import { getSiteUrl } from '@/lib/site-url-server';
 
 export async function POST(request: Request) {
+  const _denied = await requireAdmin(request);
+  if (_denied) return _denied;
   try {
     const { entity_type, entity_id, title, context, entity_data } = await request.json();
 
@@ -83,7 +87,7 @@ export async function POST(request: Request) {
     const { data: storeSettings } = await supabaseAdmin
       .from('store_settings')
       .select('*')
-      .eq('id', '00000000-0000-4000-8000-000000000001')
+      .eq('id', STORE_SETTINGS_ID)
       .single();
 
     const siteUrl = storeSettings?.store_url || await getSiteUrl(storeSettings) || '';

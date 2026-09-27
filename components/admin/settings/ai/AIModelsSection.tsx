@@ -141,7 +141,7 @@ export function AIModelsSection({
               rows={2}
               value={contentKeys}
               onChange={(e) => setContentKeys(e.target.value)}
-              placeholder="Enter API Key(s), one per line for rotation"
+              placeholder="Leave blank to keep saved key(s) — or enter one per line for rotation"
               className={`w-full rounded-xl border bg-gray-50/50 dark:bg-[#0f0f1b]/50 px-4 py-2 text-xs font-mono text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[#1a1a2e] dark:focus:border-[#e94560] focus:bg-white dark:focus:bg-[#16162a] focus:outline-none transition-all ${
                 !contentKeys
                   ? 'border-dashed border-amber-300 dark:border-amber-700'

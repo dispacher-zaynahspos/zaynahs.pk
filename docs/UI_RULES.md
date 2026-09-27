@@ -53,3 +53,19 @@ Never render a bare blank div while loading.
 - Every field shown in a tab must persist through that tab's save path.
 - WhatsApp phone fields are sanitised at the write boundary (`updateSettings`) — UIs just capture raw input.
 - Multi-table writes must be atomic (RULE D15): snapshot + rollback on failure.
+
+## 8. Media handling & pickers (RULE MEDIA1 — established Pass 3)
+- The ONLY media library/picker is `MediaManager` + `MediaSelectorModal`. Never build a second
+  picker; never enter media via a raw URL `<input>`/`<textarea>` in a settings panel.
+- The media modal must reset ALL dispatch state (`mediaSelectCallback` AND `mediaUploadTarget`) on
+  close — a picker opened and dismissed without a selection must never leak stale state into the
+  next picker (root cause of the fixed "banner video selector lands on wrong section" bug).
+- Uploads go through `/api/media/upload` (bucket `product-images`); videos skip Sharp conversion.
+- Video sections layer a responsive preset `<img>` under the `<video>` as poster/fallback and
+  crossfade on `onLoadedData/onCanPlay/onPlaying`. Do not regress to a static single-size poster.
+- Effects that migrate/seed section `content_data` must depend on PRIMITIVES (ids, counts), never on
+  the unstable `content_data`/`slides` object refs, to avoid per-render churn.
+- Planned single shared components (do not duplicate): `MediaField` (input+preview+Select),
+  `MediaCardListEditor` (add/remove/reorder media cards — Hero/Category/Collections/Social/Brands),
+  `ImageCarousel` (thumbnails+arrows+dots — product gallery/quick-view/hero). See
+  `docs/AUDIT_PASS3_CUSTOMIZER.md`.

@@ -1,10 +1,11 @@
 import { Product } from '@/lib/types';
 import { getSettings } from '../../settings';
+import { isFeatureEnabled } from '@/lib/features/premium';
 
 export const applyFlashSaleDiscounts = async (products: Product[]): Promise<Product[]> => {
   try {
     const settings = await getSettings();
-    if (settings && settings.flash_sale_enabled === false) {
+    if (settings && !isFeatureEnabled(settings, 'flash_sale')) {
       return products;
     }
     const { getHomepageSections } = await import('../../sections');

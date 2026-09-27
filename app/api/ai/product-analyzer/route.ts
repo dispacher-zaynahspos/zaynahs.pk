@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireAdmin } from '@/lib/auth/requireAdmin';
 import { getAISettings } from '@/lib/ai';
 import { routeVision, extractKeys } from '@/lib/ai/router';
 import { supabaseAdmin } from '@/lib/supabase/admin';
@@ -24,6 +25,8 @@ const ANALYSIS_PROMPT = `Analyze this kids clothing product image. Return ONLY t
  * Returns: { result: {...analysis}, provider, model }
  */
 export async function POST(req: NextRequest) {
+  const _denied = await requireAdmin(req);
+  if (_denied) return _denied;
   try {
     const { imageUrl } = await req.json();
 

@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { StoreSettings } from '@/lib/types';
+import { isFeatureEnabled } from '@/lib/features/premium';
 import { cleanWhatsAppPhone } from '@/lib/utils/whatsapp';
 import { useCartStore } from '@/store/cartStore';
 import { usePathname } from 'next/navigation';
@@ -66,8 +67,8 @@ export default function FloatingContacts({ settings }: FloatingContactsProps) {
   // Calculate dynamic bottom and side offset dimensions based on mobile vs desktop
   const isCartBarVisible = mounted && totalItems > 0 && pathname !== '/cart' && pathname !== '/checkout';
   const position = settings.floating_contacts_position || 'left';
-  const isTickerEnabled = settings.recent_buyers_enabled !== false;
-  const isSpinWheelEnabled = settings.spin_wheel_enabled;
+  const isTickerEnabled = isFeatureEnabled(settings, 'recent_buyers');
+  const isSpinWheelEnabled = isFeatureEnabled(settings, 'spin_wheel');
   const needsStacking = (position === 'left' && isTickerEnabled) || (position === 'right' && isSpinWheelEnabled);
   const baseOffset = settings.floating_contacts_bottom_mobile ?? 80;
 

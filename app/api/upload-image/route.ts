@@ -7,6 +7,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { requireAdmin } from '@/lib/auth/requireAdmin';
 import sharp from 'sharp';
 import { createClient } from '@supabase/supabase-js';
 
@@ -14,6 +15,8 @@ const MAX_KB = 50;
 const MAX_DIM = 1200;
 
 export async function POST(request: NextRequest) {
+  const _denied = await requireAdmin(request);
+  if (_denied) return _denied;
   // Initialize inside handler so env vars are read at runtime, not at build time
   const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',

@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { HomepageSection, StoreSettings, Category, Product, Collection, Review } from '@/lib/types';
+import { isFeatureEnabled } from '@/lib/features/premium';
 import { Settings, X, Lock } from '@/components/common/Icons';
 import HeroBannerSettings from '../customizer/sections/HeroBannerSettings';
 import ProductGridSettings from '../customizer/sections/ProductGridSettings';
@@ -205,7 +206,7 @@ export function CustomizerRightSidebar({
               )}
 
               {activeSection.section_type === 'social_feed' && (
-                storeSettings.social_feeds_enabled === false ? (
+                !isFeatureEnabled(storeSettings, 'social_feeds') ? (
                   <div className="flex flex-col items-center justify-center p-6 text-center space-y-3 border border-dashed border-gray-200 dark:border-gray-800 rounded-2xl bg-gray-50/50 dark:bg-white/2 py-12">
                     <span className="text-3xl">🔒</span>
                     <h4 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">Social Feed Locked</h4>
@@ -235,7 +236,7 @@ export function CustomizerRightSidebar({
               )}
 
               {activeSection.section_type === 'flash_sale' && (
-                storeSettings.flash_sale_enabled === false ? (
+                !isFeatureEnabled(storeSettings, 'flash_sale') ? (
                   <div className="flex flex-col items-center justify-center p-6 text-center space-y-3 border border-dashed border-gray-200 dark:border-gray-800 rounded-2xl bg-gray-50/50 dark:bg-white/2 py-12">
                     <span className="text-3xl">🔒</span>
                     <h4 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">Flash Sale Locked</h4>

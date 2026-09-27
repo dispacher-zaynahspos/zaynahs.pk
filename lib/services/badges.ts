@@ -2,7 +2,7 @@
 
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { Badge } from '@/lib/types';
-import { revalidateTagSafe } from '@/lib/revalidate';
+import { revalidateStorefrontEdge } from '@/lib/revalidate';
 import {
   SYSTEM_BADGE_CONFIGS,
   SYSTEM_FEATURED_BADGE_ID,
@@ -144,7 +144,7 @@ export const createBadge = async (badge: {
     .single();
 
   if (error) throw error;
-  revalidateTagSafe('products');
+  await revalidateStorefrontEdge('products');
   return mapBadge(data);
 };
 
@@ -174,7 +174,7 @@ export const updateBadge = async (
     .single();
 
   if (error) throw error;
-  revalidateTagSafe('products');
+  await revalidateStorefrontEdge('products');
   return mapBadge(data);
 };
 
@@ -195,5 +195,5 @@ export const deleteBadge = async (id: string): Promise<void> => {
     .eq('id', id);
 
   if (error) throw error;
-  revalidateTagSafe('products');
+  await revalidateStorefrontEdge('products');
 };

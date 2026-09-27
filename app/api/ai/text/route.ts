@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireAdmin } from '@/lib/auth/requireAdmin';
 import { getAISettings } from '@/lib/ai';
 import { routeText, extractKeys } from '@/lib/ai/router';
 
@@ -10,6 +11,8 @@ export const runtime = 'nodejs';
  * Returns: { result, provider, model }
  */
 export async function POST(req: NextRequest) {
+  const _denied = await requireAdmin(req);
+  if (_denied) return _denied;
   try {
     const { prompt, systemPrompt: customSystemPrompt, provider: forcedProvider } = await req.json();
 

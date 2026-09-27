@@ -1,6 +1,7 @@
 'use server';
 
 import { Category } from '@/lib/types';
+import { SHOP_CATEGORY_ID } from '@/lib/config/singleton-ids';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { revalidateCategory, revalidateTagSafe } from '@/lib/revalidate';
 import { mapCategory } from './types';
@@ -78,7 +79,7 @@ export const updateCategory = async (id: string, category: Partial<Category>): P
 
 export const deleteCategory = async (id: string): Promise<void> => {
   try {
-    if (id === '00000000-0000-4000-8000-000000000099') {
+    if (id === SHOP_CATEGORY_ID) {
       throw new Error('The system "All Products" category cannot be deleted.');
     }
 

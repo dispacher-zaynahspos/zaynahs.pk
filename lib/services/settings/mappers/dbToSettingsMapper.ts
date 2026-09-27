@@ -243,14 +243,14 @@ export const mapSettings = (row: SettingsRow): StoreSettings => ({
   meta_title_suffix: row.meta_title_suffix ?? '',
 
   ai_enabled: row.ai_enabled ?? false,
-  ai_model_credentials: typeof row.ai_model_credentials === 'string' ? JSON.parse(row.ai_model_credentials) : (row.ai_model_credentials ?? {}),
+  // SECRET — intentionally NOT mapped to client-facing StoreSettings (Pass 6 leak fix).
+  // Read server-side via lib/services/settings/server-secrets or getAISettings:
+  // ai_model_credentials, content_keys, vision_keys, smtp_app_password, postex_api_token.
   ai_persona_config: typeof row.ai_persona_config === 'string' ? JSON.parse(row.ai_persona_config) : (row.ai_persona_config ?? {}),
   content_provider: row.content_provider ?? 'groq',
   content_model: row.content_model ?? 'llama-3.3-70b-versatile',
-  content_keys: row.content_keys ?? '',
   vision_provider: row.vision_provider ?? 'gemini',
   vision_model: row.vision_model || 'gemini-2.0-flash',
-  vision_keys: row.vision_keys ?? '',
   ai_tone: row.ai_tone ?? 'Professional',
   ai_language: row.ai_language ?? 'English',
   ai_custom_instructions: row.ai_custom_instructions ?? '',
@@ -271,7 +271,6 @@ export const mapSettings = (row: SettingsRow): StoreSettings => ({
   collection_description_limit: row.collection_description_limit ?? 80,
 
   smtp_email: row.smtp_email ?? '',
-  smtp_app_password: row.smtp_app_password ?? '',
   smtp_from_name: row.smtp_from_name ?? '',
   admin_notification_email: row.admin_notification_email ?? '',
   email_notifications: typeof row.email_notifications === 'string' ? JSON.parse(row.email_notifications) : (row.email_notifications ?? undefined),
@@ -283,7 +282,6 @@ export const mapSettings = (row: SettingsRow): StoreSettings => ({
   popular_searches: row.popular_searches ?? 'Co-ord Sets, Sonic, Graphic Tee, T-shirt, Kids',
 
   postex_enabled: row.postex_enabled ?? false,
-  postex_api_token: row.postex_api_token ?? '',
   postex_mode: row.postex_mode ?? 'sandbox',
   postex_pickup_address: row.postex_pickup_address ?? '',
   postex_return_address: row.postex_return_address ?? '',

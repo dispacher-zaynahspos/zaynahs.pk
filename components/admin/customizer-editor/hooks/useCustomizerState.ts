@@ -255,6 +255,7 @@ export function useCustomizerState({
     if (mediaSelectCallback) {
       mediaSelectCallback(url);
       setMediaSelectCallback(null);
+      setMediaUploadTarget(null);
       setIsMediaModalOpen(false);
       return;
     }

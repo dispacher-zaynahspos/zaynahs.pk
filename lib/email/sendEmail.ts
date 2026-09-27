@@ -1,6 +1,7 @@
 import nodemailer from 'nodemailer';
 import { render } from '@react-email/render';
 import { getSettings } from '@/lib/services/settings';
+import { getSmtpCredentials } from '@/lib/services/settings/server-secrets';
 import { getSiteUrl } from '@/lib/site-url-server';
 import React from 'react';
 
@@ -28,8 +29,9 @@ export async function sendEmail({
 }: SendEmailParams): Promise<{ success: boolean; error?: string }> {
   try {
     const settings = await getSettings();
+    const smtp = await getSmtpCredentials();
 
-    if (!settings.smtp_email || !settings.smtp_app_password) {
+    if (!smtp?.smtp_email || !smtp?.smtp_app_password) {
       console.error('[Email] SMTP is not configured in settings.');
       return { success: false, error: 'SMTP not configured' };
     }
@@ -37,8 +39,8 @@ export async function sendEmail({
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
-        user: settings.smtp_email,
-        pass: settings.smtp_app_password.replace(/\s+/g, ''), // strip any spaces in app password
+        user: smtp.smtp_email,
+        pass: smtp.smtp_app_password.replace(/\s+/g, ''), // strip any spaces in app password
       },
     });
 

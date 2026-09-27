@@ -1,4 +1,5 @@
 import { Product, ProductImage, ProductVariant, ProductModifier } from '@/lib/types';
+import { SHOP_CATEGORY_ID } from '@/lib/config/singleton-ids';
 import { revalidateProduct } from '@/lib/revalidate';
 import { safeAction } from '@/lib/utils/serverAction';
 import { supabaseAdmin } from '@/lib/supabase/admin';
@@ -107,8 +108,8 @@ export const createProduct = async (
     if (categoryIdsToInsert.length === 0 && product.category_id) {
       categoryIdsToInsert.push(product.category_id);
     }
-    if (!categoryIdsToInsert.includes('00000000-0000-4000-8000-000000000099')) {
-      categoryIdsToInsert.push('00000000-0000-4000-8000-000000000099');
+    if (!categoryIdsToInsert.includes(SHOP_CATEGORY_ID)) {
+      categoryIdsToInsert.push(SHOP_CATEGORY_ID);
     }
 
     const { error: pcInsErr } = await supabase
@@ -258,8 +259,8 @@ export const updateProduct = async (
     if (categoryIdsToUpdate.length === 0 && product.category_id) {
       categoryIdsToUpdate.push(product.category_id);
     }
-    if (!categoryIdsToUpdate.includes('00000000-0000-4000-8000-000000000099')) {
-      categoryIdsToUpdate.push('00000000-0000-4000-8000-000000000099');
+    if (!categoryIdsToUpdate.includes(SHOP_CATEGORY_ID)) {
+      categoryIdsToUpdate.push(SHOP_CATEGORY_ID);
     }
 
     const { error: pcDelError } = await supabase

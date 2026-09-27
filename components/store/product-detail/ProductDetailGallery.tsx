@@ -3,11 +3,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import Image from 'next/image';
-import useEmblaCarousel from 'embla-carousel-react';
 import { ChevronLeft, ChevronRight, ZoomIn, X } from '@/components/common/Icons';
 import { StoreSettings, Product, ProductVariant } from '@/lib/types';
 import { getSharedAspectClass } from '@/lib/utils/styles';
 import { getPresetImageUrl } from '@/lib/utils/imageUrl';
+import { useEmblaGallery } from '@/components/store/product-card/hooks/useEmblaGallery';
 
 import { ProductLightboxModal } from './gallery/ProductLightboxModal';
 
@@ -52,29 +52,8 @@ export default function ProductDetailGallery({
     setMounted(true);
   }, []);
 
-  // Embla carousel for mobile touch swipe
-  const [emblaRef, emblaApi] = useEmblaCarousel({
-    loop: true
-  });
-
-  // Keep activeImageIndex in sync when user swipes
-  useEffect(() => {
-    if (!emblaApi) return;
-    const onSelect = () => {
-      setActiveImageIndex(emblaApi.selectedScrollSnap());
-    };
-    emblaApi.on('select', onSelect);
-    return () => {
-      emblaApi.off('select', onSelect);
-    };
-  }, [emblaApi, setActiveImageIndex]);
-
-  // Sync scroll snap if activeImageIndex is changed from parent
-  useEffect(() => {
-    if (emblaApi && emblaApi.selectedScrollSnap() !== activeImageIndex) {
-      emblaApi.scrollTo(activeImageIndex);
-    }
-  }, [activeImageIndex, emblaApi]);
+  // Embla carousel (shared wiring: swipe ⇄ activeImageIndex)
+  const { emblaRef, emblaApi } = useEmblaGallery(activeImageIndex, setActiveImageIndex, { loop: true });
 
   return (
     <div className="space-y-3">

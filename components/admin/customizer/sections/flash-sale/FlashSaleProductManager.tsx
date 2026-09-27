@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { moveItemInArray } from '@/lib/utils/arrayMove';
 import { Product, HomepageSection } from '@/lib/types';
 import { Trash2, ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from '@/components/common/Icons';
 import { formatPrice } from '@/lib/utils/whatsapp';
@@ -62,14 +63,8 @@ export default function FlashSaleProductManager({
   };
 
   const handleMoveProduct = (index: number, direction: 'up' | 'down') => {
-    if (direction === 'up' && index === 0) return;
-    if (direction === 'down' && index === fsProducts.length - 1) return;
-
-    const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    const updated = [...fsProducts];
-    const temp = updated[index];
-    updated[index] = updated[targetIndex];
-    updated[targetIndex] = temp;
+    const updated = moveItemInArray(fsProducts, index, direction);
+    if (updated === fsProducts) return;
     handleProductsChange(updated);
   };
 

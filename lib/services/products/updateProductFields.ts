@@ -1,4 +1,5 @@
 import { Product } from '@/lib/types';
+import { SHOP_CATEGORY_ID } from '@/lib/config/singleton-ids';
 import { revalidateProduct, revalidateTagSafe } from '@/lib/revalidate';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 
@@ -58,8 +59,8 @@ export const updateProductFields = async (
       if (categoryIdsToUpdate.length === 0 && fields.category_id) {
         categoryIdsToUpdate.push(fields.category_id);
       }
-      if (!categoryIdsToUpdate.includes('00000000-0000-4000-8000-000000000099')) {
-        categoryIdsToUpdate.push('00000000-0000-4000-8000-000000000099');
+      if (!categoryIdsToUpdate.includes(SHOP_CATEGORY_ID)) {
+        categoryIdsToUpdate.push(SHOP_CATEGORY_ID);
       }
 
       const { error: pcDelError } = await supabase

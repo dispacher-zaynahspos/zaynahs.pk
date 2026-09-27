@@ -8,6 +8,7 @@ import { getSettings } from '@/lib/services/settings';
 import { getProductReviews, getAverageRating } from '@/lib/services/reviews';
 import { getSocialProofCountForProduct } from '@/lib/services/social-proof';
 import { Product } from '@/lib/types';
+import { isFeatureEnabled } from '@/lib/features/premium';
 import RecentlyViewed from '@/components/store/RecentlyViewed';
 import SocialFeedRibbon from '@/components/store/SocialFeedRibbon';
 import { getResponsiveGridClasses } from '@/lib/utils/responsiveGrid';
@@ -281,7 +282,7 @@ export default async function ProductPage({ params }: PageProps) {
             );
           }
           if (block === 'related') {
-            if (settings.related_products_enabled === false || relatedProducts.length === 0) return null;
+            if (!isFeatureEnabled(settings, 'related_products') || relatedProducts.length === 0) return null;
             const relatedCols = getResponsiveGridClasses({
               mobile: settings.related_columns_mobile || 2,
               tablet: settings.related_columns_tablet || 3,

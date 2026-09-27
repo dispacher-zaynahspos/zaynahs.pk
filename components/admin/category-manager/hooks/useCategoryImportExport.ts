@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { SHOP_CATEGORY_ID } from '@/lib/config/singleton-ids';
 import { Category } from '@/lib/types';
 import { createCategorySafe, updateCategorySafe } from '@/lib/services/categories';
 import { toast } from 'sonner';
@@ -23,8 +24,8 @@ export function useCategoryImportExport({
     try {
       const toExport =
         selectedCategoryIds.size > 0
-          ? categories.filter((c) => selectedCategoryIds.has(c.id) && c.id !== '00000000-0000-4000-8000-000000000099')
-          : categories.filter((c) => c.id !== '00000000-0000-4000-8000-000000000099');
+          ? categories.filter((c) => selectedCategoryIds.has(c.id) && c.id !== SHOP_CATEGORY_ID)
+          : categories.filter((c) => c.id !== SHOP_CATEGORY_ID);
       if (toExport.length === 0) return toast.error('No categories to export');
 
       const exportData = toExport.map((c) => ({

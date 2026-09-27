@@ -53,7 +53,7 @@ export default function PostExApiSettings({
               type={showToken ? 'text' : 'password'}
               value={apiToken}
               onChange={(e) => setApiToken(e.target.value)}
-              placeholder="Paste PostEx API token..."
+              placeholder="Leave blank to keep saved token"
               className="w-full border border-gray-200 dark:border-gray-700 rounded-xl pl-4 pr-12 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
             />
             <button

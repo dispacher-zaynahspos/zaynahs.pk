@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { HomepageSection, StoreSettings } from '@/lib/types';
+import { isSectionEnabled, sectionPremiumFeature, PREMIUM_FEATURE_LABEL } from '@/lib/features/premium';
 import { GripVertical, Eye, EyeOff, ChevronUp, ChevronDown, Trash2 } from '@/components/common/Icons';
 import { toast } from 'sonner';
 
@@ -50,16 +51,15 @@ export default function HomeSectionsStack({
             { type: 'ticker', label: 'Scrolling Ticker' },
             { type: 'flash_sale', label: 'Flash Sale Grid' },
           ].map((item) => {
-            const isFeatureDisabled =
-              (item.type === 'social_feed' && storeSettings.social_feeds_enabled === false) ||
-              (item.type === 'flash_sale' && storeSettings.flash_sale_enabled === false);
+            const isFeatureDisabled = !isSectionEnabled(storeSettings, item.type);
 
             return (
               <button
                 key={item.type}
                 onClick={() => {
                   if (isFeatureDisabled) {
-                    const featureName = item.type === 'social_feed' ? 'Social Feeds' : 'Flash Sale';
+                    const feature = sectionPremiumFeature(item.type);
+                    const featureName = feature ? PREMIUM_FEATURE_LABEL[feature] : 'This feature';
                     toast.error(`🔒 ${featureName} is disabled! Enable it in Settings > Premium Tab.`);
                     return;
                   }
@@ -130,9 +130,7 @@ export default function HomeSectionsStack({
                   <div className="flex items-center gap-2">
                     <GripVertical className="h-4 w-4 text-gray-400" />
                     {(() => {
-                      const isFeatureDisabled =
-                        (section.section_type === 'social_feed' && storeSettings.social_feeds_enabled === false) ||
-                        (section.section_type === 'flash_sale' && storeSettings.flash_sale_enabled === false);
+                      const isFeatureDisabled = !isSectionEnabled(storeSettings, section.section_type);
 
                       return (
                         <div className="min-w-0 flex-1">

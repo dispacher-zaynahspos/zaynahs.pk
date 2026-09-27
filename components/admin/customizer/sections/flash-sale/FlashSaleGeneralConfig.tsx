@@ -1,5 +1,6 @@
 import React from 'react';
 import { HomepageSection } from '@/lib/types';
+import ResponsiveGridColumnsControl from '@/components/admin/customizer/shared/ResponsiveGridColumnsControl';
 
 interface FlashSaleGeneralConfigProps {
   section: HomepageSection;
@@ -115,6 +116,16 @@ export default function FlashSaleGeneralConfig({
           className="w-full accent-[#e94560]"
         />
       </div>
+
+      <ResponsiveGridColumnsControl
+        label="Flash Sale Grid Columns"
+        desktopCols={Number(settings.columns_desktop) || 4}
+        tabletCols={Number(settings.columns_tablet) || 3}
+        mobileCols={Number(settings.columns_mobile) || 2}
+        onChangeDesktop={(cols) => handleSettingsChange('columns_desktop', cols)}
+        onChangeTablet={(cols) => handleSettingsChange('columns_tablet', cols)}
+        onChangeMobile={(cols) => handleSettingsChange('columns_mobile', cols)}
+      />
 
       <hr className="border-gray-200 dark:border-gray-800" />
 

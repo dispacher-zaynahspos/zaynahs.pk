@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { HomepageSection, Category } from '@/lib/types';
 import { Trash2, ChevronUp, ChevronDown } from '@/components/common/Icons';
+import { moveItemInArray } from '@/lib/utils/arrayMove';
 import ResponsiveGridColumnsControl from '../shared/ResponsiveGridColumnsControl';
 
 interface CategoryGridSettingsProps {
@@ -92,6 +93,27 @@ export default function CategoryGridSettings({
         onChangeTablet={(cols) => onUpdateSection({ settings: { ...section.settings, tablet_columns: cols } })}
         onChangeMobile={(cols) => onUpdateSection({ settings: { ...section.settings, mobile_columns: cols } })}
       />
+
+      {/* Show/Hide Section Title Toggle */}
+      <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-800 pb-2.5 pt-1">
+        <span className="text-xs font-bold text-gray-700 dark:text-gray-300">Show Section Title</span>
+        <label className="relative inline-flex items-center cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={section.settings?.show_title !== false}
+            onChange={(e) => {
+              onUpdateSection({
+                settings: {
+                  ...section.settings,
+                  show_title: e.target.checked
+                }
+              });
+            }}
+            className="sr-only peer"
+          />
+          <div className="w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#e94560]" />
+        </label>
+      </div>
 
       {/* Show/Hide Card Title Badges Toggle */}
       <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-800 pb-2.5 pt-1">
@@ -211,15 +233,7 @@ export default function CategoryGridSettings({
                     <div className="flex items-center gap-0.5 ml-2">
                       <button
                         type="button"
-                        onClick={() => {
-                          if (idx > 0) {
-                            const updatedItems = [...items];
-                            const temp = updatedItems[idx];
-                            updatedItems[idx] = updatedItems[idx - 1];
-                            updatedItems[idx - 1] = temp;
-                            handleItemsChange(updatedItems);
-                          }
-                        }}
+                        onClick={() => handleItemsChange(moveItemInArray(items, idx, 'up'))}
                         disabled={idx === 0}
                         className="p-0.5 text-gray-400 hover:text-gray-900 dark:hover:text-white disabled:opacity-20 transition-all cursor-pointer"
                         title="Move Up"
@@ -228,15 +242,7 @@ export default function CategoryGridSettings({
                       </button>
                       <button
                         type="button"
-                        onClick={() => {
-                          if (idx < items.length - 1) {
-                            const updatedItems = [...items];
-                            const temp = updatedItems[idx];
-                            updatedItems[idx] = updatedItems[idx + 1];
-                            updatedItems[idx + 1] = temp;
-                            handleItemsChange(updatedItems);
-                          }
-                        }}
+                        onClick={() => handleItemsChange(moveItemInArray(items, idx, 'down'))}
                         disabled={idx === items.length - 1}
                         className="p-0.5 text-gray-400 hover:text-gray-900 dark:hover:text-white disabled:opacity-20 transition-all cursor-pointer"
                         title="Move Down"

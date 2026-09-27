@@ -137,5 +137,16 @@ Koi bhi user action jo **2+ tables** likhta hai, ya **write + file upload** kart
 - Sequential unguarded writes (loop me 6 alag `update`) banned — ya bundled RPC, ya transaction.
 - Har touched write-path OP3 + RULE V1 proof-of-fix se guzre.
 
+### Why (real POS-style failure this prevents)
+Ek sale/checkout ya multi-step action me kai cheezein ek saath honi hain: order/sale record, inventory minus, payment record, (POS me) bill print + device sync. Agar bundle atomic na ho aur beech me koi step fail ho jaye — e.g. **bill print nahi hua / sync fail ho gaya** — to aisa NAHI hona chahiye ke **sale record ho gaya + inventory minus ho gayi + paisa receive nahi hua** (ya ulta). Ya to **poora bundle commit** ho, ya **poora rollback** — koi partial state (orphan stock decrement, half-synced record, ghost order) kabhi na bane. Yehi D15 ka maqsad hai: "sync ho to poora, warna kuch nahi."
+
+## RULE D16 — Every new file / domain / module / tab must be born compliant (STRICT)
+Jab bhi aage koi **nayi table, column, domain, module, ya admin tab** add ho, wo pehle din se in rules pe ho — baad me "fix" karne ka concept nahi:
+- **UUID primary key** (`gen_random_uuid()`), **snake_case** har column/table (no camelCase, no conversion layer), aur **RLS enabled + explicit policy** (public read sirf jahan storefront ko chahiye; secrets/PII service-role only).
+- Multi-table/file writes D15 bundle (sync-or-fail) se guzrein.
+- Client-facing code kabhi secret column map/return na kare (server-only via `server-secrets.ts` / `getAISettings`; storefront `store_settings_public` view se padhe).
+- `SUPER_MASTER_SCHEMA.sql` + `lib/types.ts` usi task me update hon (agar object exist nahi karta to master schema me add ho — complete/based).
+- Result: no error, no leakage, no patches — har naya module clone-ready + audit-clean by construction.
+
 ## Types synchronization (STRICT)
 `lib/types.ts` is the absolute source of truth for frontend TypeScript interfaces — just as `SUPER_MASTER_SCHEMA.sql` is for the DB. Whenever a feature is added, a DB column changes, or a frontend data model updates, `lib/types.ts` MUST be updated immediately. No feature merges with `any` types. If a feature/column is removed, its type definitions must also be removed (no stale code).

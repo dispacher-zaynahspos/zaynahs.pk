@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireAdmin } from '@/lib/auth/requireAdmin';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 
 const POSTEX_BASE = 'https://api.postex.pk/services/integration/api';
@@ -59,6 +60,8 @@ async function fetchPostexCities(token: string, baseUrl: string): Promise<string
 }
 
 export async function POST(req: NextRequest) {
+  const _denied = await requireAdmin(req);
+  if (_denied) return _denied;
   try {
     const { apiToken } = await req.json();
 

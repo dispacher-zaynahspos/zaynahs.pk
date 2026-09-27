@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { SizeGuide } from '@/lib/types';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
-import { revalidateTagSafe } from '@/lib/revalidate';
+import { revalidateStorefrontEdge } from '@/lib/revalidate';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder';
@@ -75,7 +75,7 @@ export const createSizeGuide = async (guide: {
       .single();
 
     if (error) throw error;
-    revalidateTagSafe('size_guides');
+    await revalidateStorefrontEdge('size_guides');
     return mapSizeGuide(data);
   } catch (error) {
     console.error('[sizeGuides] createSizeGuide failed:', error);
@@ -102,7 +102,7 @@ export const updateSizeGuide = async (
       .single();
 
     if (error) throw error;
-    revalidateTagSafe('size_guides');
+    await revalidateStorefrontEdge('size_guides');
     return mapSizeGuide(data);
   } catch (error) {
     console.error('[sizeGuides] updateSizeGuide failed:', error);
@@ -119,7 +119,7 @@ export const deleteSizeGuide = async (id: string): Promise<void> => {
       .eq('id', id);
 
     if (error) throw error;
-    revalidateTagSafe('size_guides');
+    await revalidateStorefrontEdge('size_guides');
   } catch (error) {
     console.error('[sizeGuides] deleteSizeGuide failed:', error);
     throw error;
@@ -150,7 +150,7 @@ export const restoreSizeGuide = async (id: string): Promise<void> => {
       .update({ deleted_at: null })
       .eq('id', id);
     if (error) throw error;
-    revalidateTagSafe('size_guides');
+    await revalidateStorefrontEdge('size_guides');
   } catch (error) {
     console.error('[sizeGuides] restoreSizeGuide failed:', error);
     throw error;
@@ -165,7 +165,7 @@ export const hardDeleteSizeGuide = async (id: string): Promise<void> => {
       .delete()
       .eq('id', id);
     if (error) throw error;
-    revalidateTagSafe('size_guides');
+    await revalidateStorefrontEdge('size_guides');
   } catch (error) {
     console.error('[sizeGuides] hardDeleteSizeGuide failed:', error);
     throw error;

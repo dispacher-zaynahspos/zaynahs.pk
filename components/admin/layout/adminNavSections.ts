@@ -70,6 +70,7 @@ export function getNavSections(aiEnabled: boolean, metaSyncEnabled?: boolean): N
       key: 'customers', label: 'CUSTOMERS', items: [
         { label: 'Customers', href: '/admin/customers', icon: Users },
         { label: 'WhatsApp Leads', href: '/admin/leads', icon: MessageSquare },
+        { label: 'Contact Messages', href: '/admin/messages', icon: Mail },
         { label: 'Traffic', href: '/admin/traffic', icon: Globe },
       ]
     },
@@ -101,7 +102,7 @@ export function getNavSections(aiEnabled: boolean, metaSyncEnabled?: boolean): N
         { label: 'Policies & FAQ', href: '/admin/settings?tab=policies', icon: HelpCircle },
         { label: 'Footer & Social', href: '/admin/settings?tab=footer', icon: Globe },
         { label: 'Shipping & Pay', href: '/admin/settings?tab=shipping', icon: Truck },
-        { label: 'Premium', href: '/admin/settings?tab=premium', icon: Award },
+        { label: 'Premium Features', href: '/admin/settings?tab=premium', icon: Award },
         { label: 'Courier Manager', href: '/admin/settings/courier', icon: Truck },
         { label: 'Coupons', href: '/admin/settings?tab=coupons', icon: CreditCard },
         { label: 'Pixels & SEO', href: '/admin/settings?tab=pixels', icon: Globe },

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Product, StoreSettings, HomepageSection } from '@/lib/types';
+import { isFeatureEnabled } from '@/lib/features/premium';
 import ProductGrid from '../ProductGrid';
 
 interface FlashSaleSectionProps {
@@ -16,7 +17,7 @@ interface FlashSaleSectionProps {
 }
 
 export function FlashSaleSection({ section, products, currencySymbol, settings, isPreview, loadMoreLimit, onLoadMore }: FlashSaleSectionProps) {
-  if (settings.flash_sale_enabled === false) return null;
+  if (!isFeatureEnabled(settings, 'flash_sale')) return null;
   const startTimeStr = section.settings?.startTime;
   const endTimeStr = section.settings?.endTime;
 

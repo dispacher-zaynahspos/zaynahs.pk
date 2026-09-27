@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireAdmin } from '@/lib/auth/requireAdmin';
 import { getEmailTemplate, updateEmailTemplate, resetEmailTemplate } from '@/lib/services/emailTemplates';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ type: string }> }
 ) {
+  const _denied = await requireAdmin(request);
+  if (_denied) return _denied;
   try {
     const { type } = await params;
     const template = await getEmailTemplate(type);
@@ -25,6 +28,8 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ type: string }> }
 ) {
+  const _denied = await requireAdmin(request);
+  if (_denied) return _denied;
   try {
     const { type } = await params;
     const body = await request.json();
@@ -50,6 +55,8 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ type: string }> }
 ) {
+  const _denied = await requireAdmin(request);
+  if (_denied) return _denied;
   try {
     const { type } = await params;
     const url = new URL(request.url);

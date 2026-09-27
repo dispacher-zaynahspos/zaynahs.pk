@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { StoreSettings, Product } from '@/lib/types';
+import { isFeatureEnabled } from '@/lib/features/premium';
 
 interface ProductSaleSubTabProps {
   settings: StoreSettings;
@@ -14,7 +15,7 @@ export default function ProductSaleSubTab({
   currentProduct,
   onUpdateProduct,
 }: ProductSaleSubTabProps) {
-  if (settings.flash_sale_enabled === false) {
+  if (!isFeatureEnabled(settings, 'flash_sale')) {
     return (
       <div className="flex flex-col items-center justify-center p-6 text-center space-y-3 border border-dashed border-gray-200 dark:border-gray-800 rounded-2xl bg-gray-50/50 dark:bg-white/2 py-10">
         <span className="text-2xl">🔒</span>

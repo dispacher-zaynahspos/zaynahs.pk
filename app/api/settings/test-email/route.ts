@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireAdmin } from '@/lib/auth/requireAdmin';
 import { getSettings } from '@/lib/services/settings';
 import { sendEmail } from '@/lib/email/sendEmail';
 
 export async function POST(request: NextRequest) {
+  const _denied = await requireAdmin(request);
+  if (_denied) return _denied;
   try {
     const settings = await getSettings();
     const adminEmail = settings.admin_notification_email || settings.smtp_email;

@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { Review } from '@/lib/types';
 import { mapReview } from './types';
-import { revalidateTagSafe } from '@/lib/revalidate';
+import { revalidateStorefrontEdge } from '@/lib/revalidate';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 
 // 2. Fetch all reviews (admin)
@@ -69,8 +69,7 @@ export const approveReview = async (id: string, approved: boolean = true): Promi
 
     if (error) throw error;
     
-    revalidateTagSafe('reviews');
-    revalidateTagSafe('products');
+    await revalidateStorefrontEdge('reviews', 'products');
     return mapReview(data);
   } catch (error) {
     console.error('[reviews] approveReview failed:', error);
@@ -91,8 +90,7 @@ export const hideShowReview = async (id: string, hidden: boolean): Promise<Revie
 
     if (error) throw error;
     
-    revalidateTagSafe('reviews');
-    revalidateTagSafe('products');
+    await revalidateStorefrontEdge('reviews', 'products');
     return mapReview(data);
   } catch (error) {
     console.error('[reviews] hideShowReview failed:', error);
@@ -111,8 +109,7 @@ export const deleteReview = async (id: string): Promise<void> => {
 
     if (error) throw error;
     
-    revalidateTagSafe('reviews');
-    revalidateTagSafe('products');
+    await revalidateStorefrontEdge('reviews', 'products');
   } catch (error) {
     console.error('[reviews] deleteReview failed:', error);
     throw error;
@@ -157,8 +154,7 @@ export const deleteSingleReviewPhoto = async (reviewId: string, photoUrl: string
         deleted_at: new Date().toISOString()
       });
 
-    revalidateTagSafe('reviews');
-    revalidateTagSafe('products');
+    await revalidateStorefrontEdge('reviews', 'products');
   } catch (error) {
     console.error('[reviews] deleteSingleReviewPhoto failed:', error);
     throw error;
@@ -221,8 +217,7 @@ export const restoreReview = async (id: string): Promise<void> => {
 
     if (error) throw error;
 
-    revalidateTagSafe('reviews');
-    revalidateTagSafe('products');
+    await revalidateStorefrontEdge('reviews', 'products');
   } catch (error) {
     console.error('[reviews] restoreReview failed:', error);
     throw error;
@@ -239,8 +234,7 @@ export const hardDeleteReview = async (id: string): Promise<void> => {
 
     if (error) throw error;
 
-    revalidateTagSafe('reviews');
-    revalidateTagSafe('products');
+    await revalidateStorefrontEdge('reviews', 'products');
   } catch (error) {
     console.error('[reviews] hardDeleteReview failed:', error);
     throw error;
@@ -276,8 +270,7 @@ export const submitAdminCustomReview = async (review: {
 
     if (error) throw error;
 
-    revalidateTagSafe('reviews');
-    revalidateTagSafe('products');
+    await revalidateStorefrontEdge('reviews', 'products');
 
     return mapReview(data);
   } catch (error) {

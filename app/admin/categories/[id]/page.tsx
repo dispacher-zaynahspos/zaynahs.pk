@@ -6,7 +6,7 @@ import { getProducts, getProductsByCategoryId } from '@/lib/services/products';
 
 export const revalidate = 0; // Dynamic server rendering
 
-const SYSTEM_CATEGORY_ID = '00000000-0000-4000-8000-000000000099';
+import { SHOP_CATEGORY_ID as SYSTEM_CATEGORY_ID } from '@/lib/config/singleton-ids';
 
 interface PageProps {
   params: Promise<{ id: string }>;

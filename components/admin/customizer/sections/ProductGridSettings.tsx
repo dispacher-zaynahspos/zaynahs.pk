@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { SHOP_CATEGORY_ID } from '@/lib/config/singleton-ids';
 import { HomepageSection, Category, Product } from '@/lib/types';
 import ManualProductPicker from './product-grid/ManualProductPicker';
 import BottomGridActions from './product-grid/BottomGridActions';
@@ -61,7 +62,7 @@ export default function ProductGridSettings({
         >
           <option value="all">All Products</option>
           <option value="featured">Featured Products Only</option>
-          {categories.filter(cat => cat.slug !== 'shop' && cat.id !== '00000000-0000-4000-8000-000000000099').map(cat => (
+          {categories.filter(cat => cat.slug !== 'shop' && cat.id !== SHOP_CATEGORY_ID).map(cat => (
             <option key={cat.id} value={cat.id}>
               Category: {cat.name}
             </option>

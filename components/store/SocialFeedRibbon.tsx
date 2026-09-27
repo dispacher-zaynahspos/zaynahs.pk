@@ -3,6 +3,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import { StoreSettings } from '@/lib/types';
+import { isFeatureEnabled } from '@/lib/features/premium';
+import { getResponsiveGridClasses } from '@/lib/utils/responsiveGrid';
 import { getOptimizedImageUrl, getPresetImageUrl } from '@/lib/utils/imageUrl';
 import { Play, YoutubeIcon, InstagramIcon, FacebookIcon, TiktokIcon, VimeoIcon } from '@/components/common/Icons';
 
@@ -14,6 +16,9 @@ interface SocialFeedRibbonProps {
   limit?: number;
   isHomepage?: boolean;
   items?: any[];
+  columnsDesktop?: number;
+  columnsTablet?: number;
+  columnsMobile?: number;
 }
 
 interface ParsedSocialVideo {
@@ -163,7 +168,10 @@ export default function SocialFeedRibbon({
   desc,
   limit,
   isHomepage = false,
-  items
+  items,
+  columnsDesktop,
+  columnsTablet,
+  columnsMobile
 }: SocialFeedRibbonProps) {
   const [shouldRender, setShouldRender] = useState(false);
   const containerRef = React.useRef<HTMLDivElement>(null);
@@ -205,7 +213,7 @@ export default function SocialFeedRibbon({
 
 
 
-  if (settings.social_feeds_enabled === false) return null;
+  if (!isFeatureEnabled(settings, 'social_feeds')) return null;
 
   if (isHomepage) {
     if (settings.social_feeds_homepage_enabled === false) return null;
@@ -250,7 +258,7 @@ export default function SocialFeedRibbon({
         </p>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className={`grid gap-4 ${getResponsiveGridClasses({ mobile: columnsMobile ?? 2, tablet: columnsTablet ?? 4, desktop: columnsDesktop ?? 4 })}`}>
         {feedsToDisplay.slice(0, maxItems).map((feed, idx) => {
           const hasVideo = !!feed.videoUrl;
           const videoInfo = hasVideo ? parseSocialVideoUrl(feed.videoUrl, false, feed.platform) : { type: null };

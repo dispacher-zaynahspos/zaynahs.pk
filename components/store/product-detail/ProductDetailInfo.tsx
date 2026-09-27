@@ -14,6 +14,7 @@ import {
   WhatsAppIcon
 } from '@/components/common/Icons';
 import { StoreSettings, Product, ProductVariant, ProductModifier } from '@/lib/types';
+import { isFeatureEnabled } from '@/lib/features/premium';
 import VariantSelector from '../VariantSelector';
 import { formatPrice } from '@/lib/utils/whatsapp';
 import { ProductDetailPriceTimer } from './info/ProductDetailPriceTimer';
@@ -154,7 +155,7 @@ export default function ProductDetailInfo({
         )}
 
         {/* Stock Urgency Banner */}
-        {!product.is_service && settings.stock_urgency_enabled !== false && stockAvailable > 0 && stockAvailable <= 5 && (
+        {!product.is_service && isFeatureEnabled(settings, 'stock_urgency') && stockAvailable > 0 && stockAvailable <= 5 && (
           <div className="mt-2 flex items-center gap-1.5 text-xs text-[#e94560] bg-rose-50 dark:bg-rose-950/20 px-3 py-1.5 rounded-lg font-bold w-fit animate-pulse border border-rose-100 dark:border-rose-900/30">
             <span>🔥 Hurry! Only {stockAvailable} left in stock!</span>
           </div>
@@ -165,7 +166,7 @@ export default function ProductDetailInfo({
           <div className="border-t border-gray-100 dark:border-gray-800 pt-4">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-bold uppercase tracking-wider text-gray-500">Options</span>
-              {settings.size_guide_enabled !== false && sizeGuide && (
+              {isFeatureEnabled(settings, 'size_guide') && sizeGuide && (
                 <button
                   type="button"
                   onClick={onOpenSizeGuide}
@@ -239,7 +240,7 @@ export default function ProductDetailInfo({
               <span>Share</span>
             </button>
 
-            {settings.size_guide_enabled !== false && sizeGuide && (
+            {isFeatureEnabled(settings, 'size_guide') && sizeGuide && (
               <button
                 type="button"
                 onClick={onOpenSizeGuide}

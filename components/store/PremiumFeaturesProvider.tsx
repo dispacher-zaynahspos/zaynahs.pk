@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { StoreSettings } from '@/lib/types';
+import { isFeatureEnabled } from '@/lib/features/premium';
 import { addWhatsAppSubscriberAction } from '@/lib/services/sections/subscribe-actions';
 import { Gift } from '@/components/common/Icons';
 import { toast } from 'sonner';
@@ -61,7 +62,7 @@ export default function PremiumFeaturesProvider({ settings }: PremiumFeaturesPro
   // Exit intent & Cookie consent init
   useEffect(() => {
     const cookiesAccepted = localStorage.getItem('cookies-accepted');
-    if (settings.cookie_consent_enabled !== false && !cookiesAccepted) {
+    if (isFeatureEnabled(settings, 'cookie_consent') && !cookiesAccepted) {
       setShowCookies(true);
     }
 
@@ -71,7 +72,7 @@ export default function PremiumFeaturesProvider({ settings }: PremiumFeaturesPro
     }
 
     const handleMouseLeave = (e: MouseEvent) => {
-      if (!settings.exit_intent_enabled) return;
+      if (!isFeatureEnabled(settings, 'exit_intent')) return;
       const dismissed = sessionStorage.getItem('exit-intent-dismissed');
       if (dismissed || exitSubscribed) return;
 
@@ -82,7 +83,7 @@ export default function PremiumFeaturesProvider({ settings }: PremiumFeaturesPro
     };
 
     let mobileTimer: NodeJS.Timeout;
-    if (settings.exit_intent_enabled && typeof window !== 'undefined' && window.innerWidth < 768) {
+    if (isFeatureEnabled(settings, 'exit_intent') && typeof window !== 'undefined' && window.innerWidth < 768) {
       const delayMobile = (settings.exit_intent_delay_mobile ?? 25) * 1000;
       mobileTimer = setTimeout(() => {
         const dismissed = sessionStorage.getItem('exit-intent-dismissed');
@@ -216,7 +217,7 @@ export default function PremiumFeaturesProvider({ settings }: PremiumFeaturesPro
       )}
 
       {/* 2. SPIN TO WIN TRIGGER & MODAL */}
-      {settings.spin_wheel_enabled && !showSpinWheel && !hasSpun && (
+      {isFeatureEnabled(settings, 'spin_wheel') && !showSpinWheel && !hasSpun && (
         <button
           onClick={() => setShowSpinWheel(true)}
           className="fixed bottom-24 right-4 z-40 p-4 bg-amber-500 hover:bg-amber-600 text-white rounded-full shadow-2xl animate-bounce hover:scale-105 transition-all focus:outline-none focus:ring-4 focus:ring-amber-300"
@@ -248,7 +249,7 @@ export default function PremiumFeaturesProvider({ settings }: PremiumFeaturesPro
       )}
 
       {/* 3. VERIFIED RECENT BUYERS TICKER */}
-      {showTicker && settings.recent_buyers_enabled !== false && (!isCheckout || settings.recent_buyers_show_on_checkout) && tickerProduct && tickerBuyer && (
+      {showTicker && isFeatureEnabled(settings, 'recent_buyers') && (!isCheckout || settings.recent_buyers_show_on_checkout) && tickerProduct && tickerBuyer && (
         <RecentBuyerTicker
           settings={settings}
           product={tickerProduct}
@@ -259,7 +260,7 @@ export default function PremiumFeaturesProvider({ settings }: PremiumFeaturesPro
       )}
 
       {/* 4. COOKIE CONSENT BANNER */}
-      {showCookies && settings.cookie_consent_enabled !== false && (
+      {showCookies && isFeatureEnabled(settings, 'cookie_consent') && (
         <CookieConsentBanner
           settings={settings}
           onAccept={acceptCookies}

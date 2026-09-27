@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { moveItemInArray } from '@/lib/utils/arrayMove';
 import { Category, HomepageSection } from '@/lib/types';
 import { Trash2, ChevronUp, ChevronDown } from '@/components/common/Icons';
 import { toast } from 'sonner';
@@ -53,15 +54,8 @@ export default function FlashSaleCategoryRules({
   };
 
   const handleMoveCategoryDiscount = (index: number, direction: 'up' | 'down') => {
-    if (direction === 'up' && index === 0) return;
-    if (direction === 'down' && index === categoryDiscounts.length - 1) return;
-
-    const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    const updated = [...categoryDiscounts];
-    const temp = updated[index];
-    updated[index] = updated[targetIndex];
-    updated[targetIndex] = temp;
-    
+    const updated = moveItemInArray(categoryDiscounts, index, direction);
+    if (updated === categoryDiscounts) return;
     onUpdateSection({
       content_data: { ...contentData, categoryDiscounts: updated }
     });

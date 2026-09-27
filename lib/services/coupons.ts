@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { Coupon } from '@/lib/types';
-import { revalidateTagSafe } from '@/lib/revalidate';
+import { revalidateStorefrontEdge } from '@/lib/revalidate';
 
 interface CouponRow {
   id: string;
@@ -58,7 +58,7 @@ export const createCoupon = async (coupon: Omit<Coupon, 'id' | 'created_at' | 'u
       .single();
 
     if (error) throw error;
-    revalidateTagSafe('coupons');
+    await revalidateStorefrontEdge('coupons');
     return mapCoupon(data);
   } catch (error) {
     console.error('[coupons] createCoupon failed:', error);
@@ -84,7 +84,7 @@ export const updateCoupon = async (id: string, coupon: Partial<Coupon>): Promise
       .single();
 
     if (error) throw error;
-    revalidateTagSafe('coupons');
+    await revalidateStorefrontEdge('coupons');
     return mapCoupon(data);
   } catch (error) {
     console.error('[coupons] updateCoupon failed:', error);
@@ -101,7 +101,7 @@ export const deleteCoupon = async (id: string): Promise<void> => {
       .eq('id', id);
 
     if (error) throw error;
-    revalidateTagSafe('coupons');
+    await revalidateStorefrontEdge('coupons');
   } catch (error) {
     console.error('[coupons] deleteCoupon failed:', error);
     throw error;

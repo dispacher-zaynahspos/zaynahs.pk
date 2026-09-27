@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { SHOP_CATEGORY_ID } from '@/lib/config/singleton-ids';
 import Link from 'next/link';
 import { FolderOpen, Edit, Trash2 } from '@/components/common/Icons';
 import { Category } from '@/lib/types';
@@ -28,7 +29,7 @@ export default function CategoryCard({
       }}>
         <div className="flex justify-between items-start">
           <div className="flex items-start gap-3">
-            {cat.id !== '00000000-0000-4000-8000-000000000099' ? (
+            {cat.id !== SHOP_CATEGORY_ID ? (
               <input
                 type="checkbox"
                 checked={selectedCategoryIds.has(cat.id)}
@@ -53,7 +54,7 @@ export default function CategoryCard({
                   <span className="text-gray-400">{'—'.repeat(cat._level)} </span>
                 )}
                 {cat.name}
-                {cat.id === '00000000-0000-4000-8000-000000000099' && (
+                {cat.id === SHOP_CATEGORY_ID && (
                   <span className="ml-2 text-[9px] font-bold text-indigo-600 bg-indigo-50 dark:bg-indigo-950/20 px-1.5 py-0.5 rounded uppercase">System</span>
                 )}
               </h3>
@@ -86,7 +87,7 @@ export default function CategoryCard({
           <Edit className="h-3.5 w-3.5" />
           <span>Edit</span>
         </button>
-        {cat.id !== '00000000-0000-4000-8000-000000000099' && (
+        {cat.id !== SHOP_CATEGORY_ID && (
           <button
             onClick={() => onDelete(cat.id)}
             className="flex items-center gap-1 text-xs font-semibold text-red-500 hover:bg-red-50 dark:hover:bg-red-950/10 px-3 py-2 rounded-lg cursor-pointer"

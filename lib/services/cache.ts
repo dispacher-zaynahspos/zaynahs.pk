@@ -3,8 +3,7 @@
 import { revalidateSettings, revalidateHomepage, revalidateBanner } from '@/lib/revalidate';
 import { safeAction } from '@/lib/utils/serverAction';
 import { supabaseAdmin } from '@/lib/supabase/admin';
-
-const SETTINGS_ID = '00000000-0000-4000-8000-000000000001';
+import { STORE_SETTINGS_ID as SETTINGS_ID } from '@/lib/config/singleton-ids';
 
 export const purgeAllCache = async () => {
   return safeAction(

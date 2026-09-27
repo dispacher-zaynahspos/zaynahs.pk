@@ -5,8 +5,10 @@ import { staticSupabase, SETTINGS_ID, mapSettings } from './mappers';
 
 export const fetchSettings = async (): Promise<StoreSettings> => {
   try {
+    // Read the secret-free view (anon-safe). Secrets are read server-side only
+    // via lib/services/settings/server-secrets.ts / getAISettings.
     const { data, error } = await staticSupabase
-      .from('store_settings')
+      .from('store_settings_public')
       .select('*')
       .eq('id', SETTINGS_ID)
       .maybeSingle();
@@ -15,19 +17,19 @@ export const fetchSettings = async (): Promise<StoreSettings> => {
       logDbError({
         file: 'lib/services/settings/queries.ts',
         functionName: 'fetchSettings',
-        table: 'store_settings',
+        table: 'store_settings_public',
         action: 'SELECT'
       }, error);
       throw error;
     }
     if (data) return mapSettings(data);
 
-    console.warn('[Settings Error Debug] store_settings row not found with staticSupabase, attempting fallback insert...');
+    console.warn('[Settings Error Debug] store_settings row not found, attempting fallback insert...');
     const supabase = await createClient();
-    const { data: insData, error: insError } = await supabase
+    const { error: insError } = await supabase
       .from('store_settings')
       .insert({ id: SETTINGS_ID })
-      .select('*')
+      .select('id')
       .single();
 
     if (insError) {
@@ -39,12 +41,18 @@ export const fetchSettings = async (): Promise<StoreSettings> => {
       }, insError);
       throw insError;
     }
-    return mapSettings(insData);
+    // Re-read via the secret-free view after creating the singleton row.
+    const { data: fresh } = await staticSupabase
+      .from('store_settings_public')
+      .select('*')
+      .eq('id', SETTINGS_ID)
+      .maybeSingle();
+    return mapSettings(fresh ?? ({ id: SETTINGS_ID, updated_at: new Date().toISOString() } as any));
   } catch (err) {
     logDbError({
       file: 'lib/services/settings/queries.ts',
       functionName: 'fetchSettings (general catch)',
-      table: 'store_settings',
+      table: 'store_settings_public',
       action: 'SELECT'
     }, err);
     return mapSettings({ id: SETTINGS_ID, updated_at: new Date().toISOString() } as any);

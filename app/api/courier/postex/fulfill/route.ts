@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireAdmin } from '@/lib/auth/requireAdmin';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { cleanWhatsAppPhone, formatPrice } from '@/lib/utils/whatsapp';
 import { sendTemplatedEmail } from '@/lib/email/sendTemplatedEmail';
@@ -47,6 +48,8 @@ async function getMerchantAddresses(token: string, baseUrl: string) {
 }
 
 export async function POST(req: NextRequest) {
+  const _denied = await requireAdmin(req);
+  if (_denied) return _denied;
   try {
     const { orderId, weight, packetCount, remarks, productDetail, customerName: reqName, customerPhone: reqPhone, deliveryAddress: reqAddress, cityName: reqCity, total: reqTotal, orderType: reqOrderType } = await req.json();
 

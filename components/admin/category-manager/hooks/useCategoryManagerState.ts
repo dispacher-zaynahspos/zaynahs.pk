@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { AI_SETTINGS_ID } from '@/lib/config/singleton-ids';
 import { Category } from '@/lib/types';
 import { createCategorySafe, updateCategorySafe, deleteCategorySafe } from '@/lib/services/categories';
 import { createClient } from '@/lib/supabase/client';
@@ -192,7 +193,7 @@ export function useCategoryManagerState({
       const { data: aiSettings } = await supabase
         .from('ai_settings')
         .select('auto_content_seo')
-        .eq('id', '00000000-0000-4000-8000-000000000002')
+        .eq('id', AI_SETTINGS_ID)
         .single();
 
       const isAutoSeoOn = aiSettings?.auto_content_seo ?? true;

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { requireAdmin } from '@/lib/auth/requireAdmin';
 
 const PROVIDER_ENDPOINTS: Record<string, { url: string; headers: Record<string, string>; method?: string; body?: any }> = {
   groq: { url: 'https://api.groq.com/openai/v1/models', headers: {} },
@@ -20,6 +21,8 @@ const PROVIDER_ENDPOINTS: Record<string, { url: string; headers: Record<string, 
 };
 
 export async function POST(request: Request) {
+  const _denied = await requireAdmin(request);
+  if (_denied) return _denied;
   try {
     const { provider, apiKey, section } = await request.json();
 

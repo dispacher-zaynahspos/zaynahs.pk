@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { StoreSettings, Product } from '@/lib/types';
+import { isFeatureEnabled } from '@/lib/features/premium';
 import ProductSaleSubTab from './product-detail/ProductSaleSubTab';
 import ProductSocialFeedSubTab from './product-detail/ProductSocialFeedSubTab';
 import ProductLayoutSubTab from './product-detail/ProductLayoutSubTab';
@@ -44,7 +45,7 @@ export default function ProductDetailPageSettings({
           <label className="relative inline-flex items-center cursor-pointer select-none">
             <input
               type="checkbox"
-              checked={settings.related_products_enabled !== false}
+              checked={isFeatureEnabled(settings, 'related_products')}
               onChange={(e) => onUpdateSettings({ related_products_enabled: e.target.checked })}
               className="sr-only peer"
             />

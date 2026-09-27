@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { STORE_SETTINGS_ID } from '@/lib/config/singleton-ids';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 
 export const revalidate = 0; // Disable caching for settings checks
@@ -8,7 +9,7 @@ export async function GET() {
     const { data, error } = await supabaseAdmin
       .from('store_settings')
       .select('ai_enabled')
-      .eq('id', '00000000-0000-4000-8000-000000000001')
+      .eq('id', STORE_SETTINGS_ID)
       .single();
 
     if (error || !data) {

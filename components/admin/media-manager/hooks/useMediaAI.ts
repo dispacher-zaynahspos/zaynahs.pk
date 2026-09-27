@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { getAutoMediaAi } from '@/lib/services/ai/ai-settings-client';
 import { toast } from 'sonner';
 import { MediaItem } from './useMediaManagerData';
 
@@ -16,13 +16,7 @@ export function useMediaAI() {
 
   const fetchAiSettings = async () => {
     try {
-      const supabase = createClient();
-      const { data } = await supabase
-        .from('ai_settings')
-        .select('auto_media_ai')
-        .eq('id', '00000000-0000-4000-8000-000000000002')
-        .single();
-      if (data) setGlobalAi(data.auto_media_ai);
+      setGlobalAi(await getAutoMediaAi());
     } catch (err) {
       console.warn('[Media Manager] Could not load global AI settings:', err);
     }

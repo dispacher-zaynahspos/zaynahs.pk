@@ -1,4 +1,5 @@
 import { getSiteUrl } from '@/lib/site-url-server';
+import { STORE_SETTINGS_ID } from '@/lib/config/singleton-ids';
 import { notifyGoogleIndexing } from '@/lib/googleIndexing';
 import { pingIndexNow } from '@/lib/indexNow';
 
@@ -27,7 +28,7 @@ async function resolveSiteUrl(): Promise<string> {
     const { data } = await supabase
       .from('store_settings')
       .select('store_url')
-      .eq('id', '00000000-0000-4000-8000-000000000001')
+      .eq('id', STORE_SETTINGS_ID)
       .maybeSingle();
     return getSiteUrl({ store_url: data?.store_url });
   } catch (e) {
@@ -247,6 +248,35 @@ export async function revalidateTagSafe(tag: string) {
   }
 }
 
+/**
+ * RULE C10 — storefront-visible ADMIN write invalidation.
+ *
+ * For admin-initiated writes to storefront-visible domains that don't have a
+ * dedicated per-slug revalidator (collections, coupons, badges, size guides,
+ * social proof, payment/shipping methods, admin review moderation), this
+ * invalidates the given Next.js tags AND runs the full Cloudflare zone purge —
+ * so the change is never left stale at the CDN edge (the gap that plain
+ * `revalidateTagSafe` left).
+ *
+ * Do NOT use this for high-frequency PUBLIC writes (e.g. customer review
+ * submissions) — those stay tag-only to avoid letting anonymous traffic force
+ * repeated full-zone purges. Public content that needs moderation is hidden
+ * until an admin action (which DOES call this) makes it visible.
+ */
+export async function revalidateStorefrontEdge(...tags: string[]): Promise<void> {
+  try {
+    const { revalidateTag, revalidatePath } = await getCacheMethods();
+    for (const tag of tags) (revalidateTag as any)(tag);
+    revalidatePath('/', 'layout');
+    revalidatePath('/shop');
+    revalidatePath('/admin', 'layout');
+    await purgeCloudflareEverything();
+    console.log(`[revalidate] Storefront edge purge for tags: ${tags.join(', ')}`);
+  } catch (error) {
+    console.error(`Error in revalidateStorefrontEdge for tags ${tags.join(', ')}:`, error);
+  }
+}
+
 export async function revalidateSettings() {
   try {
     const { revalidateTag, revalidatePath } = await getCacheMethods();
@@ -319,3 +349,22 @@ export async function revalidateEntity(
 
 // Exposed for the emergency "Purge Cache" button only (normal saves must NOT depend on it — RULE C10).
 export { purgeCloudflareEverything };
+
+/**
+ * Run a cache-invalidation task AFTER the HTTP response is sent, so admin saves
+ * return instantly instead of blocking on the (network-bound) full Cloudflare
+ * zone purge. Uses Next.js `after()` when in a request scope (reliable on
+ * Vercel — the function stays alive for the task); falls back to inline await
+ * when called outside a request (scripts, webhooks).
+ *
+ * Trade-off: the storefront reflects a moment later (once the background purge
+ * finishes) instead of after the save's await — but the admin UI no longer hangs.
+ */
+export async function revalidateAfterResponse(task: () => Promise<void>): Promise<void> {
+  try {
+    const { after } = await import('next/server');
+    after(task);
+  } catch {
+    await task();
+  }
+}

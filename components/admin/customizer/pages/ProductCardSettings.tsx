@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { moveItemInArray } from '@/lib/utils/arrayMove';
 import { StoreSettings } from '@/lib/types';
 import { ChevronUp, ChevronDown } from '@/components/common/Icons';
 import { ProductCardVisibilitySection } from './product-card/ProductCardVisibilitySection';
@@ -39,14 +40,9 @@ export default function ProductCardSettings({ settings, onUpdateSettings }: Prod
   };
 
   const handleMove = (index: number, direction: 'up' | 'down') => {
-    const newOrder = [...elementsOrder];
-    const swapIndex = direction === 'up' ? index - 1 : index + 1;
-    if (swapIndex >= 0 && swapIndex < newOrder.length) {
-      const temp = newOrder[index];
-      newOrder[index] = newOrder[swapIndex];
-      newOrder[swapIndex] = temp;
-      onUpdateSettings({ card_elements_order: newOrder });
-    }
+    const newOrder = moveItemInArray(elementsOrder, index, direction);
+    if (newOrder === elementsOrder) return;
+    onUpdateSettings({ card_elements_order: newOrder });
   };
 
 
@@ -140,23 +136,6 @@ export default function ProductCardSettings({ settings, onUpdateSettings }: Prod
           <p className="text-[10px] text-gray-400">
             Clamp long titles to maintain uniform card heights.
           </p>
-        </div>
-
-        {/* Show Catalog Short Descriptions Toggle */}
-        <div className="flex items-center justify-between pt-2 pb-1 border-t border-gray-100 dark:border-gray-800">
-          <div>
-            <span className="text-xs font-bold text-gray-700 dark:text-gray-300 block">Show Catalog Descriptions</span>
-            <span className="text-[10px] text-gray-400">Display short descriptions below titles on catalog grids</span>
-          </div>
-          <label className="relative inline-flex items-center cursor-pointer select-none">
-            <input
-              type="checkbox"
-              checked={settings.card_show_description === true}
-              onChange={(e) => onUpdateSettings({ card_show_description: e.target.checked })}
-              className="sr-only peer"
-            />
-            <div className="w-10 h-5 bg-gray-200 dark:bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#e94560]" />
-          </label>
         </div>
       </div>
 

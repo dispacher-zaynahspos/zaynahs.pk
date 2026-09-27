@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { Product, Category, Collection, StoreSettings } from '@/lib/types';
 import { useCartStore } from '@/store/cartStore';
+import { SHOP_CATEGORY_ID as SYSTEM_CATEGORY_ID } from '@/lib/config/singleton-ids';
 import { trackEvent } from '@/lib/trackEvent';
 import { useScrollRestoration } from '@/lib/hooks/useScrollRestoration';
 import { useSettings } from '@/lib/hooks/useSettings';
@@ -42,7 +43,6 @@ export function useShopPageFilters({
   const urlMinPriceParam = searchParams.get('minPrice');
   const urlMaxPriceParam = searchParams.get('maxPrice');
 
-  const SYSTEM_CATEGORY_ID = '00000000-0000-4000-8000-000000000099';
 
   const displayCategories = useMemo(() => {
     return categories.filter((c) => c.id !== SYSTEM_CATEGORY_ID);

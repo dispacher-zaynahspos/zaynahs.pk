@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { moveItemInArray } from '@/lib/utils/arrayMove';
 import { StoreSettings } from '@/lib/types';
 
 interface ProductLayoutSubTabProps {
@@ -22,15 +23,8 @@ export default function ProductLayoutSubTab({
   ];
 
   const handleMoveBlock = (index: number, direction: 'up' | 'down') => {
-    if (direction === 'up' && index === 0) return;
-    if (direction === 'down' && index === layout.length - 1) return;
-
-    const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    const newLayout = [...layout];
-    const temp = newLayout[index];
-    newLayout[index] = newLayout[targetIndex];
-    newLayout[targetIndex] = temp;
-
+    const newLayout = moveItemInArray(layout, index, direction);
+    if (newLayout === layout) return;
     onUpdateSettings({ product_page_layout: newLayout });
   };
 

@@ -1,6 +1,8 @@
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import { STORE_SETTINGS_ID } from '@/lib/config/singleton-ids';
 
-export const SETTINGS_ID = '00000000-0000-4000-8000-000000000001';
+/** @deprecated import STORE_SETTINGS_ID from '@/lib/config/singleton-ids' */
+export const SETTINGS_ID = STORE_SETTINGS_ID;
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder';

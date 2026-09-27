@@ -9,6 +9,7 @@ import { cleanWhatsAppPhone } from '@/lib/utils/whatsapp';
 import { toast } from 'sonner';
 import { trackEvent } from '@/lib/trackEvent';
 import { animateFlyTo } from '@/lib/utils/flyAnimation';
+import { useWishlist } from '@/components/store/product-card/hooks/useWishlist';
 import {
   ProductDetailGallery,
   ProductDetailInfo,
@@ -49,8 +50,6 @@ export default function ProductDetail({ product, settings, averageRating, social
     handleVariantChange,
     mounted,
     viewerCount,
-    isWishlisted,
-    setIsWishlisted,
     isShareOpen,
     setIsShareOpen,
     copied,
@@ -155,26 +154,12 @@ export default function ProductDetail({ product, settings, averageRating, social
     animateFlyTo(e.currentTarget as HTMLElement, targetId, imageUrl);
   };
 
-  const toggleWishlist = (e: React.MouseEvent) => {
-    const wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
-    let newWishlist;
-    if (wishlist.includes(product.id)) {
-      newWishlist = wishlist.filter((id: string) => id !== product.id);
-      setIsWishlisted(false);
-      toast.success('Removed from wishlist');
-    } else {
-      newWishlist = [...wishlist, product.id];
-      setIsWishlisted(true);
-      toast.success('Added to wishlist');
-
-      const imageUrl = selectedVariant?.image_url || product.images?.find(img => img.is_primary)?.url || product.images?.[0]?.url;
-      const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-      const targetId = isMobile ? 'mobile-bottom-wishlist-icon' : 'header-wishlist-icon-desktop';
-      animateFlyTo(e.currentTarget as HTMLElement, targetId, imageUrl);
-    }
-    localStorage.setItem('wishlist', JSON.stringify(newWishlist));
-    window.dispatchEvent(new Event('wishlist-updated'));
-  };
+  // Wishlist via the shared single-source hook (variant-aware fly image).
+  const wishlistFlyImage = selectedVariant?.image_url
+    || product.images?.find(img => img.is_primary)?.url
+    || product.images?.[0]?.url
+    || '';
+  const { isInWishlist: isWishlisted, toggleWishlist } = useWishlist(product.id, wishlistFlyImage);
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(productUrl);
