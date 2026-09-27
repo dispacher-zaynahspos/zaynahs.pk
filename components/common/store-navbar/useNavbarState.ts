@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
+import { useBodyScrollLock } from '@/lib/hooks/useBodyScrollLock';
 
 export function useNavbarState(mobileMenuOpen: boolean, searchOpen: boolean) {
   const pathname = usePathname();
@@ -50,16 +51,9 @@ export function useNavbarState(mobileMenuOpen: boolean, searchOpen: boolean) {
     };
   }, [mounted]);
 
-  useEffect(() => {
-    if (mobileMenuOpen || searchOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [mobileMenuOpen, searchOpen]);
+  // Lock background page scroll while the mobile menu or search overlay is open.
+  // Shared SSOT hook (iOS-safe, ref-counted, restores scroll position) — RULE UI-POPUP-SCROLL §9c.
+  useBodyScrollLock(mobileMenuOpen || searchOpen);
 
   useEffect(() => {
     if (moreOpenRef.current) {

@@ -114,9 +114,12 @@ export const ProductCardShowcaseContent: React.FC<ProductCardShowcaseContentProp
           case 'price':
             return (
               <div key="price" className="prow">
+                {/* Sale price FIRST (prominent), strikethrough original SECOND —
+                    fixed app-wide order (docs/UI_RULES.md). */}
+                <span className="card-price">{formatPrice(currentPrice, currencySymbol)}</span>
                 {currentComparePrice && currentComparePrice > currentPrice && (
                   <span
-                    className="pold mr-1.5 line-through decoration-red-500 decoration-[1.5px]"
+                    className="pold ml-1.5 line-through decoration-red-500 decoration-[1.5px]"
                     style={{
                       ...poldStyle,
                       textDecoration: 'line-through',
@@ -129,7 +132,6 @@ export const ProductCardShowcaseContent: React.FC<ProductCardShowcaseContentProp
                     {formatPrice(currentComparePrice, currencySymbol)}
                   </span>
                 )}
-                <span className="card-price">{formatPrice(currentPrice, currencySymbol)}</span>
               </div>
             );
           case 'swatches':

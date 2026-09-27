@@ -43,8 +43,9 @@ export default function MapView({ visitorDots, orderDots }: MapViewProps) {
       touchZoom={true}
     >
       <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="https://carto.com/">CARTO</a>'
-        url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        maxZoom={19}
       />
       <ZoomControl position="topright" />
 
@@ -67,7 +68,7 @@ export default function MapView({ visitorDots, orderDots }: MapViewProps) {
           >
             <Popup>
               <div className="text-sm font-semibold min-w-[160px]">
-                <p className="text-base font-black mb-1">{city}</p>
+                <p className="text-base font-black mb-1 text-gray-900">{city}</p>
                 <p className="text-emerald-600">
                   <span className="font-bold">{data.visitors}</span> visitors
                 </p>

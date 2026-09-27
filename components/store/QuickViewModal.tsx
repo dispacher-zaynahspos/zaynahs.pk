@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEmblaGallery } from '@/components/store/product-card/hooks/useEmblaGallery';
+import { useBodyScrollLock } from '@/lib/hooks/useBodyScrollLock';
 import {
   X,
   ShoppingCart,
@@ -106,13 +107,14 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
   };
 
   // ── Escape + body scroll lock ─────────────────────────────────────────────
+  // Background page scroll is locked via the shared SSOT hook (iOS-safe, ref-counted,
+  // restores scroll position on close). See lib/hooks/useBodyScrollLock.ts.
+  useBodyScrollLock(true);
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     document.addEventListener('keydown', handler);
-    document.body.style.overflow = 'hidden';
     return () => {
       document.removeEventListener('keydown', handler);
-      document.body.style.overflow = '';
     };
   }, [onClose]);
 
@@ -149,7 +151,11 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
         </div>
 
         {/* Scrollable body */}
-        <div className="overflow-y-auto flex-1">
+        {/* min-h-0 is REQUIRED: a flex child defaults to min-height:auto, which refuses to
+            shrink below its content and silently kills overflow scrolling (root cause of the
+            "sometimes scrolls, sometimes doesn't" bug). overscroll-contain stops scroll chaining
+            to the locked background. */}
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
           <div className="grid grid-cols-1 sm:grid-cols-2">
 
             {/* ── Image Gallery ─────────────────────────────────────────── */}

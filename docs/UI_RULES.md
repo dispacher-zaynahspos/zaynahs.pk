@@ -66,6 +66,58 @@ Never render a bare blank div while loading.
 - Effects that migrate/seed section `content_data` must depend on PRIMITIVES (ids, counts), never on
   the unstable `content_data`/`slides` object refs, to avoid per-render churn.
 - Planned single shared components (do not duplicate): `MediaField` (input+preview+Select),
-  `MediaCardListEditor` (add/remove/reorder media cards — Hero/Category/Collections/Social/Brands),
-  `ImageCarousel` (thumbnails+arrows+dots — product gallery/quick-view/hero). See
-  `docs/AUDIT_PASS3_CUSTOMIZER.md`.
+    `MediaCardListEditor` (add/remove/reorder media cards — Hero/Category/Collections/Social/Brands),
+    `ImageCarousel` (thumbnails+arrows+dots — product gallery/quick-view/hero). See
+    `docs/AUDIT_PASS3_CUSTOMIZER.md`.
+
+## 9. Popups / modals / bottom-sheets / overlays — scroll standard (RULE: UI-POPUP-SCROLL)
+Every popup, modal, bottom-sheet, and overlay in this app MUST have a properly scrollable inner
+content container, independent of the background page, that works reliably on every load — no
+exceptions. The scrollable region must:
+- **(a)** use the correct overflow property on the correct INNER element, never the outer overlay
+  wrapper. In a `flex flex-col` panel the scroll child MUST also carry `min-h-0` — a flex child
+  defaults to `min-height:auto` and refuses to shrink below its content, which silently kills
+  `overflow-y-auto` (this was the confirmed root cause of the Quick View "sometimes scrolls,
+  sometimes doesn't" bug). Pattern: panel = `flex flex-col max-h-[92dvh]`, scroll body =
+  `flex-1 min-h-0 overflow-y-auto overscroll-contain`.
+- **(b)** never conflict with any drag-handle, swipe-gesture, or carousel touch handling inside it
+  — vertical content scroll takes priority unless the touch started specifically on a horizontal
+  swipe/carousel element (e.g. the Embla gallery track uses `touch-pan-y` so vertical scroll passes
+  through).
+- **(c)** lock background page scroll while open and restore it (and the exact scroll position) on
+  close. Use the ONE shared hook `lib/hooks/useBodyScrollLock.ts` — never hand-roll
+  `document.body.style.overflow = 'hidden'` per-modal (that alone does not stop iOS background
+  scroll and loses scroll position). The hook is ref-counted so stacked overlays behave correctly.
+- **(d)** be verified on both SHORT content (few options) and LONG content (many
+  variants/description) before being considered done.
+
+All popups/modals/overlays must use the same shared scroll-container + `useBodyScrollLock`
+implementation — no per-popup custom scroll logic (RULE SSOT1). This explicitly INCLUDES side
+drawers and the mobile navigation menu / search overlay (any full-height slide-in panel whose inner
+list can exceed the viewport). Reference implementations: `components/store/QuickViewModal.tsx`,
+`components/common/store-navbar/NavbarMobileDrawer.tsx` (+ `useNavbarState.ts` for the lock),
+`components/store/ShopPage.tsx` mobile filter drawer. Migrate any existing overlay to this pattern
+when touched.
+
+## 10. Product Card interactive overlays — interaction trigger (RULE: UI-CARD-INTERACTION)
+Product Card interactive overlays (wishlist, quick-view, add-to-cart icons) must only be triggered
+by genuine user interaction:
+- On **hover-capable pointer devices only** (`@media (hover: hover) and (pointer: fine)`), reveal on
+  real `:hover`/`:focus`.
+- On **touch devices**, the icons are ALWAYS visible (deliberate, touch-friendly) and a tap on the
+  card tile navigates DIRECTLY to the product page — there is no "tap-to-focus / reveal" intermediate
+  state.
+- Scroll position, viewport visibility, or IntersectionObserver state must NEVER drive this UI. Any
+  scroll/proximity-based "focus" mechanism is forbidden here (the removed
+  `useMobileCardFocus`/`MobileCardFocusManager` was the confirmed root cause of icons appearing on
+  cards while merely scrolling past them — do not reintroduce it).
+
+This applies to the single shared Product Card component used everywhere (home, shop, category,
+collections, search results, customizer preview) — no per-grid exceptions (RULE SSOT1). The admin
+customizer preview may still toggle `.is-in-focus`/`.active-card` explicitly to SIMULATE a hover
+state — that is a deliberate control, not scroll-driven, and is allowed.
+
+## 9. Price display order (RULE PRICE1 — established, price-order bug fix)
+- Discounted price order is **fixed app-wide: SALE price FIRST (prominent), then the STRIKETHROUGH original price SECOND.** Never the reverse, anywhere (shop/home/category/collections/search grid cards, product detail, quick view, wishlist, cart lines, order summaries, customizer preview).
+- Standard convention: lead with what the customer actually pays.
+- Verified consistent across `StandardProductCard`, `ProductCardShowcaseContent` (was reversed — fixed), `ShopProductListCard`, `QuickViewModal`, product detail. If a new price display is added, follow this order (ideally extract a shared `PriceDisplay` so it can't drift again).

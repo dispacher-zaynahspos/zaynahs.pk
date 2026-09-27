@@ -62,7 +62,10 @@ export function NavbarMobileDrawer({
         </div>
 
         {/* Navigation Items */}
-        <div className="mt-2 flex-1 overflow-y-auto px-4 py-2 space-y-1">
+        {/* min-h-0 is REQUIRED so this flex child can shrink and actually scroll — without it
+            the list refuses to shrink below its content and the account links + contact footer
+            below get pushed off-screen and become unreachable (RULE UI-POPUP-SCROLL §9a). */}
+        <div className="mt-2 flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 py-2 space-y-1">
           {navItems.map((item) => renderMobileNavItem(item))}
         </div>
 

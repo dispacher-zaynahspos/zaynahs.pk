@@ -7,7 +7,6 @@ import { Product, StoreSettings } from '@/lib/types';
 import { ShoppingCart, Heart, Eye } from '@/components/common/Icons';
 import { formatPrice } from '@/lib/utils/whatsapp';
 import { saveScrollPosition } from '@/lib/hooks/useScrollRestoration';
-import { useMobileCardFocus } from '@/lib/hooks/useMobileCardFocus';
 
 interface StandardProductCardProps {
   product: Product;
@@ -68,15 +67,6 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
   onAddToCart,
   onCardClick,
 }) => {
-  // ── Touch & Mobile Focus state ────────────────────────────────────────────────
-  const { cardRef, isFocused, setManualFocus } = useMobileCardFocus();
-
-  const handlePointerDown = (e: React.PointerEvent) => {
-    if (e.pointerType === 'touch') {
-      setManualFocus();
-    }
-  };
-
   // ── Image hover style ─────────────────────────────────────────────────────────
   const hoverStyle = settings?.image_hover_style ?? 'second_image';
   const isZoom = hoverStyle === 'zoom';
@@ -148,18 +138,19 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
 
   return (
     // ── SHOPIFY PATTERN ──────────────────────────────────────────────────────────
-    // Outer div: touch state handler. NOT a Link (avoids mobile double-tap issue).
-    // Transparent overlay Link at z-[1] covers entire card → single tap navigates.
+    // Outer div: NOT a Link (avoids mobile double-tap issue).
+    // Transparent overlay Link at z-[1] covers entire card → single tap navigates
+    // DIRECTLY to the product (no scroll/focus intermediate state — RULE UI card-interaction).
     // Icons at z-[25] win over overlay → icon taps don't navigate.
     // Title Link at z-[2] → tap on title navigates directly.
+    // Action icons: always visible on touch devices; hover-reveal ONLY on hover-capable
+    // pointer devices (@media hover:hover in customCss). Scroll position never drives this.
     // ─────────────────────────────────────────────────────────────────────────────
     <div
-      ref={cardRef}
       id={`product-card-${product.id}`}
       data-hover-effect={hoverStyle}
-      onPointerDown={handlePointerDown}
       style={{ borderRadius: 'var(--border-radius-card, 16px)', touchAction: 'pan-y' }}
-      className={`z-card-container group relative flex flex-col overflow-hidden border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] shadow-xs hover:shadow-md transition-all duration-300 ${isFocused ? 'is-in-focus active-card' : ''}`}
+      className={`z-card-container group relative flex flex-col overflow-hidden border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] shadow-xs hover:shadow-md transition-all duration-300`}
     >
       {/* ── Shopify-style full-card transparent overlay link ── */}
       {/* Sits at z-[1], covers entire card, enables single-tap navigation on mobile */}
