@@ -3,7 +3,7 @@ import { join, extname } from 'node:path'
 import { readFileSync, existsSync } from 'node:fs'
 
 const DIR = process.argv[2] || 'gen images'
-const MODELS = ['gemini-3.1-flash-lite', 'gemini-3.6-flash', 'gemini-3.5-flash-lite', 'gemini-flash-latest']
+const MODELS = ['gemini-2.0-flash', 'gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-flash-latest']
 
 const env = {}
 if (existsSync('.env.local')) {

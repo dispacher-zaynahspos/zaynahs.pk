@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
     const siteUrl = await getSiteUrl(settings);
 
     // If abandoned cart emails are disabled in settings → skip
-    if (settings.abandonedCartEmailEnabled === false) {
+    if (settings.abandoned_cart_email_enabled === false) {
       return NextResponse.json({ skipped: true, reason: 'Abandoned cart emails disabled' });
     }
 
@@ -54,8 +54,8 @@ export async function GET(req: NextRequest) {
               total: i.price * i.quantity
             }))
           },
-          order_subtotal: `${settings.currencySymbol || 'Rs.'}${cart.subtotal.toLocaleString()}`,
-          order_total: `${settings.currencySymbol || 'Rs.'}${cart.subtotal.toLocaleString()}`,
+          order_subtotal: `${settings.currency_symbol || 'Rs.'}${cart.subtotal.toLocaleString()}`,
+          order_total: `${settings.currency_symbol || 'Rs.'}${cart.subtotal.toLocaleString()}`,
         });
 
         if (result.success) {
@@ -64,12 +64,12 @@ export async function GET(req: NextRequest) {
 
           // Send admin alert using the admin editable template
           const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
-          if (adminEmail && settings.abandonedCartAdminNotify !== false) {
+          if (adminEmail && settings.abandoned_cart_admin_notify !== false) {
             await sendTemplatedEmail('admin_abandoned_cart', adminEmail, {
               customer_name: cart.customerName || 'Unknown',
               customer_email: cart.customerEmail,
               customer_phone: cart.customerPhone || '—',
-              order_total: `${settings.currencySymbol || 'Rs.'}${cart.subtotal.toLocaleString()}`,
+              order_total: `${settings.currency_symbol || 'Rs.'}${cart.subtotal.toLocaleString()}`,
               last_activity: new Date(cart.lastActivity).toLocaleString()
             }).catch(e => console.error('[abandoned-cart cron] Admin notify failed:', e));
           }

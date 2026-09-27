@@ -18,10 +18,10 @@ const getIconType = (url: string): string => {
 export async function GET() {
   try {
     const settings = await getSettings();
-    const brandName = settings.storeName || process.env.NEXT_PUBLIC_BRAND_NAME || 'Your Store';
+    const brandName = settings.store_name || process.env.NEXT_PUBLIC_BRAND_NAME || 'Your Store';
     // Use only settings-driven URLs — /favicon.ico itself reads from settings dynamically
-    const faviconUrl = settings.faviconUrl || settings.logoUrl || '/favicon.ico';
-    const logoUrl = settings.logoUrl || settings.faviconUrl || '/favicon.ico';
+    const faviconUrl = settings.favicon_url || settings.logo_url || '/favicon.ico';
+    const logoUrl = settings.logo_url || settings.favicon_url || '/favicon.ico';
 
     const manifestData = {
       name: `${brandName} Admin`,

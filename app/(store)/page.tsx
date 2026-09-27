@@ -14,13 +14,13 @@ export const revalidate = 86400; // 24 hours — webhooks purge on admin save
 export async function generateMetadata(): Promise<Metadata> {
   try {
     const settings = await getSettings();
-    const brandName = settings.storeName || process.env.NEXT_PUBLIC_BRAND_NAME || 'Store';
+    const brandName = settings.store_name || process.env.NEXT_PUBLIC_BRAND_NAME || 'Store';
     const brandTagline = settings.tagline || process.env.NEXT_PUBLIC_BRAND_TAGLINE || '';
-    const siteUrl = settings?.storeUrl?.replace(/\/+$/, '') || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+    const siteUrl = settings?.store_url?.replace(/\/+$/, '') || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
 
-    const banner = settings.bannerUrl || settings.logoUrl || settings.faviconUrl || '';
-    const title = settings.metaTitle || (brandTagline ? `${brandName} - ${brandTagline}` : brandName);
-    const desc = (settings.metaDescription || brandTagline).slice(0, 160);
+    const banner = settings.banner_url || settings.logo_url || settings.favicon_url || '';
+    const title = settings.meta_title || (brandTagline ? `${brandName} - ${brandTagline}` : brandName);
+    const desc = (settings.meta_description || brandTagline).slice(0, 160);
 
     return {
       metadataBase: new URL(siteUrl),
@@ -73,15 +73,14 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function CatalogPage() {
   // Fetch all active products on SSR to prevent layout shifts and missing products in Featured/Category grids.
   // The data is cached via unstable_cache in getProducts, so DB load is 0.
-  const [products, categories, settings, reviews, sections] = await Promise.all([
+  const [products, categories, settings, reviews, sections, socialProofCount] = await Promise.all([
     getProducts(),
     getCategories(),
     getSettings(),
     getTopReviews(20),
     getHomepageSections(true),
+    getActiveSocialProofCount().catch(() => 0)
   ]);
-
-  const socialProofCount = await getActiveSocialProofCount();
 
   return (
     <StoreFront

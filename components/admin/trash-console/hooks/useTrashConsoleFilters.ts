@@ -60,12 +60,12 @@ export function useTrashConsoleFilters({
 
   const filteredReviews = reviews.filter(r => {
     const term = searchTerm.toLowerCase();
-    return (r.customerName || '').toLowerCase().includes(term) || (r.comment || '').toLowerCase().includes(term) || (r.productName || '').toLowerCase().includes(term);
+    return (r.customer_name || '').toLowerCase().includes(term) || (r.comment || '').toLowerCase().includes(term) || (r.productName || '').toLowerCase().includes(term);
   });
 
   const filteredOrders = orders.filter(o => {
     const term = searchTerm.toLowerCase();
-    return (o.orderNumber || '').toLowerCase().includes(term) || (o.customerName || '').toLowerCase().includes(term) || (o.customerPhone || '').toLowerCase().includes(term);
+    return (o.order_number || '').toLowerCase().includes(term) || (o.customer_name || '').toLowerCase().includes(term) || (o.customer_phone || '').toLowerCase().includes(term);
   });
 
   const filteredCustomers = customers.filter(c => {

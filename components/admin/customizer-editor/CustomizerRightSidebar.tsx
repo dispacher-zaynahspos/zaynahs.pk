@@ -150,6 +150,7 @@ export function CustomizerRightSidebar({
                 <CategoryGridSettings
                   section={activeSection}
                   categories={categories}
+                  viewportMode={viewportMode}
                   onUpdateSection={(updates) => handleUpdateSection(activeSection.id, updates)}
                   onSelectMedia={(fieldPath, fieldKey, isGridItem, gridIndex) => {
                     setMediaUploadTarget({ sectionId: activeSection.id, fieldPath, fieldKey, isGridItem, gridIndex });

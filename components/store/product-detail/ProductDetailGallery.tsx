@@ -13,12 +13,12 @@ import { ProductLightboxModal } from './gallery/ProductLightboxModal';
 
 interface ImageItem {
   id: string;
-  productId: string;
+  product_id: string;
   url: string;
   alt?: string;
-  sortOrder: number;
-  isPrimary: boolean;
-  createdAt: string;
+  sort_order: number;
+  is_primary: boolean;
+  created_at: string;
 }
 
 interface ProductDetailGalleryProps {
@@ -81,7 +81,7 @@ export default function ProductDetailGallery({
       {/* Main image with arrows + hover zoom */}
       <div
         ref={imgContainerRef}
-        className={`relative w-full overflow-hidden rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-transparent group ${getSharedAspectClass(settings.imageAspectRatio)}`}
+        className={`relative w-full overflow-hidden rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-transparent group ${getSharedAspectClass(settings.image_aspect_ratio)}`}
       >
         {/* Embla Viewport */}
         <div className="overflow-hidden w-full h-full md:cursor-zoom-in touch-pan-y" ref={emblaRef} onClick={() => setLightboxOpen(true)}>
@@ -127,7 +127,7 @@ export default function ProductDetailGallery({
         {/* Badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10 items-start pointer-events-none">
           {(() => {
-            const currentCompare = selectedVariant?.comparePrice ?? product.comparePrice;
+            const currentCompare = selectedVariant?.compare_price ?? product.compare_price;
             const currentPrc = selectedVariant?.price ?? product.price;
             if (currentCompare && currentPrc && currentCompare > currentPrc) {
               return (
@@ -141,29 +141,29 @@ export default function ProductDetailGallery({
             }
             return null;
           })()}
-          {product.isFeatured && (
+          {product.is_featured && (
             <span
               className="rounded-full px-3 py-1 text-[10px] font-black shadow-sm uppercase tracking-wider"
               style={{
-                backgroundColor: product.customBadge?.name?.toLowerCase() === 'featured' ? product.customBadge.bgColor : '#e94560',
-                color: product.customBadge?.name?.toLowerCase() === 'featured' ? product.customBadge.textColor : '#ffffff'
+                backgroundColor: product.custom_badge?.name?.toLowerCase() === 'featured' ? product.custom_badge.bg_color : '#e94560',
+                color: product.custom_badge?.name?.toLowerCase() === 'featured' ? product.custom_badge.text_color : '#ffffff'
               }}
             >
-              {product.customBadge?.name?.toLowerCase() === 'featured' ? product.customBadge.name : 'FEATURED'}
+              {product.custom_badge?.name?.toLowerCase() === 'featured' ? product.custom_badge.name : 'FEATURED'}
             </span>
           )}
-          {product.badgeEnabled && product.customBadge && (!product.isFeatured || product.customBadge.name.toLowerCase() !== 'featured') && (
+          {product.badge_enabled && product.custom_badge && (!product.is_featured || product.custom_badge.name.toLowerCase() !== 'featured') && (
             <span
               className="rounded-full px-3 py-1 text-[10px] font-black text-white shadow-sm uppercase tracking-wider"
               style={{
-                backgroundColor: product.customBadge.bgColor,
-                color: product.customBadge.textColor
+                backgroundColor: product.custom_badge.bg_color,
+                color: product.custom_badge.text_color
               }}
             >
-              {product.customBadge.name}
+              {product.custom_badge.name}
             </span>
           )}
-          {!product.isService && stockAvailable > 0 && stockAvailable <= 8 && (
+          {!product.is_service && stockAvailable > 0 && stockAvailable <= 8 && (
             <span className="rounded-full bg-amber-600 px-3 py-1 text-[10px] font-black text-white shadow-sm uppercase tracking-wider">
               LIMITED
             </span>
@@ -229,7 +229,7 @@ export default function ProductDetailGallery({
               key={i}
               onClick={() => emblaApi?.scrollTo(i)}
               style={i === activeImageIndex ? { borderColor: 'var(--color-primary, #C2185B)' } : undefined}
-              className={`relative w-16 flex-shrink-0 overflow-hidden rounded-lg border transition-all cursor-pointer ${getSharedAspectClass(settings.imageAspectRatio)} ${i === activeImageIndex
+              className={`relative w-16 flex-shrink-0 overflow-hidden rounded-lg border transition-all cursor-pointer ${getSharedAspectClass(settings.image_aspect_ratio)} ${i === activeImageIndex
                 ? 'ring-2 ring-[var(--color-primary,#C2185B)]/20'
                 : 'border-gray-200 dark:border-gray-800 hover:border-gray-400'
               }`}

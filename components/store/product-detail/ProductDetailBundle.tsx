@@ -44,7 +44,7 @@ export default function ProductDetailBundle({
       <div className="flex flex-col sm:flex-row flex-wrap items-center gap-4">
         {/* Current Product Mini-card */}
         <div className="flex items-center gap-3 bg-gray-50 dark:bg-white/5 p-2 rounded-xl w-full sm:w-auto sm:flex-1 min-w-[220px] border border-gray-100 dark:border-gray-800/80">
-          <div className={`relative w-12 rounded-lg overflow-hidden bg-gray-100 ${getSharedAspectClass(settings?.imageAspectRatio)}`}>
+          <div className={`relative w-12 rounded-lg overflow-hidden bg-gray-100 ${getSharedAspectClass(settings?.image_aspect_ratio)}`}>
             <Image
               src={getPresetImageUrl(images[0]?.url || fallbackPlaceholder, 'micro')}
               alt={product.name}
@@ -55,13 +55,13 @@ export default function ProductDetailBundle({
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-xs font-bold text-gray-850 dark:text-white truncate">{product.name}</p>
-            <p className="text-xs text-gray-500 font-semibold">{formatPrice(unitPrice, settings.currencySymbol)}</p>
+            <p className="text-xs text-gray-500 font-semibold">{formatPrice(unitPrice, settings.currency_symbol)}</p>
           </div>
         </div>
 
         {bundleProducts.map((bp) => {
           const isChecked = selectedBundleIds.includes(bp.id);
-          const bpActiveVariants = bp.hasVariants ? bp.variants.filter(v => v.active) : [];
+          const bpActiveVariants = bp.has_variants ? bp.variants.filter(v => v.active) : [];
           const bpHasVariants = bpActiveVariants.length > 0;
           const bpSelectedVarId = bundleVariantSelections[bp.id];
           const bpSelectedVar = bpActiveVariants.find(v => v.id === bpSelectedVarId) ?? bpActiveVariants[0];
@@ -70,20 +70,20 @@ export default function ProductDetailBundle({
           const bpColors = Array.from(new Set(bpActiveVariants.map(v => v.color).filter(Boolean))) as string[];
           const bpSizes = Array.from(new Set(bpActiveVariants.map(v => v.size).filter(Boolean))) as string[];
           const bpMaterials = Array.from(new Set(bpActiveVariants.map(v => v.material).filter(Boolean))) as string[];
-          const bpCustomOpt = bpActiveVariants[0]?.customOption;
-          const bpCustomVals = Array.from(new Set(bpActiveVariants.map(v => v.customValue).filter(Boolean))) as string[];
+          const bpCustomOpt = bpActiveVariants[0]?.custom_option;
+          const bpCustomVals = Array.from(new Set(bpActiveVariants.map(v => v.custom_value).filter(Boolean))) as string[];
 
           const selectBpVariant = (color?: string, size?: string, material?: string, customValue?: string) => {
             const match = bpActiveVariants.find(v =>
               (!bpColors.length || v.color === (color ?? bpSelectedVar?.color)) &&
               (!bpSizes.length || v.size === (size ?? bpSelectedVar?.size)) &&
               (!bpMaterials.length || v.material === (material ?? bpSelectedVar?.material)) &&
-              (!bpCustomVals.length || v.customValue === (customValue ?? bpSelectedVar?.customValue))
+              (!bpCustomVals.length || v.custom_value === (customValue ?? bpSelectedVar?.custom_value))
             ) ?? bpActiveVariants.find(v =>
               (color ? v.color === color : true) ||
               (size ? v.size === size : true) ||
               (material ? v.material === material : true) ||
-              (customValue ? v.customValue === customValue : true)
+              (customValue ? v.custom_value === customValue : true)
             );
             if (match) setBundleVariantSelections(prev => ({ ...prev, [bp.id]: match.id }));
           };
@@ -99,7 +99,7 @@ export default function ProductDetailBundle({
                   onClick={() => setSelectedBundleIds(prev => prev.includes(bp.id) ? prev.filter(id => id !== bp.id) : [...prev, bp.id])}
                   className="flex items-center gap-3"
                 >
-                  <div className={`relative w-12 rounded-lg overflow-hidden bg-gray-105 flex-shrink-0 ${getSharedAspectClass(settings?.imageAspectRatio)}`}>
+                  <div className={`relative w-12 rounded-lg overflow-hidden bg-gray-105 flex-shrink-0 ${getSharedAspectClass(settings?.image_aspect_ratio)}`}>
                     {bp.images?.[0]?.url && (
                       <Image
                         src={bp.images?.[0]?.url}
@@ -118,7 +118,7 @@ export default function ProductDetailBundle({
                       {bp.name}
                     </p>
                     <div className="flex items-center justify-between mt-1 flex-wrap gap-1">
-                      <p className="text-xs text-gray-500 font-semibold">{formatPrice(bpPrice, settings.currencySymbol)}</p>
+                      <p className="text-xs text-gray-500 font-semibold">{formatPrice(bpPrice, settings.currency_symbol)}</p>
                       <Link
                         href={`/product/${bp.slug}`}
                         onClick={(e) => e.stopPropagation()}
@@ -140,7 +140,7 @@ export default function ProductDetailBundle({
                           {bpColors.map(color => {
                             const matchV = bpActiveVariants.find(v => v.color === color);
                             const isActive = bpSelectedVar?.color === color;
-                            const bg = matchV?.colorHex;
+                            const bg = matchV?.color_hex;
                             return bg ? (
                               <button
                                 key={color}
@@ -150,9 +150,9 @@ export default function ProductDetailBundle({
                                 className={`w-6 h-6 rounded-full border-2 transition-all cursor-pointer overflow-hidden flex-shrink-0 ${isActive ? 'border-amber-500 scale-110 shadow' : 'border-white dark:border-gray-700 hover:scale-105'}`}
                                 style={getSwatchStyle(bg)}
                               >
-                                {matchV?.imageUrl && (matchV.showImageSwatch || !bg) && (
+                                {matchV?.image_url && (matchV.show_image_swatch || !bg) && (
                                   /* eslint-disable-next-line @next/next/no-img-element */
-                                  <img src={getPresetImageUrl(matchV.imageUrl, 'micro')} alt={color} className="w-full h-full object-cover" />
+                                  <img src={getPresetImageUrl(matchV.image_url, 'micro')} alt={color} className="w-full h-full object-cover" />
                                 )}
                               </button>
                             ) : (
@@ -208,7 +208,7 @@ export default function ProductDetailBundle({
                         <p className="text-[9px] font-black uppercase tracking-wider text-gray-400 mb-1">{bpCustomOpt}</p>
                         <div className="flex flex-wrap gap-1">
                           {bpCustomVals.map(val => {
-                            const isActive = bpSelectedVar?.customValue === val;
+                            const isActive = bpSelectedVar?.custom_value === val;
                             return (
                               <button
                                 key={val}
@@ -236,7 +236,7 @@ export default function ProductDetailBundle({
           <p className="text-lg font-black text-gray-900 dark:text-white">
             {formatPrice(
               unitPrice + bundleProducts.reduce((sum, bp) => sum + (selectedBundleIds.includes(bp.id) ? bp.price : 0), 0),
-              settings.currencySymbol
+              settings.currency_symbol
             )}
           </p>
         </div>

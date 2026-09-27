@@ -18,6 +18,7 @@ These are always active, on every task, no exceptions.
       ```bash
       git push origin main; git push zaynahspk main; git push minimahal main; git push littlemister main; git push minioutfits main; sleep 240 && node scripts/post-deploy-fix.mjs
       ```
+11. **Instant 0ms UI Navigation & Tabs (RULE F1)** — Every page, category, mobile bottom nav, product tab (Reviews, Specs, Description), and admin tab across all functional areas and stores MUST strictly implement the 0ms instant opening standard (`loading.tsx` skeletons, `<Link prefetch={true}>`, `React.cache()`, `Promise.all()`, and shallow URL routing `scroll: false`). Never allow frozen screens or sequential waterfalls. Full details in [03-frontend-nextjs-react.md](03-frontend-nextjs-react.md) RULE F1 and `docs/UI_PERFORMANCE_GUIDE.md` Section 8.
 
 ## Reference doc links used across all rule files
 - `docs/SCHEMA_CHANGE_LOG.md`

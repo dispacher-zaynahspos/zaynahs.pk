@@ -4,44 +4,44 @@ import { Product } from '@/lib/types';
 const mapClientProduct = (row: any): Product => {
   const images = (row.product_images ?? []).map((img: any) => ({
     id: img.id,
-    productId: img.product_id,
+    product_id: img.product_id,
     url: img.url,
     alt: img.alt || undefined,
-    sortOrder: img.sort_order || 0,
-    isPrimary: img.is_primary ?? false,
-    createdAt: img.created_at
-  })).sort((a: any, b: any) => a.sortOrder - b.sortOrder);
+    sort_order: img.sort_order || 0,
+    is_primary: img.is_primary ?? false,
+    created_at: img.created_at
+  })).sort((a: any, b: any) => a.sort_order - b.sort_order);
 
   const variants = (row.product_variants ?? []).map((v: any) => ({
     id: v.id,
-    productId: v.product_id,
+    product_id: v.product_id,
     color: v.color || undefined,
     size: v.size || undefined,
     material: v.material || undefined,
-    customOption: v.custom_option || undefined,
-    customValue: v.custom_value || undefined,
-    colorHex: v.color_hex || undefined,
+    custom_option: v.custom_option || undefined,
+    custom_value: v.custom_value || undefined,
+    color_hex: v.color_hex || undefined,
     price: v.price ? parseFloat(v.price.toString()) : undefined,
-    comparePrice: v.compare_price ? parseFloat(v.compare_price.toString()) : undefined,
+    compare_price: v.compare_price ? parseFloat(v.compare_price.toString()) : undefined,
     stock: v.stock || 0,
     sku: v.sku || undefined,
-    imageUrl: v.image_url || undefined,
-    showImageSwatch: v.show_image_swatch ?? false,
+    image_url: v.image_url || undefined,
+    show_image_swatch: v.show_image_swatch ?? false,
     active: v.active ?? true,
-    sortOrder: v.sort_order || 0,
-    inventoryThreshold: v.inventory_threshold || 0
-  })).sort((a: any, b: any) => a.sortOrder - b.sortOrder);
+    sort_order: v.sort_order || 0,
+    inventory_threshold: v.inventory_threshold || 0
+  })).sort((a: any, b: any) => a.sort_order - b.sort_order);
 
   const category = row.categories ? {
     id: row.categories.id,
     name: row.categories.name,
     slug: row.categories.slug,
     description: row.categories.description || undefined,
-    imageUrl: row.categories.image_url || undefined,
-    sortOrder: row.categories.sort_order || 0,
+    image_url: row.categories.image_url || undefined,
+    sort_order: row.categories.sort_order || 0,
     active: row.categories.active ?? true,
-    createdAt: row.categories.created_at,
-    updatedAt: row.categories.updated_at
+    created_at: row.categories.created_at,
+    updated_at: row.categories.updated_at
   } : undefined;
 
   return {
@@ -49,31 +49,31 @@ const mapClientProduct = (row: any): Product => {
     name: row.name,
     slug: row.slug,
     description: row.description || undefined,
-    shortDescription: row.short_description || undefined,
+    short_description: row.short_description || undefined,
     price: typeof row.price === 'string' ? parseFloat(row.price) : row.price,
-    comparePrice: row.compare_price ? parseFloat(row.compare_price.toString()) : undefined,
+    compare_price: row.compare_price ? parseFloat(row.compare_price.toString()) : undefined,
     cost: row.cost ? parseFloat(row.cost.toString()) : undefined,
     sku: row.sku || undefined,
-    categoryId: row.category_id || undefined,
+    category_id: row.category_id || undefined,
     category,
     stock: row.stock || 0,
-    hasVariants: row.has_variants ?? false,
-    isService: row.is_service ?? false,
-    isFeatured: row.is_featured ?? false,
-    isActive: row.is_active ?? true,
-    enableSwatches: row.enable_swatches ?? true,
-    showSwatchesOnArchive: row.show_swatches_on_archive ?? true,
-    customBadgeId: row.custom_badge_id || undefined,
-    badgeEnabled: row.badge_enabled ?? true,
+    has_variants: row.has_variants ?? false,
+    is_service: row.is_service ?? false,
+    is_featured: row.is_featured ?? false,
+    is_active: row.is_active ?? true,
+    enable_swatches: row.enable_swatches ?? true,
+    show_swatches_on_archive: row.show_swatches_on_archive ?? true,
+    custom_badge_id: row.custom_badge_id || undefined,
+    badge_enabled: row.badge_enabled ?? true,
     tags: row.tags || [],
     images,
     variants,
     modifiers: [],
     rating: row.rating ? parseFloat(row.rating.toString()) : undefined,
-    reviewsCount: row.reviews_count || 0,
-    sortOrder: row.sort_order || 0,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at
+    reviews_count: row.reviews_count || 0,
+    sort_order: row.sort_order || 0,
+    created_at: row.created_at,
+    updated_at: row.updated_at
   };
 };
 

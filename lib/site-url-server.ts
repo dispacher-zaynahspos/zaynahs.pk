@@ -1,5 +1,5 @@
-export async function getSiteUrl(settings?: { storeUrl?: string }): Promise<string> {
-  if (settings?.storeUrl) return settings.storeUrl.replace(/\/+$/, '');
+export async function getSiteUrl(settings?: { store_url?: string }): Promise<string> {
+  if (settings?.store_url) return settings.store_url.replace(/\/+$/, '');
   try {
     if (typeof window === 'undefined') {
       const { headers } = await import('next/headers');

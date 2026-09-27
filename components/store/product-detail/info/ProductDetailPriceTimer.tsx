@@ -34,13 +34,13 @@ export function ProductDetailPriceTimer({
         <div className="flex items-baseline gap-2.5 flex-wrap">
           <span className="product-price text-2xl font-extrabold text-[#1a1a2e] dark:text-white">
             {hasPriceRange ? (
-              `${formatPrice(minPrice, settings.currencySymbol)} – ${formatPrice(maxPrice, settings.currencySymbol)}`
+              `${formatPrice(minPrice, settings.currency_symbol)} – ${formatPrice(maxPrice, settings.currency_symbol)}`
             ) : (
-              formatPrice(unitPrice, settings.currencySymbol)
+              formatPrice(unitPrice, settings.currency_symbol)
             )}
           </span>
           {!hasPriceRange && (() => {
-            const currentComparePrice = selectedVariant?.comparePrice ?? productComparePrice;
+            const currentComparePrice = selectedVariant?.compare_price ?? productComparePrice;
             if (currentComparePrice && currentComparePrice > unitPrice) {
               const pct = Math.round(((currentComparePrice - unitPrice) / currentComparePrice) * 100);
               return (
@@ -55,7 +55,7 @@ export function ProductDetailPriceTimer({
                       color: '#9ca3af',
                     }}
                   >
-                    {formatPrice(currentComparePrice, settings.currencySymbol)}
+                    {formatPrice(currentComparePrice, settings.currency_symbol)}
                   </span>
                   <span className="rounded-md bg-[#10b981] px-2 py-0.5 text-[10px] font-black text-white tracking-wide">
                     -{pct}%
@@ -71,10 +71,10 @@ export function ProductDetailPriceTimer({
           <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[var(--color-primary)]/5 dark:bg-white/5 border border-gray-200 dark:border-gray-800 text-sm font-semibold mt-2.5 w-fit">
             <span className="text-gray-500 dark:text-gray-400">Selected option:</span>
             <span className="product-price text-base font-black text-gray-900 dark:text-white leading-none">
-              {formatPrice(unitPrice, settings.currencySymbol)}
+              {formatPrice(unitPrice, settings.currency_symbol)}
             </span>
             {(() => {
-              const currentComparePrice = selectedVariant.comparePrice;
+              const currentComparePrice = selectedVariant.compare_price;
               if (currentComparePrice && currentComparePrice > unitPrice) {
                 const pct = Math.round(((currentComparePrice - unitPrice) / currentComparePrice) * 100);
                 return (
@@ -89,7 +89,7 @@ export function ProductDetailPriceTimer({
                         color: '#9ca3af',
                       }}
                     >
-                      {formatPrice(currentComparePrice, settings.currencySymbol)}
+                      {formatPrice(currentComparePrice, settings.currency_symbol)}
                     </span>
                     <span className="rounded-md bg-[#10b981] px-1.5 py-0.5 text-[9px] font-black text-white tracking-wide leading-none">
                       -{pct}%

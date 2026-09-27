@@ -31,7 +31,7 @@ interface ProductCardProps {
 export default function ProductCard({ product, currencySymbol = 'Rs.', settings, priority = false }: ProductCardProps) {
   const addItem = useCartStore(state => state.addItem);
   const fallbackPlaceholder = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%23f3f4f6'/%3E%3C/svg%3E";
-  const primaryImage = getPresetImageUrl(product.images?.find(img => img.isPrimary)?.url || product.images?.[0]?.url || fallbackPlaceholder, 'card');
+  const primaryImage = getPresetImageUrl(product.images?.find(img => img.is_primary)?.url || product.images?.[0]?.url || fallbackPlaceholder, 'card');
 
   const [hoveredImage, setHoveredImage] = useState<string | null>(null);
 
@@ -64,7 +64,7 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
   }, [product.id]);
 
   const activeVariants = product.variants.filter(v => v.active);
-  const defaultIndex = (settings?.defaultVariantIndex || 1) - 1;
+  const defaultIndex = (settings?.default_variant_index || 1) - 1;
   const defaultVar = activeVariants[defaultIndex] || activeVariants[0];
 
   // Selected variation attribute states
@@ -78,7 +78,7 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
     setSelectedColor(defaultVar?.color || null);
     setSelectedSize(defaultVar?.size || null);
     setSelectedMaterial(defaultVar?.material || null);
-    setSelectedCustom(defaultVar?.customValue || null);
+    setSelectedCustom(defaultVar?.custom_value || null);
     setUserSelectedColor(false);
   }, [defaultVar]);
 
@@ -87,7 +87,7 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
     const colorMatch = !selectedColor || v.color === selectedColor;
     const sizeMatch = !selectedSize || v.size === selectedSize;
     const materialMatch = !selectedMaterial || v.material === selectedMaterial;
-    const customMatch = !selectedCustom || v.customValue === selectedCustom;
+    const customMatch = !selectedCustom || v.custom_value === selectedCustom;
     return colorMatch && sizeMatch && materialMatch && customMatch;
   }) || activeVariants.find(v => {
     const colorMatch = !selectedColor || v.color === selectedColor;
@@ -95,9 +95,9 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
     return colorMatch && sizeMatch;
   }) || activeVariants.find(v => v.color === selectedColor) || activeVariants.find(v => v.size === selectedSize) || defaultVar;
 
-  const currentImage = (userSelectedColor && currentVariant && currentVariant.imageUrl) ? getPresetImageUrl(currentVariant.imageUrl, 'card') : primaryImage;
+  const currentImage = (userSelectedColor && currentVariant && currentVariant.image_url) ? getPresetImageUrl(currentVariant.image_url, 'card') : primaryImage;
   const currentPrice = (currentVariant && currentVariant.price) ? currentVariant.price : product.price;
-  const currentComparePrice = (currentVariant && currentVariant.comparePrice) ? currentVariant.comparePrice : product.comparePrice;
+  const currentComparePrice = (currentVariant && currentVariant.compare_price) ? currentVariant.compare_price : product.compare_price;
 
   // Active price range logic
   const activePrices = activeVariants.map(v => v.price).filter((p): p is number => typeof p === 'number' && p > 0);
@@ -108,7 +108,7 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (product.hasVariants) {
+    if (product.has_variants) {
       setQuickViewOpen(true);
       return;
     }
@@ -147,11 +147,11 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
   };
 
   const displayDescription = (settings?.card_show_description !== false)
-    ? (product.shortDescription || '')
+    ? (product.short_description || '')
     : '';
 
-  const swatchShape = settings?.swatchShape ?? 'circle';
-  const archiveSwatchSize = settings?.archiveSwatchSize ?? settings?.swatchSize ?? 'md';
+  const swatchShape = settings?.swatch_shape ?? 'circle';
+  const archiveSwatchSize = settings?.archive_swatch_size ?? settings?.swatch_size ?? 'md';
 
   const shapeMap: Record<string, string> = {
     circle: 'rounded-full',
@@ -185,9 +185,9 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
     }, []);
 
   const customVariants = product.variants
-    .filter(v => v.customValue && v.active)
+    .filter(v => v.custom_value && v.active)
     .reduce<typeof product.variants>((acc, v) => {
-      const exists = acc.find(e => e.customValue === v.customValue);
+      const exists = acc.find(e => e.custom_value === v.custom_value);
       if (!exists) acc.push(v);
       return acc;
     }, []);
@@ -203,11 +203,11 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
     availableGroups.push({ type: 'material', name: 'Material', variants: materialVariants });
   }
   if (customVariants.length > 0 && settings?.card_show_type_custom !== false) {
-    const customName = product.variants?.find(v => v.customOption)?.customOption || 'Custom';
+    const customName = product.variants?.find(v => v.custom_option)?.custom_option || 'Custom';
     availableGroups.push({ type: 'custom', name: customName, variants: customVariants });
   }
 
-  const variationOrder = product.variationOrder || ['color', 'size', 'material', 'custom'];
+  const variationOrder = product.variation_order || ['color', 'size', 'material', 'custom'];
   availableGroups.sort((a, b) => {
     const aIdx = variationOrder.indexOf(a.type);
     const bIdx = variationOrder.indexOf(b.type);
@@ -229,15 +229,17 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
       return (!newSelections.color || v.color === newSelections.color) &&
         (!newSelections.size || v.size === newSelections.size) &&
         (!newSelections.material || v.material === newSelections.material) &&
-        (!newSelections.customValue || v.customValue === newSelections.customValue);
+        (!newSelections.customValue || v.custom_value === newSelections.customValue);
     });
 
+    const variantKey = attr === 'customValue' ? 'custom_value' : attr;
+
     if (!matched && attr !== 'color' && newSelections.color) {
-      matched = activeVariants.find(v => v.color === newSelections.color && v[attr] === val);
+      matched = activeVariants.find(v => v.color === newSelections.color && v[variantKey] === val);
     }
 
     if (!matched) {
-      matched = activeVariants.find(v => v[attr] === val);
+      matched = activeVariants.find(v => v[variantKey] === val);
     }
 
     setUserSelectedColor(true);
@@ -246,7 +248,7 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
       setSelectedColor(matched.color || null);
       setSelectedSize(matched.size || null);
       setSelectedMaterial(matched.material || null);
-      setSelectedCustom(matched.customValue || null);
+      setSelectedCustom(matched.custom_value || null);
     } else {
       if (attr === 'color') setSelectedColor(val);
       if (attr === 'size') setSelectedSize(val);
@@ -255,8 +257,8 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
     }
   };
 
-  const aspectClass = getSharedAspectClass(settings?.imageAspectRatio);
-  const rawTitleLimit = (settings as any)?.title_line_limit ?? settings?.titleLineLimit ?? '2';
+  const aspectClass = getSharedAspectClass(settings?.image_aspect_ratio);
+  const rawTitleLimit = (settings as any)?.title_line_limit ?? settings?.title_line_limit ?? '2';
   const titleClampClass = getSharedTitleClampClass(rawTitleLimit);
 
   const hasSecondImage = product.images?.length > 1;
@@ -266,8 +268,8 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
     cardAlignment === 'right' ? 'items-end text-right' :
       'items-start text-left';
 
-  const swatchAlign = (settings?.archiveSwatchAlign || 'left') === 'center' ? 'justify-center' :
-    (settings?.archiveSwatchAlign || 'left') === 'right' ? 'justify-end' :
+  const swatchAlign = (settings?.archive_swatch_align || 'left') === 'center' ? 'justify-center' :
+    (settings?.archive_swatch_align || 'left') === 'right' ? 'justify-end' :
       'justify-start';
 
   const activeImage = hoveredImage || currentImage;

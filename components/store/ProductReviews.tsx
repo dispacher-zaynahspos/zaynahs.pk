@@ -52,7 +52,7 @@ export default function ProductReviews({
       return Math.round((distribution[starNum] / totalCount) * 100);
     }
     const rating = (averageRating.count > 0 ? averageRating.average : null) ?? product.rating ?? 5;
-    const count = averageRating.count ?? product.reviewsCount ?? 0;
+    const count = averageRating.count ?? product.reviews_count ?? 0;
     if (count === 0) return 0;
     if (rating === 5) return starNum === 5 ? 100 : 0;
     if (rating >= 4.8) {
@@ -82,7 +82,7 @@ export default function ProductReviews({
   };
 
   const displayRating = (averageRating && averageRating.count > 0) ? averageRating.average : (product.rating ?? 5);
-  const displayCount = (averageRating ? averageRating.count : (product.reviewsCount ?? 0)) + socialProofCount;
+  const displayCount = (averageRating ? averageRating.count : (product.reviews_count ?? 0)) + socialProofCount;
 
   return (
     <div className="space-y-8 pt-8 border-t border-gray-200 dark:border-gray-800 text-gray-900 dark:text-white">

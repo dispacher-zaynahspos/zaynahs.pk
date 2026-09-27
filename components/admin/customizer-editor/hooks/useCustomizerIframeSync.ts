@@ -102,7 +102,7 @@ export function useCustomizerIframeSync({
               const slug = event.data.href.replace('/product/', '').split('?')[0];
               setActiveProductSlug(slug);
             }
-            const firstBlock = (storeSettings.productPageLayout || ['details', 'ticker', 'reviews', 'related', 'recently_viewed', 'social_feed'])[0];
+            const firstBlock = (storeSettings.product_page_layout || ['details', 'ticker', 'reviews', 'related', 'recently_viewed', 'social_feed'])[0];
             setActiveSectionId(firstBlock);
             const tabMap: Record<string, string> = {
               details: 'swatches',
@@ -122,7 +122,7 @@ export function useCustomizerIframeSync({
     };
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [sections, storeSettings.productPageLayout, setActivePage, setActiveSectionId, setActiveSubTab, setActiveProductSlug]);
+  }, [sections, storeSettings.product_page_layout, setActivePage, setActiveSectionId, setActiveSubTab, setActiveProductSlug]);
 
   useEffect(() => {
     const timer = setTimeout(() => {

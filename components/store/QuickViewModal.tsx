@@ -34,16 +34,16 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
 
   const images = React.useMemo(() => {
     return product.images.length > 0
-      ? [...product.images].sort((a, b) => a.sortOrder - b.sortOrder)
+      ? [...product.images].sort((a, b) => a.sort_order - b.sort_order)
       : [{
-          id: 'dummy', productId: product.id,
+          id: 'dummy', product_id: product.id,
           url: "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%23f3f4f6'/%3E%3C/svg%3E",
-          alt: product.name, sortOrder: 0, isPrimary: true, createdAt: ''
+          alt: product.name, sort_order: 0, is_primary: true, created_at: ''
         }];
   }, [product.images, product.id, product.name]);
 
   const initialActiveIdx = React.useRef(
-    Math.max(0, images.findIndex(img => img.isPrimary))
+    Math.max(0, images.findIndex(img => img.is_primary))
   );
 
   const [activeIdx, setActiveIdx] = useState(initialActiveIdx.current);
@@ -69,7 +69,7 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
   const activeVariants = product.variants.filter(v => v.active);
 
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | undefined>(
-    product.hasVariants && activeVariants.length > 0 ? activeVariants[0] : undefined
+    product.has_variants && activeVariants.length > 0 ? activeVariants[0] : undefined
   );
   const [quantity, setQuantity] = useState(1);
   const fallbackPlaceholder = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%23f3f4f6'/%3E%3C/svg%3E";
@@ -77,8 +77,8 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
   // ── Image sync on variant change ─────────────────────────────────────────
   const applyVariant = useCallback((v: ProductVariant) => {
     setSelectedVariant(v);
-    if (v.imageUrl) {
-      const idx = images.findIndex(img => img.url === v.imageUrl);
+    if (v.image_url) {
+      const idx = images.findIndex(img => img.url === v.image_url);
       if (idx !== -1) emblaApi?.scrollTo(idx);
     }
   }, [images, emblaApi]);
@@ -89,12 +89,12 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
   const maxPrice = activePrices.length > 0 ? Math.max(...activePrices) : product.price;
   const hasPriceRange = minPrice !== maxPrice;
 
-  const stockAvailable = product.isService
+  const stockAvailable = product.is_service
     ? 999
     : (selectedVariant ? selectedVariant.stock : product.stock);
 
   const basePrice    = selectedVariant?.price        ?? product.price;
-  const comparePrice = selectedVariant?.comparePrice ?? product.comparePrice;
+  const comparePrice = selectedVariant?.compare_price ?? product.compare_price;
 
   // ── Cart ──────────────────────────────────────────────────────────────────
   const handleAddToCart = (e: React.MouseEvent) => {
@@ -106,7 +106,7 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
     toast.success(`${product.name} added to cart!`);
 
     // Trigger fly animation
-    const imageUrl = selectedVariant?.imageUrl || product.images?.find(img => img.isPrimary)?.url || product.images?.[0]?.url;
+    const imageUrl = selectedVariant?.image_url || product.images?.find(img => img.is_primary)?.url || product.images?.[0]?.url;
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
     const targetId = isMobile ? 'header-cart-icon-mobile' : 'header-cart-icon-desktop';
     animateFlyTo(e.currentTarget as HTMLElement, targetId, imageUrl);
@@ -166,7 +166,7 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
 
             {/* ── Image Gallery ─────────────────────────────────────────── */}
             <div className="relative bg-gray-50 dark:bg-black/20">
-              <div className={`relative w-full overflow-hidden touch-pan-y ${getSharedAspectClass(settings?.imageAspectRatio)}`} ref={emblaRef}>
+              <div className={`relative w-full overflow-hidden touch-pan-y ${getSharedAspectClass(settings?.image_aspect_ratio)}`} ref={emblaRef}>
                 <div className="flex h-full">
                   {images.map((img, i) => (
                     <div key={img.id || i} className="relative flex-[0_0_100%] min-w-0 w-full h-full select-none overflow-hidden">
@@ -223,7 +223,7 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
                       key={i}
                       type="button"
                       onClick={() => emblaApi?.scrollTo(i)}
-                      className={`relative w-12 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all cursor-pointer ${getSharedAspectClass(settings?.imageAspectRatio)} ${
+                      className={`relative w-12 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all cursor-pointer ${getSharedAspectClass(settings?.image_aspect_ratio)} ${
                         i === activeIdx ? 'border-[#e94560]' : 'border-transparent hover:border-gray-400'
                       }`}
                     >
@@ -259,9 +259,9 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
                 <div className="flex items-baseline gap-2.5 flex-wrap">
                   <span className="product-price text-xl font-extrabold text-[#1a1a2e] dark:text-white">
                     {hasPriceRange ? (
-                      `${formatPrice(minPrice, settings.currencySymbol)} – ${formatPrice(maxPrice, settings.currencySymbol)}`
+                      `${formatPrice(minPrice, settings.currency_symbol)} – ${formatPrice(maxPrice, settings.currency_symbol)}`
                     ) : (
-                      formatPrice(basePrice, settings.currencySymbol)
+                      formatPrice(basePrice, settings.currency_symbol)
                     )}
                   </span>
                   {!hasPriceRange && comparePrice && comparePrice > basePrice && (
@@ -276,7 +276,7 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
                           color: '#9ca3af',
                         }}
                       >
-                        {formatPrice(comparePrice, settings.currencySymbol)}
+                        {formatPrice(comparePrice, settings.currency_symbol)}
                       </span>
                       <span className="rounded-md bg-[#10b981] px-1.5 py-0.5 text-[9px] font-black text-white tracking-wide animate-none">
                         -{Math.round(((comparePrice - basePrice) / comparePrice) * 100)}%
@@ -288,7 +288,7 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
                   <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[var(--color-primary)]/5 dark:bg-white/5 border border-gray-200 dark:border-gray-800 text-xs font-semibold mt-1 w-fit">
                     <span className="text-gray-500 dark:text-gray-400">Selected option:</span>
                     <span className="product-price text-sm font-black text-gray-900 dark:text-white leading-none">
-                      {formatPrice(basePrice, settings.currencySymbol)}
+                      {formatPrice(basePrice, settings.currency_symbol)}
                     </span>
                     {comparePrice && comparePrice > basePrice && (
                       <span className="inline-flex items-center gap-1 ml-1">
@@ -302,7 +302,7 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
                             color: '#9ca3af',
                           }}
                         >
-                          {formatPrice(comparePrice, settings.currencySymbol)}
+                          {formatPrice(comparePrice, settings.currency_symbol)}
                         </span>
                         <span className="rounded bg-[#10b981] px-1 py-0.5 text-[8px] font-black text-white leading-none">
                           -{Math.round(((comparePrice - basePrice) / comparePrice) * 100)}%
@@ -314,28 +314,28 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
               </div>
 
               {/* Short description */}
-              {product.shortDescription && (
+              {product.short_description && (
                 <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
-                  {product.shortDescription}
+                  {product.short_description}
                 </p>
               )}
 
               {/* ── Variant selectors ──────────────────────────────────── */}
-              {product.hasVariants && activeVariants.length > 0 && (
+              {product.has_variants && activeVariants.length > 0 && (
                 <div className="border-t border-gray-100 dark:border-gray-800 pt-3">
                   <VariantSelector
                     variants={product.variants}
                     selectedVariant={selectedVariant}
                     onChangeSelectedVariant={applyVariant}
-                    enableSwatches={product.enableSwatches}
+                    enableSwatches={product.enable_swatches}
                     settings={settings}
-                    variationOrder={product.variationOrder}
+                    variationOrder={product.variation_order}
                   />
                 </div>
               )}
 
               {/* Stock */}
-              {!product.isService && settings.showStock && (
+              {!product.is_service && settings.show_stock && (
                 <div className="text-xs font-semibold">
                   {stockAvailable > 0
                     ? <span className="text-[#10b981]">In Stock ({stockAvailable} left)</span>

@@ -41,13 +41,13 @@ export const fetchCollections = async (): Promise<Collection[]> => {
             name: c.name,
             slug: c.slug,
             description: c.description || undefined,
-            imageUrl: c.image_url || undefined,
-            sortOrder: cc.sort_order || 0, // We use the collection_categories sortOrder here for the collection context
+            image_url: c.image_url || undefined,
+            sort_order: cc.sort_order || 0, // We use the collection_categories sortOrder here for the collection context
             active: c.active ?? true,
-            activeSortPreference: c.active_sort_preference || undefined,
-            deletedAt: c.deleted_at || undefined,
-            createdAt: c.created_at,
-            updatedAt: c.updated_at
+            active_sort_preference: c.active_sort_preference || undefined,
+            deleted_at: c.deleted_at || undefined,
+            created_at: c.created_at,
+            updated_at: c.updated_at
           } as Category;
         })
         .filter(Boolean);
@@ -57,12 +57,12 @@ export const fetchCollections = async (): Promise<Collection[]> => {
         name: row.name,
         slug: row.slug,
         description: row.description || undefined,
-        imageUrl: row.image_url || undefined,
-        sortOrder: row.sort_order || 0,
+        image_url: row.image_url || undefined,
+        sort_order: row.sort_order || 0,
         active: row.active ?? true,
-        deletedAt: row.deleted_at || undefined,
-        createdAt: row.created_at,
-        updatedAt: row.updated_at,
+        deleted_at: row.deleted_at || undefined,
+        created_at: row.created_at,
+        updated_at: row.updated_at,
         categories: mappedCategories
       } as Collection;
     });

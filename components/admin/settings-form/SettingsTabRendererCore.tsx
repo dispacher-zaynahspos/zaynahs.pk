@@ -209,6 +209,8 @@ export function SettingsTabRendererCore({ activeTab, s }: SettingsTabRendererCor
           setFreeShippingText={s.setFreeShippingText}
           promoCodeText={s.promoCodeText}
           setPromoCodeText={s.setPromoCodeText}
+          enableSafeCheckout={s.enableSafeCheckout}
+          setEnableSafeCheckout={s.setEnableSafeCheckout}
           safeCheckoutText={s.safeCheckoutText}
           setSafeCheckoutText={s.setSafeCheckoutText}
           safeCheckoutMethods={s.safeCheckoutMethods}

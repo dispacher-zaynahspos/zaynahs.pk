@@ -5,10 +5,10 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
 import { getProductById } from './queries';
 
 export const createProduct = async (
-  product: Omit<Product, 'id' | 'images' | 'variants' | 'modifiers' | 'category' | 'createdAt' | 'updatedAt'>,
-  images: Omit<ProductImage, 'id' | 'productId' | 'createdAt'>[],
-  variants: Omit<ProductVariant, 'id' | 'productId'>[],
-  modifiers: Omit<ProductModifier, 'id' | 'productId'>[]
+  product: Omit<Product, 'id' | 'images' | 'variants' | 'modifiers' | 'category' | 'created_at' | 'updated_at'>,
+  images: Omit<ProductImage, 'id' | 'product_id' | 'created_at'>[],
+  variants: Omit<ProductVariant, 'id' | 'product_id'>[],
+  modifiers: Omit<ProductModifier, 'id' | 'product_id'>[]
 ): Promise<Product> => {
   try {
     const supabase = supabaseAdmin;
@@ -19,33 +19,33 @@ export const createProduct = async (
         name: product.name,
         slug: product.slug,
         description: product.description,
-        short_description: product.shortDescription,
+        short_description: product.short_description,
         price: product.price,
-        compare_price: product.comparePrice,
+        compare_price: product.compare_price,
         cost: product.cost,
         sku: product.sku,
-        category_id: product.categoryId,
+        category_id: product.category_id,
         stock: product.stock,
-        has_variants: product.hasVariants,
-        is_service: product.isService,
-        is_featured: product.isFeatured,
-        is_active: product.isActive ?? true,
-        enable_swatches: product.enableSwatches,
-        show_swatches_on_archive: product.showSwatchesOnArchive,
-        custom_badge_id: product.customBadgeId || null,
-        badge_enabled: product.badgeEnabled ?? true,
-        size_guide_id: product.sizeGuideId || null,
-        frequently_bought_together_ids: product.frequentlyBoughtTogetherIds || [],
-        flash_sale_enabled: product.flashSaleEnabled || false,
-        flash_sale_start_date: product.flashSaleStartDate || null,
-        flash_sale_end_date: product.flashSaleEndDate || null,
-        flash_sale_discount_type: product.flashSaleDiscountType || 'fixed',
-        flash_sale_discount_value: product.flashSaleDiscountValue || 0,
+        has_variants: product.has_variants,
+        is_service: product.is_service,
+        is_featured: product.is_featured,
+        is_active: product.is_active ?? true,
+        enable_swatches: product.enable_swatches,
+        show_swatches_on_archive: product.show_swatches_on_archive,
+        custom_badge_id: product.custom_badge_id || null,
+        badge_enabled: product.badge_enabled ?? true,
+        size_guide_id: product.size_guide_id || null,
+        frequently_bought_together_ids: product.frequently_bought_together_ids || [],
+        flash_sale_enabled: product.flash_sale_enabled || false,
+        flash_sale_start_date: product.flash_sale_start_date || null,
+        flash_sale_end_date: product.flash_sale_end_date || null,
+        flash_sale_discount_type: product.flash_sale_discount_type || 'fixed',
+        flash_sale_discount_value: product.flash_sale_discount_value || 0,
         tags: product.tags,
         rating: product.rating,
-        reviews_count: product.reviewsCount,
-        inventory_threshold: product.inventoryThreshold || 0,
-        variation_order: product.variationOrder || null
+        reviews_count: product.reviews_count,
+        inventory_threshold: product.inventory_threshold || 0,
+        variation_order: product.variation_order || null
       })
       .select('*')
       .single();
@@ -60,13 +60,13 @@ export const createProduct = async (
           product_id: productId,
           url: img.url,
           alt: img.alt,
-          sort_order: img.sortOrder,
-          is_primary: img.isPrimary
+          sort_order: img.sort_order,
+          is_primary: img.is_primary
         })));
       if (imgError) throw imgError;
     }
 
-    if (product.hasVariants && variants.length > 0) {
+    if (product.has_variants && variants.length > 0) {
       const { error: varError } = await supabase
         .from('product_variants')
         .insert(variants.map(v => ({
@@ -74,18 +74,18 @@ export const createProduct = async (
           color: v.color,
           size: v.size,
           material: v.material,
-          custom_option: v.customOption,
-          custom_value: v.customValue,
-          color_hex: v.colorHex,
+          custom_option: v.custom_option,
+          custom_value: v.custom_value,
+          color_hex: v.color_hex,
           price: v.price,
-          compare_price: v.comparePrice,
+          compare_price: v.compare_price,
           stock: v.stock,
           sku: v.sku,
-          image_url: v.imageUrl,
-          show_image_swatch: v.showImageSwatch,
+          image_url: v.image_url,
+          show_image_swatch: v.show_image_swatch,
           active: v.active,
-          sort_order: v.sortOrder,
-          inventory_threshold: v.inventoryThreshold || 0
+          sort_order: v.sort_order,
+          inventory_threshold: v.inventory_threshold || 0
         })));
       if (varError) throw varError;
     }
@@ -98,14 +98,14 @@ export const createProduct = async (
           name: m.name,
           price: m.price,
           active: m.active,
-          sort_order: m.sortOrder
+          sort_order: m.sort_order
         })));
       if (modError) throw modError;
     }
 
-    let categoryIdsToInsert = product.productCategories?.map(pc => pc.categoryId) || [];
-    if (categoryIdsToInsert.length === 0 && product.categoryId) {
-      categoryIdsToInsert.push(product.categoryId);
+    let categoryIdsToInsert = product.product_categories?.map(pc => pc.category_id) || [];
+    if (categoryIdsToInsert.length === 0 && product.category_id) {
+      categoryIdsToInsert.push(product.category_id);
     }
     if (!categoryIdsToInsert.includes('00000000-0000-4000-8000-000000000099')) {
       categoryIdsToInsert.push('00000000-0000-4000-8000-000000000099');
@@ -131,10 +131,10 @@ export const createProduct = async (
 
 export const updateProduct = async (
   id: string,
-  product: Partial<Omit<Product, 'id' | 'images' | 'variants' | 'modifiers' | 'category' | 'createdAt' | 'updatedAt'>>,
-  images: Omit<ProductImage, 'id' | 'productId' | 'createdAt'>[],
-  variants: Omit<ProductVariant, 'id' | 'productId'>[],
-  modifiers: Omit<ProductModifier, 'id' | 'productId'>[]
+  product: Partial<Omit<Product, 'id' | 'images' | 'variants' | 'modifiers' | 'category' | 'created_at' | 'updated_at'>>,
+  images: Omit<ProductImage, 'id' | 'product_id' | 'created_at'>[],
+  variants: Omit<ProductVariant, 'id' | 'product_id'>[],
+  modifiers: Omit<ProductModifier, 'id' | 'product_id'>[]
 ): Promise<Product> => {
   try {
     const supabase = supabaseAdmin;
@@ -143,34 +143,34 @@ export const updateProduct = async (
     if (product.name !== undefined) updatePayload.name = product.name;
     if (product.slug !== undefined) updatePayload.slug = product.slug;
     if (product.description !== undefined) updatePayload.description = product.description;
-    if (product.shortDescription !== undefined) updatePayload.short_description = product.shortDescription;
+    if (product.short_description !== undefined) updatePayload.short_description = product.short_description;
     if (product.price !== undefined) updatePayload.price = product.price;
-    updatePayload.compare_price = product.comparePrice ?? null;
+    updatePayload.compare_price = product.compare_price ?? null;
     if (product.cost !== undefined) updatePayload.cost = product.cost;
     if (product.sku !== undefined) updatePayload.sku = product.sku;
-    if (product.categoryId !== undefined) updatePayload.category_id = product.categoryId;
+    if (product.category_id !== undefined) updatePayload.category_id = product.category_id;
 
     if (product.stock !== undefined) updatePayload.stock = product.stock;
-    if (product.hasVariants !== undefined) updatePayload.has_variants = product.hasVariants;
-    if (product.isService !== undefined) updatePayload.is_service = product.isService;
-    if (product.isFeatured !== undefined) updatePayload.is_featured = product.isFeatured;
-    if (product.isActive !== undefined) updatePayload.is_active = product.isActive;
-    if (product.enableSwatches !== undefined) updatePayload.enable_swatches = product.enableSwatches;
-    if (product.showSwatchesOnArchive !== undefined) updatePayload.show_swatches_on_archive = product.showSwatchesOnArchive;
-    if (product.customBadgeId !== undefined) updatePayload.custom_badge_id = product.customBadgeId || null;
-    if (product.badgeEnabled !== undefined) updatePayload.badge_enabled = product.badgeEnabled;
-    if (product.sizeGuideId !== undefined) updatePayload.size_guide_id = product.sizeGuideId || null;
-    if (product.frequentlyBoughtTogetherIds !== undefined) updatePayload.frequently_bought_together_ids = product.frequentlyBoughtTogetherIds;
-    if (product.flashSaleEnabled !== undefined) updatePayload.flash_sale_enabled = product.flashSaleEnabled;
-    if (product.flashSaleStartDate !== undefined) updatePayload.flash_sale_start_date = product.flashSaleStartDate || null;
-    if (product.flashSaleEndDate !== undefined) updatePayload.flash_sale_end_date = product.flashSaleEndDate || null;
-    if (product.flashSaleDiscountType !== undefined) updatePayload.flash_sale_discount_type = product.flashSaleDiscountType;
-    if (product.flashSaleDiscountValue !== undefined) updatePayload.flash_sale_discount_value = product.flashSaleDiscountValue;
+    if (product.has_variants !== undefined) updatePayload.has_variants = product.has_variants;
+    if (product.is_service !== undefined) updatePayload.is_service = product.is_service;
+    if (product.is_featured !== undefined) updatePayload.is_featured = product.is_featured;
+    if (product.is_active !== undefined) updatePayload.is_active = product.is_active;
+    if (product.enable_swatches !== undefined) updatePayload.enable_swatches = product.enable_swatches;
+    if (product.show_swatches_on_archive !== undefined) updatePayload.show_swatches_on_archive = product.show_swatches_on_archive;
+    if (product.custom_badge_id !== undefined) updatePayload.custom_badge_id = product.custom_badge_id || null;
+    if (product.badge_enabled !== undefined) updatePayload.badge_enabled = product.badge_enabled;
+    if (product.size_guide_id !== undefined) updatePayload.size_guide_id = product.size_guide_id || null;
+    if (product.frequently_bought_together_ids !== undefined) updatePayload.frequently_bought_together_ids = product.frequently_bought_together_ids;
+    if (product.flash_sale_enabled !== undefined) updatePayload.flash_sale_enabled = product.flash_sale_enabled;
+    if (product.flash_sale_start_date !== undefined) updatePayload.flash_sale_start_date = product.flash_sale_start_date || null;
+    if (product.flash_sale_end_date !== undefined) updatePayload.flash_sale_end_date = product.flash_sale_end_date || null;
+    if (product.flash_sale_discount_type !== undefined) updatePayload.flash_sale_discount_type = product.flash_sale_discount_type;
+    if (product.flash_sale_discount_value !== undefined) updatePayload.flash_sale_discount_value = product.flash_sale_discount_value;
     if (product.tags !== undefined) updatePayload.tags = product.tags;
     if (product.rating !== undefined) updatePayload.rating = product.rating;
-    if (product.reviewsCount !== undefined) updatePayload.reviews_count = product.reviewsCount;
-    if (product.inventoryThreshold !== undefined) updatePayload.inventory_threshold = product.inventoryThreshold;
-    if (product.variationOrder !== undefined) updatePayload.variation_order = product.variationOrder;
+    if (product.reviews_count !== undefined) updatePayload.reviews_count = product.reviews_count;
+    if (product.inventory_threshold !== undefined) updatePayload.inventory_threshold = product.inventory_threshold;
+    if (product.variation_order !== undefined) updatePayload.variation_order = product.variation_order;
 
     const { error: prodError } = await supabase
       .from('products')
@@ -192,8 +192,8 @@ export const updateProduct = async (
           product_id: id,
           url: img.url,
           alt: img.alt,
-          sort_order: img.sortOrder,
-          is_primary: img.isPrimary
+          sort_order: img.sort_order,
+          is_primary: img.is_primary
         })));
       if (imgInsError) throw imgInsError;
     }
@@ -201,7 +201,7 @@ export const updateProduct = async (
     // Only delete/replace variants if hasVariants is explicitly false (switching to simple product)
     // or if new valid variants are being inserted.
     // If hasVariants is true and variants is empty, do NOT delete existing variants to prevent data loss!
-    const shouldManageVariants = product.hasVariants === false || (variants && variants.length > 0);
+    const shouldManageVariants = product.has_variants === false || (variants && variants.length > 0);
 
     if (shouldManageVariants) {
       const { error: varDelError } = await supabase
@@ -210,7 +210,7 @@ export const updateProduct = async (
         .eq('product_id', id);
       if (varDelError) throw varDelError;
 
-      if ((product.hasVariants ?? true) && variants.length > 0) {
+      if ((product.has_variants ?? true) && variants.length > 0) {
         const { error: varInsError } = await supabase
           .from('product_variants')
           .insert(variants.map(v => ({
@@ -218,18 +218,18 @@ export const updateProduct = async (
             color: v.color,
             size: v.size,
             material: v.material,
-            custom_option: v.customOption,
-            custom_value: v.customValue,
-            color_hex: v.colorHex,
+            custom_option: v.custom_option,
+            custom_value: v.custom_value,
+            color_hex: v.color_hex,
             price: v.price,
-            compare_price: v.comparePrice,
+            compare_price: v.compare_price,
             stock: v.stock,
             sku: v.sku,
-            image_url: v.imageUrl,
-            show_image_swatch: v.showImageSwatch,
+            image_url: v.image_url,
+            show_image_swatch: v.show_image_swatch,
             active: v.active,
-            sort_order: v.sortOrder,
-            inventory_threshold: v.inventoryThreshold || 0
+            sort_order: v.sort_order,
+            inventory_threshold: v.inventory_threshold || 0
           })));
         if (varInsError) throw varInsError;
       }
@@ -249,14 +249,14 @@ export const updateProduct = async (
           name: m.name,
           price: m.price,
           active: m.active,
-          sort_order: m.sortOrder
+          sort_order: m.sort_order
         })));
       if (modInsError) throw modInsError;
     }
 
-    let categoryIdsToUpdate = product.productCategories?.map(pc => pc.categoryId) || [];
-    if (categoryIdsToUpdate.length === 0 && product.categoryId) {
-      categoryIdsToUpdate.push(product.categoryId);
+    let categoryIdsToUpdate = product.product_categories?.map(pc => pc.category_id) || [];
+    if (categoryIdsToUpdate.length === 0 && product.category_id) {
+      categoryIdsToUpdate.push(product.category_id);
     }
     if (!categoryIdsToUpdate.includes('00000000-0000-4000-8000-000000000099')) {
       categoryIdsToUpdate.push('00000000-0000-4000-8000-000000000099');

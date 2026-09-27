@@ -1,10 +1,11 @@
 'use client';
 
 import React from 'react';
-import { HomepageSection, StoreSettings } from '@/lib/types';
+import { HomepageSection, StoreSettings, ThemeConfig } from '@/lib/types';
 import { X } from '@/components/common/Icons';
 import HomeSectionsStack from './sidebar/HomeSectionsStack';
 import ProductDetailBlocksStack from './sidebar/ProductDetailBlocksStack';
+import { AppearancePresetsList } from '../customizer/pages/appearance/AppearancePresetsList';
 
 interface CustomizerLeftSidebarProps {
   activePage: 'home' | 'shop' | 'product_detail' | 'product_card' | 'global' | 'appearance';
@@ -120,6 +121,27 @@ export function CustomizerLeftSidebar({
                 Choose templates and configure card layout preferences applied globally to all catalog grids, shop listings, and recommended sliders.
               </p>
             </div>
+          </div>
+        ) : activePage === 'appearance' ? (
+          <div className="space-y-4">
+            <div className="p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-200 dark:border-gray-800">
+              <h4 className="text-xs font-black text-gray-900 dark:text-white uppercase tracking-wider mb-2">
+                Appearance & Presets
+              </h4>
+              <p className="text-[10px] text-gray-500 dark:text-gray-400 font-semibold leading-relaxed">
+                Pick a theme preset or fine-tune colors, fonts, and element styles. Changes apply globally across the storefront and update live in the preview.
+              </p>
+            </div>
+            <AppearancePresetsList
+              settings={storeSettings}
+              onSelectPreset={(presetId: string, presetConfig: ThemeConfig) => {
+                setStoreSettings(prev => ({
+                  ...prev,
+                  theme_preset: presetId,
+                  theme_config: presetConfig,
+                }));
+              }}
+            />
           </div>
         ) : (
           <div className="space-y-2">

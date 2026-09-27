@@ -3,7 +3,7 @@ import { useConfirm } from '@/components/admin/shared/AdminConfirmProvider';
 import { toast } from 'sonner';
 
 interface UseProductVariantBulkActionsProps {
-  setVariants: React.Dispatch<React.SetStateAction<Omit<ProductVariant, 'id' | 'productId'>[]>>;
+  setVariants: React.Dispatch<React.SetStateAction<Omit<ProductVariant, 'id' | 'product_id'>[]>>;
   selectedVariantIndices: number[];
   setSelectedVariantIndices: React.Dispatch<React.SetStateAction<number[]>>;
 }
@@ -38,7 +38,7 @@ export function useProductVariantBulkActions({
 
   const handleBulkUpdateComparePrice = (val: number) => {
     if (selectedVariantIndices.length === 0) return;
-    setVariants(prev => prev.map((v, idx) => selectedVariantIndices.includes(idx) ? { ...v, comparePrice: val } : v));
+    setVariants(prev => prev.map((v, idx) => selectedVariantIndices.includes(idx) ? { ...v, compare_price: val } : v));
     toast.success(`Updated compare price for ${selectedVariantIndices.length} variant(s)`);
   };
 
@@ -52,7 +52,7 @@ export function useProductVariantBulkActions({
     if (selectedVariantIndices.length === 0) return;
     setVariants(prev => prev.map((v, idx) => {
       if (!selectedVariantIndices.includes(idx)) return v;
-      const parts = [v.color, v.size, v.material, v.customValue].filter(Boolean);
+      const parts = [v.color, v.size, v.material, v.custom_value].filter(Boolean);
       const suffix = parts.join('-').toUpperCase().replace(/\s+/g, '');
       const newSku = prefix ? `${prefix}-${suffix}` : suffix;
       return { ...v, sku: newSku };
@@ -62,7 +62,7 @@ export function useProductVariantBulkActions({
 
   const handleBulkUpdateThreshold = (val: number) => {
     if (selectedVariantIndices.length === 0) return;
-    setVariants(prev => prev.map((v, idx) => selectedVariantIndices.includes(idx) ? { ...v, inventoryThreshold: val } : v));
+    setVariants(prev => prev.map((v, idx) => selectedVariantIndices.includes(idx) ? { ...v, inventory_threshold: val } : v));
     toast.success(`Updated threshold for ${selectedVariantIndices.length} variant(s)`);
   };
 

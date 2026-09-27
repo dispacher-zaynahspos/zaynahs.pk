@@ -84,7 +84,7 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
                 <Package className="h-4 w-4" />
               </span>
               <span className="text-[20px] font-bold text-gray-900 dark:text-white leading-none whitespace-nowrap">
-                {order.orderNumber}
+                {order.order_number}
               </span>
             </div>
 
@@ -122,9 +122,9 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
             </div>
           </div>
           <div className="text-[13px] text-gray-500 dark:text-gray-400 ml-9">
-            {new Date(order.createdAt).toLocaleString('en-US', { 
+            {new Date(order.created_at).toLocaleString('en-US', { 
               month: 'long', day: 'numeric', year: 'numeric'
-            })} at {new Date(order.createdAt).toLocaleString('en-US', { 
+            })} at {new Date(order.created_at).toLocaleString('en-US', { 
               hour: 'numeric', minute: '2-digit', hour12: true
             }).toLowerCase()} from Online Store
           </div>
@@ -193,7 +193,7 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
                   <button onClick={() => handleStatusChange('shipped')} className="w-full text-left px-4 py-1.5 text-[13.5px] font-medium hover:bg-gray-50 text-purple-600">Mark as Shipped</button>
                   <button onClick={() => handleStatusChange('delivered')} className="w-full text-left px-4 py-1.5 text-[13.5px] font-medium hover:bg-gray-50 text-emerald-600">Mark as Delivered</button>
                   <button onClick={() => handleStatusChange('cancelled')} className="w-full text-left px-4 py-1.5 text-[13.5px] font-medium hover:bg-gray-50 text-red-600">Mark as Cancelled</button>
-                  {order.trackingNumber && (
+                  {order.tracking_number && (
                     <button onClick={handleCancelShipment} disabled={isUpdating} className="w-full text-left px-4 py-2 text-[13.5px] font-medium text-orange-600">Cancel Shipment</button>
                   )}
                   <button onClick={() => { handleMoveToTrash(); setIsDropdownOpen(false); }} className="w-full text-left px-4 py-2 text-[13.5px] font-medium text-red-600">Move to Trash</button>
@@ -236,7 +236,7 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
                   <div className="text-[12.5px] text-gray-500">Qty: {item.quantity}</div>
                 </div>
                 <div className="font-semibold text-gray-900 dark:text-white">
-                  {formatPrice(item.total, settings.currencySymbol)}
+                  {formatPrice(item.total, settings.currency_symbol)}
                 </div>
               </div>
             ))}
@@ -245,7 +245,7 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
           <div className="bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden p-4">
             <div className="flex justify-between py-2 text-[13.5px]">
               <span className="font-bold">Total</span>
-              <span className="font-bold">{formatPrice(order.total, settings.currencySymbol)}</span>
+              <span className="font-bold">{formatPrice(order.total, settings.currency_symbol)}</span>
             </div>
           </div>
 

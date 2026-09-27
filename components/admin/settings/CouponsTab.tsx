@@ -241,9 +241,9 @@ export default function CouponsTab({
                   </div>
                   <p className="text-xs text-gray-500">
                     Discount: <span className="font-bold text-gray-700 dark:text-gray-300">
-                      {coupon.discountType === 'percentage' ? `${coupon.value}%` : `${currencySymbol} ${coupon.value}`}
+                      {coupon.discount_type === 'percentage' ? `${coupon.value}%` : `${currencySymbol} ${coupon.value}`}
                     </span>
-                    {coupon.minCartAmount ? ` (Min subtotal: ${currencySymbol} ${coupon.minCartAmount})` : ''}
+                    {coupon.min_cart_amount ? ` (Min subtotal: ${currencySymbol} ${coupon.min_cart_amount})` : ''}
                   </p>
                 </div>
 

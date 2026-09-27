@@ -37,21 +37,21 @@ export default function CustomPostsTab({
           className="bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden shadow-sm hover:shadow-md transition-shadow"
         >
           <div className="relative w-full aspect-[4/3] bg-gray-100 dark:bg-gray-800">
-            <img src={proof.imageUrl} alt={proof.caption || 'Social proof'} className="w-full h-full object-contain" />
+            <img src={proof.image_url} alt={proof.caption || 'Social proof'} className="w-full h-full object-contain" />
           </div>
           <div className="p-3 space-y-1.5">
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
-                {proof.sourceType}
+                {proof.source_type}
               </span>
-              <span className="text-[10px] text-gray-400">{formatDate(proof.createdAt)}</span>
+              <span className="text-[10px] text-gray-400">{formatDate(proof.created_at)}</span>
             </div>
             {proof.caption && (
               <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed line-clamp-2">{proof.caption}</p>
             )}
-            {proof.linkedProducts && proof.linkedProducts.length > 0 && (
+            {proof.linked_products && proof.linked_products.length > 0 && (
               <div className="flex flex-wrap gap-1 pt-1">
-                {proof.linkedProducts.map((p) => (
+                {proof.linked_products.map((p) => (
                   <span key={p.id} className="inline-flex items-center px-2 py-0.5 text-[10px] font-bold rounded-full bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-400 truncate max-w-[140px]">
                     {p.name}
                   </span>

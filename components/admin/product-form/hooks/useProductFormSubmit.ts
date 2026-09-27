@@ -103,41 +103,41 @@ export function useProductFormSubmit() {
         slug: params.slug.trim(),
         sku: params.sku.trim() || undefined,
         price: parseFloat(params.price) || 0,
-        comparePrice: params.comparePrice.trim() ? parseFloat(params.comparePrice) : undefined,
+        compare_price: params.comparePrice.trim() ? parseFloat(params.comparePrice) : undefined,
         cost: parseFloat(params.cost) || 0,
-        categoryId: params.selectedCategoryIds[0] || undefined,
+        category_id: params.selectedCategoryIds[0] || undefined,
 
-        productCategories: params.selectedCategoryIds.map((categoryId) => ({
-          productId: params.isEdit && params.initialProduct ? params.initialProduct.id : '',
-          categoryId,
+        product_categories: params.selectedCategoryIds.map((categoryId) => ({
+          product_id: params.isEdit && params.initialProduct ? params.initialProduct.id : '',
+          category_id: categoryId,
         })),
-        inventoryThreshold: parseInt(params.inventoryThreshold) || 0,
+        inventory_threshold: parseInt(params.inventoryThreshold) || 0,
         stock: computedStock,
-        hasVariants: params.hasVariants,
-        isService: params.isService,
-        isFeatured: params.isFeatured,
-        isActive: params.isActive,
-        enableSwatches: params.enableSwatches,
-        showSwatchesOnArchive: params.showSwatchesOnArchive,
-        customBadgeId: params.customBadgeId || undefined,
-        badgeEnabled: params.badgeEnabled,
-        sizeGuideId: params.sizeGuideId || undefined,
-        frequentlyBoughtTogetherIds: params.frequentlyBoughtTogetherIds,
-        flashSaleEnabled: params.flashSaleEnabled,
-        flashSaleStartDate: params.flashSaleStartDate
+        has_variants: params.hasVariants,
+        is_service: params.isService,
+        is_featured: params.isFeatured,
+        is_active: params.isActive,
+        enable_swatches: params.enableSwatches,
+        show_swatches_on_archive: params.showSwatchesOnArchive,
+        custom_badge_id: params.customBadgeId || undefined,
+        badge_enabled: params.badgeEnabled,
+        size_guide_id: params.sizeGuideId || undefined,
+        frequently_bought_together_ids: params.frequentlyBoughtTogetherIds,
+        flash_sale_enabled: params.flashSaleEnabled,
+        flash_sale_start_date: params.flashSaleStartDate
           ? new Date(params.flashSaleStartDate).toISOString()
           : undefined,
-        flashSaleEndDate: params.flashSaleEndDate
+        flash_sale_end_date: params.flashSaleEndDate
           ? new Date(params.flashSaleEndDate).toISOString()
           : undefined,
-        flashSaleDiscountType: params.flashSaleDiscountType,
-        flashSaleDiscountValue: params.flashSaleDiscountValue,
+        flash_sale_discount_type: params.flashSaleDiscountType,
+        flash_sale_discount_value: params.flashSaleDiscountValue,
         tags: parsedTags,
         description: params.description.trim() || undefined,
-        shortDescription: params.shortDescription.trim() || undefined,
+        short_description: params.shortDescription.trim() || undefined,
         rating: parseFloat(params.rating) || 5.0,
-        reviewsCount: parseInt(params.reviewsCount) || 0,
-        variationOrder: params.variantAxes.map((a: any) => a.type),
+        reviews_count: parseInt(params.reviewsCount) || 0,
+        variation_order: params.variantAxes.map((a: any) => a.type),
       };
 
       if (params.isEdit && params.initialProduct) {

@@ -107,10 +107,10 @@ export async function POST(
     }
 
     if (subject === undefined) subject = template.subject;
-    if (customHtml === undefined && !isDefaultMode) customHtml = template.customHtml;
+    if (customHtml === undefined && !isDefaultMode) customHtml = template.custom_html;
 
     const settings = await getSettings();
-    const siteUrl = settings.storeUrl || await getSiteUrl(settings);
+    const siteUrl = settings.store_url || await getSiteUrl(settings);
     const dynamicResetLink = `${siteUrl.replace(/\/$/, '')}/reset-password?token=mock_token_123`;
     const mergedData = { ...mockData, settings, resetLink: dynamicResetLink };
 
@@ -124,17 +124,17 @@ export async function POST(
     const variables = await buildVariables(type, mergedData);
     
     if (mockData.order?.items) {
-      variables.order_items_html = renderOrderItemsTable(mockData.order.items, settings.currencySymbol);
+      variables.order_items_html = renderOrderItemsTable(mockData.order.items, settings.currency_symbol);
     }
 
     // Resolve Subject and Body
     const resolvedSubject = `[TEST] ` + replaceVariables(subject, variables);
     let resolvedHtml = '';
 
-    if (isDefaultMode || (!customHtml && !template.customHtml)) {
+    if (isDefaultMode || (!customHtml && !template.custom_html)) {
       resolvedHtml = getDefaultTemplate(type, variables);
     } else {
-      resolvedHtml = replaceVariables(customHtml || template.customHtml || '', variables);
+      resolvedHtml = replaceVariables(customHtml || template.custom_html || '', variables);
     }
 
     // Send the email

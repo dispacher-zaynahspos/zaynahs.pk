@@ -4,6 +4,113 @@
 
 ---
 
+### [2026-09-26] v7.0.0 — Enable RLS on unprotected tables (S1) + product-create atomic rollback + customizer/UI fixes
+**Files Updated:**
+- `supabase/migrations/20260926140000_enable_rls_unprotected_tables.sql` (NEW — S1)
+- `docs/SECURITY_STORE_SETTINGS_SECRETS_PLAN.md` (NEW — S2 remediation plan, staging-first)
+- `lib/services/products/actions.ts` (`createProductAction` compensating rollback — A1)
+- `lib/services/sections/subscribe-actions.ts` (NEW — service-role signup so subscriber PII stays private under RLS); deleted `lib/services/sections-client.ts`
+- Customizer/UI (no DB): `CategoryGridSettings.tsx` (CU1), `CategoryListSettings.tsx` + `StoreFront.tsx` (CU2), `CustomizerLeftSidebar.tsx` (CU4/CU5), `useCustomizerState.ts` (CU6 section autopersist), `VariantMobileCard.tsx` + variants-section `index.tsx` (G1), `ShopProductListCard.tsx` (U2), `TrustBadgesConfig.tsx`/`TrustTab.tsx`/`buildSettingsPayload.ts` (ST2), `CollectionTable.tsx` (mobile), deleted 7 dead `store/shared/*Filter`.
+
+**Changes:**
+1. **S1 (Critical):** RLS turned ON for `homepage_sections` (public read + admin all), `whatsapp_subscribers` (public INSERT only, NO public SELECT → PII protected, admin all), `email_templates` (admin all), `schema_version` (authenticated read). Newsletter/spin-wheel/exit-intent signup moved to a **service-role server action** so it still works with the locked-down subscriber table. **Migration written — apply + verify on staging per store, then production (creds in `env-backups/`).**
+2. **S2 (Critical):** store_settings/customers/orders public-read exposure — full remediation plan (public-safe view + code split + verification checklist) documented in `docs/SECURITY_STORE_SETTINGS_SECRETS_PLAN.md`. NOT auto-applied (would break storefront `select('*')`); staging-first.
+3. **A1 (High):** `createProductAction` now wraps all child-table inserts in a compensating rollback — a mid-write failure deletes the partial product + all children (RULE D15), matching `updateProductAction`.
+4. **Customizer/UI (code-only, tsc-verified):** CU1 category_grid responsive columns; CU2 dead category_list cols removed + show_title wired; CU4 AppearancePresetsList rendered; CU5 appearance sidebar; CU6 sections autopersist (no lost-on-navigate); G1 mobile variant editor; U2 Buy Now→Add to Cart + un-nested stretched link; ST2 independent safe-checkout toggle; CollectionTable mobile cards; DEAD1 7 orphan filters deleted + rule-15 updated.
+5. **SSOT (RULE SSOT1) — permanent drift fixes:**
+   - **DUP1** — product-card option lists centralized into `lib/constants/productCardOptions.ts` (aspect ratios, hover styles, title-line limits + swatch size/shape/align scales). Settings (`ProductsDesignCatalogSection`, `VariantSwatchDisplaySection`) and Customizer (`ProductCardSettings`, `ProductCardSwatchSettingsSection`) now import ONE source — no more drifted choices/defaults (aspect list was 5 vs 4 options before).
+   - **DUP3** — WhatsApp phone sanitization (`cleanWhatsAppPhone`) moved to the single write boundary `updateSettings` (mutations.ts) for `social_whatsapp`, `whatsapp_number`, `floating_whatsapp_number` — ANY UI that writes these is now sanitized consistently (no per-UI drift).
+   - **DUP4** — already fixed (ST2 independent toggle).
+   - **DUP6** — Dashboard vs Reporting duplicate widgets consolidated into `components/admin/shared/reporting-widgets/` (RevenueChartSection, TopProductsSection, StatusBreakdownCard + shared types). 6 duplicate files deleted; both pages now import ONE source. Prop drift reconciled (`totalOrdersCount`→`totalOrders`; reporting chart `date`→`label`; optional cost/delivery line). MetricsGrid + Inventory widgets kept separate (genuinely different, not duplicates).
+   - **DUP5 / DEAD5** — Ticker: removed dead camelCase `tickerBgColor`/`tickerTextColor` writes to `store_settings` (never persisted + D13 violation); ticker colors now live only in the section JSONB (correct home).
+   - **DEAD4** — `ReportingDashboard.isEmbed` prop + its dead (only-ever-false) branch removed.
+6. **A2 atomic writes (RULE D15) — more paths made fool-proof:**
+   - `submitSocialProof` — parent row rolled back if product-link insert fails (no orphan social_proof).
+   - `updateSocialProof` — existing product links snapshotted before delete; restored if re-insert fails (no lost links).
+   - Product import (overwrite strategy) — children snapshotted before the destructive delete; restored on any per-product failure (no wiped/half-imported product). Cache invalidated once at end.
+   - `createOrder` reviewed = benign (customer lookup is idempotent by email/phone; no stock deduction at WhatsApp-order creation) — heavy transaction not needed.
+   - **DUP2** — Header/top-bar/newsletter **quad duplicate** eliminated. The 5 shared columns (`header_show_top_bar`, `header_top_bar_phone`, `header_top_bar_email`, `header_show_newsletter`, `header_newsletter_text`) now render from ONE shared component `components/admin/shared/HeaderAnnouncementFields.tsx` (+ canonical labels/defaults in `lib/constants/headerAnnouncementFields.ts`), used by Settings HeaderTab (checkbox variant), Customizer Global-header and the Announcement Bar panel. `PremiumHeaderNewsCard` (most-drifted copy) deleted. Fixed the fresh-row default divergence (toggles ON in Settings vs OFF in Customizer) via shared `?? true` defaults.
+7. `tsc --noEmit` = 0 errors; `next build` = success.
+8. **DEAD2** — orphan `settings/SizeGuidesTab.tsx` + `settings/size-guides/*` deleted (0 importers; canonical size-guides live in `app/admin/size-guides/`).
+9. **P7** — `docs/UI_RULES.md` authored (design-system reference). **A2 media+storage** reviewed: `hardDeleteMedia` already uses the safe DB-first order (orphan storage file is benign) — no change needed.
+
+**Still open (live-DB only):** S2 apply (needs the public-safe-view code-split + staging runtime QA — see below). 
+
+### [2026-09-26] v7.0.1 — S1 RLS APPLIED to all 4 live stores
+**Applied via** `scripts/apply-s1-rls.mjs` (Management API, per-store token from `env-backups/`).
+**Result (verified read-only after):** RLS now ✓ ON with correct policies on **littlemister, minimahal, totvogue, zaynahs** for `homepage_sections` (public read + admin all), `whatsapp_subscribers` (public insert + admin all, NO public select), `email_templates` (admin all), `schema_version` (authenticated read). Pre-apply audit showed these were RLS-OFF (fully open) on 3/4 stores (totvogue already had the subscriber/email policies — proof the policy set is production-safe).
+**Safety:** idempotent; rollback = `supabase/migrations/20260926140001_rollback_enable_rls_unprotected_tables.sql`; signup already routed through service-role server action so it works under the locked-down subscriber table. Re-verify anytime with `node scripts/verify-rls-status.mjs`.
+**S2 (store_settings secrets / customers / orders public read) — NOT applied:** requires a code-split first (public-safe `getPublicSettings()` view vs service-role secret reads) + storefront/email/AI/checkout runtime QA, because `fetchSettings` reads `store_settings` with the anon key via `select('*')` — removing the public policy or column access without the code-split would break the live storefront. Plan: `docs/SECURITY_STORE_SETTINGS_SECRETS_PLAN.md`.
+
+---
+
+---
+
+### [2026-09-26] v6.9.0 — StoreSettings + ThemeConfig 100% snake_case
+**Files Updated:** `lib/types/settings.ts` (StoreSettings 128 camel fields + ThemeConfig top-level → snake), `scripts/snake-case-settings.mjs` (codemod), `lib/site-url-server.ts` + `lib/site-url.ts` (`store_url` param), `lib/revalidate.ts`, `buildSettingsPayload.ts`, `lib/email/variables.ts`, `HeroSlideItem.tsx` + all snake consumers via codemod.
+
+**Changes:**
+1. `StoreSettings` ke saare 128 camelCase fields (storeName→store_name, whatsappNumber→whatsapp_number, logoUrl→logo_url, header*/footer*/trustBadge*/flashSale*/etc) + `ThemeConfig` top-level → **snake_case** (ts-morph symbol-based codemod). Mapper (`dbToSettingsMapper`) + reverse-map (`mutations.ts`) ab near-identity — DB columns pehle se snake the.
+2. `getSiteUrl`/`getClientSiteUrl` param `storeUrl` → `store_url`. Any-typed settings reads (email variables, hero slide alt) snake me fix — silent-undefined runtime bug se bache.
+3. **Documented exception:** nested `theme_config.colors.textPrimary` design-tokens + `homepage_sections.settings` customizer-section JSONB keys camelCase rahenge — self-contained payloads, writer+reader consistent, DB column-naming nahi.
+4. `tsc --noEmit` = 0 errors. (No DB change — columns already snake; sirf code naming.)
+
+---
+
+### [2026-09-26] v6.8.0 — Order/Cart domain 100% snake_case (CartItem, StatusLogItem) + JSONB backfill
+**Files Updated:**
+- `lib/types/order.ts` (CartItem + StatusLogItem → snake_case)
+- `store/cartStore.ts` (localStorage `version:1` + `migrate` — camel→snake, no cart wiped)
+- `lib/services/orders/types.ts` (`normalizeCartItems`/`normalizeStatusLogs` read-normalizers), `orders/read.ts`, `orders-client.ts` (use normalizers)
+- consumer reads → snake: `CartSuccessView.tsx`, `lib/email/variables.ts`, abandoned-cart UI (tolerant reads)
+- `supabase/migrations/20260926130000_backfill_order_jsonb_snakecase.sql` (new)
+
+**Changes:**
+1. `CartItem` (selected_variant, selected_modifiers, unit_price, discount_amount, discount_type, discount_value, added_later) + `StatusLogItem` (created_at) → **snake_case**. Ab code me koi camelCase cart field nahi (RULE D13 zero-tolerance).
+2. **Fool-proof, no data wipe:** (a) cartStore `migrate` purane localStorage carts ko snake me convert karta hai; (b) `normalizeCartItems`/`normalizeStatusLogs` purane `orders.items`/`status_logs`/`abandoned_carts.items` JSONB (camel) ko read pe snake me normalize karte hain — purane orders/carts kabhi nahi tootenge.
+3. **DB backfill migration** (`20260926130000_...`) — non-destructive + idempotent, JSONB keys camel→snake rebuild (COALESCE preserve). Runtime pehle se safe (normalizer) — ye permanent DB cleanup. Har project (littlemister/minimahal/totvogue/zaynahs) pe Management API se apply + verify karna.
+4. `tsc --noEmit` = 0 errors.
+
+---
+
+### [2026-09-26] v6.7.0 — Schema drift fix (DEEP_AUDIT_PLAN D1/D2)
+**Files Updated:**
+- `supabase/migrations/20260926120000_add_missing_order_email_and_shop_perpage.sql` (new)
+- `supabase/schema/SUPER_MASTER_SCHEMA.sql` (orders + store_settings)
+- `lib/services/settings/mutations.ts` (write mappings)
+- `lib/services/settings/mappers/dbToSettingsMapper.ts` (read mappings)
+
+**Changes:**
+1. `orders.customer_email TEXT` added — code referenced it (`lib/services/orders/*`) but column was missing → order-status emails were always `undefined`. Now present.
+2. `store_settings.shop_products_per_page` + `_desktop` + `_tablet` + `_mobile` added — Homepage Customizer > Shop page wrote these and storefront read them, but they were never persisted (missing column + missing mappers). Now full round-trip: write mapping in `mutations.ts`, read mapping in `dbToSettingsMapper.ts`.
+3. All columns 100% `snake_case` (DB was already fully snake_case — no conversion needed, only the missing columns added).
+4. Migration is additive + idempotent (`ADD COLUMN IF NOT EXISTS`). Apply via Supabase Management API (RULE D7) — credentials in `env-backups/`.
+
+---
+
+### [2026-09-26] v6.6.0 — snake_case type cutover (RULE D13) via ts-morph codemod
+**Files Updated:** `lib/types/product.ts`, `lib/types/category.ts`, `lib/types/order.ts`, `lib/types/misc.ts` + ~90 consumer files, `scripts/snake-case-codemod.mjs`, `scripts/snake-case-revert-jsonb.mjs`
+
+**Changes (code-level naming, NOT a DB schema change — DB was already snake_case):**
+1. Domain TS interfaces converted camelCase → `snake_case` to match DB columns 1:1, removing the camel↔snake conversion layer: `Product`, `ProductImage`, `ProductVariant`, `ProductModifier`, `Badge`, `SizeGuide`, `Category`, `Collection`, `ProductCategoryRelation`, `Order` (columns), `ShippingMethod`, `PaymentMethod`, `Coupon`, `Review`, `SocialProof`, `EmailTemplate`, `VariantPreset`, `Exported*`. Done with a symbol-based ts-morph codemod (167 props) so same-named fields on other types were not affected.
+2. **Deliberately kept camelCase** (JSONB-stored — changing would break existing rows without a data migration): `CartItem`, `StatusLogItem` (inside `orders.items` / `orders.status_logs`). Also `StoreSettings` + its JSONB blobs (`theme_config`, `ai_persona_config`) and the meta-sync/export-import wire shapes.
+3. Fixed a latent runtime bug surfaced by the cutover: `useProductFormSubmit` was building the product save payload with camelCase keys passed to a `Partial<Product>` param (masked by `Partial<>`), which would have silently dropped every field on save — now snake_case.
+4. Verified: `npx tsc --noEmit` = 0 errors. NOTE: full `next build` + runtime smoke test still recommended before deploy (see runtime-QA note).
+
+---
+
+### [2026-09-26] v6.5.0 — AI vision_model default fixed (fictitious gemini-3.6-flash → gemini-2.0-flash)
+**Files Updated:**
+- [supabase/schema/SUPER_MASTER_SCHEMA.sql](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/supabase/schema/SUPER_MASTER_SCHEMA.sql) (store_settings + ai_settings `vision_model` DEFAULT, and singleton seed row)
+
+**Changes:**
+1. `store_settings.vision_model` and `ai_settings.vision_model` column `DEFAULT` changed from `'gemini-3.6-flash'` (not a real Google model — every `generateContent` call 404'd) to `'gemini-2.0-flash'` (valid current Gemini model).
+2. Seed row (`00000000-0000-4000-8000-000000000002`) `vision_model` value updated to `'gemini-2.0-flash'`.
+3. **Existing rows**: runtime `normalizeGoogleModel()` (`lib/ai/google.ts`) now coerces any stored `gemini-3.x` value to the valid default, so already-saved rows work without a data migration. To also correct the stored value, run `node scripts/update-ai-models-all-stores.mjs` (now writes `gemini-2.0-flash`).
+4. Code side (not schema): removed the hardcoded `gemini-3.6-flash` overrides in `lib/ai/router.ts`, `lib/ai/call-ai.ts`, `lib/ai/settings.ts`, `lib/services/settings/mappers/dbToSettingsMapper.ts`, `components/admin/settings-form/hooks/useSettingsAIAndEmails.ts`, and fixed the model dropdowns in `components/admin/settings/ai/aiModelsData.ts`.
+
+---
+
 ### [2026-09-22] v6.4.0 — Built-in Pre-Added System Badges (Featured, HOT, Sale, New) & Product Card Actions
 **Files Updated:**
 - [supabase/schema/SUPER_MASTER_SCHEMA.sql](file:///Users/shoaib/Desktop/zaynahsestore-tv-main/supabase/schema/SUPER_MASTER_SCHEMA.sql)

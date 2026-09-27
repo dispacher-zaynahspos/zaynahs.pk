@@ -58,7 +58,7 @@ export function FooterQuickLinks({ settings, navigationMenu }: FooterQuickLinksP
   const allItems = navigationMenu.length > 0
     ? [
         ...renderFooterMenu(navigationMenu),
-        settings.showFaqInFooter !== false && (
+        settings.show_faq_in_footer !== false && (
           <li key="faq">
             <Link href="/faq" className="text-gray-500 hover:text-[#e94560] dark:text-gray-400 dark:hover:text-white transition-colors block">
               FAQ
@@ -70,14 +70,14 @@ export function FooterQuickLinks({ settings, navigationMenu }: FooterQuickLinksP
             Reviews
           </Link>
         </li>,
-        settings.showReturnsInFooter !== false && (
+        settings.show_returns_in_footer !== false && (
           <li key="returns">
             <Link href="/returns" className="text-gray-500 hover:text-[#e94560] dark:text-gray-400 dark:hover:text-white transition-colors block">
               Return Policy
             </Link>
           </li>
         ),
-        settings.showPrivacyInFooter !== false && (
+        settings.show_privacy_in_footer !== false && (
           <li key="privacy">
             <Link href="/privacy-policy" className="text-gray-500 hover:text-[#e94560] dark:text-gray-400 dark:hover:text-white transition-colors block">
               Privacy Policy
@@ -106,21 +106,21 @@ export function FooterQuickLinks({ settings, navigationMenu }: FooterQuickLinksP
             My Account
           </Link>
         </li>,
-        settings.showFaqInFooter !== false && (
+        settings.show_faq_in_footer !== false && (
           <li key="faq">
             <Link href="/faq" className="text-gray-500 hover:text-[#e94560] dark:text-gray-400 dark:hover:text-white transition-colors block">
               FAQ
             </Link>
           </li>
         ),
-        settings.showReturnsInFooter !== false && (
+        settings.show_returns_in_footer !== false && (
           <li key="returns">
             <Link href="/returns" className="text-gray-500 hover:text-[#e94560] dark:text-gray-400 dark:hover:text-white transition-colors block">
               Return Policy
             </Link>
           </li>
         ),
-        settings.showPrivacyInFooter !== false && (
+        settings.show_privacy_in_footer !== false && (
           <li key="privacy">
             <Link href="/privacy-policy" className="text-gray-500 hover:text-[#e94560] dark:text-gray-400 dark:hover:text-white transition-colors block">
               Privacy Policy

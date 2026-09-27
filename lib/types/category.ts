@@ -3,13 +3,13 @@ export interface Category {
   name: string;
   slug: string;
   description?: string;
-  imageUrl?: string;
-  sortOrder: number;
+  image_url?: string;
+  sort_order: number;
   active: boolean;
-  activeSortPreference?: string;
-  deletedAt?: string | null;
-  createdAt: string;
-  updatedAt: string;
+  active_sort_preference?: string;
+  deleted_at?: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Collection {
@@ -17,33 +17,33 @@ export interface Collection {
   name: string;
   slug: string;
   description?: string;
-  imageUrl?: string;
-  sortOrder: number;
+  image_url?: string;
+  sort_order: number;
   active: boolean;
-  deletedAt?: string | null;
-  createdAt: string;
-  updatedAt: string;
+  deleted_at?: string | null;
+  created_at: string;
+  updated_at: string;
   categories?: Category[]; // For populated relations
 }
 
 export interface CollectionCategory {
   id: string;
-  collectionId: string;
-  categoryId: string;
-  sortOrder: number;
-  createdAt: string;
+  collection_id: string;
+  category_id: string;
+  sort_order: number;
+  created_at: string;
 }
 
 export interface MetaCategoryMapping {
   id: string;
-  storeCategoryId: string;
-  metaCategory: string;
-  createdAt?: string;
+  store_category_id: string;
+  meta_category: string;
+  created_at?: string;
   category?: Category;
 }
 
 export interface ProductCategoryRelation {
-  productId: string;
-  categoryId: string;
+  product_id: string;
+  category_id: string;
   category?: Category;
 }

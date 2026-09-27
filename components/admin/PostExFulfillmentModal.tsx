@@ -44,10 +44,10 @@ export default function PostExFulfillmentModal({ order, settings, onClose, onSuc
   const itemName = orderItems[0]?.name || 'Kids Clothes';
   const itemQuantity = orderItems.reduce((sum: number, i: any) => sum + (i.quantity || 1), 0);
   const totalCOD = order.total
-    ? formatPrice(parseFloat(order.total), settings.currencySymbol)
+    ? formatPrice(parseFloat(order.total), settings.currency_symbol)
     : `Rs. 0`;
 
-  const currencySymbol = settings.currencySymbol || 'Rs.';
+  const currencySymbol = settings.currency_symbol || 'Rs.';
 
   const handleFulfill = async () => {
     setDispatching(true);
@@ -74,7 +74,7 @@ export default function PostExFulfillmentModal({ order, settings, onClose, onSuc
           type: 'status_change',
           message: `Order has been booked at PostEx with Tracking # ${tn}`,
           status: 'shipped',
-          createdAt: new Date().toISOString(),
+          created_at: new Date().toISOString(),
         };
 
         const waLog: StatusLogItem = {
@@ -85,7 +85,7 @@ export default function PostExFulfillmentModal({ order, settings, onClose, onSuc
             : 'WhatsApp notification skipped (no template configured)',
           notes: data.waLink || '',
           status: 'shipped',
-          createdAt: new Date().toISOString(),
+          created_at: new Date().toISOString(),
         };
 
         setResult({ success: true, trackingNumber: tn, trackingUrl: tu, waLink: data.waLink || '' });

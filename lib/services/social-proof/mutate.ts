@@ -34,7 +34,12 @@ export const submitSocialProof = async (proof: {
       const { error: junctionError } = await supabaseAdmin
         .from('social_proof_products')
         .insert(junctionRows);
-      if (junctionError) throw junctionError;
+      if (junctionError) {
+        // RULE D15 (atomic write): the parent row was created but the product links
+        // failed — roll back the parent so we never leave an orphan social_proof.
+        await supabaseAdmin.from('social_proof').delete().eq('id', data.id);
+        throw junctionError;
+      }
     }
 
     revalidateTagSafe('social_proof');
@@ -68,6 +73,13 @@ export const updateSocialProof = async (id: string, updates: {
     }
 
     if (updates.productIds !== undefined) {
+      // RULE D15 (atomic write): snapshot existing links BEFORE delete so a failed
+      // re-insert can be rolled back — never lose the product links half-way.
+      const { data: prevLinks } = await supabaseAdmin
+        .from('social_proof_products')
+        .select('social_proof_id, product_id')
+        .eq('social_proof_id', id);
+
       const { error: delError } = await supabaseAdmin
         .from('social_proof_products')
         .delete()
@@ -82,7 +94,13 @@ export const updateSocialProof = async (id: string, updates: {
         const { error: insError } = await supabaseAdmin
           .from('social_proof_products')
           .insert(junctionRows);
-        if (insError) throw insError;
+        if (insError) {
+          // Restore the previous links so nothing is lost on partial failure.
+          if (prevLinks && prevLinks.length > 0) {
+            await supabaseAdmin.from('social_proof_products').insert(prevLinks);
+          }
+          throw insError;
+        }
       }
     }
 

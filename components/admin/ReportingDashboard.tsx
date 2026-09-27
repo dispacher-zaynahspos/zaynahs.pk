@@ -24,7 +24,7 @@ interface ReportingDashboardProps {
   isEmbed?: boolean;
 }
 
-export default function ReportingDashboard({ orders, settings, products = [], isEmbed = false }: ReportingDashboardProps) {
+export default function ReportingDashboard({ orders, settings, products = [] }: ReportingDashboardProps) {
   const [dateFilter, setDateFilter] = useState<DateRange>('last30');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [customStartDate, setCustomStartDate] = useState('');
@@ -45,7 +45,7 @@ export default function ReportingDashboard({ orders, settings, products = [], is
   const dateFilteredOrders = useMemo(() => {
     const now = new Date();
     return orders.filter(o => {
-      const orderTime = new Date(o.createdAt).getTime();
+      const orderTime = new Date(o.created_at).getTime();
 
       if (dateFilter === 'today') {
         const start = getStartOfDay(now);
@@ -98,7 +98,7 @@ export default function ReportingDashboard({ orders, settings, products = [], is
 
     revenueOrders.forEach(order => {
       totalSales += order.total;
-      totalDeliveryCost += order.shippingAmount || 0;
+      totalDeliveryCost += order.shipping_amount || 0;
       order.items.forEach(item => {
         const cost = item.product.cost ? parseFloat(item.product.cost.toString()) : 0;
         totalCOGS += cost * item.quantity;
@@ -185,7 +185,7 @@ export default function ReportingDashboard({ orders, settings, products = [], is
       if (statusMap[o.status]) {
         statusMap[o.status].count += 1;
         statusMap[o.status].sales += o.total;
-        statusMap[o.status].delivery += o.shippingAmount || 0;
+        statusMap[o.status].delivery += o.shipping_amount || 0;
         o.items.forEach(item => {
           const cost = item.product.cost ? parseFloat(item.product.cost.toString()) : 0;
           statusMap[o.status].cost += cost * item.quantity;
@@ -197,11 +197,11 @@ export default function ReportingDashboard({ orders, settings, products = [], is
   }, [filteredOrders]);
 
   const chartData = useMemo(() => {
-    const dayMap: Record<string, { date: string; revenue: number; cogs: number; profit: number }> = {};
+    const dayMap: Record<string, { day: string; revenue: number; cogs: number; profit: number }> = {};
 
     filteredOrders.filter(o => o.status !== 'cancelled' && o.status !== 'refunded').forEach(order => {
-      const day = new Date(order.createdAt).toLocaleDateString('en-CA');
-      if (!dayMap[day]) dayMap[day] = { date: day, revenue: 0, cogs: 0, profit: 0 };
+      const day = new Date(order.created_at).toLocaleDateString('en-CA');
+      if (!dayMap[day]) dayMap[day] = { day, revenue: 0, cogs: 0, profit: 0 };
       dayMap[day].revenue += order.total;
       let orderCogs = 0;
       order.items.forEach(item => {
@@ -212,12 +212,20 @@ export default function ReportingDashboard({ orders, settings, products = [], is
       dayMap[day].profit += order.total - orderCogs;
     });
 
-    return Object.values(dayMap).sort((a, b) => a.date.localeCompare(b.date));
+    // Shared RevenueChartSection renders the pre-formatted `label` on the x-axis.
+    return Object.values(dayMap)
+      .sort((a, b) => a.day.localeCompare(b.day))
+      .map(({ day, revenue, cogs, profit }) => ({
+        label: new Date(day).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        revenue,
+        cogs,
+        profit,
+      }));
   }, [filteredOrders]);
 
   const inventoryData: InventoryItem[] = useMemo(() => {
     return products
-      .filter(p => p.isActive)
+      .filter(p => p.is_active)
       .map(p => {
         const stockUnits = p.variants && p.variants.length > 0
           ? p.variants.reduce((s, v) => s + (v.stock || 0), 0)
@@ -242,15 +250,8 @@ export default function ReportingDashboard({ orders, settings, products = [], is
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-[#16162a] p-4 rounded-2xl border border-gray-200 dark:border-gray-800 transition-colors shadow-xs">
         <div>
-          {!isEmbed && (
-            <>
-              <h1 className="text-xl font-black text-gray-900 dark:text-white">Financial & Sales Reporting</h1>
-              <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold mt-0.5">Track revenue, costs, profit margins, and inventory</p>
-            </>
-          )}
-          {isEmbed && (
-            <div className="text-sm font-bold text-gray-900 dark:text-white">Financial Summary & Performance Report</div>
-          )}
+          <h1 className="text-xl font-black text-gray-900 dark:text-white">Financial & Sales Reporting</h1>
+          <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold mt-0.5">Track revenue, costs, profit margins, and inventory</p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
@@ -303,16 +304,16 @@ export default function ReportingDashboard({ orders, settings, products = [], is
         </div>
       )}
 
-      <ReportingMetricsGrid metrics={metrics} currencySymbol={settings.currencySymbol} />
+      <ReportingMetricsGrid metrics={metrics} currencySymbol={settings.currency_symbol} />
 
-      <RevenueChartSection chartData={chartData} currencySymbol={settings.currencySymbol} />
+      <RevenueChartSection chartData={chartData} currencySymbol={settings.currency_symbol} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <TopProductsSection topProducts={topProducts} currencySymbol={settings.currencySymbol} />
-        <StatusBreakdownCard statusBreakdown={statusBreakdown} totalOrders={filteredOrders.length} currencySymbol={settings.currencySymbol} />
+        <TopProductsSection topProducts={topProducts} currencySymbol={settings.currency_symbol} />
+        <StatusBreakdownCard statusBreakdown={statusBreakdown} totalOrders={filteredOrders.length} currencySymbol={settings.currency_symbol} />
       </div>
 
-      <InventoryReportTable inventoryData={inventoryData} currencySymbol={settings.currencySymbol} />
+      <InventoryReportTable inventoryData={inventoryData} currencySymbol={settings.currency_symbol} />
     </div>
   );
 }

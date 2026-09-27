@@ -79,7 +79,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const canonicalUrl = `${siteUrl}/product/${slug}`;
     const imageUrl = product.images?.[0]?.url 
       ? cleanLocalhostUrls(product.images[0].url, siteUrl) 
-      : settings.logoUrl || settings.faviconUrl || '';
+      : settings.logo_url || settings.favicon_url || '';
 
     return {
       metadataBase: new URL(siteUrl),
@@ -139,14 +139,14 @@ export default async function ProductPage({ params }: PageProps) {
     getProductSeoMeta(product.id),
     getProductReviews(product.id),
     getAverageRating(product.id),
-    getRelatedProducts(product.id, product.categoryId, 4),
+    getRelatedProducts(product.id, product.category_id, 4),
     getSocialProofCountForProduct(product.id).catch(() => 0)
   ]);
 
-  const layout = settings.productPageLayout || ['details', 'ticker', 'reviews', 'related', 'recently_viewed', 'social_feed'];
+  const layout = settings.product_page_layout || ['details', 'ticker', 'reviews', 'related', 'recently_viewed', 'social_feed'];
 
-  const schemaBrandName = brand.name || settings?.storeName || 'Store';
-  const siteUrl = settings?.storeUrl?.replace(/\/+$/, '') || `${brand.protocol}://${brand.domain}`;
+  const schemaBrandName = brand.name || settings?.store_name || 'Store';
+  const siteUrl = settings?.store_url?.replace(/\/+$/, '') || `${brand.protocol}://${brand.domain}`;
 
   const productSchema: any = {
     "@context": "https://schema.org",
@@ -240,7 +240,7 @@ export default async function ProductPage({ params }: PageProps) {
             );
           }
           if (block === 'ticker') {
-            if (!settings.productDetailEnableTicker || !settings.productDetailTickerText) return null;
+            if (!settings.product_detail_enable_ticker || !settings.product_detail_ticker_text) return null;
             return (
               <div key="ticker" className="w-full overflow-hidden bg-gray-50 dark:bg-white/5 border-y border-gray-200 dark:border-gray-800 py-3.5 select-none relative">
                 <style>{`
@@ -261,7 +261,7 @@ export default async function ProductPage({ params }: PageProps) {
                 <div className="animate-marquee-infinite flex items-center whitespace-nowrap gap-8">
                   {[...Array(4)].map((_, loopIdx) => (
                     <div key={loopIdx} className="flex items-center gap-8">
-                      {settings.productDetailTickerText.split('\n').filter(Boolean).map((item: string, itemIdx: number) => (
+                      {settings.product_detail_ticker_text.split('\n').filter(Boolean).map((item: string, itemIdx: number) => (
                         <div key={itemIdx} className="flex items-center gap-8 text-sm font-bold text-gray-850 dark:text-gray-200 uppercase tracking-wider">
                           <span>{item}</span>
                           <span className="text-gray-400 dark:text-gray-600 font-normal">✦</span>
@@ -301,7 +301,7 @@ export default async function ProductPage({ params }: PageProps) {
                 </div>
                 <div className={`grid gap-4 ${relatedCols}`}>
                   {displayRelated.map((prod: Product) => (
-                    <ProductCard key={prod.id} product={prod} currencySymbol={settings.currencySymbol} settings={settings} />
+                    <ProductCard key={prod.id} product={prod} currencySymbol={settings.currency_symbol} settings={settings} />
                   ))}
                 </div>
               </div>

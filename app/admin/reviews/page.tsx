@@ -35,18 +35,18 @@ function AdminReviewsPageInner() {
   const allReviewPhotos = reviews.flatMap(review => {
     const list = Array.isArray(review.images) && review.images.length > 0 
       ? review.images 
-      : (review.screenshotUrl ? [review.screenshotUrl] : []);
+      : (review.screenshot_url ? [review.screenshot_url] : []);
 
     return list.map((url, idx) => ({
       id: `${review.id}-${idx}`,
       url,
       reviewId: review.id,
       review,
-      customerName: review.customerName,
+      customerName: review.customer_name,
       productName: review.productName,
       productImage: review.productImage,
       rating: review.rating,
-      createdAt: review.createdAt
+      createdAt: review.created_at
     }));
   });
 
@@ -151,8 +151,8 @@ function AdminReviewsPageInner() {
       setReviews(prev => prev.map(r => {
         if (r.id === reviewId) {
           const updatedImages = (r.images || []).filter(img => img !== photoUrl);
-          const updatedScreenshot = r.screenshotUrl === photoUrl ? undefined : r.screenshotUrl;
-          return { ...r, images: updatedImages, screenshotUrl: updatedScreenshot };
+          const updatedScreenshot = r.screenshot_url === photoUrl ? undefined : r.screenshot_url;
+          return { ...r, images: updatedImages, screenshot_url: updatedScreenshot };
         }
         return r;
       }));
@@ -166,7 +166,7 @@ function AdminReviewsPageInner() {
   const filteredReviews = reviews.filter(review => {
     if (activeTab === 'pending') return !review.approved;
     if (activeTab === 'approved') return review.approved;
-    if (activeTab === 'review_media') return (Array.isArray(review.images) && review.images.length > 0) || Boolean(review.screenshotUrl);
+    if (activeTab === 'review_media') return (Array.isArray(review.images) && review.images.length > 0) || Boolean(review.screenshot_url);
     if (activeTab === 'custom') return false;
     return true;
   });
@@ -179,7 +179,7 @@ function AdminReviewsPageInner() {
   const countByTab = (tab: string) => {
     if (tab === 'custom') return socialProofs.length;
     if (tab === 'review_media') {
-      return reviews.filter(r => (Array.isArray(r.images) && r.images.length > 0) || Boolean(r.screenshotUrl)).length;
+      return reviews.filter(r => (Array.isArray(r.images) && r.images.length > 0) || Boolean(r.screenshot_url)).length;
     }
     return reviews.filter(r => {
       if (tab === 'pending') return !r.approved;

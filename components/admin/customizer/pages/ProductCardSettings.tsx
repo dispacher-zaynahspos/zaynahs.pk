@@ -6,6 +6,14 @@ import { ChevronUp, ChevronDown } from '@/components/common/Icons';
 import { ProductCardVisibilitySection } from './product-card/ProductCardVisibilitySection';
 import { ProductCardSwatchSettingsSection } from './product-card/ProductCardSwatchSettingsSection';
 import { ProductCardPreviewStudio } from './product-card/ProductCardPreviewStudio';
+import {
+  IMAGE_HOVER_STYLE_OPTIONS,
+  IMAGE_ASPECT_RATIO_OPTIONS,
+  TITLE_LINE_LIMIT_OPTIONS,
+  DEFAULT_IMAGE_HOVER_STYLE,
+  DEFAULT_IMAGE_ASPECT_RATIO,
+  DEFAULT_TITLE_LINE_LIMIT,
+} from '@/lib/constants/productCardOptions';
 
 interface ProductCardSettingsProps {
   settings: StoreSettings;
@@ -80,18 +88,13 @@ export default function ProductCardSettings({ settings, onUpdateSettings }: Prod
             Image Hover / Scroll Animation Style
           </label>
           <select
-            value={settings.imageHoverStyle || 'second_image'}
-            onChange={(e) => onUpdateSettings({ imageHoverStyle: e.target.value as any })}
+            value={settings.image_hover_style || DEFAULT_IMAGE_HOVER_STYLE}
+            onChange={(e) => onUpdateSettings({ image_hover_style: e.target.value as any })}
             className="w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-[#f8f8f8] dark:bg-[#0f0f1b] px-3 py-2 text-xs font-bold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
           >
-            <option value="second_image">Second Image (Fade Swap)</option>
-            <option value="slide_left">Slide Left (Zara Style)</option>
-            <option value="zoom_swap">Zoom &amp; Swap (Luxury Editorial)</option>
-            <option value="fade_up">Fade &amp; Rise (Upward Drift)</option>
-            <option value="blur_crossfade">Blur &amp; Reveal (Apple Aesthetic)</option>
-            <option value="flip_3d">3D Card Turn (Jewelry/Accessories)</option>
-            <option value="zoom">Primary Image Zoom</option>
-            <option value="none">None (Static Image)</option>
+            {IMAGE_HOVER_STYLE_OPTIONS.map(o => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
           </select>
           <p className="text-[10px] text-gray-400">
             Select the visual animation when hovering on desktop or scrolling past cards on mobile.
@@ -99,7 +102,7 @@ export default function ProductCardSettings({ settings, onUpdateSettings }: Prod
         </div>
 
         {/* Live Animation & Hover Preview Studio */}
-        <ProductCardPreviewStudio settings={settings} />
+        <ProductCardPreviewStudio settings={settings} onUpdateSettings={onUpdateSettings} />
 
         {/* Image Aspect Ratio */}
         <div className="space-y-1.5 pt-2">
@@ -107,14 +110,13 @@ export default function ProductCardSettings({ settings, onUpdateSettings }: Prod
             Image Aspect Ratio
           </label>
           <select
-            value={settings.imageAspectRatio || '3:4'}
-            onChange={(e) => onUpdateSettings({ imageAspectRatio: e.target.value })}
+            value={settings.image_aspect_ratio || DEFAULT_IMAGE_ASPECT_RATIO}
+            onChange={(e) => onUpdateSettings({ image_aspect_ratio: e.target.value })}
             className="w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-[#f8f8f8] dark:bg-[#0f0f1b] px-3 py-2 text-xs font-bold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
           >
-            <option value="3:4">3:4 (Portrait - Fashion &amp; Apparel)</option>
-            <option value="1:1">1:1 (Square - Jewelry &amp; Accessories)</option>
-            <option value="4:3">4:3 (Landscape)</option>
-            <option value="auto">Auto (Natural height)</option>
+            {IMAGE_ASPECT_RATIO_OPTIONS.map(o => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
           </select>
           <p className="text-[10px] text-gray-400">
             Specify image aspect ratio across all catalog grids.
@@ -127,13 +129,13 @@ export default function ProductCardSettings({ settings, onUpdateSettings }: Prod
             Archive Title Line Limit
           </label>
           <select
-            value={settings.titleLineLimit || '2'}
-            onChange={(e) => onUpdateSettings({ titleLineLimit: e.target.value as any })}
+            value={settings.title_line_limit || DEFAULT_TITLE_LINE_LIMIT}
+            onChange={(e) => onUpdateSettings({ title_line_limit: e.target.value as any })}
             className="w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-[#f8f8f8] dark:bg-[#0f0f1b] px-3 py-2 text-xs font-bold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
           >
-            <option value="1">1 Line Limit</option>
-            <option value="2">2 Lines Limit (Default)</option>
-            <option value="none">Full Title (Unlimited)</option>
+            {TITLE_LINE_LIMIT_OPTIONS.map(o => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
           </select>
           <p className="text-[10px] text-gray-400">
             Clamp long titles to maintain uniform card heights.

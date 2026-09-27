@@ -8,9 +8,9 @@ export async function getDomainBrand(): Promise<{ name: string; tagline: string;
 
     const settings = await getSettings().catch(() => null);
 
-    if (settings?.storeUrl) {
+    if (settings?.store_url) {
       try {
-        const parsed = new URL(settings.storeUrl);
+        const parsed = new URL(settings.store_url);
         host = parsed.host;
         protocol = parsed.protocol.replace(':', '');
       } catch {}
@@ -26,8 +26,8 @@ export async function getDomainBrand(): Promise<{ name: string; tagline: string;
     }
 
     const config = getDomainConfig(host);
-    if (settings?.storeName) {
-      config.name = settings.storeName;
+    if (settings?.store_name) {
+      config.name = settings.store_name;
     }
     if (settings?.tagline) {
       config.tagline = settings.tagline;

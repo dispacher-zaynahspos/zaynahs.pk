@@ -171,13 +171,13 @@ export async function checkLowStock(items: CartItem[]) {
       const product = await getProductById(productId);
       if (!product) continue;
 
-      if (product.hasVariants && item.selectedVariant) {
-        const variant = product.variants.find(v => v.id === item.selectedVariant?.id);
+      if (product.has_variants && item.selected_variant) {
+        const variant = product.variants.find(v => v.id === item.selected_variant?.id);
         if (variant && variant.active) {
-          const threshold = variant.inventoryThreshold !== undefined && variant.inventoryThreshold !== null && variant.inventoryThreshold > 0
-            ? variant.inventoryThreshold
-            : (product.inventoryThreshold !== undefined && product.inventoryThreshold !== null && product.inventoryThreshold > 0
-               ? product.inventoryThreshold
+          const threshold = variant.inventory_threshold !== undefined && variant.inventory_threshold !== null && variant.inventory_threshold > 0
+            ? variant.inventory_threshold
+            : (product.inventory_threshold !== undefined && product.inventory_threshold !== null && product.inventory_threshold > 0
+               ? product.inventory_threshold
                : globalThreshold);
 
           if (variant.stock <= threshold) {
@@ -194,8 +194,8 @@ export async function checkLowStock(items: CartItem[]) {
           }
         }
       } else {
-        const threshold = product.inventoryThreshold !== undefined && product.inventoryThreshold !== null && product.inventoryThreshold > 0
-          ? product.inventoryThreshold
+        const threshold = product.inventory_threshold !== undefined && product.inventory_threshold !== null && product.inventory_threshold > 0
+          ? product.inventory_threshold
           : globalThreshold;
 
         if (product.stock <= threshold) {

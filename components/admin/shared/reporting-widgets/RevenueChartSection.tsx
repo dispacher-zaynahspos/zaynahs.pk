@@ -5,25 +5,21 @@ import { formatPrice } from '@/lib/utils/whatsapp';
 import {
   Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Line, ComposedChart, Legend
 } from 'recharts';
-
-interface ChartDataItem {
-  label: string;
-  revenue: number;
-  cogs: number;
-  profit: number;
-}
+import { RevenueChartPoint } from './types';
 
 interface RevenueChartSectionProps {
-  chartData: ChartDataItem[];
-  chartEmpty: boolean;
+  chartData: RevenueChartPoint[];
   currencySymbol: string;
+  /** Optional — defaults to computing emptiness from the data length. */
+  chartEmpty?: boolean;
 }
 
 export default function RevenueChartSection({
   chartData,
-  chartEmpty,
   currencySymbol,
+  chartEmpty,
 }: RevenueChartSectionProps) {
+  const isEmpty = chartEmpty ?? chartData.length === 0;
   return (
     <div className="lg:col-span-2 bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200/80 dark:border-gray-800/80 shadow-xs p-5 md:p-6 flex flex-col justify-between">
       <div className="flex items-center justify-between mb-4">
@@ -33,7 +29,7 @@ export default function RevenueChartSection({
         </div>
       </div>
 
-      {chartEmpty ? (
+      {isEmpty ? (
         <div className="h-72 flex flex-col items-center justify-center text-sm text-gray-400 font-semibold gap-2 border border-dashed border-gray-200 dark:border-gray-800 rounded-xl">
           <span>No sales recorded in this period</span>
         </div>
@@ -60,7 +56,7 @@ export default function RevenueChartSection({
                 labelStyle={{ color: '#9ca3af', fontWeight: 700, marginBottom: '4px' }}
                 itemStyle={{ padding: '2px 0' }}
               />
-              <Legend 
+              <Legend
                 wrapperStyle={{ paddingTop: '10px', fontSize: '11px', fontWeight: 700 }}
               />
               <Bar dataKey="revenue" fill="#3b82f6" name="Revenue" radius={[4, 4, 0, 0]} maxBarSize={32} />
@@ -73,4 +69,3 @@ export default function RevenueChartSection({
     </div>
   );
 }
-

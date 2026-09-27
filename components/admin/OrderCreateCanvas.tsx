@@ -120,7 +120,7 @@ export default function OrderCreateCanvas({ isOpen, onClose, onOrderCreated, set
             <div className="flex flex-col">
               <span className="text-[10px] uppercase font-bold text-gray-400">Total Payable</span>
               <span className="text-base font-black text-emerald-600 dark:text-emerald-400">
-                {formatPrice(c.grandTotal, settings.currencySymbol)}
+                {formatPrice(c.grandTotal, settings.currency_symbol)}
               </span>
             </div>
             <div className="flex items-center gap-2">

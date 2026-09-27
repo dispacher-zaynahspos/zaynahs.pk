@@ -83,7 +83,7 @@ export function useCategoryDetailState(category: Category, initialProducts: Prod
       const updatedProduct = {
         ...addedProduct,
         productCategories: [
-          ...(addedProduct.productCategories || []),
+          ...(addedProduct.product_categories || []),
           { productId: productId, categoryId: category.id }
         ]
       };
@@ -100,8 +100,8 @@ export function useCategoryDetailState(category: Category, initialProducts: Prod
     const newProducts = addedProducts.map(p => ({
       ...p,
       productCategories: [
-        ...(p.productCategories || []),
-        { productId: p.id, categoryId: category.id }
+        ...(p.product_categories || []),
+        { product_id: p.id, category_id: category.id }
       ]
     }));
     
@@ -139,7 +139,7 @@ export function useCategoryDetailState(category: Category, initialProducts: Prod
         await updateProductSortOrders(products.map(p => p.id));
       }
       
-      await updateCategory(category.id, { activeSortPreference: sortBy });
+      await updateCategory(category.id, { active_sort_preference: sortBy });
       
       setHasUnsavedChanges(false);
       toast.success('Settings and products saved successfully', { id: toastId });

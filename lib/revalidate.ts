@@ -29,43 +29,11 @@ async function resolveSiteUrl(): Promise<string> {
       .select('store_url')
       .eq('id', '00000000-0000-4000-8000-000000000001')
       .maybeSingle();
-    return getSiteUrl({ storeUrl: data?.store_url });
+    return getSiteUrl({ store_url: data?.store_url });
   } catch (e) {
     console.warn('Failed to resolve dynamic siteUrl:', e);
   }
   return getSiteUrl();
-}
-
-async function purgeCloudflareUrls(urls: string[]) {
-  const CLOUDFLARE_ZONE_ID = process.env.CLOUDFLARE_ZONE_ID;
-  const CLOUDFLARE_API_TOKEN = process.env.CLOUDFLARE_API_TOKEN;
-  if (!CLOUDFLARE_ZONE_ID || !CLOUDFLARE_API_TOKEN) {
-    console.warn('Cloudflare credentials missing. Skipping cache purge.');
-    return;
-  }
-
-  try {
-    const res = await fetch(
-      `https://api.cloudflare.com/client/v4/zones/${CLOUDFLARE_ZONE_ID}/purge_cache`,
-      {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${CLOUDFLARE_API_TOKEN}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ files: urls }),
-      }
-    );
-
-    const data = await res.json();
-    if (!res.ok || !data.success) {
-      console.error('Failed to purge Cloudflare cache:', data);
-    } else {
-      console.log('Successfully purged Cloudflare cache:', urls);
-    }
-  } catch (error) {
-    console.error('Error purging Cloudflare cache:', error);
-  }
 }
 
 async function purgeCloudflareEverything() {
@@ -262,13 +230,8 @@ export async function revalidateVertical(slug: string) {
     revalidatePath('/');
     revalidatePath('/admin', 'layout');
 
-    const dynamicSiteUrl = await resolveSiteUrl();
-    const urls = [
-      `${dynamicSiteUrl}/store`,
-      `${dynamicSiteUrl}/store/${slug}`,
-      `${dynamicSiteUrl}/store/${slug}/shop`,
-    ];
-    await purgeCloudflareUrls(urls);
+    // RULE C9: never rely on URL-based purge (silent mismatch on www / protocol) — full zone purge.
+    await purgeCloudflareEverything();
     console.log(`[revalidate] Vertical revalidated: ${slug}`);
   } catch (error) {
     console.error(`Error in revalidateVertical for ${slug}:`, error);
@@ -307,3 +270,52 @@ export async function revalidateSettings() {
     throw error;
   }
 }
+
+/**
+ * RULE C10 — Single shared cache-invalidation entry point.
+ * EVERY admin write path (create/update/delete of any entity) should call this so cache
+ * invalidation across all layers (Next.js tags/paths + Cloudflare full-zone purge) is
+ * guaranteed and consistent — no per-handler custom purge, no manual "Purge Cache" needed.
+ *
+ * For entities that don't map to a specific domain revalidator, this falls back to a
+ * settings-level purge (tags + full Cloudflare zone purge), which is always safe.
+ */
+export type WriteEntity =
+  | 'product'
+  | 'category'
+  | 'banner'
+  | 'homepage'
+  | 'vertical'
+  | 'settings'
+  | string;
+
+export async function revalidateEntity(
+  entity: WriteEntity,
+  slug?: string,
+  action: 'UPDATED' | 'DELETED' = 'UPDATED',
+): Promise<void> {
+  switch (entity) {
+    case 'product':
+      if (slug) return void (await revalidateProduct(slug, action));
+      break;
+    case 'category':
+      if (slug) return void (await revalidateCategory(slug, action));
+      break;
+    case 'banner':
+      return void (await revalidateBanner());
+    case 'homepage':
+      return void (await revalidateHomepage());
+    case 'vertical':
+      if (slug) return void (await revalidateVertical(slug));
+      break;
+    case 'settings':
+      return void (await revalidateSettings());
+  }
+  // Fallback for any other table/entity: tag by name (if a matching cache tag exists)
+  // + always purge everything so no stale data can leak (RULE C10 / OP2).
+  await revalidateTagSafe(entity);
+  await revalidateSettings();
+}
+
+// Exposed for the emergency "Purge Cache" button only (normal saves must NOT depend on it — RULE C10).
+export { purgeCloudflareEverything };

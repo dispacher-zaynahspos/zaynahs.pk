@@ -78,7 +78,7 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
   };
 
   // ── Image hover style ─────────────────────────────────────────────────────────
-  const hoverStyle = settings?.imageHoverStyle ?? 'second_image';
+  const hoverStyle = settings?.image_hover_style ?? 'second_image';
   const isZoom = hoverStyle === 'zoom';
   const isSecondImage = hoverStyle !== 'none' && hoverStyle !== 'zoom';
   const showSecond = isSecondImage && Boolean(secondImage) && !hoveredImage;
@@ -113,7 +113,7 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
               </svg>
             ))}
-            <span className="text-[8px] text-gray-400 dark:text-gray-500 font-bold ml-0.5">({product.reviewsCount || 0})</span>
+            <span className="text-[8px] text-gray-400 dark:text-gray-500 font-bold ml-0.5">({product.reviews_count || 0})</span>
           </div>
         );
       case 'price':
@@ -135,7 +135,7 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
           </div>
         );
       case 'swatches':
-        if (product.showSwatchesOnArchive === false || !finalRenderedGroups) return null;
+        if (product.show_swatches_on_archive === false || !finalRenderedGroups) return null;
         return (
           <div key="swatches" className="relative z-[2] flex flex-col gap-1.5 w-full mt-2 mb-2">
             {finalRenderedGroups}
@@ -180,7 +180,7 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
           alt={product.name}
           fill
           sizes="(max-width: 768px) 50vw, 25vw"
-          className={`object-contain p-2 sm:p-3 object-center transition-opacity duration-200 pointer-events-none${isZoom ? ' hover-zoom' : ''}${showSecond ? ' hover-fade-out' : ''}`}
+          className={`object-contain p-2 sm:p-3 object-center pointer-events-none${isZoom ? ' hover-zoom' : ''}${showSecond ? ' hover-fade-out' : ' transition-opacity duration-200'}`}
           priority={false}
           loading="lazy"
         />
@@ -192,7 +192,7 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
             alt={`${product.name} alternate`}
             fill
             sizes="(max-width: 768px) 50vw, 25vw"
-            className="object-contain p-2 sm:p-3 object-center absolute inset-0 transition-opacity duration-200 pointer-events-none hover-fade-in"
+            className="object-contain p-2 sm:p-3 object-center absolute inset-0 pointer-events-none hover-fade-in"
             priority={false}
             loading="lazy"
           />
@@ -205,19 +205,19 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
               -{Math.round(((currentComparePrice - currentPrice) / currentComparePrice) * 100)}%
             </span>
           )}
-          {product.isFeatured && (
+          {product.is_featured && (
             <span className="rounded-full px-2.5 py-0.5 text-[9px] font-black shadow-xs uppercase tracking-wide"
-              style={{ backgroundColor: product.customBadge?.name?.toLowerCase() === 'featured' ? product.customBadge.bgColor : '#e94560', color: product.customBadge?.name?.toLowerCase() === 'featured' ? product.customBadge.textColor : '#ffffff' }}>
-              {product.customBadge?.name?.toLowerCase() === 'featured' ? product.customBadge.name : 'FEATURED'}
+              style={{ backgroundColor: product.custom_badge?.name?.toLowerCase() === 'featured' ? product.custom_badge.bg_color : '#e94560', color: product.custom_badge?.name?.toLowerCase() === 'featured' ? product.custom_badge.text_color : '#ffffff' }}>
+              {product.custom_badge?.name?.toLowerCase() === 'featured' ? product.custom_badge.name : 'FEATURED'}
             </span>
           )}
-          {product.badgeEnabled && product.customBadge && (!product.isFeatured || product.customBadge.name.toLowerCase() !== 'featured') && (
+          {product.badge_enabled && product.custom_badge && (!product.is_featured || product.custom_badge.name.toLowerCase() !== 'featured') && (
             <span className="rounded-full px-2.5 py-0.5 text-[9px] font-black text-white shadow-sm uppercase tracking-wide"
-              style={{ backgroundColor: product.customBadge.bgColor, color: product.customBadge.textColor }}>
-              {product.customBadge.name}
+              style={{ backgroundColor: product.custom_badge.bg_color, color: product.custom_badge.text_color }}>
+              {product.custom_badge.name}
             </span>
           )}
-          {!product.isService && product.stock > 0 && product.stock <= 8 && (
+          {!product.is_service && product.stock > 0 && product.stock <= 8 && (
             <span className="rounded-full bg-amber-600 px-2.5 py-0.5 text-[9px] font-black text-white shadow-sm uppercase tracking-wide">LIMITED</span>
           )}
         </div>
@@ -252,8 +252,8 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
             <button type="button"
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAddToCart(e); }}
               className="action-btn pointer-events-auto flex h-7 w-7 items-center justify-center rounded-full bg-white/95 dark:bg-[#16162a]/95 backdrop-blur-xs shadow-md border border-gray-200/80 dark:border-gray-800 text-gray-600 dark:text-gray-300 hover:text-[var(--color-primary,#C2185B)] transition-transform duration-200 cursor-pointer"
-              title={product.hasVariants ? 'Choose Options' : 'Add to Cart'}
-              aria-label={product.hasVariants ? 'Choose Options' : 'Add to Cart'}
+              title={product.has_variants ? 'Choose Options' : 'Add to Cart'}
+              aria-label={product.has_variants ? 'Choose Options' : 'Add to Cart'}
             >
               <ShoppingCart className="h-3.5 w-3.5" />
             </button>

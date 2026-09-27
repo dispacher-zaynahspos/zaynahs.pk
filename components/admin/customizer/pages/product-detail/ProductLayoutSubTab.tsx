@@ -12,7 +12,7 @@ export default function ProductLayoutSubTab({
   settings,
   onUpdateSettings,
 }: ProductLayoutSubTabProps) {
-  const layout = settings.productPageLayout || [
+  const layout = settings.product_page_layout || [
     'details',
     'ticker',
     'reviews',
@@ -31,7 +31,7 @@ export default function ProductLayoutSubTab({
     newLayout[index] = newLayout[targetIndex];
     newLayout[targetIndex] = temp;
 
-    onUpdateSettings({ productPageLayout: newLayout });
+    onUpdateSettings({ product_page_layout: newLayout });
   };
 
   const blockLabels: Record<string, string> = {

@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Admin notification email is not configured.' }, { status: 400 });
     }
 
-    const brandName = settings.storeName || process.env.NEXT_PUBLIC_BRAND_NAME || 'Your Store';
+    const brandName = settings.store_name || process.env.NEXT_PUBLIC_BRAND_NAME || 'Your Store';
     const result = await sendEmail({
       to: adminEmail,
       subject: `Test Email from ${brandName}`,

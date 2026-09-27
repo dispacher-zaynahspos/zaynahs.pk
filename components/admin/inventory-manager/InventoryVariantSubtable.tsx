@@ -135,8 +135,8 @@ export function InventoryVariantSubtable({
             </thead>
             <tbody className="divide-y divide-gray-150 dark:divide-gray-800 bg-white/50 dark:bg-[#16162a]/50">
               {product.variants.map(variant => {
-                const variantLabel = [variant.color, variant.size, variant.material, variant.customValue].filter(Boolean).join(' / ') || 'Default';
-                const variantThreshold = variant.inventoryThreshold !== undefined && variant.inventoryThreshold !== null ? variant.inventoryThreshold : 5;
+                const variantLabel = [variant.color, variant.size, variant.material, variant.custom_value].filter(Boolean).join(' / ') || 'Default';
+                const variantThreshold = variant.inventory_threshold !== undefined && variant.inventory_threshold !== null ? variant.inventory_threshold : 5;
                 
                 const isStockModified = pendingVariantStock[variant.id] !== undefined && String(pendingVariantStock[variant.id]) !== String(variant.stock);
                 const currentStockVal = pendingVariantStock[variant.id] !== undefined ? pendingVariantStock[variant.id] : variant.stock;
@@ -164,8 +164,8 @@ export function InventoryVariantSubtable({
                     </td>
                     <td className="py-2.5 px-4 font-semibold text-gray-855 dark:text-gray-200">
                       <div className="flex items-center gap-2">
-                        {variant.colorHex && (
-                          <span className="h-3 w-3 rounded-full flex-shrink-0 border border-gray-300" style={getSwatchStyle(variant.colorHex)} />
+                        {variant.color_hex && (
+                          <span className="h-3 w-3 rounded-full flex-shrink-0 border border-gray-300" style={getSwatchStyle(variant.color_hex)} />
                         )}
                         {variantLabel}
                       </div>

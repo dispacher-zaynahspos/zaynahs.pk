@@ -29,10 +29,10 @@ export const useSettings = (initialSettings?: StoreSettings) => {
           ...fullSettings,
           ...(prev || {}),
           // Ensure live database branding and card customizations take full precedence
-          storeName: fullSettings.storeName || prev?.storeName || (process.env.NEXT_PUBLIC_BRAND_NAME || 'Your Store'),
-          logoUrl: fullSettings.logoUrl || prev?.logoUrl || undefined,
-          faviconUrl: fullSettings.faviconUrl || prev?.faviconUrl || undefined,
-          logoWidth: fullSettings.logoWidth || prev?.logoWidth || 120,
+          store_name: fullSettings.store_name || prev?.store_name || (process.env.NEXT_PUBLIC_BRAND_NAME || 'Your Store'),
+          logo_url: fullSettings.logo_url || prev?.logo_url || undefined,
+          favicon_url: fullSettings.favicon_url || prev?.favicon_url || undefined,
+          logo_width: fullSettings.logo_width || prev?.logo_width || 120,
           card_style: row.card_style ?? prev?.card_style ?? 'style1',
           card_show_swatches: row.card_show_swatches ?? prev?.card_show_swatches ?? true,
           card_show_sizes: row.card_show_sizes ?? prev?.card_show_sizes ?? true,
@@ -52,16 +52,16 @@ export const useSettings = (initialSettings?: StoreSettings) => {
           card_elements_order: row.card_elements_order ?? prev?.card_elements_order,
           card_mobile_columns: row.card_mobile_columns ?? prev?.card_mobile_columns ?? 2,
           // Variant display
-          swatchLimit: row.swatch_limit ?? prev?.swatchLimit ?? 8,
-          swatchShape: row.swatch_shape ?? prev?.swatchShape ?? 'circle',
-          archiveSwatchSize: row.archive_swatch_size ?? prev?.archiveSwatchSize ?? 'md',
-          productSwatchSize: row.product_swatch_size ?? prev?.productSwatchSize ?? 'md',
-          archiveSwatchAlign: row.archive_swatch_align ?? prev?.archiveSwatchAlign ?? 'left',
-          defaultVariantIndex: row.default_variant_index ?? prev?.defaultVariantIndex ?? 1,
-          enableVariantSwatches: row.enable_variant_swatches ?? prev?.enableVariantSwatches ?? true,
+          swatch_limit: row.swatch_limit ?? prev?.swatch_limit ?? 8,
+          swatch_shape: row.swatch_shape ?? prev?.swatch_shape ?? 'circle',
+          archive_swatch_size: row.archive_swatch_size ?? prev?.archive_swatch_size ?? 'md',
+          product_swatch_size: row.product_swatch_size ?? prev?.product_swatch_size ?? 'md',
+          archive_swatch_align: row.archive_swatch_align ?? prev?.archive_swatch_align ?? 'left',
+          default_variant_index: row.default_variant_index ?? prev?.default_variant_index ?? 1,
+          enable_variant_swatches: row.enable_variant_swatches ?? prev?.enable_variant_swatches ?? true,
           
-          lastVercelPurge: row.last_vercel_purge ?? prev?.lastVercelPurge,
-          lastCloudflarePurge: row.last_cloudflare_purge ?? prev?.lastCloudflarePurge,
+          last_vercel_purge: row.last_vercel_purge ?? prev?.last_vercel_purge,
+          last_cloudflare_purge: row.last_cloudflare_purge ?? prev?.last_cloudflare_purge,
         } as StoreSettings));
 
         setError(null);

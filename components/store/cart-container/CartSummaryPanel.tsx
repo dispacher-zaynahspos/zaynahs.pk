@@ -93,7 +93,7 @@ export default function CartSummaryPanel({
             <div className="flex items-center justify-between bg-emerald-50 dark:bg-emerald-950/10 border border-emerald-100 dark:border-emerald-900/20 px-3 py-2.5 rounded-xl text-xs font-bold text-emerald-600 dark:text-emerald-400 w-full">
               <span className="flex items-center gap-1.5 truncate">
                 <Tag className="w-3.5 h-3.5 shrink-0" />
-                Promo: <strong className="font-extrabold">{appliedCoupon.code}</strong> ({appliedCoupon.discountType === 'percentage' ? `${appliedCoupon.value}%` : `${formatPrice(appliedCoupon.value, settings.currencySymbol)} Off`})
+                Promo: <strong className="font-extrabold">{appliedCoupon.code}</strong> ({appliedCoupon.discountType === 'percentage' ? `${appliedCoupon.value}%` : `${formatPrice(appliedCoupon.value, settings.currency_symbol)} Off`})
               </span>
               <button
                 type="button"
@@ -144,9 +144,9 @@ export default function CartSummaryPanel({
                 <Truck className="w-4 h-4" /> You've unlocked free shipping!
               </span>
             ) : (
-              <span>Add {formatPrice(amountToFreeShipping, settings.currencySymbol)} for free shipping</span>
+              <span>Add {formatPrice(amountToFreeShipping, settings.currency_symbol)} for free shipping</span>
             )}
-            <span>{formatPrice(freeShippingThreshold, settings.currencySymbol)}</span>
+            <span>{formatPrice(freeShippingThreshold, settings.currency_symbol)}</span>
           </div>
           <div className="h-2 w-full bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
             <div
@@ -168,7 +168,7 @@ export default function CartSummaryPanel({
       <div className="space-y-2.5 text-sm font-semibold">
         <div className="flex justify-between text-gray-500 dark:text-gray-400">
           <span>Subtotal · {itemCount} {itemCount === 1 ? 'item' : 'items'}</span>
-          <span className="text-gray-900 dark:text-white font-bold">{formatPrice(subtotal, settings.currencySymbol)}</span>
+          <span className="text-gray-900 dark:text-white font-bold">{formatPrice(subtotal, settings.currency_symbol)}</span>
         </div>
 
         {volumeDiscountAmount > 0 && (
@@ -177,7 +177,7 @@ export default function CartSummaryPanel({
               <CheckCircle2 className="h-3.5 w-3.5" />
               Volume Discount ({volumeDiscountPercentage}% off)
             </span>
-            <span>−{formatPrice(volumeDiscountAmount, settings.currencySymbol)}</span>
+            <span>−{formatPrice(volumeDiscountAmount, settings.currency_symbol)}</span>
           </div>
         )}
 
@@ -187,7 +187,7 @@ export default function CartSummaryPanel({
               <CheckCircle2 className="h-3.5 w-3.5" />
               Promo Discount ({appliedCoupon?.code})
             </span>
-            <span>−{formatPrice(couponDiscountAmount, settings.currencySymbol)}</span>
+            <span>−{formatPrice(couponDiscountAmount, settings.currency_symbol)}</span>
           </div>
         )}
 
@@ -196,26 +196,26 @@ export default function CartSummaryPanel({
             <Truck className="h-3.5 w-3.5" />
             Shipping
           </span>
-          <span className="text-gray-900 dark:text-white font-bold">{loadingMethods ? '...' : formatPrice(shippingCost, settings.currencySymbol)}</span>
+          <span className="text-gray-900 dark:text-white font-bold">{loadingMethods ? '...' : formatPrice(shippingCost, settings.currency_symbol)}</span>
         </div>
 
         <div className="flex justify-between pt-3 border-t border-gray-200 dark:border-gray-800 text-base font-black text-gray-900 dark:text-white">
           <span>Total</span>
           <div className="flex items-baseline gap-1">
             <span className="text-xs font-semibold text-gray-400">{settings.currency || 'PKR'}</span>
-            <span className="text-xl text-[#e94560] font-black">{formatPrice(finalTotal, settings.currencySymbol)}</span>
+            <span className="text-xl text-[#e94560] font-black">{formatPrice(finalTotal, settings.currency_symbol)}</span>
           </div>
         </div>
       </div>
 
       {/* Trust badges */}
-      {settings.enableTrustBadges && settings.safeCheckoutMethods && settings.safeCheckoutMethods.length > 0 && (
+      {settings.enable_trust_badges && settings.safe_checkout_methods && settings.safe_checkout_methods.length > 0 && (
         <div className="pt-3 border-t border-gray-200 dark:border-gray-800 space-y-2">
           <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-gray-400">
             <Shield className="h-3 w-3" />
-            {settings.safeCheckoutText || 'Guaranteed Safe Checkout'}
+            {settings.safe_checkout_text || 'Guaranteed Safe Checkout'}
           </div>
-          <PaymentBadges methods={settings.safeCheckoutMethods} className="flex flex-wrap gap-1.5" />
+          <PaymentBadges methods={settings.safe_checkout_methods} className="flex flex-wrap gap-1.5" />
         </div>
       )}
     </div>

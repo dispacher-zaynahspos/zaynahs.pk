@@ -35,11 +35,7 @@ export function useSettingsAIAndEmails({ initialSettings }: UseSettingsAIAndEmai
     initialSettings.ai_model_credentials || {}
   );
   const [visionProvider, setVisionProvider] = useState(initialSettings.vision_provider || 'gemini');
-  const [visionModel, setVisionModel] = useState(
-    initialSettings.vision_model && !initialSettings.vision_model.includes('2.5') && !initialSettings.vision_model.includes('1.5') && !initialSettings.vision_model.includes('2.0') && !initialSettings.vision_model.includes('3.5') && !initialSettings.vision_model.includes('3.1')
-      ? initialSettings.vision_model
-      : 'gemini-3.6-flash'
-  );
+  const [visionModel, setVisionModel] = useState(initialSettings.vision_model || 'gemini-2.0-flash');
 
   const pConfig: {
     tone?: string;
@@ -108,16 +104,16 @@ export function useSettingsAIAndEmails({ initialSettings }: UseSettingsAIAndEmai
 
   // Abandoned Cart Settings States
   const [abandonedCartEmailEnabled, setAbandonedCartEmailEnabled] = useState(
-    initialSettings.abandonedCartEmailEnabled ?? false
+    initialSettings.abandoned_cart_email_enabled ?? false
   );
   const [abandonedCartAdminNotify, setAbandonedCartAdminNotify] = useState(
-    initialSettings.abandonedCartAdminNotify ?? false
+    initialSettings.abandoned_cart_admin_notify ?? false
   );
   const [abandonedCartEmailSubject, setAbandonedCartEmailSubject] = useState(
-    initialSettings.abandonedCartEmailSubject || 'You left items in your cart!'
+    initialSettings.abandoned_cart_email_subject || 'You left items in your cart!'
   );
   const [abandonedCartEmailTemplate, setAbandonedCartEmailTemplate] = useState(
-    initialSettings.abandonedCartEmailTemplate ||
+    initialSettings.abandoned_cart_email_template ||
       'Hi {{name}},\n\nYou left some items in your cart. Complete your purchase here:\n{{checkout_url}}'
   );
 

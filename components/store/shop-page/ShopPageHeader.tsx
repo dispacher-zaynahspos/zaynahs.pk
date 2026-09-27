@@ -48,10 +48,10 @@ export default function ShopPageHeader({
       {/* Page Header / Category Banner */}
       {activeCollection ? (
         <div className="relative overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-[#16162a] dark:to-[#1a1a2e] mb-6 shadow-sm transition-all duration-200">
-          {activeCollection.imageUrl && (
+          {activeCollection.image_url && (
             <div className="absolute inset-0 z-0">
               <Image
-                src={activeCollection.imageUrl}
+                src={activeCollection.image_url}
                 alt={activeCollection.name}
                 fill
                 sizes="100vw"
@@ -87,10 +87,10 @@ export default function ShopPageHeader({
                   </div>
                 )}
               </div>
-              {activeCollection.imageUrl && (
+              {activeCollection.image_url && (
                 <div className="relative h-20 w-20 md:h-24 md:w-24 overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-sm shrink-0">
                   <Image
-                    src={activeCollection.imageUrl}
+                    src={activeCollection.image_url}
                     alt={activeCollection.name}
                     fill
                     sizes="(max-width: 768px) 80px, 96px"
@@ -132,9 +132,9 @@ export default function ShopPageHeader({
                         }`}
                       >
                         <div className="relative w-full aspect-[4/3] bg-gray-100 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
-                          {cat.imageUrl ? (
+                          {cat.image_url ? (
                             <Image
-                              src={cat.imageUrl}
+                              src={cat.image_url}
                               alt={cat.name}
                               fill
                               sizes="(max-width: 768px) 96px, 112px"
@@ -169,10 +169,10 @@ export default function ShopPageHeader({
         </div>
       ) : activeCategory ? (
         <div className="relative overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-[#16162a] dark:to-[#1a1a2e] mb-6 shadow-sm transition-all duration-200">
-          {activeCategory.imageUrl && (
+          {activeCategory.image_url && (
             <div className="absolute inset-0 z-0">
               <Image
-                src={activeCategory.imageUrl}
+                src={activeCategory.image_url}
                 alt={activeCategory.name}
                 fill
                 sizes="100vw"
@@ -208,10 +208,10 @@ export default function ShopPageHeader({
                   </div>
                 )}
               </div>
-              {activeCategory.imageUrl && (
+              {activeCategory.image_url && (
                 <div className="relative h-20 w-20 md:h-24 md:w-24 overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-sm shrink-0">
                   <Image
-                    src={activeCategory.imageUrl}
+                    src={activeCategory.image_url}
                     alt={activeCategory.name}
                     fill
                     sizes="(max-width: 768px) 80px, 96px"

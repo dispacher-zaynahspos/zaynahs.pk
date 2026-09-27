@@ -22,8 +22,8 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
     const siteUrl = `${brand.protocol}://${brand.domain}`;
 
     let title = `Shop Products | ${brand.name}`;
-    let description = (settings.metaDescription || brand.tagline).slice(0, 160);
-    let imageUrl = settings.bannerUrl || settings.logoUrl || settings.faviconUrl || '';
+    let description = (settings.meta_description || brand.tagline).slice(0, 160);
+    let imageUrl = settings.banner_url || settings.logo_url || settings.favicon_url || '';
     let canonicalUrl = `${siteUrl}/shop`;
 
     if (categorySlug) {
@@ -41,7 +41,7 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
         let catDesc = cleanBrandName(seoMeta?.meta_description, brand.name) || category.description || `Explore our ${category.name} collection at ${brand.name}.`;
         description = catDesc.replace(/<[^>]*>?/gm, '').slice(0, 160);
         
-        imageUrl = category.imageUrl || imageUrl;
+        imageUrl = category.image_url || imageUrl;
         canonicalUrl = `${siteUrl}/shop?category=${categorySlug}`;
       }
     } else if (collectionSlug) {
@@ -52,7 +52,7 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
         let colDesc = collection.description || `Explore our ${collection.name} collection at ${brand.name}.`;
         description = colDesc.replace(/<[^>]*>?/gm, '').slice(0, 160);
         
-        imageUrl = collection.imageUrl || imageUrl;
+        imageUrl = collection.image_url || imageUrl;
         canonicalUrl = `${siteUrl}/shop?collection=${collectionSlug}`;
       }
     }
@@ -89,16 +89,16 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
 export default async function StoreShopPage({ searchParams }: PageProps) {
   const { category: categorySlug, collection: collectionSlug } = await searchParams;
   
-  const [categories, collections, settings, brand] = await Promise.all([
+  const [categories, collections, settings, brand, products] = await Promise.all([
     getCategories(),
     getCollections(),
     getSettings(),
-    getDomainBrand()
+    getDomainBrand(),
+    getProducts()
   ]);
 
   const activeCat = categorySlug ? categories.find(c => c.slug === categorySlug) : undefined;
-  // SSR now provides all active products, no need to fetch client-side.
-  const products = await getProducts();
+
 
   const siteUrl = `${brand.protocol}://${brand.domain}`;
 

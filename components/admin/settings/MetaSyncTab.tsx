@@ -42,11 +42,11 @@ export default function MetaSyncTab() {
         const initialCustoms: Record<string, string> = {};
         
         cats.forEach(cat => {
-          const matched = maps.find(m => m.storeCategoryId === cat.id);
+          const matched = maps.find(m => m.store_category_id === cat.id);
           if (matched) {
-            initialMaps[cat.id] = matched.metaCategory;
-            if (!PRESETS.includes(matched.metaCategory)) {
-              initialCustoms[cat.id] = matched.metaCategory;
+            initialMaps[cat.id] = matched.meta_category;
+            if (!PRESETS.includes(matched.meta_category)) {
+              initialCustoms[cat.id] = matched.meta_category;
             }
           } else {
             initialMaps[cat.id] = PRESETS[0]; // default fallback

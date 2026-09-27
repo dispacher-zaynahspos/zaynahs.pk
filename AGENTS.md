@@ -18,39 +18,43 @@ Stores: **TotVogue · Zaynahs · MiniMahal · LittleMister** (+ future clones)
 6. **No email system** — WhatsApp-only ordering. Never suggest/implement email flows.
 7. **Agent executes** — run terminal commands autonomously; never ask user to run commands manually unless truly required.
 8. **Fast & direct** — don't waste tokens on unnecessary MCP tools/browsing/file reads; resolve via direct code analysis.
-9. **Product card changes** → MUST follow `docs/prompts/add_card_style_prompt.md` step-by-step (see [14-design-system.md](agent-rules/14-design-system.md) RULE DS2).
-10. Instant price/cache rule (RULE D12) → see [08-caching-isr-ssr.md](agent-rules/08-caching-isr-ssr.md).
+9. **Product card changes** → MUST follow `docs/prompts/add_card_style_prompt.md` step-by-step (see [14-design-system.md](docs/agent-rules/14-design-system.md) RULE DS2).
+10. Instant price/cache rule (RULE D12) → see [08-caching-isr-ssr.md](docs/agent-rules/08-caching-isr-ssr.md).
+11. Instant 0ms navigation & tabs across all functional tabs (Categories, Products, Reviews, Cart, Settings) (RULE F1) → see [03-frontend-nextjs-react.md](docs/agent-rules/03-frontend-nextjs-react.md) and `docs/UI_PERFORMANCE_GUIDE.md` Section 8.
+12. **Single Source of Truth (SSOT1)** — zero duplicate implementations; any feature that appears in 2+ places must reuse ONE shared component/logic/data source. Before writing new code, check if it already exists. → see [27-single-source-of-truth.md](docs/agent-rules/27-single-source-of-truth.md).
+13. **snake_case only (D13), UUID PK (D14), atomic writes (D15), RLS on every data table** → see [05-database-supabase.md](docs/agent-rules/05-database-supabase.md). Cache invalidation on every write via one shared utility (C10) → see [08-caching-isr-ssr.md](docs/agent-rules/08-caching-isr-ssr.md).
 
 ## 📖 Atomic Rule Files
 | # | File | Covers |
 |---|------|--------|
-| 00 | [00-prime-directives.md](agent-rules/00-prime-directives.md) | Full unpacked Rule #0 |
-| 01 | [01-core-operating-principles.md](agent-rules/01-core-operating-principles.md) | Root-cause first, scope discipline, logging |
-| 02 | [02-error-detection-autofix.md](agent-rules/02-error-detection-autofix.md) | Auto-detect/fix build/runtime errors |
-| 03 | [03-frontend-nextjs-react.md](agent-rules/03-frontend-nextjs-react.md) | App Router, safe access, SEO, icons |
-| 04 | [04-backend-api-routes.md](agent-rules/04-backend-api-routes.md) | API validation, error handling, rate limits |
-| 05 | [05-database-supabase.md](agent-rules/05-database-supabase.md) | Schema, RLS, D1–D12, master schema |
-| 06 | [06-git-github.md](agent-rules/06-git-github.md) | Commits, branches, secrets |
-| 07 | [07-deployment-vercel-cloudflare.md](agent-rules/07-deployment-vercel-cloudflare.md) | Deploy checklist, rollback, purge |
-| 08 | [08-caching-isr-ssr.md](agent-rules/08-caching-isr-ssr.md) | C1–C9, ISR, instant price updates |
-| 09 | [09-ecommerce-pos.md](agent-rules/09-ecommerce-pos.md) | Stock, payments, PKR formatting |
-| 10 | [10-whatsapp-order-flow.md](agent-rules/10-whatsapp-order-flow.md) | W1–W2, message format |
-| 11 | [11-storage-images.md](agent-rules/11-storage-images.md) | S1–S6, bucket, compressor, media selector |
-| 12 | [12-testing-verification.md](agent-rules/12-testing-verification.md) | Happy path + edge case rules |
-| 13 | [13-autonomy-boundaries.md](agent-rules/13-autonomy-boundaries.md) | Auto-allowed / confirm-first / never-auto |
-| 14 | [14-design-system.md](agent-rules/14-design-system.md) | Colors, tokens, DS1–DS5, theme customizable, anti-bloat |
-| 15 | [15-shared-components-ui-modules.md](agent-rules/15-shared-components-ui-modules.md) | Component library + mandatory module map |
-| 16 | [16-multi-system-architecture.md](agent-rules/16-multi-system-architecture.md) | /store vs /admin boundaries |
-| 17 | [17-mobile-native-app-style.md](agent-rules/17-mobile-native-app-style.md) | M1–M5, cards, touch, jitter prevention |
-| 18 | [18-multi-domain-rules.md](agent-rules/18-multi-domain-rules.md) | getSiteUrl, brand, OG meta, no hardcoded domains |
-| 19 | [19-navigation-state-restoration.md](agent-rules/19-navigation-state-restoration.md) | N1–N3, scroll/tab persistence |
-| 20 | [20-error-diagnostics-matrix.md](agent-rules/20-error-diagnostics-matrix.md) | Copy-pasted error → instant fix matrix |
-| 21 | [21-cloudflare-supabase-api-usage.md](agent-rules/21-cloudflare-supabase-api-usage.md) | API-only ops, curl recipes, self-tests |
-| 22 | [22-credentials-management.md](agent-rules/22-credentials-management.md) | CRED1, VERCEL1, env-backups structure |
-| 23 | [23-code-architecture-modularity.md](agent-rules/23-code-architecture-modularity.md) | O1 — 300–400 line limit, module reuse & code style |
-| 24 | [24-vercel-build-security.md](agent-rules/24-vercel-build-security.md) | V1 — safe client init, no `!` assertions |
-| 25 | [25-ai-seo-copywriting-engine.md](agent-rules/25-ai-seo-copywriting-engine.md) | AI1 — vision + copywriting models |
-| 26 | [26-project-reference-table.md](agent-rules/26-project-reference-table.md) | All store refs, zone IDs, secrets, URLs |
+| 00 | [00-prime-directives.md](docs/agent-rules/00-prime-directives.md) | Full unpacked Rule #0 |
+| 01 | [01-core-operating-principles.md](docs/agent-rules/01-core-operating-principles.md) | Root-cause first, scope discipline, logging |
+| 02 | [02-error-detection-autofix.md](docs/agent-rules/02-error-detection-autofix.md) | Auto-detect/fix build/runtime errors |
+| 03 | [03-frontend-nextjs-react.md](docs/agent-rules/03-frontend-nextjs-react.md) | App Router, safe access, SEO, icons |
+| 04 | [04-backend-api-routes.md](docs/agent-rules/04-backend-api-routes.md) | API validation, error handling, rate limits |
+| 05 | [05-database-supabase.md](docs/agent-rules/05-database-supabase.md) | Schema, RLS, D1–D12, master schema |
+| 06 | [06-git-github.md](docs/agent-rules/06-git-github.md) | Commits, branches, secrets |
+| 07 | [07-deployment-vercel-cloudflare.md](docs/agent-rules/07-deployment-vercel-cloudflare.md) | Deploy checklist, rollback, purge |
+| 08 | [08-caching-isr-ssr.md](docs/agent-rules/08-caching-isr-ssr.md) | C1–C9, ISR, instant price updates |
+| 09 | [09-ecommerce-pos.md](docs/agent-rules/09-ecommerce-pos.md) | Stock, payments, PKR formatting |
+| 10 | [10-whatsapp-order-flow.md](docs/agent-rules/10-whatsapp-order-flow.md) | W1–W2, message format |
+| 11 | [11-storage-images.md](docs/agent-rules/11-storage-images.md) | S1–S6, bucket, compressor, media selector |
+| 12 | [12-testing-verification.md](docs/agent-rules/12-testing-verification.md) | Happy path + edge case rules |
+| 13 | [13-autonomy-boundaries.md](docs/agent-rules/13-autonomy-boundaries.md) | Auto-allowed / confirm-first / never-auto |
+| 14 | [14-design-system.md](docs/agent-rules/14-design-system.md) | Colors, tokens, DS1–DS5, theme customizable, anti-bloat |
+| 15 | [15-shared-components-ui-modules.md](docs/agent-rules/15-shared-components-ui-modules.md) | Component library + mandatory module map |
+| 16 | [16-multi-system-architecture.md](docs/agent-rules/16-multi-system-architecture.md) | /store vs /admin boundaries |
+| 17 | [17-mobile-native-app-style.md](docs/agent-rules/17-mobile-native-app-style.md) | M1–M5, cards, touch, jitter prevention |
+| 18 | [18-multi-domain-rules.md](docs/agent-rules/18-multi-domain-rules.md) | getSiteUrl, brand, OG meta, no hardcoded domains |
+| 19 | [19-navigation-state-restoration.md](docs/agent-rules/19-navigation-state-restoration.md) | N1–N3, scroll/tab persistence |
+| 20 | [20-error-diagnostics-matrix.md](docs/agent-rules/20-error-diagnostics-matrix.md) | Copy-pasted error → instant fix matrix |
+| 21 | [21-cloudflare-supabase-api-usage.md](docs/agent-rules/21-cloudflare-supabase-api-usage.md) | API-only ops, curl recipes, self-tests |
+| 22 | [22-credentials-management.md](docs/agent-rules/22-credentials-management.md) | CRED1, VERCEL1, env-backups structure |
+| 23 | [23-code-architecture-modularity.md](docs/agent-rules/23-code-architecture-modularity.md) | O1 — 300–400 line limit, module reuse & code style |
+| 24 | [24-vercel-build-security.md](docs/agent-rules/24-vercel-build-security.md) | V1 — safe client init, no `!` assertions |
+| 25 | [25-ai-seo-copywriting-engine.md](docs/agent-rules/25-ai-seo-copywriting-engine.md) | AI1 — vision + copywriting models |
+| 26 | [26-project-reference-table.md](docs/agent-rules/26-project-reference-table.md) | All store refs, zone IDs, secrets, URLs |
+| 27 | [27-single-source-of-truth.md](docs/agent-rules/27-single-source-of-truth.md) | SSOT1 — zero duplicate implementations, one shared source per feature |
 
 ## 🔗 External Docs (unchanged locations)
 - `docs/SCHEMA_CHANGE_LOG.md` — every DB change, dated

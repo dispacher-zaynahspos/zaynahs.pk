@@ -80,7 +80,7 @@ export default function InventoryManager({ products: initialProducts, categories
 
   const handlePendingProductThresholdChange = (productId: string, rawVal: number | string) => {
     const prod = products.find(p => p.id === productId);
-    const original = prod?.inventoryThreshold !== undefined && prod?.inventoryThreshold !== null ? prod.inventoryThreshold : 5;
+    const original = prod?.inventory_threshold !== undefined && prod?.inventory_threshold !== null ? prod.inventory_threshold : 5;
     if (String(rawVal) === String(original)) {
       setPendingProductThreshold(prev => {
         const next = { ...prev };
@@ -111,7 +111,7 @@ export default function InventoryManager({ products: initialProducts, categories
   const handlePendingVariantThresholdChange = (productId: string, variantId: string, rawVal: number | string) => {
     const prod = products.find(p => p.id === productId);
     const variant = prod?.variants?.find(v => v.id === variantId);
-    const original = variant?.inventoryThreshold !== undefined && variant?.inventoryThreshold !== null ? variant.inventoryThreshold : 5;
+    const original = variant?.inventory_threshold !== undefined && variant?.inventory_threshold !== null ? variant.inventory_threshold : 5;
     if (String(rawVal) === String(original)) {
       setPendingVariantThreshold(prev => {
         const next = { ...prev };
@@ -149,7 +149,7 @@ export default function InventoryManager({ products: initialProducts, categories
       const next = { ...prev };
       for (const vId of variantIds) {
         const variant = prod?.variants?.find(v => v.id === vId);
-        const original = variant?.inventoryThreshold !== undefined && variant?.inventoryThreshold !== null ? variant.inventoryThreshold : 5;
+        const original = variant?.inventory_threshold !== undefined && variant?.inventory_threshold !== null ? variant.inventory_threshold : 5;
         if (newThreshold === original) {
           delete next[vId];
         } else {
@@ -234,10 +234,10 @@ export default function InventoryManager({ products: initialProducts, categories
           }
           if (pendingProductThreshold[prod.id] !== undefined) {
             const val = parseInt(String(pendingProductThreshold[prod.id]), 10);
-            if (!isNaN(val)) updatedProd.inventoryThreshold = val;
+            if (!isNaN(val)) updatedProd.inventory_threshold = val;
           }
 
-          if (prod.hasVariants && prod.variants) {
+          if (prod.has_variants && prod.variants) {
             let variantsChanged = false;
             const updatedVariants = prod.variants.map(v => {
               let updatedV = { ...v };
@@ -251,7 +251,7 @@ export default function InventoryManager({ products: initialProducts, categories
               if (pendingVariantThreshold[v.id] !== undefined) {
                 const val = parseInt(String(pendingVariantThreshold[v.id]), 10);
                 if (!isNaN(val)) {
-                  updatedV.inventoryThreshold = val;
+                  updatedV.inventory_threshold = val;
                   variantsChanged = true;
                 }
               }
@@ -293,25 +293,25 @@ export default function InventoryManager({ products: initialProducts, categories
       (v.color && v.color.toLowerCase().includes(q)) ||
       (v.size && v.size.toLowerCase().includes(q)) ||
       (v.material && v.material.toLowerCase().includes(q)) ||
-      (v.customValue && v.customValue.toLowerCase().includes(q))
+      (v.custom_value && v.custom_value.toLowerCase().includes(q))
     ) || false;
     const matchesSearch = nameMatch || skuMatch || variantMatch;
 
     if (!matchesSearch) return false;
 
     if (selectedCategory !== 'all') {
-      const mainCategoryMatch = product.categoryId === selectedCategory;
-      const multiCategoryMatch = product.productCategories?.some(pc => pc.categoryId === selectedCategory) || false;
+      const mainCategoryMatch = product.category_id === selectedCategory;
+      const multiCategoryMatch = product.product_categories?.some(pc => pc.category_id === selectedCategory) || false;
       if (!mainCategoryMatch && !multiCategoryMatch) return false;
     }
 
     if (showLowStockOnly) {
-      if (product.hasVariants) {
+      if (product.has_variants) {
         const hasLowStockVariant = product.variants?.some(v => {
           const pVal = pendingVariantStock[v.id];
           const stock = pVal !== undefined ? (parseInt(String(pVal), 10) || 0) : v.stock;
           const pThresh = pendingVariantThreshold[v.id];
-          const threshold = pThresh !== undefined ? (parseInt(String(pThresh), 10) || 0) : (v.inventoryThreshold ?? 5);
+          const threshold = pThresh !== undefined ? (parseInt(String(pThresh), 10) || 0) : (v.inventory_threshold ?? 5);
           return stock <= threshold;
         });
         if (!hasLowStockVariant) return false;
@@ -319,7 +319,7 @@ export default function InventoryManager({ products: initialProducts, categories
         const pVal = pendingProductStock[product.id];
         const stock = pVal !== undefined ? (parseInt(String(pVal), 10) || 0) : product.stock;
         const pThresh = pendingProductThreshold[product.id];
-        const threshold = pThresh !== undefined ? (parseInt(String(pThresh), 10) || 0) : (product.inventoryThreshold ?? 5);
+        const threshold = pThresh !== undefined ? (parseInt(String(pThresh), 10) || 0) : (product.inventory_threshold ?? 5);
         if (stock > threshold) return false;
       }
     }

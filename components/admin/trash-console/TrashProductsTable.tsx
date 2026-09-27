@@ -38,7 +38,7 @@ export const TrashProductsTable: React.FC<TrashProductsTableProps> = ({
       {/* Mobile View: Cards */}
       <div className="grid grid-cols-1 gap-4 md:hidden">
         {products.map(product => {
-          const primaryImg = product.images?.find(i => i.isPrimary) || product.images?.[0];
+          const primaryImg = product.images?.find(i => i.is_primary) || product.images?.[0];
           const isSelected = selectedIds.includes(product.id);
           return (
             <div
@@ -72,9 +72,9 @@ export const TrashProductsTable: React.FC<TrashProductsTableProps> = ({
                   <p className="text-xs text-gray-500 dark:text-gray-450 truncate">
                     SKU: {product.sku || 'N/A'} | Price: PKR {product.price}
                   </p>
-                  {product.deletedAt && (
+                  {product.deleted_at && (
                     <p suppressHydrationWarning={true} className="text-[10px] text-gray-400 mt-0.5">
-                      Deleted: {new Date(product.deletedAt).toLocaleDateString()}
+                      Deleted: {new Date(product.deleted_at).toLocaleDateString()}
                     </p>
                   )}
                 </div>
@@ -126,7 +126,7 @@ export const TrashProductsTable: React.FC<TrashProductsTableProps> = ({
           </thead>
           <tbody className="divide-y divide-gray-100 dark:divide-gray-800 text-sm">
             {products.map(product => {
-              const primaryImg = product.images?.find(i => i.isPrimary) || product.images?.[0];
+              const primaryImg = product.images?.find(i => i.is_primary) || product.images?.[0];
               const isSelected = selectedIds.includes(product.id);
               return (
                 <tr key={product.id} className={`hover:bg-gray-50/50 dark:hover:bg-gray-800/40 transition-colors ${isSelected ? 'bg-[#e94560]/5 dark:bg-[#e94560]/5' : ''}`}>
@@ -155,7 +155,7 @@ export const TrashProductsTable: React.FC<TrashProductsTableProps> = ({
                   <td className="p-4 text-gray-500 font-mono text-xs">{product.sku || '—'}</td>
                   <td className="p-4 font-semibold text-gray-900 dark:text-white">PKR {product.price}</td>
                   <td className="p-4 text-gray-400 text-xs" suppressHydrationWarning={true}>
-                    {product.deletedAt ? new Date(product.deletedAt).toLocaleDateString() : '—'}
+                    {product.deleted_at ? new Date(product.deleted_at).toLocaleDateString() : '—'}
                   </td>
                   <td className="p-4 text-right space-x-2">
                     <button

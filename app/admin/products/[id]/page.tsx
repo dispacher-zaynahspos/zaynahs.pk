@@ -76,7 +76,7 @@ export default async function EditProductPage({ params }: PageProps) {
 
         initialProduct={product}
         aiEnabled={settings.ai_enabled}
-        storeUrl={settings.storeUrl || undefined}
+        storeUrl={settings.store_url || undefined}
       />
     </div>
   );

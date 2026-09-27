@@ -23,23 +23,23 @@ export function useProductVariantsState({
   stock,
   inventoryThreshold,
 }: UseProductVariantsStateProps) {
-  const [variants, setVariants] = useState<Omit<ProductVariant, 'id' | 'productId'>[]>(
+  const [variants, setVariants] = useState<Omit<ProductVariant, 'id' | 'product_id'>[]>(
     initialProduct?.variants.map(v => ({
       color: v.color,
       size: v.size,
       material: v.material,
-      customOption: v.customOption,
-      customValue: v.customValue,
-      colorHex: v.colorHex,
+      custom_option: v.custom_option,
+      custom_value: v.custom_value,
+      color_hex: v.color_hex,
       price: v.price,
-      comparePrice: v.comparePrice,
+      compare_price: v.compare_price,
       stock: v.stock,
       sku: v.sku,
-      imageUrl: v.imageUrl,
-      showImageSwatch: v.showImageSwatch ?? false,
+      image_url: v.image_url,
+      show_image_swatch: v.show_image_swatch ?? false,
       active: v.active,
-      sortOrder: v.sortOrder,
-      inventoryThreshold: v.inventoryThreshold || 0
+      sort_order: v.sort_order,
+      inventory_threshold: v.inventory_threshold || 0
     })) || []
   );
 
@@ -55,14 +55,14 @@ export function useProductVariantsState({
   const filteredVariants = variantSearchTerm
     ? variants.filter(v => {
       const term = variantSearchTerm.toLowerCase();
-      const label = [v.color, v.size, v.material, v.customValue].filter(Boolean).join(' / ').toLowerCase();
+      const label = [v.color, v.size, v.material, v.custom_value].filter(Boolean).join(' / ').toLowerCase();
       return label.includes(term)
         || (v.sku?.toLowerCase() || '').includes(term)
         || (v.price?.toString() || '').includes(term)
-        || (v.comparePrice?.toString() || '').includes(term)
-        || (v.colorHex?.toLowerCase() || '').includes(term)
+        || (v.compare_price?.toString() || '').includes(term)
+        || (v.color_hex?.toLowerCase() || '').includes(term)
         || (v.stock?.toString() || '').includes(term)
-        || (v.inventoryThreshold?.toString() || '').includes(term);
+        || (v.inventory_threshold?.toString() || '').includes(term);
     })
     : variants;
 
@@ -86,8 +86,8 @@ export function useProductVariantsState({
     const colorValues = Array.from(new Set(initialProduct.variants.filter(v => v.color).map(v => v.color!)));
     const sizeValues = Array.from(new Set(initialProduct.variants.filter(v => v.size).map(v => v.size!)));
     const materialValues = Array.from(new Set(initialProduct.variants.filter(v => v.material).map(v => v.material!)));
-    const customOptionName = initialProduct.variants.find(v => v.customOption)?.customOption || 'Custom';
-    const customValues = Array.from(new Set(initialProduct.variants.filter(v => v.customValue).map(v => v.customValue!)));
+    const customOptionName = initialProduct.variants.find(v => v.custom_option)?.custom_option || 'Custom';
+    const customValues = Array.from(new Set(initialProduct.variants.filter(v => v.custom_value).map(v => v.custom_value!)));
 
     const axes: VariantAxis[] = [];
     if (colorValues.length > 0) {
@@ -95,7 +95,7 @@ export function useProductVariantsState({
         name: 'Color', type: 'color',
         values: colorValues.map(label => {
           const match = initialProduct.variants.find(v => v.color === label);
-          return { label, hex: match?.colorHex, imageUrl: match?.imageUrl, showImageSwatch: match?.showImageSwatch };
+          return { label, hex: match?.color_hex, imageUrl: match?.image_url, showImageSwatch: match?.show_image_swatch };
         })
       });
     }
@@ -113,10 +113,10 @@ export function useProductVariantsState({
       axes.push({ name: 'Color', type: 'color', values: [] }, { name: 'Size', type: 'size', values: [] });
     }
 
-    if (initialProduct.variationOrder && initialProduct.variationOrder.length > 0) {
+    if (initialProduct.variation_order && initialProduct.variation_order.length > 0) {
       axes.sort((a, b) => {
-        const aIdx = initialProduct.variationOrder!.indexOf(a.type);
-        const bIdx = initialProduct.variationOrder!.indexOf(b.type);
+        const aIdx = initialProduct.variation_order!.indexOf(a.type);
+        const bIdx = initialProduct.variation_order!.indexOf(b.type);
         if (aIdx === -1 && bIdx === -1) return 0;
         if (aIdx === -1) return 1;
         if (bIdx === -1) return -1;
@@ -190,12 +190,12 @@ export function useProductVariantsState({
   }, []);
 
   // Modifiers List
-  const [modifiers, setModifiers] = useState<Omit<ProductModifier, 'id' | 'productId'>[]>(
+  const [modifiers, setModifiers] = useState<Omit<ProductModifier, 'id' | 'product_id'>[]>(
     initialProduct?.modifiers.map(m => ({
       name: m.name,
       price: m.price,
       active: m.active,
-      sortOrder: m.sortOrder
+      sort_order: m.sort_order
     })) || []
   );
   const [modName, setModName] = useState('');
@@ -209,7 +209,7 @@ export function useProductVariantsState({
         name: modName.trim(),
         price: parseFloat(modPrice) || 0,
         active: true,
-        sortOrder: prev.length + 1
+        sort_order: prev.length + 1
       }
     ]);
     setModName('');
@@ -242,7 +242,7 @@ export function useProductVariantsState({
     toast.success(`Generated ${newVariants.length} variant combinations!`);
   };
 
-  const handleUpdateVariant = (index: number, updates: Partial<Omit<ProductVariant, 'id' | 'productId'>>) => {
+  const handleUpdateVariant = (index: number, updates: Partial<Omit<ProductVariant, 'id' | 'product_id'>>) => {
     setVariants(prev => prev.map((v, i) => i === index ? { ...v, ...updates } : v));
   };
 
@@ -296,8 +296,8 @@ export function buildVariantCombinations(
   baseStock: number = 0,
   baseSku: string = '',
   baseThreshold: number = 0,
-  existingVariants: Omit<ProductVariant, 'id' | 'productId'>[] = []
-): Omit<ProductVariant, 'id' | 'productId'>[] {
+  existingVariants: Omit<ProductVariant, 'id' | 'product_id'>[] = []
+): Omit<ProductVariant, 'id' | 'product_id'>[] {
   const validAxes = variantAxes.filter(a => a.values && a.values.length > 0);
   if (validAxes.length === 0) return [];
 
@@ -326,16 +326,16 @@ export function buildVariantCombinations(
       (colorVal ? v.color === colorVal.label : !v.color) &&
       (sizeVal ? v.size === sizeVal.label : !v.size) &&
       (matVal ? v.material === matVal.label : !v.material) &&
-      (custVal ? v.customValue === custVal.label : !v.customValue)
+      (custVal ? v.custom_value === custVal.label : !v.custom_value)
     );
 
     if (existing) {
       return {
         ...existing,
-        colorHex: colorVal?.hex || existing.colorHex,
-        imageUrl: colorVal?.imageUrl || existing.imageUrl,
-        showImageSwatch: colorVal?.showImageSwatch ?? existing.showImageSwatch ?? false,
-        sortOrder: idx + 1
+        color_hex: colorVal?.hex || existing.color_hex,
+        image_url: colorVal?.imageUrl || existing.image_url,
+        show_image_swatch: colorVal?.showImageSwatch ?? existing.show_image_swatch ?? false,
+        sort_order: idx + 1
       };
     }
 
@@ -343,18 +343,18 @@ export function buildVariantCombinations(
       color: colorVal?.label,
       size: sizeVal?.label,
       material: matVal?.label,
-      customOption: custVal ? (validAxes.find(a => a.type === 'custom')?.name || 'Custom') : undefined,
-      customValue: custVal?.label,
-      colorHex: colorVal?.hex || (colorVal ? extractColorsFromName(colorVal.label) || '#888888' : undefined),
-      imageUrl: colorVal?.imageUrl,
-      showImageSwatch: colorVal?.showImageSwatch ?? false,
+      custom_option: custVal ? (validAxes.find(a => a.type === 'custom')?.name || 'Custom') : undefined,
+      custom_value: custVal?.label,
+      color_hex: colorVal?.hex || (colorVal ? extractColorsFromName(colorVal.label) || '#888888' : undefined),
+      image_url: colorVal?.imageUrl,
+      show_image_swatch: colorVal?.showImageSwatch ?? false,
       price: basePrice,
-      comparePrice: baseComparePrice,
+      compare_price: baseComparePrice,
       stock: baseStock,
       sku: varSku,
       active: true,
-      sortOrder: idx + 1,
-      inventoryThreshold: baseThreshold
+      sort_order: idx + 1,
+      inventory_threshold: baseThreshold
     };
   });
 }

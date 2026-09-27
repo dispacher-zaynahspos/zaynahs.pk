@@ -165,7 +165,7 @@ export function CategoryProductsTable({
                       </td>
                     )}
                     <td className="py-4 px-4 text-center">
-                      {product.hasVariants ? (
+                      {product.has_variants ? (
                         <button
                           type="button"
                           onClick={() => toggleExpand(product.id)}
@@ -197,7 +197,7 @@ export function CategoryProductsTable({
                           </div>
                           <div className="text-xs text-gray-400 font-mono flex items-center gap-2 mt-0.5">
                             <span>SKU: {product.sku || 'N/A'}</span>
-                            {product.hasVariants && (
+                            {product.has_variants && (
                               <span className="bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-1.5 py-0.5 rounded text-[10px] font-bold">
                                 {product.variants?.length || 0} variants
                               </span>
@@ -210,7 +210,7 @@ export function CategoryProductsTable({
                       {formatPrice(product.price)}
                     </td>
                     <td className="py-4 px-4 font-mono text-gray-400 whitespace-nowrap">
-                      {product.comparePrice ? formatPrice(product.comparePrice) : '-'}
+                      {product.compare_price ? formatPrice(product.compare_price) : '-'}
                     </td>
                     <td className="py-4 px-4 whitespace-nowrap">
                       <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold whitespace-nowrap flex-shrink-0 leading-none ${
@@ -244,7 +244,7 @@ export function CategoryProductsTable({
                   </tr>
 
                   {/* Expanded Variants Row */}
-                  {isExpanded && product.hasVariants && product.variants && product.variants.length > 0 && (
+                  {isExpanded && product.has_variants && product.variants && product.variants.length > 0 && (
                     <tr className="bg-gray-50/70 dark:bg-[#121225]/50">
                       <td colSpan={sortBy === 'manual' ? 9 : 7} className="p-4 pl-12">
                         <div className="space-y-2 border-l-2 border-primary/30 pl-4">
@@ -260,7 +260,7 @@ export function CategoryProductsTable({
                                     />
                                   )}
                                   <span className="font-bold text-gray-900 dark:text-white">
-                                    {[v.color, v.size, v.material, v.customValue].filter(Boolean).join(' / ') || 'Default'}
+                                    {[v.color, v.size, v.material, v.custom_value].filter(Boolean).join(' / ') || 'Default'}
                                   </span>
                                   {v.sku && <span className="font-mono text-gray-400 text-[11px]">{v.sku}</span>}
                                 </div>

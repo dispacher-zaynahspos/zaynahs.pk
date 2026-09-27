@@ -20,17 +20,17 @@ interface CartItemCardProps {
 export default function CartItemCard({ item, compact = false, settings, removeItem, updateQuantity }: CartItemCardProps) {
   const img = getPresetImageUrl(item.product.images?.find((i: any) => i.isPrimary)?.url || item.product.images?.[0]?.url || '', 'micro');
   const parts: string[] = [];
-  if (item.selectedVariant?.color) parts.push(item.selectedVariant.color);
-  if (item.selectedVariant?.size) parts.push(item.selectedVariant.size);
-  if (item.selectedVariant?.material) parts.push(item.selectedVariant.material);
-  if (item.selectedVariant?.customValue) parts.push(item.selectedVariant.customValue);
+  if (item.selected_variant?.color) parts.push(item.selected_variant.color);
+  if (item.selected_variant?.size) parts.push(item.selected_variant.size);
+  if (item.selected_variant?.material) parts.push(item.selected_variant.material);
+  if (item.selected_variant?.custom_value) parts.push(item.selected_variant.custom_value);
   const variantStr = parts.join(' · ');
 
   return (
     <div className="flex items-start gap-4 py-3 border-b border-gray-100 dark:border-gray-800 last:border-0">
       {/* Image Container with Badge */}
       <div className="relative flex-shrink-0">
-        <div className={`overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#0f0f1b] relative w-16 shadow-sm ${getSharedAspectClass(settings?.imageAspectRatio)}`}>
+        <div className={`overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#0f0f1b] relative w-16 shadow-sm ${getSharedAspectClass(settings?.image_aspect_ratio)}`}>
           {img ? (
             <Image src={img} alt={item.product.name} fill sizes="80px" className="object-cover" unoptimized />
           ) : (
@@ -52,19 +52,19 @@ export default function CartItemCard({ item, compact = false, settings, removeIt
           </h3>
           {compact && (
             <p className="text-sm font-black text-gray-900 dark:text-white shrink-0">
-              {formatPrice(item.unitPrice * item.quantity, settings.currencySymbol)}
+              {formatPrice(item.unit_price * item.quantity, settings.currency_symbol)}
             </p>
           )}
         </div>
 
-        {(variantStr || item.selectedModifiers?.length > 0) && (
+        {(variantStr || item.selected_modifiers?.length > 0) && (
           <div className="mt-1 space-y-0.5">
             {variantStr && (
               <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">{variantStr}</p>
             )}
-            {item.selectedModifiers?.length > 0 && (
+            {item.selected_modifiers?.length > 0 && (
               <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">
-                + {item.selectedModifiers.map((m: any) => m.name).join(', ')}
+                + {item.selected_modifiers.map((m: any) => m.name).join(', ')}
               </p>
             )}
           </div>
@@ -105,7 +105,7 @@ export default function CartItemCard({ item, compact = false, settings, removeIt
             </div>
             {/* Line price */}
             <span className="text-base font-black text-gray-900 dark:text-white">
-              {formatPrice(item.unitPrice * item.quantity, settings.currencySymbol)}
+              {formatPrice(item.unit_price * item.quantity, settings.currency_symbol)}
             </span>
           </div>
         )}

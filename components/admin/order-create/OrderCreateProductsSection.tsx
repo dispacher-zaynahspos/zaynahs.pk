@@ -174,7 +174,7 @@ export function OrderCreateProductsSection({
                           </div>
                           <span className="font-semibold text-gray-900 dark:text-white truncate">{prod.name}</span>
                         </div>
-                        <span className="text-gray-400 font-bold flex-shrink-0">{formatPrice(prod.price, settings.currencySymbol)}</span>
+                        <span className="text-gray-400 font-bold flex-shrink-0">{formatPrice(prod.price, settings.currency_symbol)}</span>
                       </div>
                     );
                   })
@@ -196,7 +196,7 @@ export function OrderCreateProductsSection({
                 </button>
               </div>
 
-              {selectedProduct.hasVariants && (
+              {selectedProduct.has_variants && (
                 <div className="space-y-3 bg-white dark:bg-gray-900 p-2.5 rounded-lg border border-gray-100 dark:border-gray-800">
                   <span className="text-[11px] font-bold text-gray-400 uppercase">Select Options:</span>
 
@@ -303,18 +303,18 @@ export function OrderCreateProductsSection({
               >
                 <div>
                   <div className="font-bold text-gray-900 dark:text-white">{item.product.name}</div>
-                  {item.selectedVariant && (
+                  {item.selected_variant && (
                     <div className="text-[10px] text-gray-400 font-semibold mt-0.5">
-                      {item.selectedVariant.size && `Size: ${item.selectedVariant.size}`}
-                      {item.selectedVariant.color && ` | Color: ${item.selectedVariant.color}`}
+                      {item.selected_variant.size && `Size: ${item.selected_variant.size}`}
+                      {item.selected_variant.color && ` | Color: ${item.selected_variant.color}`}
                     </div>
                   )}
                   <div className="text-[10px] text-gray-400 mt-0.5">
-                    {item.quantity} x {formatPrice(item.unitPrice, settings.currencySymbol)}
+                    {item.quantity} x {formatPrice(item.unit_price, settings.currency_symbol)}
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-gray-900 dark:text-white">{formatPrice(item.total, settings.currencySymbol)}</span>
+                  <span className="font-bold text-gray-900 dark:text-white">{formatPrice(item.total, settings.currency_symbol)}</span>
                   <button
                     type="button"
                     onClick={() => handleRemoveItem(item.id)}

@@ -44,6 +44,7 @@ export function NavWishlistLink({
   return (
     <Link
       href="/wishlist"
+      prefetch={true}
       key="wishlist"
       id={isMobile ? 'header-wishlist-icon-mobile' : 'header-wishlist-icon-desktop'}
       className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-[#1a1a2e] dark:hover:text-white transition-all"
@@ -70,6 +71,7 @@ export function NavCartLink({
   return (
     <Link
       href="/cart"
+      prefetch={true}
       key="cart"
       id={isMobile ? 'header-cart-icon-mobile' : 'header-cart-icon-desktop'}
       className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-[#1a1a2e] dark:hover:text-white transition-all cursor-pointer"
@@ -93,6 +95,7 @@ export function NavAccountLink({
   return (
     <Link
       href={customerSession ? '/account' : '/login'}
+      prefetch={true}
       key="account"
       className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-[#1a1a2e] dark:hover:text-white transition-all"
       title={customerSession ? 'My Account' : 'Login / Register'}
@@ -110,6 +113,7 @@ export function NavAdminLink({
   return (
     <Link
       href="/"
+      prefetch={true}
       key="admin-link"
       className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 hover:text-[#e94560] transition-colors shrink-0"
       style={customTextColorStyle}

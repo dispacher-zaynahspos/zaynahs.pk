@@ -71,7 +71,7 @@ export function AppearanceCustomizePanel({ settings, onUpdateSettings }: Appeara
 
       const link = document.createElement('a');
       link.href = url;
-      link.download = `${settings.storeName || 'ourstore'}-theme-config.json`;
+      link.download = `${settings.store_name || 'ourstore'}-theme-config.json`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);

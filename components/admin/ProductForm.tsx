@@ -340,8 +340,8 @@ export default function ProductForm({ categories, initialProduct, aiEnabled }: P
             return {
               url,
               alt: '',
-              sortOrder: p.images.length + idx + 1,
-              isPrimary: p.images.length === 0 && idx === 0
+              sort_order: p.images.length + idx + 1,
+              is_primary: p.images.length === 0 && idx === 0
             };
           });
           p.setImages(newImages);

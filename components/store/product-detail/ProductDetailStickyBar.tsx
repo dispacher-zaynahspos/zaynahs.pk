@@ -66,7 +66,7 @@ export function ProductDetailStickyBar({
               {formatPrice(unitPrice, currencySymbol)}
             </div>
             <div className="text-[11px] font-medium text-gray-500 dark:text-gray-400 truncate mt-1">
-              {selectedVariant ? (selectedVariant.color || selectedVariant.size || selectedVariant.customValue || product.name) : product.name}
+              {selectedVariant ? (selectedVariant.color || selectedVariant.size || selectedVariant.custom_value || product.name) : product.name}
             </div>
           </div>
         </div>

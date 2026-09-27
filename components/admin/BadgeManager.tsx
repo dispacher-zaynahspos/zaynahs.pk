@@ -24,7 +24,7 @@ const sortBadgesWithSystemFirst = (list: Badge[]) => {
       const idxB = systemOrder.indexOf(b.name.trim().toLowerCase());
       return (idxA !== -1 ? idxA : 99) - (idxB !== -1 ? idxB : 99);
     }
-    return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+    return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
   });
 };
 
@@ -53,8 +53,8 @@ export default function BadgeManager({ initialBadges }: BadgeManagerProps) {
   const handleOpenEdit = (badge: Badge) => {
     setEditId(badge.id);
     setName(badge.name);
-    setBgColor(badge.bgColor);
-    setTextColor(badge.textColor);
+    setBgColor(badge.bg_color);
+    setTextColor(badge.text_color);
     setIsOpen(true);
   };
 
@@ -146,7 +146,7 @@ export default function BadgeManager({ initialBadges }: BadgeManagerProps) {
                   </div>
                   <span 
                     className="px-2.5 py-0.5 text-xs font-extrabold uppercase rounded-lg shadow-sm tracking-wider"
-                    style={{ backgroundColor: badge.bgColor, color: badge.textColor }}
+                    style={{ backgroundColor: badge.bg_color, color: badge.text_color }}
                   >
                     {badge.name}
                   </span>
@@ -155,11 +155,11 @@ export default function BadgeManager({ initialBadges }: BadgeManagerProps) {
                 <div className="mt-4 flex gap-4 text-xs font-medium text-gray-500 dark:text-gray-400">
                   <div>
                     <span className="block font-bold text-[10px] uppercase text-gray-400">Background</span>
-                    <code className="bg-gray-50 dark:bg-[#0f0f1b] px-1.5 py-0.5 rounded font-mono text-[11px]">{badge.bgColor}</code>
+                    <code className="bg-gray-50 dark:bg-[#0f0f1b] px-1.5 py-0.5 rounded font-mono text-[11px]">{badge.bg_color}</code>
                   </div>
                   <div>
                     <span className="block font-bold text-[10px] uppercase text-gray-400">Text Color</span>
-                    <code className="bg-gray-50 dark:bg-[#0f0f1b] px-1.5 py-0.5 rounded font-mono text-[11px]">{badge.textColor}</code>
+                    <code className="bg-gray-50 dark:bg-[#0f0f1b] px-1.5 py-0.5 rounded font-mono text-[11px]">{badge.text_color}</code>
                   </div>
                 </div>
               </div>

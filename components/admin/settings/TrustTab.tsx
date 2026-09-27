@@ -22,6 +22,8 @@ interface TrustTabProps {
   setFreeShippingText: (val: string) => void;
   promoCodeText: string;
   setPromoCodeText: (val: string) => void;
+  enableSafeCheckout: boolean;
+  setEnableSafeCheckout: (val: boolean) => void;
   safeCheckoutText: string;
   setSafeCheckoutText: (val: string) => void;
   safeCheckoutMethods: string[];
@@ -79,6 +81,8 @@ export default function TrustTab({
   setFreeShippingText,
   promoCodeText,
   setPromoCodeText,
+  enableSafeCheckout,
+  setEnableSafeCheckout,
   safeCheckoutText,
   setSafeCheckoutText,
   safeCheckoutMethods,
@@ -144,6 +148,8 @@ export default function TrustTab({
             setFreeShippingText={setFreeShippingText}
             promoCodeText={promoCodeText}
             setPromoCodeText={setPromoCodeText}
+            enableSafeCheckout={enableSafeCheckout}
+            setEnableSafeCheckout={setEnableSafeCheckout}
             safeCheckoutText={safeCheckoutText}
             setSafeCheckoutText={setSafeCheckoutText}
             safeCheckoutMethods={safeCheckoutMethods}

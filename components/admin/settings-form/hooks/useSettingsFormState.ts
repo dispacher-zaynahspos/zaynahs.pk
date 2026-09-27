@@ -35,7 +35,7 @@ export function useSettingsFormState({ initialSettings }: UseSettingsFormStatePr
   // Sub-hooks
   const shippingPayment = useSettingsShippingPayment();
   const couponsHook = useSettingsCoupons();
-  const navigation = useSettingsNavigation({ initialNavigationMenu: initialSettings.navigationMenu ?? [] });
+  const navigation = useSettingsNavigation({ initialNavigationMenu: initialSettings.navigation_menu ?? [] });
   const socialFeed = useSettingsSocialFeed({
     initialItems: Array.isArray(initialSettings.social_feeds_items)
       ? initialSettings.social_feeds_items
@@ -44,9 +44,9 @@ export function useSettingsFormState({ initialSettings }: UseSettingsFormStatePr
       : [],
   });
   const mediaUploads = useSettingsMediaUploads({
-    initialLogoUrl: initialSettings.logoUrl || '',
-    initialFaviconUrl: initialSettings.faviconUrl || '',
-    initialBannerUrl: initialSettings.bannerUrl || '',
+    initialLogoUrl: initialSettings.logo_url || '',
+    initialFaviconUrl: initialSettings.favicon_url || '',
+    initialBannerUrl: initialSettings.banner_url || '',
     initialExitIntentImageUrl: initialSettings.exit_intent_image_url || '',
   });
   const aiEmails = useSettingsAIAndEmails({ initialSettings });
@@ -55,35 +55,35 @@ export function useSettingsFormState({ initialSettings }: UseSettingsFormStatePr
   const trustProducts = useSettingsTrustAndProducts({ initialSettings });
 
   // Core General States
-  const [storeName, setStoreName] = useState(initialSettings.storeName);
-  const [storeUrl, setStoreUrl] = useState(initialSettings.storeUrl || '');
-  const [whatsappNumber, setWhatsappNumber] = useState(initialSettings.whatsappNumber);
+  const [storeName, setStoreName] = useState(initialSettings.store_name);
+  const [storeUrl, setStoreUrl] = useState(initialSettings.store_url || '');
+  const [whatsappNumber, setWhatsappNumber] = useState(initialSettings.whatsapp_number);
   const [currency, setCurrency] = useState(initialSettings.currency);
-  const [currencySymbol, setCurrencySymbol] = useState(initialSettings.currencySymbol);
-  const [orderPrefix, setOrderPrefix] = useState(initialSettings.orderPrefix);
-  const [nextOrderSequence, setNextOrderSequence] = useState(initialSettings.nextOrderSequence ?? 1);
+  const [currencySymbol, setCurrencySymbol] = useState(initialSettings.currency_symbol);
+  const [orderPrefix, setOrderPrefix] = useState(initialSettings.order_prefix);
+  const [nextOrderSequence, setNextOrderSequence] = useState(initialSettings.next_order_sequence ?? 1);
   const [nextOrderSequenceDirty, setNextOrderSequenceDirty] = useState(false);
-  const [logoWidth, setLogoWidth] = useState(initialSettings.logoWidth ?? 120);
+  const [logoWidth, setLogoWidth] = useState(initialSettings.logo_width ?? 120);
   const [tagline, setTagline] = useState(initialSettings.tagline || '');
   const [address, setAddress] = useState(initialSettings.address || '');
 
-  const [showStock, setShowStock] = useState(initialSettings.showStock);
-  const [showComparePrice, setShowComparePrice] = useState(initialSettings.showComparePrice);
-  const [enableSearch, setEnableSearch] = useState(initialSettings.enableSearch);
-  const [enableCategoryFilter, setEnableCategoryFilter] = useState(initialSettings.enableCategoryFilter);
+  const [showStock, setShowStock] = useState(initialSettings.show_stock);
+  const [showComparePrice, setShowComparePrice] = useState(initialSettings.show_compare_price);
+  const [enableSearch, setEnableSearch] = useState(initialSettings.enable_search);
+  const [enableCategoryFilter, setEnableCategoryFilter] = useState(initialSettings.enable_category_filter);
   const [popularSearches, setPopularSearches] = useState(
-    initialSettings.popularSearches ?? 'Co-ord Sets, Sonic, Graphic Tee, T-shirt, Kids'
+    initialSettings.popular_searches ?? 'Co-ord Sets, Sonic, Graphic Tee, T-shirt, Kids'
   );
 
-  const [whatsappGreeting, setWhatsappGreeting] = useState(initialSettings.whatsappGreeting);
-  const [whatsappFooter, setWhatsappFooter] = useState(initialSettings.whatsappFooter);
+  const [whatsappGreeting, setWhatsappGreeting] = useState(initialSettings.whatsapp_greeting);
+  const [whatsappFooter, setWhatsappFooter] = useState(initialSettings.whatsapp_footer);
 
   // Footer & Social States
-  const [footerText, setFooterText] = useState(initialSettings.footerText || '');
-  const [socialFacebook, setSocialFacebook] = useState(initialSettings.socialFacebook || '');
-  const [socialInstagram, setSocialInstagram] = useState(initialSettings.socialInstagram || '');
-  const [socialWhatsapp, setSocialWhatsapp] = useState(initialSettings.socialWhatsapp || '');
-  const [socialYoutube, setSocialYoutube] = useState(initialSettings.socialYoutube || '');
+  const [footerText, setFooterText] = useState(initialSettings.footer_text || '');
+  const [socialFacebook, setSocialFacebook] = useState(initialSettings.social_facebook || '');
+  const [socialInstagram, setSocialInstagram] = useState(initialSettings.social_instagram || '');
+  const [socialWhatsapp, setSocialWhatsapp] = useState(initialSettings.social_whatsapp || '');
+  const [socialYoutube, setSocialYoutube] = useState(initialSettings.social_youtube || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPurging, setIsPurging] = useState(false);
 

@@ -3,22 +3,17 @@
 import React from 'react';
 import { Layers } from '@/components/common/Icons';
 import { formatPrice } from '@/lib/utils/whatsapp';
-
-interface StatusBreakdownItem {
-  status: string;
-  count: number;
-  sales: number;
-}
+import { StatusBreakdownRow } from './types';
 
 interface StatusBreakdownCardProps {
-  statusBreakdown: StatusBreakdownItem[];
-  totalOrdersCount: number;
+  statusBreakdown: StatusBreakdownRow[];
+  totalOrders: number;
   currencySymbol: string;
 }
 
 export default function StatusBreakdownCard({
   statusBreakdown,
-  totalOrdersCount,
+  totalOrders,
   currencySymbol,
 }: StatusBreakdownCardProps) {
   return (
@@ -32,13 +27,13 @@ export default function StatusBreakdownCard({
             <h3 className="text-sm font-black text-gray-900 dark:text-white tracking-tight">Status Breakdown</h3>
           </div>
           <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
-            {totalOrdersCount} Orders
+            {totalOrders} Orders
           </span>
         </div>
 
         <div className="space-y-4 mt-4">
           {statusBreakdown.map((row) => {
-            const pct = totalOrdersCount > 0 ? (row.count / totalOrdersCount) * 100 : 0;
+            const pct = totalOrders > 0 ? (row.count / totalOrders) * 100 : 0;
             const statusConfig = {
               delivered: { color: 'bg-emerald-500', text: 'text-emerald-600 dark:text-emerald-400' },
               confirmed: { color: 'bg-blue-500', text: 'text-blue-600 dark:text-blue-400' },
@@ -46,6 +41,8 @@ export default function StatusBreakdownCard({
               pending: { color: 'bg-amber-500', text: 'text-amber-600 dark:text-amber-400' },
               cancelled: { color: 'bg-red-500', text: 'text-red-600 dark:text-red-400' }
             }[row.status] || { color: 'bg-purple-500', text: 'text-purple-600 dark:text-purple-400' };
+
+            const hasCostLine = row.cost !== undefined || row.delivery !== undefined;
 
             return (
               <div key={row.status} className="space-y-1.5">
@@ -63,6 +60,12 @@ export default function StatusBreakdownCard({
                     </span>
                   </div>
                 </div>
+                {hasCostLine && (
+                  <div className="flex items-center justify-end gap-3 text-[10px] font-semibold text-gray-400 dark:text-gray-500">
+                    {row.cost !== undefined && <span>Cost: {formatPrice(row.cost, currencySymbol)}</span>}
+                    {row.delivery !== undefined && <span>Delivery: {formatPrice(row.delivery, currencySymbol)}</span>}
+                  </div>
+                )}
                 <div className="h-2 w-full bg-gray-100 dark:bg-gray-800/80 rounded-full overflow-hidden">
                   <div
                     className={`h-full rounded-full transition-all duration-500 ${statusConfig.color}`}
@@ -77,4 +80,3 @@ export default function StatusBreakdownCard({
     </div>
   );
 }
-

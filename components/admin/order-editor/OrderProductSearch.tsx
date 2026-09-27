@@ -29,7 +29,7 @@ export default function OrderProductSearch({
         (v.color && v.color.toLowerCase().includes(lowerQ)) ||
         (v.size && v.size.toLowerCase().includes(lowerQ)) ||
         (v.material && v.material.toLowerCase().includes(lowerQ)) ||
-        (v.customValue && v.customValue.toLowerCase().includes(lowerQ))
+        (v.custom_value && v.custom_value.toLowerCase().includes(lowerQ))
       ))
     ).slice(0, 10);
   }, [searchQuery, products]);
@@ -75,7 +75,7 @@ export default function OrderProductSearch({
                         <span className="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
                           {product.name}
                         </span>
-                        {product.hasVariants && product.variants && product.variants.length > 0 && (
+                        {product.has_variants && product.variants && product.variants.length > 0 && (
                           <span className="text-xs text-gray-400">
                             {product.variants.length} variations
                           </span>
@@ -84,7 +84,7 @@ export default function OrderProductSearch({
                     </div>
                     <div className="flex items-center gap-3">
                       <span className="text-sm font-bold text-gray-900 dark:text-white">
-                        {formatPrice(product.price, settings.currencySymbol)}
+                        {formatPrice(product.price, settings.currency_symbol)}
                       </span>
                       <Plus className="w-4 h-4 text-gray-400 group-hover:text-indigo-600" />
                     </div>

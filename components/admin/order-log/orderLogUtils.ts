@@ -2,26 +2,26 @@ import { Order } from '@/lib/types';
 
 export const mapOrderRow = (row: any): Order => ({
   id: row.id,
-  orderNumber: row.order_number,
-  customerName: row.customer_name || undefined,
-  customerPhone: row.customer_phone || undefined,
-  customerId: row.customer_id || undefined,
+  order_number: row.order_number,
+  customer_name: row.customer_name || undefined,
+  customer_phone: row.customer_phone || undefined,
+  customer_id: row.customer_id || undefined,
   items: (row.items || []) as any[],
   subtotal: row.subtotal ? parseFloat(row.subtotal.toString()) : 0,
   total: row.total ? parseFloat(row.total.toString()) : 0,
   status: row.status as Order['status'],
   notes: row.notes || undefined,
-  staffNotes: row.staff_notes || undefined,
-  statusLogs: (row.status_logs || []) as any[],
-  reviewEmailPending: row.review_email_pending ?? false,
-  deliveredAt: row.delivered_at || undefined,
-  trackingNumber: row.tracking_number || undefined,
-  courierName: row.courier_name || undefined,
-  trackingUrl: row.tracking_url || undefined,
-  cancelReason: row.cancel_reason || undefined,
-  refundAmount: row.refund_amount ? parseFloat(row.refund_amount.toString()) : undefined,
-  createdAt: row.created_at,
-  updatedAt: row.updated_at
+  staff_notes: row.staff_notes || undefined,
+  status_logs: (row.status_logs || []) as any[],
+  review_email_pending: row.review_email_pending ?? false,
+  delivered_at: row.delivered_at || undefined,
+  tracking_number: row.tracking_number || undefined,
+  courier_name: row.courier_name || undefined,
+  tracking_url: row.tracking_url || undefined,
+  cancel_reason: row.cancel_reason || undefined,
+  refund_amount: row.refund_amount ? parseFloat(row.refund_amount.toString()) : undefined,
+  created_at: row.created_at,
+  updated_at: row.updated_at
 });
 
 export const isOrderPaid = (order: Order) => {

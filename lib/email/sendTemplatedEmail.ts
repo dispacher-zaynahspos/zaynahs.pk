@@ -35,7 +35,7 @@ export async function sendTemplatedEmail(
 
     // 5. Pre-render order items table if items are present
     if (data.order?.items) {
-      variables.order_items_html = renderOrderItemsTable(data.order.items, settings.currencySymbol, variables.site_url);
+      variables.order_items_html = renderOrderItemsTable(data.order.items, settings.currency_symbol, variables.site_url);
     }
 
     // 6. Resolve Subject Line
@@ -43,8 +43,8 @@ export async function sendTemplatedEmail(
 
     // 7. Resolve HTML Body (custom vs default fallback)
     let html: string;
-    if (template.customHtml) {
-      html = replaceVariables(template.customHtml, variables);
+    if (template.custom_html) {
+      html = replaceVariables(template.custom_html, variables);
     } else {
       html = getDefaultTemplate(emailType, variables);
     }

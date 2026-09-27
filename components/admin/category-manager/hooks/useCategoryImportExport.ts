@@ -31,8 +31,8 @@ export function useCategoryImportExport({
         name: c.name,
         slug: c.slug,
         description: c.description || null,
-        imageUrl: c.imageUrl || null,
-        sortOrder: c.sortOrder,
+        image_url: c.image_url || null,
+        sort_order: c.sort_order,
         active: c.active,
       }));
 
@@ -77,8 +77,8 @@ export function useCategoryImportExport({
             name: item.name,
             slug: item.slug,
             description: item.description || undefined,
-            imageUrl: item.imageUrl || undefined,
-            sortOrder: item.sortOrder || 0,
+            image_url: item.image_url ?? item.imageUrl ?? undefined,
+            sort_order: item.sort_order ?? item.sortOrder ?? 0,
             active: item.active ?? true,
           };
 

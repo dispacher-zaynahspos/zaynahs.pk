@@ -52,7 +52,7 @@ export default function ReviewDetailSheet({ review, onClose, onApprove, onHide, 
 
   const mailSubject = `Regarding Your Review on ${review.productName || 'Our Product'}`;
   const mailBody = [
-    `Hi ${review.customerName},`,
+    `Hi ${review.customer_name},`,
     '',
     `Thank you for your feedback on '${review.productName || 'Our Product'}' (${productUrl}).`,
     '',
@@ -62,7 +62,7 @@ export default function ReviewDetailSheet({ review, onClose, onApprove, onHide, 
     storeName || 'Our Store Team'
   ].filter(Boolean).join('%0D%0A');
 
-  const mailtoHref = `mailto:${review.customerEmail}?subject=${encodeURIComponent(mailSubject)}&body=${mailBody}`;
+  const mailtoHref = `mailto:${review.customer_email}?subject=${encodeURIComponent(mailSubject)}&body=${mailBody}`;
 
   const reviewId = `#ZE-REV-${review.id.slice(0, 4).toUpperCase()}`;
 
@@ -120,7 +120,7 @@ export default function ReviewDetailSheet({ review, onClose, onApprove, onHide, 
                 </p>
                 <div className="flex items-center gap-1.5">
                   <StarRating rating={review.rating} showText={true} starSize={12} />
-                  <span className="text-[10px] text-gray-400 font-medium">{formatDate(review.createdAt)}</span>
+                  <span className="text-[10px] text-gray-400 font-medium">{formatDate(review.created_at)}</span>
                 </div>
                 <span className={`inline-flex items-center px-2 py-0.5 text-[10px] font-bold rounded-full ${
                   !review.approved
@@ -142,7 +142,7 @@ export default function ReviewDetailSheet({ review, onClose, onApprove, onHide, 
                       View Storefront
                     </Link>
                     <Link
-                      href={`/admin/products?id=${review.productId}`}
+                      href={`/admin/products?id=${review.product_id}`}
                       className="flex items-center gap-0.5 text-[#e94560] hover:underline font-medium"
                     >
                       <Edit className="w-2.5 h-2.5" />
@@ -159,24 +159,24 @@ export default function ReviewDetailSheet({ review, onClose, onApprove, onHide, 
             <h3 className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Customer Account Intel (Admin Privacy Lookup)</h3>
             <div className="bg-gray-50 dark:bg-[#0f0f1b]/50 rounded-xl p-3 space-y-1.5 border border-gray-100 dark:border-gray-800/20 text-sm">
               <p className="text-gray-900 dark:text-white">
-                <span className="text-gray-400 font-medium">&bull; Name:</span> {review.customerName}
+                <span className="text-gray-400 font-medium">&bull; Name:</span> {review.customer_name}
               </p>
-              {review.customerPhone && (
+              {review.customer_phone && (
                 <p className="text-gray-900 dark:text-white flex items-center gap-1.5">
                   <span className="text-gray-400 font-medium">&bull; WhatsApp:</span>
                    <a
-                    href={`https://wa.me/${cleanWhatsAppPhone(review.customerPhone)}?text=${encodeURIComponent(`Hi ${review.customerName},%0D%0A%0D%0AThank you for your review on ${review.productName || 'our product'}.%0D%0A%0D%0A${review.comment ? `Your feedback: '${review.comment}'%0D%0A%0D%0A` : ''}Best regards,%0D%0A${storeName || 'Our Store Team'}`)}`}
+                    href={`https://wa.me/${cleanWhatsAppPhone(review.customer_phone)}?text=${encodeURIComponent(`Hi ${review.customer_name},%0D%0A%0D%0AThank you for your review on ${review.productName || 'our product'}.%0D%0A%0D%0A${review.comment ? `Your feedback: '${review.comment}'%0D%0A%0D%0A` : ''}Best regards,%0D%0A${storeName || 'Our Store Team'}`)}`}
                     target="_blank"
                     rel="noreferrer"
                     className="text-[#10b981] hover:underline font-semibold flex items-center gap-1"
                   >
                     <Phone className="w-3 h-3" />
-                    {review.customerPhone}
+                    {review.customer_phone}
                     <ExternalLink className="w-2.5 h-2.5" />
                   </a>
                 </p>
               )}
-              {review.customerEmail && (
+              {review.customer_email && (
                 <p className="text-gray-900 dark:text-white flex items-center gap-1.5">
                   <span className="text-gray-400 font-medium">&bull; Email:</span>
                   <a
@@ -186,12 +186,12 @@ export default function ReviewDetailSheet({ review, onClose, onApprove, onHide, 
                     className="text-[#e94560] hover:underline font-semibold flex items-center gap-1 break-all"
                   >
                     <Mail className="w-3 h-3 flex-shrink-0" />
-                    {review.customerEmail}
+                    {review.customer_email}
                     <ExternalLink className="w-2.5 h-2.5 flex-shrink-0" />
                   </a>
                 </p>
               )}
-              {!review.customerPhone && !review.customerEmail && (
+              {!review.customer_phone && !review.customer_email && (
                 <p className="text-gray-400 italic">No contact details provided</p>
               )}
             </div>
@@ -215,7 +215,7 @@ export default function ReviewDetailSheet({ review, onClose, onApprove, onHide, 
           {(() => {
             const photoList = Array.isArray(review.images) && review.images.length > 0 
               ? review.images 
-              : (review.screenshotUrl ? [review.screenshotUrl] : []);
+              : (review.screenshot_url ? [review.screenshot_url] : []);
 
             if (photoList.length === 0) return null;
 

@@ -225,7 +225,7 @@ interface TickerSectionProps {
 }
 
 export function TickerSection({ section, activeSettings }: TickerSectionProps) {
-  if (!activeSettings.enableTicker || !activeSettings.tickerText) return null;
+  if (!activeSettings.enable_ticker || !activeSettings.ticker_text) return null;
   const tickerBgColor = section.settings?.tickerBgColor || section.settings?.bgColor || (activeSettings as any).tickerBgColor || (activeSettings as any).ticker_bg_color || '';
   const tickerTextColor = section.settings?.tickerTextColor || section.settings?.textColor || (activeSettings as any).tickerTextColor || (activeSettings as any).ticker_text_color || '';
 
@@ -250,7 +250,7 @@ export function TickerSection({ section, activeSettings }: TickerSectionProps) {
       <div className="animate-marquee-infinite flex items-center whitespace-nowrap gap-8">
         {[...Array(4)].map((_, loopIdx) => (
           <div key={loopIdx} className="flex items-center gap-8">
-            {activeSettings.tickerText!.split('\n').filter(Boolean).map((item, itemIdx) => (
+            {activeSettings.ticker_text!.split('\n').filter(Boolean).map((item, itemIdx) => (
               <div 
                 key={itemIdx} 
                 className={`flex items-center gap-8 text-sm font-bold uppercase tracking-wider ${tickerTextColor ? '' : 'text-gray-800 dark:text-gray-200'}`}

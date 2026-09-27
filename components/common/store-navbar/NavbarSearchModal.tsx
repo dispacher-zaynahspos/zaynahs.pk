@@ -119,8 +119,8 @@ export default function NavbarSearchModal({
           <div className="space-y-3 pt-2">
             <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">Popular Searches</span>
             <div className="flex flex-wrap gap-2">
-              {(settings?.popularSearches
-                ? settings.popularSearches.split(',').map((s) => s.trim()).filter(Boolean)
+              {(settings?.popular_searches
+                ? settings.popular_searches.split(',').map((s) => s.trim()).filter(Boolean)
                 : ['Co-ord Sets', 'Sonic', 'Graphic Tee', 'T-shirt', 'Kids']
               ).map((term) => (
                 <button
@@ -144,8 +144,8 @@ export default function NavbarSearchModal({
           <div className="space-y-3 pt-6">
             <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">Recommended For You</span>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {products.filter(p => p.isFeatured).concat(products.filter(p => !p.isFeatured)).slice(0, 4).map((product) => {
-                const primaryImage = product.images?.find(img => img.isPrimary) || product.images?.[0];
+              {products.filter(p => p.is_featured).concat(products.filter(p => !p.is_featured)).slice(0, 4).map((product) => {
+                const primaryImage = product.images?.find(img => img.is_primary) || product.images?.[0];
                 return (
                   <Link
                     key={product.id}
@@ -189,7 +189,7 @@ export default function NavbarSearchModal({
                   Suggested Products ({suggestions.length})
                 </div>
                 {suggestions.map((product) => {
-                  const primaryImage = product.images.find(img => img.isPrimary) || product.images[0];
+                  const primaryImage = product.images.find(img => img.is_primary) || product.images[0];
                   return (
                     <Link
                       key={product.id}

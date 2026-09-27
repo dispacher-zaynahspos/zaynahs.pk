@@ -54,8 +54,8 @@ export const TrashCategoriesTable: React.FC<TrashCategoriesTableProps> = ({
                   className="h-4.5 w-4.5 rounded-md border-gray-300 text-[#e94560] focus:ring-[#e94560] cursor-pointer"
                 />
                 <div className="relative h-12 w-12 rounded-xl overflow-hidden bg-gray-50 border border-gray-100 dark:border-gray-800 flex-shrink-0 flex items-center justify-center">
-                  {category.imageUrl ? (
-                    <img src={category.imageUrl} alt={category.name} className="h-full w-full object-cover" />
+                  {category.image_url ? (
+                    <img src={category.image_url} alt={category.name} className="h-full w-full object-cover" />
                   ) : (
                     <FolderOpen className="h-6 w-6 text-gray-400" />
                   )}
@@ -124,8 +124,8 @@ export const TrashCategoriesTable: React.FC<TrashCategoriesTableProps> = ({
                   <td className="p-4">
                     <div className="flex items-center gap-3">
                       <div className="relative h-10 w-10 rounded-lg overflow-hidden bg-gray-50 border border-gray-100 dark:border-gray-800 flex-shrink-0 flex items-center justify-center">
-                        {category.imageUrl ? (
-                          <img src={category.imageUrl} alt={category.name} className="h-full w-full object-cover" />
+                        {category.image_url ? (
+                          <img src={category.image_url} alt={category.name} className="h-full w-full object-cover" />
                         ) : (
                           <FolderOpen className="h-5 w-5 text-gray-400" />
                         )}

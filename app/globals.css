@@ -31,6 +31,21 @@
   --radius-btn: var(--radius-btn);
   --radius-card: var(--radius-card);
   --radius-modal: var(--radius-modal);
+
+  /* Intermediate gray shades used across admin+store that Tailwind v4 does not ship
+     by default (gray-150/250/.../855/105). Without these the classes render NO color
+     (silent visual leakage). Values interpolate the standard Tailwind gray scale. */
+  --color-gray-105: oklch(0.975 0.002 247.9);
+  --color-gray-150: oklch(0.955 0.003 247.9);
+  --color-gray-250: oklch(0.915 0.004 256.8);
+  --color-gray-350: oklch(0.84 0.008 265.8);
+  --color-gray-450: oklch(0.66 0.017 262.1);
+  --color-gray-505: oklch(0.551 0.023 264.4);
+  --color-gray-550: oklch(0.53 0.023 264.4);
+  --color-gray-650: oklch(0.42 0.026 265.5);
+  --color-gray-750: oklch(0.34 0.028 266.1);
+  --color-gray-850: oklch(0.26 0.03 268.1);
+  --color-gray-855: oklch(0.255 0.03 268.1);
 }
 
 :root {

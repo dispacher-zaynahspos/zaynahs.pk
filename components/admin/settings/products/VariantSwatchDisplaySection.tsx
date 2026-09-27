@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { SWATCH_SIZE_SCALE, SWATCH_SHAPE_SCALE, SWATCH_ALIGN_SCALE } from '@/lib/constants/productCardOptions';
 
 export interface VariantSwatchDisplaySectionProps {
   enableVariantSwatches: boolean;
@@ -97,7 +98,7 @@ export function VariantSwatchDisplaySection({
             <div className="min-w-0">
               <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">Swatch Shape</label>
               <div className="flex gap-2">
-                {(['circle', 'square'] as const).map(shape => (
+                {SWATCH_SHAPE_SCALE.map(shape => (
                   <button
                     key={shape}
                     type="button"
@@ -143,7 +144,7 @@ export function VariantSwatchDisplaySection({
               <div className="min-w-0">
                 <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5">Archive Swatch Size</label>
                 <div className="grid grid-cols-7 gap-1">
-                  {(['xxs', 'xs', 'sm', 'md', 'lg', 'xl', 'xxl'] as const).map(size => {
+                  {SWATCH_SIZE_SCALE.map(size => {
                     const dimClass = size === 'xxs' ? 'h-1.5 w-1.5' : size === 'xs' ? 'h-2 w-2' : size === 'sm' ? 'h-2.5 w-2.5' : size === 'md' ? 'h-3 w-3' : size === 'lg' ? 'h-3.5 w-3.5' : size === 'xl' ? 'h-4 w-4' : 'h-4.5 w-4.5';
                     return (
                       <button
@@ -168,7 +169,7 @@ export function VariantSwatchDisplaySection({
               <div className="min-w-0">
                 <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5">Archive Swatch Alignment</label>
                 <div className="flex gap-1.5">
-                  {(['left', 'center', 'right'] as const).map(align => (
+                  {SWATCH_ALIGN_SCALE.map(align => (
                     <button
                       key={align}
                       type="button"
@@ -195,7 +196,7 @@ export function VariantSwatchDisplaySection({
               <div className="min-w-0">
                 <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5">Product Swatch Size</label>
                 <div className="grid grid-cols-7 gap-1">
-                  {(['xxs', 'xs', 'sm', 'md', 'lg', 'xl', 'xxl'] as const).map(size => {
+                  {SWATCH_SIZE_SCALE.map(size => {
                     const dimClass = size === 'xxs' ? 'h-1.5 w-1.5' : size === 'xs' ? 'h-2 w-2' : size === 'sm' ? 'h-2.5 w-2.5' : size === 'md' ? 'h-3 w-3' : size === 'lg' ? 'h-3.5 w-3.5' : size === 'xl' ? 'h-4 w-4' : 'h-4.5 w-4.5';
                     return (
                       <button

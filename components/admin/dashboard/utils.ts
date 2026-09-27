@@ -44,7 +44,7 @@ export function getPreviousPeriodBounds(filter: DateRange, now: Date): { start: 
 export function filterOrders(orders: Order[], start: number, end: number): Order[] {
   if (start === 0 && end === 0) return [];
   return orders.filter(o => {
-    const t = new Date(o.createdAt).getTime();
+    const t = new Date(o.created_at).getTime();
     return t >= start && t <= end;
   });
 }
@@ -54,7 +54,7 @@ export function computeMetrics(filteredOrders: Order[]) {
   let totalSales = 0, totalCOGS = 0, totalDeliveryCost = 0;
   revenueOrders.forEach(order => {
     totalSales += order.total;
-    totalDeliveryCost += order.shippingAmount || 0;
+    totalDeliveryCost += order.shipping_amount || 0;
     order.items.forEach(item => {
       const cost = item.product.cost ? parseFloat(item.product.cost.toString()) : 0;
       totalCOGS += cost * item.quantity;

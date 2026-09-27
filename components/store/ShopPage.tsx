@@ -221,7 +221,7 @@ export default function ShopPage({
                 <ProductCard
                   key={product.id}
                   product={product}
-                  currencySymbol={activeSettings.currencySymbol}
+                  currencySymbol={activeSettings.currency_symbol}
                   settings={activeSettings}
                   priority={index < 6}
                 />

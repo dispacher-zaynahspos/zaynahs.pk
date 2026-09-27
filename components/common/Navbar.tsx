@@ -42,15 +42,15 @@ export default function Navbar({
   const isAdmin = pathname?.startsWith('/admin') && pathname !== '/admin/settings/customizer/preview';
 
   // Load and fallback settings values
-  const storeName = settings?.storeName ?? propStoreName;
-  const settingsTimestamp = settings?.updatedAt ? new Date(settings.updatedAt).getTime() : '';
-  const rawLogoUrl = settings?.logoUrl ?? propLogoUrl;
+  const storeName = settings?.store_name ?? propStoreName;
+  const settingsTimestamp = settings?.updated_at ? new Date(settings.updated_at).getTime() : '';
+  const rawLogoUrl = settings?.logo_url ?? propLogoUrl;
   const logoUrl = rawLogoUrl && settingsTimestamp ? `${rawLogoUrl}?v=${settingsTimestamp}` : rawLogoUrl;
-  const logoWidth = settings?.logoWidth ?? propLogoWidth;
+  const logoWidth = settings?.logo_width ?? propLogoWidth;
 
   // Header options defaults
-  const headerStickyDesktop = settings?.headerStickyDesktop ?? true;
-  const headerStickyMobile = settings?.headerStickyMobile ?? true;
+  const headerStickyDesktop = settings?.header_sticky_desktop ?? true;
+  const headerStickyMobile = settings?.header_sticky_mobile ?? true;
 
   const stickyClass = (headerStickyDesktop && headerStickyMobile)
     ? 'sticky top-0'
@@ -59,31 +59,31 @@ export default function Navbar({
       : headerStickyMobile
         ? 'sticky top-0 md:relative'
         : 'relative';
-  const showTopBar = settings?.headerShowTopBar ?? true;
-  const topBarPhone = settings?.headerTopBarPhone ?? '';
-  const topBarEmail = settings?.headerTopBarEmail ?? '';
-  const showNewsletter = settings?.headerShowNewsletter ?? true;
-  const newsletterText = settings?.headerNewsletterText ?? 'Summer sale discount off 50%. Shop Sale';
+  const showTopBar = settings?.header_show_top_bar ?? true;
+  const topBarPhone = settings?.header_top_bar_phone ?? '';
+  const topBarEmail = settings?.header_top_bar_email ?? '';
+  const showNewsletter = settings?.header_show_newsletter ?? true;
+  const newsletterText = settings?.header_newsletter_text ?? 'Summer sale discount off 50%. Shop Sale';
 
-  const topBarBg = settings?.headerTopBarBg ?? '#d97706';
-  const topBarTextColor = settings?.headerTopBarTextColor ?? '#ffffff';
-  const headerBg = settings?.headerBg ?? '#ffffff';
-  const headerTextColor = settings?.headerTextColor ?? '#1a1a2e';
-  const headerBorderColor = settings?.headerBorderColor ?? '#e5e7eb';
+  const topBarBg = settings?.header_top_bar_bg ?? '#d97706';
+  const topBarTextColor = settings?.header_top_bar_text_color ?? '#ffffff';
+  const headerBg = settings?.header_bg ?? '#ffffff';
+  const headerTextColor = settings?.header_text_color ?? '#1a1a2e';
+  const headerBorderColor = settings?.header_border_color ?? '#e5e7eb';
 
   // Desktop alignments
-  const desktopLogoAlign = settings?.headerDesktopLogoAlign ?? 'left';
-  const desktopSearchAlign = settings?.headerDesktopSearchAlign ?? 'right';
-  const desktopWishlistAlign = settings?.headerDesktopWishlistAlign ?? 'right';
-  const desktopCartAlign = settings?.headerDesktopCartAlign ?? 'right';
-  const desktopThemeAlign = settings?.headerDesktopThemeAlign ?? 'right';
+  const desktopLogoAlign = settings?.header_desktop_logo_align ?? 'left';
+  const desktopSearchAlign = settings?.header_desktop_search_align ?? 'right';
+  const desktopWishlistAlign = settings?.header_desktop_wishlist_align ?? 'right';
+  const desktopCartAlign = settings?.header_desktop_cart_align ?? 'right';
+  const desktopThemeAlign = settings?.header_desktop_theme_align ?? 'right';
 
   // Mobile logo alignment
   const mobileLogoAlign = 'center';
-  const mobileMenuAlign = settings?.headerMobileMenuAlign ?? 'left';
-  const mobileSearchAlign = settings?.headerMobileSearchAlign ?? 'right';
-  const mobileCartAlign = settings?.headerMobileCartAlign ?? 'right';
-  const mobileWishlistAlign = settings?.headerMobileWishlistAlign ?? 'hidden';
+  const mobileMenuAlign = settings?.header_mobile_menu_align ?? 'left';
+  const mobileSearchAlign = settings?.header_mobile_search_align ?? 'right';
+  const mobileCartAlign = settings?.header_mobile_cart_align ?? 'right';
+  const mobileWishlistAlign = settings?.header_mobile_wishlist_align ?? 'hidden';
 
   // Mobile menu states
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -102,9 +102,9 @@ export default function Navbar({
   const navContainerRef = useRef<HTMLDivElement>(null);
   const [visibleCount, setVisibleCount] = useState<number>(999);
 
-  const navigationMenu: NavigationItem[] = settings?.navigationMenu ?? [];
+  const navigationMenu: NavigationItem[] = settings?.navigation_menu ?? [];
   const navItems: NavigationItem[] = useMemo(() => navigationMenu, [navigationMenu]);
-  const headerDesktopMenuAlign = settings?.headerDesktopMenuAlign ?? 'center';
+  const headerDesktopMenuAlign = settings?.header_desktop_menu_align ?? 'center';
 
   const {
     searchQuery,

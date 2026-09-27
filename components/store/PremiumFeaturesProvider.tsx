@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { StoreSettings } from '@/lib/types';
-import { addWhatsAppSubscriberClient } from '@/lib/services/sections-client';
+import { addWhatsAppSubscriberAction } from '@/lib/services/sections/subscribe-actions';
 import { Gift } from '@/components/common/Icons';
 import { toast } from 'sonner';
 import { usePathname } from 'next/navigation';
@@ -111,7 +111,7 @@ export default function PremiumFeaturesProvider({ settings }: PremiumFeaturesPro
 
     try {
       setIsSpinning(true);
-      await addWhatsAppSubscriberClient(spinPhone, spinName || undefined, spinEmail || undefined, 'wheel');
+      await addWhatsAppSubscriberAction(spinPhone, spinName || undefined, spinEmail || undefined, 'wheel');
     } catch (err) {
       console.error(err);
       toast.error('Could not save WhatsApp subscriber. Please try again.');
@@ -174,7 +174,7 @@ export default function PremiumFeaturesProvider({ settings }: PremiumFeaturesPro
     }
 
     try {
-      await addWhatsAppSubscriberClient(exitPhone, exitName || undefined, exitEmail || undefined, 'exit_intent');
+      await addWhatsAppSubscriberAction(exitPhone, exitName || undefined, exitEmail || undefined, 'exit_intent');
       setExitSubscribed(true);
       toast.success('Successfully subscribed! Enjoy your discount.');
     } catch (err) {

@@ -26,7 +26,7 @@ export default function RecentBuyerTicker({
     <div className="fixed bottom-24 left-4 z-[110] flex items-center max-w-[280px] sm:max-w-xs p-3 bg-white dark:bg-[#16162a] border border-gray-100 dark:border-gray-800/80 rounded-2xl shadow-xl transition-all duration-500 animate-slide-up">
       <Link href={`/product/${product.slug}`} className="flex items-center gap-3 w-full">
         {product.images?.[0]?.url && (
-          <div className={`relative w-12 flex-shrink-0 bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden ${getSharedAspectClass(settings?.imageAspectRatio)}`}>
+          <div className={`relative w-12 flex-shrink-0 bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden ${getSharedAspectClass(settings?.image_aspect_ratio)}`}>
             <Image
               src={product.images?.[0]?.url}
               alt={product.name}

@@ -30,14 +30,14 @@ export default function ManualProductPicker({
     let list = products;
 
     if (settingsSource === 'featured') {
-      list = list.filter((p) => p.isFeatured);
+      list = list.filter((p) => p.is_featured);
     } else if (settingsSource && settingsSource !== 'all') {
       list = list.filter(
         (p) =>
-          p.categoryId === settingsSource ||
+          p.category_id === settingsSource ||
           p.category?.slug === settingsSource ||
           p.category?.id === settingsSource ||
-          p.productCategories?.some(
+          p.product_categories?.some(
             (pc: any) => pc.categoryId === settingsSource || pc.category?.slug === settingsSource
           )
       );

@@ -86,11 +86,11 @@ export function FlashSaleSection({ section, products, currencySymbol, settings, 
     .filter(p => 
       fsProducts.some((fsp: any) => fsp.productId === p.id) ||
       categoryDiscounts.some((cd: any) => 
-        cd.categoryId === p.categoryId || 
+        cd.categoryId === p.category_id || 
         cd.categoryId === p.category?.slug || 
         cd.categoryId === 'shop' || 
         p.category?.id === cd.categoryId ||
-        p.productCategories?.some((pc: any) => pc.categoryId === cd.categoryId || pc.category?.slug === cd.categoryId)
+        p.product_categories?.some((pc: any) => pc.categoryId === cd.categoryId || pc.category?.slug === cd.categoryId)
       )
     )
       .sort((a, b) => {
@@ -105,10 +105,10 @@ export function FlashSaleSection({ section, products, currencySymbol, settings, 
         // Category Order Sort
         if (sortMethod === 'category') {
           const catIdxA = categoryDiscounts.findIndex((cd: any) => 
-            cd.categoryId === a.categoryId || cd.categoryId === a.category?.slug || cd.categoryId === 'shop' || a.category?.id === cd.categoryId || a.productCategories?.some((pc: any) => pc.categoryId === cd.categoryId || pc.category?.slug === cd.categoryId)
+            cd.categoryId === a.category_id || cd.categoryId === a.category?.slug || cd.categoryId === 'shop' || a.category?.id === cd.categoryId || a.product_categories?.some((pc: any) => pc.categoryId === cd.categoryId || pc.category?.slug === cd.categoryId)
           );
           const catIdxB = categoryDiscounts.findIndex((cd: any) => 
-            cd.categoryId === b.categoryId || cd.categoryId === b.category?.slug || cd.categoryId === 'shop' || b.category?.id === cd.categoryId || b.productCategories?.some((pc: any) => pc.categoryId === cd.categoryId || pc.category?.slug === cd.categoryId)
+            cd.categoryId === b.category_id || cd.categoryId === b.category?.slug || cd.categoryId === 'shop' || b.category?.id === cd.categoryId || b.product_categories?.some((pc: any) => pc.categoryId === cd.categoryId || pc.category?.slug === cd.categoryId)
           );
           if (catIdxA !== -1 && catIdxB !== -1 && catIdxA !== catIdxB) {
             return catIdxA - catIdxB;
@@ -117,9 +117,9 @@ export function FlashSaleSection({ section, products, currencySymbol, settings, 
 
         // Apply standard sorting for category matches
         if (sortMethod === 'newest') {
-          return new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime();
+          return new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime();
         } else if (sortMethod === 'oldest') {
-          return new Date(a.createdAt || '').getTime() - new Date(b.createdAt || '').getTime();
+          return new Date(a.created_at || '').getTime() - new Date(b.created_at || '').getTime();
         } else if (sortMethod === 'price_low') {
           return a.price - b.price;
         } else if (sortMethod === 'price_high') {
@@ -130,7 +130,7 @@ export function FlashSaleSection({ section, products, currencySymbol, settings, 
           return b.name.localeCompare(a.name);
         }
         
-        return (b.createdAt || '').localeCompare(a.createdAt || '');
+        return (b.created_at || '').localeCompare(a.created_at || '');
       });
 
   const baseLimit = section.settings?.limit || 8;

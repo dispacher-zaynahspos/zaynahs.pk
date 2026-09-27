@@ -74,6 +74,7 @@ export default function MobileBottomNav() {
             <Link
               key={item.label}
               href={item.href}
+              prefetch={true}
               id={
                 item.label === 'Wishlist' ? 'mobile-bottom-wishlist-icon' :
                 item.label === 'Cart' ? 'mobile-bottom-cart-icon' :

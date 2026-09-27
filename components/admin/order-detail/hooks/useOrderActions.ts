@@ -16,11 +16,11 @@ export function useOrderActions(
   const router = useRouter();
   const { confirm } = useConfirm();
 
-  const [staffNoteInput, setStaffNoteInput] = useState(order.staffNotes || '');
+  const [staffNoteInput, setStaffNoteInput] = useState(order.staff_notes || '');
   const [isEditingTracking, setIsEditingTracking] = useState(false);
-  const [trackingNumber, setTrackingNumber] = useState(order.trackingNumber || '');
-  const [courierName, setCourierName] = useState(order.courierName || '');
-  const [trackingUrl, setTrackingUrl] = useState(order.trackingUrl || '');
+  const [trackingNumber, setTrackingNumber] = useState(order.tracking_number || '');
+  const [courierName, setCourierName] = useState(order.courier_name || '');
+  const [trackingUrl, setTrackingUrl] = useState(order.tracking_url || '');
 
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editingCommentText, setEditingCommentText] = useState('');
@@ -33,9 +33,9 @@ export function useOrderActions(
         type: 'status_change',
         message: `Order status updated to ${newStatus}`,
         notes: `Status changed from ${order.status} to ${newStatus}`,
-        createdAt: new Date().toISOString(),
+        created_at: new Date().toISOString(),
       };
-      const newLogs = [...(order.statusLogs || []), newLog];
+      const newLogs = [...(order.status_logs || []), newLog];
       const result = await updateOrderDetailsSafe(order.id, {
         status: newStatus,
         statusLogs: newLogs,
@@ -76,7 +76,7 @@ export function useOrderActions(
   };
 
   const handleCancelShipment = async () => {
-    const tn = order.trackingNumber;
+    const tn = order.tracking_number;
     if (!tn) return;
     const confirmed = await confirm({
       title: 'Cancel Shipment',
@@ -99,9 +99,9 @@ export function useOrderActions(
           type: 'status_change',
           message: `Shipment cancelled with PostEx`,
           notes: `Tracking ${tn} cancelled, order reverted to Pending`,
-          createdAt: new Date().toISOString(),
+          created_at: new Date().toISOString(),
         };
-        const updatedLogs = [...(order.statusLogs || []), cancelLog];
+        const updatedLogs = [...(order.status_logs || []), cancelLog];
         const result = await updateOrderDetailsSafe(order.id, {
           status: 'pending',
           trackingNumber: '',
@@ -133,9 +133,9 @@ export function useOrderActions(
         type: 'staff_note' as const,
         message: 'Admin commented',
         notes: staffNoteInput,
-        createdAt: new Date().toISOString(),
+        created_at: new Date().toISOString(),
       };
-      const updatedLogs = [...(order.statusLogs || []), newLog];
+      const updatedLogs = [...(order.status_logs || []), newLog];
 
       const result = await updateOrderDetailsSafe(order.id, {
         statusLogs: updatedLogs,
@@ -177,7 +177,7 @@ export function useOrderActions(
   };
 
   const handleDeleteTimelineComment = async (logId: string) => {
-    if (!order.statusLogs) return;
+    if (!order.status_logs) return;
     const confirmed = await confirm({
       title: 'Delete Comment',
       message: 'Delete this comment?',
@@ -185,7 +185,7 @@ export function useOrderActions(
       confirmText: 'Delete',
     });
     if (!confirmed) return;
-    const newLogs = order.statusLogs.filter((l) => l.id !== logId);
+    const newLogs = order.status_logs.filter((l) => l.id !== logId);
     try {
       setIsUpdating(true);
       const result = await updateOrderDetailsSafe(order.id, { statusLogs: newLogs });
@@ -200,8 +200,8 @@ export function useOrderActions(
   };
 
   const handleUpdateTimelineComment = async (logId: string) => {
-    if (!order.statusLogs) return;
-    const newLogs = order.statusLogs.map((l) =>
+    if (!order.status_logs) return;
+    const newLogs = order.status_logs.map((l) =>
       l.id === logId ? { ...l, notes: editingCommentText } : l
     );
     try {

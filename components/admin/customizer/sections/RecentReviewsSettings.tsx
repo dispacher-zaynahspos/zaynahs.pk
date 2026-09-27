@@ -35,7 +35,7 @@ export default function RecentReviewsSettings({
     if (pickerSearch.trim()) {
       const q = pickerSearch.toLowerCase();
       list = list.filter(r =>
-        r.customerName.toLowerCase().includes(q) ||
+        r.customer_name.toLowerCase().includes(q) ||
         (r.comment && r.comment.toLowerCase().includes(q)) ||
         (r.productName && r.productName.toLowerCase().includes(q))
       );
@@ -165,7 +165,7 @@ export default function RecentReviewsSettings({
                   />
                   <div className="flex-1 min-w-0">
                     <div className="text-xs font-semibold text-gray-900 dark:text-white truncate">
-                      {r.customerName}
+                      {r.customer_name}
                       <span className="text-[10px] text-amber-500 ml-1">{renderStars(r.rating)}</span>
                     </div>
                     <div className="text-[10px] text-gray-400 truncate">
@@ -197,7 +197,7 @@ export default function RecentReviewsSettings({
                   <GripVertical className="h-3.5 w-3.5 text-gray-400 cursor-grab shrink-0" />
                   <div className="flex-1 min-w-0">
                     <div className="text-[11px] font-bold text-gray-900 dark:text-white truncate">
-                      {r.customerName}
+                      {r.customer_name}
                       <span className="text-[10px] text-amber-500 ml-1">{renderStars(r.rating)}</span>
                     </div>
                   </div>

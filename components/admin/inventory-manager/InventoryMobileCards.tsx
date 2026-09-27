@@ -49,7 +49,7 @@ export function InventoryMobileCards({
     <div className="md:hidden space-y-4">
       {paginatedProducts.map(product => {
         const isExpanded = expandedProducts[product.id] ?? false;
-        const originalThreshold = product.inventoryThreshold !== undefined && product.inventoryThreshold !== null ? product.inventoryThreshold : 5;
+        const originalThreshold = product.inventory_threshold !== undefined && product.inventory_threshold !== null ? product.inventory_threshold : 5;
         
         const isStockModified = pendingProductStock[product.id] !== undefined && String(pendingProductStock[product.id]) !== String(product.stock);
         const currentStockVal = pendingProductStock[product.id] !== undefined ? pendingProductStock[product.id] : product.stock;
@@ -59,11 +59,11 @@ export function InventoryMobileCards({
         const currentThresholdVal = pendingProductThreshold[product.id] !== undefined ? pendingProductThreshold[product.id] : originalThreshold;
         const effectiveThreshold = isThresholdModified ? (parseInt(String(currentThresholdVal), 10) || 0) : originalThreshold;
 
-        const anyVariantStockModified = product.hasVariants && product.variants?.some(
+        const anyVariantStockModified = product.has_variants && product.variants?.some(
           v => pendingVariantStock[v.id] !== undefined && String(pendingVariantStock[v.id]) !== String(v.stock)
         );
 
-        const computedTotalStockWithVariants = product.hasVariants && product.variants
+        const computedTotalStockWithVariants = product.has_variants && product.variants
           ? product.variants.reduce((sum, v) => {
               const pVal = pendingVariantStock[v.id];
               return sum + (pVal !== undefined ? (parseInt(String(pVal), 10) || 0) : v.stock);
@@ -73,11 +73,11 @@ export function InventoryMobileCards({
         const effectiveProductForStatus: Product = {
           ...product,
           stock: computedTotalStockWithVariants,
-          inventoryThreshold: effectiveThreshold,
-          variants: product.hasVariants && product.variants ? product.variants.map(v => ({
+          inventory_threshold: effectiveThreshold,
+          variants: product.has_variants && product.variants ? product.variants.map(v => ({
             ...v,
             stock: pendingVariantStock[v.id] !== undefined ? (parseInt(String(pendingVariantStock[v.id]), 10) || 0) : v.stock,
-            inventoryThreshold: pendingVariantThreshold[v.id] !== undefined ? (parseInt(String(pendingVariantThreshold[v.id]), 10) || 0) : (v.inventoryThreshold ?? 5),
+            inventoryThreshold: pendingVariantThreshold[v.id] !== undefined ? (parseInt(String(pendingVariantThreshold[v.id]), 10) || 0) : (v.inventory_threshold ?? 5),
           })) : product.variants,
         };
 
@@ -97,10 +97,10 @@ export function InventoryMobileCards({
                 />
                 <div>
                   <div className="text-sm font-bold text-gray-900 dark:text-white leading-tight">{product.name}</div>
-                  {product.productCategories && product.productCategories.length > 0 ? (
+                  {product.product_categories && product.product_categories.length > 0 ? (
                     <div className="flex flex-wrap gap-1 mt-1">
-                      {product.productCategories.map((pc) => pc.category ? (
-                        <span key={pc.categoryId} className="inline-flex items-center px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/20 text-[10px] font-bold text-indigo-600 dark:text-indigo-400">
+                      {product.product_categories.map((pc) => pc.category ? (
+                        <span key={pc.category_id} className="inline-flex items-center px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/20 text-[10px] font-bold text-indigo-600 dark:text-indigo-400">
                           {pc.category.name}
                         </span>
                       ) : null)}
@@ -123,7 +123,7 @@ export function InventoryMobileCards({
             </div>
 
             {/* Stock Editors / Variant Toggle */}
-            {product.hasVariants ? (
+            {product.has_variants ? (
               <div className="space-y-3">
                 <div className="flex items-center justify-between bg-gray-50 dark:bg-[#0f0f1b] p-3 rounded-xl">
                   <span className={`text-xs font-bold ${anyVariantStockModified ? 'text-amber-600 dark:text-amber-400' : 'text-gray-500 dark:text-gray-400'}`}>

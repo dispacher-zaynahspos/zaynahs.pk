@@ -25,11 +25,11 @@ export async function POST(req: NextRequest) {
     if (forcedProvider && keys.text[forcedProvider]) {
       const result = await routeText(prompt, systemPrompt, {
         [forcedProvider]: keys.text[forcedProvider],
-      });
+      }, settings.content_model);
       return NextResponse.json(result);
     }
 
-    const result = await routeText(prompt, systemPrompt, keys.text);
+    const result = await routeText(prompt, systemPrompt, keys.text, settings.content_model);
     if (!result) {
       return NextResponse.json({ error: 'All text providers failed' }, { status: 503 });
     }

@@ -55,7 +55,7 @@ export const TrashReviewsTable: React.FC<TrashReviewsTableProps> = ({
                 />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
-                    <h4 className="font-bold text-gray-900 dark:text-white truncate">{review.customerName}</h4>
+                    <h4 className="font-bold text-gray-900 dark:text-white truncate">{review.customer_name}</h4>
                     <div className="flex items-center text-amber-400">
                       <Star className="h-3.5 w-3.5 fill-amber-400" />
                       <span className="text-xs font-bold ml-1">{review.rating}</span>
@@ -75,7 +75,7 @@ export const TrashReviewsTable: React.FC<TrashReviewsTableProps> = ({
                   <span>Restore</span>
                 </button>
                 <button
-                  onClick={() => setConfirmDelete({ id: review.id, type: 'reviews', name: `Review by ${review.customerName}` })}
+                  onClick={() => setConfirmDelete({ id: review.id, type: 'reviews', name: `Review by ${review.customer_name}` })}
                   disabled={isPending}
                   className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-950/40 dark:hover:bg-red-900/60 dark:text-red-400 transition-all active:scale-95 disabled:opacity-50"
                 >
@@ -123,7 +123,7 @@ export const TrashReviewsTable: React.FC<TrashReviewsTableProps> = ({
                       className="h-4 w-4 rounded border-gray-300 text-[#e94560] focus:ring-[#e94560] cursor-pointer"
                     />
                   </td>
-                  <td className="p-4 font-bold text-gray-900 dark:text-white">{review.customerName}</td>
+                  <td className="p-4 font-bold text-gray-900 dark:text-white">{review.customer_name}</td>
                   <td className="p-4 text-gray-500 font-semibold text-xs">{review.productName || 'Unknown Product'}</td>
                   <td className="p-4">
                     <div className="flex items-center text-amber-400">
@@ -142,7 +142,7 @@ export const TrashReviewsTable: React.FC<TrashReviewsTableProps> = ({
                       <span>Restore</span>
                     </button>
                     <button
-                      onClick={() => setConfirmDelete({ id: review.id, type: 'reviews', name: `Review by ${review.customerName}` })}
+                      onClick={() => setConfirmDelete({ id: review.id, type: 'reviews', name: `Review by ${review.customer_name}` })}
                       disabled={isPending}
                       className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-950/40 dark:hover:bg-red-900/60 dark:text-red-400 transition-all active:scale-95 disabled:opacity-50"
                     >

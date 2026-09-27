@@ -54,10 +54,10 @@ export function useSettingsPopupsAndPixels({ initialSettings }: UseSettingsPopup
   const [flashSaleStartDate, setFlashSaleStartDate] = useState(initialSettings.flash_sale_start_date || '');
   const [flashSaleEndDate, setFlashSaleEndDate] = useState(initialSettings.flash_sale_end_date || '');
   const [globalFlashSaleDiscountType, setGlobalFlashSaleDiscountType] = useState(
-    initialSettings.globalFlashSaleDiscountType || 'percentage'
+    initialSettings.global_flash_sale_discount_type || 'percentage'
   );
   const [globalFlashSaleDiscountValue, setGlobalFlashSaleDiscountValue] = useState(
-    initialSettings.globalFlashSaleDiscountValue || 0
+    initialSettings.global_flash_sale_discount_value || 0
   );
   const [socialFeedsEnabled, setSocialFeedsEnabled] = useState(initialSettings.social_feeds_enabled ?? true);
   const [cartTimerEnabled, setCartTimerEnabled] = useState(initialSettings.cart_timer_enabled ?? true);
@@ -94,8 +94,8 @@ export function useSettingsPopupsAndPixels({ initialSettings }: UseSettingsPopup
   // SEO & Social States
   const [twitterHandle, setTwitterHandle] = useState(initialSettings.twitter_handle || '');
   const [metaTitleSuffix, setMetaTitleSuffix] = useState(initialSettings.meta_title_suffix || '');
-  const [metaTitle, setMetaTitle] = useState(initialSettings.metaTitle || '');
-  const [metaDescription, setMetaDescription] = useState(initialSettings.metaDescription || '');
+  const [metaTitle, setMetaTitle] = useState(initialSettings.meta_title || '');
+  const [metaDescription, setMetaDescription] = useState(initialSettings.meta_description || '');
 
   // Advanced Recent Buyers & Popups states
   const [recentBuyersNames, setRecentBuyersNames] = useState(initialSettings.recent_buyers_names || '');

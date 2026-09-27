@@ -87,7 +87,7 @@ export function HeroSlideItem({
       {slideImage && (
         <img
           src={getPresetImageUrl(slideImage, 'hero')}
-          alt={slide.title || section.title || settings.storeName}
+          alt={slide.title || section.title || settings.store_name}
           className={`${slideClass} w-full h-full object-cover select-none pointer-events-none absolute inset-0 z-0 ${
             hasVideo && loadedMedia[slide.id] ? 'opacity-0' : 'opacity-100'
           }`}

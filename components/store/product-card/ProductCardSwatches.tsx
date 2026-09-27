@@ -33,7 +33,7 @@ export const ProductCardSwatches: React.FC<ProductCardSwatchesProps> = ({
   onHoverImage,
   onSelectAttribute,
 }) => {
-  const isSwatchesEnabled = settings?.enableVariantSwatches !== false;
+  const isSwatchesEnabled = settings?.enable_variant_swatches !== false;
   const showVariation1 = isSwatchesEnabled && (settings?.card_show_swatches !== false);
   const showVariation2 = isSwatchesEnabled && (settings?.card_show_sizes !== false);
   const showVariation3 = isSwatchesEnabled && (settings?.card_show_materials !== false);
@@ -46,7 +46,7 @@ export const ProductCardSwatches: React.FC<ProductCardSwatchesProps> = ({
     if (group.type === 'color') {
       return (
         <div key="colors" className={`flex items-center gap-1.5 flex-wrap ${swatchAlign}`}>
-          {group.variants.slice(0, settings?.swatchLimit ?? 8).map((v, i) => {
+          {group.variants.slice(0, settings?.swatch_limit ?? 8).map((v, i) => {
             const isActive = currentVariant?.color === v.color;
             const sSizeClass = getSwatchClasses('color', archiveSwatchSize, '');
             return (
@@ -54,7 +54,7 @@ export const ProductCardSwatches: React.FC<ProductCardSwatchesProps> = ({
                 key={i}
                 type="button"
                 title={v.color}
-                onMouseEnter={() => v.imageUrl ? onHoverImage(getPresetImageUrl(v.imageUrl, 'card')) : null}
+                onMouseEnter={() => v.image_url ? onHoverImage(getPresetImageUrl(v.image_url, 'card')) : null}
                 onMouseLeave={() => onHoverImage(null)}
                 onClick={(e) => {
                   e.preventDefault();
@@ -67,14 +67,14 @@ export const ProductCardSwatches: React.FC<ProductCardSwatchesProps> = ({
                   shadow-sm ${isActive ? 'scale-110' : 'hover:scale-110'}
                 `}
                 style={{
-                  ...getSwatchStyle(v.colorHex),
+                  ...getSwatchStyle(v.color_hex),
                   borderColor: isActive ? 'var(--color-accent)' : 'var(--color-border)',
                   boxShadow: isActive ? '0 0 0 1.5px var(--color-accent)' : 'none',
                 }}
               >
-                {v.imageUrl && (v.showImageSwatch || !v.colorHex) && (
+                {v.image_url && (v.show_image_swatch || !v.color_hex) && (
                   <img
-                    src={v.imageUrl}
+                    src={v.image_url}
                     alt={v.color || ''}
                     className="w-full h-full object-cover"
                   />
@@ -82,9 +82,9 @@ export const ProductCardSwatches: React.FC<ProductCardSwatchesProps> = ({
               </button>
             );
           })}
-          {group.variants.length > (settings?.swatchLimit ?? 8) && (
+          {group.variants.length > (settings?.swatch_limit ?? 8) && (
             <span className="text-[10px] text-gray-400 font-semibold">
-              +{group.variants.length - (settings?.swatchLimit ?? 8)}
+              +{group.variants.length - (settings?.swatch_limit ?? 8)}
             </span>
           )}
         </div>
@@ -93,13 +93,13 @@ export const ProductCardSwatches: React.FC<ProductCardSwatchesProps> = ({
       const attrKey = group.type === 'size' ? 'size' : group.type === 'material' ? 'material' : 'customValue';
       return (
         <div key={group.type} className={`flex items-center gap-1.5 flex-wrap ${swatchAlign}`}>
-          {group.variants.slice(0, settings?.swatchLimit ?? 8).map((v, i) => {
-            const val = group.type === 'size' ? v.size : group.type === 'material' ? v.material : v.customValue;
+          {group.variants.slice(0, settings?.swatch_limit ?? 8).map((v, i) => {
+            const val = group.type === 'size' ? v.size : group.type === 'material' ? v.material : v.custom_value;
             const isActive = group.type === 'size'
               ? currentVariant?.size === v.size
               : group.type === 'material'
                 ? currentVariant?.material === v.material
-                : currentVariant?.customValue === v.customValue;
+                : currentVariant?.custom_value === v.custom_value;
             const sSizeClass = getSwatchClasses('text', archiveSwatchSize, val || '');
             return (
               <button
@@ -127,9 +127,9 @@ export const ProductCardSwatches: React.FC<ProductCardSwatchesProps> = ({
               </button>
             );
           })}
-          {group.variants.length > (settings?.swatchLimit ?? 8) && (
+          {group.variants.length > (settings?.swatch_limit ?? 8) && (
             <span className="text-[9px] text-gray-400 font-semibold">
-              +{group.variants.length - (settings?.swatchLimit ?? 8)}
+              +{group.variants.length - (settings?.swatch_limit ?? 8)}
             </span>
           )}
         </div>

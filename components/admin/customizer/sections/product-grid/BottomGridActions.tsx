@@ -78,6 +78,27 @@ export default function BottomGridActions({
         </div>
       )}
 
+      {/* Infinite Scroll Toggle */}
+      <div className="flex items-center justify-between">
+        <div>
+          <span className="text-[11px] font-bold text-gray-700 dark:text-gray-300 block">
+            Enable Infinite Scroll
+          </span>
+          <span className="text-[10px] text-gray-400">
+            Auto-load next products when user scrolls down
+          </span>
+        </div>
+        <label className="relative inline-flex items-center cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={settings.bottomEnableInfiniteScroll === true}
+            onChange={(e) => handleSettingsChange('bottomEnableInfiniteScroll', e.target.checked)}
+            className="sr-only peer"
+          />
+          <div className="w-10 h-5 bg-gray-200 dark:bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#e94560]" />
+        </label>
+      </div>
+
       <div className="flex items-center justify-between">
         <label className="text-[11px] font-bold text-gray-700 dark:text-gray-300">
           Enable Bottom Load More Button
@@ -89,7 +110,7 @@ export default function BottomGridActions({
             onChange={(e) => handleSettingsChange('bottomEnableLoadMore', e.target.checked)}
             className="sr-only peer"
           />
-          <div className="w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#e94560]" />
+          <div className="w-10 h-5 bg-gray-200 dark:bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#e94560]" />
         </label>
       </div>
 

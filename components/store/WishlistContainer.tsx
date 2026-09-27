@@ -64,7 +64,7 @@ export default function WishlistContainer({ products, settings }: WishlistContai
 
       {wishlistedProducts.length > 0 ? (
         <div className="animate-fade-in">
-          <ProductGrid products={wishlistedProducts} currencySymbol={settings.currencySymbol} settings={settings} />
+          <ProductGrid products={wishlistedProducts} currencySymbol={settings.currency_symbol} settings={settings} />
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center py-16 text-center space-y-4 bg-white dark:bg-[#16162a] border border-gray-100 dark:border-gray-800 rounded-2xl shadow-sm p-8 transition-colors">

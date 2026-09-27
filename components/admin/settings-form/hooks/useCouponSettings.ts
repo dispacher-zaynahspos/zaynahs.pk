@@ -26,9 +26,9 @@ export function useCouponSettings() {
       if (editingCouponId) {
         const updated = await updateCoupon(editingCouponId, {
           code: couponCode,
-          discountType: couponDiscountType,
+          discount_type: couponDiscountType,
           value: couponValue,
-          minCartAmount: couponMinCartAmount,
+          min_cart_amount: couponMinCartAmount,
           active: couponActive
         });
         setCoupons(prev => prev.map(c => c.id === editingCouponId ? updated : c));
@@ -36,9 +36,9 @@ export function useCouponSettings() {
       } else {
         const created = await createCoupon({
           code: couponCode,
-          discountType: couponDiscountType,
+          discount_type: couponDiscountType,
           value: couponValue,
-          minCartAmount: couponMinCartAmount,
+          min_cart_amount: couponMinCartAmount,
           active: couponActive
         });
         setCoupons(prev => [created, ...prev]);
@@ -58,9 +58,9 @@ export function useCouponSettings() {
   const handleEditCoupon = (coupon: Coupon) => {
     setEditingCouponId(coupon.id);
     setCouponCode(coupon.code);
-    setCouponDiscountType(coupon.discountType);
+    setCouponDiscountType(coupon.discount_type);
     setCouponValue(coupon.value);
-    setCouponMinCartAmount(coupon.minCartAmount || 0);
+    setCouponMinCartAmount(coupon.min_cart_amount || 0);
     setCouponActive(coupon.active);
   };
 

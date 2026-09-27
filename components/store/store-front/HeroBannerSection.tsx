@@ -17,11 +17,11 @@ export { parseVideoUrl };
 export function HeroBannerSection({ section, settings }: HeroBannerSectionProps) {
   const styles = useHeroBannerStyles(section);
 
-  const settingsTimestamp = settings?.updatedAt ? new Date(settings.updatedAt).getTime() : '';
+  const settingsTimestamp = settings?.updated_at ? new Date(settings.updated_at).getTime() : '';
   const bannerUrl =
-    settings?.bannerUrl && settingsTimestamp
-      ? `${settings.bannerUrl}?v=${settingsTimestamp}`
-      : settings?.bannerUrl || '';
+    settings?.banner_url && settingsTimestamp
+      ? `${settings.banner_url}?v=${settingsTimestamp}`
+      : settings?.banner_url || '';
 
   // Carousel options
   const isAutoplay = section.settings?.autoplay ?? true;

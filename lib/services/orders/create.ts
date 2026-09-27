@@ -136,7 +136,7 @@ export const createOrder = async (order: {
         id: crypto.randomUUID(),
         type: 'creation',
         message: 'Order created clicked by customer on WhatsApp',
-        createdAt: new Date().toISOString()
+        created_at: new Date().toISOString()
       }
     ];
 
@@ -169,7 +169,7 @@ export const createOrder = async (order: {
         type: 'payment',
         message: `Payment of Rs. ${order.total.toLocaleString()} processed via ${paymentMethod}`,
         notes: 'Status: Paid',
-        createdAt: new Date().toISOString()
+        created_at: new Date().toISOString()
       });
     }
 

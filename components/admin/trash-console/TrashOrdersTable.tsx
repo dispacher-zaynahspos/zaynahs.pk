@@ -57,8 +57,8 @@ export const TrashOrdersTable: React.FC<TrashOrdersTableProps> = ({
                   <ClipboardList className="h-6 w-6 text-gray-400" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h4 className="font-bold text-gray-900 dark:text-white truncate">Order #{order.orderNumber}</h4>
-                  <p className="text-xs text-gray-500 truncate">{order.customerName} ({order.customerPhone})</p>
+                  <h4 className="font-bold text-gray-900 dark:text-white truncate">Order #{order.order_number}</h4>
+                  <p className="text-xs text-gray-500 truncate">{order.customer_name} ({order.customer_phone})</p>
                   <p className="text-xs font-bold text-gray-800 dark:text-gray-200 mt-0.5">Total: PKR {order.total}</p>
                 </div>
               </div>
@@ -72,7 +72,7 @@ export const TrashOrdersTable: React.FC<TrashOrdersTableProps> = ({
                   <span>Restore</span>
                 </button>
                 <button
-                  onClick={() => setConfirmDelete({ id: order.id, type: 'orders', name: `Order #${order.orderNumber}` })}
+                  onClick={() => setConfirmDelete({ id: order.id, type: 'orders', name: `Order #${order.order_number}` })}
                   disabled={isPending}
                   className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-950/40 dark:hover:bg-red-900/60 dark:text-red-400 transition-all active:scale-95 disabled:opacity-50"
                 >
@@ -120,9 +120,9 @@ export const TrashOrdersTable: React.FC<TrashOrdersTableProps> = ({
                       className="h-4 w-4 rounded border-gray-300 text-[#e94560] focus:ring-[#e94560] cursor-pointer"
                     />
                   </td>
-                  <td className="p-4 font-mono font-bold text-gray-900 dark:text-white">#{order.orderNumber}</td>
-                  <td className="p-4 font-semibold text-gray-900 dark:text-white">{order.customerName}</td>
-                  <td className="p-4 text-gray-500 font-mono text-xs">{order.customerPhone}</td>
+                  <td className="p-4 font-mono font-bold text-gray-900 dark:text-white">#{order.order_number}</td>
+                  <td className="p-4 font-semibold text-gray-900 dark:text-white">{order.customer_name}</td>
+                  <td className="p-4 text-gray-500 font-mono text-xs">{order.customer_phone}</td>
                   <td className="p-4 font-bold text-gray-900 dark:text-white">PKR {order.total}</td>
                   <td className="p-4 text-right space-x-2">
                     <button
@@ -134,7 +134,7 @@ export const TrashOrdersTable: React.FC<TrashOrdersTableProps> = ({
                       <span>Restore</span>
                     </button>
                     <button
-                      onClick={() => setConfirmDelete({ id: order.id, type: 'orders', name: `Order #${order.orderNumber}` })}
+                      onClick={() => setConfirmDelete({ id: order.id, type: 'orders', name: `Order #${order.order_number}` })}
                       disabled={isPending}
                       className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-950/40 dark:hover:bg-red-900/60 dark:text-red-400 transition-all active:scale-95 disabled:opacity-50"
                     >

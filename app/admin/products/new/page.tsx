@@ -29,15 +29,15 @@ export default async function NewProductPage({ searchParams }: PageProps) {
   if (duplicate) {
     const original = await getProductById(duplicate);
     if (original) {
-      const { id, createdAt, updatedAt, meta_sync_status, meta_sync_error, meta_last_synced_at, ...rest } = original;
+      const { id, created_at, updated_at, meta_sync_status, meta_sync_error, meta_last_synced_at, ...rest } = original;
       initialProduct = {
         ...rest,
         id: '',
         slug: `${original.slug}-copy-${Date.now()}`,
         sku: original.sku ? `${original.sku}-copy` : '',
         name: `${original.name} (Copy)`,
-        createdAt: '',
-        updatedAt: '',
+        created_at: '',
+        updated_at: '',
         meta_sync_status: 'pending' as const,
         meta_sync_error: undefined,
         meta_last_synced_at: undefined,
@@ -62,7 +62,7 @@ export default async function NewProductPage({ searchParams }: PageProps) {
           <span>Back to Products</span>
         </Link>
       </div>
-      <ProductForm categories={categories} initialProduct={initialProduct} aiEnabled={settings.ai_enabled} storeUrl={settings.storeUrl || undefined} />
+      <ProductForm categories={categories} initialProduct={initialProduct} aiEnabled={settings.ai_enabled} storeUrl={settings.store_url || undefined} />
     </div>
   );
 }

@@ -11,6 +11,8 @@ interface TrustBadgesConfigProps {
   setFreeShippingText: (val: string) => void;
   promoCodeText: string;
   setPromoCodeText: (val: string) => void;
+  enableSafeCheckout: boolean;
+  setEnableSafeCheckout: (val: boolean) => void;
   safeCheckoutText: string;
   setSafeCheckoutText: (val: string) => void;
   safeCheckoutMethods: string[];
@@ -26,6 +28,8 @@ export default function TrustBadgesConfig({
   setFreeShippingText,
   promoCodeText,
   setPromoCodeText,
+  enableSafeCheckout,
+  setEnableSafeCheckout,
   safeCheckoutText,
   setSafeCheckoutText,
   safeCheckoutMethods,
@@ -85,58 +89,76 @@ export default function TrustBadgesConfig({
               className="mt-1.5 w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-[#0f0f1b]/50 px-4 py-2.5 text-sm font-semibold text-gray-900 dark:text-white focus:outline-none focus:border-[#e94560]"
             />
           </div>
+        </div>
+      )}
 
-          <div className="border-t border-gray-100 dark:border-gray-800 pt-3 space-y-2">
-            <label className="block text-xs font-bold uppercase tracking-wider text-gray-500">
-              Safe Checkout Title
+      {/* Safe Checkout — independent toggle (does not depend on Trust Badges) */}
+      <div className="flex items-center justify-between border-t border-gray-100 dark:border-gray-800 pt-4">
+        <span className="text-sm font-bold text-gray-800 dark:text-gray-200">
+          Enable Safe Checkout Badges
+        </span>
+        <label className="relative inline-flex items-center cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={enableSafeCheckout}
+            onChange={(e) => setEnableSafeCheckout(e.target.checked)}
+            className="sr-only peer"
+          />
+          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#e94560]" />
+        </label>
+      </div>
+
+      {enableSafeCheckout && (
+        <div className="space-y-2 pt-1 animate-fade-in">
+          <label className="block text-xs font-bold uppercase tracking-wider text-gray-500">
+            Safe Checkout Title
+          </label>
+          <input
+            type="text"
+            value={safeCheckoutText}
+            onChange={(e) => setSafeCheckoutText(e.target.value)}
+            className="mt-1.5 w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-[#0f0f1b]/50 px-4 py-2.5 text-sm font-semibold text-gray-900 dark:text-white focus:outline-none focus:border-[#e94560]"
+          />
+
+          {/* Checkboxes for payment methods */}
+          <div className="pt-2">
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400">
+              Payment Badges to Display
             </label>
-            <input
-              type="text"
-              value={safeCheckoutText}
-              onChange={(e) => setSafeCheckoutText(e.target.value)}
-              className="mt-1.5 w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-[#0f0f1b]/50 px-4 py-2.5 text-sm font-semibold text-gray-900 dark:text-white focus:outline-none focus:border-[#e94560]"
-            />
-
-            {/* Checkboxes for payment methods */}
-            <div className="pt-2">
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400">
-                Payment Badges to Display
-              </label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-1.5">
-                {[
-                  { code: 'visa', label: 'Visa' },
-                  { code: 'mastercard', label: 'Mastercard' },
-                  { code: 'amex', label: 'Amex' },
-                  { code: 'paypal', label: 'PayPal' },
-                  { code: 'klarna', label: 'Klarna' },
-                  { code: 'cirrus', label: 'Cirrus' },
-                  { code: 'westernunion', label: 'Western Union' },
-                  { code: 'cod', label: '💵 Cash on Delivery' },
-                  { code: 'easypaisa', label: 'EasyPaisa' },
-                  { code: 'jazzcash', label: 'JazzCash' },
-                  { code: 'banktransfer', label: '🏦 Bank Transfer' },
-                ].map(({ code, label }) => {
-                  const isChecked = safeCheckoutMethods.includes(code);
-                  return (
-                    <label
-                      key={code}
-                      className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-gray-700 dark:text-gray-300 select-none"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={isChecked}
-                        onChange={() => {
-                          setSafeCheckoutMethods((prev) =>
-                            isChecked ? prev.filter((m) => m !== code) : [...prev, code]
-                          );
-                        }}
-                        className="rounded border-gray-300 dark:border-gray-700 text-[#e94560] focus:ring-[#e94560] h-3.5 w-3.5"
-                      />
-                      <span>{label}</span>
-                    </label>
-                  );
-                })}
-              </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-1.5">
+              {[
+                { code: 'visa', label: 'Visa' },
+                { code: 'mastercard', label: 'Mastercard' },
+                { code: 'amex', label: 'Amex' },
+                { code: 'paypal', label: 'PayPal' },
+                { code: 'klarna', label: 'Klarna' },
+                { code: 'cirrus', label: 'Cirrus' },
+                { code: 'westernunion', label: 'Western Union' },
+                { code: 'cod', label: '💵 Cash on Delivery' },
+                { code: 'easypaisa', label: 'EasyPaisa' },
+                { code: 'jazzcash', label: 'JazzCash' },
+                { code: 'banktransfer', label: '🏦 Bank Transfer' },
+              ].map(({ code, label }) => {
+                const isChecked = safeCheckoutMethods.includes(code);
+                return (
+                  <label
+                    key={code}
+                    className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-gray-700 dark:text-gray-300 select-none"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isChecked}
+                      onChange={() => {
+                        setSafeCheckoutMethods((prev) =>
+                          isChecked ? prev.filter((m) => m !== code) : [...prev, code]
+                        );
+                      }}
+                      className="rounded border-gray-300 dark:border-gray-700 text-[#e94560] focus:ring-[#e94560] h-3.5 w-3.5"
+                    />
+                    <span>{label}</span>
+                  </label>
+                );
+              })}
             </div>
           </div>
         </div>

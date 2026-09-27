@@ -11,8 +11,8 @@ export const updateProductVariantFields = async (
     const updatePayload: Record<string, any> = {};
     if (fields.stock !== undefined) updatePayload.stock = fields.stock;
     if (fields.price !== undefined) updatePayload.price = fields.price;
-    if (fields.comparePrice !== undefined) updatePayload.compare_price = fields.comparePrice;
-    if (fields.inventoryThreshold !== undefined) updatePayload.inventory_threshold = fields.inventoryThreshold;
+    if (fields.compare_price !== undefined) updatePayload.compare_price = fields.compare_price;
+    if (fields.inventory_threshold !== undefined) updatePayload.inventory_threshold = fields.inventory_threshold;
     if (fields.sku !== undefined) updatePayload.sku = fields.sku;
     if (fields.active !== undefined) updatePayload.active = fields.active;
 

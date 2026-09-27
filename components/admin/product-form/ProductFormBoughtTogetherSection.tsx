@@ -88,7 +88,7 @@ export const ProductFormBoughtTogetherSection: React.FC<ProductFormBoughtTogethe
               (v.color && v.color.toLowerCase().includes(q)) ||
               (v.size && v.size.toLowerCase().includes(q)) ||
               (v.material && v.material.toLowerCase().includes(q)) ||
-              (v.customValue && v.customValue.toLowerCase().includes(q))
+              (v.custom_value && v.custom_value.toLowerCase().includes(q))
             ))
           );
 

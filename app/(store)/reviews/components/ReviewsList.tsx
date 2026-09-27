@@ -120,12 +120,12 @@ export default function ReviewsList({
                     <div className="flex items-center gap-2 mt-0.5">
                       <div className="flex items-center">
                         <span className="text-xs font-bold text-gray-700 dark:text-gray-300 mr-1.5">
-                          {review.customerName}
+                          {review.customer_name}
                         </span>
                         <StarRating rating={review.rating} showText={true} starSize={13} />
                       </div>
                       <span className="text-[11px] text-gray-400 font-medium">
-                        - {formatDate(review.createdAt)}
+                        - {formatDate(review.created_at)}
                       </span>
                     </div>
                   </div>
@@ -141,8 +141,8 @@ export default function ReviewsList({
                   const photoList =
                     Array.isArray(review.images) && review.images.length > 0
                       ? review.images
-                      : review.screenshotUrl
-                      ? [review.screenshotUrl]
+                      : review.screenshot_url
+                      ? [review.screenshot_url]
                       : [];
 
                   if (photoList.length === 0) return null;

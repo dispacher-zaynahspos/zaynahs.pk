@@ -49,18 +49,18 @@ export const customCss = `
     /* Image swap base states — global transitions for all hover effects */
     .z-card-container .hover-fade-out {
       opacity: 1;
-      transition: opacity 0.35s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), filter 0.35s ease;
+      transition: opacity 0.35s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), filter 0.35s ease !important;
       backface-visibility: hidden;
       -webkit-backface-visibility: hidden;
     }
     .z-card-container .hover-fade-in {
       opacity: 0;
-      transition: opacity 0.35s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), filter 0.35s ease;
+      transition: opacity 0.35s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), filter 0.35s ease !important;
       backface-visibility: hidden;
       -webkit-backface-visibility: hidden;
     }
     .z-card-container .hover-zoom {
-      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
     }
 
     /* Style-specific initial states for secondary image */
@@ -83,6 +83,126 @@ export const customCss = `
       transform: rotateY(180deg);
     }
 
+    /* ── ACTIVE / FOCUSED CARD STATE (Universal: Mobile scroll focus, tap focus & Studio simulator) ── */
+    /* 1. Reveal Action Icons */
+    .z-card-container.is-in-focus .card-actions,
+    .z-card-container.is-in-focus .aic,
+    .z-card-container.active-card .card-actions,
+    .z-card-container.active-card .aic {
+      opacity: 1 !important;
+      transform: translate3d(0, 0, 0) !important;
+      pointer-events: auto !important;
+    }
+
+    /* Staggered in-animation for action buttons */
+    .z-card-container.is-in-focus .card-actions > *:nth-child(1),
+    .z-card-container.is-in-focus .aic > *:nth-child(1),
+    .z-card-container.active-card .card-actions > *:nth-child(1),
+    .z-card-container.active-card .aic > *:nth-child(1) {
+      transition-delay: 0ms !important;
+    }
+    .z-card-container.is-in-focus .card-actions > *:nth-child(2),
+    .z-card-container.is-in-focus .aic > *:nth-child(2),
+    .z-card-container.active-card .card-actions > *:nth-child(2),
+    .z-card-container.active-card .aic > *:nth-child(2) {
+      transition-delay: 40ms !important;
+    }
+    .z-card-container.is-in-focus .card-actions > *:nth-child(3),
+    .z-card-container.is-in-focus .aic > *:nth-child(3),
+    .z-card-container.active-card .card-actions > *:nth-child(3),
+    .z-card-container.active-card .aic > *:nth-child(3) {
+      transition-delay: 80ms !important;
+    }
+
+    /* 2. Title color highlights on focused card */
+    .z-card-container.is-in-focus .product-card-title,
+    .z-card-container.is-in-focus .card-title,
+    .z-card-container.active-card .product-card-title,
+    .z-card-container.active-card .card-title {
+      color: var(--color-primary, #C2185B) !important;
+      transition: color 0.25s ease !important;
+    }
+
+    /* 3. Image Hover Effects triggered on focused card */
+    /* Style 1: Zoom */
+    .z-card-container.is-in-focus[data-hover-effect="zoom"] .hover-zoom,
+    .z-card-container.active-card[data-hover-effect="zoom"] .hover-zoom {
+      transform: scale(1.06) !important;
+    }
+
+    /* Style 2: Second Image (Fade Swap) */
+    .z-card-container.is-in-focus[data-hover-effect="second_image"] .hover-fade-out,
+    .z-card-container.active-card[data-hover-effect="second_image"] .hover-fade-out,
+    .z-card-container.is-in-focus:not([data-hover-effect]) .hover-fade-out,
+    .z-card-container.active-card:not([data-hover-effect]) .hover-fade-out {
+      opacity: 0 !important;
+    }
+    .z-card-container.is-in-focus[data-hover-effect="second_image"] .hover-fade-in,
+    .z-card-container.active-card[data-hover-effect="second_image"] .hover-fade-in,
+    .z-card-container.is-in-focus:not([data-hover-effect]) .hover-fade-in,
+    .z-card-container.active-card:not([data-hover-effect]) .hover-fade-in {
+      opacity: 1 !important;
+    }
+
+    /* Style 3: Slide Left (Zara Style) */
+    .z-card-container.is-in-focus[data-hover-effect="slide_left"] .hover-fade-out,
+    .z-card-container.active-card[data-hover-effect="slide_left"] .hover-fade-out {
+      transform: translateX(-100%) !important;
+      opacity: 0 !important;
+    }
+    .z-card-container.is-in-focus[data-hover-effect="slide_left"] .hover-fade-in,
+    .z-card-container.active-card[data-hover-effect="slide_left"] .hover-fade-in {
+      transform: translateX(0) !important;
+      opacity: 1 !important;
+    }
+
+    /* Style 4: Zoom & Swap (Luxury Editorial) */
+    .z-card-container.is-in-focus[data-hover-effect="zoom_swap"] .hover-fade-out,
+    .z-card-container.active-card[data-hover-effect="zoom_swap"] .hover-fade-out {
+      transform: scale(1.1) !important;
+      opacity: 0 !important;
+    }
+    .z-card-container.is-in-focus[data-hover-effect="zoom_swap"] .hover-fade-in,
+    .z-card-container.active-card[data-hover-effect="zoom_swap"] .hover-fade-in {
+      transform: scale(1.0) !important;
+      opacity: 1 !important;
+    }
+
+    /* Style 5: Fade & Rise (Upward Drift) */
+    .z-card-container.is-in-focus[data-hover-effect="fade_up"] .hover-fade-out,
+    .z-card-container.active-card[data-hover-effect="fade_up"] .hover-fade-out {
+      opacity: 0 !important;
+    }
+    .z-card-container.is-in-focus[data-hover-effect="fade_up"] .hover-fade-in,
+    .z-card-container.active-card[data-hover-effect="fade_up"] .hover-fade-in {
+      transform: translateY(0) !important;
+      opacity: 1 !important;
+    }
+
+    /* Style 6: Blur & Crossfade (Apple Aesthetic) */
+    .z-card-container.is-in-focus[data-hover-effect="blur_crossfade"] .hover-fade-out,
+    .z-card-container.active-card[data-hover-effect="blur_crossfade"] .hover-fade-out {
+      filter: blur(5px) !important;
+      opacity: 0 !important;
+    }
+    .z-card-container.is-in-focus[data-hover-effect="blur_crossfade"] .hover-fade-in,
+    .z-card-container.active-card[data-hover-effect="blur_crossfade"] .hover-fade-in {
+      filter: blur(0px) !important;
+      opacity: 1 !important;
+    }
+
+    /* Style 7: 3D Flip (Jewelry & Accessories) */
+    .z-card-container.is-in-focus[data-hover-effect="flip_3d"] .hover-fade-out,
+    .z-card-container.active-card[data-hover-effect="flip_3d"] .hover-fade-out {
+      transform: rotateY(-180deg) !important;
+      opacity: 0 !important;
+    }
+    .z-card-container.is-in-focus[data-hover-effect="flip_3d"] .hover-fade-in,
+    .z-card-container.active-card[data-hover-effect="flip_3d"] .hover-fade-in {
+      transform: rotateY(0deg) !important;
+      opacity: 1 !important;
+    }
+
     /* Desktop hover: mouse/trackpad only */
     @media (hover: hover) and (pointer: fine) {
       .z-card-container:hover .card-actions,
@@ -94,70 +214,98 @@ export const customCss = `
         pointer-events: auto !important;
       }
       .z-card-container:hover .product-card-title,
-      .z-card-container:hover .card-title {
+      .z-card-container:hover .card-title,
+      .group:hover .product-card-title,
+      .group:hover .card-title {
         color: var(--color-primary, #C2185B) !important;
       }
 
       /* Style 1: Zoom */
       .z-card-container:hover[data-hover-effect="zoom"] .hover-zoom,
+      .z-card-container[data-hover-effect="zoom"]:hover .hover-zoom,
+      .group:hover[data-hover-effect="zoom"] .hover-zoom,
       .z-card-container:hover .hover-zoom {
         transform: scale(1.06);
       }
       /* Style 2: Second Image (Fade Swap) */
       .z-card-container:hover[data-hover-effect="second_image"] .hover-fade-out,
+      .z-card-container[data-hover-effect="second_image"]:hover .hover-fade-out,
+      .group:hover[data-hover-effect="second_image"] .hover-fade-out,
       .z-card-container:hover:not([data-hover-effect]) .hover-fade-out {
         opacity: 0 !important;
       }
       .z-card-container:hover[data-hover-effect="second_image"] .hover-fade-in,
+      .z-card-container[data-hover-effect="second_image"]:hover .hover-fade-in,
+      .group:hover[data-hover-effect="second_image"] .hover-fade-in,
       .z-card-container:hover:not([data-hover-effect]) .hover-fade-in {
         opacity: 1 !important;
       }
 
       /* Style 3: Slide Left (Zara Style) */
-      .z-card-container:hover[data-hover-effect="slide_left"] .hover-fade-out {
+      .z-card-container:hover[data-hover-effect="slide_left"] .hover-fade-out,
+      .z-card-container[data-hover-effect="slide_left"]:hover .hover-fade-out,
+      .group:hover[data-hover-effect="slide_left"] .hover-fade-out {
         transform: translateX(-100%);
         opacity: 0 !important;
       }
-      .z-card-container:hover[data-hover-effect="slide_left"] .hover-fade-in {
+      .z-card-container:hover[data-hover-effect="slide_left"] .hover-fade-in,
+      .z-card-container[data-hover-effect="slide_left"]:hover .hover-fade-in,
+      .group:hover[data-hover-effect="slide_left"] .hover-fade-in {
         transform: translateX(0) !important;
         opacity: 1 !important;
       }
 
       /* Style 4: Zoom & Swap (Luxury Editorial) */
-      .z-card-container:hover[data-hover-effect="zoom_swap"] .hover-fade-out {
+      .z-card-container:hover[data-hover-effect="zoom_swap"] .hover-fade-out,
+      .z-card-container[data-hover-effect="zoom_swap"]:hover .hover-fade-out,
+      .group:hover[data-hover-effect="zoom_swap"] .hover-fade-out {
         transform: scale(1.1);
         opacity: 0 !important;
       }
-      .z-card-container:hover[data-hover-effect="zoom_swap"] .hover-fade-in {
+      .z-card-container:hover[data-hover-effect="zoom_swap"] .hover-fade-in,
+      .z-card-container[data-hover-effect="zoom_swap"]:hover .hover-fade-in,
+      .group:hover[data-hover-effect="zoom_swap"] .hover-fade-in {
         transform: scale(1.0) !important;
         opacity: 1 !important;
       }
 
       /* Style 5: Fade & Rise (Upward Drift) */
-      .z-card-container:hover[data-hover-effect="fade_up"] .hover-fade-out {
+      .z-card-container:hover[data-hover-effect="fade_up"] .hover-fade-out,
+      .z-card-container[data-hover-effect="fade_up"]:hover .hover-fade-out,
+      .group:hover[data-hover-effect="fade_up"] .hover-fade-out {
         opacity: 0 !important;
       }
-      .z-card-container:hover[data-hover-effect="fade_up"] .hover-fade-in {
+      .z-card-container:hover[data-hover-effect="fade_up"] .hover-fade-in,
+      .z-card-container[data-hover-effect="fade_up"]:hover .hover-fade-in,
+      .group:hover[data-hover-effect="fade_up"] .hover-fade-in {
         transform: translateY(0) !important;
         opacity: 1 !important;
       }
 
       /* Style 6: Blur & Crossfade (Apple Aesthetic) */
-      .z-card-container:hover[data-hover-effect="blur_crossfade"] .hover-fade-out {
+      .z-card-container:hover[data-hover-effect="blur_crossfade"] .hover-fade-out,
+      .z-card-container[data-hover-effect="blur_crossfade"]:hover .hover-fade-out,
+      .group:hover[data-hover-effect="blur_crossfade"] .hover-fade-out {
         filter: blur(5px);
         opacity: 0 !important;
       }
-      .z-card-container:hover[data-hover-effect="blur_crossfade"] .hover-fade-in {
+      .z-card-container:hover[data-hover-effect="blur_crossfade"] .hover-fade-in,
+      .z-card-container[data-hover-effect="blur_crossfade"]:hover .hover-fade-in,
+      .group:hover[data-hover-effect="blur_crossfade"] .hover-fade-in {
         filter: blur(0px) !important;
         opacity: 1 !important;
       }
 
       /* Style 7: 3D Flip (Jewelry & Accessories) */
-      .z-card-container:hover[data-hover-effect="flip_3d"] .hover-fade-out {
+      .z-card-container:hover[data-hover-effect="flip_3d"] .hover-fade-out,
+      .z-card-container[data-hover-effect="flip_3d"]:hover .hover-fade-out,
+      .group:hover[data-hover-effect="flip_3d"] .hover-fade-out {
         transform: rotateY(-180deg) !important;
         opacity: 0 !important;
       }
-      .z-card-container:hover[data-hover-effect="flip_3d"] .hover-fade-in {
+      .z-card-container:hover[data-hover-effect="flip_3d"] .hover-fade-in,
+      .z-card-container[data-hover-effect="flip_3d"]:hover .hover-fade-in,
+      .group:hover[data-hover-effect="flip_3d"] .hover-fade-in {
         transform: rotateY(0deg) !important;
         opacity: 1 !important;
       }
@@ -243,125 +391,6 @@ export const customCss = `
         transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
       }
 
-      /* ── ACTIVE / FOCUSED CARD STATE (.is-in-focus / .active-card) ── */
-      /* 1. Reveal Action Icons with smooth slide-in */
-      .z-card-container.is-in-focus .card-actions,
-      .z-card-container.is-in-focus .aic,
-      .z-card-container.active-card .card-actions,
-      .z-card-container.active-card .aic {
-        opacity: 1 !important;
-        transform: translate3d(0, 0, 0) !important;
-        pointer-events: auto !important;
-      }
-
-      /* Staggered in-animation for action buttons */
-      .z-card-container.is-in-focus .card-actions > *:nth-child(1),
-      .z-card-container.is-in-focus .aic > *:nth-child(1),
-      .z-card-container.active-card .card-actions > *:nth-child(1),
-      .z-card-container.active-card .aic > *:nth-child(1) {
-        transition-delay: 0ms !important;
-      }
-      .z-card-container.is-in-focus .card-actions > *:nth-child(2),
-      .z-card-container.is-in-focus .aic > *:nth-child(2),
-      .z-card-container.active-card .card-actions > *:nth-child(2),
-      .z-card-container.active-card .aic > *:nth-child(2) {
-        transition-delay: 40ms !important;
-      }
-      .z-card-container.is-in-focus .card-actions > *:nth-child(3),
-      .z-card-container.is-in-focus .aic > *:nth-child(3),
-      .z-card-container.active-card .card-actions > *:nth-child(3),
-      .z-card-container.active-card .aic > *:nth-child(3) {
-        transition-delay: 80ms !important;
-      }
-
-      /* 2. Title color highlights on focused card */
-      .z-card-container.is-in-focus .product-card-title,
-      .z-card-container.is-in-focus .card-title,
-      .z-card-container.active-card .product-card-title,
-      .z-card-container.active-card .card-title {
-        color: var(--color-primary, #C2185B) !important;
-        transition: color 0.25s ease !important;
-      }
-
-      /* 3. Image Hover Effects triggered on focused card */
-      /* Style 1: Zoom */
-      .z-card-container.is-in-focus[data-hover-effect="zoom"] .hover-zoom,
-      .z-card-container.active-card[data-hover-effect="zoom"] .hover-zoom {
-        transform: scale(1.06) !important;
-      }
-
-      /* Style 2: Second Image (Fade Swap) */
-      .z-card-container.is-in-focus[data-hover-effect="second_image"] .hover-fade-out,
-      .z-card-container.active-card[data-hover-effect="second_image"] .hover-fade-out,
-      .z-card-container.is-in-focus:not([data-hover-effect]) .hover-fade-out,
-      .z-card-container.active-card:not([data-hover-effect]) .hover-fade-out {
-        opacity: 0 !important;
-      }
-      .z-card-container.is-in-focus[data-hover-effect="second_image"] .hover-fade-in,
-      .z-card-container.active-card[data-hover-effect="second_image"] .hover-fade-in,
-      .z-card-container.is-in-focus:not([data-hover-effect]) .hover-fade-in,
-      .z-card-container.active-card:not([data-hover-effect]) .hover-fade-in {
-        opacity: 1 !important;
-      }
-
-      /* Style 3: Slide Left (Zara Style) */
-      .z-card-container.is-in-focus[data-hover-effect="slide_left"] .hover-fade-out,
-      .z-card-container.active-card[data-hover-effect="slide_left"] .hover-fade-out {
-        transform: translateX(-100%) !important;
-        opacity: 0 !important;
-      }
-      .z-card-container.is-in-focus[data-hover-effect="slide_left"] .hover-fade-in,
-      .z-card-container.active-card[data-hover-effect="slide_left"] .hover-fade-in {
-        transform: translateX(0) !important;
-        opacity: 1 !important;
-      }
-
-      /* Style 4: Zoom & Swap (Luxury Editorial) */
-      .z-card-container.is-in-focus[data-hover-effect="zoom_swap"] .hover-fade-out,
-      .z-card-container.active-card[data-hover-effect="zoom_swap"] .hover-fade-out {
-        transform: scale(1.1) !important;
-        opacity: 0 !important;
-      }
-      .z-card-container.is-in-focus[data-hover-effect="zoom_swap"] .hover-fade-in,
-      .z-card-container.active-card[data-hover-effect="zoom_swap"] .hover-fade-in {
-        transform: scale(1.0) !important;
-        opacity: 1 !important;
-      }
-
-      /* Style 5: Fade & Rise (Upward Drift) */
-      .z-card-container.is-in-focus[data-hover-effect="fade_up"] .hover-fade-out,
-      .z-card-container.active-card[data-hover-effect="fade_up"] .hover-fade-out {
-        opacity: 0 !important;
-      }
-      .z-card-container.is-in-focus[data-hover-effect="fade_up"] .hover-fade-in,
-      .z-card-container.active-card[data-hover-effect="fade_up"] .hover-fade-in {
-        transform: translateY(0) !important;
-        opacity: 1 !important;
-      }
-
-      /* Style 6: Blur & Crossfade (Apple Aesthetic) */
-      .z-card-container.is-in-focus[data-hover-effect="blur_crossfade"] .hover-fade-out,
-      .z-card-container.active-card[data-hover-effect="blur_crossfade"] .hover-fade-out {
-        filter: blur(5px) !important;
-        opacity: 0 !important;
-      }
-      .z-card-container.is-in-focus[data-hover-effect="blur_crossfade"] .hover-fade-in,
-      .z-card-container.active-card[data-hover-effect="blur_crossfade"] .hover-fade-in {
-        filter: blur(0px) !important;
-        opacity: 1 !important;
-      }
-
-      /* Style 7: 3D Flip (Jewelry & Accessories) */
-      .z-card-container.is-in-focus[data-hover-effect="flip_3d"] .hover-fade-out,
-      .z-card-container.active-card[data-hover-effect="flip_3d"] .hover-fade-out {
-        transform: rotateY(-180deg) !important;
-        opacity: 0 !important;
-      }
-      .z-card-container.is-in-focus[data-hover-effect="flip_3d"] .hover-fade-in,
-      .z-card-container.active-card[data-hover-effect="flip_3d"] .hover-fade-in {
-        transform: rotateY(0deg) !important;
-        opacity: 1 !important;
-      }
     }
 
     .z-card-container .rat { display: flex; align-items: center; gap: 3px; margin-bottom: 3px; }

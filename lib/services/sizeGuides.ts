@@ -24,10 +24,10 @@ const mapSizeGuide = (row: SizeGuideRow): SizeGuide => ({
   id: row.id,
   name: row.name,
   chart_data: Array.isArray(row.chart_data) ? row.chart_data : [],
-  imageUrl: row.image_url || undefined,
-  createdAt: row.created_at,
-  updatedAt: row.updated_at,
-  deletedAt: row.deleted_at || null
+  image_url: row.image_url || undefined,
+  created_at: row.created_at,
+  updated_at: row.updated_at,
+  deleted_at: row.deleted_at || null
 });
 
 const fetchSizeGuides = async (): Promise<SizeGuide[]> => {
@@ -92,7 +92,7 @@ export const updateSizeGuide = async (
     const updatePayload: Record<string, any> = {};
     if (guide.name !== undefined) updatePayload.name = guide.name;
     if (guide.chart_data !== undefined) updatePayload.chart_data = guide.chart_data;
-    if (guide.imageUrl !== undefined) updatePayload.image_url = guide.imageUrl;
+    if (guide.image_url !== undefined) updatePayload.image_url = guide.image_url;
 
     const { data, error } = await supabase
       .from('size_guides')

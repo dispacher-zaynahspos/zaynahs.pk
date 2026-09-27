@@ -26,10 +26,10 @@ export async function getShippingMethods(onlyActive = false): Promise<ShippingMe
     id: row.id,
     name: row.name,
     cost: Number(row.cost),
-    estimatedDays: row.estimated_days,
+    estimated_days: row.estimated_days,
     active: row.active,
-    sortOrder: row.sort_order ?? 0,
-    createdAt: row.created_at
+    sort_order: row.sort_order ?? 0,
+    created_at: row.created_at
   }));
 }
 
@@ -76,10 +76,10 @@ export async function createShippingMethod(data: {
     id: row.id,
     name: row.name,
     cost: Number(row.cost),
-    estimatedDays: row.estimated_days,
+    estimated_days: row.estimated_days,
     active: row.active,
-    sortOrder: row.sort_order ?? 0,
-    createdAt: row.created_at
+    sort_order: row.sort_order ?? 0,
+    created_at: row.created_at
   };
 }
 
@@ -92,9 +92,9 @@ export async function updateShippingMethod(
   const updatePayload: any = {};
   if (data.name !== undefined) updatePayload.name = data.name;
   if (data.cost !== undefined) updatePayload.cost = data.cost;
-  if (data.estimatedDays !== undefined) updatePayload.estimated_days = data.estimatedDays;
+  if (data.estimated_days !== undefined) updatePayload.estimated_days = data.estimated_days;
   if (data.active !== undefined) updatePayload.active = data.active;
-  if (data.sortOrder !== undefined) updatePayload.sort_order = data.sortOrder;
+  if (data.sort_order !== undefined) updatePayload.sort_order = data.sort_order;
 
   const { data: row, error } = await supabase
     .from('shipping_methods')
@@ -113,10 +113,10 @@ export async function updateShippingMethod(
     id: row.id,
     name: row.name,
     cost: Number(row.cost),
-    estimatedDays: row.estimated_days,
+    estimated_days: row.estimated_days,
     active: row.active,
-    sortOrder: row.sort_order ?? 0,
-    createdAt: row.created_at
+    sort_order: row.sort_order ?? 0,
+    created_at: row.created_at
   };
 }
 

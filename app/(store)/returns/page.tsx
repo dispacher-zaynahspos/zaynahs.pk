@@ -9,8 +9,8 @@ export async function generateMetadata(): Promise<Metadata> {
   try {
     const brand = await getDomainBrand();
     const settings = await getSettings();
-    const siteUrl = settings?.storeUrl?.replace(/\/+$/, '') || process.env.NEXT_PUBLIC_SITE_URL || '';
-    const ogImage = settings.bannerUrl || settings.logoUrl || '';
+    const siteUrl = settings?.store_url?.replace(/\/+$/, '') || process.env.NEXT_PUBLIC_SITE_URL || '';
+    const ogImage = settings.banner_url || settings.logo_url || '';
     const title = `Return & Exchange Policy | ${brand.name}`;
     const description = `Read our return and exchange policy at ${brand.name}. We offer easy exchanges and returns to ensure you have the best experience.`;
     return {
@@ -27,7 +27,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function ReturnsPage() {
   const settings = await getSettings();
-  const content = settings.returnPolicyContent || '<h3>Return & Exchange Policy</h3><p>We are currently updating our Return Policy. Please check back later or contact us directly on WhatsApp!</p>';
+  const content = settings.return_policy_content || '<h3>Return & Exchange Policy</h3><p>We are currently updating our Return Policy. Please check back later or contact us directly on WhatsApp!</p>';
 
   // Check if string contains HTML tags
   const isHtml = /<[a-z][\s\S]*>/i.test(content);

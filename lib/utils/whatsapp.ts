@@ -9,35 +9,35 @@ export const generateWhatsAppMessage = (
 ): string => {
   const lines = items.map(item => {
     const variantParts = [];
-    if (item.selectedVariant?.color) variantParts.push(item.selectedVariant.color);
-    if (item.selectedVariant?.size) variantParts.push(item.selectedVariant.size);
-    if (item.selectedVariant?.material) variantParts.push(item.selectedVariant.material);
-    if (item.selectedVariant?.customValue) variantParts.push(item.selectedVariant.customValue);
+    if (item.selected_variant?.color) variantParts.push(item.selected_variant.color);
+    if (item.selected_variant?.size) variantParts.push(item.selected_variant.size);
+    if (item.selected_variant?.material) variantParts.push(item.selected_variant.material);
+    if (item.selected_variant?.custom_value) variantParts.push(item.selected_variant.custom_value);
 
     const variantStr = variantParts.length ? ` (${variantParts.join(', ')})` : '';
-    const modifierStr = item.selectedModifiers.length
-      ? ` + ${item.selectedModifiers.map(m => m.name).join(', ')}`
+    const modifierStr = item.selected_modifiers.length
+      ? ` + ${item.selected_modifiers.map(m => m.name).join(', ')}`
       : '';
 
-    const discountStr = item.discountAmount && item.discountAmount > 0 
-      ? ` (Discount: -${formatPrice(item.discountAmount, settings.currencySymbol)})` 
+    const discountStr = item.discount_amount && item.discount_amount > 0 
+      ? ` (Discount: -${formatPrice(item.discount_amount, settings.currency_symbol)})` 
       : '';
 
-    return `• ${item.product.name}${variantStr}${modifierStr} x${item.quantity}${discountStr} = ${formatPrice(item.total, settings.currencySymbol)}`;
+    return `• ${item.product.name}${variantStr}${modifierStr} x${item.quantity}${discountStr} = ${formatPrice(item.total, settings.currency_symbol)}`;
   });
 
   const total = items.reduce((sum, i) => sum + i.total, 0);
 
   return [
-    `*${settings.storeName}*`,
+    `*${settings.store_name}*`,
     ``,
-    settings.whatsappGreeting,
+    settings.whatsapp_greeting,
     ``,
     ...lines,
     ``,
-    `*Total: ${formatPrice(total, settings.currencySymbol)}*`,
+    `*Total: ${formatPrice(total, settings.currency_symbol)}*`,
     ``,
-    settings.whatsappFooter
+    settings.whatsapp_footer
   ].join('\n');
 };
 

@@ -57,10 +57,10 @@ export const useCartStore = create<CartStore>()(
             items: [...state.items, {
               id: cartItemId,
               product,
-              selectedVariant: variant,
-              selectedModifiers: modifiers,
+              selected_variant: variant,
+              selected_modifiers: modifiers,
               quantity: qty,
-              unitPrice,
+              unit_price: unitPrice,
               total: unitPrice * qty
             }]
           };
@@ -86,7 +86,7 @@ export const useCartStore = create<CartStore>()(
         set(state => ({
           items: state.items.map(i =>
             i.id === cartItemId
-              ? { ...i, quantity, total: i.unitPrice * quantity }
+              ? { ...i, quantity, total: i.unit_price * quantity }
               : i
           )
         }));
@@ -98,6 +98,27 @@ export const useCartStore = create<CartStore>()(
       resetCartTimer: () => set({ cartCreatedAt: new Date().toISOString() }),
       applyCoupon: (coupon) => set({ appliedCoupon: coupon }),
     }),
-    { name: 'zaynahs-cart' }
+    {
+      name: 'zaynahs-cart',
+      version: 1,
+      // Fool-proof migration: existing browsers have camelCase cart items in localStorage.
+      // Convert them to snake_case on load so NO cart is ever wiped (RULE D13 + no data loss).
+      migrate: (persisted: any, _version: number) => {
+        if (persisted && Array.isArray(persisted.items)) {
+          persisted.items = persisted.items.map((i: any) => ({
+            ...i,
+            selected_variant: i.selected_variant ?? i.selectedVariant,
+            selected_modifiers: i.selected_modifiers ?? i.selectedModifiers ?? [],
+            unit_price: i.unit_price ?? i.unitPrice,
+            total: i.total,
+            discount_amount: i.discount_amount ?? i.discountAmount,
+            discount_type: i.discount_type ?? i.discountType,
+            discount_value: i.discount_value ?? i.discountValue,
+            added_later: i.added_later ?? i.addedLater,
+          }));
+        }
+        return persisted;
+      },
+    }
   )
 );

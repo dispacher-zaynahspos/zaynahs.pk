@@ -60,8 +60,8 @@ export async function sendEmail({
       if (siteUrl && !siteUrl.includes('localhost') && !siteUrl.includes('127.0.0.1')) {
         const parsed = new URL(siteUrl);
         emailDomain = parsed.hostname.replace('www.', '');
-      } else if (settings.storeName) {
-        const cleaned = settings.storeName.toLowerCase().replace(/[^a-z0-9]/g, '');
+      } else if (settings.store_name) {
+        const cleaned = settings.store_name.toLowerCase().replace(/[^a-z0-9]/g, '');
         if (cleaned) {
           emailDomain = `${cleaned}.com`;
         }
@@ -74,7 +74,7 @@ export async function sendEmail({
     const customMessageId = `${randomId}@${emailDomain}`;
 
     const info = await transporter.sendMail({
-      from: `"${settings.smtp_from_name || settings.storeName}" <${settings.smtp_email}>`,
+      from: `"${settings.smtp_from_name || settings.store_name}" <${settings.smtp_email}>`,
       to,
       replyTo: settings.smtp_email,
       subject,

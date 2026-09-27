@@ -38,7 +38,7 @@ export default function OrderFinancialSummary({
     <div className="bg-gray-50 dark:bg-gray-900/30 -mx-5 -mb-5 px-5 py-5 border-t border-gray-100 dark:border-gray-800 space-y-4">
       <div className="flex justify-between items-center text-sm">
         <span className="text-gray-600 dark:text-gray-400 font-medium">Subtotal</span>
-        <span className="font-bold text-gray-900 dark:text-white">{formatPrice(subtotal, settings.currencySymbol)}</span>
+        <span className="font-bold text-gray-900 dark:text-white">{formatPrice(subtotal, settings.currency_symbol)}</span>
       </div>
       
       <div className="flex justify-between items-center text-sm gap-4">
@@ -58,7 +58,7 @@ export default function OrderFinancialSummary({
             onChange={e => setDiscountType(e.target.value as 'fixed' | 'percentage')}
             className="text-xs bg-transparent border-none text-gray-500 focus:ring-0 p-0 pr-4"
           >
-            <option value="fixed">{settings.currencySymbol}</option>
+            <option value="fixed">{settings.currency_symbol}</option>
             <option value="percentage">%</option>
           </select>
           <input 
@@ -83,7 +83,7 @@ export default function OrderFinancialSummary({
           <Truck className="w-4 h-4" /> Shipping
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-gray-500">+ {settings.currencySymbol}</span>
+          <span className="text-gray-500">+ {settings.currency_symbol}</span>
           <input 
             type="number" 
             min="0"
@@ -97,7 +97,7 @@ export default function OrderFinancialSummary({
       <div className="pt-3 border-t border-gray-200 dark:border-gray-700/50 flex justify-between items-center">
         <span className="font-bold text-gray-900 dark:text-white">Total</span>
         <span className="text-xl font-black text-indigo-600 dark:text-indigo-400">
-          {formatPrice(total, settings.currencySymbol)}
+          {formatPrice(total, settings.currency_symbol)}
         </span>
       </div>
     </div>

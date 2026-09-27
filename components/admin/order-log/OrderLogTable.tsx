@@ -97,7 +97,7 @@ export function OrderLogTable({
               >
                 <td className="block md:table-cell py-2 px-4 md:py-3" onClick={(e) => e.stopPropagation()}>
                   <div className="md:hidden flex items-center justify-between mb-2">
-                    <span className="font-bold text-gray-900 dark:text-white">Order {order.orderNumber}</span>
+                    <span className="font-bold text-gray-900 dark:text-white">Order {order.order_number}</span>
                     <input
                       type="checkbox"
                       checked={selectedOrderIds.includes(order.id)}
@@ -115,20 +115,20 @@ export function OrderLogTable({
                 {visibleColumns.includes('order') && (
                   <td className="hidden md:table-cell py-3 px-4 whitespace-nowrap min-w-[100px]">
                     <span className="text-[#2c6ecb] font-semibold hover:underline">
-                      {order.orderNumber}
+                      {order.order_number}
                     </span>
                   </td>
                 )}
                 {visibleColumns.includes('date') && (
                   <td className="block md:table-cell py-1 px-4 md:py-3 text-xs text-gray-500 font-medium">
                     <span className="md:hidden font-semibold text-gray-400 mr-2">Date:</span>
-                    {new Date(order.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    {new Date(order.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                   </td>
                 )}
                 {visibleColumns.includes('customer') && (
                   <td className="block md:table-cell py-1 px-4 md:py-3 font-medium text-gray-900 dark:text-white">
                     <span className="md:hidden font-semibold text-gray-400 mr-2">Customer:</span>
-                    {order.customerName || 'Guest'}
+                    {order.customer_name || 'Guest'}
                   </td>
                 )}
                 {visibleColumns.includes('channel') && (
@@ -139,7 +139,7 @@ export function OrderLogTable({
                 {visibleColumns.includes('total') && (
                   <td className="block md:table-cell py-1 px-4 md:py-3 whitespace-nowrap min-w-[120px] font-semibold text-gray-900 dark:text-white">
                     <span className="md:hidden font-semibold text-gray-400 mr-2">Total:</span>
-                    {formatPrice(order.total, settings.currencySymbol)}
+                    {formatPrice(order.total, settings.currency_symbol)}
                   </td>
                 )}
                 {visibleColumns.includes('paymentStatus') && (

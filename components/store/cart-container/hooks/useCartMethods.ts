@@ -27,10 +27,10 @@ export function useCartMethods() {
             id: r.id,
             name: r.name,
             cost: Number(r.cost),
-            estimatedDays: r.estimated_days,
+            estimated_days: r.estimated_days,
             active: r.active,
-            sortOrder: r.sort_order ?? 0,
-            createdAt: r.created_at,
+            sort_order: r.sort_order ?? 0,
+            created_at: r.created_at,
           }));
           setShippingMethods(shipList);
           if (shipList.length > 0) setSelectedShippingId(shipList[0].id);
@@ -39,10 +39,10 @@ export function useCartMethods() {
             id: 'fallback',
             name: 'Standard Delivery',
             cost: 200,
-            estimatedDays: '3–5 business days',
+            estimated_days: '3–5 business days',
             active: true,
-            sortOrder: 0,
-            createdAt: '',
+            sort_order: 0,
+            created_at: '',
           };
           setShippingMethods([fallback]);
           setSelectedShippingId('fallback');
@@ -62,8 +62,8 @@ export function useCartMethods() {
             code: r.code,
             active: r.active,
             instructions: r.instructions,
-            sortOrder: r.sort_order ?? 0,
-            createdAt: r.created_at,
+            sort_order: r.sort_order ?? 0,
+            created_at: r.created_at,
           }));
           setPaymentMethods(payList);
           if (payList.length > 0) setSelectedPaymentId(payList[0].id);
@@ -74,8 +74,8 @@ export function useCartMethods() {
             name: 'Cash on Delivery',
             code: 'cod',
             active: true,
-            sortOrder: 0,
-            createdAt: '',
+            sort_order: 0,
+            created_at: '',
           };
           setPaymentMethods([fallbackPay]);
           setSelectedPaymentId('cod-fallback');

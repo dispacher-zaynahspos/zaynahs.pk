@@ -14,8 +14,8 @@ export function useOrderCustomerEditing(
   const router = useRouter();
   const [isEditingCustomer, setIsEditingCustomer] = useState(false);
   const [isEditingNotes, setIsEditingNotes] = useState(false);
-  const [editCustomerName, setEditCustomerName] = useState(order.customerName || '');
-  const [editCustomerPhone, setEditCustomerPhone] = useState(order.customerPhone || '');
+  const [editCustomerName, setEditCustomerName] = useState(order.customer_name || '');
+  const [editCustomerPhone, setEditCustomerPhone] = useState(order.customer_phone || '');
 
   const [editAddress, setEditAddress] = useState('');
   const [editApt, setEditApt] = useState('');

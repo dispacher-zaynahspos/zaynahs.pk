@@ -28,8 +28,8 @@ export async function getPaymentMethods(onlyActive = false): Promise<PaymentMeth
     code: row.code,
     active: row.active,
     instructions: row.instructions,
-    sortOrder: row.sort_order ?? 0,
-    createdAt: row.created_at
+    sort_order: row.sort_order ?? 0,
+    created_at: row.created_at
   }));
 }
 
@@ -78,8 +78,8 @@ export async function createPaymentMethod(data: {
     code: row.code,
     active: row.active,
     instructions: row.instructions,
-    sortOrder: row.sort_order ?? 0,
-    createdAt: row.created_at
+    sort_order: row.sort_order ?? 0,
+    created_at: row.created_at
   };
 }
 
@@ -94,7 +94,7 @@ export async function updatePaymentMethod(
   if (data.code !== undefined) updatePayload.code = data.code.toLowerCase().trim();
   if (data.active !== undefined) updatePayload.active = data.active;
   if (data.instructions !== undefined) updatePayload.instructions = data.instructions;
-  if (data.sortOrder !== undefined) updatePayload.sort_order = data.sortOrder;
+  if (data.sort_order !== undefined) updatePayload.sort_order = data.sort_order;
 
   const { data: row, error } = await supabase
     .from('payment_methods')
@@ -115,8 +115,8 @@ export async function updatePaymentMethod(
     code: row.code,
     active: row.active,
     instructions: row.instructions,
-    sortOrder: row.sort_order ?? 0,
-    createdAt: row.created_at
+    sort_order: row.sort_order ?? 0,
+    created_at: row.created_at
   };
 }
 

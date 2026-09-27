@@ -63,7 +63,7 @@ export function InventoryTable({
           <tbody className="divide-y divide-gray-100 dark:divide-gray-800 text-xs">
             {paginatedProducts.map(product => {
               const isExpanded = expandedProducts[product.id] ?? false;
-              const originalThreshold = product.inventoryThreshold !== undefined && product.inventoryThreshold !== null ? product.inventoryThreshold : 5;
+              const originalThreshold = product.inventory_threshold !== undefined && product.inventory_threshold !== null ? product.inventory_threshold : 5;
               
               const isStockModified = pendingProductStock[product.id] !== undefined && String(pendingProductStock[product.id]) !== String(product.stock);
               const currentStockVal = pendingProductStock[product.id] !== undefined ? pendingProductStock[product.id] : product.stock;
@@ -73,11 +73,11 @@ export function InventoryTable({
               const currentThresholdVal = pendingProductThreshold[product.id] !== undefined ? pendingProductThreshold[product.id] : originalThreshold;
               const effectiveThreshold = isThresholdModified ? (parseInt(String(currentThresholdVal), 10) || 0) : originalThreshold;
 
-              const anyVariantStockModified = product.hasVariants && product.variants?.some(
+              const anyVariantStockModified = product.has_variants && product.variants?.some(
                 v => pendingVariantStock[v.id] !== undefined && String(pendingVariantStock[v.id]) !== String(v.stock)
               );
 
-              const computedTotalStockWithVariants = product.hasVariants && product.variants
+              const computedTotalStockWithVariants = product.has_variants && product.variants
                 ? product.variants.reduce((sum, v) => {
                     const pVal = pendingVariantStock[v.id];
                     return sum + (pVal !== undefined ? (parseInt(String(pVal), 10) || 0) : v.stock);
@@ -88,11 +88,11 @@ export function InventoryTable({
               const effectiveProductForStatus: Product = {
                 ...product,
                 stock: computedTotalStockWithVariants,
-                inventoryThreshold: effectiveThreshold,
-                variants: product.hasVariants && product.variants ? product.variants.map(v => ({
+                inventory_threshold: effectiveThreshold,
+                variants: product.has_variants && product.variants ? product.variants.map(v => ({
                   ...v,
                   stock: pendingVariantStock[v.id] !== undefined ? (parseInt(String(pendingVariantStock[v.id]), 10) || 0) : v.stock,
-                  inventoryThreshold: pendingVariantThreshold[v.id] !== undefined ? (parseInt(String(pendingVariantThreshold[v.id]), 10) || 0) : (v.inventoryThreshold ?? 5),
+                  inventoryThreshold: pendingVariantThreshold[v.id] !== undefined ? (parseInt(String(pendingVariantThreshold[v.id]), 10) || 0) : (v.inventory_threshold ?? 5),
                 })) : product.variants,
               };
               
@@ -100,7 +100,7 @@ export function InventoryTable({
                 <React.Fragment key={product.id}>
                   <tr className="hover:bg-gray-50/50 dark:hover:bg-[#1d1d36]/30 transition-colors">
                     <td className="py-2.5 px-2 text-center w-8">
-                      {product.hasVariants ? (
+                      {product.has_variants ? (
                         <button
                           type="button"
                           onClick={() => toggleExpand(product.id)}
@@ -123,10 +123,10 @@ export function InventoryTable({
                         />
                         <div className="min-w-0">
                           <div className="text-xs font-bold text-gray-900 dark:text-white truncate max-w-[200px] xl:max-w-xs">{product.name}</div>
-                          {product.productCategories && product.productCategories.length > 0 ? (
+                          {product.product_categories && product.product_categories.length > 0 ? (
                             <div className="flex flex-wrap gap-1 mt-0.5">
-                              {product.productCategories.map((pc) => pc.category ? (
-                                <span key={pc.categoryId} className="inline-flex items-center px-1.5 py-0.2 rounded-full bg-indigo-50 dark:bg-indigo-950/20 text-[9px] font-bold text-indigo-600 dark:text-indigo-400 leading-tight">
+                              {product.product_categories.map((pc) => pc.category ? (
+                                <span key={pc.category_id} className="inline-flex items-center px-1.5 py-0.2 rounded-full bg-indigo-50 dark:bg-indigo-950/20 text-[9px] font-bold text-indigo-600 dark:text-indigo-400 leading-tight">
                                   {pc.category.name}
                                 </span>
                               ) : null)}
@@ -143,7 +143,7 @@ export function InventoryTable({
                       {product.sku || '—'}
                     </td>
                     <td className="py-2.5 px-3">
-                      {product.hasVariants ? (
+                      {product.has_variants ? (
                         <div className="flex items-center gap-1.5">
                           <span className={`font-bold text-xs ${anyVariantStockModified ? 'text-amber-600 dark:text-amber-400 font-black' : 'text-gray-500 dark:text-gray-400'}`}>
                             {computedTotalStockWithVariants} (total across variants)
@@ -171,7 +171,7 @@ export function InventoryTable({
                       )}
                     </td>
                     <td className="py-4 px-4">
-                      {product.hasVariants ? (
+                      {product.has_variants ? (
                         <span className="text-xs text-gray-400">Set per variant</span>
                       ) : (
                         <div className="flex items-center gap-2 max-w-[120px]">
@@ -207,7 +207,7 @@ export function InventoryTable({
                   </tr>
 
                   {/* Expanded Variants Subtable */}
-                  {product.hasVariants && isExpanded && (
+                  {product.has_variants && isExpanded && (
                     <InventoryVariantSubtable
                       product={product}
                       selectedVariantIds={selectedVariantIds}

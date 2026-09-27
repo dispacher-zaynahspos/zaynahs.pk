@@ -58,7 +58,7 @@ export default function CartSuccessView({ placedOrder, settings, onContinueShopp
           </div>
           <div className="space-y-1">
             <span className="text-gray-400 dark:text-gray-500 font-bold uppercase tracking-wider block text-[10px]">Total:</span>
-            <strong className="text-gray-900 dark:text-white font-black">{formatPrice(placedOrder.total, settings.currencySymbol)}</strong>
+            <strong className="text-gray-900 dark:text-white font-black">{formatPrice(placedOrder.total, settings.currency_symbol)}</strong>
           </div>
           <div className="space-y-1">
             <span className="text-gray-400 dark:text-gray-500 font-bold uppercase tracking-wider block text-[10px]">Payment method:</span>
@@ -84,18 +84,18 @@ export default function CartSuccessView({ placedOrder, settings, onContinueShopp
           <h3 className="text-lg font-black text-gray-900 dark:text-white tracking-tight border-b border-gray-100 dark:border-gray-800 pb-2">Order details</h3>
           <div className="divide-y divide-gray-100 dark:divide-gray-800">
             {placedOrder.items.map((item: any) => {
-              const img = getPresetImageUrl(item.product.images?.find((i: any) => i.isPrimary)?.url || item.product.images?.[0]?.url || '', 'micro');
+              const img = getPresetImageUrl(item.product.images?.find((i: any) => i.is_primary)?.url || item.product.images?.[0]?.url || '', 'micro');
               const parts: string[] = [];
-              if (item.selectedVariant?.color) parts.push(item.selectedVariant.color);
-              if (item.selectedVariant?.size) parts.push(item.selectedVariant.size);
-              if (item.selectedVariant?.material) parts.push(item.selectedVariant.material);
-              if (item.selectedVariant?.customValue) parts.push(item.selectedVariant.customValue);
+              if (item.selected_variant?.color) parts.push(item.selected_variant.color);
+              if (item.selected_variant?.size) parts.push(item.selected_variant.size);
+              if (item.selected_variant?.material) parts.push(item.selected_variant.material);
+              if (item.selected_variant?.custom_value) parts.push(item.selected_variant.custom_value);
               const variantStr = parts.join(' · ');
 
               return (
                 <div key={item.id} className="flex items-center justify-between py-4 text-sm font-semibold">
                   <div className="flex items-center gap-3">
-                    <div className={`relative w-12 flex-shrink-0 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#0f0f1b] ${getSharedAspectClass(settings.imageAspectRatio)}`}>
+                    <div className={`relative w-12 flex-shrink-0 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#0f0f1b] ${getSharedAspectClass(settings.image_aspect_ratio)}`}>
                       {img ? (
                         <Image src={img} alt={item.product.name} fill className="object-cover" unoptimized />
                       ) : (
@@ -107,15 +107,15 @@ export default function CartSuccessView({ placedOrder, settings, onContinueShopp
                       {variantStr && (
                         <span className="text-xs text-gray-400 dark:text-gray-500 block font-semibold">{variantStr}</span>
                       )}
-                      {item.selectedModifiers && item.selectedModifiers.length > 0 && (
+                      {item.selected_modifiers && item.selected_modifiers.length > 0 && (
                         <span className="text-xs text-gray-400 dark:text-gray-500 block font-semibold">
-                          + {item.selectedModifiers.map((m: any) => m.name).join(', ')}
+                          + {item.selected_modifiers.map((m: any) => m.name).join(', ')}
                         </span>
                       )}
                       <span className="text-xs text-gray-400 font-bold block mt-0.5">Qty: {item.quantity}</span>
                     </div>
                   </div>
-                  <span className="text-gray-900 dark:text-white font-black">{formatPrice(item.unitPrice * item.quantity, settings.currencySymbol)}</span>
+                  <span className="text-gray-900 dark:text-white font-black">{formatPrice(item.unit_price * item.quantity, settings.currency_symbol)}</span>
                 </div>
               );
             })}
@@ -123,14 +123,14 @@ export default function CartSuccessView({ placedOrder, settings, onContinueShopp
             {/* Subtotal */}
             <div className="flex justify-between py-3.5 text-sm font-semibold">
               <span className="text-gray-500 dark:text-gray-400">Subtotal:</span>
-              <span className="text-gray-900 dark:text-white font-black">{formatPrice(placedOrder.subtotal, settings.currencySymbol)}</span>
+              <span className="text-gray-900 dark:text-white font-black">{formatPrice(placedOrder.subtotal, settings.currency_symbol)}</span>
             </div>
 
             {/* Discounts if any */}
             {placedOrder.discountAmount > 0 && (
               <div className="flex justify-between py-3.5 text-sm font-semibold text-emerald-500">
                 <span>Discount:</span>
-                <span>-{formatPrice(placedOrder.discountAmount, settings.currencySymbol)}</span>
+                <span>-{formatPrice(placedOrder.discountAmount, settings.currency_symbol)}</span>
               </div>
             )}
 
@@ -138,14 +138,14 @@ export default function CartSuccessView({ placedOrder, settings, onContinueShopp
             <div className="flex justify-between py-3.5 text-sm font-semibold">
               <span className="text-gray-500 dark:text-gray-400">Shipping:</span>
               <span className="text-gray-900 dark:text-white font-bold">
-                {formatPrice(placedOrder.shippingCost, settings.currencySymbol)} <span className="text-xs text-gray-400 font-semibold">via {placedOrder.shippingMethodName}</span>
+                {formatPrice(placedOrder.shippingCost, settings.currency_symbol)} <span className="text-xs text-gray-400 font-semibold">via {placedOrder.shippingMethodName}</span>
               </span>
             </div>
 
             {/* Total */}
             <div className="flex justify-between py-4 text-base font-black text-gray-900 dark:text-white">
               <span>Total:</span>
-              <span className="text-[#e94560] font-black text-lg">{formatPrice(placedOrder.total, settings.currencySymbol)}</span>
+              <span className="text-[#e94560] font-black text-lg">{formatPrice(placedOrder.total, settings.currency_symbol)}</span>
             </div>
 
             {/* Payment Method */}

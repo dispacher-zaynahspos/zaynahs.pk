@@ -16,8 +16,8 @@ export async function generateMetadata(): Promise<Metadata> {
   try {
     const brand = await getDomainBrand();
     const settings = await getSettings();
-    const siteUrl = settings?.storeUrl?.replace(/\/+$/, '') || process.env.NEXT_PUBLIC_SITE_URL || '';
-    const ogImage = settings.bannerUrl || settings.logoUrl || '';
+    const siteUrl = settings?.store_url?.replace(/\/+$/, '') || process.env.NEXT_PUBLIC_SITE_URL || '';
+    const ogImage = settings.banner_url || settings.logo_url || '';
     const title = `Customer Reviews | ${brand.name}`;
     const description = `Read authentic customer reviews and ratings at ${brand.name}. See what our customers are saying about our products.`;
     return {
@@ -48,7 +48,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function ReviewsPage({ searchParams }: PageProps) {
   const sp = await searchParams;
   const settings = await getSettings();
-  let siteUrl = settings?.storeUrl?.replace(/\/+$/, '') || '';
+  let siteUrl = settings?.store_url?.replace(/\/+$/, '') || '';
   if (!siteUrl) {
     try {
       const brand = await getDomainBrand();

@@ -143,8 +143,8 @@ export default function AbandonedCartDetailDrawer({
                 <div className="divide-y divide-gray-100 dark:divide-gray-800/60 px-5">
                   {selectedCart.items.map((item, idx) => {
                     const variantParts = [];
-                    if (item.selectedVariant?.color) variantParts.push(item.selectedVariant.color);
-                    if (item.selectedVariant?.size) variantParts.push(item.selectedVariant.size);
+                    if ((item.selected_variant ?? item.selectedVariant)?.color) variantParts.push((item.selected_variant ?? item.selectedVariant).color);
+                    if ((item.selected_variant ?? item.selectedVariant)?.size) variantParts.push((item.selected_variant ?? item.selectedVariant).size);
                     const variantStr = variantParts.join(', ');
                     
                     const imgUrl = item.product?.images?.[0]?.url || '';

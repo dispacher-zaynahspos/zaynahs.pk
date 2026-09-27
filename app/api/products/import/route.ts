@@ -42,6 +42,16 @@ export async function POST(request: NextRequest) {
         const categoryCache: Record<string, string> = {};
 
         for (const p of bundle.products) {
+          // RULE D15 (atomic write): when OVERWRITING an existing product we delete its
+          // children before re-inserting. If a later step fails, restore this snapshot so
+          // the product is never left with wiped/half-imported children.
+          let overwriteSnapshot: {
+            productId: string;
+            product_images: Record<string, unknown>[];
+            product_variants: Record<string, unknown>[];
+            product_modifiers: Record<string, unknown>[];
+            product_categories: Record<string, unknown>[];
+          } | null = null;
           try {
             // Check if product with the same slug already exists
             const { data: existing } = await supabaseAdmin
@@ -64,26 +74,26 @@ export async function POST(request: NextRequest) {
 
             // 1. Handle/Resolve Category (by slug)
             let categoryId = null;
-            if (p.categorySlug) {
-              if (categoryCache[p.categorySlug]) {
-                categoryId = categoryCache[p.categorySlug];
+            if (p.category_slug) {
+              if (categoryCache[p.category_slug]) {
+                categoryId = categoryCache[p.category_slug];
               } else {
                 const { data: cat } = await supabaseAdmin
                   .from('categories')
                   .select('id')
-                  .eq('slug', p.categorySlug)
+                  .eq('slug', p.category_slug)
                   .maybeSingle();
 
                 if (cat) {
                   categoryId = cat.id;
-                  categoryCache[p.categorySlug] = cat.id;
+                  categoryCache[p.category_slug] = cat.id;
                 } else {
                   // Create category if it doesn't exist
-                  const catData = p.categoryData || {
-                    name: p.categoryName || 'Uncategorized',
-                    slug: p.categorySlug,
+                  const catData = p.category_data || {
+                    name: p.category_name || 'Uncategorized',
+                    slug: p.category_slug,
                     active: true,
-                    sortOrder: 0
+                    sort_order: 0
                   };
                   const { data: newCat, error: catErr } = await supabaseAdmin
                     .from('categories')
@@ -91,9 +101,9 @@ export async function POST(request: NextRequest) {
                       name: catData.name,
                       slug: catData.slug,
                       description: catData.description || null,
-                      image_url: catData.imageUrl || null,
+                      image_url: catData.image_url || null,
                       active: catData.active ?? true,
-                      sort_order: catData.sortOrder || 0
+                      sort_order: catData.sort_order || 0
                     })
                     .select('id')
                     .single();
@@ -102,7 +112,7 @@ export async function POST(request: NextRequest) {
                     console.error('[Import API] Failed to create category:', catErr);
                   } else if (newCat) {
                     categoryId = newCat.id;
-                    categoryCache[p.categorySlug] = newCat.id;
+                    categoryCache[p.category_slug] = newCat.id;
                   }
                 }
               }
@@ -118,6 +128,21 @@ export async function POST(request: NextRequest) {
                 productId = existing.id;
                 statusAction = 'overwritten';
 
+                // Snapshot children BEFORE the destructive delete (rollback insurance).
+                const [imgSnap, varSnap, modSnap, pcSnap] = await Promise.all([
+                  supabaseAdmin.from('product_images').select('*').eq('product_id', productId),
+                  supabaseAdmin.from('product_variants').select('*').eq('product_id', productId),
+                  supabaseAdmin.from('product_modifiers').select('*').eq('product_id', productId),
+                  supabaseAdmin.from('product_categories').select('*').eq('product_id', productId),
+                ]);
+                overwriteSnapshot = {
+                  productId,
+                  product_images: imgSnap.data ?? [],
+                  product_variants: varSnap.data ?? [],
+                  product_modifiers: modSnap.data ?? [],
+                  product_categories: pcSnap.data ?? [],
+                };
+
                 // Delete variant, modifier, and category associations to prevent conflicts/duplicates
                 await supabaseAdmin.from('product_images').delete().eq('product_id', productId);
                 await supabaseAdmin.from('product_variants').delete().eq('product_id', productId);
@@ -130,18 +155,18 @@ export async function POST(request: NextRequest) {
                   .update({
                     name: p.name,
                     description: p.description || null,
-                    short_description: p.shortDescription || null,
+                    short_description: p.short_description || null,
                     price: p.price,
-                    compare_price: p.comparePrice || null,
+                    compare_price: p.compare_price || null,
                     cost: p.cost || null,
                     sku: p.sku || null,
                     stock: p.stock,
-                    has_variants: p.hasVariants,
-                    is_service: p.isService,
-                    is_featured: p.isFeatured,
+                    has_variants: p.has_variants,
+                    is_service: p.is_service,
+                    is_featured: p.is_featured,
                     is_active: (p as any).isActive ?? p.active ?? true,
-                    enable_swatches: p.enableSwatches,
-                    show_swatches_on_archive: p.showSwatchesOnArchive,
+                    enable_swatches: p.enable_swatches,
+                    show_swatches_on_archive: p.show_swatches_on_archive,
                     tags: p.tags,
                     category_id: categoryId,
                     deleted_at: null,
@@ -172,18 +197,18 @@ export async function POST(request: NextRequest) {
                     name: finalName,
                     slug: finalSlug,
                     description: p.description || null,
-                    short_description: p.shortDescription || null,
+                    short_description: p.short_description || null,
                     price: p.price,
-                    compare_price: p.comparePrice || null,
+                    compare_price: p.compare_price || null,
                     cost: p.cost || null,
                     sku: p.sku || null,
                     stock: p.stock,
-                    has_variants: p.hasVariants,
-                    is_service: p.isService,
-                    is_featured: p.isFeatured,
+                    has_variants: p.has_variants,
+                    is_service: p.is_service,
+                    is_featured: p.is_featured,
                     is_active: (p as any).isActive ?? p.active ?? true,
-                    enable_swatches: p.enableSwatches,
-                    show_swatches_on_archive: p.showSwatchesOnArchive,
+                    enable_swatches: p.enable_swatches,
+                    show_swatches_on_archive: p.show_swatches_on_archive,
                     tags: p.tags,
                     category_id: categoryId
                   })
@@ -201,18 +226,18 @@ export async function POST(request: NextRequest) {
                   name: p.name,
                   slug: p.slug,
                   description: p.description || null,
-                  short_description: p.shortDescription || null,
+                  short_description: p.short_description || null,
                   price: p.price,
-                  compare_price: p.comparePrice || null,
+                  compare_price: p.compare_price || null,
                   cost: p.cost || null,
                   sku: p.sku || null,
                   stock: p.stock,
-                  has_variants: p.hasVariants,
-                  is_service: p.isService,
-                  is_featured: p.isFeatured,
+                  has_variants: p.has_variants,
+                  is_service: p.is_service,
+                  is_featured: p.is_featured,
                   is_active: (p as any).isActive ?? p.active ?? true,
-                  enable_swatches: p.enableSwatches,
-                  show_swatches_on_archive: p.showSwatchesOnArchive,
+                  enable_swatches: p.enable_swatches,
+                  show_swatches_on_archive: p.show_swatches_on_archive,
                   tags: p.tags,
                   category_id: categoryId
                 })
@@ -238,7 +263,7 @@ export async function POST(request: NextRequest) {
                   name: m.name,
                   price: m.price,
                   active: m.active ?? true,
-                  sort_order: m.sortOrder || 0
+                  sort_order: m.sort_order || 0
                 });
             }
 
@@ -279,9 +304,9 @@ export async function POST(request: NextRequest) {
                       name: catItem.name,
                       slug: catItem.slug,
                       description: catItem.description || null,
-                      image_url: catItem.imageUrl || null,
+                      image_url: catItem.image_url || null,
                       active: catItem.active ?? true,
-                      sort_order: catItem.sortOrder || 0
+                      sort_order: catItem.sort_order || 0
                     })
                     .select('id')
                     .single();
@@ -327,6 +352,24 @@ export async function POST(request: NextRequest) {
 
           } catch (prodErr: any) {
             console.error(`[Import API] Failed to import product "${p.name}":`, prodErr);
+            // RULE D15: if we were overwriting and had already wiped children, restore the
+            // pre-import snapshot so the existing product is never left broken/half-imported.
+            if (overwriteSnapshot) {
+              try {
+                const { productId: snapId } = overwriteSnapshot;
+                const childTables = ['product_images', 'product_variants', 'product_modifiers', 'product_categories'] as const;
+                for (const table of childTables) {
+                  await supabaseAdmin.from(table).delete().eq('product_id', snapId);
+                  const rows = overwriteSnapshot[table];
+                  if (rows.length > 0) {
+                    await supabaseAdmin.from(table).insert(rows);
+                  }
+                }
+                console.warn(`[Import API] rolled back overwrite of product ${snapId} to pre-import snapshot after failure (RULE D15).`);
+              } catch (restoreErr) {
+                console.error(`[Import API] CRITICAL: overwrite rollback FAILED for "${p.name}". Manual check needed:`, restoreErr);
+              }
+            }
             sendProgress({
               success: false,
               productName: p.name,
@@ -334,6 +377,17 @@ export async function POST(request: NextRequest) {
               error: prodErr.message || 'Unknown database write error'
             });
           }
+        }
+
+        // RULE C10: bulk import mutated products/categories across many rows —
+        // invalidate all layers once at the end (tags + paths + full Cloudflare purge).
+        try {
+          const { revalidateTagSafe, revalidateHomepage } = await import('@/lib/revalidate');
+          await revalidateTagSafe('products');
+          await revalidateTagSafe('categories');
+          await revalidateHomepage();
+        } catch (revalErr) {
+          console.warn('[Import API] Post-import cache revalidation failed:', revalErr);
         }
 
         controller.close();

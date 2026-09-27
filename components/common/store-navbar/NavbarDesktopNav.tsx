@@ -67,6 +67,7 @@ export function NavbarDesktopNav({
             <div key={child.id} className="relative group/sub">
               <Link
                 href={child.url}
+                prefetch={true}
                 className="flex items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-100/80 dark:hover:bg-white/10 hover:text-[var(--color-primary,#C2185B)] transition-all"
               >
                 <span>{child.label || (child as any).title}</span>
@@ -138,6 +139,7 @@ export function NavbarDesktopNav({
             >
               <Link
                 href={item.url}
+                prefetch={true}
                 className={`flex items-center gap-1 rounded-xl px-3 py-2 text-sm font-semibold transition-all duration-200 whitespace-nowrap relative ${
                   isHovered
                     ? 'text-[var(--color-primary,#C2185B)] bg-gray-100/80 dark:bg-white/10'

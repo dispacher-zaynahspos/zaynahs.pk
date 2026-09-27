@@ -19,13 +19,13 @@ interface ShopProductListCardProps {
 
 export default function ShopProductListCard({ product, settings, addItem }: ShopProductListCardProps) {
   const fallbackPlaceholder = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%23f3f4f6'/%3E%3C/svg%3E";
-  const primaryImage = getPresetImageUrl(product.images?.find(img => img.isPrimary)?.url || product.images?.[0]?.url || fallbackPlaceholder, 'card');
+  const primaryImage = getPresetImageUrl(product.images?.find(img => img.is_primary)?.url || product.images?.[0]?.url || fallbackPlaceholder, 'card');
   const activeVariants = product.variants.filter(v => v.active);
-  const defaultIndex = (settings?.defaultVariantIndex || 1) - 1;
+  const defaultIndex = (settings?.default_variant_index || 1) - 1;
   const defaultVar = activeVariants[defaultIndex] || activeVariants[0];
-  const initialImage = (defaultVar && defaultVar.imageUrl) || primaryImage;
+  const initialImage = (defaultVar && defaultVar.image_url) || primaryImage;
   const initialPrice = (defaultVar && defaultVar.price) ? defaultVar.price : product.price;
-  const initialComparePrice = (defaultVar && defaultVar.comparePrice) ? defaultVar.comparePrice : product.comparePrice;
+  const initialComparePrice = (defaultVar && defaultVar.compare_price) ? defaultVar.compare_price : product.compare_price;
 
   // Check wishlist
   const [inWish, setInWish] = useState(false);
@@ -56,12 +56,18 @@ export default function ShopProductListCard({ product, settings, addItem }: Shop
   };
 
   return (
-    <Link
-      href={`/product/${product.slug}`}
+    <div
       className="group flex flex-row overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] shadow-sm hover:shadow-md transition-all duration-300 relative"
     >
+      {/* Stretched navigation link (covers card, sits above non-interactive content,
+          below the action buttons — avoids invalid <button> inside <a> nesting) */}
+      <Link
+        href={`/product/${product.slug}`}
+        aria-label={product.name}
+        className="absolute inset-0 z-10"
+      />
       {/* Left: Image Container */}
-      <div className={`relative w-36 sm:w-48 shrink-0 overflow-hidden bg-gray-50 ${getSharedAspectClass(settings?.imageAspectRatio)}`}>
+      <div className={`relative w-36 sm:w-48 shrink-0 overflow-hidden bg-gray-50 ${getSharedAspectClass(settings?.image_aspect_ratio)}`}>
         <Image
           src={initialImage}
           alt={product.name}
@@ -76,26 +82,26 @@ export default function ShopProductListCard({ product, settings, addItem }: Shop
               -{Math.round(((initialComparePrice - initialPrice) / initialComparePrice) * 100)}%
             </span>
           )}
-          {product.isFeatured && (
+          {product.is_featured && (
             <span
               className="rounded-md px-2 py-0.5 text-[9px] font-extrabold shadow-sm tracking-wide"
               style={{
-                backgroundColor: product.customBadge?.name?.toLowerCase() === 'featured' ? product.customBadge.bgColor : '#e94560',
-                color: product.customBadge?.name?.toLowerCase() === 'featured' ? product.customBadge.textColor : '#ffffff'
+                backgroundColor: product.custom_badge?.name?.toLowerCase() === 'featured' ? product.custom_badge.bg_color : '#e94560',
+                color: product.custom_badge?.name?.toLowerCase() === 'featured' ? product.custom_badge.text_color : '#ffffff'
               }}
             >
-              {product.customBadge?.name?.toLowerCase() === 'featured' ? product.customBadge.name : 'FEATURED'}
+              {product.custom_badge?.name?.toLowerCase() === 'featured' ? product.custom_badge.name : 'FEATURED'}
             </span>
           )}
-          {product.badgeEnabled && product.customBadge && (!product.isFeatured || product.customBadge.name.toLowerCase() !== 'featured') && (
+          {product.badge_enabled && product.custom_badge && (!product.is_featured || product.custom_badge.name.toLowerCase() !== 'featured') && (
             <span
               className="rounded-md px-2 py-0.5 text-[9px] font-extrabold shadow-sm tracking-wide"
               style={{
-                backgroundColor: product.customBadge.bgColor,
-                color: product.customBadge.textColor
+                backgroundColor: product.custom_badge.bg_color,
+                color: product.custom_badge.text_color
               }}
             >
-              {product.customBadge.name}
+              {product.custom_badge.name}
             </span>
           )}
         </div>
@@ -124,14 +130,14 @@ export default function ShopProductListCard({ product, settings, addItem }: Shop
               </svg>
             ))}
             <span className="text-[10px] text-gray-400 font-semibold ml-1">
-              ({product.reviewsCount || 0})
+              ({product.reviews_count || 0})
             </span>
           </div>
 
           {/* Price */}
           <div className="flex items-baseline gap-1.5 pt-1">
             <span className="text-base sm:text-lg font-bold text-[#1a1a2e] dark:text-white">
-              {formatPrice(initialPrice, settings.currencySymbol)}
+              {formatPrice(initialPrice, settings.currency_symbol)}
             </span>
             {initialComparePrice && initialComparePrice > initialPrice && (
               <span
@@ -144,21 +150,21 @@ export default function ShopProductListCard({ product, settings, addItem }: Shop
                   color: '#9ca3af',
                 }}
               >
-                {formatPrice(initialComparePrice, settings.currencySymbol)}
+                {formatPrice(initialComparePrice, settings.currency_symbol)}
               </span>
             )}
           </div>
 
           {/* Description */}
-          {product.shortDescription && (
+          {product.short_description && (
             <p className="hidden sm:block text-xs text-gray-500 dark:text-gray-400 font-medium line-clamp-2 pt-1">
-              {product.shortDescription}
+              {product.short_description}
             </p>
           )}
         </div>
 
         {/* Action Row */}
-        <div className="flex items-center justify-between gap-3 pt-2">
+        <div className="flex items-center justify-between gap-3 pt-2 relative z-20">
           <div className="flex items-center gap-2">
             <button
               type="button"
@@ -173,7 +179,7 @@ export default function ShopProductListCard({ product, settings, addItem }: Shop
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                if (product.hasVariants) {
+                if (product.has_variants) {
                   window.location.href = `/product/${product.slug}`;
                   return;
                 }
@@ -187,11 +193,11 @@ export default function ShopProductListCard({ product, settings, addItem }: Shop
               className="flex h-9 items-center gap-1.5 px-4 rounded-xl bg-[#1a1a2e] dark:bg-[#e94560] text-white hover:opacity-90 active:scale-95 text-xs font-bold transition-all cursor-pointer"
             >
               <ShoppingCart className="h-4 w-4" />
-              <span>{product.hasVariants ? 'Choose Options' : 'Buy Now'}</span>
+              <span>{product.has_variants ? 'Choose Options' : 'Add to Cart'}</span>
             </button>
           </div>
         </div>
       </div>
-    </Link>
+    </div>
   );
 }

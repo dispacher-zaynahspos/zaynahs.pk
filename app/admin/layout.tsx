@@ -24,8 +24,8 @@ function AdminLayoutContent({
   const supabase = createClient();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { settings } = useSettings();
-  const logoUrl = settings?.logoUrl || settings?.faviconUrl || null;
-  const storeName = settings?.storeName || process.env.NEXT_PUBLIC_BRAND_NAME || 'Admin Console';
+  const logoUrl = settings?.logo_url || settings?.favicon_url || null;
+  const storeName = settings?.store_name || process.env.NEXT_PUBLIC_BRAND_NAME || 'Admin Console';
 
   // ⚠️ Client-only active state — avoids SSR/CSR hydration mismatch.
   const [mounted, setMounted] = useState(false);

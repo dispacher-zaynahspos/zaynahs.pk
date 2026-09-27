@@ -34,41 +34,41 @@ export function useProductFormState({ categories, initialProduct, aiEnabled }: U
   const [slug, setSlug] = useState(initialProduct?.slug || '');
   const [sku, setSku] = useState(initialProduct?.sku || '');
   const [price, setPrice] = useState(initialProduct?.price?.toString() || '0');
-  const [comparePrice, setComparePrice] = useState(initialProduct?.comparePrice?.toString() || '');
+  const [comparePrice, setComparePrice] = useState(initialProduct?.compare_price?.toString() || '');
   const [cost, setCost] = useState(initialProduct?.cost?.toString() || '0');
-  const [categoryId, setCategoryId] = useState(initialProduct?.categoryId || '');
+  const [categoryId, setCategoryId] = useState(initialProduct?.category_id || '');
 
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>(
-    (initialProduct?.productCategories && initialProduct.productCategories.length > 0)
-      ? initialProduct.productCategories.map(pc => pc.categoryId)
-      : (initialProduct?.categoryId ? [initialProduct.categoryId] : [])
+    (initialProduct?.product_categories && initialProduct.product_categories.length > 0)
+      ? initialProduct.product_categories.map(pc => pc.category_id)
+      : (initialProduct?.category_id ? [initialProduct.category_id] : [])
   );
-  const [inventoryThreshold, setInventoryThreshold] = useState(initialProduct?.inventoryThreshold?.toString() || '0');
+  const [inventoryThreshold, setInventoryThreshold] = useState(initialProduct?.inventory_threshold?.toString() || '0');
   const [stock, setStock] = useState(initialProduct?.stock?.toString() || '0');
   const [description, setDescription] = useState(initialProduct?.description || '');
-  const [shortDescription, setShortDescription] = useState(initialProduct?.shortDescription || '');
+  const [shortDescription, setShortDescription] = useState(initialProduct?.short_description || '');
   const [tagInput, setTagInput] = useState(initialProduct?.tags?.join(', ') || '');
-  const [enableSwatches, setEnableSwatches] = useState<boolean>(initialProduct?.enableSwatches ?? true);
-  const [showSwatchesOnArchive, setShowSwatchesOnArchive] = useState<boolean>(initialProduct?.showSwatchesOnArchive ?? true);
+  const [enableSwatches, setEnableSwatches] = useState<boolean>(initialProduct?.enable_swatches ?? true);
+  const [showSwatchesOnArchive, setShowSwatchesOnArchive] = useState<boolean>(initialProduct?.show_swatches_on_archive ?? true);
   const [activeImageSelector, setActiveImageSelector] = useState<{ axisIdx: number; valIdx: number } | null>(null);
-  const [hasVariants, setHasVariants] = useState(initialProduct?.hasVariants ?? false);
-  const [isService, setIsService] = useState(initialProduct?.isService ?? false);
-  const [isFeatured, setIsFeatured] = useState(initialProduct?.isFeatured ?? false);
-  const [isActive, setIsActive] = useState(initialProduct?.isActive ?? true);
+  const [hasVariants, setHasVariants] = useState(initialProduct?.has_variants ?? false);
+  const [isService, setIsService] = useState(initialProduct?.is_service ?? false);
+  const [isFeatured, setIsFeatured] = useState(initialProduct?.is_featured ?? false);
+  const [isActive, setIsActive] = useState(initialProduct?.is_active ?? true);
   const [rating, setRating] = useState(initialProduct?.rating?.toString() || '5.0');
-  const [reviewsCount, setReviewsCount] = useState(initialProduct?.reviewsCount?.toString() || '0');
+  const [reviewsCount, setReviewsCount] = useState(initialProduct?.reviews_count?.toString() || '0');
   const [allBadges, setAllBadges] = useState<Badge[]>([]);
-  const [customBadgeId, setCustomBadgeId] = useState(initialProduct?.customBadgeId || '');
-  const [badgeEnabled, setBadgeEnabled] = useState(initialProduct?.badgeEnabled ?? true);
-  const [sizeGuideId, setSizeGuideId] = useState(initialProduct?.sizeGuideId || '');
+  const [customBadgeId, setCustomBadgeId] = useState(initialProduct?.custom_badge_id || '');
+  const [badgeEnabled, setBadgeEnabled] = useState(initialProduct?.badge_enabled ?? true);
+  const [sizeGuideId, setSizeGuideId] = useState(initialProduct?.size_guide_id || '');
   const [sizeGuidesList, setSizeGuidesList] = useState<SizeGuide[]>([]);
 
-  const [flashSaleEnabled, setFlashSaleEnabled] = useState(initialProduct?.flashSaleEnabled ?? false);
-  const [flashSaleStartDate, setFlashSaleStartDate] = useState(initialProduct?.flashSaleStartDate ? new Date(initialProduct.flashSaleStartDate).toISOString().slice(0, 16) : '');
-  const [flashSaleEndDate, setFlashSaleEndDate] = useState(initialProduct?.flashSaleEndDate ? new Date(initialProduct.flashSaleEndDate).toISOString().slice(0, 16) : '');
-  const [flashSaleDiscountType, setFlashSaleDiscountType] = useState<'percentage' | 'fixed'>(initialProduct?.flashSaleDiscountType ?? 'fixed');
-  const [flashSaleDiscountValue, setFlashSaleDiscountValue] = useState(initialProduct?.flashSaleDiscountValue ?? 0);
-  const [frequentlyBoughtTogetherIds, setFrequentlyBoughtTogetherIds] = useState(initialProduct?.frequentlyBoughtTogetherIds || []);
+  const [flashSaleEnabled, setFlashSaleEnabled] = useState(initialProduct?.flash_sale_enabled ?? false);
+  const [flashSaleStartDate, setFlashSaleStartDate] = useState(initialProduct?.flash_sale_start_date ? new Date(initialProduct.flash_sale_start_date).toISOString().slice(0, 16) : '');
+  const [flashSaleEndDate, setFlashSaleEndDate] = useState(initialProduct?.flash_sale_end_date ? new Date(initialProduct.flash_sale_end_date).toISOString().slice(0, 16) : '');
+  const [flashSaleDiscountType, setFlashSaleDiscountType] = useState<'percentage' | 'fixed'>(initialProduct?.flash_sale_discount_type ?? 'fixed');
+  const [flashSaleDiscountValue, setFlashSaleDiscountValue] = useState(initialProduct?.flash_sale_discount_value ?? 0);
+  const [frequentlyBoughtTogetherIds, setFrequentlyBoughtTogetherIds] = useState(initialProduct?.frequently_bought_together_ids || []);
   const [productList, setProductList] = useState<Product[]>([]);
   const [categorySearchQuery, setCategorySearchQuery] = useState('');
   const [productSearchQuery, setProductSearchQuery] = useState('');

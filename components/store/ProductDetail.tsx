@@ -72,7 +72,7 @@ export default function ProductDetail({ product, settings, averageRating, social
     bundleProducts.forEach(bp => {
       if (selectedBundleIds.includes(bp.id)) {
         let chosenVariant: ProductVariant | undefined = undefined;
-        if (bp.hasVariants && bp.variants.length > 0) {
+        if (bp.has_variants && bp.variants.length > 0) {
           const selectedVarId = bundleVariantSelections[bp.id];
           chosenVariant = bp.variants?.find(v => v.id === selectedVarId && v.active)
             ?? bp.variants.filter(v => v.active)[0];
@@ -112,12 +112,12 @@ export default function ProductDetail({ product, settings, averageRating, social
   const modifiersTotal = selectedModifiers.reduce((sum, m) => sum + m.price, 0);
   const unitPrice = basePrice + modifiersTotal;
 
-  const stockAvailable = product.isService
+  const stockAvailable = product.is_service
     ? 999
     : (selectedVariant ? selectedVariant.stock : product.stock);
 
   const displayRating = (averageRating && averageRating.count > 0) ? averageRating.average : (product.rating ?? 5);
-  const displayCount = (averageRating ? averageRating.count : (product.reviewsCount ?? 0)) + socialProofCount;
+  const displayCount = (averageRating ? averageRating.count : (product.reviews_count ?? 0)) + socialProofCount;
 
   const handleModifierToggle = (modifier: ProductModifier) => {
     setSelectedModifiers(prev =>
@@ -128,7 +128,7 @@ export default function ProductDetail({ product, settings, averageRating, social
   };
 
   const handleAddToCart = (e: React.MouseEvent) => {
-    if (product.hasVariants && product.variants.filter(v => v.active).length > 0 && !selectedVariant) {
+    if (product.has_variants && product.variants.filter(v => v.active).length > 0 && !selectedVariant) {
       toast.error('Please select a variant first');
       return;
     }
@@ -149,7 +149,7 @@ export default function ProductDetail({ product, settings, averageRating, social
 
     toast.success(`${product.name} added to cart!`);
 
-    const imageUrl = selectedVariant?.imageUrl || product.images?.find(img => img.isPrimary)?.url || product.images?.[0]?.url;
+    const imageUrl = selectedVariant?.image_url || product.images?.find(img => img.is_primary)?.url || product.images?.[0]?.url;
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
     const targetId = isMobile ? 'header-cart-icon-mobile' : 'header-cart-icon-desktop';
     animateFlyTo(e.currentTarget as HTMLElement, targetId, imageUrl);
@@ -167,7 +167,7 @@ export default function ProductDetail({ product, settings, averageRating, social
       setIsWishlisted(true);
       toast.success('Added to wishlist');
 
-      const imageUrl = selectedVariant?.imageUrl || product.images?.find(img => img.isPrimary)?.url || product.images?.[0]?.url;
+      const imageUrl = selectedVariant?.image_url || product.images?.find(img => img.is_primary)?.url || product.images?.[0]?.url;
       const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
       const targetId = isMobile ? 'mobile-bottom-wishlist-icon' : 'header-wishlist-icon-desktop';
       animateFlyTo(e.currentTarget as HTMLElement, targetId, imageUrl);
@@ -183,7 +183,7 @@ export default function ProductDetail({ product, settings, averageRating, social
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const whatsappUrl = `https://wa.me/${cleanWhatsAppPhone(settings.whatsappNumber)}?text=${encodeURIComponent(`Hello, I have a question about ${product.name}: ${productUrl}`)}`;
+  const whatsappUrl = `https://wa.me/${cleanWhatsAppPhone(settings.whatsapp_number)}?text=${encodeURIComponent(`Hello, I have a question about ${product.name}: ${productUrl}`)}`;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 space-y-6">
@@ -289,11 +289,11 @@ export default function ProductDetail({ product, settings, averageRating, social
         selectedVariant={selectedVariant}
         stockAvailable={stockAvailable}
         unitPrice={unitPrice}
-        currencySymbol={settings.currencySymbol}
+        currencySymbol={settings.currency_symbol}
         onAddToCart={handleAddToCart}
         whatsappUrl={whatsappUrl}
         activeImage={activeImage}
-        enableQuickWhatsapp={settings.enable_product_quick_whatsapp !== false && !!settings.whatsappNumber}
+        enableQuickWhatsapp={settings.enable_product_quick_whatsapp !== false && !!settings.whatsapp_number}
       />
     </div>
   );

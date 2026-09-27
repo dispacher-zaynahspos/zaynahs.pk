@@ -50,13 +50,13 @@ export default function ProductList({ initialProducts, settings }: ProductListPr
 
   const categoriesMap = new Map<string, string>();
   products.forEach(p => {
-    if (p.productCategories) {
-      p.productCategories.forEach(pc => {
-        if (pc.category && pc.categoryId) categoriesMap.set(pc.categoryId, pc.category.name);
+    if (p.product_categories) {
+      p.product_categories.forEach(pc => {
+        if (pc.category && pc.category_id) categoriesMap.set(pc.category_id, pc.category.name);
       });
     }
-    if (p.category && p.categoryId) {
-      categoriesMap.set(p.categoryId, p.category.name);
+    if (p.category && p.category_id) {
+      categoriesMap.set(p.category_id, p.category.name);
     }
   });
   const availableCategories = Array.from(categoriesMap.entries())
@@ -67,8 +67,8 @@ export default function ProductList({ initialProducts, settings }: ProductListPr
     if (selectedProductIds.length === 0) return;
     const toastId = toast.loading(`Updating ${selectedProductIds.length} products...`);
     try {
-      await Promise.all(selectedProductIds.map(id => updateProductFields(id, { isFeatured: featuredValue })));
-      setProducts(prev => prev.map(p => selectedProductIds.includes(p.id) ? { ...p, isFeatured: featuredValue } : p));
+      await Promise.all(selectedProductIds.map(id => updateProductFields(id, { is_featured: featuredValue })));
+      setProducts(prev => prev.map(p => selectedProductIds.includes(p.id) ? { ...p, is_featured: featuredValue } : p));
       toast.success(`Successfully updated ${selectedProductIds.length} products`, { id: toastId });
       setSelectedProductIds([]);
     } catch {
@@ -153,9 +153,9 @@ export default function ProductList({ initialProducts, settings }: ProductListPr
 
   const handleToggleFeatured = async (product: Product) => {
     try {
-      const nextFeatured = !product.isFeatured;
-      await updateProductFields(product.id, { isFeatured: nextFeatured });
-      setProducts(prev => prev.map(p => p.id === product.id ? { ...p, isFeatured: nextFeatured } : p));
+      const nextFeatured = !product.is_featured;
+      await updateProductFields(product.id, { is_featured: nextFeatured });
+      setProducts(prev => prev.map(p => p.id === product.id ? { ...p, is_featured: nextFeatured } : p));
       toast.success(`Product ${nextFeatured ? 'marked as featured' : 'removed from featured'} successfully`);
     } catch (err) {
       console.error('[ProductList] handleToggleFeatured failed:', err);
@@ -165,9 +165,9 @@ export default function ProductList({ initialProducts, settings }: ProductListPr
 
   const handleToggleActive = async (product: Product) => {
     try {
-      const nextActive = !product.isActive;
-      await updateProductFields(product.id, { isActive: nextActive });
-      setProducts(prev => prev.map(p => p.id === product.id ? { ...p, isActive: nextActive } : p));
+      const nextActive = !product.is_active;
+      await updateProductFields(product.id, { is_active: nextActive });
+      setProducts(prev => prev.map(p => p.id === product.id ? { ...p, is_active: nextActive } : p));
       toast.success(`Product ${nextActive ? 'visible on store' : 'hidden from store'} successfully`);
     } catch (err) {
       console.error('[ProductList] handleToggleActive failed:', err);
@@ -257,25 +257,25 @@ export default function ProductList({ initialProducts, settings }: ProductListPr
           (v.color && v.color.toLowerCase().includes(q)) ||
           (v.size && v.size.toLowerCase().includes(q)) ||
           (v.material && v.material.toLowerCase().includes(q)) ||
-          (v.customValue && v.customValue.toLowerCase().includes(q))
+          (v.custom_value && v.custom_value.toLowerCase().includes(q))
         ))
       );
     })
     .filter(p => {
       if (selectedCategory === 'all') return true;
-      if (p.productCategories && p.productCategories.length > 0) {
-        return p.productCategories.some(pc => pc.categoryId === selectedCategory);
+      if (p.product_categories && p.product_categories.length > 0) {
+        return p.product_categories.some(pc => pc.category_id === selectedCategory);
       }
-      return p.categoryId === selectedCategory;
+      return p.category_id === selectedCategory;
     })
     .sort((a, b) => {
       switch (sortBy) {
         case 'manual': return 0;
-        case 'created-asc': return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        case 'created-asc': return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
         case 'price-desc': return (b.price || 0) - (a.price || 0);
         case 'price-asc': return (a.price || 0) - (b.price || 0);
         case 'created-desc':
-        default: return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        default: return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       }
     });
 

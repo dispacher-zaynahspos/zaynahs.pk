@@ -14,15 +14,15 @@ export interface DBSocialProof {
 
 export const mapSocialProof = (row: DBSocialProof): SocialProof => ({
   id: row.id,
-  imageUrl: row.image_url,
+  image_url: row.image_url,
   caption: row.caption || undefined,
-  sourceType: row.source_type as SocialProof['sourceType'],
+  source_type: row.source_type as SocialProof['source_type'],
   active: row.active,
-  sortOrder: row.sort_order,
-  createdAt: row.created_at,
-  deletedAt: row.deleted_at || undefined,
-  linkedProducts: [],
-  productIds: []
+  sort_order: row.sort_order,
+  created_at: row.created_at,
+  deleted_at: row.deleted_at || undefined,
+  linked_products: [],
+  product_ids: []
 });
 
 export async function attachLinkedProducts(proofs: SocialProof[]): Promise<SocialProof[]> {

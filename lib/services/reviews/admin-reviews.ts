@@ -21,7 +21,7 @@ export const getAllReviews = async (): Promise<(Review & { productName?: string;
     const reviews = (data ?? []).map((row: any) => mapReview(row));
 
     // Batch fetch product names, slugs, and images
-    const productIds = reviews.map(r => r.productId).filter(Boolean) as string[];
+    const productIds = reviews.map(r => r.product_id).filter(Boolean) as string[];
     if (productIds.length > 0) {
       const [productResult, imageResult] = await Promise.all([
         supabaseAdmin.from('products').select('id, name, slug').in('id', productIds),
@@ -43,9 +43,9 @@ export const getAllReviews = async (): Promise<(Review & { productName?: string;
       }
       return reviews.map(r => ({
         ...r,
-        productName: r.productId ? productMap[r.productId]?.name : undefined,
-        productSlug: r.productId ? productMap[r.productId]?.slug : undefined,
-        productImage: r.productId ? imageMap[r.productId] : undefined,
+        productName: r.product_id ? productMap[r.product_id]?.name : undefined,
+        productSlug: r.product_id ? productMap[r.product_id]?.slug : undefined,
+        productImage: r.product_id ? imageMap[r.product_id] : undefined,
       }));
     }
 
@@ -177,7 +177,7 @@ export const getDeletedReviews = async (): Promise<(Review & { productName?: str
     if (error) throw error;
     const reviews = (data ?? []).map((row: any) => mapReview(row));
 
-    const productIds = reviews.map(r => r.productId).filter(Boolean) as string[];
+    const productIds = reviews.map(r => r.product_id).filter(Boolean) as string[];
     if (productIds.length > 0) {
       const [productResult, imageResult] = await Promise.all([
         supabaseAdmin.from('products').select('id, name').in('id', productIds),
@@ -199,8 +199,8 @@ export const getDeletedReviews = async (): Promise<(Review & { productName?: str
       }
       return reviews.map(r => ({
         ...r,
-        productName: r.productId ? productMap[r.productId]?.name : undefined,
-        productImage: r.productId ? imageMap[r.productId] : undefined,
+        productName: r.product_id ? productMap[r.product_id]?.name : undefined,
+        productImage: r.product_id ? imageMap[r.product_id] : undefined,
       }));
     }
 

@@ -221,7 +221,7 @@ export default function ShopPageSidebar({
             className="w-full h-1 bg-gray-200 dark:bg-gray-800 rounded-lg cursor-pointer appearance-none"
           />
           <div className="flex items-center justify-between text-[10px] text-gray-400 font-bold mt-1.5 uppercase">
-            <span>Price: {formatPrice(priceMin, settings.currencySymbol)} — {formatPrice(priceMax, settings.currencySymbol)}</span>
+            <span>Price: {formatPrice(priceMin, settings.currency_symbol)} — {formatPrice(priceMax, settings.currency_symbol)}</span>
           </div>
         </div>
       </div>
@@ -251,14 +251,14 @@ export default function ShopPageSidebar({
           <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider block">Featured Products</span>
           <div className="space-y-3.5">
             {featuredProducts.map((p) => {
-              const img = p.images?.find(img => img.isPrimary)?.url || p.images?.[0]?.url;
+              const img = p.images?.find(img => img.is_primary)?.url || p.images?.[0]?.url;
               return (
                 <Link
                   key={p.id}
                   href={`/product/${p.slug}`}
                   className="flex gap-3 group relative cursor-pointer"
                 >
-                  <div className={`relative w-14 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 shrink-0 ${getSharedAspectClass(settings?.imageAspectRatio)}`}>
+                  <div className={`relative w-14 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 shrink-0 ${getSharedAspectClass(settings?.image_aspect_ratio)}`}>
                     {img ? (
                       <Image
                         src={img}
@@ -288,7 +288,7 @@ export default function ShopPageSidebar({
                     </div>
 
                     <div className="mt-1 text-xs font-black text-gray-900 dark:text-white">
-                      {formatPrice(p.price, settings.currencySymbol)}
+                      {formatPrice(p.price, settings.currency_symbol)}
                     </div>
                   </div>
                 </Link>

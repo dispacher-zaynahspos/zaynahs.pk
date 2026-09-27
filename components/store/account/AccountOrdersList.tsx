@@ -64,7 +64,7 @@ export function AccountOrdersList({ orders }: AccountOrdersListProps) {
           {orders.map(order => {
             const isExpanded = expandedOrderId === order.id;
             const itemsCount = order.items.reduce((sum, item) => sum + item.quantity, 0);
-            const orderDate = new Date(order.createdAt).toLocaleDateString('en-PK', {
+            const orderDate = new Date(order.created_at).toLocaleDateString('en-PK', {
               year: 'numeric', month: 'long', day: 'numeric'
             });
 
@@ -85,7 +85,7 @@ export function AccountOrdersList({ orders }: AccountOrdersListProps) {
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="font-black text-gray-900 dark:text-white text-sm">
-                          {order.orderNumber}
+                          {order.order_number}
                         </span>
                         <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${getStatusColor(order.status)}`}>
                           {order.status}
@@ -124,8 +124,8 @@ export function AccountOrdersList({ orders }: AccountOrdersListProps) {
                         {order.items.map((item, idx) => {
                           const img = item.product.images?.find((i: any) => i.isPrimary)?.url || item.product.images?.[0]?.url || '';
                           const parts = [];
-                          if (item.selectedVariant?.color) parts.push(item.selectedVariant.color);
-                          if (item.selectedVariant?.size) parts.push(item.selectedVariant.size);
+                          if (item.selected_variant?.color) parts.push(item.selected_variant.color);
+                          if (item.selected_variant?.size) parts.push(item.selected_variant.size);
                           const variantStr = parts.join(' · ');
 
                           return (
@@ -147,7 +147,7 @@ export function AccountOrdersList({ orders }: AccountOrdersListProps) {
                               </div>
                               <div className="text-right">
                                 <div className="text-xs text-gray-400 font-semibold">Qty {item.quantity}</div>
-                                <div className="text-xs font-bold text-gray-900 dark:text-white mt-0.5">{formatPrice(item.unitPrice * item.quantity)}</div>
+                                <div className="text-xs font-bold text-gray-900 dark:text-white mt-0.5">{formatPrice(item.unit_price * item.quantity)}</div>
                               </div>
                             </div>
                           );
@@ -183,9 +183,9 @@ export function AccountOrdersList({ orders }: AccountOrdersListProps) {
                             <span className="font-bold text-gray-900 dark:text-white">{formatPrice(order.subtotal)}</span>
                           </div>
                           {(() => {
-                            const shipAmount = order.shippingAmount || 0;
+                            const shipAmount = order.shipping_amount || 0;
                             const effectiveShip = shipAmount > 0 ? shipAmount : (order.total > order.subtotal ? order.total - order.subtotal : 0);
-                            const shipLabel = order.shippingMethodName || 'Delivery Charges';
+                            const shipLabel = order.shipping_method_name || 'Delivery Charges';
                             return (
                               <div className="flex justify-between">
                                 <span>{shipLabel}</span>

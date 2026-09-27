@@ -13,7 +13,7 @@ const TRANSPARENT_ICO = Buffer.from(
 export async function GET() {
   try {
     const settings = await getSettings();
-    const faviconUrl = settings.faviconUrl || settings.logoUrl;
+    const faviconUrl = settings.favicon_url || settings.logo_url;
 
     if (faviconUrl) {
       const res = await fetch(faviconUrl, { cache: 'no-store' });

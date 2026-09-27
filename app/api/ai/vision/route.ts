@@ -35,12 +35,12 @@ export async function POST(req: NextRequest) {
     if (forcedProvider && keys.vision[forcedProvider]) {
       const result = await routeVision(userPrompt, systemPrompt, image, {
         [forcedProvider]: keys.vision[forcedProvider],
-      });
+      }, settings.vision_model);
       return NextResponse.json(result);
     }
 
     // Otherwise use full fallback chain
-    const result = await routeVision(userPrompt, systemPrompt, image, keys.vision);
+    const result = await routeVision(userPrompt, systemPrompt, image, keys.vision, settings.vision_model);
     if (!result) {
       return NextResponse.json({ error: 'All vision providers failed' }, { status: 503 });
     }

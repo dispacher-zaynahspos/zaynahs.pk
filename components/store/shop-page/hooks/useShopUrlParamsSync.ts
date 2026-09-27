@@ -104,8 +104,8 @@ export function useShopUrlParamsSync({
       setSortBy(urlSort);
     } else {
       const preference =
-        activeCategory?.activeSortPreference ||
-        categories.find((c) => c.id === SYSTEM_CATEGORY_ID)?.activeSortPreference ||
+        activeCategory?.active_sort_preference ||
+        categories.find((c) => c.id === SYSTEM_CATEGORY_ID)?.active_sort_preference ||
         'manual';
       setSortBy(preference);
     }
@@ -200,8 +200,8 @@ export function useShopUrlParamsSync({
 
   const removeSortPill = () => {
     const preference =
-      activeCategory?.activeSortPreference ||
-      categories.find((c) => c.id === SYSTEM_CATEGORY_ID)?.activeSortPreference ||
+      activeCategory?.active_sort_preference ||
+      categories.find((c) => c.id === SYSTEM_CATEGORY_ID)?.active_sort_preference ||
       'manual';
     setSortBy(preference);
     const params = new URLSearchParams(searchParams.toString());
@@ -251,8 +251,8 @@ export function useShopUrlParamsSync({
     setShowAllSizes(false);
     setShowAllMaterials(false);
     const preference =
-      activeCategory?.activeSortPreference ||
-      categories.find((c) => c.id === SYSTEM_CATEGORY_ID)?.activeSortPreference ||
+      activeCategory?.active_sort_preference ||
+      categories.find((c) => c.id === SYSTEM_CATEGORY_ID)?.active_sort_preference ||
       'manual';
     setSortBy(preference);
     setLoadMoreLimit(PAGE_SIZE);

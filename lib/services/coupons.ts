@@ -18,12 +18,12 @@ interface CouponRow {
 const mapCoupon = (row: CouponRow): Coupon => ({
   id: row.id,
   code: row.code,
-  discountType: row.discount_type,
+  discount_type: row.discount_type,
   value: Number(row.value),
-  minCartAmount: row.min_cart_amount ? Number(row.min_cart_amount) : undefined,
+  min_cart_amount: row.min_cart_amount ? Number(row.min_cart_amount) : undefined,
   active: row.active,
-  createdAt: row.created_at,
-  updatedAt: row.updated_at
+  created_at: row.created_at,
+  updated_at: row.updated_at
 });
 
 export const getCoupons = async (): Promise<Coupon[]> => {
@@ -42,16 +42,16 @@ export const getCoupons = async (): Promise<Coupon[]> => {
   }
 };
 
-export const createCoupon = async (coupon: Omit<Coupon, 'id' | 'createdAt' | 'updatedAt'>): Promise<Coupon> => {
+export const createCoupon = async (coupon: Omit<Coupon, 'id' | 'created_at' | 'updated_at'>): Promise<Coupon> => {
   try {
     const supabase = await createClient();
     const { data, error } = await supabase
       .from('coupons')
       .insert({
         code: coupon.code.trim().toUpperCase(),
-        discount_type: coupon.discountType,
+        discount_type: coupon.discount_type,
         value: coupon.value,
-        min_cart_amount: coupon.minCartAmount || 0,
+        min_cart_amount: coupon.min_cart_amount || 0,
         active: coupon.active
       })
       .select('*')
@@ -71,9 +71,9 @@ export const updateCoupon = async (id: string, coupon: Partial<Coupon>): Promise
     const supabase = await createClient();
     const updatePayload: any = {};
     if (coupon.code !== undefined) updatePayload.code = coupon.code.trim().toUpperCase();
-    if (coupon.discountType !== undefined) updatePayload.discount_type = coupon.discountType;
+    if (coupon.discount_type !== undefined) updatePayload.discount_type = coupon.discount_type;
     if (coupon.value !== undefined) updatePayload.value = coupon.value;
-    if (coupon.minCartAmount !== undefined) updatePayload.min_cart_amount = coupon.minCartAmount;
+    if (coupon.min_cart_amount !== undefined) updatePayload.min_cart_amount = coupon.min_cart_amount;
     if (coupon.active !== undefined) updatePayload.active = coupon.active;
 
     const { data, error } = await supabase
@@ -122,8 +122,8 @@ export const validateCouponCode = async (code: string, subtotal: number): Promis
     if (!data) return null;
 
     const coupon = mapCoupon(data);
-    if (coupon.minCartAmount && subtotal < coupon.minCartAmount) {
-      return { error: `Minimum order amount of Rs. ${coupon.minCartAmount} is required for this coupon.` };
+    if (coupon.min_cart_amount && subtotal < coupon.min_cart_amount) {
+      return { error: `Minimum order amount of Rs. ${coupon.min_cart_amount} is required for this coupon.` };
     }
 
     return { coupon };

@@ -26,8 +26,8 @@ export function InventoryMobileVariantCard({
   onPendingVariantStockChange,
   onPendingVariantThresholdChange,
 }: InventoryMobileVariantCardProps) {
-  const variantLabel = [variant.color, variant.size, variant.material, variant.customValue].filter(Boolean).join(' / ') || 'Default';
-  const variantThreshold = variant.inventoryThreshold !== undefined && variant.inventoryThreshold !== null ? variant.inventoryThreshold : 5;
+  const variantLabel = [variant.color, variant.size, variant.material, variant.custom_value].filter(Boolean).join(' / ') || 'Default';
+  const variantThreshold = variant.inventory_threshold !== undefined && variant.inventory_threshold !== null ? variant.inventory_threshold : 5;
 
   const isStockModified = pendingVariantStock[variant.id] !== undefined && String(pendingVariantStock[variant.id]) !== String(variant.stock);
   const currentStockVal = pendingVariantStock[variant.id] !== undefined ? pendingVariantStock[variant.id] : variant.stock;
@@ -53,8 +53,8 @@ export function InventoryMobileVariantCard({
             }}
             className="rounded border-gray-300 text-[#e94560] focus:ring-[#e94560] h-4 w-4 cursor-pointer flex-shrink-0"
           />
-          {variant.colorHex && (
-            <span className="h-3.5 w-3.5 rounded-full border border-gray-300 flex-shrink-0" style={getSwatchStyle(variant.colorHex)} />
+          {variant.color_hex && (
+            <span className="h-3.5 w-3.5 rounded-full border border-gray-300 flex-shrink-0" style={getSwatchStyle(variant.color_hex)} />
           )}
           {variantLabel}
         </span>

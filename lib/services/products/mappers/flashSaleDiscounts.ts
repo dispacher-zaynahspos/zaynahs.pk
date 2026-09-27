@@ -43,12 +43,12 @@ export const applyFlashSaleDiscounts = async (products: Product[]): Promise<Prod
 
     return products.map(product => {
       if (isGlobalFlashSaleActive && settings) {
-        const discountType = settings.globalFlashSaleDiscountType || 'percentage';
-        const discountVal = settings.globalFlashSaleDiscountValue || 0;
+        const discountType = settings.global_flash_sale_discount_type || 'percentage';
+        const discountVal = settings.global_flash_sale_discount_value || 0;
 
         if (discountVal > 0) {
           const currentPrice = product.price;
-          const baseComparePrice = product.comparePrice || product.price;
+          const baseComparePrice = product.compare_price || product.price;
           let discountPrice = currentPrice;
 
           if (discountType === 'percentage') {
@@ -61,7 +61,7 @@ export const applyFlashSaleDiscounts = async (products: Product[]): Promise<Prod
             const updatedVariants = product.variants.map(v => {
               if (v.price) {
                 const varCurrentPrice = v.price;
-                const varComparePrice = v.comparePrice || (product.comparePrice ? Math.round(product.comparePrice * (v.price / product.price)) : v.price);
+                const varComparePrice = v.compare_price || (product.compare_price ? Math.round(product.compare_price * (v.price / product.price)) : v.price);
                 let varDiscountPrice = varCurrentPrice;
                 if (discountType === 'percentage') {
                   varDiscountPrice = Math.round(varCurrentPrice * (1 - discountVal / 100));
@@ -71,7 +71,7 @@ export const applyFlashSaleDiscounts = async (products: Product[]): Promise<Prod
                 return {
                   ...v,
                   price: varDiscountPrice,
-                  comparePrice: varComparePrice
+                  compare_price: varComparePrice
                 };
               }
               return v;
@@ -80,11 +80,11 @@ export const applyFlashSaleDiscounts = async (products: Product[]): Promise<Prod
             return {
               ...product,
               price: discountPrice,
-              comparePrice: baseComparePrice,
+              compare_price: baseComparePrice,
               variants: updatedVariants,
-              flashSaleEnabled: true,
-              flashSaleEndDate: settings.flash_sale_end_date || undefined,
-              flashSaleStartDate: settings.flash_sale_start_date || undefined
+              flash_sale_enabled: true,
+              flash_sale_end_date: settings.flash_sale_end_date || undefined,
+              flash_sale_start_date: settings.flash_sale_start_date || undefined
             };
           }
         }
@@ -96,7 +96,7 @@ export const applyFlashSaleDiscounts = async (products: Product[]): Promise<Prod
 
         if (fsProd) {
           const currentPrice = product.price;
-          const baseComparePrice = product.comparePrice || product.price;
+          const baseComparePrice = product.compare_price || product.price;
           const discountPrice = fsProd.discountValue ? parseFloat(fsProd.discountValue.toString()) : product.price;
 
           if (discountPrice < currentPrice) {
@@ -104,12 +104,12 @@ export const applyFlashSaleDiscounts = async (products: Product[]): Promise<Prod
             const updatedVariants = product.variants.map(v => {
               if (v.price) {
                 const varCurrentPrice = v.price;
-                const varComparePrice = v.comparePrice || (product.comparePrice ? Math.round(product.comparePrice * (v.price / product.price)) : v.price);
+                const varComparePrice = v.compare_price || (product.compare_price ? Math.round(product.compare_price * (v.price / product.price)) : v.price);
                 const newVarPrice = Math.round(varCurrentPrice * ratio);
                 return {
                   ...v,
                   price: newVarPrice,
-                  comparePrice: varComparePrice
+                  compare_price: varComparePrice
                 };
               }
               return v;
@@ -118,30 +118,30 @@ export const applyFlashSaleDiscounts = async (products: Product[]): Promise<Prod
             return {
               ...product,
               price: discountPrice,
-              comparePrice: baseComparePrice,
+              compare_price: baseComparePrice,
               variants: updatedVariants,
-              flashSaleEnabled: true,
-              flashSaleEndDate: fs.settings?.endTime || undefined,
-              flashSaleStartDate: fs.settings?.startTime || undefined
+              flash_sale_enabled: true,
+              flash_sale_end_date: fs.settings?.endTime || undefined,
+              flash_sale_start_date: fs.settings?.startTime || undefined
             };
           }
         }
       }
 
-      if (product.flashSaleEnabled) {
-        const pStartStr = product.flashSaleStartDate;
-        const pEndStr = product.flashSaleEndDate;
+      if (product.flash_sale_enabled) {
+        const pStartStr = product.flash_sale_start_date;
+        const pEndStr = product.flash_sale_end_date;
 
         const isStarted = !pStartStr || new Date(pStartStr).getTime() <= now;
         const isEnded = pEndStr && new Date(pEndStr).getTime() < now;
 
         if (isStarted && !isEnded) {
-          const discountType = product.flashSaleDiscountType || 'fixed';
-          const discountVal = product.flashSaleDiscountValue || 0;
+          const discountType = product.flash_sale_discount_type || 'fixed';
+          const discountVal = product.flash_sale_discount_value || 0;
 
           if (discountVal > 0) {
             const currentPrice = product.price;
-            const baseComparePrice = product.comparePrice || product.price;
+            const baseComparePrice = product.compare_price || product.price;
             let discountPrice = currentPrice;
 
             if (discountType === 'percentage') {
@@ -154,7 +154,7 @@ export const applyFlashSaleDiscounts = async (products: Product[]): Promise<Prod
               const updatedVariants = product.variants.map(v => {
                 if (v.price) {
                   const varCurrentPrice = v.price;
-                  const varComparePrice = v.comparePrice || (product.comparePrice ? Math.round(product.comparePrice * (v.price / product.price)) : v.price);
+                  const varComparePrice = v.compare_price || (product.compare_price ? Math.round(product.compare_price * (v.price / product.price)) : v.price);
                   let varDiscountPrice = varCurrentPrice;
                   if (discountType === 'percentage') {
                     varDiscountPrice = Math.round(varCurrentPrice * (1 - discountVal / 100));
@@ -164,7 +164,7 @@ export const applyFlashSaleDiscounts = async (products: Product[]): Promise<Prod
                   return {
                     ...v,
                     price: varDiscountPrice,
-                    comparePrice: varComparePrice
+                    compare_price: varComparePrice
                   };
                 }
                 return v;
@@ -173,11 +173,11 @@ export const applyFlashSaleDiscounts = async (products: Product[]): Promise<Prod
               return {
                 ...product,
                 price: discountPrice,
-                comparePrice: baseComparePrice,
+                compare_price: baseComparePrice,
                 variants: updatedVariants,
-                flashSaleEnabled: true,
-                flashSaleEndDate: product.flashSaleEndDate || undefined,
-                flashSaleStartDate: product.flashSaleStartDate || undefined
+                flash_sale_enabled: true,
+                flash_sale_end_date: product.flash_sale_end_date || undefined,
+                flash_sale_start_date: product.flash_sale_start_date || undefined
               };
             }
           }
@@ -186,13 +186,13 @@ export const applyFlashSaleDiscounts = async (products: Product[]): Promise<Prod
 
       for (const fs of activeFlashSales) {
         const categoryDiscounts = fs.content_data?.categoryDiscounts || [];
-        const fsCat = categoryDiscounts.find((c: any) => c?.categoryId === product.categoryId);
+        const fsCat = categoryDiscounts.find((c: any) => c?.categoryId === product.category_id);
 
         if (fsCat) {
           const discountVal = parseFloat(fsCat.discountValue) || 0;
           if (discountVal > 0) {
             const currentPrice = product.price;
-            const baseComparePrice = product.comparePrice || product.price;
+            const baseComparePrice = product.compare_price || product.price;
             let discountPrice = currentPrice;
 
             if (fsCat.discountType === 'percentage') {
@@ -205,7 +205,7 @@ export const applyFlashSaleDiscounts = async (products: Product[]): Promise<Prod
               const updatedVariants = product.variants.map(v => {
                 if (v.price) {
                   const varCurrentPrice = v.price;
-                  const varComparePrice = v.comparePrice || (product.comparePrice ? Math.round(product.comparePrice * (v.price / product.price)) : v.price);
+                  const varComparePrice = v.compare_price || (product.compare_price ? Math.round(product.compare_price * (v.price / product.price)) : v.price);
                   let varDiscountPrice = varCurrentPrice;
                   if (fsCat.discountType === 'percentage') {
                     varDiscountPrice = Math.round(varCurrentPrice * (1 - discountVal / 100));
@@ -215,7 +215,7 @@ export const applyFlashSaleDiscounts = async (products: Product[]): Promise<Prod
                   return {
                     ...v,
                     price: varDiscountPrice,
-                    comparePrice: varComparePrice
+                    compare_price: varComparePrice
                   };
                 }
                 return v;
@@ -224,11 +224,11 @@ export const applyFlashSaleDiscounts = async (products: Product[]): Promise<Prod
               return {
                 ...product,
                 price: discountPrice,
-                comparePrice: baseComparePrice,
+                compare_price: baseComparePrice,
                 variants: updatedVariants,
-                flashSaleEnabled: true,
-                flashSaleEndDate: fs.settings?.endTime || undefined,
-                flashSaleStartDate: fs.settings?.startTime || undefined
+                flash_sale_enabled: true,
+                flash_sale_end_date: fs.settings?.endTime || undefined,
+                flash_sale_start_date: fs.settings?.startTime || undefined
               };
             }
           }

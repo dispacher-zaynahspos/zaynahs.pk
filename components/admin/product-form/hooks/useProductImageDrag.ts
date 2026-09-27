@@ -10,12 +10,12 @@ interface UseProductImageDragProps {
 }
 
 export function useProductImageDrag({ initialProduct }: UseProductImageDragProps = {}) {
-  const [images, setImages] = useState<Omit<ProductImage, 'id' | 'productId' | 'createdAt'>[]>(
+  const [images, setImages] = useState<Omit<ProductImage, 'id' | 'product_id' | 'created_at'>[]>(
     initialProduct?.images.map((img: any, idx: number) => ({
       url: img.url,
       alt: img.alt,
-      sortOrder: img.sortOrder,
-      isPrimary: idx === 0
+      sort_order: img.sort_order,
+      is_primary: idx === 0
     })) || []
   );
 

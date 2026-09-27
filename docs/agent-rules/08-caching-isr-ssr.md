@@ -121,6 +121,14 @@ Result: price change visible to customers in < 1 second, zero DB hits per page l
 - ALWAYS use `purgeCloudflareEverything()` inside `lib/revalidate.ts` functions (`revalidateBanner`, `revalidateHomepage`, `revalidateSettings`, etc.).
 - Any admin save of layout, setting, product, or category → webhook must trigger a FULL zone purge for instant fresh data.
 
+## RULE C10 — Every admin write auto-invalidates ALL cache layers (STRICT)
+Manual "Purge Cache" button sirf **emergency** ke liye hai. **Normal save ke baad kabhi bhi manual purge zaroori na ho** — har admin write khud saari cache layers invalidate kare, ek hi **shared utility** ke through (per-page/per-handler custom purge banned).
+- **Ek shared invalidation utility** (`lib/revalidate.ts`) har write path (product/variant/category/settings/AI-config create/update/delete) me call ho. Naya write path bina invalidation ke merge na ho.
+- Ek save par jo layers cover hone chahiye: **Next.js** (`revalidateTag` + `revalidatePath`), **Vercel Data Cache** (stuck ho to cache-key bump — RULE C8), **Cloudflare edge** (`purgeCloudflareEverything()` — RULE C9), aur client jahan `localStorage`/`sessionStorage` ko cache ki tarah use kar raha ho wahan explicit invalidation.
+- **No stale-data leakage**: save ke turant baad koi bhi layer purani value serve na kare (ties to [01-core-operating-principles.md](01-core-operating-principles.md) RULE OP2).
+- **Optimized DB usage (no waste)**: reads hamesha cache-first (`unstable_cache` + tag). DB tabhi hit ho jab cache cold ho ya invalidation ke baad — **ek page load = zero redundant DB queries**. Same request me ek hi data ko dobara fetch mat karo; N+1 / nested-RLS joins ban (batch-fetch — [05-database-supabase.md](05-database-supabase.md) line 10). Invalidation targeted ho (sirf affected tags/URLs) — bina zaroorat full-zone purge spam mat karo, lekin layout-level change par full purge zaroori (RULE C9).
+- Audit rule: jab bhi naya admin save banao, verify karo ki wo shared utility ko call kar raha hai — warna wahi "save hua par update nahi dikha" bug wapas aayega.
+
 ---
 
 ## CACHE1 — Active cache/page rule table

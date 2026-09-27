@@ -20,11 +20,11 @@ export const mapCategory = (row: CategoryRow): Category => ({
   name: row.name,
   slug: row.slug,
   description: row.description || undefined,
-  imageUrl: row.image_url || undefined,
-  sortOrder: row.sort_order || 0,
+  image_url: row.image_url || undefined,
+  sort_order: row.sort_order || 0,
   active: row.active ?? true,
-  activeSortPreference: row.active_sort_preference || undefined,
-  deletedAt: row.deleted_at || undefined,
-  createdAt: row.created_at,
-  updatedAt: row.updated_at
+  active_sort_preference: row.active_sort_preference || undefined,
+  deleted_at: row.deleted_at || undefined,
+  created_at: row.created_at,
+  updated_at: row.updated_at
 });

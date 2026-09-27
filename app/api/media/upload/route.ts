@@ -63,6 +63,7 @@ export async function POST(request: Request) {
 
     let meta: any = null;
     let aiProvider = '';
+    let aiError: string | null = null;
     try {
       const settings = await getAISettings();
       if (settings.auto_media_ai && !isVideo) {
@@ -80,7 +81,7 @@ export async function POST(request: Request) {
   "caption": "A short, engaging caption for the image."
 }`;
 
-          const result = await routeVision(userPrompt, systemPrompt, fileUrl, keys.vision);
+          const result = await routeVision(userPrompt, systemPrompt, fileUrl, keys.vision, settings.vision_model);
           aiProvider = result.provider;
 
           let cleanJson = result.result.trim();
@@ -109,6 +110,7 @@ export async function POST(request: Request) {
       }
     } catch (aiErr: any) {
       console.error('[Media Upload API] Auto Vision generation failed:', aiErr.message || aiErr);
+      aiError = aiErr?.message || 'AI vision analysis failed';
     }
 
     return NextResponse.json({
@@ -116,6 +118,7 @@ export async function POST(request: Request) {
       id: mediaRecord.id,
       url: fileUrl,
       ai_generated: !!meta,
+      ai_error: aiError,
       aiProvider,
       meta: meta || {
         alt_text: mediaRecord.alt_text,

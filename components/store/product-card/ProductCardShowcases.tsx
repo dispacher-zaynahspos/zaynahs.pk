@@ -97,7 +97,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
   const productUrl = `/product/${product.slug}`;
   const handleNav = () => saveScrollPosition(product.id);
 
-  const hoverStyle = settings?.imageHoverStyle ?? 'second_image';
+  const hoverStyle = settings?.image_hover_style ?? 'second_image';
 
   // ── SHOPIFY PATTERN: outer div + transparent overlay Link ─────────────────────
   // • Outer div handles touch state (not a Link → no double-tap issue)
@@ -143,7 +143,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
           showQuickview={showQuickview}
           showQuickcart={showQuickcart}
           isInWishlist={isInWishlist}
-          hasVariants={product.hasVariants}
+          hasVariants={product.has_variants}
           onToggleWishlist={onToggleWishlist}
           onOpenQuickView={onOpenQuickView}
           onAddToCart={onAddToCart}

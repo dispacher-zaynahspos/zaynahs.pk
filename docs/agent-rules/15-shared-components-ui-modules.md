@@ -29,7 +29,8 @@ Any new page/feature in `/admin` or `/store` MUST reuse these shared modules. If
 | Admin cards/panels | `AdminCard` | `@/components/admin/shared/AdminCard` |
 | Admin bulk actions | `AdminBulkActionBar` | `@/components/admin/shared/AdminBulkActionBar` |
 | Admin toolbars | `AdminToolbar` | `@/components/admin/shared/AdminToolbar` |
-| Storefront filters | `CategoryFilter`, `PriceRangeFilter`, `ColorFilter`, `SizeFilter`, `MaterialFilter`, `SortDropdown` | `@/components/store/shared/*` |
+| Storefront category filter | `CategoryFilter` (canonical) | `@/components/store/CategoryFilter` |
+| Shop page filters | `ShopPageSidebar` (price/color/size/material/sort live here) | `@/components/store/shop-page/ShopPageSidebar` |
 | Tab management | `useAdminTab.ts` pattern | `lib/hooks/useAdminTab` |
 
 ## ✅ Mandatory utility map

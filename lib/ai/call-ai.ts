@@ -1,5 +1,5 @@
 import { getAISettings } from './settings';
-import { normalizeGoogleModel } from './google';
+import { normalizeGoogleModel, DEFAULT_GOOGLE_MODEL, GOOGLE_FALLBACK_MODEL } from './google';
 
 /**
  * Downloads an image from a URL and converts it to a base64 string
@@ -71,7 +71,7 @@ export async function callAI(
     const envGemini = (process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY)?.trim();
     if (envGemini) {
       provider = 'gemini';
-      model = 'gemini-3.6-flash';
+      model = DEFAULT_GOOGLE_MODEL;
       keys.push(envGemini);
     }
   }
@@ -95,8 +95,8 @@ export async function callAI(
   }
 
   const freeHint = isVision
-    ? ' Try switching to: Groq llama-4-scout (14,400 req/day FREE), Gemini 3.6 Flash (1,500 req/day FREE), or OpenRouter free models.'
-    : ' Try switching to: Groq llama-4-scout (fastest, 14,400 req/day FREE) or Gemini 3.6 Flash (1,500 req/day FREE).';
+    ? ' Try switching to: Groq llama-4-scout (14,400 req/day FREE), Gemini 2.0 Flash (1,500 req/day FREE), or OpenRouter free models.'
+    : ' Try switching to: Groq llama-4-scout (fastest, 14,400 req/day FREE) or Gemini 2.0 Flash (1,500 req/day FREE).';
   throw new Error(`All ${provider} API keys exhausted (rate limited).${freeHint} Update keys or switch provider in Settings → AI Models.`);
 }
 
@@ -126,7 +126,7 @@ async function executeRequest(
   switch (provider.toLowerCase()) {
     case 'gemini': {
       const primaryModel = normalizeGoogleModel(model);
-      const fallbackModel = primaryModel === 'gemini-3.6-flash' ? 'gemini-flash-latest' : 'gemini-3.6-flash';
+      const fallbackModel = primaryModel === GOOGLE_FALLBACK_MODEL ? DEFAULT_GOOGLE_MODEL : GOOGLE_FALLBACK_MODEL;
       const modelsToTry = [primaryModel, fallbackModel];
       const wantsJson = /json|\{|\}/i.test(prompt) || /json/i.test(systemPrompt);
 

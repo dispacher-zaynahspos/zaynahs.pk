@@ -61,13 +61,13 @@ export function useRecentBuyerTicker({ settings, isCheckout }: UseRecentBuyerTic
         if (randomOrder && randomOrder.items && randomOrder.items.length > 0) {
           const orderItem = randomOrder.items[0];
           selectedProduct = orderItem.product;
-          buyerName = randomOrder.customerName || 'A customer';
+          buyerName = randomOrder.customer_name || 'A customer';
 
           const notesStr = randomOrder.notes || '';
           const cityMatch = notesStr.match(/City:\s*([^\n\r]+)/i);
           buyerCity = cityMatch ? cityMatch[1].trim() : 'Pakistan';
 
-          const createdTime = new Date(randomOrder.createdAt).getTime();
+          const createdTime = new Date(randomOrder.created_at).getTime();
           const elapsed = Date.now() - createdTime;
           const mins = Math.floor(elapsed / 60000);
           if (mins < 1) {
@@ -89,11 +89,11 @@ export function useRecentBuyerTicker({ settings, isCheckout }: UseRecentBuyerTic
         let pool = products;
         const poolType = settings.recent_buyers_product_pool || 'any';
         if (poolType === 'featured') {
-          pool = products.filter(p => p.isFeatured);
+          pool = products.filter(p => p.is_featured);
         } else if (poolType === 'sale') {
-          pool = products.filter(p => p.comparePrice && p.comparePrice > p.price);
+          pool = products.filter(p => p.compare_price && p.compare_price > p.price);
         } else if (poolType === 'recent') {
-          pool = [...products].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 10);
+          pool = [...products].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 10);
         } else if (poolType === 'custom') {
           let customIds: string[] = [];
           try {

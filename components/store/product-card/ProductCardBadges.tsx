@@ -24,15 +24,15 @@ export const ProductCardBadges: React.FC<ProductCardBadgesProps> = ({
       </span>
     );
   }
-  if (product.isFeatured) {
-    const featuredCustom = product.customBadge?.name?.toLowerCase() === 'featured' ? product.customBadge : null;
+  if (product.is_featured) {
+    const featuredCustom = product.custom_badge?.name?.toLowerCase() === 'featured' ? product.custom_badge : null;
     badges.push(
       <span
         key="featured"
         className={`${badgeClass} bdg-featured`}
         style={{
-          backgroundColor: featuredCustom?.bgColor || '#e94560',
-          color: featuredCustom?.textColor || '#ffffff',
+          backgroundColor: featuredCustom?.bg_color || '#e94560',
+          color: featuredCustom?.text_color || '#ffffff',
           fontWeight: 800,
           textTransform: 'uppercase',
           letterSpacing: '0.05em'
@@ -42,24 +42,24 @@ export const ProductCardBadges: React.FC<ProductCardBadgesProps> = ({
       </span>
     );
   }
-  if (product.badgeEnabled && product.customBadge && (!product.isFeatured || product.customBadge.name.toLowerCase() !== 'featured')) {
+  if (product.badge_enabled && product.custom_badge && (!product.is_featured || product.custom_badge.name.toLowerCase() !== 'featured')) {
     badges.push(
       <span
         key="custom"
         className={badgeClass}
         style={{
-          backgroundColor: product.customBadge.bgColor,
-          color: product.customBadge.textColor,
+          backgroundColor: product.custom_badge.bg_color,
+          color: product.custom_badge.text_color,
           fontWeight: 800,
           textTransform: 'uppercase',
           letterSpacing: '0.05em'
         }}
       >
-        {product.customBadge.name}
+        {product.custom_badge.name}
       </span>
     );
   }
-  if (!product.isService && product.stock > 0 && product.stock <= 8) {
+  if (!product.is_service && product.stock > 0 && product.stock <= 8) {
     badges.push(<span key="limited" className={`${badgeClass} bdg-new`}>Limited</span>);
   }
 

@@ -68,16 +68,16 @@ export function useCartContainerState(settings: StoreSettings) {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (appliedCoupon && appliedCoupon.minCartAmount && totalPrice < appliedCoupon.minCartAmount) {
+    if (appliedCoupon && appliedCoupon.min_cart_amount && totalPrice < appliedCoupon.min_cart_amount) {
       applyCoupon(null);
-      toast.error(`Coupon ${appliedCoupon.code} removed (Subtotal fell below Rs. ${appliedCoupon.minCartAmount})`);
+      toast.error(`Coupon ${appliedCoupon.code} removed (Subtotal fell below Rs. ${appliedCoupon.min_cart_amount})`);
     }
   }, [totalPrice, appliedCoupon, applyCoupon]);
 
   useEffect(() => {
     if (view === 'checkout' && items.length > 0) {
       trackEvent('InitiateCheckout', {
-        content_ids: items.map((item) => item.selectedVariant?.id || item.product.id),
+        content_ids: items.map((item) => item.selected_variant?.id || item.product.id),
         content_type: 'product',
         value: totalPrice,
         currency: settings.currency || 'PKR',
@@ -108,7 +108,7 @@ export function useCartContainerState(settings: StoreSettings) {
 
   const couponDiscountAmount = (() => {
     if (!appliedCoupon) return 0;
-    if (appliedCoupon.discountType === 'percentage') {
+    if (appliedCoupon.discount_type === 'percentage') {
       return Math.round((subtotal * appliedCoupon.value) / 100);
     } else {
       return Math.min(appliedCoupon.value, subtotal);
@@ -176,10 +176,10 @@ export function useCartContainerState(settings: StoreSettings) {
         coordinates.trim() ? `Coordinates: ${coordinates.trim()}` : '',
         `Payment Method: ${selectedPayment?.name ?? 'Cash on delivery'}`,
         volumeDiscountAmount > 0
-          ? `Volume Discount: -${formatPrice(volumeDiscountAmount, settings.currencySymbol)}`
+          ? `Volume Discount: -${formatPrice(volumeDiscountAmount, settings.currency_symbol)}`
           : '',
         couponDiscountAmount > 0
-          ? `Coupon Discount (${appliedCoupon?.code}): -${formatPrice(couponDiscountAmount, settings.currencySymbol)}`
+          ? `Coupon Discount (${appliedCoupon?.code}): -${formatPrice(couponDiscountAmount, settings.currency_symbol)}`
           : '',
       ]
         .filter(Boolean)
@@ -229,31 +229,31 @@ export function useCartContainerState(settings: StoreSettings) {
         emailOrPhone.trim() ? `• Contact: ${emailOrPhone.trim()}` : '',
         notes.trim() ? `• Notes: ${notes.trim()}` : '',
         volumeDiscountAmount > 0
-          ? `• Volume Discount: -${formatPrice(volumeDiscountAmount, settings.currencySymbol)}`
+          ? `• Volume Discount: -${formatPrice(volumeDiscountAmount, settings.currency_symbol)}`
           : '',
         couponDiscountAmount > 0
-          ? `• Coupon Discount (${appliedCoupon?.code}): -${formatPrice(couponDiscountAmount, settings.currencySymbol)}`
+          ? `• Coupon Discount (${appliedCoupon?.code}): -${formatPrice(couponDiscountAmount, settings.currency_symbol)}`
           : '',
-        `• Shipping: ${selectedShipping?.name ?? 'Standard'} (${formatPrice(shippingCost, settings.currencySymbol)})`,
+        `• Shipping: ${selectedShipping?.name ?? 'Standard'} (${formatPrice(shippingCost, settings.currency_symbol)})`,
         `• Payment Method: ${selectedPayment?.name ?? 'Cash on delivery'}`,
-        `*Grand Total: ${formatPrice(finalTotal, settings.currencySymbol)}*`,
+        `*Grand Total: ${formatPrice(finalTotal, settings.currency_symbol)}*`,
         '',
-        `• Order No: ${order.orderNumber}`,
+        `• Order No: ${order.order_number}`,
       ]
         .filter(Boolean)
         .join('\n');
 
       trackEvent('Purchase', {
-        transaction_id: order.orderNumber || order.id,
+        transaction_id: order.order_number || order.id,
         value: finalTotal,
         currency: settings.currency || 'PKR',
-        content_ids: items.map((item) => item.selectedVariant?.id || item.product.id),
+        content_ids: items.map((item) => item.selected_variant?.id || item.product.id),
         content_type: 'product',
         num_items: items.reduce((sum, item) => sum + item.quantity, 0),
       });
 
       const orderData = {
-        orderNumber: order.orderNumber,
+        orderNumber: order.order_number,
         createdAt: new Date().toISOString(),
         total: finalTotal,
         items: [...items],
@@ -285,7 +285,7 @@ export function useCartContainerState(settings: StoreSettings) {
 
       clearCart();
       router.push('/cart?step=success');
-      window.open(buildWhatsAppURL(settings.whatsappNumber || '923001234567', fullMsg), '_blank');
+      window.open(buildWhatsAppURL(settings.whatsapp_number || '923001234567', fullMsg), '_blank');
       toast.success('Order placed! Redirecting to WhatsApp...');
     } catch (err) {
       console.error(err);

@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { toast } from 'sonner';
-import { addEmailSubscriberClient } from '@/lib/services/sections-client';
+import { addEmailSubscriberAction } from '@/lib/services/sections/subscribe-actions';
 
 export function NewsletterForm() {
   const [email, setEmail] = useState('');
@@ -13,7 +13,7 @@ export function NewsletterForm() {
     if (!email.trim()) return;
     setLoading(true);
     try {
-      await addEmailSubscriberClient(email.trim());
+      await addEmailSubscriberAction(email.trim());
       toast.success('Thank you for subscribing! 🎉', { description: "You'll receive our latest offers." });
       setEmail('');
     } catch (err: unknown) {

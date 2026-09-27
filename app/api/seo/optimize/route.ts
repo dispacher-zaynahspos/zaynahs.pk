@@ -259,15 +259,13 @@ export async function POST(request: Request) {
       
       await pingIndexNow([targetUrl]);
 
-      // Trigger local storefront cache clear
+      // Trigger full cross-layer cache invalidation (RULE C10): tags + paths + Cloudflare purge.
       try {
-        const { revalidateTag } = await import('next/cache');
+        const { revalidateEntity } = await import('@/lib/revalidate');
         if (entity_type === 'product') {
-          (revalidateTag as any)(`product-${slug}`);
-          (revalidateTag as any)('products');
+          await revalidateEntity('product', slug);
         } else if (entity_type === 'category') {
-          (revalidateTag as any)(`category-${slug}`);
-          (revalidateTag as any)('categories');
+          await revalidateEntity('category', slug);
         }
       } catch (revalErr) {
         console.warn('[SEO Optimize] Local revalidation skipped:', revalErr);

@@ -17,51 +17,51 @@ export interface EmailSubscriber {
 
 export interface EmailTemplate {
   id: string;
-  emailType: string;
+  email_type: string;
   category: 'customer' | 'admin';
   label: string;
   description?: string;
   enabled: boolean;
   subject: string;
-  customHtml?: string;
-  updatedAt: string;
+  custom_html?: string;
+  updated_at: string;
 }
 
 export interface Review {
   id: string;
-  productId?: string | null;
-  customerName: string;
-  customerPhone?: string;
-  customerEmail?: string;
+  product_id?: string | null;
+  customer_name: string;
+  customer_phone?: string;
+  customer_email?: string;
   contact?: string;
   rating: number;
   comment?: string;
   approved: boolean;
   hidden?: boolean;
-  isManual?: boolean;
-  screenshotUrl?: string;
+  is_manual?: boolean;
+  screenshot_url?: string;
   images?: string[];
-  deletedAt?: string | null;
-  createdAt: string;
+  deleted_at?: string | null;
+  created_at: string;
 }
 
 export interface SocialProof {
   id: string;
-  imageUrl: string;
+  image_url: string;
   caption?: string;
-  sourceType: 'whatsapp' | 'instagram' | 'facebook' | 'manual';
+  source_type: 'whatsapp' | 'instagram' | 'facebook' | 'manual';
   active: boolean;
-  sortOrder: number;
-  createdAt: string;
-  deletedAt?: string | null;
-  productIds?: string[];
-  linkedProducts?: { id: string; name: string; slug?: string; image?: string }[];
+  sort_order: number;
+  created_at: string;
+  deleted_at?: string | null;
+  product_ids?: string[];
+  linked_products?: { id: string; name: string; slug?: string; image?: string }[];
 }
 
 export interface VariantPresetValue {
   label: string;
   hex?: string;
-  imageUrl?: string;
+  image_url?: string;
 }
 
 export interface VariantPreset {
@@ -69,6 +69,6 @@ export interface VariantPreset {
   name: string;
   attribute: 'color' | 'size' | 'material' | 'custom';
   values: VariantPresetValue[];
-  createdAt: string;
-  deletedAt?: string | null;
+  created_at: string;
+  deleted_at?: string | null;
 }

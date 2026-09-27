@@ -32,7 +32,7 @@ export function useOrderDetailState(initialOrder: Order) {
         supabase
           .from('orders')
           .select('id')
-          .lt('created_at', order.createdAt)
+          .lt('created_at', order.created_at)
           .is('deleted_at', null)
           .order('created_at', { ascending: false })
           .limit(1)
@@ -40,7 +40,7 @@ export function useOrderDetailState(initialOrder: Order) {
         supabase
           .from('orders')
           .select('id')
-          .gt('created_at', order.createdAt)
+          .gt('created_at', order.created_at)
           .is('deleted_at', null)
           .order('created_at', { ascending: true })
           .limit(1)
@@ -52,7 +52,7 @@ export function useOrderDetailState(initialOrder: Order) {
     };
 
     fetchAdjacent();
-  }, [order.id, order.createdAt]);
+  }, [order.id, order.created_at]);
 
   useEffect(() => {
     setOrder(initialOrder);

@@ -15,7 +15,7 @@ export default async function AdminReportingPage() {
 
   return (
     <div className="space-y-6">
-      <ReportingDashboard orders={orders} settings={settings} products={products} isEmbed={false} />
+      <ReportingDashboard orders={orders} settings={settings} products={products} />
     </div>
   );
 }

@@ -30,7 +30,7 @@ export default function ProductDetailModals({
   onCopyLink,
 }: ProductDetailModalsProps) {
   const [mounted, setMounted] = useState(false);
-  const sizeGuide = product.sizeGuide;
+  const sizeGuide = product.size_guide;
 
   useEffect(() => {
     setMounted(true);
@@ -162,11 +162,11 @@ export default function ProductDetailModals({
               📏 {sizeGuide.name}
             </h3>
 
-            {sizeGuide.imageUrl && (
+            {sizeGuide.image_url && (
               <div className="relative w-full h-48 sm:h-64 rounded-2xl overflow-hidden bg-gray-50 dark:bg-white/5 mb-6 border border-gray-100 dark:border-gray-800 flex items-center justify-center">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={sizeGuide.imageUrl}
+                  src={sizeGuide.image_url}
                   alt={`${sizeGuide.name} visual reference`}
                   className="w-full h-full object-contain"
                 />

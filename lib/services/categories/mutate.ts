@@ -13,7 +13,7 @@ const staticSupabase = createSupabaseClient(supabaseUrl, supabaseServiceKey, {
   global: { fetch: (url, init) => fetch(url, { ...init, cache: 'no-store' }) }
 });
 
-export const createCategory = async (category: Omit<Category, 'id' | 'createdAt' | 'updatedAt'>): Promise<Category> => {
+export const createCategory = async (category: Omit<Category, 'id' | 'created_at' | 'updated_at'>): Promise<Category> => {
   try {
     const supabase = staticSupabase;
     const { data, error } = await supabase
@@ -22,8 +22,8 @@ export const createCategory = async (category: Omit<Category, 'id' | 'createdAt'
         name: category.name,
         slug: category.slug,
         description: category.description,
-        image_url: category.imageUrl,
-        sort_order: category.sortOrder,
+        image_url: category.image_url,
+        sort_order: category.sort_order,
         active: category.active
       })
       .select('*')
@@ -50,10 +50,10 @@ export const updateCategory = async (id: string, category: Partial<Category>): P
     if (category.name !== undefined) updatePayload.name = category.name;
     if (category.slug !== undefined) updatePayload.slug = category.slug;
     if (category.description !== undefined) updatePayload.description = category.description;
-    if (category.imageUrl !== undefined) updatePayload.image_url = category.imageUrl;
-    if (category.sortOrder !== undefined) updatePayload.sort_order = category.sortOrder;
+    if (category.image_url !== undefined) updatePayload.image_url = category.image_url;
+    if (category.sort_order !== undefined) updatePayload.sort_order = category.sort_order;
     if (category.active !== undefined) updatePayload.active = category.active;
-    if (category.activeSortPreference !== undefined) updatePayload.active_sort_preference = category.activeSortPreference;
+    if (category.active_sort_preference !== undefined) updatePayload.active_sort_preference = category.active_sort_preference;
 
     const { data, error } = await supabase
       .from('categories')

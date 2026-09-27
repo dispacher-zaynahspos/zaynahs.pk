@@ -1,5 +1,5 @@
 import { supabaseAdmin } from '@/lib/supabase/admin';
-import { callGoogle, GOOGLE_FREE_LIMITS } from './google';
+import { callGoogle, GOOGLE_FREE_LIMITS, DEFAULT_GOOGLE_MODEL, normalizeGoogleModel } from './google';
 import { callGroq, GROQ_FREE_LIMITS } from './groq';
 import { callMistral, MISTRAL_FREE_LIMITS } from './mistral';
 import { callOpenRouter } from './openrouter';
@@ -79,7 +79,7 @@ async function isNearLimit(provider: string): Promise<boolean> {
   const usage = await getDailyUsage(provider, today);
 
   const limits: Record<string, number> = {
-    google: GOOGLE_FREE_LIMITS['gemini-3.6-flash']?.reqPerDay || 1500,
+    google: GOOGLE_FREE_LIMITS[DEFAULT_GOOGLE_MODEL]?.reqPerDay || 1500,
     groq: GROQ_FREE_LIMITS.reqPerDay || 14400,
     mistral: 10000,
     openrouter: 5000,
@@ -97,16 +97,19 @@ export async function routeVision(
   systemPrompt: string,
   imageUrl: string,
   keys: Record<string, string>,
+  googleModel?: string,
 ): Promise<RouteResult> {
   const { base64, mimeType } = await fetchImageAsBase64(imageUrl);
+
+  const gModel = normalizeGoogleModel(googleModel || DEFAULT_GOOGLE_MODEL);
 
   const fallbackChain: Array<{ provider: string; model: string; call: () => Promise<string> }> = [];
 
   if (keys.google) {
     fallbackChain.push({
       provider: 'google',
-      model: 'gemini-3.6-flash',
-      call: () => callGoogle(keys.google!, 'gemini-3.6-flash', prompt, systemPrompt, true, base64, mimeType),
+      model: gModel,
+      call: () => callGoogle(keys.google!, gModel, prompt, systemPrompt, true, base64, mimeType),
     });
   }
   if (keys.groq) {
@@ -156,7 +159,10 @@ export async function routeText(
   prompt: string,
   systemPrompt: string,
   keys: Record<string, string>,
+  googleModel?: string,
 ): Promise<RouteResult> {
+  const gModel = normalizeGoogleModel(googleModel || DEFAULT_GOOGLE_MODEL);
+
   const fallbackChain: Array<{ provider: string; model: string; call: () => Promise<string> }> = [];
 
   if (keys.groq) {
@@ -169,8 +175,8 @@ export async function routeText(
   if (keys.google) {
     fallbackChain.push({
       provider: 'google',
-      model: 'gemini-3.6-flash',
-      call: () => callGoogle(keys.google!, 'gemini-3.6-flash', prompt, systemPrompt, false),
+      model: gModel,
+      call: () => callGoogle(keys.google!, gModel, prompt, systemPrompt, false),
     });
   }
   if (keys.mistral) {

@@ -29,3 +29,5 @@ This app runs across ANY domain (localhost, custom domain, production). Never ha
 
 ## OG Meta pattern
 Full `generateMetadata()` template and rules: [14-design-system.md](14-design-system.md) "OG Meta Rule" section.
+
+

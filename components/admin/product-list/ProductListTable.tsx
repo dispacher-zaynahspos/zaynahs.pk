@@ -84,7 +84,7 @@ export default function ProductListTable({
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-gray-800/60 font-medium">
               {paginatedProducts.map(product => {
-                const primaryImage = product.images?.find(img => img.isPrimary)?.url || product.images?.[0]?.url || fallbackPlaceholder;
+                const primaryImage = product.images?.find(img => img.is_primary)?.url || product.images?.[0]?.url || fallbackPlaceholder;
                 const isSyncing = syncingProductId === product.id;
                 return (
                   <tr 
@@ -118,15 +118,15 @@ export default function ProductListTable({
                               {product.name}
                             </p>
                           </div>
-                          {product.productCategories && product.productCategories.length > 0 ? (
+                          {product.product_categories && product.product_categories.length > 0 ? (
                             <div className="flex flex-wrap items-center gap-1 mt-0.5">
-                              {product.productCategories.slice(0, 2).map((pc) => pc.category ? (
-                                <span key={pc.categoryId} className="inline-flex items-center px-1.5 py-0.2 rounded-full bg-indigo-50/70 dark:bg-indigo-950/30 text-[9px] font-bold text-indigo-600 dark:text-indigo-400 leading-tight">
+                              {product.product_categories.slice(0, 2).map((pc) => pc.category ? (
+                                <span key={pc.category_id} className="inline-flex items-center px-1.5 py-0.2 rounded-full bg-indigo-50/70 dark:bg-indigo-950/30 text-[9px] font-bold text-indigo-600 dark:text-indigo-400 leading-tight">
                                   {pc.category.name}
                                 </span>
                               ) : null)}
-                              {product.productCategories.length > 2 && (
-                                <span className="text-[9px] font-bold text-gray-400">+{product.productCategories.length - 2}</span>
+                              {product.product_categories.length > 2 && (
+                                <span className="text-[9px] font-bold text-gray-400">+{product.product_categories.length - 2}</span>
                               )}
                             </div>
                           ) : product.category ? (
@@ -141,10 +141,10 @@ export default function ProductListTable({
                       </span>
                     </td>
                     <td className="py-2.5 px-2 font-black text-gray-900 dark:text-white text-xs md:text-sm whitespace-nowrap w-20">
-                      {formatPrice(product.price, settings.currencySymbol)}
+                      {formatPrice(product.price, settings.currency_symbol)}
                     </td>
                     <td className="py-2.5 px-2 font-semibold text-xs hidden sm:table-cell w-24">
-                      {product.hasVariants && product.variants ? (
+                      {product.has_variants && product.variants ? (
                         <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-black bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 whitespace-nowrap">
                           Variants ({product.variants.reduce((sum, v) => sum + v.stock, 0)})
                         </span>
@@ -168,15 +168,15 @@ export default function ProductListTable({
                           type="button"
                           onClick={() => handleToggleActive(product)}
                           className={`relative inline-flex h-4.5 w-8 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                            product.isActive ? 'bg-emerald-500' : 'bg-gray-200 dark:bg-gray-800'
+                            product.is_active ? 'bg-emerald-500' : 'bg-gray-200 dark:bg-gray-800'
                           }`}
                           role="switch"
-                          aria-checked={product.isActive}
-                          title={product.isActive ? 'Visible on store' : 'Hidden from store'}
+                          aria-checked={product.is_active}
+                          title={product.is_active ? 'Visible on store' : 'Hidden from store'}
                         >
                           <span
                             className={`pointer-events-none inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
-                              product.isActive ? 'translate-x-3.5' : 'translate-x-0'
+                              product.is_active ? 'translate-x-3.5' : 'translate-x-0'
                             }`}
                           />
                         </button>
@@ -188,15 +188,15 @@ export default function ProductListTable({
                           type="button"
                           onClick={() => handleToggleFeatured(product)}
                           className={`relative inline-flex h-4.5 w-8 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                            product.isFeatured ? 'bg-amber-500' : 'bg-gray-200 dark:bg-gray-800'
+                            product.is_featured ? 'bg-amber-500' : 'bg-gray-200 dark:bg-gray-800'
                           }`}
                           role="switch"
-                          aria-checked={product.isFeatured}
-                          title={product.isFeatured ? 'Remove from Featured' : 'Mark as Featured'}
+                          aria-checked={product.is_featured}
+                          title={product.is_featured ? 'Remove from Featured' : 'Mark as Featured'}
                         >
                           <span
                             className={`pointer-events-none inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
-                              product.isFeatured ? 'translate-x-3.5' : 'translate-x-0'
+                              product.is_featured ? 'translate-x-3.5' : 'translate-x-0'
                             }`}
                           />
                         </button>
@@ -277,7 +277,7 @@ export default function ProductListTable({
       {/* Mobile Products Cards */}
       <div className="md:hidden space-y-3 p-4">
         {paginatedProducts.map(product => {
-          const primaryImage = product.images?.find(img => img.isPrimary)?.url || product.images?.[0]?.url || fallbackPlaceholder;
+          const primaryImage = product.images?.find(img => img.is_primary)?.url || product.images?.[0]?.url || fallbackPlaceholder;
           const isSyncing = syncingProductId === product.id;
           return (
             <div 
@@ -306,12 +306,12 @@ export default function ProductListTable({
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2">
                     <h3 className="text-sm font-black text-gray-900 dark:text-white truncate flex-1 line-clamp-1">{product.name}</h3>
-                    <span className="text-sm font-black text-gray-900 dark:text-white flex-shrink-0">{formatPrice(product.price, settings.currencySymbol)}</span>
+                    <span className="text-sm font-black text-gray-900 dark:text-white flex-shrink-0">{formatPrice(product.price, settings.currency_symbol)}</span>
                   </div>
-                  {product.productCategories && product.productCategories.length > 0 ? (
+                  {product.product_categories && product.product_categories.length > 0 ? (
                     <div className="flex flex-wrap gap-1 mt-1">
-                      {product.productCategories.map((pc) => pc.category ? (
-                        <span key={pc.categoryId} className="inline-flex items-center px-2 py-0.5 rounded-full bg-indigo-50/80 dark:bg-indigo-950/30 text-[10px] font-bold text-indigo-600 dark:text-indigo-400">
+                      {product.product_categories.map((pc) => pc.category ? (
+                        <span key={pc.category_id} className="inline-flex items-center px-2 py-0.5 rounded-full bg-indigo-50/80 dark:bg-indigo-950/30 text-[10px] font-bold text-indigo-600 dark:text-indigo-400">
                           {pc.category.name}
                         </span>
                       ) : null)}
@@ -329,20 +329,20 @@ export default function ProductListTable({
                       type="button"
                       onClick={() => handleToggleActive(product)}
                       className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                        product.isActive ? 'bg-emerald-500' : 'bg-gray-200 dark:bg-gray-800'
+                        product.is_active ? 'bg-emerald-500' : 'bg-gray-200 dark:bg-gray-800'
                       }`}
                       role="switch"
-                      aria-checked={product.isActive}
-                      title={product.isActive ? 'Visible on store' : 'Hidden from store'}
+                      aria-checked={product.is_active}
+                      title={product.is_active ? 'Visible on store' : 'Hidden from store'}
                     >
                       <span
                         className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
-                          product.isActive ? 'translate-x-4' : 'translate-x-0'
+                          product.is_active ? 'translate-x-4' : 'translate-x-0'
                         }`}
                       />
                     </button>
                     <span className="text-[11px] font-bold text-gray-500 dark:text-gray-400">
-                      {product.isActive ? 'Visible' : 'Hidden'}
+                      {product.is_active ? 'Visible' : 'Hidden'}
                     </span>
                   </div>
 
@@ -351,20 +351,20 @@ export default function ProductListTable({
                       type="button"
                       onClick={() => handleToggleFeatured(product)}
                       className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                        product.isFeatured ? 'bg-amber-500' : 'bg-gray-200 dark:bg-gray-800'
+                        product.is_featured ? 'bg-amber-500' : 'bg-gray-200 dark:bg-gray-800'
                       }`}
                       role="switch"
-                      aria-checked={product.isFeatured}
-                      title={product.isFeatured ? 'Remove from Featured' : 'Mark as Featured'}
+                      aria-checked={product.is_featured}
+                      title={product.is_featured ? 'Remove from Featured' : 'Mark as Featured'}
                     >
                       <span
                         className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
-                          product.isFeatured ? 'translate-x-4' : 'translate-x-0'
+                          product.is_featured ? 'translate-x-4' : 'translate-x-0'
                         }`}
                       />
                     </button>
                     <span className="text-[11px] font-bold text-gray-500 dark:text-gray-400">
-                      {product.isFeatured ? 'Featured' : 'Not Featured'}
+                      {product.is_featured ? 'Featured' : 'Not Featured'}
                     </span>
                   </div>
 

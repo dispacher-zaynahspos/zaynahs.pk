@@ -22,7 +22,10 @@ export const TEXT_MODELS: Record<string, string[]> = {
     'llama3-8b-8192',
   ],
   gemini: [
-    'gemini-3.6-flash',
+    'gemini-2.5-flash',
+    'gemini-2.0-flash',
+    'gemini-1.5-flash',
+    'gemini-1.5-pro',
     'gemini-flash-latest',
     'gemma-3-27b-it',
     'gemma-3-12b-it',
@@ -216,7 +219,10 @@ export const VISION_MODELS: Record<string, string[]> = {
     'llama-3.2-90b-vision-preview',
   ],
   gemini: [
-    'gemini-3.6-flash',
+    'gemini-2.5-flash',
+    'gemini-2.0-flash',
+    'gemini-1.5-flash',
+    'gemini-1.5-pro',
     'gemini-flash-latest',
   ],
   cerebras: [
@@ -325,7 +331,8 @@ export const VISION_MODELS: Record<string, string[]> = {
 
 export function getModelLabel(provider: string, model: string): string {
   if (model.includes('llama-4-scout')) return `${model} ⭐ (Recommended • 14,400 req/day FREE)`;
-  if (model === 'gemini-3.6-flash') return `${model} ⭐ (Recommended • 1,500 req/day FREE)`;
+  if (model === 'gemini-2.0-flash') return `${model} ⭐ (Recommended • 1,500 req/day FREE)`;
+  if (model === 'gemini-2.5-flash') return `${model} (Latest • 1,500 req/day FREE)`;
   if (model === 'gemini-flash-latest') return `${model} (Auto-Updating Google Gemini)`;
   if (model === 'llama-3.3-70b-versatile') return `${model} (Fast & Smart • 6,000 req/day FREE)`;
   if (model === 'llama-3.1-8b-instant') return `${model} (Ultra-Fast • 14,400 req/day FREE)`;

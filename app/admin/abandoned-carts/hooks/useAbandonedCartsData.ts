@@ -219,8 +219,8 @@ export function useAbandonedCartsData() {
   const handleCopyDetails = (cart: AbandonedCart) => {
     const itemsText = cart.items.map(item => {
       const variantParts = [];
-      if (item.selectedVariant?.color) variantParts.push(item.selectedVariant.color);
-      if (item.selectedVariant?.size) variantParts.push(item.selectedVariant.size);
+      if ((item.selected_variant ?? item.selectedVariant)?.color) variantParts.push((item.selected_variant ?? item.selectedVariant).color);
+      if ((item.selected_variant ?? item.selectedVariant)?.size) variantParts.push((item.selected_variant ?? item.selectedVariant).size);
       const variantStr = variantParts.length ? ` (${variantParts.join(', ')})` : '';
       return `• ${item.product.name}${variantStr} x${item.quantity} = ${formatPrice(item.price * item.quantity)}`;
     }).join('\n');

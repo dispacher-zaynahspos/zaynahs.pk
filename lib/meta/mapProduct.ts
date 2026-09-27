@@ -116,11 +116,11 @@ export function mapProductToMeta(
   // 2. Resolve Site URL and Brand Name fallbacks
   let siteUrl = getClientSiteUrl(settings);
   
-  const brandName = settings.storeName || process.env.NEXT_PUBLIC_BRAND_NAME || 'Your Store';
+  const brandName = settings.store_name || process.env.NEXT_PUBLIC_BRAND_NAME || 'Your Store';
   const currency = settings.currency || 'PKR';
   
   // 3. Resolve and clean image links (preventing localhost leakage)
-  const rawPrimaryUrl = product.images.find(img => img.isPrimary)?.url || product.images[0].url;
+  const rawPrimaryUrl = product.images.find(img => img.is_primary)?.url || product.images[0].url;
   const primaryImage = cleanImageUrl(rawPrimaryUrl, siteUrl);
 
   const additionalImages = product.images
@@ -128,7 +128,7 @@ export function mapProductToMeta(
     .map(img => cleanImageUrl(img.url, siteUrl));
   
   // Resolve standard Meta category path
-  const categoryPath = (product.categoryId && categoryMap[product.categoryId]) || 'Apparel & Accessories > Clothing';
+  const categoryPath = (product.category_id && categoryMap[product.category_id]) || 'Apparel & Accessories > Clothing';
 
   const baseDescription = cleanDescription(product.description || product.name, siteUrl);
   
@@ -136,7 +136,7 @@ export function mapProductToMeta(
   const ageGroup = getAgeGroup(product.name, baseDescription, categoryPath);
 
   // If the product has active variants, map each variant as an item in Meta Catalog
-  if (product.hasVariants && product.variants && product.variants.length > 0) {
+  if (product.has_variants && product.variants && product.variants.length > 0) {
     return product.variants
       .filter(v => v.active)
       .map(v => {
@@ -144,14 +144,14 @@ export function mapProductToMeta(
         if (v.color) variantNameParts.push(v.color);
         if (v.size) variantNameParts.push(v.size);
         if (v.material) variantNameParts.push(v.material);
-        if (v.customValue) variantNameParts.push(v.customValue);
+        if (v.custom_value) variantNameParts.push(v.custom_value);
         
         const variantName = variantNameParts.length > 0 
           ? `${product.name} - ${variantNameParts.join(', ')}`
           : product.name;
 
         const activePrice = v.price || product.price;
-        const comparePrice = v.comparePrice || product.comparePrice;
+        const comparePrice = v.compare_price || product.compare_price;
 
         // Sale price calculations: regular price goes to 'price', discounted active goes to 'sale_price'
         let finalPrice = `${activePrice} ${currency}`;
@@ -162,7 +162,7 @@ export function mapProductToMeta(
           salePrice = `${activePrice} ${currency}`;
         }
 
-        const variantImageUrl = v.imageUrl ? cleanImageUrl(v.imageUrl, siteUrl) : primaryImage;
+        const variantImageUrl = v.image_url ? cleanImageUrl(v.image_url, siteUrl) : primaryImage;
 
         return {
           id: v.id,
@@ -192,7 +192,7 @@ export function mapProductToMeta(
 
   // Simple product mapping (no variants — item_group_id omitted)
   const activePrice = product.price;
-  const comparePrice = product.comparePrice;
+  const comparePrice = product.compare_price;
 
   let finalPrice = `${activePrice} ${currency}`;
   let salePrice: string | undefined = undefined;

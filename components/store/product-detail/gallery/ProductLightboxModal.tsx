@@ -7,12 +7,12 @@ import { ChevronLeft, ChevronRight, X } from '@/components/common/Icons';
 
 export interface ImageItem {
   id: string;
-  productId: string;
+  product_id: string;
   url: string;
   alt?: string;
-  sortOrder: number;
-  isPrimary: boolean;
-  createdAt: string;
+  sort_order: number;
+  is_primary: boolean;
+  created_at: string;
 }
 
 interface ProductLightboxModalProps {

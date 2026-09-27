@@ -121,7 +121,7 @@ export default function SizeGuidesPage() {
       const exportData = toExport.map(g => ({
         name: g.name,
         chart_data: g.chart_data,
-        imageUrl: g.imageUrl
+        imageUrl: g.image_url
       }));
       const dataStr = JSON.stringify(exportData, null, 2);
       const dataBlob = new Blob([dataStr], { type: 'application/json' });
@@ -163,7 +163,7 @@ export default function SizeGuidesPage() {
             const updatedGuide = await updateSizeGuide(existing.id, {
               name: item.name,
               chart_data: item.chart_data,
-              imageUrl: finalImageUrl || undefined
+              image_url: finalImageUrl || undefined
             });
             const idx = newGuides.findIndex(g => g.id === existing.id);
             if (idx !== -1) newGuides[idx] = updatedGuide;

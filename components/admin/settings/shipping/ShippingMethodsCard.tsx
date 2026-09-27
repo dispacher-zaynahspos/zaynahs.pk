@@ -168,7 +168,7 @@ export default function ShippingMethodsCard({
                       <div className="font-bold text-gray-800 dark:text-gray-200 truncate">{method.name}</div>
                       <div className="text-xs text-gray-400 dark:text-gray-500 font-semibold mt-0.5">
                         Cost: Rs. {method.cost.toLocaleString()}{' '}
-                        {method.estimatedDays ? `| ${method.estimatedDays}` : ''}
+                        {method.estimated_days ? `| ${method.estimated_days}` : ''}
                       </div>
                     </div>
                     <div className="flex items-center gap-2">

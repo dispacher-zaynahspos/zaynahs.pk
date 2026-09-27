@@ -40,34 +40,34 @@ import { stripHtmlTags } from "@/lib/utils/stripHtml";
 export async function generateMetadata(): Promise<Metadata> {
   try {
     const settings = await getSettings();
-    const brandName = settings.storeName || process.env.NEXT_PUBLIC_BRAND_NAME || 'Store';
-    const siteUrl = settings.storeUrl?.replace(/\/+$/, '') || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+    const brandName = settings.store_name || process.env.NEXT_PUBLIC_BRAND_NAME || 'Store';
+    const siteUrl = settings.store_url?.replace(/\/+$/, '') || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
     const tagline = settings.tagline || '';
 
-    const rawDesc = settings.metaDescription || tagline || `Discover amazing deals at ${brandName}. Quality items with fast delivery.`;
+    const rawDesc = settings.meta_description || tagline || `Discover amazing deals at ${brandName}. Quality items with fast delivery.`;
     const description = stripHtmlTags(rawDesc);
-    const title = settings.metaTitle || tagline || brandName;
+    const title = settings.meta_title || tagline || brandName;
 
-    const timestamp = settings.updatedAt ? new Date(settings.updatedAt).getTime() : Date.now();
+    const timestamp = settings.updated_at ? new Date(settings.updated_at).getTime() : Date.now();
 
-    const fav = settings.faviconUrl
-      ? `${settings.faviconUrl}?v=${timestamp}`
-      : settings.logoUrl
-        ? `${settings.logoUrl}?v=${timestamp}`
+    const fav = settings.favicon_url
+      ? `${settings.favicon_url}?v=${timestamp}`
+      : settings.logo_url
+        ? `${settings.logo_url}?v=${timestamp}`
         : `/favicon.ico?v=${timestamp}`;
 
-    const appleTouchIcon = settings.logoUrl
-      ? `${settings.logoUrl}?v=${timestamp}`
-      : settings.faviconUrl
-        ? `${settings.faviconUrl}?v=${timestamp}`
+    const appleTouchIcon = settings.logo_url
+      ? `${settings.logo_url}?v=${timestamp}`
+      : settings.favicon_url
+        ? `${settings.favicon_url}?v=${timestamp}`
         : `/favicon.ico?v=${timestamp}`;
 
-    const ogImage = settings.bannerUrl
-      ? settings.bannerUrl
-      : settings.logoUrl
-        ? settings.logoUrl
-        : settings.faviconUrl
-          ? settings.faviconUrl
+    const ogImage = settings.banner_url
+      ? settings.banner_url
+      : settings.logo_url
+        ? settings.logo_url
+        : settings.favicon_url
+          ? settings.favicon_url
           : `/favicon.ico?v=${timestamp}`;
 
     return {
@@ -174,7 +174,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const settings = await getSettings();
-  let siteUrl = settings?.storeUrl?.replace(/\/+$/, '') || process.env.NEXT_PUBLIC_SITE_URL || '';
+  let siteUrl = settings?.store_url?.replace(/\/+$/, '') || process.env.NEXT_PUBLIC_SITE_URL || '';
 
   let storeName = 'Store';
   let description = 'Premium online store.';
@@ -182,7 +182,7 @@ export default async function RootLayout({
     const brand = await getDomainBrand();
     storeName = brand.name;
     siteUrl = `${brand.protocol}://${brand.domain}`;
-    description = settings.metaDescription || brand.tagline || `Discover amazing deals at ${storeName}.`;
+    description = settings.meta_description || brand.tagline || `Discover amazing deals at ${storeName}.`;
   } catch {
     // Fallback already set above
   }
@@ -275,7 +275,7 @@ export default async function RootLayout({
                     "url": siteUrl,
                     "logo": {
                       "@type": "ImageObject",
-                      "url": settings.logoUrl ? (settings.logoUrl.startsWith('http') ? settings.logoUrl : `${siteUrl}${settings.logoUrl}`) : `${siteUrl}/icon.png`
+                      "url": settings.logo_url ? (settings.logo_url.startsWith('http') ? settings.logo_url : `${siteUrl}${settings.logo_url}`) : `${siteUrl}/icon.png`
                     }
                   }
                 ]

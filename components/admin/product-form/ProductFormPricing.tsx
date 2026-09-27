@@ -20,7 +20,7 @@ interface ProductFormPricingProps {
   setStock: (val: string) => void;
   inventoryThreshold: string;
   setInventoryThreshold: (val: string) => void;
-  variants: Omit<ProductVariant, 'id' | 'productId'>[];
+  variants: Omit<ProductVariant, 'id' | 'product_id'>[];
 }
 
 export const ProductFormPricing: React.FC<ProductFormPricingProps> = ({

@@ -23,7 +23,7 @@ export const ProductCardMedia: React.FC<ProductCardMediaProps> = ({
   priority = false,
   fitClass = 'object-contain',
 }) => {
-  const hoverStyle = settings?.imageHoverStyle ?? 'second_image';
+  const hoverStyle = settings?.image_hover_style ?? 'second_image';
   const isZoom = hoverStyle === 'zoom';
   const isSecondImage = hoverStyle !== 'none' && hoverStyle !== 'zoom';
   const showSecond = isSecondImage && Boolean(secondImage) && !hoveredImage;
@@ -35,9 +35,9 @@ export const ProductCardMedia: React.FC<ProductCardMediaProps> = ({
         alt={productName}
         fill
         sizes="(max-width: 768px) 50vw, 25vw"
-        className={`${fitClass} transition-opacity duration-200 pointer-events-none${
+        className={`${fitClass} pointer-events-none${
           isZoom ? ' hover-zoom' : ''
-        }${showSecond ? ' hover-fade-out' : ''}`}
+        }${showSecond ? ' hover-fade-out' : ' transition-opacity duration-200'}`}
         priority={priority}
         loading={priority ? undefined : 'lazy'}
       />
@@ -47,7 +47,7 @@ export const ProductCardMedia: React.FC<ProductCardMediaProps> = ({
           alt={`${productName} alternate`}
           fill
           sizes="(max-width: 768px) 50vw, 25vw"
-          className={`${fitClass} absolute inset-0 transition-opacity duration-200 pointer-events-none hover-fade-in`}
+          className={`${fitClass} absolute inset-0 pointer-events-none hover-fade-in`}
           priority={priority}
           loading={priority ? undefined : 'lazy'}
         />

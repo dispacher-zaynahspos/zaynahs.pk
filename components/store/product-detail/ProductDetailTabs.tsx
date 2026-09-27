@@ -37,7 +37,7 @@ export default function ProductDetailTabs({
           Description
         </button>
 
-        {settings.faqContent && (
+        {settings.faq_content && (
           <button
             type="button"
             onClick={() => setActiveDetailTab('faq')}
@@ -50,7 +50,7 @@ export default function ProductDetailTabs({
           </button>
         )}
 
-        {settings.returnPolicyContent && (
+        {settings.return_policy_content && (
           <button
             type="button"
             onClick={() => setActiveDetailTab('returns')}
@@ -91,19 +91,19 @@ export default function ProductDetailTabs({
           </div>
         )}
 
-        {activeDetailTab === 'faq' && settings.faqContent && (
-          isHtml(settings.faqContent) ? (
-            <div dangerouslySetInnerHTML={{ __html: settings.faqContent }} />
+        {activeDetailTab === 'faq' && settings.faq_content && (
+          isHtml(settings.faq_content) ? (
+            <div dangerouslySetInnerHTML={{ __html: settings.faq_content }} />
           ) : (
-            <div className="whitespace-pre-wrap">{settings.faqContent}</div>
+            <div className="whitespace-pre-wrap">{settings.faq_content}</div>
           )
         )}
 
-        {activeDetailTab === 'returns' && settings.returnPolicyContent && (
-          isHtml(settings.returnPolicyContent) ? (
-            <div dangerouslySetInnerHTML={{ __html: settings.returnPolicyContent }} />
+        {activeDetailTab === 'returns' && settings.return_policy_content && (
+          isHtml(settings.return_policy_content) ? (
+            <div dangerouslySetInnerHTML={{ __html: settings.return_policy_content }} />
           ) : (
-            <div className="whitespace-pre-wrap">{settings.returnPolicyContent}</div>
+            <div className="whitespace-pre-wrap">{settings.return_policy_content}</div>
           )
         )}
       </div>

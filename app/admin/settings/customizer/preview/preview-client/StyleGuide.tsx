@@ -11,7 +11,7 @@ interface StyleGuideProps {
 
 export default function StyleGuide({ settings, products }: StyleGuideProps) {
   const activeProduct = products[0];
-  const currencySymbol = settings.currencySymbol || 'Rs.';
+  const currencySymbol = settings.currency_symbol || 'Rs.';
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 space-y-8">

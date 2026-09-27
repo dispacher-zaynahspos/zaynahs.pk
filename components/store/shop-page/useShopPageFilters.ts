@@ -64,8 +64,8 @@ export function useShopPageFilters({
   const [selectedCollectionId, setSelectedCollectionId] = useState<string | undefined>(activeCollection?.id);
   const [searchQuery, setSearchQuery] = useState(urlSearchQuery);
   const defaultSort =
-    activeCategory?.activeSortPreference ||
-    categories.find((c) => c.id === SYSTEM_CATEGORY_ID)?.activeSortPreference ||
+    activeCategory?.active_sort_preference ||
+    categories.find((c) => c.id === SYSTEM_CATEGORY_ID)?.active_sort_preference ||
     'manual';
   const [sortBy, setSortBy] = useState<string>(
     urlSortParam && SORT_OPTIONS.some((o) => o.value === urlSortParam) ? urlSortParam : defaultSort
@@ -76,7 +76,35 @@ export function useShopPageFilters({
 
   const { settings: liveSettings } = useSettings(settings);
   const activeSettings = isPreview ? settings : (liveSettings ?? settings);
-  const PAGE_SIZE = Number(activeSettings?.shop_products_per_page) || 12;
+  const [devicePageSize, setDevicePageSize] = useState<number>(() => {
+    return Number(activeSettings?.shop_products_per_page) || 12;
+  });
+
+  useEffect(() => {
+    const updateSize = () => {
+      if (typeof window === 'undefined') return;
+      const w = window.innerWidth;
+      if (w < 640 && activeSettings?.shop_products_per_page_mobile) {
+        setDevicePageSize(Number(activeSettings.shop_products_per_page_mobile));
+      } else if (w >= 640 && w < 1024 && activeSettings?.shop_products_per_page_tablet) {
+        setDevicePageSize(Number(activeSettings.shop_products_per_page_tablet));
+      } else if (w >= 1024 && activeSettings?.shop_products_per_page_desktop) {
+        setDevicePageSize(Number(activeSettings.shop_products_per_page_desktop));
+      } else {
+        setDevicePageSize(Number(activeSettings?.shop_products_per_page) || 12);
+      }
+    };
+    updateSize();
+    window.addEventListener('resize', updateSize);
+    return () => window.removeEventListener('resize', updateSize);
+  }, [
+    activeSettings?.shop_products_per_page,
+    activeSettings?.shop_products_per_page_desktop,
+    activeSettings?.shop_products_per_page_tablet,
+    activeSettings?.shop_products_per_page_mobile,
+  ]);
+
+  const PAGE_SIZE = devicePageSize;
 
   useScrollRestoration();
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
@@ -121,9 +149,9 @@ export function useShopPageFilters({
     const counts: Record<string, number> = {};
     allProducts.forEach((product) => {
       const categoryIds = new Set<string>();
-      if (product.categoryId) categoryIds.add(product.categoryId);
-      product.productCategories?.forEach((pc) => {
-        categoryIds.add(pc.categoryId);
+      if (product.category_id) categoryIds.add(product.category_id);
+      product.product_categories?.forEach((pc) => {
+        categoryIds.add(pc.category_id);
       });
       categoryIds.forEach((cid) => {
         counts[cid] = (counts[cid] || 0) + 1;
@@ -133,7 +161,7 @@ export function useShopPageFilters({
   }, [allProducts]);
 
   const featuredProducts = useMemo(() => {
-    return allProducts.filter((p) => p.isFeatured).slice(0, 3);
+    return allProducts.filter((p) => p.is_featured).slice(0, 3);
   }, [allProducts]);
 
   const sliderRef = useRef<HTMLInputElement>(null);

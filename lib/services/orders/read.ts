@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { Order, CartItem, StatusLogItem } from '@/lib/types';
-import { mapOrder } from './types';
+import { mapOrder, normalizeCartItems, normalizeStatusLogs } from './types';
 
 export const getOrders = async (): Promise<Order[]> => {
   try {
@@ -68,30 +68,30 @@ export const getOrderById = async (id: string): Promise<Order | null> => {
 
     return {
       id: data.id,
-      orderNumber: data.order_number,
-      customerName: data.customer_name || undefined,
-      customerPhone: data.customer_phone || undefined,
-      customerId: data.customer_id || undefined,
-      items: (data.items || []) as CartItem[],
+      order_number: data.order_number,
+      customer_name: data.customer_name || undefined,
+      customer_phone: data.customer_phone || undefined,
+      customer_id: data.customer_id || undefined,
+      items: normalizeCartItems(data.items),
       subtotal: data.subtotal ? parseFloat(data.subtotal.toString()) : 0,
       total: data.total ? parseFloat(data.total.toString()) : 0,
-      discountAmount: data.discount_amount ? parseFloat(data.discount_amount.toString()) : 0,
-      shippingAmount: data.shipping_amount ? parseFloat(data.shipping_amount.toString()) : 0,
-      shippingMethodName: data.shipping_method_name || undefined,
-      discountCode: data.discount_code || undefined,
+      discount_amount: data.discount_amount ? parseFloat(data.discount_amount.toString()) : 0,
+      shipping_amount: data.shipping_amount ? parseFloat(data.shipping_amount.toString()) : 0,
+      shipping_method_name: data.shipping_method_name || undefined,
+      discount_code: data.discount_code || undefined,
       status: data.status as Order['status'],
       notes: data.notes || undefined,
-      staffNotes: data.staff_notes || undefined,
-      statusLogs: (data.status_logs || []) as StatusLogItem[],
-      reviewEmailPending: data.review_email_pending ?? false,
-      deliveredAt: data.delivered_at || undefined,
-      trackingNumber: data.tracking_number || undefined,
-      courierName: data.courier_name || undefined,
-      trackingUrl: data.tracking_url || undefined,
-      cancelReason: data.cancel_reason || undefined,
-      refundAmount: data.refund_amount ? parseFloat(data.refund_amount.toString()) : undefined,
-      createdAt: data.created_at,
-      updatedAt: data.updated_at
+      staff_notes: data.staff_notes || undefined,
+      status_logs: normalizeStatusLogs(data.status_logs),
+      review_email_pending: data.review_email_pending ?? false,
+      delivered_at: data.delivered_at || undefined,
+      tracking_number: data.tracking_number || undefined,
+      courier_name: data.courier_name || undefined,
+      tracking_url: data.tracking_url || undefined,
+      cancel_reason: data.cancel_reason || undefined,
+      refund_amount: data.refund_amount ? parseFloat(data.refund_amount.toString()) : undefined,
+      created_at: data.created_at,
+      updated_at: data.updated_at
     };
   } catch (error) {
     console.error('[orders] getOrderById failed:', error);

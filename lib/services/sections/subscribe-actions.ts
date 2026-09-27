@@ -1,14 +1,21 @@
-// ⚠️ CLIENT-SIDE ONLY — uses browser Supabase client (safe for 'use client' components)
-import { createClient } from '@/lib/supabase/client';
+'use server';
+
+import { supabaseAdmin } from '@/lib/supabase/admin';
 import { WhatsAppSubscriber, EmailSubscriber } from '@/lib/types';
 
-export const addWhatsAppSubscriberClient = async (
+/**
+ * Public newsletter/WhatsApp signup — runs on the server with the service-role client
+ * so the `whatsapp_subscribers` / `email_subscribers` tables can have RLS with NO public
+ * SELECT policy (protecting subscriber PII from the anon key) while signup still works.
+ * RULE OP2 (zero data leakage).
+ */
+export async function addWhatsAppSubscriberAction(
   phone: string,
   name?: string,
   email?: string,
   source_type?: string
-): Promise<WhatsAppSubscriber> => {
-  const supabase = createClient();
+): Promise<WhatsAppSubscriber> {
+  const supabase = supabaseAdmin;
   const { data, error } = await supabase
     .from('whatsapp_subscribers')
     .insert({ phone, name, email, source_type })
@@ -27,10 +34,10 @@ export const addWhatsAppSubscriberClient = async (
     throw error;
   }
   return data;
-};
+}
 
-export const addEmailSubscriberClient = async (email: string): Promise<EmailSubscriber> => {
-  const supabase = createClient();
+export async function addEmailSubscriberAction(email: string): Promise<EmailSubscriber> {
+  const supabase = supabaseAdmin;
   const { data, error } = await supabase
     .from('email_subscribers')
     .insert({ email, source: 'newsletter' })
@@ -49,4 +56,4 @@ export const addEmailSubscriberClient = async (email: string): Promise<EmailSubs
     throw error;
   }
   return data;
-};
+}

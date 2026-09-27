@@ -8,8 +8,8 @@ const mapPreset = (row: any): VariantPreset => ({
   name: row.name,
   attribute: row.attribute,
   values: row.values as VariantPresetValue[],
-  createdAt: row.created_at,
-  deletedAt: row.deleted_at || null
+  created_at: row.created_at,
+  deleted_at: row.deleted_at || null
 });
 
 export const getVariantPresets = async (): Promise<VariantPreset[]> => {

@@ -182,7 +182,7 @@ const fetchTopReviews = async (limit: number = 8): Promise<(Review & { productNa
     if (error) throw error;
     const reviews = (data ?? []).map((row: any) => mapReview(row));
 
-    const productIds = reviews.map(r => r.productId).filter(Boolean) as string[];
+    const productIds = reviews.map(r => r.product_id).filter(Boolean) as string[];
     if (productIds.length > 0) {
       const { data: products } = await supabaseAdmin
         .from('products')
@@ -196,8 +196,8 @@ const fetchTopReviews = async (limit: number = 8): Promise<(Review & { productNa
       }
       return reviews.map(r => ({
         ...r,
-        productName: r.productId ? productMap[r.productId]?.name : undefined,
-        productSlug: r.productId ? productMap[r.productId]?.slug : undefined,
+        productName: r.product_id ? productMap[r.product_id]?.name : undefined,
+        productSlug: r.product_id ? productMap[r.product_id]?.slug : undefined,
       }));
     }
 
@@ -278,7 +278,7 @@ export const getGlobalReviews = async (filters: GlobalReviewFilters = {}): Promi
     const reviews = (data ?? []).map((row: any) => mapReview(row));
 
     // Batch fetch product names, slugs, and images
-    const productIds = reviews.map(r => r.productId).filter(Boolean) as string[];
+    const productIds = reviews.map(r => r.product_id).filter(Boolean) as string[];
     if (productIds.length > 0) {
       const [productResult, imageResult] = await Promise.all([
         supabaseAdmin.from('products').select('id, name, slug').in('id', productIds),
@@ -301,9 +301,9 @@ export const getGlobalReviews = async (filters: GlobalReviewFilters = {}): Promi
       return {
         reviews: reviews.map(r => ({
           ...r,
-          productName: r.productId ? productMap[r.productId]?.name : undefined,
-          productSlug: r.productId ? productMap[r.productId]?.slug : undefined,
-          productImage: r.productId ? imageMap[r.productId] : undefined,
+          productName: r.product_id ? productMap[r.product_id]?.name : undefined,
+          productSlug: r.product_id ? productMap[r.product_id]?.slug : undefined,
+          productImage: r.product_id ? imageMap[r.product_id] : undefined,
         })),
         total: count ?? 0,
         page,

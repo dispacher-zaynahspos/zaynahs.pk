@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { StoreSettings } from '@/lib/types';
 import ResponsiveGridColumnsControl from '@/components/admin/customizer/shared/ResponsiveGridColumnsControl';
+import { Monitor, Tablet, Smartphone } from '@/components/common/Icons';
 
 interface ShopPageSettingsProps {
   settings: StoreSettings;
@@ -15,6 +16,13 @@ export default function ShopPageSettings({
   onUpdateSettings,
   subTab
 }: ShopPageSettingsProps) {
+  const [pageSizeDevice, setPageSizeDevice] = useState<'desktop' | 'tablet' | 'mobile'>(viewportMode);
+
+  useEffect(() => {
+    if (viewportMode) {
+      setPageSizeDevice(viewportMode);
+    }
+  }, [viewportMode]);
   if (subTab === 'swatches') {
     return (
       <div className="space-y-6">
@@ -24,15 +32,15 @@ export default function ShopPageSettings({
             <label className="relative inline-flex items-center cursor-pointer select-none">
               <input
                 type="checkbox"
-                checked={settings.enableVariantSwatches}
-                onChange={(e) => onUpdateSettings({ enableVariantSwatches: e.target.checked })}
+                checked={settings.enable_variant_swatches}
+                onChange={(e) => onUpdateSettings({ enable_variant_swatches: e.target.checked })}
                 className="sr-only peer"
               />
               <div className="w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#e94560]" />
             </label>
           </div>
 
-          {settings.enableVariantSwatches && (
+          {settings.enable_variant_swatches && (
             <div className="space-y-4 pt-2">
               <div className="space-y-1.5">
                 <label className="text-[11px] font-bold text-gray-500 dark:text-gray-400 block uppercase tracking-wider">Swatch Shape</label>
@@ -41,9 +49,9 @@ export default function ShopPageSettings({
                     <button
                       key={shape}
                       type="button"
-                      onClick={() => onUpdateSettings({ swatchShape: shape })}
+                      onClick={() => onUpdateSettings({ swatch_shape: shape })}
                       className={`flex-1 py-2 rounded-xl border text-xs font-bold capitalize transition-all cursor-pointer ${
-                        settings.swatchShape === shape
+                        settings.swatch_shape === shape
                           ? 'border-[#e94560] bg-[#e94560]/5 text-[#e94560]'
                           : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 text-gray-500'
                       }`}
@@ -57,8 +65,8 @@ export default function ShopPageSettings({
               <div className="space-y-1.5">
                 <label className="text-[11px] font-bold text-gray-500 dark:text-gray-400 block uppercase tracking-wider">Swatch Limit on Cards</label>
                 <select
-                  value={settings.swatchLimit}
-                  onChange={(e) => onUpdateSettings({ swatchLimit: Number(e.target.value) })}
+                  value={settings.swatch_limit}
+                  onChange={(e) => onUpdateSettings({ swatch_limit: Number(e.target.value) })}
                   className="w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#0f0f1b] px-3 py-2 text-xs font-semibold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
                 >
                   {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20].map((num) => (
@@ -70,8 +78,8 @@ export default function ShopPageSettings({
               <div className="space-y-1.5">
                 <label className="text-[11px] font-bold text-gray-500 dark:text-gray-400 block uppercase tracking-wider">Archive Swatch Size</label>
                 <select
-                  value={settings.archiveSwatchSize || 'md'}
-                  onChange={(e) => onUpdateSettings({ archiveSwatchSize: e.target.value as any })}
+                  value={settings.archive_swatch_size || 'md'}
+                  onChange={(e) => onUpdateSettings({ archive_swatch_size: e.target.value as any })}
                   className="w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#0f0f1b] px-3 py-2 text-xs font-semibold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
                 >
                   {['sm', 'md', 'lg', 'xl', 'xxl'].map((sz) => (
@@ -87,9 +95,9 @@ export default function ShopPageSettings({
                     <button
                       key={align}
                       type="button"
-                      onClick={() => onUpdateSettings({ archiveSwatchAlign: align })}
+                      onClick={() => onUpdateSettings({ archive_swatch_align: align })}
                       className={`flex-1 py-2 rounded-xl border text-xs font-bold capitalize transition-all cursor-pointer ${
-                        settings.archiveSwatchAlign === align
+                        settings.archive_swatch_align === align
                           ? 'border-[#e94560] bg-[#e94560]/5 text-[#e94560]'
                           : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 text-gray-500'
                       }`}
@@ -112,8 +120,8 @@ export default function ShopPageSettings({
         <div className="space-y-1.5">
           <label className="text-[11px] font-bold text-gray-500 dark:text-gray-400 block uppercase tracking-wider">Image Hover Style</label>
           <select
-            value={settings.imageHoverStyle || 'second_image'}
-            onChange={(e) => onUpdateSettings({ imageHoverStyle: e.target.value as any })}
+            value={settings.image_hover_style || 'second_image'}
+            onChange={(e) => onUpdateSettings({ image_hover_style: e.target.value as any })}
             className="w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#0f0f1b] px-3 py-2 text-xs font-semibold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
           >
             <option value="second_image">Second Image (Fade Swap)</option>
@@ -130,8 +138,8 @@ export default function ShopPageSettings({
         <div className="space-y-1.5">
           <label className="text-[11px] font-bold text-gray-500 dark:text-gray-400 block uppercase tracking-wider">Image Aspect Ratio</label>
           <select
-            value={settings.imageAspectRatio || '1:1'}
-            onChange={(e) => onUpdateSettings({ imageAspectRatio: e.target.value })}
+            value={settings.image_aspect_ratio || '1:1'}
+            onChange={(e) => onUpdateSettings({ image_aspect_ratio: e.target.value })}
             className="w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#0f0f1b] px-3 py-2 text-xs font-semibold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
           >
             <option value="1:1">1:1 (Square)</option>
@@ -144,8 +152,8 @@ export default function ShopPageSettings({
         <div className="space-y-1.5">
           <label className="text-[11px] font-bold text-gray-500 dark:text-gray-400 block uppercase tracking-wider">Title Line Limit</label>
           <select
-            value={settings.titleLineLimit || '2'}
-            onChange={(e) => onUpdateSettings({ titleLineLimit: e.target.value as any })}
+            value={settings.title_line_limit || '2'}
+            onChange={(e) => onUpdateSettings({ title_line_limit: e.target.value as any })}
             className="w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#0f0f1b] px-3 py-2 text-xs font-semibold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
           >
             <option value="1">1 Line</option>
@@ -157,8 +165,8 @@ export default function ShopPageSettings({
         <div className="space-y-1.5">
           <label className="text-[11px] font-bold text-gray-500 dark:text-gray-400 block uppercase tracking-wider">Default Variant Index</label>
           <select
-            value={settings.defaultVariantIndex}
-            onChange={(e) => onUpdateSettings({ defaultVariantIndex: Number(e.target.value) })}
+            value={settings.default_variant_index}
+            onChange={(e) => onUpdateSettings({ default_variant_index: Number(e.target.value) })}
             className="w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#0f0f1b] px-3 py-2 text-xs font-semibold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
           >
             {[1, 2, 3, 4, 5].map((num) => (
@@ -228,43 +236,174 @@ export default function ShopPageSettings({
           onChangeMobile={(cols: number) => onUpdateSettings({ shop_columns_mobile: cols })}
         />
 
-        {/* Products Per Page / Load More Limit */}
-        <div className="space-y-2 p-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-white/[0.02]">
-          <div className="flex justify-between items-center">
+        {/* Products Per Page / Load More Limit (Responsive per Device) */}
+        <div className="space-y-2.5 p-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-white/[0.02]">
+          <div className="flex items-center justify-between">
             <label className="text-[11px] font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider block">
-              Products per Page / Batch Limit
+              Products per Page Limit
             </label>
-            <span className="text-xs font-black text-[#e94560]">
-              {settings.shop_products_per_page || 12} products
-            </span>
-          </div>
-          <input
-            type="range"
-            min="6"
-            max="48"
-            step="2"
-            value={settings.shop_products_per_page || 12}
-            onChange={(e) => onUpdateSettings({ shop_products_per_page: parseInt(e.target.value) })}
-            className="w-full accent-[#e94560] cursor-pointer"
-          />
-          <div className="flex gap-1.5 pt-1">
-            {[8, 12, 16, 24, 36, 48].map((preset) => (
+            <div className="flex items-center bg-gray-200/80 dark:bg-gray-800 p-0.5 rounded-lg text-[10px] font-bold">
               <button
-                key={preset}
                 type="button"
-                onClick={() => onUpdateSettings({ shop_products_per_page: preset })}
-                className={`flex-1 py-1 rounded-lg border text-[10px] font-bold transition-all cursor-pointer ${
-                  (settings.shop_products_per_page || 12) === preset
-                    ? 'border-[#e94560] bg-[#e94560]/10 text-[#e94560] font-black'
-                    : 'border-gray-200 dark:border-gray-800 text-gray-500 hover:text-gray-900 dark:hover:text-white bg-white dark:bg-[#16162a]'
+                onClick={() => setPageSizeDevice('desktop')}
+                className={`px-2 py-1 rounded-md transition-all flex items-center gap-1 cursor-pointer ${
+                  pageSizeDevice === 'desktop'
+                    ? 'bg-white dark:bg-[#16162a] text-[#e94560] shadow-xs'
+                    : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
                 }`}
+                title="Desktop limit"
               >
-                {preset}
+                <Monitor className="h-3 w-3" />
+                <span className="hidden xs:inline">Desk</span>
               </button>
-            ))}
+              <button
+                type="button"
+                onClick={() => setPageSizeDevice('tablet')}
+                className={`px-2 py-1 rounded-md transition-all flex items-center gap-1 cursor-pointer ${
+                  pageSizeDevice === 'tablet'
+                    ? 'bg-white dark:bg-[#16162a] text-[#e94560] shadow-xs'
+                    : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
+                }`}
+                title="Tablet limit"
+              >
+                <Tablet className="h-3 w-3" />
+                <span className="hidden xs:inline">Tab</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setPageSizeDevice('mobile')}
+                className={`px-2 py-1 rounded-md transition-all flex items-center gap-1 cursor-pointer ${
+                  pageSizeDevice === 'mobile'
+                    ? 'bg-white dark:bg-[#16162a] text-[#e94560] shadow-xs'
+                    : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
+                }`}
+                title="Mobile limit"
+              >
+                <Smartphone className="h-3 w-3" />
+                <span className="hidden xs:inline">Mob</span>
+              </button>
+            </div>
           </div>
+
+          {pageSizeDevice === 'desktop' && (
+            <div className="space-y-2">
+              <div className="flex justify-between items-center text-[10px] text-gray-500 font-semibold">
+                <span>Desktop Batch Limit</span>
+                <span className="text-xs font-black text-[#e94560]">
+                  {settings.shop_products_per_page_desktop || settings.shop_products_per_page || 12} products
+                </span>
+              </div>
+              <input
+                type="range"
+                min="6"
+                max="48"
+                step="2"
+                value={settings.shop_products_per_page_desktop || settings.shop_products_per_page || 12}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value);
+                  onUpdateSettings({
+                    shop_products_per_page_desktop: val,
+                    shop_products_per_page: val
+                  });
+                }}
+                className="w-full accent-[#e94560] cursor-pointer"
+              />
+              <div className="flex gap-1.5 pt-1">
+                {[8, 12, 16, 24, 36, 48].map((preset) => (
+                  <button
+                    key={preset}
+                    type="button"
+                    onClick={() => onUpdateSettings({
+                      shop_products_per_page_desktop: preset,
+                      shop_products_per_page: preset
+                    })}
+                    className={`flex-1 py-1 rounded-lg border text-[10px] font-bold transition-all cursor-pointer ${
+                      (settings.shop_products_per_page_desktop || settings.shop_products_per_page || 12) === preset
+                        ? 'border-[#e94560] bg-[#e94560]/10 text-[#e94560] font-black'
+                        : 'border-gray-200 dark:border-gray-800 text-gray-500 hover:text-gray-900 dark:hover:text-white bg-white dark:bg-[#16162a]'
+                    }`}
+                  >
+                    {preset}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {pageSizeDevice === 'tablet' && (
+            <div className="space-y-2">
+              <div className="flex justify-between items-center text-[10px] text-gray-500 font-semibold">
+                <span>Tablet Batch Limit</span>
+                <span className="text-xs font-black text-[#e94560]">
+                  {settings.shop_products_per_page_tablet || settings.shop_products_per_page || 12} products
+                </span>
+              </div>
+              <input
+                type="range"
+                min="4"
+                max="36"
+                step="2"
+                value={settings.shop_products_per_page_tablet || settings.shop_products_per_page || 12}
+                onChange={(e) => onUpdateSettings({ shop_products_per_page_tablet: parseInt(e.target.value) })}
+                className="w-full accent-[#e94560] cursor-pointer"
+              />
+              <div className="flex gap-1.5 pt-1">
+                {[6, 9, 12, 18, 24, 36].map((preset) => (
+                  <button
+                    key={preset}
+                    type="button"
+                    onClick={() => onUpdateSettings({ shop_products_per_page_tablet: preset })}
+                    className={`flex-1 py-1 rounded-lg border text-[10px] font-bold transition-all cursor-pointer ${
+                      (settings.shop_products_per_page_tablet || settings.shop_products_per_page || 12) === preset
+                        ? 'border-[#e94560] bg-[#e94560]/10 text-[#e94560] font-black'
+                        : 'border-gray-200 dark:border-gray-800 text-gray-500 hover:text-gray-900 dark:hover:text-white bg-white dark:bg-[#16162a]'
+                    }`}
+                  >
+                    {preset}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {pageSizeDevice === 'mobile' && (
+            <div className="space-y-2">
+              <div className="flex justify-between items-center text-[10px] text-gray-500 font-semibold">
+                <span>Mobile Batch Limit</span>
+                <span className="text-xs font-black text-[#e94560]">
+                  {settings.shop_products_per_page_mobile || 8} products
+                </span>
+              </div>
+              <input
+                type="range"
+                min="4"
+                max="24"
+                step="2"
+                value={settings.shop_products_per_page_mobile || 8}
+                onChange={(e) => onUpdateSettings({ shop_products_per_page_mobile: parseInt(e.target.value) })}
+                className="w-full accent-[#e94560] cursor-pointer"
+              />
+              <div className="flex gap-1.5 pt-1">
+                {[4, 6, 8, 10, 12, 16].map((preset) => (
+                  <button
+                    key={preset}
+                    type="button"
+                    onClick={() => onUpdateSettings({ shop_products_per_page_mobile: preset })}
+                    className={`flex-1 py-1 rounded-lg border text-[10px] font-bold transition-all cursor-pointer ${
+                      (settings.shop_products_per_page_mobile || 8) === preset
+                        ? 'border-[#e94560] bg-[#e94560]/10 text-[#e94560] font-black'
+                        : 'border-gray-200 dark:border-gray-800 text-gray-500 hover:text-gray-900 dark:hover:text-white bg-white dark:bg-[#16162a]'
+                    }`}
+                  >
+                    {preset}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           <p className="text-[10px] text-gray-400">
-            Number of products shown initially and loaded on each &quot;Load More&quot; click or infinite scroll batch.
+            Number of products shown initially and loaded on each &quot;Load More&quot; click or infinite scroll batch per device.
           </p>
         </div>
       </div>

@@ -169,7 +169,7 @@ export function useOrderLogState({ initialOrders, settings }: UseOrderLogStatePr
               if (prev.some(o => o.id === newOrder.id)) return prev;
               return [newOrder, ...prev];
             });
-            toast.info(`New Order received: ${newOrder.orderNumber}`);
+            toast.info(`New Order received: ${newOrder.order_number}`);
           } else if (payload.eventType === 'UPDATE') {
             const updatedOrder = mapOrderRow(payload.new);
             setOrders(prev => prev.map(o => o.id === updatedOrder.id ? updatedOrder : o));
@@ -187,7 +187,7 @@ export function useOrderLogState({ initialOrders, settings }: UseOrderLogStatePr
 
   // Filter & Search Logic
   const filteredOrders = orders.filter(o => {
-    if (o.deletedAt) return false;
+    if (o.deleted_at) return false;
 
     if (activeTab === 'unfulfilled') {
       if (!['pending', 'placed', 'confirmed'].includes(o.status)) return false;
@@ -203,12 +203,12 @@ export function useOrderLogState({ initialOrders, settings }: UseOrderLogStatePr
 
     const matchesSearch =
       !searchQuery.trim() ||
-      (o.orderNumber && o.orderNumber.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (o.customerName && o.customerName.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (o.customerPhone && o.customerPhone.toLowerCase().includes(searchQuery.toLowerCase()));
+      (o.order_number && o.order_number.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (o.customer_name && o.customer_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (o.customer_phone && o.customer_phone.toLowerCase().includes(searchQuery.toLowerCase()));
     if (!matchesSearch) return false;
 
-    const orderDate = new Date(o.createdAt);
+    const orderDate = new Date(o.created_at);
     const orderTime = orderDate.getTime();
     const now = new Date();
 
@@ -259,17 +259,17 @@ export function useOrderLogState({ initialOrders, settings }: UseOrderLogStatePr
 
   const sortedOrders = [...filteredOrders].sort((a, b) => {
     if (sortKey === 'date-desc') {
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     } else if (sortKey === 'date-asc') {
-      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
     } else if (sortKey === 'order-desc') {
-      return (b.orderNumber || '').localeCompare(a.orderNumber || '');
+      return (b.order_number || '').localeCompare(a.order_number || '');
     } else if (sortKey === 'order-asc') {
-      return (a.orderNumber || '').localeCompare(b.orderNumber || '');
+      return (a.order_number || '').localeCompare(b.order_number || '');
     } else if (sortKey === 'customer-desc') {
-      return (b.customerName || '').localeCompare(a.customerName || '');
+      return (b.customer_name || '').localeCompare(a.customer_name || '');
     } else if (sortKey === 'customer-asc') {
-      return (a.customerName || '').localeCompare(b.customerName || '');
+      return (a.customer_name || '').localeCompare(b.customer_name || '');
     } else if (sortKey === 'total-desc') {
       return b.total - a.total;
     } else if (sortKey === 'total-asc') {

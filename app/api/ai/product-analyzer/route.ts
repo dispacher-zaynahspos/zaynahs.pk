@@ -45,6 +45,7 @@ export async function POST(req: NextRequest) {
       systemPrompt,
       imageUrl,
       keys.vision,
+      settings.vision_model,
     );
 
     if (!result) {

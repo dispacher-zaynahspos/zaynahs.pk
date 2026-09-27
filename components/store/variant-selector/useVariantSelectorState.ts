@@ -20,20 +20,20 @@ export function useVariantSelectorState({
   const sizes = React.useMemo(() => Array.from(new Set(activeVariants.map(v => v.size).filter(Boolean))) as string[], [activeVariants]);
   const materials = React.useMemo(() => Array.from(new Set(activeVariants.map(v => v.material).filter(Boolean))) as string[], [activeVariants]);
 
-  const customOptionName = activeVariants[0]?.customOption;
-  const customValues = React.useMemo(() => Array.from(new Set(activeVariants.map(v => v.customValue).filter(Boolean))) as string[], [activeVariants]);
+  const customOptionName = activeVariants[0]?.custom_option;
+  const customValues = React.useMemo(() => Array.from(new Set(activeVariants.map(v => v.custom_value).filter(Boolean))) as string[], [activeVariants]);
 
   const [selectedColor, setSelectedColor] = React.useState<string | undefined>(selectedVariant?.color);
   const [selectedSize, setSelectedSize] = React.useState<string | undefined>(selectedVariant?.size);
   const [selectedMaterial, setSelectedMaterial] = React.useState<string | undefined>(selectedVariant?.material);
-  const [selectedCustomValue, setSelectedCustomValue] = React.useState<string | undefined>(selectedVariant?.customValue);
+  const [selectedCustomValue, setSelectedCustomValue] = React.useState<string | undefined>(selectedVariant?.custom_value);
 
   React.useEffect(() => {
     if (selectedVariant) {
       setSelectedColor(selectedVariant.color);
       setSelectedSize(selectedVariant.size);
       setSelectedMaterial(selectedVariant.material);
-      setSelectedCustomValue(selectedVariant.customValue);
+      setSelectedCustomValue(selectedVariant.custom_value);
     }
   }, [selectedVariant]);
 
@@ -49,7 +49,7 @@ export function useVariantSelectorState({
       const colorMatch = !colors.length || v.color === selectedColor;
       const sizeMatch = !sizes.length || v.size === selectedSize;
       const materialMatch = !materials.length || v.material === selectedMaterial;
-      const customMatch = !customValues.length || v.customValue === selectedCustomValue;
+      const customMatch = !customValues.length || v.custom_value === selectedCustomValue;
       return colorMatch && sizeMatch && materialMatch && customMatch;
     });
     if (match && (!selectedVariant || match.id !== selectedVariant.id)) {

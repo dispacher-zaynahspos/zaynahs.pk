@@ -25,7 +25,7 @@ export default function ProductDetailBlocksStack({
   currentProduct,
 }: ProductDetailBlocksStackProps) {
   const isFlashSaleDisabled = storeSettings.flash_sale_enabled === false;
-  const currentLayout = storeSettings.productPageLayout || [
+  const currentLayout = storeSettings.product_page_layout || [
     'details',
     'ticker',
     'reviews',
@@ -144,7 +144,7 @@ export default function ProductDetailBlocksStack({
                   <button
                     onClick={() => {
                       const newLayout = arr.filter((b) => b !== blockId);
-                      setStoreSettings((prev) => ({ ...prev, productPageLayout: newLayout }));
+                      setStoreSettings((prev) => ({ ...prev, product_page_layout: newLayout }));
                       if (activeSectionId === blockId) {
                         setActiveSectionId(null);
                       }
@@ -161,7 +161,7 @@ export default function ProductDetailBlocksStack({
                       const temp = newLayout[idx];
                       newLayout[idx] = newLayout[idx - 1];
                       newLayout[idx - 1] = temp;
-                      setStoreSettings((prev) => ({ ...prev, productPageLayout: newLayout }));
+                      setStoreSettings((prev) => ({ ...prev, product_page_layout: newLayout }));
                     }}
                     className="p-1 text-gray-400 hover:text-gray-650 dark:hover:text-white disabled:opacity-30 cursor-pointer animate-none"
                   >
@@ -174,7 +174,7 @@ export default function ProductDetailBlocksStack({
                       const temp = newLayout[idx];
                       newLayout[idx] = newLayout[idx + 1];
                       newLayout[idx + 1] = temp;
-                      setStoreSettings((prev) => ({ ...prev, productPageLayout: newLayout }));
+                      setStoreSettings((prev) => ({ ...prev, product_page_layout: newLayout }));
                     }}
                     className="p-1 text-gray-400 hover:text-gray-650 dark:hover:text-white disabled:opacity-30 cursor-pointer animate-none"
                   >
@@ -207,7 +207,7 @@ export default function ProductDetailBlocksStack({
                       return;
                     }
                     const newLayout = [...currentLayout, block.id];
-                    setStoreSettings((prev) => ({ ...prev, productPageLayout: newLayout }));
+                    setStoreSettings((prev) => ({ ...prev, product_page_layout: newLayout }));
                     setActiveSectionId(block.id);
                     const tabMap: Record<string, string> = {
                       details: 'swatches',

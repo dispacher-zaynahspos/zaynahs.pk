@@ -85,7 +85,7 @@ export default function ExportTabContent({
           ) : (
             filteredProducts.map(p => {
               const isSelected = selectedIds.has(p.id);
-              const primaryImage = p.images?.find(img => img.isPrimary) || p.images?.[0];
+              const primaryImage = p.images?.find(img => img.is_primary) || p.images?.[0];
               return (
                 <div 
                   key={p.id}

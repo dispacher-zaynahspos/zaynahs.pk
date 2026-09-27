@@ -1,6 +1,11 @@
 'use client';
 
 import React from 'react';
+import {
+  IMAGE_HOVER_STYLE_OPTIONS,
+  IMAGE_ASPECT_RATIO_OPTIONS,
+  TITLE_LINE_LIMIT_OPTIONS,
+} from '@/lib/constants/productCardOptions';
 
 interface ProductsDesignCatalogSectionProps {
   imageHoverStyle: 'second_image' | 'zoom' | 'slide_left' | 'zoom_swap' | 'fade_up' | 'blur_crossfade' | 'flip_3d' | 'none';
@@ -41,14 +46,9 @@ export function ProductsDesignCatalogSection({
             onChange={(e) => setImageHoverStyle(e.target.value as any)}
             className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f0f1b] px-4 py-2.5 text-sm focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
           >
-            <option value="second_image">Second Image (Fade Swap)</option>
-            <option value="slide_left">Slide Left (Zara Style)</option>
-            <option value="zoom_swap">Zoom & Swap (Luxury Editorial)</option>
-            <option value="fade_up">Fade & Rise (Upward Drift)</option>
-            <option value="blur_crossfade">Blur & Reveal (Apple Aesthetic)</option>
-            <option value="flip_3d">3D Card Turn (Jewelry/Accessories)</option>
-            <option value="zoom">Primary Image Zoom</option>
-            <option value="none">None (Static Image)</option>
+            {IMAGE_HOVER_STYLE_OPTIONS.map(o => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
           </select>
           <p className="text-[10px] text-gray-400 mt-1">Select the visual effect when hovering over product catalog images.</p>
         </div>
@@ -60,11 +60,9 @@ export function ProductsDesignCatalogSection({
             onChange={(e) => setImageAspectRatio(e.target.value)}
             className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f0f1b] px-4 py-2.5 text-sm focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
           >
-            <option value="1:1">1:1 (Square - Recommended)</option>
-            <option value="3:4">3:4 (Portrait - Fashion)</option>
-            <option value="4:3">4:3 (Landscape)</option>
-            <option value="16:9">16:9 (Wide)</option>
-            <option value="auto">Auto (Original height)</option>
+            {IMAGE_ASPECT_RATIO_OPTIONS.map(o => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
           </select>
           <p className="text-[10px] text-gray-400 mt-1">Specify aspect sizing for product card images in grids.</p>
         </div>
@@ -76,9 +74,9 @@ export function ProductsDesignCatalogSection({
             onChange={(e) => setTitleLineLimit(e.target.value as any)}
             className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f0f1b] px-4 py-2.5 text-sm focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
           >
-            <option value="1">1 Line Limit</option>
-            <option value="2">2 Lines Limit (Default)</option>
-            <option value="none">Unlimited / Full Title</option>
+            {TITLE_LINE_LIMIT_OPTIONS.map(o => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
           </select>
           <p className="text-[10px] text-gray-400 mt-1">Clamp long titles to save space or display the full product title.</p>
         </div>

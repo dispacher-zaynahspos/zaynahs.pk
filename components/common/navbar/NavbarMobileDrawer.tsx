@@ -114,7 +114,7 @@ export default function NavbarMobileDrawer({
                 <Heart className="h-4 w-4" />
                 <span>My Wishlist {mounted && wishlistCount > 0 && `(${wishlistCount})`}</span>
               </Link>
-              {settings?.showFaqInNav !== false && (
+              {settings?.show_faq_in_nav !== false && (
                 <Link
                   href="/faq"
                   onClick={() => setMobileMenuOpen(false)}
@@ -132,7 +132,7 @@ export default function NavbarMobileDrawer({
                 <Star className="h-4 w-4" />
                 <span>Reviews</span>
               </Link>
-              {settings?.showReturnsInNav !== false && (
+              {settings?.show_returns_in_nav !== false && (
                 <Link
                   href="/returns"
                   onClick={() => setMobileMenuOpen(false)}
@@ -142,7 +142,7 @@ export default function NavbarMobileDrawer({
                   <span>Return Policy</span>
                 </Link>
               )}
-              {settings?.showPrivacyInNav !== false && (
+              {settings?.show_privacy_in_nav !== false && (
                 <Link
                   href="/privacy-policy"
                   onClick={() => setMobileMenuOpen(false)}

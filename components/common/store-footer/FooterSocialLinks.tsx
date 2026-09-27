@@ -19,21 +19,21 @@ interface FooterSocialLinksProps {
 
 export function FooterSocialLinks({ settings }: FooterSocialLinksProps) {
   const hasSocialLinks =
-    settings.socialFacebook ||
-    settings.socialInstagram ||
-    settings.socialWhatsapp ||
-    settings.socialYoutube ||
-    settings.socialTiktok ||
-    settings.socialSnapchat ||
-    settings.socialTwitter;
+    settings.social_facebook ||
+    settings.social_instagram ||
+    settings.social_whatsapp ||
+    settings.social_youtube ||
+    settings.social_tiktok ||
+    settings.social_snapchat ||
+    settings.social_twitter;
 
   if (!hasSocialLinks) return null;
 
   return (
     <div className="pt-2 flex flex-wrap gap-2">
-      {settings.socialFacebook && (
+      {settings.social_facebook && (
         <a
-          href={settings.socialFacebook}
+          href={settings.social_facebook}
           target="_blank"
           rel="noopener noreferrer"
           className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-100 dark:bg-[#16162a] border border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-300 hover:bg-[#e94560] hover:text-white dark:hover:bg-[#e94560] dark:hover:text-white transition-all cursor-pointer"
@@ -43,9 +43,9 @@ export function FooterSocialLinks({ settings }: FooterSocialLinksProps) {
         </a>
       )}
 
-      {settings.socialInstagram && (
+      {settings.social_instagram && (
         <a
-          href={settings.socialInstagram}
+          href={settings.social_instagram}
           target="_blank"
           rel="noopener noreferrer"
           className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-100 dark:bg-[#16162a] border border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-300 hover:bg-[#e94560] hover:text-white dark:hover:bg-[#e94560] dark:hover:text-white transition-all cursor-pointer"
@@ -55,9 +55,9 @@ export function FooterSocialLinks({ settings }: FooterSocialLinksProps) {
         </a>
       )}
 
-      {settings.socialTiktok && (
+      {settings.social_tiktok && (
         <a
-          href={settings.socialTiktok}
+          href={settings.social_tiktok}
           target="_blank"
           rel="noopener noreferrer"
           className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-100 dark:bg-[#16162a] border border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-300 hover:bg-[#e94560] hover:text-white dark:hover:bg-[#e94560] dark:hover:text-white transition-all cursor-pointer"
@@ -67,9 +67,9 @@ export function FooterSocialLinks({ settings }: FooterSocialLinksProps) {
         </a>
       )}
 
-      {settings.socialSnapchat && (
+      {settings.social_snapchat && (
         <a
-          href={settings.socialSnapchat}
+          href={settings.social_snapchat}
           target="_blank"
           rel="noopener noreferrer"
           className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-100 dark:bg-[#16162a] border border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-300 hover:bg-[#e94560] hover:text-white dark:hover:bg-[#e94560] dark:hover:text-white transition-all cursor-pointer"
@@ -79,9 +79,9 @@ export function FooterSocialLinks({ settings }: FooterSocialLinksProps) {
         </a>
       )}
 
-      {settings.socialTwitter && (
+      {settings.social_twitter && (
         <a
-          href={settings.socialTwitter}
+          href={settings.social_twitter}
           target="_blank"
           rel="noopener noreferrer"
           className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-100 dark:bg-[#16162a] border border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-300 hover:bg-[#e94560] hover:text-white dark:hover:bg-[#e94560] dark:hover:text-white transition-all cursor-pointer"
@@ -91,9 +91,9 @@ export function FooterSocialLinks({ settings }: FooterSocialLinksProps) {
         </a>
       )}
 
-      {settings.socialYoutube && (
+      {settings.social_youtube && (
         <a
-          href={settings.socialYoutube}
+          href={settings.social_youtube}
           target="_blank"
           rel="noopener noreferrer"
           className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-100 dark:bg-[#16162a] border border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-300 hover:bg-[#e94560] hover:text-white dark:hover:bg-[#e94560] dark:hover:text-white transition-all cursor-pointer"
@@ -103,9 +103,9 @@ export function FooterSocialLinks({ settings }: FooterSocialLinksProps) {
         </a>
       )}
 
-      {settings.socialWhatsapp && (
+      {settings.social_whatsapp && (
         <a
-          href={`https://wa.me/${cleanWhatsAppPhone(settings.socialWhatsapp)}`}
+          href={`https://wa.me/${cleanWhatsAppPhone(settings.social_whatsapp)}`}
           target="_blank"
           rel="noopener noreferrer"
           className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-100 dark:bg-[#16162a] border border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-300 hover:bg-[#10b981] hover:text-white dark:hover:bg-[#10b981] dark:hover:text-white transition-all cursor-pointer"

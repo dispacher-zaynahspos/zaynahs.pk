@@ -29,7 +29,7 @@ export const updateOrderStatus = async (id: string, status: Order['status']): Pr
         type: 'status_change',
         message: `Order status changed from ${oldStatus.toUpperCase()} to ${status.toUpperCase()}`,
         status: status,
-        createdAt: new Date().toISOString()
+        created_at: new Date().toISOString()
       };
       updatedLogs = [...currentLogs, logEntry];
     }
@@ -52,7 +52,7 @@ export const updateOrderStatus = async (id: string, status: Order['status']): Pr
     if (oldStatus !== status) {
       try {
         const { onOrderStatusChange } = await import('@/lib/email/triggers');
-        await onOrderStatusChange(mapped, { name: mapped.customerName, phone: mapped.customerPhone }, status);
+        await onOrderStatusChange(mapped, { name: mapped.customer_name, phone: mapped.customer_phone }, status);
       } catch (err) {
         console.error('[Email Trigger] failed in updateOrderStatus trigger:', err);
       }
@@ -144,7 +144,7 @@ export const updateOrderDetails = async (
     if (statusChanged || trackingUpdated) {
       try {
         const { onOrderStatusChange } = await import('@/lib/email/triggers');
-        await onOrderStatusChange(mapped, { email: mapped.customerEmail, name: mapped.customerName, phone: mapped.customerPhone }, mapped.status);
+        await onOrderStatusChange(mapped, { email: mapped.customer_email, name: mapped.customer_name, phone: mapped.customer_phone }, mapped.status);
       } catch (err) {
         console.error('[Email Trigger] failed in updateOrderDetails:', err);
       }

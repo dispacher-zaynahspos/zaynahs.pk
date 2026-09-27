@@ -7,24 +7,24 @@ export function renderOrderItemsTable(items: CartItem[], currencySymbol = 'Rs.',
   return items.map(item => {
     // Get product thumbnail
     let imgUrl = '';
-    if (item.selectedVariant?.imageUrl) {
-      imgUrl = item.selectedVariant.imageUrl;
+    if (item.selected_variant?.image_url) {
+      imgUrl = item.selected_variant.image_url;
     } else if (item.product.images && item.product.images.length > 0) {
-      const primary = item.product.images.find(img => img.isPrimary);
+      const primary = item.product.images.find(img => img.is_primary);
       imgUrl = primary ? primary.url : item.product.images[0].url;
     }
 
-    const variantDetails = item.selectedVariant
+    const variantDetails = item.selected_variant
       ? [
-          item.selectedVariant.color,
-          item.selectedVariant.size,
-          item.selectedVariant.material,
-          item.selectedVariant.customValue
+          item.selected_variant.color,
+          item.selected_variant.size,
+          item.selected_variant.material,
+          item.selected_variant.custom_value
         ].filter(Boolean).join(', ')
       : '';
 
-    const modifierDetails = item.selectedModifiers && item.selectedModifiers.length > 0
-      ? item.selectedModifiers.map(m => m.name).join(', ')
+    const modifierDetails = item.selected_modifiers && item.selected_modifiers.length > 0
+      ? item.selected_modifiers.map(m => m.name).join(', ')
       : '';
 
     const productUrl = siteUrl && item.product.slug ? `${siteUrl}/product/${item.product.slug}` : '';
@@ -42,7 +42,7 @@ export function renderOrderItemsTable(items: CartItem[], currencySymbol = 'Rs.',
           ${productUrl
             ? `<a href="${productUrl}" target="_blank" style="color: #1a1a1a; text-decoration: none; font-weight: 600; font-size: 14px; display: block;">${item.product.name}</a>`
             : `<span style="font-weight: 600; color: #1a1a1a; font-size: 14px;">${item.product.name}</span>`}
-          ${(item as any).addedLater ? `<span style="display: inline-block; background-color: #fef2f2; color: #ef4444; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-top: 4px; border: 1px solid #fecaca;">Added Later</span>` : ''}
+          ${(item as any).added_later ? `<span style="display: inline-block; background-color: #fef2f2; color: #ef4444; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-top: 4px; border: 1px solid #fecaca;">Added Later</span>` : ''}
           ${variantDetails ? `<p style="margin: 4px 0 0; color: #666; font-size: 12px;">${variantDetails}</p>` : ''}
           ${modifierDetails ? `<p style="margin: 2px 0 0; color: #10b981; font-size: 12px;">+ ${modifierDetails}</p>` : ''}
         </td>
@@ -50,7 +50,7 @@ export function renderOrderItemsTable(items: CartItem[], currencySymbol = 'Rs.',
           x${item.quantity}
         </td>
         <td width="20%" valign="middle" align="right" style="padding: 10px 0 10px 8px; font-weight: 700; color: #1a1a2e; font-size: 14px; white-space: nowrap;">
-          ${item.discountAmount && item.discountAmount > 0 ? `<div style="font-size: 12px; color: #ef4444; font-weight: 500; margin-bottom: 2px;">-${formatPrice(item.discountAmount, currencySymbol)}</div>` : ''}
+          ${item.discount_amount && item.discount_amount > 0 ? `<div style="font-size: 12px; color: #ef4444; font-weight: 500; margin-bottom: 2px;">-${formatPrice(item.discount_amount, currencySymbol)}</div>` : ''}
           ${formatPrice(item.total, currencySymbol)}
         </td>
       </tr>
@@ -60,15 +60,15 @@ export function renderOrderItemsTable(items: CartItem[], currencySymbol = 'Rs.',
 
 export async function buildVariables(emailType: string, data: Record<string, any>): Promise<Record<string, any>> {
   const settings = data.settings || {};
-  const currencySymbol = settings.currencySymbol || 'Rs.';
+  const currencySymbol = settings.currency_symbol || 'Rs.';
 
   // Start with standard variables
   const vars: Record<string, any> = {
-    brand_name: settings.storeName || process.env.NEXT_PUBLIC_BRAND_NAME || 'Your Store',
+    brand_name: settings.store_name || process.env.NEXT_PUBLIC_BRAND_NAME || 'Your Store',
     site_url: await getSiteUrl(settings),
     customer_name: data.customer?.name || data.user?.name || 'Customer',
     customer_email: data.customer?.email || data.user?.email || '',
-    contact_email: settings.headerTopBarEmail || settings.smtp_email || '',
+    contact_email: settings.header_top_bar_email || settings.smtp_email || '',
     currency: currencySymbol,
     current_year: new Date().getFullYear().toString()
   };

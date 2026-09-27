@@ -1,6 +1,8 @@
 'use client';
 
 import React from 'react';
+import { StoreSettings } from '@/lib/types';
+import HeaderAnnouncementFields from '@/components/admin/shared/HeaderAnnouncementFields';
 
 interface StickyAndTopBarSettingsProps {
   headerStickyDesktop: boolean;
@@ -35,6 +37,23 @@ export default function StickyAndTopBarSettings({
   headerNewsletterText,
   setHeaderNewsletterText,
 }: StickyAndTopBarSettingsProps) {
+  // Adapter → the shared SSOT component works in snake_case store_settings keys;
+  // map them onto this tab's individual setters (Settings manual-save tree).
+  const announcementSettings: Partial<StoreSettings> = {
+    header_show_top_bar: headerShowTopBar,
+    header_show_newsletter: headerShowNewsletter,
+    header_top_bar_phone: headerTopBarPhone,
+    header_top_bar_email: headerTopBarEmail,
+    header_newsletter_text: headerNewsletterText,
+  };
+  const onAnnouncementUpdate = (updates: Partial<StoreSettings>) => {
+    if (updates.header_show_top_bar !== undefined) setHeaderShowTopBar(updates.header_show_top_bar);
+    if (updates.header_show_newsletter !== undefined) setHeaderShowNewsletter(updates.header_show_newsletter);
+    if (updates.header_top_bar_phone !== undefined) setHeaderTopBarPhone(updates.header_top_bar_phone);
+    if (updates.header_top_bar_email !== undefined) setHeaderTopBarEmail(updates.header_top_bar_email);
+    if (updates.header_newsletter_text !== undefined) setHeaderNewsletterText(updates.header_newsletter_text);
+  };
+
   return (
     <>
       {/* Sticky Behavior Option */}
@@ -63,71 +82,14 @@ export default function StickyAndTopBarSettings({
         </div>
       </div>
 
-      {/* Part 1: Top Bar & Announcement */}
+      {/* Top Bar & Announcement — SSOT shared component (checkbox variant for Settings) */}
       <div className="space-y-4">
         <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400">Top Contact & Announcement Bar</h4>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <label className="flex items-center gap-3 cursor-pointer select-none text-gray-750 dark:text-gray-200">
-            <input
-              type="checkbox"
-              checked={headerShowTopBar}
-              onChange={(e) => setHeaderShowTopBar(e.target.checked)}
-              className="rounded border-gray-300 dark:border-gray-700 text-[#e94560] focus:ring-[#e94560] h-4 w-4"
-            />
-            <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Enable Contact Top Bar</span>
-          </label>
-
-          <label className="flex items-center gap-3 cursor-pointer select-none text-gray-750 dark:text-gray-200">
-            <input
-              type="checkbox"
-              checked={headerShowNewsletter}
-              onChange={(e) => setHeaderShowNewsletter(e.target.checked)}
-              className="rounded border-gray-300 dark:border-gray-700 text-[#e94560] focus:ring-[#e94560] h-4 w-4"
-            />
-            <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Enable Announcement Ticker</span>
-          </label>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5">Top Bar Phone / WhatsApp</label>
-            <input
-              type="text"
-              disabled={!headerShowTopBar}
-              value={headerTopBarPhone}
-              onChange={(e) => setHeaderTopBarPhone(e.target.value)}
-              placeholder="e.g. 0328-4114551"
-              className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f0f1b] px-4 py-2.5 text-sm focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white disabled:opacity-50"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5">Top Bar Email</label>
-            <input
-              type="email"
-              disabled={!headerShowTopBar}
-              value={headerTopBarEmail}
-              onChange={(e) => setHeaderTopBarEmail(e.target.value)}
-              placeholder="e.g. support@store.com"
-              className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f0f1b] px-4 py-2.5 text-sm focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white disabled:opacity-50"
-            />
-          </div>
-        </div>
-
-        <div className="pt-2">
-          <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5 flex justify-between items-center">
-            <span>Announcement Ticker Text</span>
-            <span className="text-[10px] text-gray-400 font-semibold lowercase">Enter multiple lines (one per line) to rotate them</span>
-          </label>
-          <textarea
-            disabled={!headerShowNewsletter}
-            value={headerNewsletterText}
-            onChange={(e) => setHeaderNewsletterText(e.target.value)}
-            placeholder="e.g. Free Delivery across Pakistan!&#10;Summer Sale Off 50%!&#10;Shop our new arrivals now!"
-            rows={3}
-            className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f0f1b] px-4 py-2.5 text-sm focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white disabled:opacity-50 font-semibold"
-          />
-        </div>
+        <HeaderAnnouncementFields
+          settings={announcementSettings}
+          onUpdate={onAnnouncementUpdate}
+          variant="checkbox"
+        />
       </div>
     </>
   );

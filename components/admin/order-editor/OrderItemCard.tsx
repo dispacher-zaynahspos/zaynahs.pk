@@ -22,11 +22,11 @@ export default function OrderItemCard({
   onRemoveItem,
   onSelectOption,
 }: OrderItemCardProps) {
-  const variantStr = item.selectedVariant ? Object.values({
-    color: item.selectedVariant.color,
-    size: item.selectedVariant.size,
-    material: item.selectedVariant.material,
-    custom: item.selectedVariant.customValue
+  const variantStr = item.selected_variant ? Object.values({
+    color: item.selected_variant.color,
+    size: item.selected_variant.size,
+    material: item.selected_variant.material,
+    custom: item.selected_variant.custom_value
   }).filter(Boolean).join(', ') : '';
 
   return (
@@ -59,7 +59,7 @@ export default function OrderItemCard({
               </span>
             )}
           </div>
-          {item.product.hasVariants && item.product.variants && item.product.variants.length > 0 ? (
+          {item.product.has_variants && item.product.variants && item.product.variants.length > 0 ? (
             <div className="mt-2.5 space-y-3">
               {/* Color Group */}
               {(() => {
@@ -71,7 +71,7 @@ export default function OrderItemCard({
                     <div className="text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Color</div>
                     <div className="flex flex-wrap gap-1.5">
                       {colors.map(color => {
-                        const isSelected = item.selectedVariant?.color === color;
+                        const isSelected = item.selected_variant?.color === color;
                         return (
                           <button
                             key={color}
@@ -102,7 +102,7 @@ export default function OrderItemCard({
                     <div className="text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Size</div>
                     <div className="flex flex-wrap gap-1.5">
                       {sizes.map(size => {
-                        const isSelected = item.selectedVariant?.size === size;
+                        const isSelected = item.selected_variant?.size === size;
                         return (
                           <button
                             key={size}
@@ -133,7 +133,7 @@ export default function OrderItemCard({
                     <div className="text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Material</div>
                     <div className="flex flex-wrap gap-1.5">
                       {materials.map(mat => {
-                        const isSelected = item.selectedVariant?.material === mat;
+                        const isSelected = item.selected_variant?.material === mat;
                         return (
                           <button
                             key={mat}
@@ -157,15 +157,15 @@ export default function OrderItemCard({
               {/* Custom Option Group */}
               {(() => {
                 const activeVariants = item.product.variants || [];
-                const customOptionName = activeVariants[0]?.customOption;
-                const customValues = Array.from(new Set(activeVariants.map(v => v.customValue).filter(Boolean))) as string[];
+                const customOptionName = activeVariants[0]?.custom_option;
+                const customValues = Array.from(new Set(activeVariants.map(v => v.custom_value).filter(Boolean))) as string[];
                 if (customValues.length === 0) return null;
                 return (
                   <div>
                     <div className="text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">{customOptionName || 'Custom Option'}</div>
                     <div className="flex flex-wrap gap-1.5">
                       {customValues.map(val => {
-                        const isSelected = item.selectedVariant?.customValue === val;
+                        const isSelected = item.selected_variant?.custom_value === val;
                         return (
                           <button
                             key={val}
@@ -191,9 +191,9 @@ export default function OrderItemCard({
               {variantStr}
             </p>
           )}
-          {!item.product.hasVariants && (
+          {!item.product.has_variants && (
             <p className="text-xs text-gray-500 mt-1 font-semibold">
-              {formatPrice(item.unitPrice, settings.currencySymbol)}
+              {formatPrice(item.unit_price, settings.currency_symbol)}
             </p>
           )}
         </div>
@@ -205,19 +205,19 @@ export default function OrderItemCard({
         <div className="flex items-center gap-2">
           <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Item Discount:</span>
           <select 
-            value={item.discountType || 'fixed'}
-            onChange={e => onItemDiscountChange(idx, e.target.value as 'fixed' | 'percent', item.discountValue || 0)}
+            value={item.discount_type || 'fixed'}
+            onChange={e => onItemDiscountChange(idx, e.target.value as 'fixed' | 'percent', item.discount_value || 0)}
             className="text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded p-1"
           >
-            <option value="fixed">{settings.currencySymbol}</option>
+            <option value="fixed">{settings.currency_symbol}</option>
             <option value="percent">%</option>
           </select>
           <input 
             type="number" 
             min="0"
             placeholder="0"
-            value={item.discountValue || ''}
-            onChange={e => onItemDiscountChange(idx, item.discountType || 'fixed', parseFloat(e.target.value) || 0)}
+            value={item.discount_value || ''}
+            onChange={e => onItemDiscountChange(idx, item.discount_type || 'fixed', parseFloat(e.target.value) || 0)}
             className="w-16 text-right px-2 py-1 text-xs bg-white dark:bg-[#0f0f1b] border border-gray-200 dark:border-gray-700 rounded font-semibold focus:ring-1 focus:ring-indigo-500"
           />
         </div>
@@ -241,18 +241,18 @@ export default function OrderItemCard({
         
           <div className="flex items-center gap-3">
             <div className="text-right">
-              {item.discountAmount && item.discountAmount > 0 ? (
+              {item.discount_amount && item.discount_amount > 0 ? (
                 <>
                   <div className="text-[10px] text-gray-400 line-through">
-                    {formatPrice(item.unitPrice * item.quantity, settings.currencySymbol)}
+                    {formatPrice(item.unit_price * item.quantity, settings.currency_symbol)}
                   </div>
                   <div className="text-sm font-bold text-rose-600 dark:text-rose-400">
-                    {formatPrice(item.total, settings.currencySymbol)}
+                    {formatPrice(item.total, settings.currency_symbol)}
                   </div>
                 </>
               ) : (
                 <div className="text-sm font-bold text-gray-900 dark:text-white">
-                  {formatPrice(item.total, settings.currencySymbol)}
+                  {formatPrice(item.total, settings.currency_symbol)}
                 </div>
               )}
             </div>

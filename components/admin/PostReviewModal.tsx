@@ -50,10 +50,10 @@ export default function PostReviewModal({ isOpen, onClose, onSuccess, editProof 
     getAllProductsAdmin().then(setProducts).catch(() => {});
     if (editProof) {
       setPostType('social_proof');
-      setProofImageUrl(editProof.imageUrl);
+      setProofImageUrl(editProof.image_url);
       setProofCaption(editProof.caption || '');
-      setProofSourceType(editProof.sourceType);
-      setSelectedProductIds(editProof.productIds || []);
+      setProofSourceType(editProof.source_type);
+      setSelectedProductIds(editProof.product_ids || []);
     }
   }, [isOpen, editProof]);
 

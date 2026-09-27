@@ -124,7 +124,7 @@ export default function ImportExportModal({
       const url = URL.createObjectURL(dataBlob);
 
       const link = document.createElement('a');
-      const storePrefix = bundle.storeName.toLowerCase().replace(/[^a-z0-9]/g, '-');
+      const storePrefix = bundle.store_name.toLowerCase().replace(/[^a-z0-9]/g, '-');
       const timestamp = new Date().toISOString().split('T')[0];
       
       link.href = url;

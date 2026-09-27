@@ -192,21 +192,21 @@ export default function ProductDetailPageSettings({
           <label className="relative inline-flex items-center cursor-pointer select-none">
             <input
               type="checkbox"
-              checked={settings.productDetailEnableTicker}
-              onChange={(e) => onUpdateSettings({ productDetailEnableTicker: e.target.checked })}
+              checked={settings.product_detail_enable_ticker}
+              onChange={(e) => onUpdateSettings({ product_detail_enable_ticker: e.target.checked })}
               className="sr-only peer"
             />
             <div className="w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#e94560]" />
           </label>
         </div>
 
-        {settings.productDetailEnableTicker && (
+        {settings.product_detail_enable_ticker && (
           <div className="space-y-1.5">
             <label className="text-[11px] font-bold text-gray-500 dark:text-gray-400 block uppercase tracking-wider">Ticker Lines (One per line)</label>
             <textarea
               rows={4}
-              value={settings.productDetailTickerText || ''}
-              onChange={(e) => onUpdateSettings({ productDetailTickerText: e.target.value })}
+              value={settings.product_detail_ticker_text || ''}
+              onChange={(e) => onUpdateSettings({ product_detail_ticker_text: e.target.value })}
               className="w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#0f0f1b] px-3 py-2 text-xs font-semibold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white resize-none"
               placeholder="Free returns within 30 days&#10;Unlimited delivery for only Rs. 175"
             />
@@ -222,8 +222,8 @@ export default function ProductDetailPageSettings({
         <div className="space-y-1.5">
           <label className="text-[11px] font-bold text-gray-500 dark:text-gray-400 block uppercase tracking-wider">Product Swatch Size</label>
           <select
-            value={settings.productSwatchSize || 'md'}
-            onChange={(e) => onUpdateSettings({ productSwatchSize: e.target.value as any })}
+            value={settings.product_swatch_size || 'md'}
+            onChange={(e) => onUpdateSettings({ product_swatch_size: e.target.value as any })}
             className="w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#0f0f1b] px-3 py-2 text-xs font-semibold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
           >
             {['xxs', 'xs', 'sm', 'md', 'lg', 'xl', 'xxl'].map((sz) => (
@@ -259,8 +259,8 @@ export default function ProductDetailPageSettings({
           <label className="relative inline-flex items-center cursor-pointer select-none">
             <input
               type="checkbox"
-              checked={settings.showStock}
-              onChange={(e) => onUpdateSettings({ showStock: e.target.checked })}
+              checked={settings.show_stock}
+              onChange={(e) => onUpdateSettings({ show_stock: e.target.checked })}
               className="sr-only peer"
             />
             <div className="w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#e94560]" />
@@ -285,22 +285,22 @@ export default function ProductDetailPageSettings({
           <label className="relative inline-flex items-center cursor-pointer select-none">
             <input
               type="checkbox"
-              checked={settings.enableFakeViews}
-              onChange={(e) => onUpdateSettings({ enableFakeViews: e.target.checked })}
+              checked={settings.enable_fake_views}
+              onChange={(e) => onUpdateSettings({ enable_fake_views: e.target.checked })}
               className="sr-only peer"
             />
             <div className="w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#e94560]" />
           </label>
         </div>
 
-        {settings.enableFakeViews && (
+        {settings.enable_fake_views && (
           <div className="grid grid-cols-2 gap-3 pt-1">
             <div className="space-y-1">
               <label className="text-[10px] font-bold text-gray-500 uppercase">Min Views</label>
               <input
                 type="number"
-                value={settings.minViews}
-                onChange={(e) => onUpdateSettings({ minViews: Number(e.target.value) })}
+                value={settings.min_views}
+                onChange={(e) => onUpdateSettings({ min_views: Number(e.target.value) })}
                 className="w-full px-3 py-1.5 bg-gray-50 dark:bg-[#0f0f1b] border border-gray-200 dark:border-gray-800 rounded-xl text-xs font-semibold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
               />
             </div>
@@ -308,8 +308,8 @@ export default function ProductDetailPageSettings({
               <label className="text-[10px] font-bold text-gray-500 uppercase">Max Views</label>
               <input
                 type="number"
-                value={settings.maxViews}
-                onChange={(e) => onUpdateSettings({ maxViews: Number(e.target.value) })}
+                value={settings.max_views}
+                onChange={(e) => onUpdateSettings({ max_views: Number(e.target.value) })}
                 className="w-full px-3 py-1.5 bg-gray-50 dark:bg-[#0f0f1b] border border-gray-200 dark:border-gray-800 rounded-xl text-xs font-semibold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
               />
             </div>
@@ -334,8 +334,8 @@ export default function ProductDetailPageSettings({
         <label className="text-[11px] font-bold text-gray-500 dark:text-gray-400 block uppercase tracking-wider">Delivery Estimate Text</label>
         <textarea
           rows={2}
-          value={settings.deliveryEstimateText}
-          onChange={(e) => onUpdateSettings({ deliveryEstimateText: e.target.value })}
+          value={settings.delivery_estimate_text}
+          onChange={(e) => onUpdateSettings({ delivery_estimate_text: e.target.value })}
           className="w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#0f0f1b] px-3 py-2 text-xs font-semibold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white resize-none"
         />
       </div>
@@ -355,8 +355,8 @@ export default function ProductDetailPageSettings({
         <label className="relative inline-flex items-center cursor-pointer select-none">
           <input
             type="checkbox"
-            checked={settings.enableTrustBadges}
-            onChange={(e) => onUpdateSettings({ enableTrustBadges: e.target.checked })}
+            checked={settings.enable_trust_badges}
+            onChange={(e) => onUpdateSettings({ enable_trust_badges: e.target.checked })}
             className="sr-only peer"
           />
           <div className="w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#e94560]" />
@@ -368,8 +368,8 @@ export default function ProductDetailPageSettings({
         <label className="relative inline-flex items-center cursor-pointer select-none">
           <input
             type="checkbox"
-            checked={settings.enableSafeCheckout}
-            onChange={(e) => onUpdateSettings({ enableSafeCheckout: e.target.checked })}
+            checked={settings.enable_safe_checkout}
+            onChange={(e) => onUpdateSettings({ enable_safe_checkout: e.target.checked })}
             className="sr-only peer"
           />
           <div className="w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#e94560]" />

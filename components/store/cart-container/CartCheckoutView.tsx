@@ -250,11 +250,11 @@ export default function CartCheckoutView({
                           <input type="radio" name="shippingCheckout" checked={sel} onChange={() => setSelectedShippingId(method.id)} className="accent-[#e94560] h-4 w-4" />
                           <div>
                             <div className="text-sm font-bold text-gray-800 dark:text-gray-200">{method.name}</div>
-                            {method.estimatedDays && <div className="text-xs text-gray-400">{method.estimatedDays}</div>}
+                            {method.estimated_days && <div className="text-xs text-gray-400">{method.estimated_days}</div>}
                           </div>
                         </div>
                         <span className={`text-sm font-black ${sel ? 'text-[#e94560]' : 'text-gray-600 dark:text-gray-300'}`}>
-                          {formatPrice(method.cost, settings.currencySymbol)}
+                          {formatPrice(method.cost, settings.currency_symbol)}
                         </span>
                       </label>
                     );

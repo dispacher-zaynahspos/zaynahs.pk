@@ -57,7 +57,7 @@ export function useNavbarSearch() {
       return (
         product.name.toLowerCase().includes(q) ||
         (product.description && product.description.toLowerCase().includes(q)) ||
-        (product.shortDescription && product.shortDescription.toLowerCase().includes(q)) ||
+        (product.short_description && product.short_description.toLowerCase().includes(q)) ||
         (product.sku && product.sku.toLowerCase().includes(q)) ||
         (product.tags && product.tags.some((tag) => tag.toLowerCase().includes(q))) ||
         (product.category?.name && product.category.name.toLowerCase().includes(q)) ||
@@ -69,7 +69,7 @@ export function useNavbarSearch() {
                 (v.size && v.size.toLowerCase().includes(q)) ||
                 (v.material && v.material.toLowerCase().includes(q)) ||
                 (v.sku && v.sku.toLowerCase().includes(q)) ||
-                (v.customValue && v.customValue.toLowerCase().includes(q)))
+                (v.custom_value && v.custom_value.toLowerCase().includes(q)))
           ))
       );
     }).slice(0, 5);

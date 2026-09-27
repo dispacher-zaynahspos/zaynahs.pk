@@ -89,7 +89,7 @@ export default function ReviewsList({ reviews, loading = false }: ReviewsListPro
         {reviews.map((review) => {
           const photoList = Array.isArray(review.images) && review.images.length > 0 
             ? review.images 
-            : (review.screenshotUrl ? [review.screenshotUrl] : []);
+            : (review.screenshot_url ? [review.screenshot_url] : []);
 
           return (
             <div
@@ -97,8 +97,8 @@ export default function ReviewsList({ reviews, loading = false }: ReviewsListPro
               className="flex gap-4 p-4 rounded-xl border border-gray-150 dark:border-gray-850 bg-white dark:bg-[#16162a] shadow-sm text-gray-900 dark:text-white transition-colors duration-200"
             >
               {/* Avatar */}
-              <div className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold text-white uppercase shadow-sm ${getAvatarColorClass(review.customerName)}`}>
-                {getInitials(review.customerName)}
+              <div className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold text-white uppercase shadow-sm ${getAvatarColorClass(review.customer_name)}`}>
+                {getInitials(review.customer_name)}
               </div>
 
               {/* Details */}
@@ -107,14 +107,14 @@ export default function ReviewsList({ reviews, loading = false }: ReviewsListPro
                 <div className="flex items-center justify-between gap-4">
                   <StarRating rating={review.rating} showText={false} starSize={12} />
                   <span className="text-[10px] font-semibold text-gray-400 dark:text-gray-500" suppressHydrationWarning>
-                    {formatDate(review.createdAt)}
+                    {formatDate(review.created_at)}
                   </span>
                 </div>
 
                 {/* Name & Badge */}
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="font-extrabold text-sm text-gray-950 dark:text-white">
-                    {review.customerName}
+                    {review.customer_name}
                   </span>
                   <div className="flex items-center gap-0.5 text-[9px] font-bold text-[#10b981] bg-[#10b981]/10 dark:bg-[#10b981]/15 px-1.5 py-0.5 rounded-full select-none">
                     <span className="text-[8px] font-bold">✓</span>

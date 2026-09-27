@@ -209,11 +209,11 @@ export default function SavedPresetsCard({
                         </tbody>
                       </table>
                     </div>
-                    {guide.imageUrl && (
+                    {guide.image_url && (
                       <div className="mt-3">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
-                          src={guide.imageUrl}
+                          src={guide.image_url}
                           alt={guide.name}
                           className="max-h-32 rounded-lg object-contain"
                         />

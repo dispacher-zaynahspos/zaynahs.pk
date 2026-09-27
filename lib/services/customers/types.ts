@@ -16,15 +16,15 @@ export interface OrderRow {
 
 export const mapOrder = (row: OrderRow): Order => ({
   id: row.id,
-  orderNumber: row.order_number,
-  customerName: row.customer_name || undefined,
-  customerPhone: row.customer_phone || undefined,
+  order_number: row.order_number,
+  customer_name: row.customer_name || undefined,
+  customer_phone: row.customer_phone || undefined,
   items: (row.items || []) as any[],
   subtotal: row.subtotal ? parseFloat(row.subtotal.toString()) : 0,
   total: row.total ? parseFloat(row.total.toString()) : 0,
   status: row.status as Order['status'],
-  createdAt: row.created_at,
-  updatedAt: row.updated_at
+  created_at: row.created_at,
+  updated_at: row.updated_at
 });
 
 export function normalizePhone(phone: string): string {

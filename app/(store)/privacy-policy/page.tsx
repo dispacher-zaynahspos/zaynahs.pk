@@ -10,8 +10,8 @@ export async function generateMetadata(): Promise<Metadata> {
   try {
     const brand = await getDomainBrand();
     const settings = await getSettings();
-    const siteUrl = settings?.storeUrl?.replace(/\/+$/, '') || process.env.NEXT_PUBLIC_SITE_URL || '';
-    const ogImage = settings.bannerUrl || settings.logoUrl || '';
+    const siteUrl = settings?.store_url?.replace(/\/+$/, '') || process.env.NEXT_PUBLIC_SITE_URL || '';
+    const ogImage = settings.banner_url || settings.logo_url || '';
     const title = `Privacy Policy | ${brand.name}`;
     const description = `Read our privacy policy to understand how ${brand.name} collects, uses, and protects your personal data.`;
     return {
@@ -41,23 +41,23 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function PrivacyPolicyPage() {
   const settings = await getSettings();
-  const siteUrl = settings?.storeUrl?.replace(/\/+$/, '') || process.env.NEXT_PUBLIC_SITE_URL || 'localhost:3000';
+  const siteUrl = settings?.store_url?.replace(/\/+$/, '') || process.env.NEXT_PUBLIC_SITE_URL || 'localhost:3000';
   const storeName = getDomainConfig(siteUrl).name;
   
-  let supportEmail = settings.headerTopBarEmail;
+  let supportEmail = settings.header_top_bar_email;
   if (!supportEmail) {
     let domain = 'store.com';
-    if (settings.storeUrl) {
+    if (settings.store_url) {
       try {
-        const parsed = new URL(settings.storeUrl);
+        const parsed = new URL(settings.store_url);
         domain = parsed.hostname.replace('www.', '');
       } catch (e) {}
     }
     supportEmail = `support@${domain}`;
   }
 
-  const supportPhone = settings.headerTopBarPhone || '';
-  const privacyContent = settings.privacyPolicyContent;
+  const supportPhone = settings.header_top_bar_phone || '';
+  const privacyContent = settings.privacy_policy_content;
 
   return (
     <div className="min-h-[60vh] bg-gray-50 dark:bg-[#0f0f1b] py-12 px-4 sm:px-6 lg:px-8 animate-fade-in">

@@ -33,7 +33,7 @@ export async function PATCH(
     
     const updated = await updateEmailTemplate(type, {
       subject,
-      customHtml,
+      custom_html: customHtml,
       enabled
     });
 

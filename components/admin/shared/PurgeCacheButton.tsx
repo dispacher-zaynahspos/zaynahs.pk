@@ -27,9 +27,9 @@ export default function PurgeCacheButton({ className, label = 'Purge Cache', var
   const [cfTime, setCfTime] = useState<string | undefined>();
 
   useEffect(() => {
-    if (settings?.lastVercelPurge) setVercelTime(settings.lastVercelPurge);
-    if (settings?.lastCloudflarePurge) setCfTime(settings.lastCloudflarePurge);
-  }, [settings?.lastVercelPurge, settings?.lastCloudflarePurge]);
+    if (settings?.last_vercel_purge) setVercelTime(settings.last_vercel_purge);
+    if (settings?.last_cloudflare_purge) setCfTime(settings.last_cloudflare_purge);
+  }, [settings?.last_vercel_purge, settings?.last_cloudflare_purge]);
 
   const handlePurge = async () => {
     try {

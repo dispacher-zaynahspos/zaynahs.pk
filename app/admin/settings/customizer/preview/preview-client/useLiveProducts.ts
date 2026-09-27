@@ -30,19 +30,19 @@ export function useLiveProducts(
         const fsProd = fsProducts.find((p: any) => p?.productId === product.id);
         
         if (fsProd) {
-          const basePrice = product.comparePrice || product.price;
+          const basePrice = product.compare_price || product.price;
           const discountPrice = fsProd.discountValue ? parseFloat(fsProd.discountValue.toString()) : product.price;
           
           if (discountPrice < basePrice) {
             const ratio = discountPrice / basePrice;
             const updatedVariants = product.variants.map(v => {
               if (v.price) {
-                const varBasePrice = v.comparePrice || (product.comparePrice ? Math.round(product.comparePrice * (v.price / product.price)) : v.price);
+                const varBasePrice = v.compare_price || (product.compare_price ? Math.round(product.compare_price * (v.price / product.price)) : v.price);
                 const newVarPrice = Math.round(varBasePrice * ratio);
                 return {
                   ...v,
                   price: newVarPrice,
-                  comparePrice: varBasePrice
+                  compare_price: varBasePrice
                 };
               }
               return v;
@@ -51,28 +51,28 @@ export function useLiveProducts(
             return {
               ...product,
               price: discountPrice,
-              comparePrice: basePrice,
+              compare_price: basePrice,
               variants: updatedVariants,
-              flashSaleEnabled: true,
-              flashSaleEndDate: fsSection.settings?.endTime || undefined,
-              flashSaleStartDate: fsSection.settings?.startTime || undefined
+              flash_sale_enabled: true,
+              flash_sale_end_date: fsSection.settings?.endTime || undefined,
+              flash_sale_start_date: fsSection.settings?.startTime || undefined
             };
           }
         }
       }
 
       // 2. Product-level Sale Settings (medium priority)
-      if (product.flashSaleEnabled) {
-        const pStartStr = product.flashSaleStartDate;
-        const pEndStr = product.flashSaleEndDate;
+      if (product.flash_sale_enabled) {
+        const pStartStr = product.flash_sale_start_date;
+        const pEndStr = product.flash_sale_end_date;
         const isStarted = !pStartStr || new Date(pStartStr).getTime() <= now;
         const isEnded = pEndStr && new Date(pEndStr).getTime() < now;
         
         if (isStarted && !isEnded) {
-          const discountType = product.flashSaleDiscountType || 'fixed';
-          const discountVal = product.flashSaleDiscountValue || 0;
+          const discountType = product.flash_sale_discount_type || 'fixed';
+          const discountVal = product.flash_sale_discount_value || 0;
           
-          const basePrice = product.comparePrice || product.price;
+          const basePrice = product.compare_price || product.price;
           let discountPrice = product.price;
 
           if (discountType === 'percentage') {
@@ -84,7 +84,7 @@ export function useLiveProducts(
           if (discountPrice < basePrice) {
             const updatedVariants = product.variants.map(v => {
               if (v.price) {
-                const varBasePrice = v.comparePrice || (product.comparePrice ? Math.round(product.comparePrice * (v.price / product.price)) : v.price);
+                const varBasePrice = v.compare_price || (product.compare_price ? Math.round(product.compare_price * (v.price / product.price)) : v.price);
                 let varDiscountPrice = v.price;
                 if (discountType === 'percentage') {
                   varDiscountPrice = Math.round(varBasePrice * (1 - discountVal / 100));
@@ -94,7 +94,7 @@ export function useLiveProducts(
                 return {
                   ...v,
                   price: varDiscountPrice,
-                  comparePrice: varBasePrice
+                  compare_price: varBasePrice
                 };
               }
               return v;
@@ -103,11 +103,11 @@ export function useLiveProducts(
             return {
               ...product,
               price: discountPrice,
-              comparePrice: basePrice,
+              compare_price: basePrice,
               variants: updatedVariants,
-              flashSaleEnabled: true,
-              flashSaleEndDate: product.flashSaleEndDate || undefined,
-              flashSaleStartDate: product.flashSaleStartDate || undefined
+              flash_sale_enabled: true,
+              flash_sale_end_date: product.flash_sale_end_date || undefined,
+              flash_sale_start_date: product.flash_sale_start_date || undefined
             };
           }
         }
@@ -116,10 +116,10 @@ export function useLiveProducts(
       // 3. Homepage Category Discounts (lowest priority)
       if (isFsActive && fsSection) {
         const categoryDiscounts = fsSection.content_data?.categoryDiscounts || [];
-        const fsCat = categoryDiscounts.find((c: any) => c?.categoryId === product.categoryId);
+        const fsCat = categoryDiscounts.find((c: any) => c?.categoryId === product.category_id);
 
         if (fsCat) {
-          const basePrice = product.comparePrice || product.price;
+          const basePrice = product.compare_price || product.price;
           const discountVal = parseFloat(fsCat.discountValue) || 0;
           let discountPrice = product.price;
 
@@ -132,7 +132,7 @@ export function useLiveProducts(
           if (discountPrice < basePrice) {
             const updatedVariants = product.variants.map(v => {
               if (v.price) {
-                const varBasePrice = v.comparePrice || (product.comparePrice ? Math.round(product.comparePrice * (v.price / product.price)) : v.price);
+                const varBasePrice = v.compare_price || (product.compare_price ? Math.round(product.compare_price * (v.price / product.price)) : v.price);
                 let varDiscountPrice = v.price;
                 if (fsCat.discountType === 'percentage') {
                   varDiscountPrice = Math.round(varBasePrice * (1 - discountVal / 100));
@@ -142,7 +142,7 @@ export function useLiveProducts(
                 return {
                   ...v,
                   price: varDiscountPrice,
-                  comparePrice: varBasePrice
+                  compare_price: varBasePrice
                 };
               }
               return v;
@@ -151,11 +151,11 @@ export function useLiveProducts(
             return {
               ...product,
               price: discountPrice,
-              comparePrice: basePrice,
+              compare_price: basePrice,
               variants: updatedVariants,
-              flashSaleEnabled: true,
-              flashSaleEndDate: fsSection.settings?.endTime || undefined,
-              flashSaleStartDate: fsSection.settings?.startTime || undefined
+              flash_sale_enabled: true,
+              flash_sale_end_date: fsSection.settings?.endTime || undefined,
+              flash_sale_start_date: fsSection.settings?.startTime || undefined
             };
           }
         }

@@ -42,10 +42,10 @@ export default function ProofWallGrid({
             >
               <div
                 className="relative w-full bg-gray-100 dark:bg-gray-800 cursor-zoom-in"
-                onClick={() => setLightboxImage(proof.imageUrl)}
+                onClick={() => setLightboxImage(proof.image_url)}
               >
                 <Image
-                  src={proof.imageUrl}
+                  src={proof.image_url}
                   alt={proof.caption || 'Customer feedback'}
                   width={600}
                   height={800}
@@ -59,12 +59,12 @@ export default function ProofWallGrid({
                     {proof.caption}
                   </p>
                 )}
-                {proof.linkedProducts && proof.linkedProducts.length > 0 && (
+                {proof.linked_products && proof.linked_products.length > 0 && (
                   <div className="pt-1 space-y-0.5">
                     <span className="text-[9px] font-bold uppercase tracking-wider text-gray-400">
                       Linked Products:
                     </span>
-                    {proof.linkedProducts.map((p) => (
+                    {proof.linked_products.map((p) => (
                       <div key={p.id} className="flex items-center gap-1.5">
                         <span className="text-[10px] text-gray-500 dark:text-gray-400">&bull;</span>
                         {p.slug ? (
@@ -85,7 +85,7 @@ export default function ProofWallGrid({
                 )}
                 <div className="flex items-center justify-between pt-1">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
-                    {sourceTypeLabel[proof.sourceType] || proof.sourceType}
+                    {sourceTypeLabel[proof.source_type] || proof.source_type}
                   </span>
                 </div>
               </div>

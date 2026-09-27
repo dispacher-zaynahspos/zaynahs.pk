@@ -76,7 +76,7 @@ export default function DashboardClient({ orders, products, customers, settings 
 
     const map: Record<string, { label: string; revenue: number; cogs: number; profit: number }> = {};
     revenueOrders.forEach(order => {
-      const d = new Date(order.createdAt);
+      const d = new Date(order.created_at);
       let key: string;
       if (groupByMonth) {
         key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
@@ -114,8 +114,8 @@ export default function DashboardClient({ orders, products, customers, settings 
       events.push({
         id: `o-${o.id}`,
         type: 'order',
-        text: `${o.orderNumber} placed — ${o.items.length} item${o.items.length !== 1 ? 's' : ''} · ${formatPrice(o.total, settings.currencySymbol)}`,
-        time: o.createdAt
+        text: `${o.order_number} placed — ${o.items.length} item${o.items.length !== 1 ? 's' : ''} · ${formatPrice(o.total, settings.currency_symbol)}`,
+        time: o.created_at
       });
     });
     customers.forEach(c => {
@@ -131,14 +131,14 @@ export default function DashboardClient({ orders, products, customers, settings 
         id: `p-${p.id}`,
         type: 'product',
         text: `"${p.name}" updated`,
-        time: p.updatedAt
+        time: p.updated_at
       });
     });
     return events.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime()).slice(0, 10);
-  }, [orders, customers, products, settings.currencySymbol]);
+  }, [orders, customers, products, settings.currency_symbol]);
 
   const inventorySnapshot = useMemo(() => {
-    const active = products.filter(p => p.isActive);
+    const active = products.filter(p => p.is_active);
     const totalSKUs = active.length;
     let totalStockUnits = 0;
     let totalCostValue = 0;
@@ -207,7 +207,7 @@ export default function DashboardClient({ orders, products, customers, settings 
         metrics={metrics}
         prevMetrics={prevMetrics}
         dateFilter={dateFilter}
-        currencySymbol={settings.currencySymbol}
+        currencySymbol={settings.currency_symbol}
       />
 
       {/* Chart + Status Breakdown */}
@@ -215,12 +215,12 @@ export default function DashboardClient({ orders, products, customers, settings 
         <RevenueChartSection
           chartData={chartData}
           chartEmpty={chartEmpty}
-          currencySymbol={settings.currencySymbol}
+          currencySymbol={settings.currency_symbol}
         />
         <StatusBreakdownCard
           statusBreakdown={statusBreakdown}
-          totalOrdersCount={currentOrders.length}
-          currencySymbol={settings.currencySymbol}
+          totalOrders={currentOrders.length}
+          currencySymbol={settings.currency_symbol}
         />
       </div>
 
@@ -228,7 +228,7 @@ export default function DashboardClient({ orders, products, customers, settings 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <TopProductsSection
           topProducts={topProducts}
-          currencySymbol={settings.currencySymbol}
+          currencySymbol={settings.currency_symbol}
         />
         <RecentActivityCard
           recentActivity={recentActivity}
@@ -238,7 +238,7 @@ export default function DashboardClient({ orders, products, customers, settings 
       {/* Inventory Snapshot Widget */}
       <InventorySnapshotCard
         inventorySnapshot={inventorySnapshot}
-        currencySymbol={settings.currencySymbol}
+        currencySymbol={settings.currency_symbol}
       />
     </div>
   );

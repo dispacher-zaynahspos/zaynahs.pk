@@ -89,7 +89,7 @@ export default function CustomerOrdersModal({
             customerOrders.map(order => {
               const isExpanded = expandedOrderId === order.id;
               const itemsCount = order.items.reduce((sum, item) => sum + item.quantity, 0);
-              const orderDate = new Date(order.createdAt).toLocaleDateString('en-PK', { year: 'numeric', month: 'long', day: 'numeric' });
+              const orderDate = new Date(order.created_at).toLocaleDateString('en-PK', { year: 'numeric', month: 'long', day: 'numeric' });
 
               return (
                 <div key={order.id} className="bg-white dark:bg-[#16162a] rounded-2xl border border-gray-100 dark:border-gray-800/80 shadow-sm overflow-hidden transition-all duration-200">
@@ -104,7 +104,7 @@ export default function CustomerOrdersModal({
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-black text-gray-900 dark:text-white text-sm">{order.orderNumber}</span>
+                          <span className="font-black text-gray-900 dark:text-white text-sm">{order.order_number}</span>
                           <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${getStatusColor(order.status)}`}>
                             {order.status}
                           </span>
@@ -134,8 +134,8 @@ export default function CustomerOrdersModal({
                           {order.items.map((item, idx) => {
                             const img = item.product.images?.find((i: { isPrimary?: boolean; url: string }) => i.isPrimary)?.url || item.product.images?.[0]?.url || '';
                             const parts = [];
-                            if (item.selectedVariant?.color) parts.push(item.selectedVariant.color);
-                            if (item.selectedVariant?.size) parts.push(item.selectedVariant.size);
+                            if (item.selected_variant?.color) parts.push(item.selected_variant.color);
+                            if (item.selected_variant?.size) parts.push(item.selected_variant.size);
                             const variantStr = parts.join(' · ');
 
                             return (
@@ -153,7 +153,7 @@ export default function CustomerOrdersModal({
                                 </div>
                                 <div className="text-right flex-shrink-0">
                                   <div className="text-[10px] text-gray-400 font-semibold">Qty {item.quantity}</div>
-                                  <div className="text-xs font-bold text-gray-900 dark:text-white mt-0.5">{formatPrice(item.unitPrice * item.quantity)}</div>
+                                  <div className="text-xs font-bold text-gray-900 dark:text-white mt-0.5">{formatPrice(item.unit_price * item.quantity)}</div>
                                 </div>
                               </div>
                             );
@@ -182,16 +182,16 @@ export default function CustomerOrdersModal({
                               <span>Subtotal</span>
                               <span className="font-bold text-gray-950 dark:text-white">{formatPrice(order.subtotal)}</span>
                             </div>
-                            {order.discountAmount && order.discountAmount > 0 && (
+                            {order.discount_amount && order.discount_amount > 0 && (
                               <div className="flex justify-between text-rose-600 dark:text-rose-400">
-                                <span>Discount {order.discountCode ? `(${order.discountCode})` : ''}</span>
-                                <span className="font-bold">-{formatPrice(order.discountAmount)}</span>
+                                <span>Discount {order.discount_code ? `(${order.discount_code})` : ''}</span>
+                                <span className="font-bold">-{formatPrice(order.discount_amount)}</span>
                               </div>
                             )}
                             {(() => {
-                              const shipAmount = order.shippingAmount || 0;
-                              const effectiveShip = shipAmount > 0 ? shipAmount : (order.total > order.subtotal - (order.discountAmount || 0) ? order.total - (order.subtotal - (order.discountAmount || 0)) : 0);
-                              const shipLabel = order.shippingMethodName || 'Delivery Charges';
+                              const shipAmount = order.shipping_amount || 0;
+                              const effectiveShip = shipAmount > 0 ? shipAmount : (order.total > order.subtotal - (order.discount_amount || 0) ? order.total - (order.subtotal - (order.discount_amount || 0)) : 0);
+                              const shipLabel = order.shipping_method_name || 'Delivery Charges';
                               return (
                                 <div className="flex justify-between">
                                   <span>{shipLabel}</span>

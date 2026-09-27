@@ -4,7 +4,6 @@ export interface ReportingDashboardProps {
   orders: Order[];
   settings: StoreSettings;
   products?: Product[];
-  isEmbed?: boolean;
 }
 
 export type DateRange = 'today' | 'yesterday' | 'last7' | 'last30' | 'thisMonth' | 'lastMonth' | 'all' | 'custom';

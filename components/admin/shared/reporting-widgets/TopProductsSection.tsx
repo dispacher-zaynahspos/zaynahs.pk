@@ -3,18 +3,10 @@
 import React from 'react';
 import { ShoppingBag } from '@/components/common/Icons';
 import { formatPrice } from '@/lib/utils/whatsapp';
-
-interface TopProductItem {
-  id: string;
-  name: string;
-  qty: number;
-  sales: number;
-  cost: number;
-  profit: number;
-}
+import { TopProductRow } from './types';
 
 interface TopProductsSectionProps {
-  topProducts: TopProductItem[];
+  topProducts: TopProductRow[];
   currencySymbol: string;
 }
 
@@ -162,4 +154,3 @@ export default function TopProductsSection({
     </div>
   );
 }
-

@@ -1,7 +1,14 @@
 -- ============================================================
 -- ZAYNAHS E-STORE — SUPER MASTER SCHEMA
--- Version: 2.5.0
--- Updated: 2026-08-11 (v2.5.0 — Review Media Single Image Trash & Restoration with review_id in media_library)
+-- Version: 7.0.0
+-- Updated: 2026-09-26 (v7.0.0 — RLS enabled on all previously-open tables (S1),
+--   snake_case everywhere, order_email + shop_products_per_page drift columns,
+--   atomic-write patterns. Single source of truth for a fresh clone.)
+-- ============================================================
+-- This file fully provisions a new store DB (tables + indexes + RLS + triggers +
+-- seed data). It is idempotent — safe to run/re-run via:
+--   node scripts/run-migration.mjs  OR paste into the Supabase SQL editor.
+-- After running, verify RLS with:  node scripts/verify-rls-status.mjs
 -- ============================================================
 
 -- Enable UUID extension
@@ -480,6 +487,10 @@ CREATE TABLE IF NOT EXISTS store_settings (
   shop_columns_desktop INTEGER DEFAULT 4,
   shop_columns_tablet INTEGER DEFAULT 3,
   shop_columns_mobile INTEGER DEFAULT 2,
+  shop_products_per_page INTEGER DEFAULT 12,
+  shop_products_per_page_desktop INTEGER DEFAULT 12,
+  shop_products_per_page_tablet INTEGER DEFAULT 9,
+  shop_products_per_page_mobile INTEGER DEFAULT 6,
   shop_category_chips_enabled BOOLEAN DEFAULT true,
   shop_infinite_scroll BOOLEAN DEFAULT false,
   recent_buyers_enabled BOOLEAN DEFAULT true,
@@ -597,7 +608,7 @@ CREATE TABLE IF NOT EXISTS store_settings (
   content_model TEXT DEFAULT 'llama-3.3-70b-versatile',
   content_keys TEXT DEFAULT '',
   vision_provider TEXT DEFAULT 'gemini',
-  vision_model TEXT DEFAULT 'gemini-3.6-flash',
+  vision_model TEXT DEFAULT 'gemini-2.0-flash',
   vision_keys TEXT DEFAULT '',
   ai_tone TEXT DEFAULT 'Professional',
   ai_language TEXT DEFAULT 'English',
@@ -701,6 +712,7 @@ CREATE TABLE IF NOT EXISTS orders (
   order_number TEXT NOT NULL UNIQUE,        -- e.g. ZE-001
   customer_name TEXT,
   customer_phone TEXT,
+  customer_email TEXT,
   customer_id UUID REFERENCES customers(id) ON DELETE SET NULL,
   items JSONB NOT NULL DEFAULT '[]',        -- snapshot of cart at order time
   subtotal NUMERIC(10,2) DEFAULT 0,
@@ -1106,6 +1118,32 @@ INSERT INTO email_templates (email_type, category, label, description, subject) 
 ON CONFLICT (email_type) DO NOTHING;
 
 -- ============================================================
+-- RLS FOR SECTIONS / SUBSCRIBERS / TEMPLATES / SCHEMA_VERSION (v7.0.0, S1)
+-- These 4 tables previously had RLS disabled. See migration
+-- 20260926140000_enable_rls_unprotected_tables.sql. Service-role bypasses RLS.
+-- ============================================================
+ALTER TABLE homepage_sections ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public read homepage_sections" ON homepage_sections;
+CREATE POLICY "Public read homepage_sections" ON homepage_sections FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Admin all homepage_sections" ON homepage_sections;
+CREATE POLICY "Admin all homepage_sections" ON homepage_sections FOR ALL USING (auth.role() = 'authenticated');
+
+ALTER TABLE whatsapp_subscribers ENABLE ROW LEVEL SECURITY;
+-- Public may INSERT a signup only (NO public SELECT → subscriber PII protected).
+DROP POLICY IF EXISTS "Public insert whatsapp_subscribers" ON whatsapp_subscribers;
+CREATE POLICY "Public insert whatsapp_subscribers" ON whatsapp_subscribers FOR INSERT WITH CHECK (true);
+DROP POLICY IF EXISTS "Admin all whatsapp_subscribers" ON whatsapp_subscribers;
+CREATE POLICY "Admin all whatsapp_subscribers" ON whatsapp_subscribers FOR ALL USING (auth.role() = 'authenticated');
+
+ALTER TABLE email_templates ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Admin all email_templates" ON email_templates;
+CREATE POLICY "Admin all email_templates" ON email_templates FOR ALL USING (auth.role() = 'authenticated');
+
+ALTER TABLE schema_version ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Authenticated read schema_version" ON schema_version;
+CREATE POLICY "Authenticated read schema_version" ON schema_version FOR SELECT USING (auth.role() = 'authenticated');
+
+-- ============================================================
 -- SEO & MEDIA LIBRARY (ZAYNAHS SEO + AI SYSTEM)
 -- ============================================================
 
@@ -1189,7 +1227,7 @@ CREATE TABLE IF NOT EXISTS ai_settings (
   content_model TEXT DEFAULT 'llama-3.3-70b-versatile',
   content_keys TEXT DEFAULT '',
   vision_provider TEXT DEFAULT 'gemini',
-  vision_model TEXT DEFAULT 'gemini-3.6-flash',
+  vision_model TEXT DEFAULT 'gemini-2.0-flash',
   vision_keys TEXT DEFAULT '',
   brand_name TEXT DEFAULT '',
   store_type TEXT DEFAULT 'General',
@@ -1224,7 +1262,7 @@ VALUES (
   'llama-3.3-70b-versatile',
   '',
   'gemini',
-  'gemini-3.6-flash',
+  'gemini-2.0-flash',
   '',
   'Your Store',
   'General',

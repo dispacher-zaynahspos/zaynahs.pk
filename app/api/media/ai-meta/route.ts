@@ -26,7 +26,7 @@ export async function POST(request: Request) {
   "caption": "A short, engaging caption for the image."
 }`;
 
-    const result = await routeVision(userPrompt, systemPrompt, image_url, keys.vision);
+    const result = await routeVision(userPrompt, systemPrompt, image_url, keys.vision, settings.vision_model);
 
     let cleanJson = result.result.trim();
     if (cleanJson.includes('```json')) cleanJson = cleanJson.split('```json')[1].split('```')[0].trim();
@@ -49,6 +49,15 @@ export async function POST(request: Request) {
     if (updateError) {
       console.error('[AI Media Meta] DB Update Error:', updateError);
       return NextResponse.json({ error: 'Failed to update media library metadata in database' }, { status: 500 });
+    }
+
+    // RULE C10: media alt/SEO metadata is rendered into product image markup — refresh product cache tags.
+    try {
+      const { revalidateTagSafe } = await import('@/lib/revalidate');
+      await revalidateTagSafe('media_library');
+      await revalidateTagSafe('products');
+    } catch (revalErr) {
+      console.warn('[AI Media Meta] revalidation skipped:', revalErr);
     }
 
     return NextResponse.json({ success: true, data: meta, provider: result.provider, model: result.model });

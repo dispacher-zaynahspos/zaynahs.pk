@@ -13,13 +13,13 @@ interface UseProductDetailStateProps {
 export function useProductDetailState({ product, settings }: UseProductDetailStateProps) {
   const images = useMemo(() => {
     return product.images.length > 0
-      ? [...product.images].sort((a, b) => a.sortOrder - b.sortOrder)
-      : [{ id: 'dummy', productId: product.id, url: "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%23f3f4f6'/%3E%3C/svg%3E", alt: product.name, sortOrder: 0, isPrimary: true, createdAt: '' }];
+      ? [...product.images].sort((a, b) => a.sort_order - b.sort_order)
+      : [{ id: 'dummy', product_id: product.id, url: "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%23f3f4f6'/%3E%3C/svg%3E", alt: product.name, sort_order: 0, is_primary: true, created_at: '' }];
   }, [product.images, product.id, product.name]);
 
-  const [activeImage, setActiveImage] = useState(images.find(img => img.isPrimary)?.url || images?.[0]?.url);
+  const [activeImage, setActiveImage] = useState(images.find(img => img.is_primary)?.url || images?.[0]?.url);
   const [activeImageIndex, setActiveImageIndex] = useState(
-    Math.max(0, images.findIndex(img => img.url === (images.find(i => i.isPrimary)?.url || images?.[0]?.url)))
+    Math.max(0, images.findIndex(img => img.url === (images.find(i => i.is_primary)?.url || images?.[0]?.url)))
   );
 
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | undefined>(undefined);
@@ -30,12 +30,12 @@ export function useProductDetailState({ product, settings }: UseProductDetailSta
 
   const handleVariantChange = useCallback((v: ProductVariant) => {
     setSelectedVariant(v);
-    if (v.imageUrl) {
-      const idx = images.findIndex(img => img.url === v.imageUrl);
+    if (v.image_url) {
+      const idx = images.findIndex(img => img.url === v.image_url);
       if (idx !== -1) {
         setActiveImageIndex(idx);
       } else {
-        setActiveImage(v.imageUrl);
+        setActiveImage(v.image_url);
       }
     }
   }, [images]);
@@ -57,14 +57,14 @@ export function useProductDetailState({ product, settings }: UseProductDetailSta
 
   useEffect(() => {
     setMounted(true);
-    const min = settings.minViews ?? 10;
-    const max = settings.maxViews ?? 50;
+    const min = settings.min_views ?? 10;
+    const max = settings.max_views ?? 50;
     setViewerCount(Math.floor(Math.random() * (max - min + 1)) + min);
     setProductUrl(window.location.href);
     const wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
     setIsWishlisted(wishlist.includes(product.id));
 
-    if (!product.hasVariants || !product.variants || product.variants.filter(v => v.active).length === 0) {
+    if (!product.has_variants || !product.variants || product.variants.filter(v => v.active).length === 0) {
       trackEvent('ViewContent', {
         content_ids: [product.id],
         content_name: product.name,
@@ -96,13 +96,13 @@ export function useProductDetailState({ product, settings }: UseProductDetailSta
 
     const loadBundleData = async () => {
       try {
-        if (product.frequentlyBoughtTogetherIds && product.frequentlyBoughtTogetherIds.length > 0) {
-          const filtered = await getProductsByIdsClient(product.frequentlyBoughtTogetherIds);
+        if (product.frequently_bought_together_ids && product.frequently_bought_together_ids.length > 0) {
+          const filtered = await getProductsByIdsClient(product.frequently_bought_together_ids);
           setBundleProducts(filtered);
           setSelectedBundleIds(filtered.map((p: Product) => p.id));
           const defaultSelections: Record<string, string> = {};
           filtered.forEach((p: Product) => {
-            if (p.hasVariants && p.variants.length > 0) {
+            if (p.has_variants && p.variants.length > 0) {
               const firstActive = p.variants.filter(v => v.active)[0];
               if (firstActive) defaultSelections[p.id] = firstActive.id;
             }
@@ -122,20 +122,20 @@ export function useProductDetailState({ product, settings }: UseProductDetailSta
       let isInfinite = false;
 
       const now = new Date().getTime();
-      const prodStart = product.flashSaleStartDate ? new Date(product.flashSaleStartDate).getTime() : 0;
-      const prodEnd = product.flashSaleEndDate ? new Date(product.flashSaleEndDate).getTime() : 0;
+      const prodStart = product.flash_sale_start_date ? new Date(product.flash_sale_start_date).getTime() : 0;
+      const prodEnd = product.flash_sale_end_date ? new Date(product.flash_sale_end_date).getTime() : 0;
 
-      if (product.flashSaleEnabled) {
-        if (!product.flashSaleStartDate && !product.flashSaleEndDate) {
+      if (product.flash_sale_enabled) {
+        if (!product.flash_sale_start_date && !product.flash_sale_end_date) {
           isFlashSaleActive = true;
           isInfinite = true;
         } else if (prodEnd > now || (prodStart > now && prodEnd === 0)) {
           isFlashSaleActive = true;
           if (prodStart > now) {
             isIncoming = true;
-            targetDateStr = product.flashSaleStartDate!;
+            targetDateStr = product.flash_sale_start_date!;
           } else {
-            targetDateStr = product.flashSaleEndDate;
+            targetDateStr = product.flash_sale_end_date;
           }
         }
       } else if (settings.flash_sale_enabled) {
@@ -191,7 +191,7 @@ export function useProductDetailState({ product, settings }: UseProductDetailSta
     const countdownTimer = setInterval(updateTimeLeft, 1000);
 
     return () => clearInterval(countdownTimer);
-  }, [product.id, settings.minViews, settings.maxViews, product.categoryId, product.flashSaleEnabled, product.flashSaleStartDate, product.flashSaleEndDate, product.frequentlyBoughtTogetherIds, settings.flash_sale_enabled, settings.flash_sale_start_date, settings.flash_sale_end_date]);
+  }, [product.id, settings.min_views, settings.max_views, product.category_id, product.flash_sale_enabled, product.flash_sale_start_date, product.flash_sale_end_date, product.frequently_bought_together_ids, settings.flash_sale_enabled, settings.flash_sale_start_date, settings.flash_sale_end_date]);
 
   useEffect(() => {
     if (!mounted || !selectedVariant) return;

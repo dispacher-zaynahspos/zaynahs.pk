@@ -15,19 +15,19 @@ export default async function StoreLayout({
 }) {
   const settings = await getSettings();
   const brand = await getDomainBrand().catch(() => null);
-  const brandName = brand?.name ?? settings.storeName;
+  const brandName = brand?.name ?? settings.store_name;
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50 dark:bg-[#0f0f1b] text-gray-900 dark:text-gray-100 pb-36 md:pb-0 transition-colors duration-200">
       <Suspense fallback={<div className="h-16 bg-white dark:bg-[#0f0f1b] border-b border-gray-200 dark:border-gray-800" />}>
-        <Navbar settings={settings} storeName={brandName} logoUrl={settings?.logoUrl} logoWidth={settings?.logoWidth} />
+        <Navbar settings={settings} storeName={brandName} logoUrl={settings?.logo_url} logoWidth={settings?.logo_width} />
       </Suspense>
       <main className="flex-grow min-h-[80vh] bg-gray-50 dark:bg-[#0f0f1b] transition-colors duration-200">
 
         {children}
       </main>
       <Footer settings={settings} brandName={brandName} />
-      <CartBar currencySymbol={settings.currencySymbol} />
+      <CartBar currencySymbol={settings.currency_symbol} />
       <MobileBottomNav />
       <FloatingContacts settings={settings} />
       <PremiumFeaturesProvider settings={settings} />

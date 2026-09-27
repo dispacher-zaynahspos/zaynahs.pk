@@ -22,7 +22,7 @@ export default async function CollectionsPage() {
         title="Collections"
       />
       <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
-        <CollectionManager initialCollections={collections} categories={categories} aiEnabled={settings.ai_enabled} storeUrl={settings.storeUrl || undefined} />
+        <CollectionManager initialCollections={collections} categories={categories} aiEnabled={settings.ai_enabled} storeUrl={settings.store_url || undefined} />
       </div>
     </main>
   );

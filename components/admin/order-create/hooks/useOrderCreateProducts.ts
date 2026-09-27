@@ -47,37 +47,37 @@ export function useOrderCreateProducts(isOpen: boolean) {
             name: p.name,
             slug: p.slug,
             price: p.price ? parseFloat(p.price.toString()) : 0,
-            comparePrice: p.compare_price ? parseFloat(p.compare_price.toString()) : undefined,
+            compare_price: p.compare_price ? parseFloat(p.compare_price.toString()) : undefined,
             sku: p.sku || undefined,
             stock: p.stock || 0,
-            hasVariants: p.has_variants || false,
-            isService: false,
-            isFeatured: false,
-            isActive: true,
-            enableSwatches: false,
-            showSwatchesOnArchive: false,
+            has_variants: p.has_variants || false,
+            is_service: false,
+            is_featured: false,
+            is_active: true,
+            enable_swatches: false,
+            show_swatches_on_archive: false,
             tags: [],
             images: (p.images || []).map((img: any) => ({
               id: img.id,
-              productId: p.id,
+              product_id: p.id,
               url: img.url,
-              sortOrder: img.sort_order || 0,
-              isPrimary: img.is_primary || false
+              sort_order: img.sort_order || 0,
+              is_primary: img.is_primary || false
             })),
             variants: (p.variants || []).filter((v: any) => v.active).map((v: any) => ({
               id: v.id,
-              productId: p.id,
+              product_id: p.id,
               color: v.color || undefined,
               size: v.size || undefined,
               stock: v.stock || 0,
               price: v.price ? parseFloat(v.price.toString()) : undefined,
               sku: v.sku || undefined,
               active: v.active || false,
-              sortOrder: 0
+              sort_order: 0
             })),
             modifiers: [],
-            createdAt: p.created_at || new Date().toISOString(),
-            updatedAt: p.updated_at || new Date().toISOString()
+            created_at: p.created_at || new Date().toISOString(),
+            updated_at: p.updated_at || new Date().toISOString()
           }));
           setDbProducts(mapped);
         }
@@ -113,7 +113,7 @@ export function useOrderCreateProducts(isOpen: boolean) {
       (v.color && v.color.toLowerCase().includes(q)) ||
       (v.size && v.size.toLowerCase().includes(q)) ||
       (v.material && v.material.toLowerCase().includes(q)) ||
-      (v.customValue && v.customValue.toLowerCase().includes(q))
+      (v.custom_value && v.custom_value.toLowerCase().includes(q))
     ));
   });
 

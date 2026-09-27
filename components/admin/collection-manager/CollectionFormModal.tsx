@@ -26,8 +26,8 @@ export default function CollectionFormModal({
   const [name, setName] = useState(initialData?.name || '');
   const [slug, setSlug] = useState(initialData?.slug || '');
   const [description, setDescription] = useState(initialData?.description || '');
-  const [imageUrl, setImageUrl] = useState(initialData?.imageUrl || '');
-  const [sortOrder, setSortOrder] = useState(initialData?.sortOrder?.toString() || '0');
+  const [imageUrl, setImageUrl] = useState(initialData?.image_url || '');
+  const [sortOrder, setSortOrder] = useState(initialData?.sort_order?.toString() || '0');
   const [active, setActive] = useState(initialData ? initialData.active : true);
   const [assignedCategories, setAssignedCategories] = useState<Category[]>(initialData?.categories || []);
 
@@ -107,8 +107,8 @@ export default function CollectionFormModal({
         name: name.trim(),
         slug: slug.trim(),
         description: description.trim() || undefined,
-        imageUrl: imageUrl.trim() || undefined,
-        sortOrder: parseInt(sortOrder) || 0,
+        image_url: imageUrl.trim() || undefined,
+        sort_order: parseInt(sortOrder) || 0,
         active
       };
       await onSubmitSuccess(payload as Collection, assignedCategories);

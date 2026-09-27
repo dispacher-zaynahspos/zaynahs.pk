@@ -75,21 +75,21 @@ export function RecentReviewsSection({
     sortedReviews = [...reviews];
     switch (sortMethod) {
       case 'oldest':
-        sortedReviews.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+        sortedReviews.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
         break;
       case 'most_stars':
         sortedReviews.sort(
-          (a, b) => b.rating - a.rating || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          (a, b) => b.rating - a.rating || new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         );
         break;
       case 'least_stars':
         sortedReviews.sort(
-          (a, b) => a.rating - b.rating || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          (a, b) => a.rating - b.rating || new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         );
         break;
       case 'newest':
       default:
-        sortedReviews.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        sortedReviews.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
         break;
     }
   }
@@ -124,10 +124,10 @@ export function RecentReviewsSection({
               <div className="flex gap-3">
                 <div
                   className={`w-9 h-9 rounded-full flex-shrink-0 flex items-center justify-center text-[11px] font-bold text-white uppercase shadow-sm ${getAvatarColorClass(
-                    review.customerName
+                    review.customer_name
                   )}`}
                 >
-                  {getInitials(review.customerName)}
+                  {getInitials(review.customer_name)}
                 </div>
                 <div className="flex-1 space-y-1.5 min-w-0">
                   <div className="flex items-center justify-between gap-2">
@@ -136,12 +136,12 @@ export function RecentReviewsSection({
                       className="text-[9px] font-semibold text-gray-400 dark:text-gray-500 shrink-0"
                       suppressHydrationWarning
                     >
-                      {formatDate(review.createdAt)}
+                      {formatDate(review.created_at)}
                     </span>
                   </div>
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <span className="font-extrabold text-xs text-gray-950 dark:text-white truncate">
-                      {review.customerName}
+                      {review.customer_name}
                     </span>
                     <span className="text-[8px] font-bold text-[#10b981] bg-[#10b981]/10 px-1.5 py-0.5 rounded-full shrink-0">
                       ✓ Verified Buyer
@@ -165,7 +165,7 @@ export function RecentReviewsSection({
                     >
                       <Image
                         src={imgUrl}
-                        alt={`Review by ${review.customerName} - ${imgIdx + 1}`}
+                        alt={`Review by ${review.customer_name} - ${imgIdx + 1}`}
                         fill
                         sizes="80px"
                         className="object-cover"

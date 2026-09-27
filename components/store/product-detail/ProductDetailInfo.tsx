@@ -71,7 +71,7 @@ export default function ProductDetailInfo({
   whatsappUrl,
 }: ProductDetailInfoProps) {
   const [mounted, setMounted] = useState(false);
-  const sizeGuide = product.sizeGuide;
+  const sizeGuide = product.size_guide;
 
   useEffect(() => {
     setMounted(true);
@@ -120,20 +120,20 @@ export default function ProductDetailInfo({
           minPrice={minPrice}
           maxPrice={maxPrice}
           hasPriceRange={hasPriceRange}
-          productComparePrice={product.comparePrice}
+          productComparePrice={product.compare_price}
           mounted={mounted}
           timeLeft={timeLeft}
         />
 
         {/* Short Description */}
-        {product.shortDescription && (
+        {product.short_description && (
           <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
-            {product.shortDescription}
+            {product.short_description}
           </p>
         )}
 
         {/* Live views trust element */}
-        {mounted && settings.enableFakeViews && (
+        {mounted && settings.enable_fake_views && (
           <div className="flex items-center gap-2 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-gray-800/80 rounded-xl px-4 py-2.5 text-xs text-gray-700 dark:text-gray-300 w-fit">
             <Eye className="h-4 w-4 text-[#e94560]" />
             <span>
@@ -143,7 +143,7 @@ export default function ProductDetailInfo({
         )}
 
         {/* Stock status */}
-        {!product.isService && settings.showStock && (
+        {!product.is_service && settings.show_stock && (
           <div className="text-xs font-semibold">
             {stockAvailable > 0 ? (
               <span className="text-[#10b981]">In Stock ({stockAvailable} left)</span>
@@ -154,14 +154,14 @@ export default function ProductDetailInfo({
         )}
 
         {/* Stock Urgency Banner */}
-        {!product.isService && settings.stock_urgency_enabled !== false && stockAvailable > 0 && stockAvailable <= 5 && (
+        {!product.is_service && settings.stock_urgency_enabled !== false && stockAvailable > 0 && stockAvailable <= 5 && (
           <div className="mt-2 flex items-center gap-1.5 text-xs text-[#e94560] bg-rose-50 dark:bg-rose-950/20 px-3 py-1.5 rounded-lg font-bold w-fit animate-pulse border border-rose-100 dark:border-rose-900/30">
             <span>🔥 Hurry! Only {stockAvailable} left in stock!</span>
           </div>
         )}
 
         {/* Variant Selector */}
-        {product.hasVariants && product.variants.length > 0 && (
+        {product.has_variants && product.variants.length > 0 && (
           <div className="border-t border-gray-100 dark:border-gray-800 pt-4">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-bold uppercase tracking-wider text-gray-500">Options</span>
@@ -179,9 +179,9 @@ export default function ProductDetailInfo({
               variants={product.variants}
               selectedVariant={selectedVariant}
               onChangeSelectedVariant={onVariantChange}
-              enableSwatches={product.enableSwatches}
+              enableSwatches={product.enable_swatches}
               settings={settings}
-              variationOrder={product.variationOrder}
+              variationOrder={product.variation_order}
             />
           </div>
         )}
@@ -209,7 +209,7 @@ export default function ProductDetailInfo({
                       <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">{mod.name}</span>
                     </div>
                     <span className="text-xs font-bold text-gray-500 dark:text-gray-400">
-                      +{formatPrice(mod.price, settings.currencySymbol)}
+                      +{formatPrice(mod.price, settings.currency_symbol)}
                     </span>
                   </button>
                 );
@@ -311,7 +311,7 @@ export default function ProductDetailInfo({
         </div>
 
         {/* Instant WhatsApp Order CTA - Smart, compact & beautifully aligned */}
-        {settings.enable_product_quick_whatsapp !== false && settings.whatsappNumber && (
+        {settings.enable_product_quick_whatsapp !== false && settings.whatsapp_number && (
           <div className="flex justify-center pt-0.5">
             <a
               href={whatsappUrl}

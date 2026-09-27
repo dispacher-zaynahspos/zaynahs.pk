@@ -28,8 +28,8 @@ export const getStockBadge = (stock: number, threshold: number = 5) => {
 };
 
 export const renderProductStatus = (product: Product) => {
-  if (!product.hasVariants) {
-    const threshold = product.inventoryThreshold !== undefined && product.inventoryThreshold !== null ? product.inventoryThreshold : 5;
+  if (!product.has_variants) {
+    const threshold = product.inventory_threshold !== undefined && product.inventory_threshold !== null ? product.inventory_threshold : 5;
     return getStockBadge(product.stock, threshold);
   }
   
@@ -43,12 +43,12 @@ export const renderProductStatus = (product: Product) => {
   }
 
   const totalLow = product.variants.filter(v => {
-    const threshold = v.inventoryThreshold !== undefined && v.inventoryThreshold !== null ? v.inventoryThreshold : 5;
+    const threshold = v.inventory_threshold !== undefined && v.inventory_threshold !== null ? v.inventory_threshold : 5;
     return v.stock <= threshold;
   }).length;
   
   const totalIn = product.variants.filter(v => {
-    const threshold = v.inventoryThreshold !== undefined && v.inventoryThreshold !== null ? v.inventoryThreshold : 5;
+    const threshold = v.inventory_threshold !== undefined && v.inventory_threshold !== null ? v.inventory_threshold : 5;
     return v.stock > threshold;
   }).length;
 

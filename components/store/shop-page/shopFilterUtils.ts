@@ -30,8 +30,8 @@ export function extractUsedVariants(allProducts: Product[]) {
         const colorName = variant.color.trim();
         if (colorName) {
           colorsSet.add(colorName);
-          if (variant.colorHex) {
-            colorToHex[colorName] = variant.colorHex;
+          if (variant.color_hex) {
+            colorToHex[colorName] = variant.color_hex;
           }
         }
       }
@@ -91,16 +91,16 @@ export function filterProductsList({
     const collectionCategoryIds = activeCollection.categories?.map((c) => c.id) || [];
     list = list.filter(
       (p) =>
-        (p.categoryId && collectionCategoryIds.includes(p.categoryId)) ||
-        p.productCategories?.some((pc) => pc.categoryId && collectionCategoryIds.includes(pc.categoryId))
+        (p.category_id && collectionCategoryIds.includes(p.category_id)) ||
+        p.product_categories?.some((pc) => pc.category_id && collectionCategoryIds.includes(pc.category_id))
     );
   }
 
   if (selectedCategoryId) {
     list = list.filter(
       (p) =>
-        (p.categoryId && p.categoryId === selectedCategoryId) ||
-        p.productCategories?.some((pc) => pc.categoryId === selectedCategoryId)
+        (p.category_id && p.category_id === selectedCategoryId) ||
+        p.product_categories?.some((pc) => pc.category_id === selectedCategoryId)
     );
   }
 
@@ -111,8 +111,8 @@ export function filterProductsList({
         if (!c.name.toLowerCase().includes(q)) return false;
         const collectionCategoryIds = c.categories?.map((cat) => cat.id) || [];
         return (
-          (product.categoryId && collectionCategoryIds.includes(product.categoryId)) ||
-          product.productCategories?.some((pc) => pc.categoryId && collectionCategoryIds.includes(pc.categoryId))
+          (product.category_id && collectionCategoryIds.includes(product.category_id)) ||
+          product.product_categories?.some((pc) => pc.category_id && collectionCategoryIds.includes(pc.category_id))
         );
       });
 
@@ -120,7 +120,7 @@ export function filterProductsList({
         product.name.toLowerCase().includes(q) ||
         matchesCollection ||
         (product.description && product.description.toLowerCase().includes(q)) ||
-        (product.shortDescription && product.shortDescription.toLowerCase().includes(q)) ||
+        (product.short_description && product.short_description.toLowerCase().includes(q)) ||
         (product.sku && product.sku.toLowerCase().includes(q)) ||
         (product.tags && product.tags.some((t) => t.toLowerCase().includes(q))) ||
         (product.category?.name && product.category.name.toLowerCase().includes(q)) ||
@@ -132,7 +132,7 @@ export function filterProductsList({
                 (v.size && v.size.toLowerCase().includes(q)) ||
                 (v.material && v.material.toLowerCase().includes(q)) ||
                 (v.sku && v.sku.toLowerCase().includes(q)) ||
-                (v.customValue && v.customValue.toLowerCase().includes(q)))
+                (v.custom_value && v.custom_value.toLowerCase().includes(q)))
           ))
       );
     });
@@ -140,7 +140,7 @@ export function filterProductsList({
 
   if (availability.onSale || availability.inStock || availability.outStock) {
     list = list.filter((product) => {
-      const isOnSale = product.comparePrice && product.comparePrice > product.price;
+      const isOnSale = product.compare_price && product.compare_price > product.price;
       const isInStock = product.stock > 0;
       if (availability.onSale && !isOnSale) return false;
       if (availability.inStock && !isInStock) return false;
@@ -170,9 +170,9 @@ export function filterProductsList({
   }
 
   if (sortBy === 'newest') {
-    list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    list.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   } else if (sortBy === 'oldest') {
-    list.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+    list.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
   } else if (sortBy === 'price_desc') {
     list.sort((a, b) => b.price - a.price);
   } else if (sortBy === 'price_asc') {

@@ -49,7 +49,7 @@ export default function WhatsAppButton({
       // Calculate coupon discount
       const couponDiscountAmount = (() => {
         if (!appliedCoupon) return 0;
-        if (appliedCoupon.discountType === 'percentage') {
+        if (appliedCoupon.discount_type === 'percentage') {
           return Math.round((totalPrice * appliedCoupon.value) / 100);
         } else {
           return Math.min(appliedCoupon.value, totalPrice);
@@ -67,7 +67,7 @@ export default function WhatsAppButton({
         total: finalTotal,
         notes: [
           notes.trim(),
-          couponDiscountAmount > 0 ? `Coupon Applied: ${appliedCoupon?.code} (-${formatPrice(couponDiscountAmount, settings.currencySymbol)})` : ''
+          couponDiscountAmount > 0 ? `Coupon Applied: ${appliedCoupon?.code} (-${formatPrice(couponDiscountAmount, settings.currency_symbol)})` : ''
         ].filter(Boolean).join('\n') || undefined
       };
 
@@ -85,13 +85,13 @@ export default function WhatsAppButton({
         `• Name: ${customerName.trim()}`,
         `• Phone: ${customerPhone.trim()}`,
         notes.trim() ? `• Notes: ${notes.trim()}` : '',
-        couponDiscountAmount > 0 ? `• Coupon Discount (${appliedCoupon?.code}): -${formatPrice(couponDiscountAmount, settings.currencySymbol)}` : '',
-        `*Grand Total: ${formatPrice(finalTotal, settings.currencySymbol)}*`,
+        couponDiscountAmount > 0 ? `• Coupon Discount (${appliedCoupon?.code}): -${formatPrice(couponDiscountAmount, settings.currency_symbol)}` : '',
+        `*Grand Total: ${formatPrice(finalTotal, settings.currency_symbol)}*`,
         ``,
-        `• Order No: ${order.orderNumber}`
+        `• Order No: ${order.order_number}`
       ].filter(Boolean).join('\n');
 
-      const whatsappUrl = buildWhatsAppURL(settings.whatsappNumber || '923001234567', detailedMessage);
+      const whatsappUrl = buildWhatsAppURL(settings.whatsapp_number || '923001234567', detailedMessage);
 
       // 3. Clear local cart
       clearCart();

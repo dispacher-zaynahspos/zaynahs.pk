@@ -99,7 +99,7 @@ export function useShippingPaymentSettings() {
     setEditingShipId(method.id);
     setEditShipName(method.name);
     setEditShipCost(method.cost.toString());
-    setEditShipDays(method.estimatedDays || '');
+    setEditShipDays(method.estimated_days || '');
   };
 
   const handleSaveShippingEdit = async (id: string) => {
@@ -109,7 +109,7 @@ export function useShippingPaymentSettings() {
       const updated = await updateShippingMethod(id, {
         name: editShipName.trim(),
         cost: costVal,
-        estimatedDays: editShipDays.trim() || undefined
+        estimated_days: editShipDays.trim() || undefined
       });
       setShippingMethods(prev => prev.map(item => item.id === id ? updated : item));
       setEditingShipId(null);

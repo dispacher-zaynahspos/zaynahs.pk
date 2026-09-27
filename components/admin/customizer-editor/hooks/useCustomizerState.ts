@@ -103,6 +103,39 @@ export function useCustomizerState({
     return () => clearTimeout(timer);
   }, [storeSettings]);
 
+  // CU6 fix: autopersist section order + fields (title, active/visibility, settings,
+  // content_data) on change — matching the store_settings autosave above — so that
+  // reorder / eye-toggle / title edits are never lost when navigating away before
+  // the explicit "Save Layout" button (which remains for save + edge-cache purge).
+  const isFirstSectionsRender = useRef(true);
+  useEffect(() => {
+    if (isFirstSectionsRender.current) {
+      isFirstSectionsRender.current = false;
+      return;
+    }
+    if (sections.length === 0) return;
+    const snapshot = sections;
+    const timer = setTimeout(async () => {
+      try {
+        const orderPayload = snapshot.map((s, idx) => ({ id: s.id, sort_order: idx + 1 }));
+        await reorderHomepageSections(orderPayload);
+        await Promise.all(
+          snapshot.map(sec =>
+            updateHomepageSection(sec.id, {
+              title: sec.title,
+              active: sec.active,
+              settings: sec.settings,
+              content_data: sec.content_data,
+            })
+          )
+        );
+      } catch {
+        // Silently fail — explicit "Save Layout" surfaces errors + purges cache
+      }
+    }, 1200);
+    return () => clearTimeout(timer);
+  }, [sections]);
+
   useEffect(() => {
     if (!previewContainerRef.current) return;
     const observer = new ResizeObserver((entries) => {
@@ -186,6 +219,8 @@ export function useCustomizerState({
       trust_badges: 'Our Promises',
       recent_reviews: 'Customer Reviews',
       brands_logos: 'Our Premium Partners',
+      social_feed: 'Follow Us',
+      ticker: 'Announcement Ticker',
       flash_sale: 'Super Flash Sale'
     };
 

@@ -42,9 +42,9 @@ export default function VariantSelector({
     onChangeSelectedVariant,
   });
 
-  const showSwatches = (enableSwatches !== false) && (settings?.enableVariantSwatches ?? true);
-  const productSwatchSize = settings?.productSwatchSize ?? settings?.swatchSize ?? 'md';
-  const swatchShape = settings?.swatchShape || 'circle';
+  const showSwatches = (enableSwatches !== false) && (settings?.enable_variant_swatches ?? true);
+  const productSwatchSize = settings?.product_swatch_size ?? settings?.swatch_size ?? 'md';
+  const swatchShape = settings?.swatch_shape || 'circle';
 
   const shapeMap: Record<string, string> = {
     circle: 'rounded-full',
@@ -60,7 +60,7 @@ export default function VariantSelector({
       return v.color === color &&
         (!sizes.length || v.size === selectedSize) &&
         (!materials.length || v.material === selectedMaterial) &&
-        (!customValues.length || v.customValue === selectedCustomValue);
+        (!customValues.length || v.custom_value === selectedCustomValue);
     });
     if (match) {
       onChangeSelectedVariant(match);
@@ -69,7 +69,7 @@ export default function VariantSelector({
       if (fallback) {
         if (fallback.size) setSelectedSize(fallback.size);
         if (fallback.material) setSelectedMaterial(fallback.material);
-        if (fallback.customValue) setSelectedCustomValue(fallback.customValue);
+        if (fallback.custom_value) setSelectedCustomValue(fallback.custom_value);
         onChangeSelectedVariant(fallback);
       }
     }
@@ -88,8 +88,8 @@ export default function VariantSelector({
             const matchVar = activeVariants.find(v => v.color === color);
             const isSelected = selectedColor === color;
 
-            if (showSwatches && matchVar && (matchVar.colorHex || matchVar.imageUrl)) {
-              const bg = matchVar.colorHex || undefined;
+            if (showSwatches && matchVar && (matchVar.color_hex || matchVar.image_url)) {
+              const bg = matchVar.color_hex || undefined;
               const sSizeClass = getSwatchClasses('color', productSwatchSize, '');
               return (
                 <button
@@ -110,8 +110,8 @@ export default function VariantSelector({
                     boxShadow: isSelected ? '0 0 0 2px var(--color-accent)' : 'none',
                   }}
                 >
-                  {matchVar.imageUrl && (matchVar.showImageSwatch || !matchVar.colorHex) && (
-                    <img src={matchVar.imageUrl} alt={color} className="w-full h-full object-cover" />
+                  {matchVar.image_url && (matchVar.show_image_swatch || !matchVar.color_hex) && (
+                    <img src={matchVar.image_url} alt={color} className="w-full h-full object-cover" />
                   )}
                   {isSelected && (
                     <span className="absolute inset-0 flex items-center justify-center bg-black/20">
@@ -162,7 +162,7 @@ export default function VariantSelector({
                     (!colors.length || v.color === selectedColor) &&
                     v.size === size &&
                     (!materials.length || v.material === selectedMaterial) &&
-                    (!customValues.length || v.customValue === selectedCustomValue)
+                    (!customValues.length || v.custom_value === selectedCustomValue)
                   );
                   if (match) {
                     onChangeSelectedVariant(match);
@@ -171,7 +171,7 @@ export default function VariantSelector({
                     if (fallback) {
                       if (fallback.color) setSelectedColor(fallback.color);
                       if (fallback.material) setSelectedMaterial(fallback.material);
-                      if (fallback.customValue) setSelectedCustomValue(fallback.customValue);
+                      if (fallback.custom_value) setSelectedCustomValue(fallback.custom_value);
                       onChangeSelectedVariant(fallback);
                     }
                   }
@@ -219,7 +219,7 @@ export default function VariantSelector({
                     (!colors.length || v.color === selectedColor) &&
                     (!sizes.length || v.size === selectedSize) &&
                     v.material === mat &&
-                    (!customValues.length || v.customValue === selectedCustomValue)
+                    (!customValues.length || v.custom_value === selectedCustomValue)
                   );
                   if (match) {
                     onChangeSelectedVariant(match);
@@ -228,7 +228,7 @@ export default function VariantSelector({
                     if (fallback) {
                       if (fallback.color) setSelectedColor(fallback.color);
                       if (fallback.size) setSelectedSize(fallback.size);
-                      if (fallback.customValue) setSelectedCustomValue(fallback.customValue);
+                      if (fallback.custom_value) setSelectedCustomValue(fallback.custom_value);
                       onChangeSelectedVariant(fallback);
                     }
                   }
@@ -276,12 +276,12 @@ export default function VariantSelector({
                     (!colors.length || v.color === selectedColor) &&
                     (!sizes.length || v.size === selectedSize) &&
                     (!materials.length || v.material === selectedMaterial) &&
-                    v.customValue === val
+                    v.custom_value === val
                   );
                   if (match) {
                     onChangeSelectedVariant(match);
                   } else {
-                    const fallback = activeVariants.find(v => v.customValue === val);
+                    const fallback = activeVariants.find(v => v.custom_value === val);
                     if (fallback) {
                       if (fallback.color) setSelectedColor(fallback.color);
                       if (fallback.size) setSelectedSize(fallback.size);

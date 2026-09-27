@@ -5,21 +5,23 @@ import Image from 'next/image';
 import { StoreSettings } from '@/lib/types';
 import { Heart, Eye, ShoppingCart, Smartphone, Play, RefreshCw } from '@/components/common/Icons';
 import { getSharedAspectClass, getSharedTitleClampClass } from '@/lib/utils/styles';
+import { ProductCardStyleInjector } from '@/components/store/product-card/ProductCardStyles';
 
 interface ProductCardPreviewStudioProps {
   settings: StoreSettings;
+  onUpdateSettings?: (updates: Partial<StoreSettings>) => void;
 }
 
-export function ProductCardPreviewStudio({ settings }: ProductCardPreviewStudioProps) {
+export function ProductCardPreviewStudio({ settings, onUpdateSettings }: ProductCardPreviewStudioProps) {
   const [isSimulatedFocus, setIsSimulatedFocus] = useState(false);
   const [isWishlisted, setIsWishlisted] = useState(false);
 
-  const hoverStyle = settings.imageHoverStyle || 'second_image';
+  const hoverStyle = settings.image_hover_style || 'second_image';
   const isZoom = hoverStyle === 'zoom';
   const isSecondImage = hoverStyle !== 'none' && hoverStyle !== 'zoom';
 
-  const aspectClass = getSharedAspectClass(settings.imageAspectRatio || '3:4');
-  const titleClampClass = getSharedTitleClampClass(settings.titleLineLimit || '2');
+  const aspectClass = getSharedAspectClass(settings.image_aspect_ratio || '3:4');
+  const titleClampClass = getSharedTitleClampClass(settings.title_line_limit || '2');
   const alignment = settings.card_alignment || 'left';
   const alignClass = alignment === 'center' ? 'items-center text-center' : alignment === 'right' ? 'items-end text-right' : 'items-start text-left';
 
@@ -27,19 +29,30 @@ export function ProductCardPreviewStudio({ settings }: ProductCardPreviewStudioP
   const primaryImg = 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=600&auto=format&fit=crop&q=80';
   const secondaryImg = 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=600&auto=format&fit=crop&q=80';
 
-  const hoverStyleTitles: Record<string, string> = {
-    second_image: 'Crossfade to Back Image',
-    slide_left: 'Zara Slide Left / Right',
-    zoom_swap: 'Editorial Zoom & Reveal',
-    fade_up: 'Upward Drift Reveal',
-    blur_crossfade: 'Apple Soft Blur Reveal',
-    flip_3d: '3D Card Turn Flip',
-    zoom: 'Primary Image Zoom (1.06x)',
-    none: 'Static Image (No Effect)'
+  const stylePresets = [
+    { key: 'second_image', label: 'Fade Swap', desc: 'Crossfade to Back Image' },
+    { key: 'slide_left', label: 'Zara Slide', desc: 'Slide Left / Right' },
+    { key: 'zoom_swap', label: 'Zoom & Swap', desc: 'Editorial Zoom & Reveal' },
+    { key: 'fade_up', label: 'Upward Drift', desc: 'Fade & Rise Drift' },
+    { key: 'blur_crossfade', label: 'Apple Blur', desc: 'Soft Blur Reveal' },
+    { key: 'flip_3d', label: '3D Flip', desc: 'Card Turn Flip' },
+    { key: 'zoom', label: 'Zoom Only', desc: 'Primary Image Zoom' },
+    { key: 'none', label: 'Static', desc: 'No Effect' },
+  ];
+
+  const handleSelectStyle = (key: string) => {
+    if (onUpdateSettings) {
+      onUpdateSettings({ image_hover_style: key as any });
+    }
+    // Briefly pulse simulation so user sees animation immediately
+    setIsSimulatedFocus(true);
   };
 
   return (
     <div className="space-y-3.5 p-4 rounded-2xl border border-gray-200 dark:border-gray-800 bg-gradient-to-br from-gray-50/70 via-white to-gray-50/40 dark:from-white/[0.03] dark:via-transparent dark:to-white/[0.01] shadow-xs">
+      {/* Ensure all product card CSS rules are injected inside customizer */}
+      <ProductCardStyleInjector />
+
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5">
           <Play className="h-3.5 w-3.5 text-[#e94560] fill-[#e94560]" />
@@ -48,13 +61,35 @@ export function ProductCardPreviewStudio({ settings }: ProductCardPreviewStudioP
           </h4>
         </div>
         <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-[#e94560]/10 text-[#e94560] uppercase tracking-wide">
-          {hoverStyleTitles[hoverStyle] || hoverStyle}
+          {stylePresets.find(p => p.key === hoverStyle)?.label || hoverStyle}
         </span>
       </div>
 
       <p className="text-[11px] text-gray-500 dark:text-gray-400 font-medium leading-relaxed">
-        Hover with your mouse to test <strong>Desktop Hover</strong>, or click the button below to simulate <strong>Mobile Scroll Focus</strong>.
+        Select any style below to preview in real-time. Hover with mouse for <strong>Desktop Hover</strong>, or toggle <strong>Mobile Focus</strong>.
       </p>
+
+      {/* Quick Animation Preset Chips */}
+      <div className="flex flex-wrap gap-1.5 pb-1">
+        {stylePresets.map(preset => {
+          const isActive = hoverStyle === preset.key;
+          return (
+            <button
+              key={preset.key}
+              type="button"
+              onClick={() => handleSelectStyle(preset.key)}
+              className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all cursor-pointer select-none ${
+                isActive
+                  ? 'bg-[#e94560] text-white shadow-xs scale-[1.02]'
+                  : 'bg-white dark:bg-[#16162a] text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700'
+              }`}
+              title={preset.desc}
+            >
+              {preset.label}
+            </button>
+          );
+        })}
+      </div>
 
       {/* Interactive Card Canvas Container */}
       <div className="flex justify-center items-center py-2">
@@ -76,7 +111,7 @@ export function ProductCardPreviewStudio({ settings }: ProductCardPreviewStudioP
                 alt="Demo Product"
                 fill
                 sizes="240px"
-                className={`object-cover w-full h-full transition-all duration-300 pointer-events-none ${
+                className={`object-cover w-full h-full pointer-events-none ${
                   isZoom ? 'hover-zoom' : ''
                 } ${isSecondImage ? 'hover-fade-out' : ''}`}
                 priority
@@ -89,7 +124,7 @@ export function ProductCardPreviewStudio({ settings }: ProductCardPreviewStudioP
                   alt="Demo Product Alternate"
                   fill
                   sizes="240px"
-                  className="object-cover w-full h-full absolute inset-0 transition-all duration-300 pointer-events-none hover-fade-in"
+                  className="object-cover w-full h-full absolute inset-0 pointer-events-none hover-fade-in"
                   priority
                 />
               )}

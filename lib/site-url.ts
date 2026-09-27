@@ -1,5 +1,5 @@
-export function getClientSiteUrl(settings?: { storeUrl?: string }): string {
-  if (settings?.storeUrl) return settings.storeUrl.replace(/\/+$/, '');
+export function getClientSiteUrl(settings?: { store_url?: string }): string {
+  if (settings?.store_url) return settings.store_url.replace(/\/+$/, '');
   if (typeof window !== 'undefined') return window.location.origin;
   return process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
 }

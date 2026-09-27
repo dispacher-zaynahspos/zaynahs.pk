@@ -76,7 +76,7 @@ export default function CategoryDetailManager({ category, initialProducts }: Cat
         (v.color && v.color.toLowerCase().includes(q)) ||
         (v.size && v.size.toLowerCase().includes(q)) ||
         (v.material && v.material.toLowerCase().includes(q)) ||
-        (v.customValue && v.customValue.toLowerCase().includes(q))
+        (v.custom_value && v.custom_value.toLowerCase().includes(q))
       ))
     );
   });
@@ -116,7 +116,7 @@ export default function CategoryDetailManager({ category, initialProducts }: Cat
         return {
           ...p,
           variants: updatedVariants,
-          stock: p.hasVariants ? computedStock : p.stock
+          stock: p.has_variants ? computedStock : p.stock
         };
       }));
       toast.success('Variant updated successfully');
@@ -138,7 +138,7 @@ export default function CategoryDetailManager({ category, initialProducts }: Cat
         (v.color && v.color.toLowerCase().includes(q)) ||
         (v.size && v.size.toLowerCase().includes(q)) ||
         (v.material && v.material.toLowerCase().includes(q)) ||
-        (v.customValue && v.customValue.toLowerCase().includes(q))
+        (v.custom_value && v.custom_value.toLowerCase().includes(q))
       );
       return nameMatch || skuMatch || variantMatch;
     })
@@ -146,9 +146,9 @@ export default function CategoryDetailManager({ category, initialProducts }: Cat
       if (sortBy === 'manual') return 0;
       switch (sortBy) {
         case 'newest':
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
         case 'oldest':
-          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
         case 'price_desc':
           return b.price - a.price;
         case 'price_asc':

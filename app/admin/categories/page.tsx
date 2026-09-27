@@ -17,7 +17,7 @@ export default async function AdminCategoriesPage() {
         <h1 className="text-xl font-bold text-gray-900 dark:text-white">Manage Categories</h1>
         <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">Organize products into categories for easy filtering</p>
       </div>
-      <CategoryManager initialCategories={categories} aiEnabled={settings.ai_enabled} storeUrl={settings.storeUrl || undefined} />
+      <CategoryManager initialCategories={categories} aiEnabled={settings.ai_enabled} storeUrl={settings.store_url || undefined} />
     </div>
   );
 }

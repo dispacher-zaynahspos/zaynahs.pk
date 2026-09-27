@@ -84,15 +84,15 @@ export default function StoreFront({
       const validCategoryIds = selectedCategoryId ? getValidCategoryIds(selectedCategoryId) : [];
       const matchesCategory =
         !selectedCategoryId ||
-        validCategoryIds.includes(product.categoryId || '') ||
-        product.productCategories?.some((pc) => validCategoryIds.includes(pc.categoryId));
+        validCategoryIds.includes(product.category_id || '') ||
+        product.product_categories?.some((pc) => validCategoryIds.includes(pc.category_id));
 
       if (!q) return matchesCategory;
 
       const matchesSearch =
         product.name.toLowerCase().includes(q) ||
         (product.description && product.description.toLowerCase().includes(q)) ||
-        (product.shortDescription && product.shortDescription.toLowerCase().includes(q)) ||
+        (product.short_description && product.short_description.toLowerCase().includes(q)) ||
         (product.sku && product.sku.toLowerCase().includes(q)) ||
         (product.tags && product.tags.some((tag) => tag.toLowerCase().includes(q))) ||
         (product.category?.name && product.category.name.toLowerCase().includes(q)) ||
@@ -104,7 +104,7 @@ export default function StoreFront({
                 (v.size && v.size.toLowerCase().includes(q)) ||
                 (v.material && v.material.toLowerCase().includes(q)) ||
                 (v.sku && v.sku.toLowerCase().includes(q)) ||
-                (v.customValue && v.customValue.toLowerCase().includes(q)))
+                (v.custom_value && v.custom_value.toLowerCase().includes(q)))
           ));
 
       return matchesCategory && matchesSearch;
@@ -118,12 +118,12 @@ export default function StoreFront({
   const renderCategoryList = (section: HomepageSection) => {
     return (
       <div key={section.id} className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-4">
-        {section.title && (
+        {section.title && section.settings?.show_title !== false && (
           <h3 className="text-xs font-extrabold uppercase tracking-wider text-gray-500 mb-3 text-center md:text-left">
             {section.title}
           </h3>
         )}
-        {activeSettings.enableCategoryFilter && (
+        {activeSettings.enable_category_filter && (
           <CategoryFilter
             categories={categories}
             selectedCategoryId={selectedCategoryId}
@@ -156,7 +156,7 @@ export default function StoreFront({
         <h2 className="text-xl font-bold text-gray-900 dark:text-white">
           Search Results for: <span className="text-[#e94560]">&quot;{searchQuery}&quot;</span> ({filteredProducts.length} items)
         </h2>
-        <ProductGrid products={filteredProducts} currencySymbol={activeSettings.currencySymbol} settings={activeSettings} />
+        <ProductGrid products={filteredProducts} currencySymbol={activeSettings.currency_symbol} settings={activeSettings} />
       </div>
     );
   }
@@ -202,7 +202,7 @@ export default function StoreFront({
               <FlashSaleSection
                 section={section}
                 products={filteredProducts}
-                currencySymbol={activeSettings.currencySymbol}
+                currencySymbol={activeSettings.currency_symbol}
                 settings={activeSettings}
                 isPreview={isPreview}
                 loadMoreLimit={loadMoreLimits[section.id]}

@@ -54,7 +54,7 @@ export default function CollectionsGridSettings({
       .map(col => ({
         title: col.name,
         link: `/shop?collection=${col.slug}`,
-        imageUrl: col.imageUrl || ''
+        imageUrl: col.image_url || ''
       }));
     handleItemsChange([...newCards, ...items]);
     setSelectedBulkIds([]);

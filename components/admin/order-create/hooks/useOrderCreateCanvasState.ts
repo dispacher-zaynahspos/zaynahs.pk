@@ -65,7 +65,7 @@ export function useOrderCreateCanvasState({ isOpen, onClose, onOrderCreated, set
     if (!productsState.selectedProduct) return;
 
     let finalVariant: ProductVariant | undefined = undefined;
-    if (productsState.selectedProduct.hasVariants) {
+    if (productsState.selectedProduct.has_variants) {
       if (!productsState.chosenVariantId) {
         toast.error('Please select size/color options to match a variant');
         return;
@@ -86,10 +86,10 @@ export function useOrderCreateCanvasState({ isOpen, onClose, onOrderCreated, set
     const newItem: CartItem = {
       id: crypto.randomUUID(),
       product: productsState.selectedProduct,
-      selectedVariant: finalVariant,
-      selectedModifiers: [],
+      selected_variant: finalVariant,
+      selected_modifiers: [],
       quantity,
-      unitPrice,
+      unit_price: unitPrice,
       total: unitPrice * quantity
     };
 
@@ -119,26 +119,26 @@ export function useOrderCreateCanvasState({ isOpen, onClose, onOrderCreated, set
       slug: 'custom-item',
       price: price,
       stock: 9999,
-      hasVariants: false,
-      isService: true,
-      isFeatured: false,
-      isActive: true,
-      enableSwatches: false,
-      showSwatchesOnArchive: false,
+      has_variants: false,
+      is_service: true,
+      is_featured: false,
+      is_active: true,
+      enable_swatches: false,
+      show_swatches_on_archive: false,
       tags: [],
       images: [],
       variants: [],
       modifiers: [],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     };
 
     const newItem: CartItem = {
       id: crypto.randomUUID(),
       product: dummyProduct,
-      selectedModifiers: [],
+      selected_modifiers: [],
       quantity,
-      unitPrice: price,
+      unit_price: price,
       total: price * quantity
     };
 
@@ -192,7 +192,7 @@ export function useOrderCreateCanvasState({ isOpen, onClose, onOrderCreated, set
         id: crypto.randomUUID(),
         type: 'creation',
         message: 'Order created from Admin console',
-        createdAt: new Date().toISOString()
+        created_at: new Date().toISOString()
       };
 
       const finalLogs: StatusLogItem[] = [creationLog];
@@ -203,7 +203,7 @@ export function useOrderCreateCanvasState({ isOpen, onClose, onOrderCreated, set
           type: 'payment',
           message: `Payment verified via ${paymentMethod}`,
           notes: 'Prepaid order Confirmed by Admin',
-          createdAt: new Date().toISOString()
+          created_at: new Date().toISOString()
         });
       }
 
@@ -251,9 +251,9 @@ export function useOrderCreateCanvasState({ isOpen, onClose, onOrderCreated, set
       for (const item of selectedItems) {
         if (item.product.id.startsWith('custom-')) continue;
 
-        if (item.selectedVariant) {
+        if (item.selected_variant) {
           await supabase.rpc('decrement_variant_stock', {
-            var_id: item.selectedVariant.id,
+            var_id: item.selected_variant.id,
             qty: item.quantity
           });
         } else {
@@ -266,20 +266,20 @@ export function useOrderCreateCanvasState({ isOpen, onClose, onOrderCreated, set
 
       const formattedOrder: Order = {
         id: newRow.id,
-        orderNumber: newRow.order_number || `#${newRow.id.slice(0, 8)}`,
-        customerName: newRow.customer_name,
-        customerPhone: newRow.customer_phone,
+        order_number: newRow.order_number || `#${newRow.id.slice(0, 8)}`,
+        customer_name: newRow.customer_name,
+        customer_phone: newRow.customer_phone,
         items: newRow.items || [],
         subtotal: Number(newRow.subtotal),
         total: Number(newRow.total),
         status: newRow.status,
         notes: newRow.notes,
-        createdAt: newRow.created_at,
-        updatedAt: newRow.updated_at
+        created_at: newRow.created_at,
+        updated_at: newRow.updated_at
       };
 
       onOrderCreated(formattedOrder);
-      toast.success(`Order ${formattedOrder.orderNumber} created successfully!`);
+      toast.success(`Order ${formattedOrder.order_number} created successfully!`);
       onClose();
     } catch (err: any) {
       console.error(err);

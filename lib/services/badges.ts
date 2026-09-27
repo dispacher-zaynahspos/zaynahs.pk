@@ -12,10 +12,10 @@ import {
 const mapBadge = (row: any): Badge => ({
   id: row.id,
   name: row.name,
-  bgColor: row.bg_color,
-  textColor: row.text_color,
-  createdAt: row.created_at,
-  updatedAt: row.updated_at
+  bg_color: row.bg_color,
+  text_color: row.text_color,
+  created_at: row.created_at,
+  updated_at: row.updated_at
 });
 
 export const getBadges = async (): Promise<Badge[]> => {
@@ -31,10 +31,10 @@ export const getBadges = async (): Promise<Badge[]> => {
       return SYSTEM_BADGE_CONFIGS.map((b, i) => ({
         id: b.id || `default-${i}`,
         name: b.name,
-        bgColor: b.bgColor,
-        textColor: b.textColor,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        bg_color: b.bgColor,
+        text_color: b.textColor,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       }));
     }
 
@@ -67,19 +67,19 @@ export const getBadges = async (): Promise<Badge[]> => {
           badgeList.push({
             id: sysBadge.id,
             name: sysBadge.name,
-            bgColor: sysBadge.bgColor,
-            textColor: sysBadge.textColor,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
+            bg_color: sysBadge.bgColor,
+            text_color: sysBadge.textColor,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
           });
         }
       } else {
         // Auto-migrate old system default colors if they match known old defaults
         const nameLower = sysBadge.name.toLowerCase();
         const shouldMigrate = 
-          (nameLower === 'sale' && existingBadge.bgColor === '#0f172a') ||
-          (nameLower === 'new' && (existingBadge.bgColor === '#10b981' || existingBadge.bgColor === '#0f172a')) ||
-          (nameLower === 'hot' && (existingBadge.bgColor === '#ff9500' || existingBadge.bgColor === '#0f172a'));
+          (nameLower === 'sale' && existingBadge.bg_color === '#0f172a') ||
+          (nameLower === 'new' && (existingBadge.bg_color === '#10b981' || existingBadge.bg_color === '#0f172a')) ||
+          (nameLower === 'hot' && (existingBadge.bg_color === '#ff9500' || existingBadge.bg_color === '#0f172a'));
 
         if (shouldMigrate) {
           try {
@@ -87,8 +87,8 @@ export const getBadges = async (): Promise<Badge[]> => {
               .from('badges')
               .update({ bg_color: sysBadge.bgColor, text_color: sysBadge.textColor })
               .eq('id', existingBadge.id);
-            existingBadge.bgColor = sysBadge.bgColor;
-            existingBadge.textColor = sysBadge.textColor;
+            existingBadge.bg_color = sysBadge.bgColor;
+            existingBadge.text_color = sysBadge.textColor;
           } catch (updateErr) {
             console.warn(`[badges] Failed to auto-update ${sysBadge.name} system badge color:`, updateErr);
           }
@@ -110,7 +110,7 @@ export const getBadges = async (): Promise<Badge[]> => {
       const ordA = orderIndex(a);
       const ordB = orderIndex(b);
       if (ordA !== ordB) return ordA - ordB;
-      return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+      return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
     });
 
     return badgeList;
@@ -119,10 +119,10 @@ export const getBadges = async (): Promise<Badge[]> => {
     return SYSTEM_BADGE_CONFIGS.map((b, i) => ({
       id: b.id || `default-${i}`,
       name: b.name,
-      bgColor: b.bgColor,
-      textColor: b.textColor,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      bg_color: b.bgColor,
+      text_color: b.textColor,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     }));
   }
 };

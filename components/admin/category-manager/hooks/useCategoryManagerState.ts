@@ -127,8 +127,8 @@ export function useCategoryManagerState({
     setName(cat.name);
     setSlug(cat.slug);
     setDescription(cat.description || '');
-    setImageUrl(cat.imageUrl || '');
-    setSortOrder(cat.sortOrder.toString());
+    setImageUrl(cat.image_url || '');
+    setSortOrder(cat.sort_order.toString());
     setActive(cat.active);
     setIsOpen(true);
   };
@@ -166,8 +166,8 @@ export function useCategoryManagerState({
       name: name.trim(),
       slug: slug.trim(),
       description: description.trim() || undefined,
-      imageUrl: imageUrl.trim() || undefined,
-      sortOrder: parseInt(sortOrder) || 0,
+      image_url: imageUrl.trim() || undefined,
+      sort_order: parseInt(sortOrder) || 0,
       active,
     };
 
@@ -254,19 +254,19 @@ export function useCategoryManagerState({
     .sort((a, b) => {
       switch (sortBy) {
         case 'created-desc':
-          return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+          return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
         case 'created-asc':
-          return new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime();
+          return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
         case 'alphabetical-asc':
           return a.name.localeCompare(b.name);
         case 'alphabetical-desc':
           return b.name.localeCompare(a.name);
         case 'sort-order':
         default:
-          if ((a.sortOrder ?? 0) === (b.sortOrder ?? 0)) {
-            return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+          if ((a.sort_order ?? 0) === (b.sort_order ?? 0)) {
+            return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
           }
-          return (a.sortOrder ?? 0) - (b.sortOrder ?? 0);
+          return (a.sort_order ?? 0) - (b.sort_order ?? 0);
       }
     });
 

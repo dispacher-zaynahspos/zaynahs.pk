@@ -21,7 +21,7 @@ interface VariantAxisCardProps {
   setAxisInputs: React.Dispatch<React.SetStateAction<string[]>>;
   presets: VariantPreset[];
   axisOrderChanged: boolean;
-  setVariants: React.Dispatch<React.SetStateAction<Omit<ProductVariant, 'id' | 'productId'>[]>>;
+  setVariants: React.Dispatch<React.SetStateAction<Omit<ProductVariant, 'id' | 'product_id'>[]>>;
   images: any[];
   activeImageSelector: { axisIdx: number; valIdx: number } | null;
   setActiveImageSelector: React.Dispatch<React.SetStateAction<{ axisIdx: number; valIdx: number } | null>>;
@@ -125,7 +125,7 @@ export const VariantAxisCard: React.FC<VariantAxisCardProps> = ({
                       const newValues = preset.values.map(v => ({
                         label: v.label,
                         hex: preset.attribute === 'color' ? (v.hex && v.hex !== '#888888' ? v.hex : extractColorsFromName(v.label) || '#888888') : v.hex,
-                        imageUrl: v.imageUrl
+                        imageUrl: v.image_url
                       }));
                       setVariantAxes(prev => prev.map((a, i) =>
                         i === axisIdx ? { ...a, values: [...a.values, ...newValues.filter(nv => !a.values.find(av => av.label === nv.label))] } : a
@@ -135,8 +135,8 @@ export const VariantAxisCard: React.FC<VariantAxisCardProps> = ({
                         if (match) {
                           return {
                             ...v,
-                            colorHex: match.hex || v.colorHex,
-                            imageUrl: match.imageUrl || v.imageUrl
+                            color_hex: match.hex || v.color_hex,
+                            image_url: match.imageUrl || v.image_url
                           };
                         }
                         return v;

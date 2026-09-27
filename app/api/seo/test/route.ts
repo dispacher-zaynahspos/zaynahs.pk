@@ -14,7 +14,7 @@ export async function GET() {
   // 1. Check settings
   try {
     const settings = await getSettings();
-    results.settings = { status: 'ok', storeUrl: settings.storeUrl, storeName: settings.storeName };
+    results.settings = { status: 'ok', storeUrl: settings.store_url, storeName: settings.store_name };
   } catch (e: any) {
     results.settings = { status: 'fail', error: e.message };
   }

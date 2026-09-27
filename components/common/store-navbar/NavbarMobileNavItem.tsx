@@ -41,6 +41,7 @@ export function NavbarMobileNavItem({
       <div className="flex items-center justify-between">
         <Link
           href={item.url}
+          prefetch={true}
           onClick={() => {
             if (!hasChildren) setMobileMenuOpen(false);
           }}

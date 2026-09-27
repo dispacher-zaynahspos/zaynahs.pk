@@ -29,32 +29,32 @@ export default function FloatingContacts({ settings }: FloatingContactsProps) {
   if (!mounted) return null;
 
   // Check global enable toggle
-  if (settings.floatingContactsEnabled === false) return null;
+  if (settings.floating_contacts_enabled === false) return null;
 
-  const whatsappNumber = settings.floatingWhatsappNumber || settings.whatsappNumber;
-  const instagramUrl = settings.socialInstagram;
-  const tiktokUrl = settings.socialTiktok;
-  const snapchatUrl = settings.socialSnapchat;
-  const twitterUrl = settings.socialTwitter;
+  const whatsappNumber = settings.floating_whatsapp_number || settings.whatsapp_number;
+  const instagramUrl = settings.social_instagram;
+  const tiktokUrl = settings.social_tiktok;
+  const snapchatUrl = settings.social_snapchat;
+  const twitterUrl = settings.social_twitter;
 
   // Format active urls based on enabled config flags
-  const whatsappUrl = (settings.floatingWhatsappEnabled !== false && whatsappNumber)
-    ? `https://wa.me/${cleanWhatsAppPhone(whatsappNumber)}?text=${encodeURIComponent(settings.floatingWhatsappPreset || "Hello! I am visiting your store and have a question.")}`
+  const whatsappUrl = (settings.floating_whatsapp_enabled !== false && whatsappNumber)
+    ? `https://wa.me/${cleanWhatsAppPhone(whatsappNumber)}?text=${encodeURIComponent(settings.floating_whatsapp_preset || "Hello! I am visiting your store and have a question.")}`
     : null;
 
-  const instagramUrlFormatted = (settings.floatingInstagramEnabled !== false && instagramUrl)
+  const instagramUrlFormatted = (settings.floating_instagram_enabled !== false && instagramUrl)
     ? (instagramUrl.startsWith('http') ? instagramUrl : `https://instagram.com/${instagramUrl}`)
     : null;
 
-  const tiktokUrlFormatted = (settings.floatingTiktokEnabled && tiktokUrl)
+  const tiktokUrlFormatted = (settings.floating_tiktok_enabled && tiktokUrl)
     ? (tiktokUrl.startsWith('http') ? tiktokUrl : `https://tiktok.com/@${tiktokUrl.replace('@', '')}`)
     : null;
 
-  const snapchatUrlFormatted = (settings.floatingSnapchatEnabled && snapchatUrl)
+  const snapchatUrlFormatted = (settings.floating_snapchat_enabled && snapchatUrl)
     ? (snapchatUrl.startsWith('http') ? snapchatUrl : `https://snapchat.com/add/${snapchatUrl}`)
     : null;
 
-  const twitterUrlFormatted = (settings.floatingTwitterEnabled && twitterUrl)
+  const twitterUrlFormatted = (settings.floating_twitter_enabled && twitterUrl)
     ? (twitterUrl.startsWith('http') ? twitterUrl : `https://x.com/${twitterUrl}`)
     : null;
 
@@ -65,24 +65,24 @@ export default function FloatingContacts({ settings }: FloatingContactsProps) {
 
   // Calculate dynamic bottom and side offset dimensions based on mobile vs desktop
   const isCartBarVisible = mounted && totalItems > 0 && pathname !== '/cart' && pathname !== '/checkout';
-  const position = settings.floatingContactsPosition || 'left';
+  const position = settings.floating_contacts_position || 'left';
   const isTickerEnabled = settings.recent_buyers_enabled !== false;
   const isSpinWheelEnabled = settings.spin_wheel_enabled;
   const needsStacking = (position === 'left' && isTickerEnabled) || (position === 'right' && isSpinWheelEnabled);
-  const baseOffset = settings.floatingContactsBottomMobile ?? 80;
+  const baseOffset = settings.floating_contacts_bottom_mobile ?? 80;
 
   const bottomOffset = isMobile 
     ? (needsStacking 
         ? Math.max(baseOffset + (isCartBarVisible ? 56 : 0), position === 'left' ? 176 : 160)
         : baseOffset + (isCartBarVisible ? 56 : 0)
       )
-    : (settings.floatingContactsBottomDesktop ?? 24);
+    : (settings.floating_contacts_bottom_desktop ?? 24);
 
   const sideOffset = isMobile 
-    ? (settings.floatingContactsSideMobile ?? 16) 
-    : (settings.floatingContactsSideDesktop ?? 24);
+    ? (settings.floating_contacts_side_mobile ?? 16) 
+    : (settings.floating_contacts_side_desktop ?? 24);
 
-  const scale = settings.floatingContactsScale ?? 1.0;
+  const scale = settings.floating_contacts_scale ?? 1.0;
 
   const containerStyle: React.CSSProperties = {
     position: 'fixed',

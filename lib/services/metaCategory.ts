@@ -18,19 +18,19 @@ export async function getMetaCategoryMappings(): Promise<MetaCategoryMapping[]> 
 
     return (data || []).map((row: any) => ({
       id: row.id,
-      storeCategoryId: row.store_category_id,
-      metaCategory: row.meta_category,
-      createdAt: row.created_at,
+      store_category_id: row.store_category_id,
+      meta_category: row.meta_category,
+      created_at: row.created_at,
       category: row.categories ? {
         id: row.categories.id,
         name: row.categories.name,
         slug: row.categories.slug,
         description: row.categories.description || undefined,
-        imageUrl: row.categories.image_url || undefined,
-        sortOrder: row.categories.sort_order || 0,
+        image_url: row.categories.image_url || undefined,
+        sort_order: row.categories.sort_order || 0,
         active: row.categories.active ?? true,
-        createdAt: row.categories.created_at,
-        updatedAt: row.categories.updated_at
+        created_at: row.categories.created_at,
+        updated_at: row.categories.updated_at
       } : undefined
     }));
   } catch (error) {

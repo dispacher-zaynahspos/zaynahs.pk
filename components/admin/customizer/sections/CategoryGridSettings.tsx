@@ -3,10 +3,12 @@
 import React, { useState } from 'react';
 import { HomepageSection, Category } from '@/lib/types';
 import { Trash2, ChevronUp, ChevronDown } from '@/components/common/Icons';
+import ResponsiveGridColumnsControl from '../shared/ResponsiveGridColumnsControl';
 
 interface CategoryGridSettingsProps {
   section: HomepageSection;
   categories: Category[];
+  viewportMode?: 'desktop' | 'tablet' | 'mobile';
   onUpdateSection: (updates: Partial<HomepageSection>) => void;
   onSelectMedia: (
     fieldPath: 'settings' | 'content_data',
@@ -19,6 +21,7 @@ interface CategoryGridSettingsProps {
 export default function CategoryGridSettings({
   section,
   categories,
+  viewportMode,
   onUpdateSection,
   onSelectMedia
 }: CategoryGridSettingsProps) {
@@ -46,7 +49,7 @@ export default function CategoryGridSettings({
       .map(cat => ({
         title: cat.name,
         link: `/shop?category=${cat.slug}`,
-        imageUrl: cat.imageUrl || ''
+        imageUrl: cat.image_url || ''
       }));
     handleItemsChange([...newCards, ...items]);
     setSelectedBulkIds([]);
@@ -77,6 +80,18 @@ export default function CategoryGridSettings({
           <option value="auto">Auto (Natural)</option>
         </select>
       </div>
+
+      {/* Responsive Columns per Device (Mobile: 1-3, Tablet: 2-4, Desktop: 3-8) */}
+      <ResponsiveGridColumnsControl
+        label="Category Grid Columns"
+        viewportMode={viewportMode}
+        desktopCols={Number(section.settings?.desktop_columns) || 4}
+        tabletCols={Number(section.settings?.tablet_columns) || 3}
+        mobileCols={Number(section.settings?.mobile_columns) || 2}
+        onChangeDesktop={(cols) => onUpdateSection({ settings: { ...section.settings, desktop_columns: cols } })}
+        onChangeTablet={(cols) => onUpdateSection({ settings: { ...section.settings, tablet_columns: cols } })}
+        onChangeMobile={(cols) => onUpdateSection({ settings: { ...section.settings, mobile_columns: cols } })}
+      />
 
       {/* Show/Hide Card Title Badges Toggle */}
       <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-800 pb-2.5 pt-1">

@@ -19,7 +19,7 @@ export default function ProductPageBlocks({
   products,
   settings,
 }: ProductPageBlocksProps) {
-  const blocks = settings.productPageLayout || ['details', 'ticker', 'reviews', 'related', 'recently_viewed', 'social_feed'];
+  const blocks = settings.product_page_layout || ['details', 'ticker', 'reviews', 'related', 'recently_viewed', 'social_feed'];
 
   const relatedCols = getResponsiveGridClasses({
     mobile: settings.related_columns_mobile || 2,
@@ -56,7 +56,7 @@ export default function ProductPageBlocks({
           );
         }
         if (block === 'ticker') {
-          if (!settings.productDetailEnableTicker || !settings.productDetailTickerText) return null;
+          if (!settings.product_detail_enable_ticker || !settings.product_detail_ticker_text) return null;
           return (
             <div
               key="ticker"
@@ -72,7 +72,7 @@ export default function ProductPageBlocks({
                 Scrolling Ticker
               </div>
               <div className="flex animate-marquee whitespace-nowrap gap-12 text-xs font-bold text-gray-700 dark:text-gray-300">
-                {settings.productDetailTickerText.split('\n').filter(Boolean).map((line, idx) => (
+                {settings.product_detail_ticker_text.split('\n').filter(Boolean).map((line, idx) => (
                   <span key={idx} className="flex items-center gap-2">
                     <span>•</span>
                     <span>{line}</span>
@@ -132,7 +132,7 @@ export default function ProductPageBlocks({
               </div>
               <div className={`grid gap-4 ${relatedCols}`}>
                 {products.slice(0, settings.related_products_limit || 4).map(prod => (
-                  <ProductCard key={prod.id} product={prod} currencySymbol={settings.currencySymbol} settings={settings} />
+                  <ProductCard key={prod.id} product={prod} currencySymbol={settings.currency_symbol} settings={settings} />
                 ))}
               </div>
             </div>
@@ -164,7 +164,7 @@ export default function ProductPageBlocks({
               </div>
               <div className={`grid gap-4 ${recentCols}`}>
                 {products.slice(1, 1 + (settings.recently_viewed_limit || 4)).map(prod => (
-                  <ProductCard key={prod.id} product={prod} currencySymbol={settings.currencySymbol} settings={settings} />
+                  <ProductCard key={prod.id} product={prod} currencySymbol={settings.currency_symbol} settings={settings} />
                 ))}
               </div>
             </div>

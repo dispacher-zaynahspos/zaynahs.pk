@@ -6,7 +6,6 @@ import MediaSelectorModal from '../MediaSelectorModal';
 
 import { PremiumFeaturesChecklist } from './premium/PremiumFeaturesChecklist';
 import { PremiumFlashSaleCard } from './premium/PremiumFlashSaleCard';
-import { PremiumHeaderNewsCard } from './premium/PremiumHeaderNewsCard';
 import { PremiumViewerAndTickerCard } from './premium/PremiumViewerAndTickerCard';
 import { PremiumPopupsAndWheelSection } from './premium/PremiumPopupsAndWheelSection';
 import { PremiumRecentBuyersSection } from './premium/PremiumRecentBuyersSection';
@@ -270,20 +269,6 @@ export default function PremiumTab({
         setGlobalFlashSaleDiscountType={setGlobalFlashSaleDiscountType}
         globalFlashSaleDiscountValue={globalFlashSaleDiscountValue}
         setGlobalFlashSaleDiscountValue={setGlobalFlashSaleDiscountValue}
-      />
-
-      {/* Header Announcement & News Bar */}
-      <PremiumHeaderNewsCard
-        headerShowNewsletter={headerShowNewsletter}
-        setHeaderShowNewsletter={setHeaderShowNewsletter}
-        headerNewsletterText={headerNewsletterText}
-        setHeaderNewsletterText={setHeaderNewsletterText}
-        headerShowTopBar={headerShowTopBar}
-        setHeaderShowTopBar={setHeaderShowTopBar}
-        headerTopBarPhone={headerTopBarPhone}
-        setHeaderTopBarPhone={setHeaderTopBarPhone}
-        headerTopBarEmail={headerTopBarEmail}
-        setHeaderTopBarEmail={setHeaderTopBarEmail}
       />
 
       {/* Live Viewer Counter & Scrolling Announcement Ticker */}

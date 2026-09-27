@@ -45,7 +45,7 @@ export function CustomizerTopBar({
         </button>
         <div className="w-[1px] h-6 bg-white/10 hidden sm:block shrink-0" />
         <div className="hidden sm:flex flex-col items-start leading-none gap-0.5 mr-2 shrink-0">
-          <span className="text-xs font-black tracking-wider text-white uppercase">{storeSettings.storeName || 'OurStore'}</span>
+          <span className="text-xs font-black tracking-wider text-white uppercase">{storeSettings.store_name || 'OurStore'}</span>
           <span className="text-[9px] font-bold text-white/50 uppercase tracking-widest">Theme Customizer</span>
         </div>
         <div className="w-[1px] h-6 bg-white/10 hidden sm:block shrink-0" />
@@ -65,7 +65,7 @@ export function CustomizerTopBar({
                 setActiveSectionId(sectionsFirstId);
                 setActiveSubTab('');
               } else if (newPage === 'product_detail') {
-                const firstBlock = (storeSettings.productPageLayout || ['details', 'ticker', 'reviews', 'related', 'recently_viewed', 'social_feed'])[0];
+                const firstBlock = (storeSettings.product_page_layout || ['details', 'ticker', 'reviews', 'related', 'recently_viewed', 'social_feed'])[0];
                 setActiveSectionId(firstBlock);
                 const tabMap: Record<string, string> = {
                   details: 'swatches',

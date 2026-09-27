@@ -52,7 +52,7 @@ export default async function DashboardPage() {
     },
     { 
       label: 'All-Time Sales', 
-      value: formatPrice(totalSales, settings.currencySymbol), 
+      value: formatPrice(totalSales, settings.currency_symbol), 
       icon: TrendingUp, 
       color: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20', 
       glow: 'from-rose-500/15 via-rose-500/5 to-transparent',

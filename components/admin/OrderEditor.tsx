@@ -17,9 +17,9 @@ interface OrderEditorProps {
 
 export default function OrderEditor({ order: initialOrder, settings, products, onSave, onCancel }: OrderEditorProps) {
   const [items, setItems] = useState<(CartItem & { _isNew?: boolean })[]>(initialOrder.items || []);
-  const [discountAmount, setDiscountAmount] = useState<number>(initialOrder.discountAmount || 0);
-  const [shippingAmount, setShippingAmount] = useState<number>(initialOrder.shippingAmount || 0);
-  const [discountCode, setDiscountCode] = useState<string>(initialOrder.discountCode || '');
+  const [discountAmount, setDiscountAmount] = useState<number>(initialOrder.discount_amount || 0);
+  const [shippingAmount, setShippingAmount] = useState<number>(initialOrder.shipping_amount || 0);
+  const [discountCode, setDiscountCode] = useState<string>(initialOrder.discount_code || '');
   
   const [discountType, setDiscountType] = useState<'fixed' | 'percentage'>('fixed');
   const [discountPercent, setDiscountPercent] = useState<number>(0);
@@ -29,7 +29,7 @@ export default function OrderEditor({ order: initialOrder, settings, products, o
 
   // Financials
   const subtotal = useMemo(() => {
-    return items.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
+    return items.reduce((sum, item) => sum + (item.unit_price * item.quantity), 0);
   }, [items]);
 
   const effectiveDiscountAmount = useMemo(() => {
@@ -43,18 +43,18 @@ export default function OrderEditor({ order: initialOrder, settings, products, o
   }, [subtotal, shippingAmount, effectiveDiscountAmount]);
 
   const updateItemTotal = (item: CartItem & { _isNew?: boolean }) => {
-    const baseTotal = item.unitPrice * item.quantity;
-    const discountAmt = item.discountType === 'percent' 
-      ? (baseTotal * (item.discountValue || 0) / 100) 
-      : (item.discountValue || 0);
-    item.discountAmount = discountAmt;
+    const baseTotal = item.unit_price * item.quantity;
+    const discountAmt = item.discount_type === 'percent' 
+      ? (baseTotal * (item.discount_value || 0) / 100) 
+      : (item.discount_value || 0);
+    item.discount_amount = discountAmt;
     item.total = Math.max(0, baseTotal - discountAmt);
   };
 
   const handleItemDiscountChange = (idx: number, type: 'fixed' | 'percent', value: number) => {
     const newItems = [...items];
-    newItems[idx].discountType = type;
-    newItems[idx].discountValue = value;
+    newItems[idx].discount_type = type;
+    newItems[idx].discount_value = value;
     updateItemTotal(newItems[idx]);
     setItems(newItems);
   };
@@ -77,12 +77,12 @@ export default function OrderEditor({ order: initialOrder, settings, products, o
   };
 
   const handleAddProduct = (product: Product, variant?: ProductVariant) => {
-    const defaultVariant = variant || (product.hasVariants && product.variants?.length > 0 ? product.variants[0] : undefined);
+    const defaultVariant = variant || (product.has_variants && product.variants?.length > 0 ? product.variants[0] : undefined);
     const unitPrice = defaultVariant?.price || product.price || 0;
     
     const existingIdx = items.findIndex(item => 
       item.product.id === product.id && 
-      item.selectedVariant?.id === defaultVariant?.id
+      item.selected_variant?.id === defaultVariant?.id
     );
 
     if (existingIdx >= 0) {
@@ -91,10 +91,10 @@ export default function OrderEditor({ order: initialOrder, settings, products, o
       const newItem: CartItem & { _isNew?: boolean } = {
         id: Math.random().toString(36).substring(7),
         product,
-        selectedVariant: defaultVariant,
-        selectedModifiers: [],
+        selected_variant: defaultVariant,
+        selected_modifiers: [],
         quantity: 1,
-        unitPrice,
+        unit_price: unitPrice,
         total: unitPrice,
         _isNew: true
       };
@@ -111,18 +111,18 @@ export default function OrderEditor({ order: initialOrder, settings, products, o
     const colors = Array.from(new Set(activeVariants.map(v => v.color).filter(Boolean))) as string[];
     const sizes = Array.from(new Set(activeVariants.map(v => v.size).filter(Boolean))) as string[];
     const materials = Array.from(new Set(activeVariants.map(v => v.material).filter(Boolean))) as string[];
-    const customValues = Array.from(new Set(activeVariants.map(v => v.customValue).filter(Boolean))) as string[];
+    const customValues = Array.from(new Set(activeVariants.map(v => v.custom_value).filter(Boolean))) as string[];
 
-    const currentColor = type === 'color' ? value : item.selectedVariant?.color;
-    const currentSize = type === 'size' ? value : item.selectedVariant?.size;
-    const currentMaterial = type === 'material' ? value : item.selectedVariant?.material;
-    const currentCustomValue = type === 'customValue' ? value : item.selectedVariant?.customValue;
+    const currentColor = type === 'color' ? value : item.selected_variant?.color;
+    const currentSize = type === 'size' ? value : item.selected_variant?.size;
+    const currentMaterial = type === 'material' ? value : item.selected_variant?.material;
+    const currentCustomValue = type === 'customValue' ? value : item.selected_variant?.custom_value;
 
     let match = activeVariants.find(v => {
       const colorMatch = !colors.length || v.color === currentColor;
       const sizeMatch = !sizes.length || v.size === currentSize;
       const materialMatch = !materials.length || v.material === currentMaterial;
-      const customMatch = !customValues.length || v.customValue === currentCustomValue;
+      const customMatch = !customValues.length || v.custom_value === currentCustomValue;
       return colorMatch && sizeMatch && materialMatch && customMatch;
     });
 
@@ -131,15 +131,15 @@ export default function OrderEditor({ order: initialOrder, settings, products, o
         if (type === 'color') return v.color === value;
         if (type === 'size') return v.size === value;
         if (type === 'material') return v.material === value;
-        if (type === 'customValue') return v.customValue === value;
+        if (type === 'customValue') return v.custom_value === value;
         return false;
       });
     }
 
     if (match) {
       const newItems = [...items];
-      newItems[idx].selectedVariant = match;
-      newItems[idx].unitPrice = match.price || newItems[idx].product.price || 0;
+      newItems[idx].selected_variant = match;
+      newItems[idx].unit_price = match.price || newItems[idx].product.price || 0;
       updateItemTotal(newItems[idx]);
       setItems(newItems);
     }
@@ -194,12 +194,12 @@ export default function OrderEditor({ order: initialOrder, settings, products, o
         });
       }
 
-      const updatedLogs = [...(initialOrder.statusLogs || []), ...newLogs];
+      const updatedLogs = [...(initialOrder.status_logs || []), ...newLogs];
 
       const cleanItems = items.map(i => {
         const { _isNew, ...rest } = i;
         if (_isNew) {
-          return { ...rest, addedLater: true };
+          return { ...rest, added_later: true };
         }
         return rest;
       });

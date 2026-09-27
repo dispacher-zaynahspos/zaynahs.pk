@@ -101,7 +101,7 @@ export async function syncProductToMeta(
     let requests: any[] = [];
 
     if (action === 'DELETE') {
-      if (product.hasVariants && product.variants && product.variants.length > 0) {
+      if (product.has_variants && product.variants && product.variants.length > 0) {
         requests = product.variants.map(v => ({
           method: 'DELETE',
           retailer_id: v.id
@@ -111,8 +111,8 @@ export async function syncProductToMeta(
       }
     } else {
       // Inactive or soft-deleted product → delete from Meta catalog
-      if (product.deletedAt) {
-        if (product.hasVariants && product.variants && product.variants.length > 0) {
+      if (product.deleted_at) {
+        if (product.has_variants && product.variants && product.variants.length > 0) {
           requests = product.variants.map(v => ({
             method: 'DELETE',
             retailer_id: v.id
@@ -207,8 +207,8 @@ export async function bulkSyncProductsToMeta(
     for (const product of products) {
       try {
         let requests: any[] = [];
-        if (action === 'DELETE' || product.deletedAt) {
-          if (product.hasVariants && product.variants && product.variants.length > 0) {
+        if (action === 'DELETE' || product.deleted_at) {
+          if (product.has_variants && product.variants && product.variants.length > 0) {
             requests = product.variants.map(v => ({ method: 'DELETE', retailer_id: v.id }));
           } else {
             requests = [{ method: 'DELETE', retailer_id: product.id }];

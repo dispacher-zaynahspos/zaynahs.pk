@@ -93,7 +93,7 @@ export default function RecentlyViewed({ products, settings, currentProductId }:
       </div>
       <div className={`grid gap-4 ${recentCols}`}>
         {recentProducts.map((prod, index) => (
-          <ProductCard key={prod.id} product={prod} currencySymbol={settings.currencySymbol} settings={settings} priority={index < 4} />
+          <ProductCard key={prod.id} product={prod} currencySymbol={settings.currency_symbol} settings={settings} priority={index < 4} />
         ))}
       </div>
     </div>

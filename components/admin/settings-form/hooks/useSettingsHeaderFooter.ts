@@ -9,113 +9,113 @@ interface UseSettingsHeaderFooterProps {
 
 export function useSettingsHeaderFooter({ initialSettings }: UseSettingsHeaderFooterProps) {
   // Social States
-  const [socialTiktok, setSocialTiktok] = useState(initialSettings.socialTiktok || '');
-  const [socialSnapchat, setSocialSnapchat] = useState(initialSettings.socialSnapchat || '');
-  const [socialTwitter, setSocialTwitter] = useState(initialSettings.socialTwitter || '');
+  const [socialTiktok, setSocialTiktok] = useState(initialSettings.social_tiktok || '');
+  const [socialSnapchat, setSocialSnapchat] = useState(initialSettings.social_snapchat || '');
+  const [socialTwitter, setSocialTwitter] = useState(initialSettings.social_twitter || '');
 
   // Footer States
-  const [footerCol1Title, setFooterCol1Title] = useState(initialSettings.footerCol1Title || 'About Our Store');
-  const [footerCol2Title, setFooterCol2Title] = useState(initialSettings.footerCol2Title || 'Customer Support');
+  const [footerCol1Title, setFooterCol1Title] = useState(initialSettings.footer_col1_title || 'About Our Store');
+  const [footerCol2Title, setFooterCol2Title] = useState(initialSettings.footer_col2_title || 'Customer Support');
   const [footerCol2Text, setFooterCol2Text] = useState(
-    initialSettings.footerCol2Text || 'Call/WhatsApp: \nEmail: \nTimings: 10 AM - 10 PM'
+    initialSettings.footer_col2_text || 'Call/WhatsApp: \nEmail: \nTimings: 10 AM - 10 PM'
   );
-  const [footerCol3Title, setFooterCol3Title] = useState(initialSettings.footerCol3Title || 'Quick Links');
-  const [footerCol4Title, setFooterCol4Title] = useState(initialSettings.footerCol4Title || 'Newsletter');
+  const [footerCol3Title, setFooterCol3Title] = useState(initialSettings.footer_col3_title || 'Quick Links');
+  const [footerCol4Title, setFooterCol4Title] = useState(initialSettings.footer_col4_title || 'Newsletter');
   const [footerCol4Text, setFooterCol4Text] = useState(
-    initialSettings.footerCol4Text || 'Subscribe to get special offers, free giveaways, and once-in-a-lifetime deals.'
+    initialSettings.footer_col4_text || 'Subscribe to get special offers, free giveaways, and once-in-a-lifetime deals.'
   );
-  const [footerBottomText, setFooterBottomText] = useState(initialSettings.footerBottomText || '');
-  const [footerShowPayments, setFooterShowPayments] = useState(initialSettings.footerShowPayments ?? true);
-  const [footerShowMenu, setFooterShowMenu] = useState(initialSettings.footerShowMenu ?? true);
-  const [footerShowNewsletter, setFooterShowNewsletter] = useState(initialSettings.footerShowNewsletter ?? true);
-  const [footerShowSocial, setFooterShowSocial] = useState(initialSettings.footerShowSocial ?? true);
+  const [footerBottomText, setFooterBottomText] = useState(initialSettings.footer_bottom_text || '');
+  const [footerShowPayments, setFooterShowPayments] = useState(initialSettings.footer_show_payments ?? true);
+  const [footerShowMenu, setFooterShowMenu] = useState(initialSettings.footer_show_menu ?? true);
+  const [footerShowNewsletter, setFooterShowNewsletter] = useState(initialSettings.footer_show_newsletter ?? true);
+  const [footerShowSocial, setFooterShowSocial] = useState(initialSettings.footer_show_social ?? true);
 
   // Header States
-  const [headerSticky, setHeaderSticky] = useState(initialSettings.headerSticky ?? true);
-  const [headerStickyDesktop, setHeaderStickyDesktop] = useState(initialSettings.headerStickyDesktop ?? true);
-  const [headerStickyMobile, setHeaderStickyMobile] = useState(initialSettings.headerStickyMobile ?? true);
-  const [headerShowTopBar, setHeaderShowTopBar] = useState(initialSettings.headerShowTopBar ?? true);
-  const [headerTopBarPhone, setHeaderTopBarPhone] = useState(initialSettings.headerTopBarPhone ?? '');
-  const [headerTopBarEmail, setHeaderTopBarEmail] = useState(initialSettings.headerTopBarEmail ?? 'contact@store.com');
-  const [headerShowNewsletter, setHeaderShowNewsletter] = useState(initialSettings.headerShowNewsletter ?? true);
+  const [headerSticky, setHeaderSticky] = useState(initialSettings.header_sticky ?? true);
+  const [headerStickyDesktop, setHeaderStickyDesktop] = useState(initialSettings.header_sticky_desktop ?? true);
+  const [headerStickyMobile, setHeaderStickyMobile] = useState(initialSettings.header_sticky_mobile ?? true);
+  const [headerShowTopBar, setHeaderShowTopBar] = useState(initialSettings.header_show_top_bar ?? true);
+  const [headerTopBarPhone, setHeaderTopBarPhone] = useState(initialSettings.header_top_bar_phone ?? '');
+  const [headerTopBarEmail, setHeaderTopBarEmail] = useState(initialSettings.header_top_bar_email ?? 'contact@store.com');
+  const [headerShowNewsletter, setHeaderShowNewsletter] = useState(initialSettings.header_show_newsletter ?? true);
 
   // Floating Contacts States
-  const [floatingSnapchatEnabled, setFloatingSnapchatEnabled] = useState(initialSettings.floatingSnapchatEnabled ?? false);
-  const [floatingTwitterEnabled, setFloatingTwitterEnabled] = useState(initialSettings.floatingTwitterEnabled ?? false);
-  const [floatingContactsEnabled, setFloatingContactsEnabled] = useState<boolean>(initialSettings.floatingContactsEnabled ?? true);
+  const [floatingSnapchatEnabled, setFloatingSnapchatEnabled] = useState(initialSettings.floating_snapchat_enabled ?? false);
+  const [floatingTwitterEnabled, setFloatingTwitterEnabled] = useState(initialSettings.floating_twitter_enabled ?? false);
+  const [floatingContactsEnabled, setFloatingContactsEnabled] = useState<boolean>(initialSettings.floating_contacts_enabled ?? true);
   const [floatingContactsPosition, setFloatingContactsPosition] = useState<'left' | 'right'>(
-    initialSettings.floatingContactsPosition ?? 'right'
+    initialSettings.floating_contacts_position ?? 'right'
   );
-  const [floatingContactsScale, setFloatingContactsScale] = useState<number>(initialSettings.floatingContactsScale ?? 1.0);
+  const [floatingContactsScale, setFloatingContactsScale] = useState<number>(initialSettings.floating_contacts_scale ?? 1.0);
   const [floatingContactsBottomMobile, setFloatingContactsBottomMobile] = useState<number>(
-    initialSettings.floatingContactsBottomMobile ?? 80
+    initialSettings.floating_contacts_bottom_mobile ?? 80
   );
   const [floatingContactsBottomDesktop, setFloatingContactsBottomDesktop] = useState<number>(
-    initialSettings.floatingContactsBottomDesktop ?? 20
+    initialSettings.floating_contacts_bottom_desktop ?? 20
   );
   const [floatingContactsSideMobile, setFloatingContactsSideMobile] = useState<number>(
-    initialSettings.floatingContactsSideMobile ?? 20
+    initialSettings.floating_contacts_side_mobile ?? 20
   );
   const [floatingContactsSideDesktop, setFloatingContactsSideDesktop] = useState<number>(
-    initialSettings.floatingContactsSideDesktop ?? 20
+    initialSettings.floating_contacts_side_desktop ?? 20
   );
   const [floatingWhatsappEnabled, setFloatingWhatsappEnabled] = useState<boolean>(
-    initialSettings.floatingWhatsappEnabled ?? true
+    initialSettings.floating_whatsapp_enabled ?? true
   );
   const [floatingInstagramEnabled, setFloatingInstagramEnabled] = useState<boolean>(
-    initialSettings.floatingInstagramEnabled ?? false
+    initialSettings.floating_instagram_enabled ?? false
   );
   const [floatingTiktokEnabled, setFloatingTiktokEnabled] = useState<boolean>(
-    initialSettings.floatingTiktokEnabled ?? false
+    initialSettings.floating_tiktok_enabled ?? false
   );
   const [floatingWhatsappPreset, setFloatingWhatsappPreset] = useState<string>(
-    initialSettings.floatingWhatsappPreset ?? ''
+    initialSettings.floating_whatsapp_preset ?? ''
   );
   const [floatingWhatsappNumber, setFloatingWhatsappNumber] = useState<string>(
-    initialSettings.floatingWhatsappNumber ?? ''
+    initialSettings.floating_whatsapp_number ?? ''
   );
 
-  const [headerNewsletterText, setHeaderNewsletterText] = useState<string>(initialSettings.headerNewsletterText ?? '');
+  const [headerNewsletterText, setHeaderNewsletterText] = useState<string>(initialSettings.header_newsletter_text ?? '');
   const [headerDesktopLogoAlign, setHeaderDesktopLogoAlign] = useState<'left' | 'center' | 'right'>(
-    initialSettings.headerDesktopLogoAlign ?? 'left'
+    initialSettings.header_desktop_logo_align ?? 'left'
   );
   const [headerDesktopSearchAlign, setHeaderDesktopSearchAlign] = useState<'left' | 'right' | 'hidden'>(
-    initialSettings.headerDesktopSearchAlign ?? 'left'
+    initialSettings.header_desktop_search_align ?? 'left'
   );
   const [headerDesktopWishlistAlign, setHeaderDesktopWishlistAlign] = useState<'left' | 'right' | 'hidden'>(
-    initialSettings.headerDesktopWishlistAlign ?? 'right'
+    initialSettings.header_desktop_wishlist_align ?? 'right'
   );
   const [headerDesktopCartAlign, setHeaderDesktopCartAlign] = useState<'left' | 'right' | 'hidden'>(
-    initialSettings.headerDesktopCartAlign ?? 'right'
+    initialSettings.header_desktop_cart_align ?? 'right'
   );
   const [headerDesktopThemeAlign, setHeaderDesktopThemeAlign] = useState<'left' | 'right' | 'hidden'>(
-    initialSettings.headerDesktopThemeAlign ?? 'right'
+    initialSettings.header_desktop_theme_align ?? 'right'
   );
   const [headerMobileMenuAlign, setHeaderMobileMenuAlign] = useState<'left' | 'right' | 'hidden'>(
-    initialSettings.headerMobileMenuAlign ?? 'left'
+    initialSettings.header_mobile_menu_align ?? 'left'
   );
   const [headerMobileLogoAlign, setHeaderMobileLogoAlign] = useState<'left' | 'center' | 'right'>(
-    initialSettings.headerMobileLogoAlign ?? 'center'
+    initialSettings.header_mobile_logo_align ?? 'center'
   );
   const [headerMobileSearchAlign, setHeaderMobileSearchAlign] = useState<'left' | 'right' | 'hidden'>(
-    initialSettings.headerMobileSearchAlign ?? 'right'
+    initialSettings.header_mobile_search_align ?? 'right'
   );
   const [headerMobileCartAlign, setHeaderMobileCartAlign] = useState<'left' | 'right' | 'hidden'>(
-    initialSettings.headerMobileCartAlign ?? 'right'
+    initialSettings.header_mobile_cart_align ?? 'right'
   );
   const [headerMobileWishlistAlign, setHeaderMobileWishlistAlign] = useState<'left' | 'right' | 'hidden'>(
-    initialSettings.headerMobileWishlistAlign ?? 'hidden'
+    initialSettings.header_mobile_wishlist_align ?? 'hidden'
   );
 
-  const [headerTopBarBg, setHeaderTopBarBg] = useState<string>(initialSettings.headerTopBarBg ?? '#1a1a2e');
+  const [headerTopBarBg, setHeaderTopBarBg] = useState<string>(initialSettings.header_top_bar_bg ?? '#1a1a2e');
   const [headerTopBarTextColor, setHeaderTopBarTextColor] = useState<string>(
-    initialSettings.headerTopBarTextColor ?? '#ffffff'
+    initialSettings.header_top_bar_text_color ?? '#ffffff'
   );
-  const [headerBg, setHeaderBg] = useState<string>(initialSettings.headerBg ?? '#ffffff');
-  const [headerTextColor, setHeaderTextColor] = useState<string>(initialSettings.headerTextColor ?? '#1a1a1a');
-  const [headerBorderColor, setHeaderBorderColor] = useState<string>(initialSettings.headerBorderColor ?? '#e5e7eb');
+  const [headerBg, setHeaderBg] = useState<string>(initialSettings.header_bg ?? '#ffffff');
+  const [headerTextColor, setHeaderTextColor] = useState<string>(initialSettings.header_text_color ?? '#1a1a1a');
+  const [headerBorderColor, setHeaderBorderColor] = useState<string>(initialSettings.header_border_color ?? '#e5e7eb');
   const [headerDesktopMenuAlign, setHeaderDesktopMenuAlign] = useState<'left' | 'center' | 'right' | 'hidden'>(
-    initialSettings.headerDesktopMenuAlign ?? 'left'
+    initialSettings.header_desktop_menu_align ?? 'left'
   );
 
   return {

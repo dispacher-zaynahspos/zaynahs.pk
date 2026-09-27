@@ -76,9 +76,9 @@ export default function ReviewsTable({
                     </div>
                   </td>
                   <td className="px-3 py-2.5">
-                    <div className="font-semibold text-gray-800 dark:text-gray-200">{review.customerName}</div>
-                    {review.customerPhone && <div className="text-[11px] text-gray-400 dark:text-gray-500">{review.customerPhone}</div>}
-                    {review.customerEmail && <div className="text-[11px] text-gray-400 dark:text-gray-500">{review.customerEmail}</div>}
+                    <div className="font-semibold text-gray-800 dark:text-gray-200">{review.customer_name}</div>
+                    {review.customer_phone && <div className="text-[11px] text-gray-400 dark:text-gray-500">{review.customer_phone}</div>}
+                    {review.customer_email && <div className="text-[11px] text-gray-400 dark:text-gray-500">{review.customer_email}</div>}
                   </td>
                   <td className="px-3 py-2.5">
                     <StarRating rating={review.rating} showText={true} starSize={12} />
@@ -100,7 +100,7 @@ export default function ReviewsTable({
                     </span>
                   </td>
                   <td className="px-3 py-2.5 text-[11px] font-medium text-gray-400 dark:text-gray-500 whitespace-nowrap">
-                    {formatDate(review.createdAt)}
+                    {formatDate(review.created_at)}
                   </td>
                   <td className="px-3 py-2.5 text-right">
                     <div className="flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
@@ -168,9 +168,9 @@ export default function ReviewsTable({
                     {review.productName || 'Unknown Product'}
                   </h3>
                   <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                    by <span className="font-semibold text-gray-700 dark:text-gray-300">{review.customerName}</span>
-                    {review.customerPhone && ` (${review.customerPhone})`}
-                    {review.customerEmail && <div className="text-xs text-gray-400 dark:text-gray-500">{review.customerEmail}</div>}
+                    by <span className="font-semibold text-gray-700 dark:text-gray-300">{review.customer_name}</span>
+                    {review.customer_phone && ` (${review.customer_phone})`}
+                    {review.customer_email && <div className="text-xs text-gray-400 dark:text-gray-500">{review.customer_email}</div>}
                   </div>
                 </div>
               </div>
@@ -188,7 +188,7 @@ export default function ReviewsTable({
             </div>
             <div className="flex items-center justify-between">
               <StarRating rating={review.rating} showText={false} starSize={12} />
-              <span className="text-[10px] text-gray-400 dark:text-gray-500 font-medium">{formatDate(review.createdAt)}</span>
+              <span className="text-[10px] text-gray-400 dark:text-gray-500 font-medium">{formatDate(review.created_at)}</span>
             </div>
             {review.comment && (
               <p className="text-xs text-gray-650 dark:text-gray-300 italic bg-gray-50 dark:bg-[#0f0f1b]/50 p-2.5 rounded-xl border border-gray-100 dark:border-gray-800/20">

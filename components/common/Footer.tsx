@@ -24,20 +24,20 @@ export default function Footer({ settings, brandName }: FooterProps) {
   const currentYear = new Date().getFullYear();
 
   const hasSocialLinks =
-    settings.socialFacebook ||
-    settings.socialInstagram ||
-    settings.socialWhatsapp ||
-    settings.socialYoutube ||
-    settings.socialTiktok ||
-    settings.socialSnapchat ||
-    settings.socialTwitter;
+    settings.social_facebook ||
+    settings.social_instagram ||
+    settings.social_whatsapp ||
+    settings.social_youtube ||
+    settings.social_tiktok ||
+    settings.social_snapchat ||
+    settings.social_twitter;
 
-  const navigationMenu = settings?.navigationMenu ?? [];
+  const navigationMenu = settings?.navigation_menu ?? [];
 
-  const showMenu = settings.footerShowMenu ?? true;
-  const showSocial = settings.footerShowSocial ?? true;
-  const showNewsletter = settings.footerShowNewsletter ?? true;
-  const showPayments = settings.footerShowPayments ?? true;
+  const showMenu = settings.footer_show_menu ?? true;
+  const showSocial = settings.footer_show_social ?? true;
+  const showNewsletter = settings.footer_show_newsletter ?? true;
+  const showPayments = settings.footer_show_payments ?? true;
 
   const showCol3 = showMenu;
   const showCol4 = showNewsletter || (showSocial && hasSocialLinks);
@@ -69,7 +69,7 @@ export default function Footer({ settings, brandName }: FooterProps) {
           {/* Column 1: Brand & About */}
           <div className="space-y-4">
             <h3 className="text-sm font-extrabold text-gray-900 dark:text-white uppercase tracking-wider">
-              {settings.footerCol1Title || 'About Our Store'}
+              {settings.footer_col1_title || 'About Our Store'}
             </h3>
             <div className="space-y-3">
               {settings.tagline && (
@@ -78,9 +78,9 @@ export default function Footer({ settings, brandName }: FooterProps) {
                 </p>
               )}
               <p className="text-sm font-semibold leading-relaxed max-w-md text-gray-500 dark:text-gray-400">
-                {settings.footerText ||
+                {settings.footer_text ||
                   `Welcome to ${
-                    brandName || settings.storeName || 'our store'
+                    brandName || settings.store_name || 'our store'
                   }. We provide premium quality products delivered right to your doorstep. Confirm your orders instantly via WhatsApp.`}
               </p>
               {settings.address && (
@@ -94,10 +94,10 @@ export default function Footer({ settings, brandName }: FooterProps) {
           {/* Column 2: Customer Support Details */}
           <div className="space-y-4">
             <h3 className="text-sm font-extrabold text-gray-900 dark:text-white uppercase tracking-wider">
-              {settings.footerCol2Title || 'Customer Support'}
+              {settings.footer_col2_title || 'Customer Support'}
             </h3>
             <p className="text-sm font-semibold leading-relaxed whitespace-pre-line text-gray-500 dark:text-gray-400">
-              {settings.footerCol2Text || 'Call/WhatsApp: \nEmail: \nTimings: 10 AM - 10 PM'}
+              {settings.footer_col2_text || 'Call/WhatsApp: \nEmail: \nTimings: 10 AM - 10 PM'}
             </p>
           </div>
 
@@ -105,7 +105,7 @@ export default function Footer({ settings, brandName }: FooterProps) {
           {showCol3 && (
             <div className="space-y-4">
               <h3 className="text-sm font-extrabold text-gray-900 dark:text-white uppercase tracking-wider">
-                {settings.footerCol3Title || 'Quick Links'}
+                {settings.footer_col3_title || 'Quick Links'}
               </h3>
               <FooterQuickLinks settings={settings} navigationMenu={navigationMenu} />
             </div>
@@ -117,10 +117,10 @@ export default function Footer({ settings, brandName }: FooterProps) {
               {showNewsletter && (
                 <>
                   <h3 className="text-sm font-extrabold text-gray-900 dark:text-white uppercase tracking-wider">
-                    {settings.footerCol4Title || 'Newsletter'}
+                    {settings.footer_col4_title || 'Newsletter'}
                   </h3>
                   <p className="text-sm font-semibold leading-relaxed text-gray-500 dark:text-gray-400">
-                    {settings.footerCol4Text ||
+                    {settings.footer_col4_text ||
                       'Subscribe to get special offers, free giveaways, and once-in-a-lifetime deals.'}
                   </p>
                   <NewsletterForm />
@@ -135,16 +135,16 @@ export default function Footer({ settings, brandName }: FooterProps) {
         {/* Footer Bottom (Divider & Copyright) */}
         <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs font-semibold text-gray-500 dark:text-gray-400">
-            {settings.footerBottomText
-              ? settings.footerBottomText
-              : `© ${currentYear} ${brandName || settings.storeName || 'Our Store'}. All rights reserved.`}
+            {settings.footer_bottom_text
+              ? settings.footer_bottom_text
+              : `© ${currentYear} ${brandName || settings.store_name || 'Our Store'}. All rights reserved.`}
           </p>
           {showPayments &&
-            settings.enableTrustBadges &&
-            settings.safeCheckoutMethods &&
-            settings.safeCheckoutMethods.length > 0 && (
+            settings.enable_trust_badges &&
+            settings.safe_checkout_methods &&
+            settings.safe_checkout_methods.length > 0 && (
               <PaymentBadges
-                methods={settings.safeCheckoutMethods}
+                methods={settings.safe_checkout_methods}
                 className="flex flex-wrap items-center gap-1.5 justify-end"
               />
             )}

@@ -34,6 +34,9 @@ yarn-error.log*
 .env*
 !.env.example
 
+# opencode config (contains API keys)
+opencode.json
+
 # vercel
 .vercel
 

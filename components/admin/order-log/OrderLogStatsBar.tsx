@@ -36,8 +36,8 @@ export function OrderLogStatsBar({
     };
 
     return orders.filter(o => {
-      if (o.deletedAt) return false;
-      const orderTime = new Date(o.createdAt).getTime();
+      if (o.deleted_at) return false;
+      const orderTime = new Date(o.created_at).getTime();
 
       if (dateFilter === 'today') {
         const start = getStartOfDay(now);
@@ -78,11 +78,11 @@ export function OrderLogStatsBar({
     let count = 0;
     statsOrders.forEach(o => {
       if (!['pending', 'placed', 'confirmed'].includes(o.status)) {
-        const logs = o.statusLogs || [];
+        const logs = o.status_logs || [];
         const changeLog = logs.find(l => l.type === 'status_change' && (l.status === 'shipped' || l.status === 'delivered' || l.message.toLowerCase().includes('shipped') || l.message.toLowerCase().includes('fulfilled')));
         if (changeLog) {
-          const creationTime = new Date(o.createdAt).getTime();
-          const changeTime = new Date(changeLog.createdAt).getTime();
+          const creationTime = new Date(o.created_at).getTime();
+          const changeTime = new Date(changeLog.created_at).getTime();
           if (changeTime > creationTime) {
             totalMs += (changeTime - creationTime);
             count++;
@@ -132,7 +132,7 @@ export function OrderLogStatsBar({
       <div className="stat-item flex-1 min-w-[110px] p-4 border-r border-gray-200 dark:border-gray-800 last:border-r-0 flex flex-col gap-1">
         <div className="stat-item-header text-gray-500 font-medium">Returns</div>
         <div className="stat-value font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
-          {formatPrice(statsReturnsCount, settings.currencySymbol)} <span className="text-gray-400 font-normal">—</span>
+          {formatPrice(statsReturnsCount, settings.currency_symbol)} <span className="text-gray-400 font-normal">—</span>
         </div>
       </div>
 

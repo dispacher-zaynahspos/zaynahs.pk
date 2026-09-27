@@ -37,21 +37,21 @@ export default function ProductSaleSubTab({
     );
   }
 
-  const isSaleEnabled = currentProduct.flashSaleEnabled ?? false;
-  const discountType = currentProduct.flashSaleDiscountType || 'fixed';
-  const discountValue = currentProduct.flashSaleDiscountValue || 0;
-  const startTime = currentProduct.flashSaleStartDate
+  const isSaleEnabled = currentProduct.flash_sale_enabled ?? false;
+  const discountType = currentProduct.flash_sale_discount_type || 'fixed';
+  const discountValue = currentProduct.flash_sale_discount_value || 0;
+  const startTime = currentProduct.flash_sale_start_date
     ? new Date(
-        new Date(currentProduct.flashSaleStartDate).getTime() -
-          new Date(currentProduct.flashSaleStartDate).getTimezoneOffset() * 60000
+        new Date(currentProduct.flash_sale_start_date).getTime() -
+          new Date(currentProduct.flash_sale_start_date).getTimezoneOffset() * 60000
       )
         .toISOString()
         .slice(0, 16)
     : '';
-  const endTime = currentProduct.flashSaleEndDate
+  const endTime = currentProduct.flash_sale_end_date
     ? new Date(
-        new Date(currentProduct.flashSaleEndDate).getTime() -
-          new Date(currentProduct.flashSaleEndDate).getTimezoneOffset() * 60000
+        new Date(currentProduct.flash_sale_end_date).getTime() -
+          new Date(currentProduct.flash_sale_end_date).getTimezoneOffset() * 60000
       )
         .toISOString()
         .slice(0, 16)
@@ -72,7 +72,7 @@ export default function ProductSaleSubTab({
           <input
             type="checkbox"
             checked={isSaleEnabled}
-            onChange={(e) => onUpdateProduct(currentProduct.id, { flashSaleEnabled: e.target.checked })}
+            onChange={(e) => onUpdateProduct(currentProduct.id, { flash_sale_enabled: e.target.checked })}
             className="sr-only peer"
           />
           <div className="w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#e94560]" />
@@ -90,7 +90,7 @@ export default function ProductSaleSubTab({
                 value={discountType}
                 onChange={(e) =>
                   onUpdateProduct(currentProduct.id, {
-                    flashSaleDiscountType: e.target.value as any,
+                    flash_sale_discount_type: e.target.value as any,
                   })
                 }
                 className="w-full px-2.5 py-2 bg-white dark:bg-[#16162a] border border-gray-200 dark:border-gray-800 rounded-lg text-xs text-gray-900 dark:text-white"
@@ -108,7 +108,7 @@ export default function ProductSaleSubTab({
                 value={discountValue || ''}
                 onChange={(e) =>
                   onUpdateProduct(currentProduct.id, {
-                    flashSaleDiscountValue: parseFloat(e.target.value) || 0,
+                    flash_sale_discount_value: parseFloat(e.target.value) || 0,
                   })
                 }
                 placeholder={discountType === 'percentage' ? 'e.g. 15' : 'e.g. 200'}
@@ -127,7 +127,7 @@ export default function ProductSaleSubTab({
                 value={startTime}
                 onChange={(e) =>
                   onUpdateProduct(currentProduct.id, {
-                    flashSaleStartDate: e.target.value
+                    flash_sale_start_date: e.target.value
                       ? new Date(e.target.value).toISOString()
                       : null,
                   })
@@ -144,7 +144,7 @@ export default function ProductSaleSubTab({
                 value={endTime}
                 onChange={(e) =>
                   onUpdateProduct(currentProduct.id, {
-                    flashSaleEndDate: e.target.value
+                    flash_sale_end_date: e.target.value
                       ? new Date(e.target.value).toISOString()
                       : undefined,
                   })

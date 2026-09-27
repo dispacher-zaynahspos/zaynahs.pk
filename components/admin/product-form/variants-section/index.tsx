@@ -5,6 +5,7 @@ import { Trash2, Plus, ChevronDown, ChevronUp, Search } from '@/components/commo
 import { ProductVariant, VariantPreset } from '@/lib/types';
 import { VariantBulkBar } from './VariantBulkBar';
 import { VariantTableRow } from './VariantTableRow';
+import { VariantMobileCard } from './VariantMobileCard';
 import { VariantAxisCard, VariantAxis, AxisValue } from './VariantAxisCard';
 
 export type { AxisValue, VariantAxis };
@@ -27,13 +28,13 @@ export interface ProductFormVariantsSectionProps {
   presets: VariantPreset[];
   axisOrderChanged: boolean;
   setAxisOrderChanged: (val: boolean) => void;
-  variants: Omit<ProductVariant, 'id' | 'productId'>[];
-  setVariants: React.Dispatch<React.SetStateAction<Omit<ProductVariant, 'id' | 'productId'>[]>>;
+  variants: Omit<ProductVariant, 'id' | 'product_id'>[];
+  setVariants: React.Dispatch<React.SetStateAction<Omit<ProductVariant, 'id' | 'product_id'>[]>>;
   selectedVariantIndices: number[];
   setSelectedVariantIndices: React.Dispatch<React.SetStateAction<number[]>>;
   variantSearchTerm: string;
   setVariantSearchTerm: (val: string) => void;
-  filteredVariants: Omit<ProductVariant, 'id' | 'productId'>[];
+  filteredVariants: Omit<ProductVariant, 'id' | 'product_id'>[];
   price: string;
   comparePrice: string;
   images: any[];
@@ -43,7 +44,7 @@ export interface ProductFormVariantsSectionProps {
   handleMoveAxisDown: (idx: number) => void;
   handleReorderAxisValues: (axisIdx: number, reorderedValues: AxisValue[]) => void;
   handleGenerateVariants: () => void;
-  handleUpdateVariant: (index: number, updates: Partial<Omit<ProductVariant, 'id' | 'productId'>>) => void;
+  handleUpdateVariant: (index: number, updates: Partial<Omit<ProductVariant, 'id' | 'product_id'>>) => void;
   handleRemoveVariant: (index: number) => void;
   handleBulkDelete: () => void;
   handleBulkUpdatePrice: (price: number) => void;
@@ -349,6 +350,52 @@ export const ProductFormVariantsSection: React.FC<ProductFormVariantsSectionProp
                   })}
                 </tbody>
               </table>
+            </div>
+          )}
+
+          {/* Variants Cards - mobile */}
+          {variants.length > 0 && (
+            <div className="md:hidden space-y-3">
+              {/* Select-all bar */}
+              <div className="flex items-center gap-2 px-1">
+                <input
+                  type="checkbox"
+                  checked={filteredVariants.length > 0 && filteredVariants.every(v => selectedVariantIndices.includes(variants.indexOf(v)))}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      const newIndices = filteredVariants.map(v => variants.indexOf(v));
+                      setSelectedVariantIndices(prev => [...new Set([...prev, ...newIndices])]);
+                    } else {
+                      const filteredIdxSet = new Set(filteredVariants.map(v => variants.indexOf(v)));
+                      setSelectedVariantIndices(prev => prev.filter(i => !filteredIdxSet.has(i)));
+                    }
+                  }}
+                  className="rounded border-gray-300 text-[#e94560] focus:ring-[#e94560] h-4 w-4 cursor-pointer"
+                />
+                <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                  Select all ({filteredVariants.length})
+                </span>
+              </div>
+              {filteredVariants.map((variant) => {
+                const idx = variants.indexOf(variant);
+                const isSelected = selectedVariantIndices.includes(idx);
+                return (
+                  <VariantMobileCard
+                    key={idx}
+                    variant={variant}
+                    idx={idx}
+                    isSelected={isSelected}
+                    price={price}
+                    comparePrice={comparePrice}
+                    onToggleSelect={(i, checked) => {
+                      if (checked) setSelectedVariantIndices(prev => [...prev, i]);
+                      else setSelectedVariantIndices(prev => prev.filter(x => x !== i));
+                    }}
+                    handleUpdateVariant={handleUpdateVariant}
+                    handleRemoveVariant={handleRemoveVariant}
+                  />
+                );
+              })}
             </div>
           )}
         </div>

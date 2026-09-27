@@ -108,7 +108,7 @@ export const ProductCardShowcaseContent: React.FC<ProductCardShowcaseContentProp
                 <span className="st" style={{ color: starsColor }}>
                   {Array.from({ length: 5 }).map((_, idx) => idx < Math.round(product.rating || 5) ? '★' : '☆').join('')}
                 </span>
-                <span className="rc" style={{ color: countColor }}>({product.reviewsCount || 0})</span>
+                <span className="rc" style={{ color: countColor }}>({product.reviews_count || 0})</span>
               </div>
             );
           case 'price':
@@ -133,7 +133,7 @@ export const ProductCardShowcaseContent: React.FC<ProductCardShowcaseContentProp
               </div>
             );
           case 'swatches':
-            if (product.showSwatchesOnArchive === false || !finalRenderedGroups) return null;
+            if (product.show_swatches_on_archive === false || !finalRenderedGroups) return null;
             return (
               <div key="swatches" className="relative z-[2] w-full mt-2" onClick={(e) => e.stopPropagation()}>
                 {finalRenderedGroups}
