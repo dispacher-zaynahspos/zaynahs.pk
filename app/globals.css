@@ -72,6 +72,43 @@
   --warning: #f59e0b;
   --error: #ef4444;
   --whatsapp: #25D366;
+
+  /* ---------------------------------------------------------------------
+     Unified bottom-overlay stacking system (single source of truth).
+     Every fixed bottom element derives its offset + z-index from these
+     vars so nothing overlaps regardless of device / safe-area.
+     --------------------------------------------------------------------- */
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --bottom-nav-h: 4rem;        /* MobileBottomNav (h-16) — 0 on desktop below */
+  --cart-bar-h: 3.25rem;       /* View Bag bar / product sticky bar height   */
+  --overlay-gap: 0.5rem;
+
+  /* Bottom offset each layer should sit at (composed, mobile-first) */
+  --offset-cart-bar: calc(var(--bottom-nav-h) + var(--safe-bottom) + var(--overlay-gap));
+  --offset-above-cart: calc(var(--offset-cart-bar) + var(--cart-bar-h) + 0.65rem);
+  --offset-above-nav: calc(var(--bottom-nav-h) + var(--safe-bottom) + 0.65rem);
+
+  /* z-index scale — ordered, no collisions */
+  --z-bottom-nav: 60;
+  --z-cart-bar: 65;
+  --z-sticky-cta: 66;
+  --z-floating: 70;
+  --z-toast: 75;
+  --z-cookie: 80;
+  --z-header: 100;
+  --z-drawer: 999;
+  --z-modal: 1000;
+}
+
+/* Bottom nav is hidden on desktop, so layers collapse cleanly to bottom */
+@media (min-width: 768px) {
+  :root {
+    --bottom-nav-h: 0rem;
+    --cart-bar-h: 0rem;
+    --offset-cart-bar: 1.5rem;
+    --offset-above-cart: 1.5rem;
+    --offset-above-nav: 1.5rem;
+  }
 }
 
 .dark {

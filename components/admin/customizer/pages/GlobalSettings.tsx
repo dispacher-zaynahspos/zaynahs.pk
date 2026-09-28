@@ -112,6 +112,22 @@ export default function GlobalSettings({
           <MobileBottomNavBuilder settings={settings} onUpdateSettings={onUpdateSettings} />
         )}
 
+        <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-800 pb-2">
+          <div className="min-w-0 pr-3">
+            <span className="text-xs font-bold text-gray-700 dark:text-gray-300 block">Mobile "View Bag" Cart Bar</span>
+            <span className="text-[10px] text-gray-400 dark:text-gray-500">Sticky bottom cart summary (theme-colored). Shows when cart has items.</span>
+          </div>
+          <label className="relative inline-flex items-center cursor-pointer select-none shrink-0">
+            <input
+              type="checkbox"
+              checked={settings.cart_bar_enabled ?? true}
+              onChange={(e) => onUpdateSettings({ cart_bar_enabled: e.target.checked })}
+              className="sr-only peer"
+            />
+            <div className="w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#e94560]" />
+          </label>
+        </div>
+
         <HeaderAnnouncementFields settings={settings} onUpdate={onUpdateSettings} />
       </div>
     );

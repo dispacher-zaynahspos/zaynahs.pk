@@ -5,6 +5,7 @@ import Footer from '@/components/common/Footer';
 import MobileBottomNav from '@/components/common/MobileBottomNav';
 import FloatingContacts from '@/components/common/FloatingContacts';
 import PremiumFeaturesProvider from '@/components/store/PremiumFeaturesProvider';
+import ScrollRestorer from '@/components/store/ScrollRestorer';
 import { getSettings } from '@/lib/services/settings';
 import { getDomainBrand } from '@/lib/utils/getDomainBrand';
 
@@ -19,6 +20,9 @@ export default async function StoreLayout({
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50 dark:bg-[#0f0f1b] text-gray-900 dark:text-gray-100 pb-36 md:pb-0 transition-colors duration-200">
+      <Suspense fallback={null}>
+        <ScrollRestorer />
+      </Suspense>
       <Suspense fallback={<div className="h-16 bg-white dark:bg-[#0f0f1b] border-b border-gray-200 dark:border-gray-800" />}>
         <Navbar settings={settings} storeName={brandName} logoUrl={settings?.logo_url} logoWidth={settings?.logo_width} />
       </Suspense>
@@ -27,7 +31,7 @@ export default async function StoreLayout({
         {children}
       </main>
       <Footer settings={settings} brandName={brandName} />
-      <CartBar currencySymbol={settings.currency_symbol} />
+      <CartBar currencySymbol={settings.currency_symbol} enabled={settings?.cart_bar_enabled !== false} />
       <MobileBottomNav
         enabled={settings?.mobile_bottom_nav_enabled !== false}
         items={settings?.mobile_bottom_nav_items}

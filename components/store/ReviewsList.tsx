@@ -6,6 +6,7 @@ import { Review } from '@/lib/types';
 import StarRating from './StarRating';
 import ReviewImageZoomModal from './ReviewImageZoomModal';
 import { MessageSquare, ZoomIn } from '@/components/common/Icons';
+import { sanitizeReviewText } from '@/lib/utils/sanitizeReview';
 
 interface ReviewsListProps {
   reviews: Review[];
@@ -41,7 +42,8 @@ export default function ReviewsList({ reviews, loading = false }: ReviewsListPro
 
   const formatDate = (dateStr: string) => {
     try {
-      return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(dateStr));
+      // Pinned timezone so SSR (UTC) and client (Asia/Karachi) match → avoids React #418.
+      return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'Asia/Karachi' }).format(new Date(dateStr));
     } catch { return dateStr; }
   };
 
@@ -116,16 +118,18 @@ export default function ReviewsList({ reviews, loading = false }: ReviewsListPro
                   <span className="font-extrabold text-sm text-gray-950 dark:text-white">
                     {review.customer_name}
                   </span>
-                  <div className="flex items-center gap-0.5 text-[9px] font-bold text-[#10b981] bg-[#10b981]/10 dark:bg-[#10b981]/15 px-1.5 py-0.5 rounded-full select-none">
-                    <span className="text-[8px] font-bold">✓</span>
-                    <span>Verified Buyer</span>
-                  </div>
+                  {review.is_verified_purchase && (
+                    <div className="flex items-center gap-0.5 text-[9px] font-bold text-[#10b981] bg-[#10b981]/10 dark:bg-[#10b981]/15 px-1.5 py-0.5 rounded-full select-none">
+                      <span className="text-[8px] font-bold">✓</span>
+                      <span>Verified Buyer</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Review Comment */}
-                {review.comment && (
+                {sanitizeReviewText(review.comment) && (
                   <p className="text-sm text-gray-700 dark:text-gray-350 leading-relaxed font-semibold pt-0.5">
-                    {review.comment}
+                    {sanitizeReviewText(review.comment)}
                   </p>
                 )}
 

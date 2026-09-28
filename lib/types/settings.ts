@@ -124,6 +124,8 @@ export interface StoreSettings {
   mobile_bottom_nav_enabled?: boolean;
   mobile_bottom_nav_show_labels?: boolean;
   mobile_bottom_nav_items?: { key: string; label: string; visible: boolean }[] | null;
+  /** Mobile sticky "View Bag" cart bar — show/hide (default true) */
+  cart_bar_enabled?: boolean;
   header_show_top_bar?: boolean;
   header_top_bar_phone?: string;
   header_top_bar_email?: string;

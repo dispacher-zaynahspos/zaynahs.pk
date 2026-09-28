@@ -10,6 +10,7 @@ import { createOrder } from '@/lib/services/orders';
 import { trackEvent } from '@/lib/trackEvent';
 import { toast } from 'sonner';
 import { validateCouponCode } from '@/lib/services/coupons';
+import { isValidPkMobile, normalizePkPhone } from '@/lib/phone';
 import { useAbandonedCartTracker } from '@/lib/hooks/useAbandonedCartTracker';
 import { useCartTimer } from './hooks/useCartTimer';
 import { useCartMethods } from './hooks/useCartMethods';
@@ -158,6 +159,10 @@ export function useCartContainerState(settings: StoreSettings) {
       toast.error('Please enter your phone number');
       return;
     }
+    if (!isValidPkMobile(phone)) {
+      toast.error('Enter a valid Pakistani mobile number (e.g. 0300 1234567)');
+      return;
+    }
     if (methodsState.paymentMethods.length > 0 && !methodsState.selectedPaymentId) {
       toast.error('Please select a payment method');
       return;
@@ -171,7 +176,7 @@ export function useCartContainerState(settings: StoreSettings) {
         apartment.trim() ? `Apt/Suite: ${apartment.trim()}` : '',
         `City: ${city.trim()}`,
         postalCode.trim() ? `Postal: ${postalCode.trim()}` : '',
-        `Phone: ${phone.trim()}`,
+        `Phone: ${normalizePkPhone(phone)}`,
         emailOrPhone.trim() ? `Contact: ${emailOrPhone.trim()}` : '',
         notes.trim() ? `Notes: ${notes.trim()}` : '',
         coordinates.trim() ? `Coordinates: ${coordinates.trim()}` : '',
@@ -188,7 +193,7 @@ export function useCartContainerState(settings: StoreSettings) {
 
       const order = await createOrder({
         customerName: `${firstName.trim()} ${lastName.trim()}`,
-        customerPhone: phone.trim(),
+        customerPhone: normalizePkPhone(phone),
         customerEmail: emailOrPhone.includes('@') ? emailOrPhone.trim() : undefined,
         items,
         subtotal,

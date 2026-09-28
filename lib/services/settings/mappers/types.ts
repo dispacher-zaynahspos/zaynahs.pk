@@ -33,6 +33,7 @@ export interface SettingsRow {
   mobile_bottom_nav_enabled?: boolean | null;
   mobile_bottom_nav_show_labels?: boolean | null;
   mobile_bottom_nav_items?: any[] | null;
+  cart_bar_enabled?: boolean | null;
   enable_category_filter?: boolean | null;
   verticals_enabled?: boolean | null;
   verticals_hub_title?: string | null;

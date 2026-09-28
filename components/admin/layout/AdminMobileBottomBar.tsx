@@ -69,28 +69,40 @@ export function AdminMobileBottomBar({
               key={tab.href}
               href={tab.href}
               prefetch
-              className={`flex flex-col items-center justify-center flex-1 h-full min-h-[44px] min-w-[44px] relative text-[10.5px] font-bold transition-all active:scale-95 cursor-pointer ${
-                active
-                  ? 'text-[var(--color-primary,#C2185B)] font-black'
-                  : 'text-gray-400 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-medium'
-              }`}
+              className="flex flex-col items-center justify-center flex-1 h-full py-1 relative transition-all active:scale-95 cursor-pointer group"
             >
               <div className="relative flex items-center justify-center">
-                <Icon
-                  className={`h-5 w-5 mb-0.5 shrink-0 transition-transform ${
-                    active ? 'scale-110 text-[var(--color-primary,#C2185B)]' : ''
+                <div
+                  className={`flex items-center justify-center p-1 rounded-xl transition-all duration-200 ${
+                    active
+                      ? 'text-gray-950 dark:text-white bg-gray-100 dark:bg-white/10'
+                      : 'text-gray-400 dark:text-gray-500 group-hover:text-gray-700 dark:group-hover:text-gray-300'
                   }`}
-                />
+                >
+                  <Icon
+                    className={`h-5 w-5 shrink-0 transition-transform ${
+                      active ? 'scale-105 stroke-[2.2]' : 'stroke-[1.8]'
+                    }`}
+                  />
+                </div>
                 {count !== undefined && count > 0 && (
-                  <span className="absolute -top-1.5 -right-3 min-w-[16px] h-4 px-1 rounded-full bg-[var(--color-primary,#C2185B)] text-white text-[9px] font-black flex items-center justify-center leading-none shadow-xs border border-white dark:border-[#16162a]">
+                  <span className="absolute -top-1 -right-2 min-w-[18px] h-[18px] px-1 rounded-full bg-amber-500 text-white text-[8.5px] font-black flex items-center justify-center leading-none shadow-xs border-2 border-white dark:border-[#16162a]">
                     {count > 99 ? '99+' : count}
                   </span>
                 )}
-                {active && (
-                  <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-4 h-1 rounded-full bg-[var(--color-primary,#C2185B)] shadow-xs" />
-                )}
               </div>
-              <span className="mt-0.5 tracking-tight leading-none">{tab.label}</span>
+              <span
+                className={`mt-0.5 tracking-tight leading-none text-[10px] transition-colors ${
+                  active
+                    ? 'font-bold text-gray-950 dark:text-white'
+                    : 'font-semibold text-gray-400 dark:text-gray-500'
+                }`}
+              >
+                {tab.label}
+              </span>
+              {active && (
+                <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-3.5 h-[2px] rounded-full bg-gray-900 dark:bg-white" />
+              )}
             </Link>
           );
         })}
@@ -99,12 +111,12 @@ export function AdminMobileBottomBar({
         <button
           type="button"
           onClick={onOpenMobileMenu}
-          className="flex flex-col items-center justify-center flex-1 h-full min-h-[44px] min-w-[44px] relative text-[10.5px] font-medium text-gray-400 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all active:scale-95 cursor-pointer"
+          className="flex flex-col items-center justify-center flex-1 h-full py-1 relative text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white transition-all active:scale-95 cursor-pointer group"
         >
-          <div className="relative flex items-center justify-center">
-            <Menu className="h-5 w-5 mb-0.5 shrink-0" />
+          <div className="flex items-center justify-center p-1 rounded-xl group-hover:bg-gray-100 dark:group-hover:bg-white/10 transition-colors">
+            <Menu className="h-5 w-5 shrink-0 stroke-[1.8]" />
           </div>
-          <span className="mt-0.5 tracking-tight leading-none">More</span>
+          <span className="mt-0.5 tracking-tight leading-none text-[10px] font-semibold">More</span>
         </button>
       </div>
     </nav>

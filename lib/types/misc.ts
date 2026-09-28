@@ -39,6 +39,8 @@ export interface Review {
   approved: boolean;
   hidden?: boolean;
   is_manual?: boolean;
+  /** Server-derived: review's phone/email matches a real order. Never client-set. */
+  is_verified_purchase?: boolean;
   screenshot_url?: string;
   images?: string[];
   deleted_at?: string | null;

@@ -1,9 +1,10 @@
 'use client';
 
 import React from 'react';
-import { ChevronLeft, ChevronRight, Truck, Lock, HelpCircle, Send } from '@/components/common/Icons';
+import { ChevronLeft, ChevronRight, Truck, Lock, Send } from '@/components/common/Icons';
 import { StoreSettings, ShippingMethod, PaymentMethod, CartItem } from '@/lib/types';
 import { formatPrice } from '@/lib/utils/whatsapp';
+import PhoneInput from '@/components/store/PhoneInput';
 
 interface CartCheckoutViewProps {
   settings: StoreSettings;
@@ -81,7 +82,7 @@ export default function CartCheckoutView({
   return (
     <div className="min-h-screen bg-white dark:bg-[#0f0f1b] text-gray-900 dark:text-white">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-8">
-        <form onSubmit={handleOrderSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-start">
+        <form onSubmit={handleOrderSubmit} noValidate className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-start">
 
           {/* LEFT: Checkout form */}
           <div className="lg:col-span-7 space-y-6">
@@ -189,21 +190,7 @@ export default function CartCheckoutView({
               </div>
 
               {/* Phone */}
-              <div>
-                <label className="block text-[10px] font-black uppercase tracking-wider text-gray-400 mb-1.5">
-                  WhatsApp / Phone<span className="text-red-500 ml-0.5">*</span>
-                </label>
-                <div className="relative">
-                  <input
-                    type="tel" required placeholder="0300 1234567"
-                    value={phone} onChange={e => setPhone(e.target.value)}
-                    className="w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-[#0f0f1b]/50 px-4 py-3 pr-10 text-sm font-medium text-gray-900 dark:text-white placeholder-gray-400 focus:border-[#e94560] focus:bg-white dark:focus:bg-[#16162a] focus:outline-none transition-all"
-                  />
-                  <div className="absolute right-3.5 top-1/2 -translate-y-1/2 cursor-help" title="We'll send your order confirmation here">
-                    <HelpCircle className="h-4 w-4 text-gray-400" />
-                  </div>
-                </div>
-              </div>
+              <PhoneInput value={phone} onChange={setPhone} />
 
               {/* Order notes */}
               <div>

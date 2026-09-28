@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { HomepageSection, Review } from '@/lib/types';
 import StarRating from '../StarRating';
+import { sanitizeReviewText } from '@/lib/utils/sanitizeReview';
 
 interface RecentReviewsSectionProps {
   section: HomepageSection;
@@ -38,7 +39,9 @@ const getAvatarColorClass = (name: string) => {
 
 const formatDate = (dateStr: string) => {
   try {
-    return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(dateStr));
+    // Pin the timezone so SSR (UTC) and client (Asia/Karachi) render the SAME
+    // string — otherwise dates near midnight mismatch → React #418 hydration error.
+    return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'Asia/Karachi' }).format(new Date(dateStr));
   } catch {
     return dateStr;
   }
@@ -143,13 +146,15 @@ export function RecentReviewsSection({
                     <span className="font-extrabold text-xs text-gray-950 dark:text-white truncate">
                       {review.customer_name}
                     </span>
-                    <span className="text-[8px] font-bold text-[#10b981] bg-[#10b981]/10 px-1.5 py-0.5 rounded-full shrink-0">
-                      ✓ Verified Buyer
-                    </span>
+                    {review.is_verified_purchase && (
+                      <span className="text-[8px] font-bold text-[#10b981] bg-[#10b981]/10 px-1.5 py-0.5 rounded-full shrink-0">
+                        ✓ Verified Buyer
+                      </span>
+                    )}
                   </div>
-                  {review.comment && (
+                  {sanitizeReviewText(review.comment) && (
                     <p className="text-[11px] text-gray-700 dark:text-gray-300 leading-relaxed font-medium">
-                      &ldquo;{review.comment}&rdquo;
+                      &ldquo;{sanitizeReviewText(review.comment)}&rdquo;
                     </p>
                   )}
                 </div>

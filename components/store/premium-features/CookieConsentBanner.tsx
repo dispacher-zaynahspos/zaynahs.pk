@@ -16,7 +16,7 @@ export default function CookieConsentBanner({
   onClose,
 }: CookieConsentBannerProps) {
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-[150] p-4 bg-white/95 dark:bg-[#16162a]/95 border-t border-gray-100 dark:border-gray-800/80 shadow-2xl transition-all duration-300 animate-slide-up">
+    <div className="fixed bottom-0 left-0 right-0 z-[var(--z-cookie)] p-4 bg-white/95 dark:bg-[#16162a]/95 border-t border-gray-100 dark:border-gray-800/80 shadow-2xl transition-all duration-300 animate-slide-up">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <Shield className="w-6 h-6 text-amber-500 flex-shrink-0" />

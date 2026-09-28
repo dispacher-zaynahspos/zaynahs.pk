@@ -1,11 +1,17 @@
 'use server';
 
-import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/server';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder';
-const staticSupabase = createSupabaseClient(supabaseUrl, supabaseAnonKey, { auth: { persistSession: false, autoRefreshToken: false }, global: { fetch: (url, init) => fetch(url, { ...init, cache: 'no-store' }) } });
+/**
+ * Server-only writes/reads use the service-role client.
+ * RLS on abandoned_carts REVOKEs SELECT from anon (SELECT policy requires an
+ * authenticated role), so an anon client can INSERT but cannot read the row
+ * back via `.select().single()` — that mismatch was causing 500s on the public
+ * POST /api/abandoned-cart route. Service role bypasses RLS for these
+ * server-side operations. Never exposed to the client (this file is 'use server').
+ */
+const staticSupabase = supabaseAdmin;
 
 export interface AbandonedCart {
   id: string;

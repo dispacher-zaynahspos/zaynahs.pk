@@ -10,6 +10,7 @@ import {
   Edit, 
   Check, 
   MoreHorizontal, 
+  Trash2,
   X 
 } from '@/components/common/Icons';
 import { Order, StoreSettings } from '@/lib/types';
@@ -320,6 +321,72 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
               />
               {staffNoteInput && (
                 <button onClick={handleSaveStaffNote} className="px-3 py-1 bg-blue-600 text-white text-xs font-bold rounded">Post</button>
+              )}
+            </div>
+
+            {/* Timeline entries (newest first) */}
+            <div className="space-y-3">
+              {(!order.status_logs || order.status_logs.length === 0) ? (
+                <p className="text-xs text-gray-400">No activity yet.</p>
+              ) : (
+                [...order.status_logs].reverse().map((log) => {
+                  const isComment = log.type === 'staff_note';
+                  const isEditing = editingCommentId === log.id;
+                  return (
+                    <div key={log.id} className="flex items-start gap-2.5">
+                      <div className="mt-0.5 h-6 w-6 shrink-0 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500">
+                        <Clock className="h-3 w-3" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-xs font-bold text-gray-900 dark:text-white">{log.message}</span>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <span className="text-[10px] text-gray-400 whitespace-nowrap">
+                              {new Intl.DateTimeFormat('en-PK', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Karachi' }).format(new Date(log.created_at))}
+                            </span>
+                            {isComment && !isEditing && (
+                              <>
+                                <button
+                                  onClick={() => { setEditingCommentId(log.id); setEditingCommentText(log.notes || ''); }}
+                                  className="text-gray-400 hover:text-blue-600"
+                                  title="Edit comment"
+                                >
+                                  <Edit className="h-3 w-3" />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteTimelineComment(log.id)}
+                                  className="text-gray-400 hover:text-red-600"
+                                  title="Delete comment"
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                        {isEditing ? (
+                          <div className="mt-1 space-y-1.5">
+                            <textarea
+                              value={editingCommentText}
+                              onChange={(e) => setEditingCommentText(e.target.value)}
+                              className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-2 text-xs text-gray-900 dark:text-white"
+                            />
+                            <div className="flex items-center gap-1.5">
+                              <button onClick={() => handleUpdateTimelineComment(log.id)} className="px-2.5 py-1 bg-blue-600 text-white text-[11px] font-bold rounded inline-flex items-center gap-1">
+                                <Check className="h-3 w-3" /> Save
+                              </button>
+                              <button onClick={() => setEditingCommentId(null)} className="px-2.5 py-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-[11px] font-bold rounded inline-flex items-center gap-1">
+                                <X className="h-3 w-3" /> Cancel
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          log.notes && <p className="mt-0.5 text-xs text-gray-600 dark:text-gray-400 whitespace-pre-wrap break-words">{log.notes}</p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
               )}
             </div>
           </div>

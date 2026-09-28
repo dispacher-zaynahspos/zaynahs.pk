@@ -22,6 +22,7 @@ export const mapSettings = (row: SettingsRow): StoreSettings => ({
   mobile_bottom_nav_enabled: row.mobile_bottom_nav_enabled ?? true,
   mobile_bottom_nav_show_labels: row.mobile_bottom_nav_show_labels ?? true,
   mobile_bottom_nav_items: row.mobile_bottom_nav_items ?? null,
+  cart_bar_enabled: row.cart_bar_enabled ?? true,
   enable_category_filter: row.enable_category_filter ?? true,
   
   last_vercel_purge: row.last_vercel_purge || undefined,

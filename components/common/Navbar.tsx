@@ -363,6 +363,8 @@ export default function Navbar({
         topBarEmail={topBarEmail}
         storeName={storeName}
         renderMobileNavItem={renderMobileNavItem}
+        logoUrl={logoUrl}
+        onOpenSearch={() => setSearchOpen(true)}
       />
 
       {/* SEARCH POPUP MODAL */}

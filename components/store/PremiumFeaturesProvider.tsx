@@ -220,7 +220,8 @@ export default function PremiumFeaturesProvider({ settings }: PremiumFeaturesPro
       {isFeatureEnabled(settings, 'spin_wheel') && !showSpinWheel && !hasSpun && (
         <button
           onClick={() => setShowSpinWheel(true)}
-          className="fixed bottom-24 right-4 z-40 p-4 bg-amber-500 hover:bg-amber-600 text-white rounded-full shadow-2xl animate-bounce hover:scale-105 transition-all focus:outline-none focus:ring-4 focus:ring-amber-300"
+          style={{ bottom: 'var(--offset-above-cart)' }}
+          className="fixed right-4 z-[var(--z-floating)] p-4 bg-amber-500 hover:bg-amber-600 text-white rounded-full shadow-2xl animate-bounce hover:scale-105 transition-all focus:outline-none focus:ring-4 focus:ring-amber-300"
           title="Spin to Win!"
         >
           <Gift className="w-6 h-6" />

@@ -9,6 +9,7 @@ import {
   getCustomerSession
 } from '@/lib/utils/customer-auth';
 import { normalizePhone } from './types';
+import { normalizePkPhone, isValidPkMobile } from '@/lib/phone';
 
 /**
  * Links previous orders to this customer based on phone matching
@@ -57,7 +58,10 @@ export async function customerSignup(data: {
 }) {
   try {
     const email = data.email?.trim() || null;
-    const phone = data.phone?.trim() || null;
+    // Normalize PK phone to canonical national form so it matches order-linking
+    // and login lookups (which now also normalize). Falls back to raw digits.
+    const rawPhone = data.phone?.trim() || null;
+    const phone = rawPhone ? (isValidPkMobile(rawPhone) ? normalizePkPhone(rawPhone) : rawPhone) : null;
     const name = data.name.trim();
     const password = data.password;
 
@@ -201,12 +205,38 @@ export async function customerLogin(data: {
       return { success: false, error: 'Credentials are required.' };
     }
 
-    // Query customer by email or phone
-    const { data: customer, error } = await supabaseAdmin
-      .from('customers')
-      .select('*')
-      .or(`email.eq.${credential},phone.eq.${credential}`)
-      .maybeSingle();
+    // Look up by email OR phone using parameterized .eq() builders (never raw
+    // string interpolation into .or() — that allowed PostgREST filter injection).
+    // Phone is normalized to canonical national form to match stored values.
+    const isEmail = credential.includes('@');
+    let customer: any = null;
+    let error: any = null;
+
+    if (isEmail) {
+      const res = await supabaseAdmin
+        .from('customers')
+        .select('*')
+        .eq('email', credential.toLowerCase())
+        .maybeSingle();
+      customer = res.data; error = res.error;
+    } else {
+      const normPhone = isValidPkMobile(credential) ? normalizePkPhone(credential) : credential.replace(/\D/g, '');
+      const res = await supabaseAdmin
+        .from('customers')
+        .select('*')
+        .eq('phone', normPhone)
+        .maybeSingle();
+      customer = res.data; error = res.error;
+      // Fallback: legacy rows may store the phone unnormalized
+      if (!customer && !error && normPhone !== credential) {
+        const legacy = await supabaseAdmin
+          .from('customers')
+          .select('*')
+          .eq('phone', credential)
+          .maybeSingle();
+        customer = legacy.data; error = legacy.error;
+      }
+    }
 
     if (error || !customer) {
       return { success: false, error: 'Invalid email, phone number, or password.' };

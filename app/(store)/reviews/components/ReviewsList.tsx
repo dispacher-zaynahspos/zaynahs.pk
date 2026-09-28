@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { Review } from '@/lib/types';
 import StarRating from '@/components/store/StarRating';
 import { MessageSquare, Package } from '@/components/common/Icons';
+import { sanitizeReviewText } from '@/lib/utils/sanitizeReview';
 
 interface ReviewsListProps {
   loading: boolean;
@@ -131,9 +132,9 @@ export default function ReviewsList({
                   </div>
                 </div>
 
-                {review.comment && (
+                {sanitizeReviewText(review.comment) && (
                   <p className="mt-2 text-sm text-gray-600 dark:text-gray-300 leading-relaxed bg-gray-50 dark:bg-[#0f0f1b]/50 p-3 rounded-xl border border-gray-100 dark:border-gray-800/20">
-                    &ldquo;{review.comment}&rdquo;
+                    &ldquo;{sanitizeReviewText(review.comment)}&rdquo;
                   </p>
                 )}
 

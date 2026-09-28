@@ -3,8 +3,8 @@
 import React, { useState } from 'react';
 import { HomepageSection, StoreSettings } from '@/lib/types';
 import { isSectionEnabled, sectionPremiumFeature, PREMIUM_FEATURE_LABEL } from '@/lib/features/premium';
-import { GripVertical, Eye, EyeOff, ChevronUp, ChevronDown, Trash2, Edit2, Check } from '@/components/common/Icons';
 import { toast } from 'sonner';
+import SectionStackRow from './SectionStackRow';
 
 interface HomeSectionsStackProps {
   storeSettings: StoreSettings;
@@ -129,110 +129,29 @@ export default function HomeSectionsStack({
         ) : (
           <div className="space-y-2">
             {sections.map((section, idx) => {
-              const isActive = activeSectionId === section.id;
+              const isFeatureDisabled = !isSectionEnabled(storeSettings, section.section_type);
               return (
-                <div
+                <SectionStackRow
                   key={section.id}
-                  onClick={() => setActiveSectionId(section.id)}
-                  className={`flex items-center justify-between p-3 border rounded-xl transition-all cursor-pointer ${
-                    isActive
-                      ? 'border-[#e94560] bg-[#e94560]/5 dark:bg-[#e94560]/10 shadow-sm'
-                      : 'border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] hover:border-gray-300 dark:hover:border-gray-700'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <GripVertical className="h-4 w-4 text-gray-400" />
-                    {(() => {
-                      const isFeatureDisabled = !isSectionEnabled(storeSettings, section.section_type);
-
-                      return (
-                        <div className="min-w-0 flex-1">
-                          {renamingId === section.id ? (
-                            <input
-                              autoFocus
-                              type="text"
-                              value={renameValue}
-                              onClick={(e) => e.stopPropagation()}
-                              onChange={(e) => setRenameValue(e.target.value)}
-                              onBlur={() => commitRename(section.id)}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') commitRename(section.id);
-                                if (e.key === 'Escape') setRenamingId(null);
-                              }}
-                              className="w-full px-2 py-1 rounded-lg border border-blue-400 bg-white dark:bg-[#1a1a30] text-gray-900 dark:text-white text-xs focus:outline-none"
-                            />
-                          ) : (
-                            <>
-                              <div
-                                className={`text-xs font-bold truncate ${
-                                  isFeatureDisabled
-                                    ? 'text-gray-450 dark:text-gray-500 line-through'
-                                    : 'text-gray-900 dark:text-white'
-                                }`}
-                              >
-                                {isFeatureDisabled ? '🔒 ' : ''}
-                                {section.title || section.section_type}
-                              </div>
-                              <span className="text-[9px] text-gray-455 dark:text-gray-500 font-bold uppercase tracking-wider">
-                                {section.section_type.replace('_', ' ')} {isFeatureDisabled && '(Disabled)'}
-                              </span>
-                            </>
-                          )}
-                        </div>
-                      );
-                    })()}
-                  </div>
-
-                  {/* Controls */}
-                  <div className="flex items-center gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-                    {renamingId === section.id ? (
-                      <button
-                        onClick={() => commitRename(section.id)}
-                        className="p-1 rounded-lg text-green-600 hover:bg-gray-100 dark:hover:bg-white/10 cursor-pointer"
-                        title="Save name"
-                      >
-                        <Check className="h-3.5 w-3.5" />
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => startRename(section)}
-                        className="p-1 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-gray-100 dark:hover:bg-white/10 cursor-pointer"
-                        title="Rename section"
-                      >
-                        <Edit2 className="h-3.5 w-3.5" />
-                      </button>
-                    )}
-                    <button
-                      onClick={() => handleUpdateSection(section.id, { active: !section.active })}
-                      className={`p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 ${
-                        section.active ? 'text-[#e94560]' : 'text-gray-400'
-                      } cursor-pointer`}
-                      title={section.active ? 'Hide layout' : 'Show layout'}
-                    >
-                      {section.active ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
-                    </button>
-                    <button
-                      disabled={idx === 0}
-                      onClick={() => handleMoveSection(idx, 'up')}
-                      className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-white disabled:opacity-30 cursor-pointer"
-                    >
-                      <ChevronUp className="h-3.5 w-3.5" />
-                    </button>
-                    <button
-                      disabled={idx === sections.length - 1}
-                      onClick={() => handleMoveSection(idx, 'down')}
-                      className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-white disabled:opacity-30 cursor-pointer"
-                    >
-                      <ChevronDown className="h-3.5 w-3.5" />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteSection(section.id)}
-                      className="p-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400 cursor-pointer"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                </div>
+                  title={section.title || section.section_type}
+                  subtitle={section.section_type.replace('_', ' ')}
+                  isActive={activeSectionId === section.id}
+                  isDisabled={isFeatureDisabled}
+                  isVisible={section.active !== false}
+                  isFirst={idx === 0}
+                  isLast={idx === sections.length - 1}
+                  renaming={renamingId === section.id}
+                  renameValue={renameValue}
+                  onSelect={() => setActiveSectionId(section.id)}
+                  onToggleVisible={() => handleUpdateSection(section.id, { active: !section.active })}
+                  onStartRename={() => startRename(section)}
+                  onRenameChange={setRenameValue}
+                  onCommitRename={() => commitRename(section.id)}
+                  onCancelRename={() => setRenamingId(null)}
+                  onMoveUp={() => handleMoveSection(idx, 'up')}
+                  onMoveDown={() => handleMoveSection(idx, 'down')}
+                  onDelete={() => handleDeleteSection(section.id)}
+                />
               );
             })}
           </div>

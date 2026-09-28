@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { Order, CartItem, StatusLogItem } from '@/lib/types';
 import { getCustomerSession } from '@/lib/utils/customer-auth';
+import { isValidPkMobile, normalizePkPhone } from '@/lib/phone';
 import { mapOrder } from './types';
 
 export const createOrder = async (order: {
@@ -28,6 +29,20 @@ export const createOrder = async (order: {
     const supabase = await createClient();
     const session = await getCustomerSession();
     let customerId = session ? session.id : null;
+
+    // Server-side phone validation — never trust the client. Blocks junk like
+    // "888" from being persisted. Store the canonical national form (03XXXXXXXXX).
+    if (!order.customerPhone || !isValidPkMobile(order.customerPhone)) {
+      throw new Error('A valid Pakistani mobile number is required (e.g. 0300 1234567).');
+    }
+    const normalizedPhone = normalizePkPhone(order.customerPhone);
+    order = {
+      ...order,
+      customerPhone: normalizedPhone,
+      shippingAddress: order.shippingAddress
+        ? { ...order.shippingAddress, phone: normalizePkPhone(order.shippingAddress.phone || normalizedPhone) }
+        : order.shippingAddress,
+    };
 
     console.log('[orders] Step 1: customerId resolved to', customerId);
 

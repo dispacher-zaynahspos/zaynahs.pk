@@ -98,7 +98,8 @@ export default function MobileBottomNav({
   return (
     <nav 
       aria-label="Mobile Bottom Navigation"
-      className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-[#121222]/95 backdrop-blur-md border-t border-gray-200/80 dark:border-white/10 shadow-[0_-4px_24px_rgba(0,0,0,0.08)] md:hidden transition-colors duration-200 pb-[max(env(safe-area-inset-bottom),0.25rem)]"
+      style={{ zIndex: 60 }}
+      className="fixed bottom-0 left-0 right-0 z-[60] bg-white/95 dark:bg-[#0c0c16]/95 backdrop-blur-xl border-t border-gray-200/70 dark:border-white/10 shadow-[0_-8px_30px_rgba(0,0,0,0.06)] md:hidden transition-colors duration-200 pb-[max(env(safe-area-inset-bottom),0.35rem)]"
     >
       <div className="flex items-center justify-around h-16 px-1">
         {navItems.map((item) => {
@@ -119,34 +120,53 @@ export default function MobileBottomNav({
                 item.key === 'cart' ? 'mobile-bottom-cart-icon' :
                 undefined
               }
-              className={`flex flex-col items-center justify-center flex-1 h-full relative text-[10px] font-bold transition-all duration-150 active:scale-90 ${
-                isActive
-                  ? 'text-[var(--color-primary,#C2185B)] font-black'
-                  : 'text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white'
-              }`}
+              className="flex flex-col items-center justify-center flex-1 h-full py-1 relative transition-all duration-150 active:scale-95 group"
             >
               <div className="relative flex items-center justify-center">
-                <Icon className={`h-5 w-5 mb-0.5 shrink-0 transition-transform duration-200 ${isActive ? 'scale-110 stroke-[2.5]' : 'stroke-2'}`} />
-                
+                <div
+                  className={`flex items-center justify-center p-1 rounded-xl transition-all duration-200 ${
+                    isActive
+                      ? 'text-[var(--color-primary,#0f172a)] bg-[var(--color-primary,#0f172a)]/10 dark:bg-white/10'
+                      : 'text-gray-400 dark:text-gray-500 group-hover:text-gray-700 dark:group-hover:text-gray-300'
+                  }`}
+                >
+                  <Icon
+                    className={`h-5 w-5 shrink-0 transition-transform duration-200 ${
+                      isActive ? 'scale-105 stroke-[2.2]' : 'stroke-[1.8]'
+                    }`}
+                  />
+                </div>
+
                 {/* Live Count Pill Badge */}
                 {mounted && item.badgeCount !== undefined && item.badgeCount > 0 && (
                   <span 
-                    style={{ backgroundColor: 'var(--color-primary, #C2185B)' }}
-                    className="absolute -top-1.5 -right-2.5 min-w-[17px] h-4 px-1 rounded-full text-[8.5px] font-black text-white flex items-center justify-center ring-2 ring-white dark:ring-[#121222] shadow-xs"
+                    style={{ backgroundColor: 'var(--color-primary, #0f172a)' }}
+                    className="absolute -top-1 -right-2 min-w-[18px] h-[18px] px-1 rounded-full text-[8.5px] font-black text-white flex items-center justify-center ring-2 ring-white dark:ring-[#0c0c16] shadow-xs animate-in zoom-in-75 duration-150"
                   >
                     {item.badgeCount > 99 ? '99+' : item.badgeCount}
                   </span>
                 )}
-
-                {/* Modern Active Indicator Pip */}
-                {isActive && (
-                  <span 
-                    style={{ backgroundColor: 'var(--color-primary, #C2185B)' }}
-                    className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-4 h-1 rounded-full shadow-[0_0_8px_var(--color-primary,#C2185B)]"
-                  />
-                )}
               </div>
-              {showLabels && <span className="mt-0.5 tracking-tight leading-none">{item.label}</span>}
+
+              {showLabels && (
+                <span
+                  className={`mt-0.5 tracking-tight leading-none text-[10px] transition-colors ${
+                    isActive
+                      ? 'font-black text-[var(--color-primary,#0f172a)]'
+                      : 'font-semibold text-gray-400 dark:text-gray-500'
+                  }`}
+                >
+                  {item.label}
+                </span>
+              )}
+
+              {/* Clean Crisp Active Pip (Zero Blur) */}
+              {isActive && (
+                <span 
+                  style={{ backgroundColor: 'var(--color-primary, #0f172a)' }}
+                  className="absolute bottom-1 left-1/2 -translate-x-1/2 w-3.5 h-[2px] rounded-full"
+                />
+              )}
             </Link>
           );
         })}

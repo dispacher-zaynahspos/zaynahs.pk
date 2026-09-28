@@ -66,7 +66,7 @@ export default function FloatingContacts({ settings }: FloatingContactsProps) {
 
   // Calculate dynamic bottom and side offset dimensions based on mobile vs desktop
   const isCartBarVisible = mounted && totalItems > 0 && pathname !== '/cart' && pathname !== '/checkout';
-  const position = settings.floating_contacts_position || 'left';
+  const position = settings.floating_contacts_position || 'right';
   const isTickerEnabled = isFeatureEnabled(settings, 'recent_buyers');
   const isSpinWheelEnabled = isFeatureEnabled(settings, 'spin_wheel');
   const needsStacking = (position === 'left' && isTickerEnabled) || (position === 'right' && isSpinWheelEnabled);
@@ -74,7 +74,7 @@ export default function FloatingContacts({ settings }: FloatingContactsProps) {
 
   const bottomOffset = isMobile 
     ? (needsStacking 
-        ? Math.max(baseOffset + (isCartBarVisible ? 56 : 0), position === 'left' ? 176 : 160)
+        ? Math.max(baseOffset + (isCartBarVisible ? 56 : 0), position === 'left' ? (isCartBarVisible ? 220 : 160) : 160)
         : baseOffset + (isCartBarVisible ? 56 : 0)
       )
     : (settings.floating_contacts_bottom_desktop ?? 24);
@@ -91,7 +91,7 @@ export default function FloatingContacts({ settings }: FloatingContactsProps) {
     [position]: `${sideOffset}px`,
     transform: `scale(${scale})`,
     transformOrigin: position === 'right' ? 'bottom right' : 'bottom left',
-    zIndex: 120,
+    zIndex: 55, // --z-floating: above cart bar (45), below toast (60) & header (100)
     display: 'flex',
     flexDirection: 'column',
     gap: '10px',
@@ -164,7 +164,7 @@ export default function FloatingContacts({ settings }: FloatingContactsProps) {
           aria-label="Chat with us on WhatsApp"
         >
           <WhatsAppIcon className="h-5 w-5 text-white fill-current drop-shadow-2xs" />
-          <span className="absolute left-full ml-2.5 hidden sm:group-hover:inline-flex items-center px-2 py-1 text-[10px] font-bold text-white bg-gray-900/90 backdrop-blur-xs rounded-lg shadow-md whitespace-nowrap pointer-events-none transition-opacity">
+          <span className={`absolute ${position === 'right' ? 'right-full mr-2.5' : 'left-full ml-2.5'} hidden sm:group-hover:inline-flex items-center px-2 py-1 text-[10px] font-bold text-white bg-gray-900/90 backdrop-blur-xs rounded-lg shadow-md whitespace-nowrap pointer-events-none transition-opacity`}>
             Chat with us
           </span>
         </a>

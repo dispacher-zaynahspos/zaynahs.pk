@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
+import { normalizePkPhone } from '@/lib/phone';
 
 export async function POST(request: Request) {
   try {
@@ -15,6 +16,29 @@ export async function POST(request: Request) {
     const finalPhone = !isEmail && rawContact ? rawContact : (customerPhone || null);
     const finalEmail = isEmail ? rawContact : (customerEmail || null);
 
+    // Server-derived verified-purchase: only true when this reviewer's phone/email
+    // matches a real order. Never trust client input for the "Verified Buyer" badge.
+    let isVerifiedPurchase = false;
+    try {
+      const orFilters: string[] = [];
+      const nat = finalPhone ? normalizePkPhone(finalPhone) : '';
+      if (nat) {
+        orFilters.push(`customer_phone.eq.${nat}`);
+        orFilters.push(`customer_phone.eq.+92${nat.slice(1)}`);
+      }
+      if (finalEmail) orFilters.push(`customer_email.ilike.${finalEmail}`);
+      if (orFilters.length > 0) {
+        const { data: matchOrder } = await supabaseAdmin
+          .from('orders')
+          .select('id')
+          .or(orFilters.join(','))
+          .limit(1);
+        isVerifiedPurchase = !!(matchOrder && matchOrder.length > 0);
+      }
+    } catch (e) {
+      console.error('[Submit Review] verify-purchase check failed (defaulting false):', e);
+    }
+
     const { data, error } = await supabaseAdmin
       .from('reviews')
       .insert({
@@ -25,7 +49,8 @@ export async function POST(request: Request) {
         rating: Number(rating),
         comment: comment || null,
         images: Array.isArray(images) ? images.filter(Boolean) : [],
-        approved: false
+        approved: false,
+        is_verified_purchase: isVerifiedPurchase
       })
       .select('*')
       .single();

@@ -11,6 +11,7 @@ export interface DBReview {
   approved: boolean;
   hidden: boolean;
   is_manual?: boolean;
+  is_verified_purchase?: boolean | null;
   screenshot_url?: string | null;
   images?: string[] | null;
   deleted_at?: string | null;
@@ -29,6 +30,7 @@ export const mapReview = (row: DBReview): Review => ({
   approved: row.approved ?? false,
   hidden: row.hidden ?? false,
   is_manual: row.is_manual ?? false,
+  is_verified_purchase: row.is_verified_purchase ?? false,
   screenshot_url: row.screenshot_url || undefined,
   images: Array.isArray(row.images) ? row.images.filter(Boolean) : (row.screenshot_url ? [row.screenshot_url] : []),
   deleted_at: row.deleted_at || undefined,
