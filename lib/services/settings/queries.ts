@@ -88,7 +88,20 @@ export const getAdminSettings = async (): Promise<StoreSettings> => {
     if (error || !data) {
       return fetchSettings();
     }
-    return mapAdminSettings(data);
+    const mapped = mapAdminSettings(data);
+    // Decrypt secret fields for the admin form prefill (server-only path;
+    // dynamic import keeps node:crypto out of any client bundle).
+    try {
+      const { decryptSecret, decryptSecretObject } = await import('@/lib/utils/secret-crypto');
+      mapped.smtp_app_password = decryptSecret(mapped.smtp_app_password);
+      mapped.postex_api_token = decryptSecret(mapped.postex_api_token);
+      mapped.content_keys = decryptSecret(mapped.content_keys as string);
+      mapped.vision_keys = decryptSecret(mapped.vision_keys as string);
+      mapped.ai_model_credentials = decryptSecretObject(mapped.ai_model_credentials);
+    } catch (decErr) {
+      console.error('[getAdminSettings] secret decrypt failed:', decErr);
+    }
+    return mapped;
   } catch (err) {
     console.error('[getAdminSettings] Error fetching admin settings:', err);
     return fetchSettings();

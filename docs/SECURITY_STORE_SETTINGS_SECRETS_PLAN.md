@@ -1,5 +1,35 @@
 # SECURITY REMEDIATION PLAN — store_settings / customers / orders secret & PII exposure (S2)
 
+> ## ✅ Encryption-at-rest — IMPLEMENTED (2026-09)
+> Secret columns (`smtp_app_password`, `postex_api_token`, `content_keys`,
+> `vision_keys`, `ai_model_credentials`) are now **encrypted at rest** via
+> `lib/utils/secret-crypto.ts` (AES-256-GCM, envelope `enc:v1:<base64 iv|tag|ct>`).
+>
+> - **Write** (encrypt): `lib/services/settings/mutations.ts` — all 5 secrets are
+>   encrypted before the `store_settings` / `ai_settings` write.
+> - **Read** (decrypt): `lib/services/settings/server-secrets.ts` (SMTP),
+>   `lib/ai/settings.ts` `getAISettings` (AI keys), the 4 PostEx routes
+>   (`app/api/courier/postex/{dispatch,fulfill,labels,cancel}`), and
+>   `lib/services/settings/queries.ts` `getAdminSettings` (admin form prefill,
+>   dynamic-imported so node:crypto never enters a client bundle).
+> - **Backward compatible & zero-downtime**: legacy plaintext values (no `enc:v1:`
+>   prefix) are returned unchanged by `decryptSecret`, so existing rows keep working
+>   and are only encrypted the next time the admin saves. No migration/backfill needed.
+> - **Key source (stable, no new env required)**: `SETTINGS_ENCRYPTION_KEY` if set,
+>   else falls back to `SUPABASE_SERVICE_ROLE_KEY`, else `CUSTOMER_AUTH_SECRET`.
+>   ⚠️ For long-term safety set an explicit `SETTINGS_ENCRYPTION_KEY` per store so a
+>   future service-role-key rotation cannot orphan encrypted secrets. Decryption is
+>   fail-open (returns the raw stored value + logs) so a key mismatch never crashes
+>   email/courier/AI — but the secret would then need re-entry in admin.
+> - Verified: 14/14 round-trip unit checks (string, object, idempotent double-encrypt,
+>   legacy passthrough, empty handling, wrong-key fail-open) pass.
+>
+> The RLS/public-view hardening below (revoking anon `SELECT` on the base table) is
+> still the separate, staging-gated step.
+
+---
+
+
 > Status: **PLANNED — requires staging verification per store before production.**
 > This is the single highest-severity finding in `docs/DEEP_AUDIT_PLAN.md` (S2, Critical).
 > It is intentionally NOT shipped as an auto-run migration because a blind apply would

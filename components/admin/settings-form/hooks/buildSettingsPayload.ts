@@ -221,7 +221,7 @@ export function buildSettingsPayload(data: {
     free_shipping_threshold: Number(popupsPixels.freeShippingThreshold),
     volume_discount_threshold: Number(popupsPixels.volumeDiscountThreshold),
     volume_discount_percentage: Number(popupsPixels.volumeDiscountPercentage),
-    recent_buyers: popupsPixels.recentBuyersStr.trim(),
+    recent_buyers: popupsPixels.recentBuyersPairs,
     recently_viewed_limit: Number(popupsPixels.recentlyViewedLimit),
     recent_buyers_enabled: popupsPixels.recentBuyersEnabled,
     cookie_consent_enabled: popupsPixels.cookieConsentEnabled,

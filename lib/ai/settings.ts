@@ -1,6 +1,7 @@
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { STORE_SETTINGS_ID } from '@/lib/config/singleton-ids';
 import { AISettings } from './types';
+import { decryptSecret, decryptSecretObject } from '@/lib/utils/secret-crypto';
 
 /**
  * Helper to fetch AI settings from store_settings (the single source of truth).
@@ -42,14 +43,11 @@ export async function getAISettings(): Promise<AISettings> {
     ai_enabled: data.ai_enabled ?? false,
     content_provider: data.content_provider ?? 'groq',
     content_model: data.content_model ?? 'llama-3.3-70b-versatile',
-    content_keys: data.content_keys ?? '',
-    ai_model_credentials:
-      typeof data.ai_model_credentials === 'string'
-        ? JSON.parse(data.ai_model_credentials)
-        : (data.ai_model_credentials ?? {}),
+    content_keys: decryptSecret(data.content_keys ?? ''),
+    ai_model_credentials: decryptSecretObject(data.ai_model_credentials),
     vision_provider: data.vision_provider ?? 'gemini',
     vision_model: data.vision_model || 'gemini-3.5-flash',
-    vision_keys: data.vision_keys ?? '',
+    vision_keys: decryptSecret(data.vision_keys ?? ''),
     brand_name: data.store_name ?? '',
     store_type: productTypesFlat || 'General',
     target_market: 'Pakistan',

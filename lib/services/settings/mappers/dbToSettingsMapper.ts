@@ -324,13 +324,20 @@ export const mapSettings = (row: SettingsRow): StoreSettings => ({
 
 export const mapAdminSettings = (row: any): StoreSettings => {
   const settings = mapSettings(row);
-  let creds: Record<string, Record<string, string>> = {};
-  try {
-    creds = typeof row.ai_model_credentials === 'string'
-      ? JSON.parse(row.ai_model_credentials)
-      : (row.ai_model_credentials || {});
-  } catch {
-    creds = {};
+  // Pass secret fields through as-stored (may be encrypted `enc:v1:` envelopes).
+  // getAdminSettings() decrypts them server-side before returning to the admin
+  // form. We only pre-parse ai_model_credentials when it is plain JSON so legacy
+  // plaintext rows keep working; encrypted strings are passed through untouched.
+  let creds: any = {};
+  const rawCreds = row.ai_model_credentials;
+  if (typeof rawCreds === 'string' && rawCreds.startsWith('enc:v1:')) {
+    creds = rawCreds; // encrypted; decrypted downstream
+  } else {
+    try {
+      creds = typeof rawCreds === 'string' ? JSON.parse(rawCreds) : (rawCreds || {});
+    } catch {
+      creds = {};
+    }
   }
   return {
     ...settings,

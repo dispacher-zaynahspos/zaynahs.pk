@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Product, StoreSettings } from '@/lib/types';
+import { Product, StoreSettings, RecentBuyer } from '@/lib/types';
 import MediaSelectorModal from '../MediaSelectorModal';
 
 import { PremiumFeaturesChecklist } from './premium/PremiumFeaturesChecklist';
@@ -97,6 +97,8 @@ interface PremiumTabProps {
   // Recent Buyers Popups
   recentBuyersSource: 'simulated' | 'real';
   setRecentBuyersSource: (v: 'simulated' | 'real') => void;
+  recentBuyersPairs: RecentBuyer[];
+  setRecentBuyersPairs: React.Dispatch<React.SetStateAction<RecentBuyer[]>>;
   recentBuyersNames: string;
   setRecentBuyersNames: (v: string) => void;
   recentBuyersCities: string;
@@ -193,6 +195,8 @@ export default function PremiumTab({
   setSpinWheelSegments,
   recentBuyersSource,
   setRecentBuyersSource,
+  recentBuyersPairs,
+  setRecentBuyersPairs,
   recentBuyersNames,
   setRecentBuyersNames,
   recentBuyersCities,
@@ -322,6 +326,8 @@ export default function PremiumTab({
         setRecentBuyersShowOnCheckout={setRecentBuyersShowOnCheckout}
         recentBuyersSource={recentBuyersSource}
         setRecentBuyersSource={setRecentBuyersSource}
+        recentBuyersPairs={recentBuyersPairs}
+        setRecentBuyersPairs={setRecentBuyersPairs}
         recentBuyersNames={recentBuyersNames}
         setRecentBuyersNames={setRecentBuyersNames}
         recentBuyersCities={recentBuyersCities}

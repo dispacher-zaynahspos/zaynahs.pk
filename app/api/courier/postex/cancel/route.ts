@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth/requireAdmin';
 import { supabaseAdmin } from '@/lib/supabase/admin';
+import { decryptSecret } from '@/lib/utils/secret-crypto';
 
 const POSTEX_HOST = 'https://api.postex.pk';
 
@@ -34,7 +35,7 @@ export async function POST(req: NextRequest) {
       .select('postex_api_token, postex_mode')
       .single();
 
-    const token = s?.postex_api_token;
+    const token = decryptSecret(s?.postex_api_token);
     if (!token) {
       return NextResponse.json({ success: false, error: 'PostEx is not configured' }, { status: 200 });
     }

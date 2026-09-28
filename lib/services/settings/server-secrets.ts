@@ -1,5 +1,6 @@
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { STORE_SETTINGS_ID } from '@/lib/config/singleton-ids';
+import { decryptSecret } from '@/lib/utils/secret-crypto';
 
 /**
  * SERVER-ONLY reads of secret settings columns.
@@ -29,7 +30,7 @@ export async function getSmtpCredentials(): Promise<SmtpCredentials | null> {
   if (!data) return null;
   return {
     smtp_email: data.smtp_email ?? '',
-    smtp_app_password: data.smtp_app_password ?? '',
+    smtp_app_password: decryptSecret(data.smtp_app_password ?? ''),
     smtp_from_name: data.smtp_from_name ?? '',
   };
 }

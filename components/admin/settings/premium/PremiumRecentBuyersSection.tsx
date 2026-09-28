@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Product } from '@/lib/types';
+import { Product, RecentBuyer } from '@/lib/types';
 
 interface PremiumRecentBuyersSectionProps {
   recentBuyersEnabled: boolean;
@@ -10,6 +10,8 @@ interface PremiumRecentBuyersSectionProps {
   setRecentBuyersShowOnCheckout: (v: boolean) => void;
   recentBuyersSource: 'simulated' | 'real';
   setRecentBuyersSource: (v: 'simulated' | 'real') => void;
+  recentBuyersPairs: RecentBuyer[];
+  setRecentBuyersPairs: React.Dispatch<React.SetStateAction<RecentBuyer[]>>;
   recentBuyersNames: string;
   setRecentBuyersNames: (v: string) => void;
   recentBuyersCities: string;
@@ -34,6 +36,8 @@ export function PremiumRecentBuyersSection({
   setRecentBuyersShowOnCheckout,
   recentBuyersSource,
   setRecentBuyersSource,
+  recentBuyersPairs,
+  setRecentBuyersPairs,
   recentBuyersNames,
   setRecentBuyersNames,
   recentBuyersCities,
@@ -105,12 +109,96 @@ export function PremiumRecentBuyersSection({
         </div>
       </div>
 
-      {/* If Simulated: render separate names and cities fields */}
+      {/* If Simulated: structured per-row buyer list (name + city + optional product/time) */}
+      {recentBuyersSource === 'simulated' && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-bold text-gray-700 dark:text-gray-300 block">
+              Buyer List (per-row: name + city + optional product & time)
+            </label>
+            <button
+              type="button"
+              onClick={() => setRecentBuyersPairs(prev => [...prev, { name: '', city: '', product_id: '', time_ago: '' }])}
+              className="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-[#e94560] text-white hover:bg-[#d63651]"
+            >
+              + Add Buyer
+            </button>
+          </div>
+
+          {recentBuyersPairs.length === 0 ? (
+            <p className="text-[11px] text-gray-500 dark:text-gray-400 italic">
+              No custom buyer rows. Add rows for full control, or the Names/Cities lists below will be used as a fallback.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {recentBuyersPairs.map((row, idx) => (
+                <div
+                  key={idx}
+                  className="grid grid-cols-1 md:grid-cols-[1fr_1fr_1.4fr_0.8fr_auto] gap-2 items-center border border-gray-200 dark:border-gray-800 rounded-xl p-2 bg-gray-50 dark:bg-[#0f0f1b]"
+                >
+                  <input
+                    type="text"
+                    value={row.name}
+                    onChange={(e) =>
+                      setRecentBuyersPairs(prev => prev.map((r, i) => (i === idx ? { ...r, name: e.target.value } : r)))
+                    }
+                    placeholder="Name (e.g. Fatima)"
+                    className="px-2 py-1.5 text-xs rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#16162a] text-gray-900 dark:text-gray-50 focus:outline-none focus:ring-2 focus:ring-[#e94560]"
+                  />
+                  <input
+                    type="text"
+                    value={row.city}
+                    onChange={(e) =>
+                      setRecentBuyersPairs(prev => prev.map((r, i) => (i === idx ? { ...r, city: e.target.value } : r)))
+                    }
+                    placeholder="City (e.g. Lahore)"
+                    className="px-2 py-1.5 text-xs rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#16162a] text-gray-900 dark:text-gray-50 focus:outline-none focus:ring-2 focus:ring-[#e94560]"
+                  />
+                  <select
+                    value={row.product_id || ''}
+                    onChange={(e) =>
+                      setRecentBuyersPairs(prev => prev.map((r, i) => (i === idx ? { ...r, product_id: e.target.value } : r)))
+                    }
+                    className="px-2 py-1.5 text-xs rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#16162a] text-gray-900 dark:text-gray-50 focus:outline-none focus:ring-2 focus:ring-[#e94560]"
+                  >
+                    <option value="">Random product (from pool)</option>
+                    {productsList.map((p) => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </select>
+                  <input
+                    type="text"
+                    value={row.time_ago || ''}
+                    onChange={(e) =>
+                      setRecentBuyersPairs(prev => prev.map((r, i) => (i === idx ? { ...r, time_ago: e.target.value } : r)))
+                    }
+                    placeholder="e.g. 5m ago"
+                    className="px-2 py-1.5 text-xs rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#16162a] text-gray-900 dark:text-gray-50 focus:outline-none focus:ring-2 focus:ring-[#e94560]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setRecentBuyersPairs(prev => prev.filter((_, i) => i !== idx))}
+                    aria-label="Remove buyer row"
+                    className="justify-self-end md:justify-self-center px-2 py-1.5 text-xs rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 font-bold"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          <p className="text-[10px] text-gray-400 dark:text-gray-500">
+            Full control: each row can pin its own product and time. Leave product/time blank to randomize. When this list is empty, the Names & Cities lists below are used.
+          </p>
+        </div>
+      )}
+
+      {/* If Simulated: render separate names and cities fields (fallback / bulk) */}
       {recentBuyersSource === 'simulated' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <label className="text-xs font-bold text-gray-700 dark:text-gray-300 block">
-              Simulated Buyer Names (Comma/Newline-separated)
+              Fallback Buyer Names (Comma/Newline-separated)
             </label>
             <textarea
               value={recentBuyersNames}
@@ -122,7 +210,7 @@ export function PremiumRecentBuyersSection({
           </div>
           <div className="space-y-2">
             <label className="text-xs font-bold text-gray-700 dark:text-gray-300 block">
-              Simulated Cities list (Comma/Newline-separated)
+              Fallback Cities list (Comma/Newline-separated)
             </label>
             <textarea
               value={recentBuyersCities}

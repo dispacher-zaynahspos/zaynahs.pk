@@ -4,6 +4,7 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
 import { cleanWhatsAppPhone, formatPrice } from '@/lib/utils/whatsapp';
 import { sendTemplatedEmail } from '@/lib/email/sendTemplatedEmail';
 import { renderOrderItemsTable } from '@/lib/email/variables';
+import { decryptSecret } from '@/lib/utils/secret-crypto';
 
 const POSTEX_BASE = 'https://api.postex.pk/services/integration/api';
 const POSTEX_STAGING = 'https://staging-api.postex.pk/services/integration/api';
@@ -77,7 +78,7 @@ export async function POST(req: NextRequest) {
     }
 
     const baseUrl = s.postex_mode === 'production' ? POSTEX_BASE : POSTEX_STAGING;
-    const token = s.postex_api_token;
+    const token = decryptSecret(s.postex_api_token);
 
     const customerName = reqName || order.customer_name || order.customers?.name || '';
     const customerPhone = cleanPhone(reqPhone || order.customer_phone || order.customers?.phone || '');

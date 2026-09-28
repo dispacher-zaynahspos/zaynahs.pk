@@ -87,47 +87,84 @@ export function useRecentBuyerTicker({ settings, isCheckout }: UseRecentBuyerTic
       }
 
       if (!selectedProduct) {
-        let pool = products;
-        const poolType = settings.recent_buyers_product_pool || 'any';
-        if (poolType === 'featured') {
-          pool = products.filter(p => p.is_featured);
-        } else if (poolType === 'sale') {
-          pool = products.filter(p => p.compare_price && p.compare_price > p.price);
-        } else if (poolType === 'recent') {
-          pool = [...products].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 10);
-        } else if (poolType === 'custom') {
-          let customIds: string[] = [];
-          try {
-            customIds = Array.isArray(settings.recent_buyers_custom_products)
-              ? settings.recent_buyers_custom_products
-              : typeof settings.recent_buyers_custom_products === 'string'
-                ? JSON.parse(settings.recent_buyers_custom_products)
-                : [];
-          } catch (e) {
-            console.error(e);
+        // Prefer the structured per-row buyer list when populated (full control).
+        let structuredRows: { name: string; city: string; product_id?: string; time_ago?: string }[] = [];
+        try {
+          const raw = settings.recent_buyers as unknown;
+          const parsed = typeof raw === 'string' ? JSON.parse(raw || '[]') : raw;
+          if (Array.isArray(parsed)) {
+            structuredRows = parsed.filter(
+              (r): r is { name: string; city: string; product_id?: string; time_ago?: string } =>
+                !!r && typeof r === 'object' && (!!r.name || !!r.city)
+            );
           }
-          if (customIds.length > 0) {
-            pool = products.filter(p => customIds.includes(p.id));
-          }
+        } catch {
+          structuredRows = [];
         }
 
-        if (pool.length === 0) pool = products;
-        if (pool.length === 0) return;
+        const pickedRow = structuredRows.length > 0
+          ? structuredRows[Math.floor(Math.random() * structuredRows.length)]
+          : null;
 
-        selectedProduct = pool[Math.floor(Math.random() * pool.length)];
+        // Resolve product: pinned row product first, else pool.
+        let pool = products;
+        if (pickedRow?.product_id) {
+          const pinned = products.find(p => p.id === pickedRow.product_id);
+          if (pinned) selectedProduct = pinned;
+        }
 
-        const names = settings.recent_buyers_names
-          ? settings.recent_buyers_names.split(/[,\n]+/).map(s => s.trim()).filter(Boolean)
-          : ['Ahmad', 'Fatima', 'Zainab', 'Hamza', 'Ayesha', 'Bilal', 'Sana', 'Ali', 'Usman', 'Maryam'];
+        if (!selectedProduct) {
+          const poolType = settings.recent_buyers_product_pool || 'any';
+          if (poolType === 'featured') {
+            pool = products.filter(p => p.is_featured);
+          } else if (poolType === 'sale') {
+            pool = products.filter(p => p.compare_price && p.compare_price > p.price);
+          } else if (poolType === 'recent') {
+            pool = [...products].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 10);
+          } else if (poolType === 'custom') {
+            let customIds: string[] = [];
+            try {
+              customIds = Array.isArray(settings.recent_buyers_custom_products)
+                ? settings.recent_buyers_custom_products
+                : typeof settings.recent_buyers_custom_products === 'string'
+                  ? JSON.parse(settings.recent_buyers_custom_products)
+                  : [];
+            } catch (e) {
+              console.error(e);
+            }
+            if (customIds.length > 0) {
+              pool = products.filter(p => customIds.includes(p.id));
+            }
+          }
 
-        const cities = settings.recent_buyers_cities
-          ? settings.recent_buyers_cities.split(/[,\n]+/).map(s => s.trim()).filter(Boolean)
-          : ['Lahore', 'Karachi', 'Islamabad', 'Rawalpindi', 'Faisalabad', 'Multan', 'Peshawar', 'Quetta', 'Sialkot', 'Gujranwala'];
+          if (pool.length === 0) pool = products;
+          if (pool.length === 0) return;
 
-        buyerName = names[Math.floor(Math.random() * names.length)] || 'A buyer';
-        buyerCity = cities[Math.floor(Math.random() * cities.length)] || 'Pakistan';
-        const randomMinutes = Math.floor(Math.random() * 59) + 1;
-        displayTime = `${randomMinutes}m ago`;
+          selectedProduct = pool[Math.floor(Math.random() * pool.length)];
+        }
+
+        if (pickedRow) {
+          buyerName = pickedRow.name || 'A buyer';
+          buyerCity = pickedRow.city || 'Pakistan';
+        } else {
+          const names = settings.recent_buyers_names
+            ? settings.recent_buyers_names.split(/[,\n]+/).map(s => s.trim()).filter(Boolean)
+            : ['Ahmad', 'Fatima', 'Zainab', 'Hamza', 'Ayesha', 'Bilal', 'Sana', 'Ali', 'Usman', 'Maryam'];
+
+          const cities = settings.recent_buyers_cities
+            ? settings.recent_buyers_cities.split(/[,\n]+/).map(s => s.trim()).filter(Boolean)
+            : ['Lahore', 'Karachi', 'Islamabad', 'Rawalpindi', 'Faisalabad', 'Multan', 'Peshawar', 'Quetta', 'Sialkot', 'Gujranwala'];
+
+          buyerName = names[Math.floor(Math.random() * names.length)] || 'A buyer';
+          buyerCity = cities[Math.floor(Math.random() * cities.length)] || 'Pakistan';
+        }
+
+        if (pickedRow?.time_ago && pickedRow.time_ago.trim()) {
+          displayTime = pickedRow.time_ago.trim();
+        } else {
+          const randomMinutes = Math.floor(Math.random() * 59) + 1;
+          displayTime = `${randomMinutes}m ago`;
+        }
       }
 
       setTickerProduct(selectedProduct);
@@ -156,7 +193,7 @@ export function useRecentBuyerTicker({ settings, isCheckout }: UseRecentBuyerTic
       clearTimeout(initialDelay);
       clearInterval(interval);
     };
-  }, [products, realOrders, settings.recent_buyers_enabled, settings.recent_buyers_show_on_checkout, isCheckout, settings.recent_buyers_source, settings.recent_buyers_names, settings.recent_buyers_cities, settings.recent_buyers_product_pool, settings.recent_buyers_custom_products, settings.recent_buyers_initial_delay, settings.recent_buyers_interval, settings.recent_buyers_display_duration]);
+  }, [products, realOrders, settings.recent_buyers_enabled, settings.recent_buyers_show_on_checkout, isCheckout, settings.recent_buyers_source, settings.recent_buyers, settings.recent_buyers_names, settings.recent_buyers_cities, settings.recent_buyers_product_pool, settings.recent_buyers_custom_products, settings.recent_buyers_initial_delay, settings.recent_buyers_interval, settings.recent_buyers_display_duration]);
 
   return {
     tickerProduct,

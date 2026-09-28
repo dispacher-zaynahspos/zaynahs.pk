@@ -8,6 +8,10 @@ export interface NavigationItem {
 export interface RecentBuyer {
   name: string;
   city: string;
+  /** Optional: pin a specific product to this buyer row (product id). Empty = random from pool. */
+  product_id?: string;
+  /** Optional: custom "time ago" label for this row (e.g. "5m ago"). Empty = randomized. */
+  time_ago?: string;
 }
 
 export interface ThemeConfig {
@@ -226,7 +230,7 @@ export interface StoreSettings {
   free_shipping_threshold?: number;
   volume_discount_threshold?: number;
   volume_discount_percentage?: number;
-  recent_buyers?: { name: string; city: string }[] | string;
+  recent_buyers?: RecentBuyer[] | string;
   recently_viewed_limit?: number;
   recently_viewed_columns_desktop?: number;
   recently_viewed_columns_tablet?: number;

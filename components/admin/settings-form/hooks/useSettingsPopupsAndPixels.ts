@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { StoreSettings } from '@/lib/types';
+import { StoreSettings, RecentBuyer } from '@/lib/types';
 
 interface UseSettingsPopupsAndPixelsProps {
   initialSettings: StoreSettings;
@@ -36,6 +36,18 @@ export function useSettingsPopupsAndPixels({ initialSettings }: UseSettingsPopup
       ? initialSettings.recent_buyers
       : JSON.stringify(initialSettings.recent_buyers ?? [])
   );
+  // Structured per-row buyer list (name + city + optional product/time). Primary source when populated.
+  const [recentBuyersPairs, setRecentBuyersPairs] = useState<RecentBuyer[]>(() => {
+    const raw = initialSettings.recent_buyers;
+    try {
+      const parsed = typeof raw === 'string' ? JSON.parse(raw || '[]') : (raw ?? []);
+      return Array.isArray(parsed)
+        ? parsed.filter((p): p is RecentBuyer => !!p && typeof p === 'object')
+        : [];
+    } catch {
+      return [];
+    }
+  });
   const [recentlyViewedLimit, setRecentlyViewedLimit] = useState(initialSettings.recently_viewed_limit ?? 4);
 
   const [recentBuyersEnabled, setRecentBuyersEnabled] = useState(initialSettings.recent_buyers_enabled ?? true);
@@ -152,6 +164,8 @@ export function useSettingsPopupsAndPixels({ initialSettings }: UseSettingsPopup
     setVolumeDiscountPercentage,
     recentBuyersStr,
     setRecentBuyersStr,
+    recentBuyersPairs,
+    setRecentBuyersPairs,
     recentlyViewedLimit,
     setRecentlyViewedLimit,
     recentBuyersEnabled,

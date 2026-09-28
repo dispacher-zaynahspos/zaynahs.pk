@@ -149,6 +149,8 @@ export function SettingsTabRendererAdvanced({ activeTab, s }: SettingsTabRendere
           setVolumeDiscountPercentage={s.setVolumeDiscountPercentage}
           recentBuyersSource={s.recentBuyersSource}
           setRecentBuyersSource={s.setRecentBuyersSource}
+          recentBuyersPairs={s.recentBuyersPairs}
+          setRecentBuyersPairs={s.setRecentBuyersPairs}
           recentBuyersNames={s.recentBuyersNames}
           setRecentBuyersNames={s.setRecentBuyersNames}
           recentBuyersCities={s.recentBuyersCities}
