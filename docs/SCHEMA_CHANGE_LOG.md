@@ -4,22 +4,21 @@
 
 ---
 
-### [2026-09-28] v7.x — Reviews aggregate RPCs + Checkout-B (order token, payment proof, city-based shipping)
+### [2026-09-28] v7.x — Reviews aggregate RPCs + Checkout-B (order token, city-based shipping)
 **Migrations (NEW, additive & backward-compatible — safe to apply):**
 - `supabase/migrations/20260928140000_review_stats_rpc_and_assign.sql` — RPCs `recompute_product_review_stats(uuid)`, `recompute_all_review_stats()`, `get_product_rating_distribution(uuid)` (companions to the existing `update_product_reviews_stats` trigger; grant EXECUTE on distribution to anon/authenticated).
-- `supabase/migrations/20260928150000_checkout_b_order_token_payment_proof_shipping_zones.sql` — `orders.access_token` (unique, backfilled) + `orders.payment_proof_url`; new `shipping_zones` table (RLS: public read active, admin all) + index.
+- `supabase/migrations/20260928150000_checkout_b_order_token_shipping_zones.sql` — `orders.access_token` (unique, backfilled); new `shipping_zones` table (RLS: public read active, admin all) + index.
 
-**Schema SSOT:** `supabase/schema/SUPER_MASTER_SCHEMA.sql` updated to mirror all of the above (orders columns + `idx_orders_access_token`, `shipping_zones` table/RLS, the 3 review RPCs).
+**Schema SSOT:** `supabase/schema/SUPER_MASTER_SCHEMA.sql` updated to mirror all of the above (orders `access_token` column + `idx_orders_access_token`, `shipping_zones` table/RLS, the 3 review RPCs).
 
 **Changes:**
 1. **Reviews — orphan Assign-Product UI:** `assignReviewProduct(reviewId, productId|null)` (`lib/services/reviews/admin-reviews.ts`) + searchable product picker in `ReviewDetailSheet` (assign/reassign/detach an existing review). The reviews UPDATE trigger recomputes the new product; the old product is recomputed via the new RPC (fault-tolerant if RPC not yet deployed).
 2. **Checkout-B — `/order/[token]`:** public token order page (`app/(store)/order/[token]/page.tsx`, `noindex`, `force-dynamic`) via `getOrderByToken` (service-role, token = the secret). Shared `components/store/OrderResultCard.tsx` extracted (SSOT) and reused by `/track-order`. Order creation now generates `access_token` (fault-tolerant follow-up update so an unmigrated DB never blocks checkout) and links appear in the success page + WhatsApp message.
-3. **Checkout-B — payment proof:** customer uploads a payment screenshot at checkout for non-COD methods (reuses `uploadReviewImage` → `product-images` bucket), stored on `orders.payment_proof_url`, shown on the order page.
-4. **Checkout-B — shipping engine:** city-based `shipping_zones` (cities[]→cost, optional free_threshold, default catch-all). Pure resolver `lib/utils/shipping-zones.ts`; storefront loads active zones client-side and overrides the flat cost when a city matches (falls back to flat method cost when no zones/no match). Admin management via `ShippingZonesCard` in Settings → Shipping tab. Service: `lib/services/shipping-zones.ts`.
-5. **Checkout-B — city select:** new searchable `components/store/CitySelect.tsx` (PK_CITIES + zone cities, free-text allowed) replaces the plain datalist in checkout.
-6. **Courier SSOT:** `getCourierCredentials()` added to `lib/services/settings/server-secrets.ts` — single server-only entry point for the decrypted PostEx token + base URL (courier feature remains BLOCKED pending real production credentials).
+3. **Checkout-B — shipping engine:** city-based `shipping_zones` (cities[]→cost, optional free_threshold, default catch-all). Pure resolver `lib/utils/shipping-zones.ts`; storefront loads active zones client-side and overrides the flat cost when a city matches (falls back to flat method cost when no zones/no match). Admin management via `ShippingZonesCard` in Settings → Shipping tab. Service: `lib/services/shipping-zones.ts`.
+4. **Checkout-B — city select:** new searchable `components/store/CitySelect.tsx` (PK_CITIES + zone cities, free-text allowed) replaces the plain datalist in checkout.
+5. **Courier SSOT:** `getCourierCredentials()` added to `lib/services/settings/server-secrets.ts` — single server-only entry point for the decrypted PostEx token + base URL (courier feature remains BLOCKED pending real production credentials).
 
-**Verification:** `tsc --noEmit` = 0 errors; `next build` = success (295/295 pages).
+**Verification:** `tsc --noEmit` = 0 errors; `next build` = success.
 
 ---
 

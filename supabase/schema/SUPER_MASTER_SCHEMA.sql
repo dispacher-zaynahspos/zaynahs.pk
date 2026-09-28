@@ -752,7 +752,6 @@ CREATE TABLE IF NOT EXISTS orders (
   cancel_reason TEXT,
   refund_amount NUMERIC(10,2),
   access_token TEXT,                        -- unguessable public handle for /order/[token] (migration 20260928150000)
-  payment_proof_url TEXT,                   -- customer-uploaded payment screenshot (migration 20260928150000)
   deleted_at TIMESTAMPTZ DEFAULT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()

@@ -55,7 +55,6 @@ export interface OrderRow {
   cancel_reason?: string | null;
   refund_amount?: string | number | null;
   access_token?: string | null;
-  payment_proof_url?: string | null;
   deleted_at?: string | null;
   created_at: string;
   updated_at: string;
@@ -90,7 +89,6 @@ export const mapOrder = (row: OrderRow): Order => ({
   cancel_reason: row.cancel_reason || undefined,
   refund_amount: row.refund_amount ? parseFloat(row.refund_amount.toString()) : undefined,
   access_token: row.access_token || undefined,
-  payment_proof_url: row.payment_proof_url || undefined,
   deleted_at: row.deleted_at || undefined,
   created_at: row.created_at,
   updated_at: row.updated_at

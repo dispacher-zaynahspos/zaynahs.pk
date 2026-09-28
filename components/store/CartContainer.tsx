@@ -64,8 +64,6 @@ export default function CartContainer({ settings }: CartContainerProps) {
     selectedPaymentId,
     setSelectedPaymentId,
     loadingPayments,
-    paymentProofUrl,
-    setPaymentProofUrl,
     shippingZones,
     loading,
     itemCount,
@@ -299,8 +297,6 @@ export default function CartContainer({ settings }: CartContainerProps) {
       selectedPaymentId={selectedPaymentId}
       setSelectedPaymentId={setSelectedPaymentId}
       loadingPayments={loadingPayments}
-      paymentProofUrl={paymentProofUrl}
-      setPaymentProofUrl={setPaymentProofUrl}
       shippingZones={shippingZones}
       loading={loading}
       onBackToCart={() => setView('cart')}

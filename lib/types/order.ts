@@ -52,7 +52,6 @@ export interface Order {
   customer_email?: string;
   refund_amount?: number;
   access_token?: string;
-  payment_proof_url?: string;
   deleted_at?: string;
   created_at: string;
   updated_at: string;

@@ -1,13 +1,10 @@
--- Checkout-B: public order-token page + payment proof + city/zone shipping engine.
+-- Checkout-B: public order-token page + city/zone shipping engine.
 -- Fully additive & backward-compatible. No column dropped or type-changed.
 -- Rules: snake_case (D13), UUID PK (D14), RLS on every data table, additive migrations.
 
 -- 1) orders.access_token — unguessable public handle for /order/[token] (no phone gate needed;
 --    the token itself is the secret, like a Stripe receipt URL). Unique, nullable (backfilled below).
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS access_token TEXT;
-
--- 2) orders.payment_proof_url — customer-uploaded payment screenshot (bank/wallet transfer proof).
-ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_proof_url TEXT;
 
 -- Backfill tokens for existing orders that lack one (64 hex chars, collision-safe).
 UPDATE orders
@@ -17,7 +14,7 @@ WHERE access_token IS NULL;
 -- Enforce uniqueness once populated.
 CREATE UNIQUE INDEX IF NOT EXISTS idx_orders_access_token ON orders(access_token);
 
--- 3) Shipping zones — city-based rate engine. A zone maps a set of cities to a flat cost
+-- 2) Shipping zones — city-based rate engine. A zone maps a set of cities to a flat cost
 --    (and optional free-shipping threshold). Checkout resolves the entered city -> zone cost;
 --    when no zone matches, it falls back to the selected flat shipping_method cost (unchanged behaviour).
 CREATE TABLE IF NOT EXISTS shipping_zones (

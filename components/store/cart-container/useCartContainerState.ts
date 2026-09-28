@@ -70,7 +70,6 @@ export function useCartContainerState(settings: StoreSettings) {
   const [discountCode, setDiscountCode] = useState('');
   const [couponError, setCouponError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [paymentProofUrl, setPaymentProofUrl] = useState('');
 
   useEffect(() => {
     if (appliedCoupon && appliedCoupon.min_cart_amount && totalPrice < appliedCoupon.min_cart_amount) {
@@ -215,7 +214,6 @@ export function useCartContainerState(settings: StoreSettings) {
         shippingCost: shippingCost,
         discountAmount: discountAmount,
         shippingMethodName: shippingMethodLabel,
-        paymentProofUrl: paymentProofUrl || undefined,
         shippingAddress: {
           name: `${firstName.trim()} ${lastName.trim()}`,
           phone: normalizePkPhone(phone),
@@ -272,7 +270,6 @@ export function useCartContainerState(settings: StoreSettings) {
           : '',
         `• Shipping: ${shippingMethodLabel} (${formatPrice(shippingCost, settings.currency_symbol)})`,
         `• Payment Method: ${selectedPayment?.name ?? 'Cash on delivery'}`,
-        paymentProofUrl ? `• Payment Proof: ${paymentProofUrl}` : '',
         `*Grand Total: ${formatPrice(finalTotal, settings.currency_symbol)}*`,
         '',
         `• Order No: ${order.order_number}`,
@@ -308,7 +305,6 @@ export function useCartContainerState(settings: StoreSettings) {
         discountAmount: discountAmount,
         paymentMethodName: selectedPayment?.name ?? 'Cash on delivery',
         paymentInstructions: selectedPayment?.instructions ?? undefined,
-        paymentProofUrl: paymentProofUrl || undefined,
         orderTrackUrl,
       };
 
@@ -405,8 +401,6 @@ export function useCartContainerState(settings: StoreSettings) {
     selectedPaymentId: methodsState.selectedPaymentId,
     setSelectedPaymentId: methodsState.setSelectedPaymentId,
     loadingPayments: methodsState.loadingPayments,
-    paymentProofUrl,
-    setPaymentProofUrl,
     shippingZones: methodsState.shippingZones,
     loading,
     itemCount,

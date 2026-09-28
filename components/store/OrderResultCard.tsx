@@ -96,16 +96,6 @@ export default function OrderResultCard({ order, currencySymbol }: { order: Orde
         <div className="flex justify-between text-base font-black text-gray-900 dark:text-white pt-1"><span>Total</span><span>{formatPrice(order.total, currencySymbol)}</span></div>
       </div>
 
-      {/* Payment proof (customer-uploaded transfer screenshot) */}
-      {order.payment_proof_url && (
-        <div className="border-t border-gray-100 dark:border-white/10 pt-3">
-          <div className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-2">Payment Proof</div>
-          <a href={order.payment_proof_url} target="_blank" rel="noopener noreferrer" className="block relative w-full max-w-[240px] aspect-[3/4] overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-black/30">
-            <Image src={order.payment_proof_url} alt="Payment proof" fill sizes="240px" className="object-contain" />
-          </a>
-        </div>
-      )}
-
       <Link href="/shop" className="block text-center text-[13px] font-bold text-[#e94560] hover:underline">Continue Shopping</Link>
     </div>
   );
