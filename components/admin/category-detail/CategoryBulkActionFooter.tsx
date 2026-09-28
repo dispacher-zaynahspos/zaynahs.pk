@@ -30,7 +30,7 @@ export function CategoryBulkActionFooter({
 }: CategoryBulkActionFooterProps) {
   return (
     <div
-      className={`sticky bottom-0 left-0 right-0 z-40 bg-white dark:bg-[#16162a] border-t border-gray-200 dark:border-gray-800 px-6 py-4 shadow-lg rounded-t-2xl transition-all duration-300 ${
+      className={`sticky bottom-[calc(4rem+env(safe-area-inset-bottom,0px))] md:bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-[#16162a]/95 backdrop-blur-md border-t border-gray-200 dark:border-gray-800 px-6 py-4 shadow-2xl rounded-t-2xl transition-all duration-300 ${
         !hasUnsavedChanges && selectedProductIds.length === 0
           ? 'opacity-0 pointer-events-none translate-y-4'
           : 'opacity-100 translate-y-0 pointer-events-auto'

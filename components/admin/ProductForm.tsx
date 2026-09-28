@@ -13,6 +13,7 @@ import { ProductFormVariantsSection } from './product-form/ProductFormVariantsSe
 import { ProductFormFlashSaleSection } from './product-form/ProductFormFlashSaleSection';
 import { ProductFormBoughtTogetherSection } from './product-form/ProductFormBoughtTogetherSection';
 import { ProductFormBadgeSection } from './product-form/ProductFormBadgeSection';
+import { ProductSaveBar } from './product-form/ProductSaveBar';
 import { useProductFormState } from './product-form/hooks/useProductFormState';
 import { Plus, Trash2, Loader2 } from '@/components/common/Icons';
 
@@ -299,33 +300,17 @@ export default function ProductForm({ categories, initialProduct, aiEnabled }: P
               setCustomBadgeId={p.setCustomBadgeId}
               allBadges={p.allBadges}
             />
-
-            {/* Form Actions */}
-            <div className="flex gap-3 pt-1">
-              <button
-                type="button"
-                onClick={() => p.router.push('/admin/products')}
-                className="flex-1 text-center border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 bg-white dark:bg-[#16162a] rounded-xl py-2.5 px-4 text-xs font-bold transition-all hover:bg-gray-50 dark:hover:bg-white/5 active:scale-95 cursor-pointer shadow-2xs"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={p.isSubmitting}
-                className={`relative overflow-hidden flex-1 flex items-center justify-center gap-2 bg-[#e94560] hover:bg-[#d8344e] text-white rounded-xl py-2.5 px-4 text-xs font-bold transition-all active:scale-95 cursor-pointer shadow-md ${p.isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
-              >
-                {p.isSubmitting ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <span>Saving...</span>
-                  </>
-                ) : (
-                  <span>{p.isEdit ? 'Update Product' : 'Create Product'}</span>
-                )}
-              </button>
-            </div>
           </div>
         </div>
+
+        {/* Sticky Action Bar for Mobile & Desktop */}
+        <ProductSaveBar
+          isEdit={p.isEdit}
+          isSubmitting={p.isSubmitting}
+          name={p.name}
+          isActive={p.isActive}
+          onCancel={() => p.router.push('/admin/products')}
+        />
       </form>
 
       {/* Media Selector Modal */}

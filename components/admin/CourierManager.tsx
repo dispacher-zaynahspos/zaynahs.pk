@@ -264,20 +264,23 @@ export default function CourierManager({ settings: initialSettings }: CourierMan
       </div>
 
       {/* Sticky Bottom Save Bar */}
-      <div className="sticky bottom-3 z-30 flex items-center justify-between gap-3 bg-white/95 dark:bg-[#16162a]/95 backdrop-blur-md border border-gray-200/80 dark:border-gray-800/80 rounded-xl px-4 py-2.5 shadow-sm">
-        <span className="text-xs text-gray-500 dark:text-gray-400 font-semibold hidden sm:block">
-          Changes apply to: <span className="text-[var(--color-primary,#C2185B)] font-black">Courier Manager</span>
-        </span>
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={saving}
-          style={{ backgroundColor: 'var(--color-primary, #C2185B)' }}
-          className="ml-auto flex items-center justify-center gap-2 rounded-lg text-white px-5 h-8.5 text-xs font-bold shadow-sm hover:brightness-110 active:scale-95 transition-all cursor-pointer disabled:opacity-50"
-        >
-          {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5 text-white" />}
-          <span>Save Courier Settings</span>
-        </button>
+      <div className="sticky bottom-[calc(4rem+env(safe-area-inset-bottom,0px))] md:bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-[#16162a]/95 backdrop-blur-md border-t border-gray-200 dark:border-gray-800 px-4 sm:px-6 py-3.5 shadow-2xl rounded-t-2xl transition-all">
+        <div className="flex items-center justify-between gap-3 max-w-full">
+          <span className="text-xs text-gray-500 dark:text-gray-400 font-semibold hidden sm:flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse flex-shrink-0" />
+            <span>Changes apply to: <span className="text-[var(--color-primary,#C2185B)] font-black">Courier Manager</span></span>
+          </span>
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={saving}
+            style={{ backgroundColor: 'var(--color-primary, #C2185B)' }}
+            className="ml-auto flex items-center justify-center gap-2 rounded-xl text-white px-6 h-10 text-xs sm:text-sm font-bold shadow-md hover:brightness-110 active:scale-95 transition-all cursor-pointer disabled:opacity-50"
+          >
+            {saving ? <Loader2 className="h-4 w-4 animate-spin text-white" /> : <Save className="h-4 w-4 text-white" />}
+            <span>Save Courier Settings</span>
+          </button>
+        </div>
       </div>
     </div>
   );

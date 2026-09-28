@@ -14,11 +14,13 @@ export function SettingsSaveBar({ activeTab, isSubmitting, isPurging, onPurgeCac
   if (activeTab === 'meta_sync') return null;
 
   return (
-    <div className="flex items-center justify-between gap-3 bg-white/95 dark:bg-[#16162a]/95 backdrop-blur-md border border-gray-200/80 dark:border-gray-800/80 rounded-xl px-4 py-2.5 shadow-sm sticky bottom-3 z-30 transition-colors">
-      <span className="text-xs text-gray-500 dark:text-gray-400 font-semibold hidden sm:block">
-        Changes apply to: <span className="text-[var(--color-primary,#C2185B)] font-black capitalize">{activeTab}</span> settings
-      </span>
-      <div className="flex items-center gap-2.5 ml-auto">
+    <div className="sticky bottom-[calc(4rem+env(safe-area-inset-bottom,0px))] md:bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-[#16162a]/95 backdrop-blur-md border-t border-gray-200 dark:border-gray-800 px-4 sm:px-6 py-3.5 shadow-2xl rounded-t-2xl transition-all">
+      <div className="flex items-center justify-between gap-3 max-w-full">
+        <span className="text-xs text-gray-500 dark:text-gray-400 font-semibold hidden sm:flex items-center gap-2">
+          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse flex-shrink-0" />
+          <span>Changes apply to: <span className="text-[var(--color-primary,#C2185B)] font-black capitalize">{activeTab}</span> settings</span>
+        </span>
+        <div className="flex items-center gap-2.5 ml-auto w-full sm:w-auto justify-end">
         {/* Purge All Cache Button */}
         <button
           type="button"
@@ -62,6 +64,7 @@ export function SettingsSaveBar({ activeTab, isSubmitting, isPurging, onPurgeCac
             </>
           )}
         </button>
+      </div>
       </div>
     </div>
   );
