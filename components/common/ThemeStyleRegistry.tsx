@@ -224,6 +224,28 @@ export default function ThemeStyleRegistry({ settings }: ThemeStyleRegistryProps
       border-color: var(--btn-primary-bg) !important;
     }
 
+    /* Success / in-stock / verified green bound to --color-success token */
+    .bg-\\[\\#10b981\\], .dark .bg-\\[\\#10b981\\],
+    [class*="bg-[#10b981]"]:not([class*="bg-[#10b981]/"]):not([class*="hover:"]) {
+      background-color: var(--color-success) !important;
+    }
+    .hover\\:bg-\\[\\#059669\\]:hover, [class*="hover:bg-[#059669]"]:hover,
+    .hover\\:bg-\\[\\#10b981\\]:hover, [class*="hover:bg-[#10b981]"]:hover {
+      background-color: color-mix(in srgb, var(--color-success) 88%, black) !important;
+    }
+    .bg-\\[\\#10b981\\]\\/10, [class^="bg-[#10b981]/10"], [class*=" bg-[#10b981]/10"] {
+      background-color: color-mix(in srgb, var(--color-success) 10%, transparent) !important;
+    }
+    .bg-\\[\\#10b981\\]\\/15, [class^="bg-[#10b981]/15"], [class*=" bg-[#10b981]/15"] {
+      background-color: color-mix(in srgb, var(--color-success) 15%, transparent) !important;
+    }
+    .text-\\[\\#10b981\\], [class*="text-[#10b981]"] {
+      color: var(--color-success) !important;
+    }
+    .border-\\[\\#10b981\\], [class*="border-[#10b981]"] {
+      border-color: var(--color-success) !important;
+    }
+
     /* Standard Tailwind color scales overrides - Excluded inside dark containers and heading elements to protect readability */
     .text-gray-900:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(.font-heading):not([class*="font-heading"]):not([class*="bg-[#1a1a2e]"] *):not(.bg-secondary *):not([class*="bg-[#e94560]"] *):not(.bg-accent *):not([class*="dark:bg-"] *):not([class*="bg-gray-9"] *):not([class*="bg-black"] *),
     .dark .text-gray-900:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(.font-heading):not([class*="font-heading"]):not([class*="bg-[#1a1a2e]"] *):not(.bg-secondary *):not([class*="bg-[#e94560]"] *):not(.bg-accent *):not([class*="dark:bg-"] *):not([class*="bg-gray-9"] *):not([class*="bg-black"] *), 
