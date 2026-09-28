@@ -94,7 +94,7 @@ export default function CartSummaryPanel({
             <div className="flex items-center justify-between bg-emerald-50 dark:bg-emerald-950/10 border border-emerald-100 dark:border-emerald-900/20 px-3 py-2.5 rounded-xl text-xs font-bold text-emerald-600 dark:text-emerald-400 w-full">
               <span className="flex items-center gap-1.5 truncate">
                 <Tag className="w-3.5 h-3.5 shrink-0" />
-                Promo: <strong className="font-extrabold">{appliedCoupon.code}</strong> ({appliedCoupon.discountType === 'percentage' ? `${appliedCoupon.value}%` : `${formatPrice(appliedCoupon.value, settings.currency_symbol)} Off`})
+                Promo: <strong className="font-extrabold">{appliedCoupon.code}</strong> ({appliedCoupon.discount_type === 'percentage' ? `${appliedCoupon.value}%` : `${formatPrice(appliedCoupon.value, settings.currency_symbol)} Off`})
               </span>
               <button
                 type="button"

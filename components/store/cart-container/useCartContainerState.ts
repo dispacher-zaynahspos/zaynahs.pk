@@ -195,6 +195,7 @@ export function useCartContainerState(settings: StoreSettings) {
         total: finalTotal,
         notes: formattedAddress,
         shippingCost: shippingCost,
+        discountAmount: discountAmount,
         shippingMethodName: selectedShipping?.name ?? 'Standard Delivery',
       });
 

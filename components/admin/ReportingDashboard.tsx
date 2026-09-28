@@ -231,7 +231,11 @@ export default function ReportingDashboard({ orders, settings, products = [] }: 
           ? p.variants.reduce((s, v) => s + (v.stock || 0), 0)
           : (p.stock || 0);
         const costVal = stockUnits * (p.cost || 0);
-        const saleVal = stockUnits * p.price;
+        // Sale value must respect per-variant prices (variants can differ from base price);
+        // fall back to base price for variants without their own price / for simple products.
+        const saleVal = p.variants && p.variants.length > 0
+          ? p.variants.reduce((s, v) => s + (v.stock || 0) * (v.price || p.price), 0)
+          : (p.stock || 0) * p.price;
         return {
           id: p.id,
           name: p.name,

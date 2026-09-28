@@ -15,6 +15,7 @@ export const createOrder = async (order: {
   total: number;
   notes?: string;
   shippingCost?: number;
+  discountAmount?: number;
   shippingMethodName?: string;
 }): Promise<Order> => {
   try {
@@ -189,6 +190,7 @@ export const createOrder = async (order: {
           subtotal: order.subtotal,
           total: order.total,
           shipping_amount: order.shippingCost ?? 0,
+          discount_amount: order.discountAmount ?? 0,
           shipping_method_name: order.shippingMethodName || null,
           notes: order.notes,
           status: 'pending',
