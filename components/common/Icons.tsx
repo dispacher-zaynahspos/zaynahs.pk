@@ -63,6 +63,8 @@ export {
   Gift,
   Headphones,
   ZoomIn,
+  Maximize2,
+  Sparkles,
   Ruler,
   Upload,
   Image,

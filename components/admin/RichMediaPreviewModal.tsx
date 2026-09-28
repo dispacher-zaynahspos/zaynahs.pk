@@ -1,8 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Sliders, Loader2 } from '@/components/common/Icons';
+import { X, Sliders, Loader2, ZoomIn, ZoomOut, Maximize2 } from '@/components/common/Icons';
 import ReactCrop from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import { 
@@ -11,9 +11,24 @@ import {
   ImageEditorControls,
   useRichMediaPreviewState
 } from './rich-media-preview';
+import { useZoomPan } from '@/lib/hooks/useZoomPan';
 
 export default function RichMediaPreviewModal({ url, item: initialItem, onClose, onUpdateTags, mode = 'preview' }: RichMediaPreviewModalProps) {
   const state = useRichMediaPreviewState({ url, item: initialItem });
+
+  // Shared storefront-grade zoom/pan (RULE SSOT1) — active only in the non-editor
+  // preview (the "Adjust & Filters" crop mode needs raw pointer coords). Filters &
+  // rotation live on the inner <img>, so they compose cleanly inside the zoom.
+  const isImage = !!state.previewItem && !state.previewItem.mime_type?.startsWith('video/');
+  const zoomActive = isImage && !state.showEditor;
+  const zoom = useZoomPan({ min: 1, max: 4, doubleTapScale: 2.5, resetDeps: [state.previewItem?.file_url, state.showEditor] });
+
+  // Esc closes the modal (accessibility).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
 
   if (!state.mounted || (!state.previewItem && !state.loading)) return null;
 
