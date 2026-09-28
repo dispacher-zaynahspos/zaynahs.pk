@@ -65,6 +65,9 @@ export {
   ZoomIn,
   Maximize2,
   Sparkles,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
   Ruler,
   Upload,
   Image,
@@ -114,7 +117,9 @@ export {
   CheckCircle,
   AlertCircle,
   Box,
-  Info
+  Info,
+  CornerDownLeft,
+  ArrowUpDown
 } from 'lucide-react';
 
 // Custom Social Platform Icons (Consistent styling and sizes)

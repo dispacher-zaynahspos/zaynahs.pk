@@ -10,6 +10,9 @@ export const mapOrderRow = (row: any): Order => ({
   subtotal: row.subtotal ? parseFloat(row.subtotal.toString()) : 0,
   total: row.total ? parseFloat(row.total.toString()) : 0,
   status: row.status as Order['status'],
+  payment_status: (row.payment_status as Order['payment_status']) || 'unpaid',
+  fulfillment_status: (row.fulfillment_status as Order['fulfillment_status']) || 'unfulfilled',
+  tags: row.tags || [],
   notes: row.notes || undefined,
   staff_notes: row.staff_notes || undefined,
   status_logs: (row.status_logs || []) as any[],
@@ -25,6 +28,8 @@ export const mapOrderRow = (row: any): Order => ({
 });
 
 export const isOrderPaid = (order: Order) => {
+  // Authoritative real column (backfilled). Fall back to legacy notes-sniffing only if unset.
+  if (order.payment_status) return order.payment_status === 'paid';
   const notesText = order.notes || '';
   const lines = notesText.split('\n');
   let paymentMethod = '';

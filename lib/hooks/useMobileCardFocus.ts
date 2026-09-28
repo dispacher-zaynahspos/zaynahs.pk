@@ -34,12 +34,18 @@ export class MobileCardFocusManager {
   private manualLockUntil = 0;
   private rafId: number | null = null;
   private isListening = false;
+  /** Store-wide activation mode. 'touch' disables scroll auto-focus (tap only). */
+  private mode: 'scroll' | 'touch' | 'off' = 'scroll';
 
   public static getInstance(): MobileCardFocusManager {
     if (!MobileCardFocusManager.instance) {
       MobileCardFocusManager.instance = new MobileCardFocusManager();
     }
     return MobileCardFocusManager.instance;
+  }
+
+  public setMode(mode: 'scroll' | 'touch' | 'off') {
+    this.mode = mode;
   }
 
   private isTouchDevice(): boolean {
@@ -124,6 +130,10 @@ export class MobileCardFocusManager {
       }
       return;
     }
+
+    // In 'touch' mode, focus is driven only by a real tap (setManualFocus) —
+    // scrolling past cards must NOT auto-focus them.
+    if (this.mode === 'touch') return;
 
     // Touch & Tap Sticky Lock check:
     // If a card was manually tapped recently, keep it locked as long as it's still visible in viewport
@@ -284,15 +294,18 @@ export class MobileCardFocusManager {
   }
 }
 
-export function useMobileCardFocus() {
+export function useMobileCardFocus(mode: 'scroll' | 'touch' | 'off' = 'scroll') {
   const cardRef = useRef<HTMLDivElement | null>(null);
   const [isFocused, setIsFocused] = useState(false);
 
   useEffect(() => {
     const el = cardRef.current;
     if (!el || typeof window === 'undefined') return;
+    // 'off' → card never participates in mobile focus (icons/hover stay hidden on touch).
+    if (mode === 'off') return;
 
     const manager = MobileCardFocusManager.getInstance();
+    manager.setMode(mode);
     manager.register(el, (focused) => {
       setIsFocused(focused);
     });
@@ -300,9 +313,10 @@ export function useMobileCardFocus() {
     return () => {
       manager.unregister(el);
     };
-  }, []);
+  }, [mode]);
 
   const setManualFocus = () => {
+    if (mode === 'off') return;
     if (cardRef.current) {
       MobileCardFocusManager.getInstance().setManualFocus(cardRef.current);
     }

@@ -144,7 +144,9 @@ export default async function ProductPage({ params }: PageProps) {
     getSocialProofCountForProduct(product.id).catch(() => 0)
   ]);
 
-  const layout = settings.product_page_layout || ['details', 'ticker', 'reviews', 'related', 'recently_viewed', 'social_feed'];
+  const hiddenBlocks = settings.product_page_hidden_blocks || [];
+  const layout = (settings.product_page_layout || ['details', 'ticker', 'reviews', 'related', 'recently_viewed', 'social_feed'])
+    .filter((b: string) => !hiddenBlocks.includes(b));
 
   const schemaBrandName = brand.name || settings?.store_name || 'Store';
   const siteUrl = settings?.store_url?.replace(/\/+$/, '') || `${brand.protocol}://${brand.domain}`;

@@ -13,6 +13,7 @@ import {
 import { updateSettings } from '@/lib/services/settings';
 import { updateProductFieldsAction as updateProductFields } from '@/lib/services/products/actions';
 import { toast } from 'sonner';
+import { resolveDefaultTitle } from '@/lib/theme-schema';
 import { useCustomizerIframeSync } from './useCustomizerIframeSync';
 
 interface UseCustomizerStateProps {
@@ -209,24 +210,14 @@ export function useCustomizerState({
   };
 
   const handleAddSection = async (type: string) => {
-    const defaultTitles: Record<string, string> = {
-      hero_banner: 'Promo Slider',
-      product_grid: 'Featured Products',
-      category_list: 'Shop By Category',
-      category_grid: 'Featured Collection Highlights',
-      collections_grid: 'Nested Collections Grid',
-      promo_banner: 'Limited Time Deal',
-      trust_badges: 'Our Promises',
-      recent_reviews: 'Customer Reviews',
-      brands_logos: 'Our Premium Partners',
-      social_feed: 'Follow Us',
-      ticker: 'Announcement Ticker',
-      flash_sale: 'Super Flash Sale'
-    };
+    // Registry-driven title + de-duplication (RULE SSOT1) — never a generic
+    // "New Section", and two same-type sections get "Name" / "Name 2".
+    const existingTitles = sections.map((s) => s.title || '').filter(Boolean);
+    const title = resolveDefaultTitle(type, existingTitles);
 
     startTransition(async () => {
       try {
-        const newSec = await addHomepageSection(type, defaultTitles[type] || 'New Section');
+        const newSec = await addHomepageSection(type, title);
         setSections(prev => [...prev, newSec]);
         setActiveSectionId(newSec.id);
         toast.success('Section added successfully');

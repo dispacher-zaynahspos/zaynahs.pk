@@ -9,6 +9,8 @@ import { AbandonedCart } from './AbandonedCartTypes';
 
 interface AbandonedCartTableProps {
   loading: boolean;
+  error?: boolean;
+  onRetry?: () => void;
   filteredCarts: AbandonedCart[];
   paginatedCarts: AbandonedCart[];
   deleting: string | null;
@@ -23,6 +25,8 @@ interface AbandonedCartTableProps {
 
 export default function AbandonedCartTable({
   loading,
+  error,
+  onRetry,
   filteredCarts,
   paginatedCarts,
   deleting,
@@ -41,6 +45,21 @@ export default function AbandonedCartTable({
           {[...Array(4)].map((_, i) => (
             <div key={i} className="h-12 bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse" />
           ))}
+        </div>
+      ) : error ? (
+        <div className="p-10 text-center space-y-3">
+          <ShoppingCart className="h-8 w-8 text-gray-400 mx-auto" />
+          <p className="text-sm font-bold text-gray-700 dark:text-gray-300">Couldn&apos;t load abandoned carts</p>
+          <p className="text-xs text-gray-500">The request failed or timed out.</p>
+          {onRetry && (
+            <button
+              type="button"
+              onClick={onRetry}
+              className="mt-1 inline-flex items-center gap-2 rounded-xl bg-[#e94560] text-white px-4 py-2 text-xs font-bold cursor-pointer active:scale-95"
+            >
+              Retry
+            </button>
+          )}
         </div>
       ) : filteredCarts.length === 0 ? (
         <EmptyState 

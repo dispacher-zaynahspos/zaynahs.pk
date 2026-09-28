@@ -19,7 +19,7 @@ function AdminLeadsPageInner() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useAdminTab<ActiveTab>('whatsapp');
   const [searchQuery, setSearchQuery] = useState('');
-  const [timeFilter, setTimeFilter] = useState<'all' | 'today' | 'yesterday' | 'week' | 'month'>('today');
+  const [timeFilter, setTimeFilter] = useState<'all' | 'today' | 'yesterday' | 'week' | 'month'>('all');
   const [sourceFilter, setSourceFilter] = useState<'all' | 'wheel' | 'exit_intent'>('all');
 
   useEffect(() => {

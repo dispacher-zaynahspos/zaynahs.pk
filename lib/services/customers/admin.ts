@@ -1,16 +1,15 @@
 'use server';
 
-import { createClient } from '@/lib/supabase/server';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 
 /**
  * Get all customers for the admin portal dashboard
  */
 export async function getAdminCustomers() {
   try {
-    const supabase = await createClient();
     
     // Select all customers, along with their orders
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('customers')
       .select('*, orders(id, total, status)')
       .is('deleted_at', null)
@@ -20,9 +19,8 @@ export async function getAdminCustomers() {
 
     return (data || []).map((c: any) => {
       const orders = c.orders || [];
-      const totalSpent = orders
-        .filter((o: any) => o.status !== 'cancelled')
-        .reduce((sum: number, o: any) => sum + Number(o.total || 0), 0);
+      const validOrders = orders.filter((o: any) => o.status !== 'cancelled');
+      const totalSpent = validOrders.reduce((sum: number, o: any) => sum + Number(o.total || 0), 0);
 
       return {
         id: c.id,
@@ -30,7 +28,7 @@ export async function getAdminCustomers() {
         email: c.email || null,
         phone: c.phone || null,
         createdAt: c.created_at,
-        ordersCount: orders.length,
+        ordersCount: validOrders.length,
         totalSpent
       };
     });
@@ -42,8 +40,7 @@ export async function getAdminCustomers() {
 
 export async function getDeletedCustomers() {
   try {
-    const supabase = await createClient();
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('customers')
       .select('*, orders(id, total, status)')
       .not('deleted_at', 'is', null)
@@ -53,9 +50,8 @@ export async function getDeletedCustomers() {
 
     return (data || []).map((c: any) => {
       const orders = c.orders || [];
-      const totalSpent = orders
-        .filter((o: any) => o.status !== 'cancelled')
-        .reduce((sum: number, o: any) => sum + Number(o.total || 0), 0);
+      const validOrders = orders.filter((o: any) => o.status !== 'cancelled');
+      const totalSpent = validOrders.reduce((sum: number, o: any) => sum + Number(o.total || 0), 0);
 
       return {
         id: c.id,
@@ -64,7 +60,7 @@ export async function getDeletedCustomers() {
         phone: c.phone || null,
         createdAt: c.created_at,
         deletedAt: c.deleted_at,
-        ordersCount: orders.length,
+        ordersCount: validOrders.length,
         totalSpent
       };
     });
@@ -76,8 +72,7 @@ export async function getDeletedCustomers() {
 
 export async function deleteCustomer(id: string): Promise<void> {
   try {
-    const supabase = await createClient();
-    const { error } = await supabase
+    const { error } = await supabaseAdmin
       .from('customers')
       .update({ deleted_at: new Date().toISOString() })
       .eq('id', id);
@@ -91,8 +86,7 @@ export async function deleteCustomer(id: string): Promise<void> {
 
 export async function restoreCustomer(id: string): Promise<void> {
   try {
-    const supabase = await createClient();
-    const { error } = await supabase
+    const { error } = await supabaseAdmin
       .from('customers')
       .update({ deleted_at: null })
       .eq('id', id);
@@ -106,8 +100,7 @@ export async function restoreCustomer(id: string): Promise<void> {
 
 export async function hardDeleteCustomer(id: string): Promise<void> {
   try {
-    const supabase = await createClient();
-    const { error } = await supabase
+    const { error } = await supabaseAdmin
       .from('customers')
       .delete()
       .eq('id', id);

@@ -187,6 +187,8 @@ export const updateSettings = async (settings: Partial<StoreSettings>): Promise<
     if (settings.shop_products_per_page_mobile !== undefined) updatePayload.shop_products_per_page_mobile = settings.shop_products_per_page_mobile;
     if (settings.shop_category_chips_enabled !== undefined) updatePayload.shop_category_chips_enabled = settings.shop_category_chips_enabled;
     if (settings.shop_infinite_scroll !== undefined) updatePayload.shop_infinite_scroll = settings.shop_infinite_scroll;
+    if (settings.shop_grid_gap !== undefined) updatePayload.shop_grid_gap = settings.shop_grid_gap;
+    if (settings.shop_show_breadcrumbs !== undefined) updatePayload.shop_show_breadcrumbs = settings.shop_show_breadcrumbs;
     if (settings.recent_buyers_enabled !== undefined) updatePayload.recent_buyers_enabled = settings.recent_buyers_enabled;
     if (settings.cookie_consent_enabled !== undefined) updatePayload.cookie_consent_enabled = settings.cookie_consent_enabled;
     if (settings.free_shipping_bar_enabled !== undefined) updatePayload.free_shipping_bar_enabled = settings.free_shipping_bar_enabled;
@@ -224,9 +226,17 @@ export const updateSettings = async (settings: Partial<StoreSettings>): Promise<
     if (settings.cart_timer_message !== undefined) updatePayload.cart_timer_message = settings.cart_timer_message;
     if (settings.coupon_codes_enabled !== undefined) updatePayload.coupon_codes_enabled = settings.coupon_codes_enabled;
     if (settings.product_page_layout !== undefined) updatePayload.product_page_layout = settings.product_page_layout;
+    if (settings.product_page_hidden_blocks !== undefined) updatePayload.product_page_hidden_blocks = settings.product_page_hidden_blocks;
     if (settings.theme_preset !== undefined) updatePayload.theme_preset = settings.theme_preset;
     if (settings.theme_config !== undefined) updatePayload.theme_config = settings.theme_config;
     if (settings.card_style !== undefined) updatePayload.card_style = settings.card_style;
+    if (settings.card_mobile_activation !== undefined) updatePayload.card_mobile_activation = settings.card_mobile_activation;
+    if (settings.card_shadow !== undefined) updatePayload.card_shadow = settings.card_shadow;
+    if (settings.card_hover_lift !== undefined) updatePayload.card_hover_lift = settings.card_hover_lift;
+    if (settings.card_border_enabled !== undefined) updatePayload.card_border_enabled = settings.card_border_enabled;
+    if (settings.card_image_fit !== undefined) updatePayload.card_image_fit = settings.card_image_fit;
+    if (settings.card_compare_color !== undefined) updatePayload.card_compare_color = settings.card_compare_color;
+    if (settings.card_sale_price_color !== undefined) updatePayload.card_sale_price_color = settings.card_sale_price_color;
     if (settings.card_variant !== undefined) updatePayload.card_variant = settings.card_variant;
     if (settings.card_show_stars !== undefined) updatePayload.card_show_stars = settings.card_show_stars;
     if (settings.card_show_quickview !== undefined) updatePayload.card_show_quickview = settings.card_show_quickview;

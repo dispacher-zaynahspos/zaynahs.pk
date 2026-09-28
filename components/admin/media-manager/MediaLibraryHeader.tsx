@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Upload, Trash2, Zap, Loader2 } from '@/components/common/Icons';
+import { Upload, Trash2, Loader2, Sparkles } from '@/components/common/Icons';
 
 interface MediaLibraryHeaderProps {
   selectedIdsLength: number;
@@ -48,7 +48,7 @@ export default function MediaLibraryHeader({
                 type="button"
                 onClick={handleBulkDelete}
                 disabled={isBulkDeleting}
-                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-red-500 text-white rounded-xl font-semibold hover:bg-red-600 active:scale-95 disabled:bg-gray-100 dark:disabled:bg-gray-800 text-xs transition-all cursor-pointer min-h-[44px] flex-1 sm:flex-none"
+                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 active:scale-95 disabled:bg-gray-100 dark:disabled:bg-gray-800 text-xs transition-all cursor-pointer min-h-[44px] flex-1 sm:flex-none shadow-xs"
               >
                 {isBulkDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                 <span>Delete ({selectedIdsLength})</span>
@@ -57,10 +57,10 @@ export default function MediaLibraryHeader({
                 type="button"
                 onClick={handleBulkGenerate}
                 disabled={bulkGenerating}
-                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-amber-500 text-white rounded-xl font-semibold hover:bg-amber-600 active:scale-95 disabled:bg-gray-100 dark:disabled:bg-gray-800 text-xs transition-all cursor-pointer min-h-[44px] flex-1 sm:flex-none"
+                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-900 dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700 rounded-xl font-bold active:scale-95 disabled:opacity-50 text-xs transition-all cursor-pointer min-h-[44px] flex-1 sm:flex-none shadow-xs"
               >
-                {bulkGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
-                <span>Bulk Vision AI ({selectedIdsLength})</span>
+                {bulkGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 text-amber-500" />}
+                <span>Auto-tag Metadata ({selectedIdsLength})</span>
               </button>
             </>
           )}
@@ -69,7 +69,7 @@ export default function MediaLibraryHeader({
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
-              className="flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold active:scale-95 disabled:bg-gray-100 text-xs transition-all cursor-pointer min-h-[44px] flex-1 sm:flex-none"
+              className="flex items-center justify-center gap-2 px-5 py-2.5 bg-gray-950 hover:bg-black text-white dark:bg-white dark:text-gray-950 dark:hover:bg-gray-100 rounded-xl font-bold active:scale-95 disabled:bg-gray-100 text-xs transition-all cursor-pointer min-h-[44px] flex-1 sm:flex-none shadow-xs"
             >
               {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
               <span>Upload Media</span>
@@ -86,21 +86,21 @@ export default function MediaLibraryHeader({
         </div>
       </div>
 
-      {/* BULK VISION AI PROGRESS */}
+      {/* Auto-tagging progress */}
       {bulkGenerating && bulkTotal > 0 && (
-        <div className="bg-white dark:bg-[#16162a] p-4 rounded-2xl border border-amber-200 dark:border-amber-800 shadow-sm space-y-2">
+        <div className="bg-white dark:bg-[#16162a] p-4 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm space-y-2">
           <div className="flex items-center justify-between text-xs">
             <div className="flex items-center gap-2">
-              <Zap className="w-4 h-4 text-amber-500" />
-              <span className="font-bold text-gray-900 dark:text-white">Processing Vision AI Metadata</span>
+              <Sparkles className="w-4 h-4 text-amber-500" />
+              <span className="font-bold text-gray-900 dark:text-white">Generating Media Metadata</span>
             </div>
             <span className="text-gray-500 dark:text-gray-400 font-medium">
               {bulkCompletedIdsLength + bulkFailedIdsLength} / {bulkTotal} done
             </span>
           </div>
-          <div className="w-full bg-gray-200 dark:bg-gray-700 h-2 rounded-full overflow-hidden">
+          <div className="w-full bg-gray-100 dark:bg-gray-800 h-2 rounded-full overflow-hidden">
             <div
-              className="bg-amber-500 h-full rounded-full transition-all duration-300"
+              className="bg-gray-900 dark:bg-white h-full rounded-full transition-all duration-300"
               style={{
                 width: `${((bulkCompletedIdsLength + bulkFailedIdsLength) / bulkTotal) * 100}%`,
               }}

@@ -71,7 +71,7 @@ export default function ReviewsTable({
                         </div>
                       )}
                       <span className="font-bold text-gray-900 dark:text-white line-clamp-1 max-w-[150px] text-xs leading-snug">
-                        {review.productName || 'Unknown Product'}
+                        {review.productName || (review.is_manual ? 'General / Store Review' : 'Unknown Product')}
                       </span>
                     </div>
                   </td>
@@ -108,10 +108,11 @@ export default function ReviewsTable({
                         onClick={() => onToggleApprove(review.id, review.approved)}
                         className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
                           review.approved
-                            ? 'text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-500/10'
+                            ? 'bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-500'
                             : 'text-gray-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-500/10'
                         }`}
-                        title={review.approved ? 'Approved' : 'Approve'}
+                        title={review.approved ? 'Approved — click to unapprove' : 'Approve review'}
+                        aria-label={review.approved ? 'Approved (click to unapprove)' : 'Approve'}
                       >
                         <Check className="h-4 w-4" />
                       </button>
@@ -165,7 +166,7 @@ export default function ReviewsTable({
                 )}
                 <div className="min-w-0">
                   <h3 className="font-bold text-gray-900 dark:text-white text-sm truncate">
-                    {review.productName || 'Unknown Product'}
+                    {review.productName || (review.is_manual ? 'General / Store Review' : 'Unknown Product')}
                   </h3>
                   <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                     by <span className="font-semibold text-gray-700 dark:text-gray-300">{review.customer_name}</span>

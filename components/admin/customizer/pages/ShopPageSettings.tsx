@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { StoreSettings } from '@/lib/types';
 import ResponsiveGridColumnsControl from '@/components/admin/customizer/shared/ResponsiveGridColumnsControl';
 import { Monitor, Tablet, Smartphone } from '@/components/common/Icons';
+import { AccordionGroup } from '@/components/admin/customizer/controls';
+import { SegmentedControl, ToggleControl } from '@/components/admin/customizer/controls';
 
 interface ShopPageSettingsProps {
   settings: StoreSettings;
@@ -42,8 +44,9 @@ export default function ShopPageSettings({
   }
 
   return (
-    <div className="space-y-6">
-      <div className="space-y-4">
+    <div className="space-y-3">
+      <AccordionGroup id="shop-catalog-layout" title="Catalog Layout" defaultOpen>
+      <div className="space-y-4 pt-2">
         {/* Card appearance (image hover, aspect ratio, title lines, swatch visibility)
             lives ONLY on the Product Cards tab — a global card setting shared by
             shop/home/search. Removed the duplicate controls here per SSOT1.
@@ -111,6 +114,24 @@ export default function ShopPageSettings({
           onChangeDesktop={(cols: number) => onUpdateSettings({ shop_columns_desktop: cols })}
           onChangeTablet={(cols: number) => onUpdateSettings({ shop_columns_tablet: cols })}
           onChangeMobile={(cols: number) => onUpdateSettings({ shop_columns_mobile: cols })}
+        />
+
+        <SegmentedControl
+          label="Grid Gap"
+          value={settings.shop_grid_gap ?? 'normal'}
+          onChange={(v) => onUpdateSettings({ shop_grid_gap: v as any })}
+          options={[
+            { label: 'Tight', value: 'tight' },
+            { label: 'Normal', value: 'normal' },
+            { label: 'Relaxed', value: 'relaxed' },
+          ]}
+        />
+
+        <ToggleControl
+          label="Show Breadcrumbs"
+          help="Category/collection breadcrumb trail above the shop header."
+          value={settings.shop_show_breadcrumbs ?? true}
+          onChange={(v) => onUpdateSettings({ shop_show_breadcrumbs: v })}
         />
 
         {/* Products Per Page / Load More Limit (Responsive per Device) */}
@@ -284,6 +305,7 @@ export default function ShopPageSettings({
           </p>
         </div>
       </div>
+      </AccordionGroup>
     </div>
   );
 }

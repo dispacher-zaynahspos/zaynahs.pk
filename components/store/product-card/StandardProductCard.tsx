@@ -71,7 +71,7 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
   // ── Mobile scroll-focus (Shopify-style): the card nearest the reading band gets
   //    `is-in-focus active-card` → its hover image plays + action icons spawn.
   //    Desktop keeps pure CSS :hover. A direct touch also locks focus onto the card. ──
-  const { cardRef, isFocused, setManualFocus } = useMobileCardFocus();
+  const { cardRef, isFocused, setManualFocus } = useMobileCardFocus(settings?.card_mobile_activation ?? 'scroll');
 
   const handlePointerDown = (e: React.PointerEvent) => {
     if (e.pointerType === 'touch') setManualFocus();
@@ -82,6 +82,14 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
   const isZoom = hoverStyle === 'zoom';
   const isSecondImage = hoverStyle !== 'none' && hoverStyle !== 'zoom';
   const showSecond = isSecondImage && Boolean(secondImage) && !hoveredImage;
+
+  // ── Appearance controls (defaults preserve current look) ──
+  const shadowClassMap: Record<string, string> = { none: '', sm: 'shadow-xs', md: 'shadow-md', lg: 'shadow-lg' };
+  const cardShadowClass = shadowClassMap[settings?.card_shadow ?? 'sm'] ?? 'shadow-xs';
+  const cardHoverClass = (settings?.card_hover_lift ?? true) ? 'hover:shadow-lg hover:-translate-y-1' : 'hover:shadow-md';
+  const cardBorderClass = (settings?.card_border_enabled ?? true) ? 'border border-gray-200 dark:border-gray-800' : 'border-0';
+  const imageFit = settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain p-2 sm:p-3';
+  const compareColor = settings?.card_compare_color || '#ef4444';
 
   const productUrl = `/product/${product.slug}`;
   const handleNav = () => saveScrollPosition(product.id);
@@ -119,15 +127,15 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
       case 'price':
         return (
           <div key="price" className={`mt-1.5 flex items-baseline gap-x-1.5 gap-y-0.5 flex-wrap ${swatchAlign}`}>
-            <span className="product-price text-xs sm:text-sm font-extrabold text-gray-900 dark:text-white">
+            <span className="product-price text-xs sm:text-sm font-extrabold text-gray-900 dark:text-white" style={settings?.card_sale_price_color ? { color: settings.card_sale_price_color } : undefined}>
               {hasPriceRange
                 ? `${formatPrice(minPrice, currencySymbol)} – ${formatPrice(maxPrice, currencySymbol)}`
                 : formatPrice(currentPrice, currencySymbol)}
             </span>
             {currentComparePrice && currentComparePrice > currentPrice && (
               <span className="text-[9px] text-gray-400 font-medium" style={{
-                textDecoration: 'line-through', textDecorationColor: '#ef4444',
-                WebkitTextDecorationColor: '#ef4444', textDecorationThickness: '1.5px', color: '#9ca3af',
+                textDecoration: 'line-through', textDecorationColor: compareColor,
+                WebkitTextDecorationColor: compareColor, textDecorationThickness: '1.5px', color: '#9ca3af',
               }}>
                 {formatPrice(currentComparePrice, currencySymbol)}
               </span>
@@ -162,7 +170,7 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
       data-hover-effect={hoverStyle}
       onPointerDown={handlePointerDown}
       style={{ borderRadius: 'var(--border-radius-card, 16px)', touchAction: 'pan-y' }}
-      className={`z-card-container group relative flex flex-col overflow-hidden border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] shadow-xs hover:shadow-md transition-all duration-300 ${isFocused ? 'is-in-focus active-card' : ''}`}
+      className={`z-card-container group relative flex flex-col overflow-hidden ${cardBorderClass} bg-white dark:bg-[#16162a] ${cardShadowClass} ${cardHoverClass} transition-all duration-300 ${isFocused ? 'is-in-focus active-card' : ''}`}
     >
       {/* ── Shopify-style full-card transparent overlay link ── */}
       {/* Sits at z-[1], covers entire card, enables single-tap navigation on mobile */}
@@ -183,7 +191,7 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
           alt={product.name}
           fill
           sizes="(max-width: 768px) 50vw, 25vw"
-          className={`object-contain p-2 sm:p-3 object-center pointer-events-none${isZoom ? ' hover-zoom' : ''}${showSecond ? ' hover-fade-out' : ' transition-opacity duration-200'}`}
+          className={`${imageFit} object-center pointer-events-none${isZoom ? ' hover-zoom' : ''}${showSecond ? ' hover-fade-out' : ' transition-opacity duration-200'}`}
           priority={false}
           loading="lazy"
         />
@@ -195,11 +203,10 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
             alt={`${product.name} alternate`}
             fill
             sizes="(max-width: 768px) 50vw, 25vw"
-            className="object-contain p-2 sm:p-3 object-center absolute inset-0 pointer-events-none hover-fade-in"
+            className={`${imageFit} object-center absolute inset-0 pointer-events-none hover-fade-in`}
             priority={false}
             loading="lazy"
-          />
-        )}
+          />        )}
 
         {/* Badges — z-[2], pointer-events:none so they don't block overlay link */}
         <div className="absolute top-2 left-2 flex flex-col gap-1 z-[2] items-start pointer-events-none">

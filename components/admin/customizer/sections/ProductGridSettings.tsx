@@ -6,6 +6,7 @@ import { HomepageSection, Category, Product } from '@/lib/types';
 import ManualProductPicker from './product-grid/ManualProductPicker';
 import BottomGridActions from './product-grid/BottomGridActions';
 import ResponsiveGridColumnsControl from '../shared/ResponsiveGridColumnsControl';
+import { AccordionGroup } from '@/components/admin/customizer/controls';
 
 interface ProductGridSettingsProps {
   section: HomepageSection;
@@ -34,7 +35,9 @@ export default function ProductGridSettings({
   const manualProductIds: string[] = settings.manualProductIds || [];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
+      <AccordionGroup id={`pg-${section.id}-content`} title="Content & Source" defaultOpen>
+      <div className="space-y-4 pt-2">
       {/* Show/Hide Section Title Toggle */}
       <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-800 pb-2.5">
         <div>
@@ -138,9 +141,11 @@ export default function ProductGridSettings({
         onChangeTablet={(cols) => handleSettingsChange('columns_tablet', cols)}
         onChangeMobile={(cols) => handleSettingsChange('columns_mobile', cols)}
       />
+      </div>
+      </AccordionGroup>
 
-      <hr className="border-gray-200 dark:border-gray-800" />
-
+      <AccordionGroup id={`pg-${section.id}-actions`} title="View-All & Pagination" defaultOpen={false}>
+      <div className="space-y-4 pt-2">
       {/* Upper View All Button Link & Toggle */}
       <div className="space-y-2.5 pb-2 border-b border-gray-200 dark:border-gray-800">
         <div className="flex justify-between items-center">
@@ -192,6 +197,8 @@ export default function ProductGridSettings({
         settings={settings}
         handleSettingsChange={handleSettingsChange}
       />
+      </div>
+      </AccordionGroup>
     </div>
   );
 }

@@ -4,6 +4,7 @@ import React from 'react';
 import { Order, StoreSettings } from '@/lib/types';
 import { Edit } from '@/components/common/Icons';
 import { cleanWhatsAppPhone } from '@/lib/utils/whatsapp';
+import { getCustomerOrderCount } from '@/lib/services/orders/read';
 
 interface OrderCustomerCardProps {
   order: Order;
@@ -54,6 +55,17 @@ export function OrderCustomerCard({
   handleSaveCustomer,
   isUpdating
 }: OrderCustomerCardProps) {
+  const [orderCount, setOrderCount] = React.useState<number | null>(null);
+
+  React.useEffect(() => {
+    let alive = true;
+    if (!order.customer_id) { setOrderCount(null); return; }
+    getCustomerOrderCount(order.customer_id as string)
+      .then((n) => { if (alive) setOrderCount(n); })
+      .catch(() => { if (alive) setOrderCount(null); });
+    return () => { alive = false; };
+  }, [order.customer_id]);
+
   return (
     <div className="bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
       <div className="px-4 py-3.5 flex items-center justify-between border-b border-gray-200 dark:border-gray-800">
@@ -160,7 +172,11 @@ export function OrderCustomerCard({
               <a className="text-[13.5px] font-semibold text-[#2c6ecb] dark:text-blue-400 cursor-pointer hover:underline decoration-[#2c6ecb]">
                 {order.customer_name || 'Guest Customer'}
               </a>
-              <div className="text-[12.5px] text-gray-500 dark:text-gray-400 mt-0.5">No orders</div>
+              <div className="text-[12.5px] text-gray-500 dark:text-gray-400 mt-0.5">
+                {orderCount === null
+                  ? (order.customer_id ? 'Loading orders…' : 'Guest (no account)')
+                  : `${orderCount} order${orderCount === 1 ? '' : 's'}`}
+              </div>
             </div>
             
             <div>

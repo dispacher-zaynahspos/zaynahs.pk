@@ -73,7 +73,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
   // ── Mobile scroll-focus (Shopify-style): the card nearest the reading band gets
   //    `is-in-focus active-card` → hover image plays + action icons spawn.
   //    Desktop keeps pure CSS :hover. A direct touch also locks focus onto the card. ──
-  const { cardRef, isFocused, setManualFocus } = useMobileCardFocus();
+  const { cardRef, isFocused, setManualFocus } = useMobileCardFocus(settings?.card_mobile_activation ?? 'scroll');
 
   const handlePointerDown = (e: React.PointerEvent) => {
     if (e.pointerType === 'touch') setManualFocus();

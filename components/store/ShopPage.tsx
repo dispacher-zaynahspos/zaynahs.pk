@@ -99,6 +99,10 @@ export default function ShopPage({
     return () => observer.disconnect();
   }, [activeSettings?.shop_infinite_scroll, hasMore, handleLoadMore]);
 
+  const gridGapClass = activeSettings?.shop_grid_gap === 'tight' ? 'gap-2'
+    : activeSettings?.shop_grid_gap === 'relaxed' ? 'gap-6'
+    : 'gap-4';
+
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8 transition-colors duration-200">
       {/* Header Banner & Breadcrumbs */}
@@ -110,6 +114,7 @@ export default function ShopPage({
         isCategoryDescExpanded={isCategoryDescExpanded}
         setIsCategoryDescExpanded={setIsCategoryDescExpanded}
         handleCategorySelect={handleCategorySelect}
+        showBreadcrumbs={activeSettings?.shop_show_breadcrumbs !== false}
       />
 
       {/* Main Grid: Sidebar + List Content */}
@@ -211,7 +216,7 @@ export default function ShopPage({
             </div>
           ) : (
             <div
-              className={`grid gap-4 ${getResponsiveGridClasses({
+              className={`grid ${gridGapClass} ${getResponsiveGridClasses({
                 mobile: activeSettings?.shop_columns_mobile || (activeSettings?.card_mobile_columns === 1 ? 1 : 2),
                 tablet: activeSettings?.shop_columns_tablet || (viewMode === 'grid-3' ? 2 : 3),
                 desktop: activeSettings?.shop_columns_desktop || (viewMode === 'grid-3' ? 3 : 4),

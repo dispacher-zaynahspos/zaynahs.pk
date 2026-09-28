@@ -4,6 +4,8 @@ import React from 'react';
 import { moveItemInArray } from '@/lib/utils/arrayMove';
 import { StoreSettings } from '@/lib/types';
 import { ChevronUp, ChevronDown } from '@/components/common/Icons';
+import { AccordionGroup } from '@/components/admin/customizer/controls';
+import { SegmentedControl, ToggleControl, ColorControl } from '@/components/admin/customizer/controls';
 import { ProductCardVisibilitySection } from './product-card/ProductCardVisibilitySection';
 import { ProductCardSwatchSettingsSection } from './product-card/ProductCardSwatchSettingsSection';
 import { ProductCardPreviewStudio } from './product-card/ProductCardPreviewStudio';
@@ -47,9 +49,10 @@ export default function ProductCardSettings({ settings, onUpdateSettings }: Prod
 
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {/* Templates Selector */}
-      <div className="space-y-3.5">
+      <AccordionGroup id="pc-style" title="Style & Template" defaultOpen>
+      <div className="space-y-3.5 pt-2">
         <div className="space-y-1.5">
           <label className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest block">
             Product Card Style Template
@@ -97,6 +100,40 @@ export default function ProductCardSettings({ settings, onUpdateSettings }: Prod
           </p>
         </div>
 
+        {/* Mobile Activation Mode */}
+        <div className="space-y-1.5 pt-2">
+          <label className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest block">
+            Mobile Activation Mode
+          </label>
+          <div className="grid grid-cols-3 gap-2">
+            {([
+              { v: 'scroll', label: 'Scroll Focus' },
+              { v: 'touch', label: 'Touch' },
+              { v: 'off', label: 'Off' },
+            ] as const).map((opt) => {
+              const active = (settings.card_mobile_activation || 'scroll') === opt.v;
+              return (
+                <button
+                  key={opt.v}
+                  type="button"
+                  onClick={() => onUpdateSettings({ card_mobile_activation: opt.v })}
+                  className={`py-2 text-center rounded-xl border text-[11px] font-bold transition-all cursor-pointer ${active
+                    ? 'border-[#e94560] bg-[#e94560]/5 text-[#e94560]'
+                    : 'border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] hover:border-gray-300 dark:hover:border-gray-700 text-gray-600 dark:text-gray-400'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-[10px] text-gray-400">
+            On touch devices: <strong>Scroll Focus</strong> auto-reveals the card nearest the screen centre;
+            <strong> Touch</strong> reveals only a tapped card; <strong>Off</strong> shows no hover image/icons
+            (desktop hover still works). Desktop hover is unaffected.
+          </p>
+        </div>
+
         {/* Live Animation & Hover Preview Studio */}
         <ProductCardPreviewStudio settings={settings} onUpdateSettings={onUpdateSettings} />
 
@@ -138,8 +175,11 @@ export default function ProductCardSettings({ settings, onUpdateSettings }: Prod
           </p>
         </div>
       </div>
+      </AccordionGroup>
 
       {/* Visibility Toggles */}
+      <AccordionGroup id="pc-visibility" title="Element Visibility" defaultOpen={false}>
+      <div className="pt-2">
       <ProductCardVisibilitySection
         settings={settings}
         onUpdateSettings={onUpdateSettings}
@@ -148,15 +188,72 @@ export default function ProductCardSettings({ settings, onUpdateSettings }: Prod
         showQuickview={showQuickview}
         showQuickcart={showQuickcart}
       />
+      </div>
+      </AccordionGroup>
 
       {/* Swatch Customization */}
+      <AccordionGroup id="pc-swatches" title="Swatches" defaultOpen={false}>
+      <div className="pt-2">
       <ProductCardSwatchSettingsSection
         settings={settings}
         onUpdateSettings={onUpdateSettings}
       />
+      </div>
+      </AccordionGroup>
 
+      {/* Alignment + ordering */}
+      <AccordionGroup id="pc-appearance" title="Card Appearance" defaultOpen={false}>
+      <div className="pt-2 divide-y divide-gray-50 dark:divide-gray-800/50">
+        <SegmentedControl
+          label="Card Shadow"
+          value={settings.card_shadow ?? 'sm'}
+          onChange={(v) => onUpdateSettings({ card_shadow: v as any })}
+          options={[
+            { label: 'None', value: 'none' },
+            { label: 'Small', value: 'sm' },
+            { label: 'Medium', value: 'md' },
+            { label: 'Large', value: 'lg' },
+          ]}
+        />
+        <ToggleControl
+          label="Hover Lift"
+          help="Card lifts slightly on hover (desktop)."
+          value={settings.card_hover_lift ?? true}
+          onChange={(v) => onUpdateSettings({ card_hover_lift: v })}
+        />
+        <ToggleControl
+          label="Card Border"
+          value={settings.card_border_enabled ?? true}
+          onChange={(v) => onUpdateSettings({ card_border_enabled: v })}
+        />
+        <SegmentedControl
+          label="Image Fit"
+          value={settings.card_image_fit ?? 'contain'}
+          onChange={(v) => onUpdateSettings({ card_image_fit: v as any })}
+          options={[
+            { label: 'Contain', value: 'contain' },
+            { label: 'Cover', value: 'cover' },
+          ]}
+        />
+        <ColorControl
+          label="Compare-at Strike Color"
+          help="Colour of the strikethrough on the original price. Red is the standard."
+          value={settings.card_compare_color ?? '#ef4444'}
+          onChange={(v) => onUpdateSettings({ card_compare_color: v })}
+        />
+        <ColorControl
+          label="Sale Price Color"
+          help="Leave blank to use the theme price colour."
+          value={settings.card_sale_price_color ?? ''}
+          onChange={(v) => onUpdateSettings({ card_sale_price_color: v })}
+        />
+      </div>
+      </AccordionGroup>
+
+      <AccordionGroup id="pc-layout" title="Alignment & Ordering" defaultOpen={false}>
+      <div className="space-y-5 pt-2">
       {/* Alignment Selector */}
-      <div className="space-y-3 border-t border-gray-150 dark:border-gray-800 pt-5">
+      <div className="space-y-3">
         <label className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest block">
           Content Alignment
         </label>
@@ -180,7 +277,7 @@ export default function ProductCardSettings({ settings, onUpdateSettings }: Prod
       </div>
 
       {/* Vertical Element Ordering */}
-      <div className="space-y-3 border-t border-gray-150 dark:border-gray-800 pt-5">
+      <div className="space-y-3">
         <label className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest block">
           Vertical Elements Sorting
         </label>
@@ -215,6 +312,8 @@ export default function ProductCardSettings({ settings, onUpdateSettings }: Prod
           ))}
         </div>
       </div>
+      </div>
+      </AccordionGroup>
     </div>
   );
 }

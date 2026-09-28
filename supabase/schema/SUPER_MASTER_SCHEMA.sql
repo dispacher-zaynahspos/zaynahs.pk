@@ -494,6 +494,8 @@ CREATE TABLE IF NOT EXISTS store_settings (
   shop_products_per_page_mobile INTEGER DEFAULT 6,
   shop_category_chips_enabled BOOLEAN DEFAULT true,
   shop_infinite_scroll BOOLEAN DEFAULT false,
+  shop_grid_gap TEXT DEFAULT 'normal',
+  shop_show_breadcrumbs BOOLEAN DEFAULT true,
   recent_buyers_enabled BOOLEAN DEFAULT true,
   cookie_consent_enabled BOOLEAN DEFAULT true,
   free_shipping_bar_enabled BOOLEAN DEFAULT true,
@@ -537,8 +539,16 @@ CREATE TABLE IF NOT EXISTS store_settings (
   social_feeds_items JSONB DEFAULT '[]'::jsonb,
   cart_timer_message TEXT DEFAULT 'Items in your cart are reserved for {timer} minutes.',
   product_page_layout TEXT[] DEFAULT ARRAY['details', 'ticker', 'reviews', 'related', 'recently_viewed', 'social_feed'],
+  product_page_hidden_blocks TEXT[] DEFAULT '{}',
   card_style VARCHAR DEFAULT 'style1',
   card_variant TEXT DEFAULT 'v1',
+  card_mobile_activation TEXT DEFAULT 'scroll',
+  card_shadow TEXT DEFAULT 'sm',
+  card_hover_lift BOOLEAN DEFAULT true,
+  card_border_enabled BOOLEAN DEFAULT true,
+  card_image_fit TEXT DEFAULT 'contain',
+  card_compare_color TEXT DEFAULT '#ef4444',
+  card_sale_price_color TEXT DEFAULT '',
   card_show_stars BOOLEAN DEFAULT true,
   card_show_quickview BOOLEAN DEFAULT true,
   card_show_wishlist BOOLEAN DEFAULT true,
@@ -723,6 +733,9 @@ CREATE TABLE IF NOT EXISTS orders (
   shipping_method_name TEXT,
   discount_code TEXT,
   status TEXT DEFAULT 'pending',            -- pending, confirmed, shipped, delivered, cancelled
+  payment_status TEXT DEFAULT 'unpaid',     -- unpaid, paid, refunded
+  fulfillment_status TEXT DEFAULT 'unfulfilled', -- unfulfilled, fulfilled
+  tags TEXT[] DEFAULT '{}',
   notes TEXT,
   staff_notes TEXT,
   status_logs JSONB DEFAULT '[]'::jsonb,
@@ -781,6 +794,61 @@ CREATE TRIGGER set_order_number
   FOR EACH ROW
   WHEN (NEW.order_number IS NULL OR NEW.order_number = '')
   EXECUTE FUNCTION generate_order_number();
+
+-- ============================================================
+-- STRUCTURED ORDER LINE-ITEMS + ADDRESSES (additive; see migration 20260927180000)
+-- These sit alongside orders.items (JSONB) and orders.notes (free-text address),
+-- which remain the fallback source-of-truth. Going-forward orders write here too
+-- (lib/services/orders/create.ts). Nothing on the orders table is dropped/modified.
+-- ============================================================
+CREATE TABLE IF NOT EXISTS order_items (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+  product_id UUID REFERENCES products(id) ON DELETE SET NULL,
+  variant_id UUID,
+  name TEXT,                -- price/name snapshot at purchase time
+  sku TEXT,
+  image_url TEXT,
+  variant_label TEXT,
+  unit_price NUMERIC(10,2) DEFAULT 0,
+  quantity INTEGER DEFAULT 1,
+  item_discount NUMERIC(10,2) DEFAULT 0,
+  line_total NUMERIC(10,2) DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_order_items_order ON order_items(order_id);
+CREATE INDEX IF NOT EXISTS idx_order_items_product ON order_items(product_id);
+
+CREATE TABLE IF NOT EXISTS order_addresses (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+  type TEXT NOT NULL DEFAULT 'shipping',   -- shipping | billing
+  name TEXT,
+  phone TEXT,
+  email TEXT,
+  address1 TEXT,
+  address2 TEXT,
+  city TEXT,
+  postal_code TEXT,
+  country TEXT DEFAULT 'Pakistan',
+  latitude NUMERIC,
+  longitude NUMERIC,
+  payment_method TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_order_addresses_order ON order_addresses(order_id);
+
+-- RLS: admin/service only for reads (PII); public INSERT for storefront checkout (anon).
+ALTER TABLE order_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE order_addresses ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Admin all order_items" ON order_items;
+CREATE POLICY "Admin all order_items" ON order_items FOR ALL USING (auth.role() = 'authenticated');
+DROP POLICY IF EXISTS "Admin all order_addresses" ON order_addresses;
+CREATE POLICY "Admin all order_addresses" ON order_addresses FOR ALL USING (auth.role() = 'authenticated');
+DROP POLICY IF EXISTS "Public insert order_addresses" ON order_addresses;
+CREATE POLICY "Public insert order_addresses" ON order_addresses FOR INSERT WITH CHECK (true);
+DROP POLICY IF EXISTS "Public insert order_items" ON order_items;
+CREATE POLICY "Public insert order_items" ON order_items FOR INSERT WITH CHECK (true);
 
 -- ============================================================
 -- UPDATED_AT TRIGGERS
@@ -843,15 +911,17 @@ CREATE POLICY "Public read product_modifiers" ON product_modifiers FOR SELECT US
 DROP POLICY IF EXISTS "Public read store_settings" ON store_settings;
 CREATE POLICY "Public read store_settings" ON store_settings FOR SELECT USING (true);
 DROP POLICY IF EXISTS "Public read approved reviews" ON reviews;
-CREATE POLICY "Public read approved reviews" ON reviews FOR SELECT USING (approved = true);
+CREATE POLICY "Public read approved reviews" ON reviews FOR SELECT USING (approved = true AND COALESCE(hidden, false) = false AND deleted_at IS NULL);
 DROP POLICY IF EXISTS "Public insert reviews" ON reviews;
 CREATE POLICY "Public insert reviews" ON reviews FOR INSERT WITH CHECK (true);
 DROP POLICY IF EXISTS "Public read badges" ON badges;
 CREATE POLICY "Public read badges" ON badges FOR SELECT USING (true);
 DROP POLICY IF EXISTS "Public insert customers" ON customers;
 CREATE POLICY "Public insert customers" ON customers FOR INSERT WITH CHECK (true);
+-- SECURITY: customers hold PII + password_hash. NO public/anon SELECT. Reads go via
+-- service role (supabaseAdmin) or the authenticated admin session only.
 DROP POLICY IF EXISTS "Public read customers" ON customers;
-CREATE POLICY "Public read customers" ON customers FOR SELECT USING (true);
+REVOKE SELECT ON customers FROM anon;
 DROP POLICY IF EXISTS "Public insert orders" ON orders;
 CREATE POLICY "Public insert orders" ON orders FOR INSERT WITH CHECK (true);
 DROP POLICY IF EXISTS "Public select orders" ON orders;
@@ -1026,13 +1096,13 @@ BEGIN
     reviews_count = (
       SELECT COALESCE(COUNT(*), 0)
       FROM reviews
-      WHERE product_id = v_product_id AND approved = true AND COALESCE(hidden, false) = false
+      WHERE product_id = v_product_id AND approved = true AND COALESCE(hidden, false) = false AND deleted_at IS NULL
     ),
     rating = COALESCE(
       (
         SELECT ROUND(AVG(rating)::numeric, 1)
         FROM reviews
-        WHERE product_id = v_product_id AND approved = true AND COALESCE(hidden, false) = false
+        WHERE product_id = v_product_id AND approved = true AND COALESCE(hidden, false) = false AND deleted_at IS NULL
       ),
       5.0
     )
@@ -1610,7 +1680,8 @@ DROP POLICY IF EXISTS "Public update abandoned carts" ON abandoned_carts;
 CREATE POLICY "Public update abandoned carts" ON abandoned_carts FOR UPDATE USING (true);
 
 DROP POLICY IF EXISTS "Admin read abandoned carts" ON abandoned_carts;
-CREATE POLICY "Admin read abandoned carts" ON abandoned_carts FOR SELECT USING (true);
+CREATE POLICY "Admin read abandoned carts" ON abandoned_carts FOR SELECT USING (auth.role() = 'authenticated');
+REVOKE SELECT ON abandoned_carts FROM anon;
 
 DROP POLICY IF EXISTS "Admin delete abandoned carts" ON abandoned_carts;
 CREATE POLICY "Admin delete abandoned carts" ON abandoned_carts FOR DELETE USING (auth.role() = 'authenticated');

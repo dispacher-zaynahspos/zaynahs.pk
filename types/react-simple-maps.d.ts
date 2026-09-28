@@ -24,6 +24,7 @@ declare module 'react-simple-maps' {
     zoom?: number;
     minZoom?: number;
     maxZoom?: number;
+    onMoveEnd?: (position: { coordinates: [number, number]; zoom: number }) => void;
     children?: ReactNode;
   }
 

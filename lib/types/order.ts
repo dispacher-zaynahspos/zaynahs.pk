@@ -16,7 +16,7 @@ export interface CartItem {
 
 export interface StatusLogItem {
   id: string;
-  type: 'creation' | 'status_change' | 'staff_note' | 'whatsapp_notification' | 'payment';
+  type: 'creation' | 'status_change' | 'staff_note' | 'whatsapp_notification' | 'payment' | 'fulfillment';
   message: string;
   status?: string;
   notes?: string;
@@ -37,6 +37,9 @@ export interface Order {
   shipping_method_name?: string;
   discount_code?: string;
   status: 'pending' | 'placed' | 'confirmed' | 'processing' | 'shipped' | 'out_for_delivery' | 'delivered' | 'cancelled' | 'refunded';
+  payment_status?: 'unpaid' | 'paid' | 'refunded';
+  fulfillment_status?: 'unfulfilled' | 'fulfilled';
+  tags?: string[];
   notes?: string;
   staff_notes?: string;
   status_logs?: StatusLogItem[];

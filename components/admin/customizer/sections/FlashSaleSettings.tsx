@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { HomepageSection, Product, Category } from '@/lib/types';
+import { AccordionGroup } from '@/components/admin/customizer/controls';
 import {
   FlashSaleCategoryRules,
   FlashSaleProductManager,
@@ -22,27 +23,35 @@ export default function FlashSaleSettings({
   onUpdateSection
 }: FlashSaleSettingsProps) {
   return (
-    <div className="space-y-5">
-      <FlashSaleGeneralConfig
-        section={section}
-        onUpdateSection={onUpdateSection}
-      />
+    <div className="space-y-3">
+      <AccordionGroup id={`fs-${section.id}-general`} title="General & Layout" defaultOpen>
+        <div className="pt-2">
+          <FlashSaleGeneralConfig
+            section={section}
+            onUpdateSection={onUpdateSection}
+          />
+        </div>
+      </AccordionGroup>
 
-      {/* CATEGORY LEVEL DISCOUNT MANAGER */}
-      <FlashSaleCategoryRules
-        section={section}
-        categories={categories}
-        onUpdateSection={onUpdateSection}
-      />
+      <AccordionGroup id={`fs-${section.id}-category`} title="Category Discount Rules" defaultOpen={false}>
+        <div className="pt-2">
+          <FlashSaleCategoryRules
+            section={section}
+            categories={categories}
+            onUpdateSection={onUpdateSection}
+          />
+        </div>
+      </AccordionGroup>
 
-      <hr className="border-gray-200 dark:border-gray-800" />
-
-      {/* INDIVIDUAL PRODUCT MANAGER */}
-      <FlashSaleProductManager
-        section={section}
-        products={products}
-        onUpdateSection={onUpdateSection}
-      />
+      <AccordionGroup id={`fs-${section.id}-products`} title="Individual Products" defaultOpen={false}>
+        <div className="pt-2">
+          <FlashSaleProductManager
+            section={section}
+            products={products}
+            onUpdateSection={onUpdateSection}
+          />
+        </div>
+      </AccordionGroup>
     </div>
   );
 }

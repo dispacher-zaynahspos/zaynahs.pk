@@ -108,14 +108,18 @@ Rules:
               type="button"
               onClick={() => handleGenerate('both')}
               disabled={!!generating}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 disabled:opacity-60 disabled:cursor-not-allowed transition-all cursor-pointer min-h-[44px]"
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-gray-950 hover:bg-black dark:bg-white dark:text-gray-950 dark:hover:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed transition-all cursor-pointer shadow-xs min-h-[44px] active:scale-[0.99]"
             >
-              {generating === 'both' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-              {generating === 'both' ? 'Generating…' : 'Generate both with AI'}
+              {generating === 'both' ? (
+                <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
+              ) : (
+                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+              )}
+              <span>{generating === 'both' ? 'Analyzing image...' : 'Auto-fill Alt Text & Title'}</span>
             </button>
           )}
 
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <label className="text-xs font-bold text-gray-700 dark:text-gray-300">Alt Text Tag</label>
               {isImage && (
@@ -123,10 +127,10 @@ Rules:
                   type="button"
                   onClick={() => handleGenerate('alt')}
                   disabled={!!generating}
-                  className="flex items-center gap-1 text-[11px] font-bold text-violet-600 dark:text-violet-400 hover:text-violet-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  className="flex items-center gap-1.5 text-[11px] font-semibold text-gray-700 hover:text-black dark:text-gray-300 dark:hover:text-white bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 px-2.5 py-1 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
-                  {generating === 'alt' ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
-                  Generate
+                  {generating === 'alt' ? <Loader2 className="w-3 h-3 animate-spin text-gray-500" /> : <Sparkles className="w-3 h-3 text-amber-500" />}
+                  <span>Auto-fill</span>
                 </button>
               )}
             </div>
@@ -136,14 +140,14 @@ Rules:
               onChange={(e) =>
                 setEditingItem((prev) => (prev ? { ...prev, alt_text: e.target.value } : null))
               }
-              className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1a1a30] text-gray-900 dark:text-white text-sm focus:border-blue-500 focus:outline-none min-h-[44px]"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1a1a30] text-gray-900 dark:text-white text-xs font-medium focus:border-gray-900 dark:focus:border-gray-400 focus:outline-hidden focus:ring-1 focus:ring-gray-900 dark:focus:ring-gray-400 min-h-[42px] transition-colors"
             />
-            <div className={`text-[10px] font-medium text-right ${altLength > ALT_MAX ? 'text-red-500' : 'text-gray-400'}`}>
+            <div className={`text-[10px] font-medium text-right ${altLength > ALT_MAX ? 'text-amber-600 font-semibold' : 'text-gray-400'}`}>
               {altLength}/{ALT_MAX}
             </div>
           </div>
 
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <label className="text-xs font-bold text-gray-700 dark:text-gray-300">Title Tag</label>
               {isImage && (
@@ -151,10 +155,10 @@ Rules:
                   type="button"
                   onClick={() => handleGenerate('title')}
                   disabled={!!generating}
-                  className="flex items-center gap-1 text-[11px] font-bold text-violet-600 dark:text-violet-400 hover:text-violet-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  className="flex items-center gap-1.5 text-[11px] font-semibold text-gray-700 hover:text-black dark:text-gray-300 dark:hover:text-white bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 px-2.5 py-1 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
-                  {generating === 'title' ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
-                  Generate
+                  {generating === 'title' ? <Loader2 className="w-3 h-3 animate-spin text-gray-500" /> : <Sparkles className="w-3 h-3 text-amber-500" />}
+                  <span>Auto-fill</span>
                 </button>
               )}
             </div>
@@ -164,7 +168,7 @@ Rules:
               onChange={(e) =>
                 setEditingItem((prev) => (prev ? { ...prev, title: e.target.value } : null))
               }
-              className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1a1a30] text-gray-900 dark:text-white text-sm focus:border-blue-500 focus:outline-none min-h-[44px]"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1a1a30] text-gray-900 dark:text-white text-xs font-medium focus:border-gray-900 dark:focus:border-gray-400 focus:outline-hidden focus:ring-1 focus:ring-gray-900 dark:focus:ring-gray-400 min-h-[42px] transition-colors"
             />
           </div>
 
@@ -172,13 +176,13 @@ Rules:
             <button
               type="button"
               onClick={() => setEditingItem(null)}
-              className="px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 font-semibold text-xs cursor-pointer min-h-[38px]"
+              className="px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 font-semibold text-xs cursor-pointer min-h-[38px] transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-5 py-2 text-white rounded-xl font-semibold text-xs bg-blue-600 hover:bg-blue-700 transition-all flex items-center justify-center gap-2 cursor-pointer min-h-[38px]"
+              className="px-5 py-2 text-white rounded-xl font-bold text-xs bg-gray-950 hover:bg-black dark:bg-white dark:text-gray-950 dark:hover:bg-gray-100 transition-all flex items-center justify-center gap-2 cursor-pointer min-h-[38px] shadow-xs active:scale-95"
             >
               Save Details
             </button>

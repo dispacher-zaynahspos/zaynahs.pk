@@ -89,7 +89,7 @@ export function MediaCleanerTab({
         <div className="flex bg-gray-100 dark:bg-gray-800/60 p-1 rounded-xl w-full sm:w-auto min-h-[44px] items-center">
           {(['all', 'image', 'video'] as const).map(type => (
             <button key={type} type="button" onClick={() => setCleanerTypeFilter(type)}
-              className={`flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all cursor-pointer ${cleanerTypeFilter === type ? 'bg-white dark:bg-[#16162a] text-blue-600 dark:text-blue-400 shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}>
+              className={`flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-xs font-bold capitalize transition-all cursor-pointer ${cleanerTypeFilter === type ? 'bg-white dark:bg-[#16162a] text-gray-950 dark:text-white shadow-xs' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700'}`}>
               {type === 'all' ? 'All Types' : type === 'image' ? 'Images' : 'Videos'}
             </button>
           ))}

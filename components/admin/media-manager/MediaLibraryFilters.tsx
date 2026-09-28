@@ -54,11 +54,11 @@ export function MediaLibraryFilters({
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-white dark:bg-[#16162a] p-4 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
           <div className="flex items-center justify-between w-full md:w-auto p-2 bg-gray-50/50 dark:bg-gray-900/30 rounded-xl border border-gray-100 dark:border-gray-800 min-h-[50px] px-4">
             <div className="mr-8">
-              <span className="text-sm font-bold text-gray-950 dark:text-white">Auto Vision Tagging</span>
+              <span className="text-sm font-bold text-gray-950 dark:text-white">Auto Tagging</span>
               <span className="text-[10px] text-gray-400 block leading-none mt-0.5">Analyze and add alt tags automatically on upload.</span>
             </div>
             <input type="checkbox" checked={globalAi} onChange={handleGlobalAiToggle}
-              className="w-10 h-6 rounded-full bg-gray-200 checked:bg-blue-600 appearance-none cursor-pointer transition-all relative after:content-[''] after:absolute after:h-5 after:w-5 after:bg-white after:rounded-full after:top-[2px] after:left-[2px] checked:after:left-[18px] after:transition-all"
+              className="w-10 h-6 rounded-full bg-gray-200 checked:bg-gray-950 dark:checked:bg-white appearance-none cursor-pointer transition-all relative after:content-[''] after:absolute after:h-5 after:w-5 after:bg-white dark:after:bg-gray-900 after:rounded-full after:top-[2px] after:left-[2px] checked:after:left-[18px] after:transition-all"
             />
           </div>
           <div className="flex gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
@@ -70,8 +70,8 @@ export function MediaLibraryFilters({
                   setSelectedIds(pendingIds);
                 }
               }}
-                className={`px-4 py-2 rounded-xl text-xs font-semibold border min-h-[38px] flex-1 md:flex-none capitalize transition-all cursor-pointer ${aiFilter === status ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white dark:bg-[#16162a] border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'}`}>
-                {status === 'all' ? 'All' : status === 'generated' ? 'AI Tagged' : 'Pending'}
+                className={`px-4 py-2 rounded-xl text-xs font-bold border min-h-[38px] flex-1 md:flex-none capitalize transition-all cursor-pointer ${aiFilter === status ? 'bg-gray-950 border-gray-950 text-white dark:bg-white dark:text-gray-950 dark:border-white shadow-xs' : 'bg-white dark:bg-[#16162a] border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'}`}>
+                {status === 'all' ? 'All' : status === 'generated' ? 'Tagged' : 'Pending'}
               </button>
             ))}
             <button type="button" onClick={toggleSelectAll}
@@ -95,7 +95,7 @@ export function MediaLibraryFilters({
           <div className="flex bg-gray-100 dark:bg-gray-800/60 p-1 rounded-xl w-full sm:w-auto min-h-[44px] items-center">
             {(['all', 'image', 'video'] as const).map(type => (
               <button key={type} type="button" onClick={() => setTypeFilter(type)}
-                className={`flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all cursor-pointer ${typeFilter === type ? 'bg-white dark:bg-[#16162a] text-blue-600 dark:text-blue-400 shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}>
+                className={`flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-xs font-bold capitalize transition-all cursor-pointer ${typeFilter === type ? 'bg-white dark:bg-[#16162a] text-gray-950 dark:text-white shadow-xs' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700'}`}>
                 {type === 'all' ? 'All Types' : type === 'image' ? 'Images' : 'Videos'}
               </button>
             ))}

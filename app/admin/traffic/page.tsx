@@ -169,7 +169,7 @@ export default function TrafficPage() {
           {/* Map + Stats */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xs overflow-hidden" style={{ minHeight: 500 }}>
-              <TrafficMap visitorDots={visitorDots} orderDots={orderDots} />
+              <TrafficMap visitorDots={visitorDots} orderDots={orderDots} countries={data?.countries || []} height={500} />
             </div>
 
             <div className="space-y-4">

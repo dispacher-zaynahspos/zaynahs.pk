@@ -162,10 +162,11 @@ function AdminCustomersPageInner() {
           className={`pb-3 px-4 font-bold text-xs uppercase tracking-wider transition-all border-b-2 cursor-pointer ${activeTab === 'buyers' ? 'border-[#e94560] text-[#e94560]' : 'border-transparent text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`}>
           Registered Buyers ({customers.length})
         </button>
-        <button type="button" onClick={() => setActiveTab('leads')}
-          className={`pb-3 px-4 font-bold text-xs uppercase tracking-wider transition-all border-b-2 cursor-pointer ${activeTab === 'leads' ? 'border-[#e94560] text-[#e94560]' : 'border-transparent text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`}>
-          WhatsApp Leads ({leads.length})
-        </button>
+        {/* Leads live on the dedicated /admin/leads page (SSOT) — link out, don't duplicate the table. */}
+        <a href="/admin/leads"
+          className="pb-3 px-4 font-bold text-xs uppercase tracking-wider transition-all border-b-2 border-transparent text-gray-400 hover:text-[#e94560] cursor-pointer inline-flex items-center gap-1">
+          WhatsApp Leads ({leads.length}) →
+        </a>
       </div>
 
       {/* Main List Panel */}
@@ -182,18 +183,12 @@ function AdminCustomersPageInner() {
               </div>
             ))}
           </div>
-        ) : activeTab === 'buyers' ? (
+        ) : (
           <CustomerBuyersTable
             customers={filteredCustomers}
             searchQuery={searchQuery}
             onViewOrders={handleViewOrders}
             onDeleteCustomer={handleDeleteCustomer}
-          />
-        ) : (
-          <CustomerLeadsTable
-            leads={filteredLeads}
-            searchQuery={searchQuery}
-            onDeleteLead={handleDeleteLead}
           />
         )}
       </div>

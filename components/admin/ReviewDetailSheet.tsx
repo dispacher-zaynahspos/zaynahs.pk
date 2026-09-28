@@ -116,7 +116,7 @@ export default function ReviewDetailSheet({ review, onClose, onApprove, onHide, 
               </div>
               <div className="flex-1 min-w-0 space-y-1">
                 <p className="text-sm font-bold text-gray-900 dark:text-white leading-snug truncate">
-                  {review.productName || 'Unknown Product'}
+                  {review.productName || (review.is_manual ? 'General / Store Review' : 'Unknown Product')}
                 </p>
                 <div className="flex items-center gap-1.5">
                   <StarRating rating={review.rating} showText={true} starSize={12} />

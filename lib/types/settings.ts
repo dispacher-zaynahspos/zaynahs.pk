@@ -110,6 +110,8 @@ export interface StoreSettings {
   image_aspect_ratio?: string;
   title_line_limit?: '1' | '2' | 'none';
   product_page_layout?: string[];
+  /** Blocks that are hidden (kept in layout order but not rendered). Reversible. */
+  product_page_hidden_blocks?: string[];
 
   // Header options
   header_sticky?: boolean;
@@ -239,6 +241,8 @@ export interface StoreSettings {
   shop_products_per_page_mobile?: number;
   shop_category_chips_enabled?: boolean;
   shop_infinite_scroll?: boolean;
+  shop_grid_gap?: 'tight' | 'normal' | 'relaxed';
+  shop_show_breadcrumbs?: boolean;
   recent_buyers_enabled?: boolean;
   cookie_consent_enabled?: boolean;
   free_shipping_bar_enabled?: boolean;
@@ -257,6 +261,15 @@ export interface StoreSettings {
   // Product Card Customizations
   card_style?: 'style1' | 'showcase_1' | 'showcase_2' | 'showcase_3' | 'showcase_4' | 'showcase_5' | 'showcase_6' | 'showcase_7' | 'showcase_8' | 'showcase_9' | 'showcase_10';
   card_variant?: 'v1';
+  /** How a card reveals hover image + action icons on touch devices. */
+  card_mobile_activation?: 'scroll' | 'touch' | 'off';
+  /** Standard card appearance controls. */
+  card_shadow?: 'none' | 'sm' | 'md' | 'lg';
+  card_hover_lift?: boolean;
+  card_border_enabled?: boolean;
+  card_image_fit?: 'contain' | 'cover';
+  card_compare_color?: string;
+  card_sale_price_color?: string;
   card_show_stars?: boolean;
   card_show_quickview?: boolean;
   card_show_wishlist?: boolean;

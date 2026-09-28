@@ -179,6 +179,8 @@ export interface SettingsRow {
   shop_products_per_page?: number | null;
   shop_category_chips_enabled?: boolean | null;
   shop_infinite_scroll?: boolean | null;
+  shop_grid_gap?: string | null;
+  shop_show_breadcrumbs?: boolean | null;
   recent_buyers_enabled?: boolean | null;
   cookie_consent_enabled?: boolean | null;
   free_shipping_bar_enabled?: boolean | null;
@@ -215,7 +217,15 @@ export interface SettingsRow {
   cart_timer_message?: string | null;
   coupon_codes_enabled?: boolean | null;
   product_page_layout?: string[] | null;
+  product_page_hidden_blocks?: string[] | null;
   card_style?: string | null;
+  card_mobile_activation?: string | null;
+  card_shadow?: string | null;
+  card_hover_lift?: boolean | null;
+  card_border_enabled?: boolean | null;
+  card_image_fit?: string | null;
+  card_compare_color?: string | null;
+  card_sale_price_color?: string | null;
   card_variant?: string | null;
   card_show_stars?: boolean | null;
   card_show_quickview?: boolean | null;

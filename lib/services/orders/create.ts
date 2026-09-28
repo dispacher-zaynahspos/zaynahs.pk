@@ -17,6 +17,12 @@ export const createOrder = async (order: {
   shippingCost?: number;
   discountAmount?: number;
   shippingMethodName?: string;
+  /** Structured shipping address — written to order_addresses (source of truth going forward). */
+  shippingAddress?: {
+    name?: string; phone?: string; email?: string;
+    address1?: string; address2?: string; city?: string; postalCode?: string;
+    country?: string; latitude?: number | null; longitude?: number | null; paymentMethod?: string;
+  };
 }): Promise<Order> => {
   try {
     const supabase = await createClient();
@@ -212,6 +218,49 @@ export const createOrder = async (order: {
       break;
     }
     const mapped = mapOrder(data);
+
+    // Structured line-items + address (additive; failures never block the order).
+    try {
+      const itemRows = (order.items || []).map((it: any) => {
+        const qty = it.quantity ?? 1;
+        const unit = Number(it.unit_price ?? it.price ?? it.product?.price ?? 0);
+        return {
+          order_id: data.id,
+          product_id: it.product?.id ?? it.product_id ?? null,
+          variant_id: it.selected_variant?.id ?? it.variant_id ?? null,
+          name: it.product?.name ?? it.name ?? null,
+          sku: it.selected_variant?.sku ?? it.sku ?? null,
+          image_url: it.product?.images?.[0]?.url ?? it.image_url ?? null,
+          variant_label: it.selected_variant?.name ?? null,
+          unit_price: unit,
+          quantity: qty,
+          item_discount: Number(it.discountAmount ?? 0),
+          line_total: Number(it.total ?? unit * qty),
+        };
+      });
+      if (itemRows.length > 0) await supabaseAdmin.from('order_items').insert(itemRows);
+
+      const a = order.shippingAddress;
+      if (a && (a.address1 || a.city || a.phone)) {
+        await supabaseAdmin.from('order_addresses').insert({
+          order_id: data.id,
+          type: 'shipping',
+          name: a.name ?? order.customerName ?? null,
+          phone: a.phone ?? order.customerPhone ?? null,
+          email: a.email ?? order.customerEmail ?? null,
+          address1: a.address1 ?? null,
+          address2: a.address2 ?? null,
+          city: a.city ?? null,
+          postal_code: a.postalCode ?? null,
+          country: a.country ?? 'Pakistan',
+          latitude: a.latitude ?? null,
+          longitude: a.longitude ?? null,
+          payment_method: a.paymentMethod ?? null,
+        });
+      }
+    } catch (structErr) {
+      console.error('[orders] structured items/address insert skipped:', structErr);
+    }
 
     // Await the email dispatch so the serverless function does not exit/freeze before delivery completes
     try {

@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { trackEvent } from '@/lib/trackEvent';
 import { animateFlyTo } from '@/lib/utils/flyAnimation';
 import { useWishlist } from '@/components/store/product-card/hooks/useWishlist';
+import { isFeatureEnabled } from '@/lib/features/premium';
 import {
   ProductDetailGallery,
   ProductDetailInfo,
@@ -230,7 +231,7 @@ export default function ProductDetail({ product, settings, averageRating, social
       </div>
 
       {/* Frequently Bought Together Bundle Widget */}
-      {mounted && (
+      {mounted && isFeatureEnabled(settings, 'frequently_bought_together') && (
         <ProductDetailBundle
           product={product}
           settings={settings}

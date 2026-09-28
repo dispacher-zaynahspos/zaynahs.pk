@@ -1,9 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { HomepageSection, StoreSettings } from '@/lib/types';
 import { isSectionEnabled, sectionPremiumFeature, PREMIUM_FEATURE_LABEL } from '@/lib/features/premium';
-import { GripVertical, Eye, EyeOff, ChevronUp, ChevronDown, Trash2 } from '@/components/common/Icons';
+import { GripVertical, Eye, EyeOff, ChevronUp, ChevronDown, Trash2, Edit2, Check } from '@/components/common/Icons';
 import { toast } from 'sonner';
 
 interface HomeSectionsStackProps {
@@ -29,6 +29,19 @@ export default function HomeSectionsStack({
   handleMoveSection,
   handleDeleteSection,
 }: HomeSectionsStackProps) {
+  const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState('');
+
+  const startRename = (section: HomepageSection) => {
+    setRenamingId(section.id);
+    setRenameValue(section.title || '');
+  };
+  const commitRename = (id: string) => {
+    const next = renameValue.trim();
+    if (next) handleUpdateSection(id, { title: next });
+    setRenamingId(null);
+  };
+
   return (
     <>
       {/* Add section widget */}
@@ -134,19 +147,37 @@ export default function HomeSectionsStack({
 
                       return (
                         <div className="min-w-0 flex-1">
-                          <div
-                            className={`text-xs font-bold truncate ${
-                              isFeatureDisabled
-                                ? 'text-gray-450 dark:text-gray-500 line-through'
-                                : 'text-gray-900 dark:text-white'
-                            }`}
-                          >
-                            {isFeatureDisabled ? '🔒 ' : ''}
-                            {section.title || section.section_type}
-                          </div>
-                          <span className="text-[9px] text-gray-455 dark:text-gray-500 font-bold uppercase tracking-wider">
-                            {section.section_type.replace('_', ' ')} {isFeatureDisabled && '(Disabled)'}
-                          </span>
+                          {renamingId === section.id ? (
+                            <input
+                              autoFocus
+                              type="text"
+                              value={renameValue}
+                              onClick={(e) => e.stopPropagation()}
+                              onChange={(e) => setRenameValue(e.target.value)}
+                              onBlur={() => commitRename(section.id)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') commitRename(section.id);
+                                if (e.key === 'Escape') setRenamingId(null);
+                              }}
+                              className="w-full px-2 py-1 rounded-lg border border-blue-400 bg-white dark:bg-[#1a1a30] text-gray-900 dark:text-white text-xs focus:outline-none"
+                            />
+                          ) : (
+                            <>
+                              <div
+                                className={`text-xs font-bold truncate ${
+                                  isFeatureDisabled
+                                    ? 'text-gray-450 dark:text-gray-500 line-through'
+                                    : 'text-gray-900 dark:text-white'
+                                }`}
+                              >
+                                {isFeatureDisabled ? '🔒 ' : ''}
+                                {section.title || section.section_type}
+                              </div>
+                              <span className="text-[9px] text-gray-455 dark:text-gray-500 font-bold uppercase tracking-wider">
+                                {section.section_type.replace('_', ' ')} {isFeatureDisabled && '(Disabled)'}
+                              </span>
+                            </>
+                          )}
                         </div>
                       );
                     })()}
@@ -154,6 +185,23 @@ export default function HomeSectionsStack({
 
                   {/* Controls */}
                   <div className="flex items-center gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                    {renamingId === section.id ? (
+                      <button
+                        onClick={() => commitRename(section.id)}
+                        className="p-1 rounded-lg text-green-600 hover:bg-gray-100 dark:hover:bg-white/10 cursor-pointer"
+                        title="Save name"
+                      >
+                        <Check className="h-3.5 w-3.5" />
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => startRename(section)}
+                        className="p-1 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-gray-100 dark:hover:bg-white/10 cursor-pointer"
+                        title="Rename section"
+                      >
+                        <Edit2 className="h-3.5 w-3.5" />
+                      </button>
+                    )}
                     <button
                       onClick={() => handleUpdateSection(section.id, { active: !section.active })}
                       className={`p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 ${

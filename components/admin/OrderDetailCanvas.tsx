@@ -56,6 +56,8 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
     handleSaveNotes,
     handleSaveCustomer,
     handleStatusChange,
+    handleSetPayment,
+    handleSetFulfillment,
     handleMoveToTrash,
     handleCancelShipment,
     handleSaveStaffNote,
@@ -243,10 +245,68 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
           </div>
 
           <div className="bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden p-4">
-            <div className="flex justify-between py-2 text-[13.5px]">
+            <div className="flex justify-between py-1.5 text-[13px] text-gray-600 dark:text-gray-400">
+              <span>Subtotal</span>
+              <span>{formatPrice(order.subtotal ?? Math.max(0, (order.total || 0) - (order.shipping_amount || 0) + (order.discount_amount || 0)), settings.currency_symbol)}</span>
+            </div>
+            {(order.discount_amount ?? 0) > 0 && (
+              <div className="flex justify-between py-1.5 text-[13px] text-emerald-600 dark:text-emerald-400">
+                <span>Discount{order.discount_code ? ` (${order.discount_code})` : ''}</span>
+                <span>−{formatPrice(order.discount_amount || 0, settings.currency_symbol)}</span>
+              </div>
+            )}
+            <div className="flex justify-between py-1.5 text-[13px] text-gray-600 dark:text-gray-400">
+              <span>Shipping{order.shipping_method_name ? ` (${order.shipping_method_name})` : ''}</span>
+              <span>{formatPrice(order.shipping_amount || 0, settings.currency_symbol)}</span>
+            </div>
+            {(order.refund_amount ?? 0) > 0 && (
+              <div className="flex justify-between py-1.5 text-[13px] text-red-500">
+                <span>Refunded</span>
+                <span>−{formatPrice(order.refund_amount || 0, settings.currency_symbol)}</span>
+              </div>
+            )}
+            <div className="flex justify-between py-2 mt-1 border-t border-gray-200 dark:border-gray-800 text-[13.5px]">
               <span className="font-bold">Total</span>
               <span className="font-bold">{formatPrice(order.total, settings.currency_symbol)}</span>
             </div>
+          </div>
+
+          {/* Payment & fulfillment status + actions (real columns, not notes-derived) */}
+          <div className="bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-[13px] font-bold text-gray-700 dark:text-gray-300">Payment</span>
+              <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                order.payment_status === 'paid' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400'
+                : order.payment_status === 'refunded' ? 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400'
+                : 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400'}`}>
+                {(order.payment_status || 'unpaid').toUpperCase()}
+              </span>
+            </div>
+            <div className="flex gap-2">
+              {order.payment_status !== 'paid' && (
+                <button onClick={() => handleSetPayment('paid')} className="flex-1 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[12px] font-bold cursor-pointer active:scale-95">Mark as Paid</button>
+              )}
+              {order.payment_status === 'paid' && (
+                <button onClick={() => handleSetPayment('unpaid')} className="flex-1 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 text-[12px] font-bold cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800">Mark Unpaid</button>
+              )}
+              {order.payment_status !== 'refunded' && (
+                <button onClick={() => handleSetPayment('refunded')} className="flex-1 py-1.5 rounded-lg border border-red-200 dark:border-red-900/40 text-red-600 text-[12px] font-bold cursor-pointer hover:bg-red-50 dark:hover:bg-red-500/10">Refunded</button>
+              )}
+            </div>
+            <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-800">
+              <span className="text-[13px] font-bold text-gray-700 dark:text-gray-300">Fulfillment</span>
+              <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                order.fulfillment_status === 'fulfilled' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400'
+                : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'}`}>
+                {(order.fulfillment_status || 'unfulfilled').toUpperCase()}
+              </span>
+            </div>
+            <button
+              onClick={() => handleSetFulfillment(order.fulfillment_status === 'fulfilled' ? 'unfulfilled' : 'fulfilled')}
+              className="w-full py-1.5 rounded-lg bg-[#1a1a2e] dark:bg-[#e94560] hover:opacity-90 text-white text-[12px] font-bold cursor-pointer active:scale-95"
+            >
+              {order.fulfillment_status === 'fulfilled' ? 'Mark Unfulfilled' : 'Mark Fulfilled'}
+            </button>
           </div>
 
           <div className="bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm p-4 space-y-4">

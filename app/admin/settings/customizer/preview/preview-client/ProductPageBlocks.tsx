@@ -20,7 +20,9 @@ export default function ProductPageBlocks({
   products,
   settings,
 }: ProductPageBlocksProps) {
-  const blocks = settings.product_page_layout || ['details', 'ticker', 'reviews', 'related', 'recently_viewed', 'social_feed'];
+  const hiddenBlocks = settings.product_page_hidden_blocks || [];
+  const blocks = (settings.product_page_layout || ['details', 'ticker', 'reviews', 'related', 'recently_viewed', 'social_feed'])
+    .filter((b: string) => !hiddenBlocks.includes(b));
 
   const relatedCols = getResponsiveGridClasses({
     mobile: settings.related_columns_mobile || 2,

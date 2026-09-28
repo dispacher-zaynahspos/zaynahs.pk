@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, Suspense, useCallback } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
@@ -12,9 +12,10 @@ import { AdminDesktopSidebar } from '@/components/admin/layout/AdminDesktopSideb
 import { AdminMobileDrawer } from '@/components/admin/layout/AdminMobileDrawer';
 import { AdminMobileBottomBar } from '@/components/admin/layout/AdminMobileBottomBar';
 import { AdminHeader } from '@/components/admin/layout/AdminHeader';
+import { AdminCommandPalette } from '@/components/admin/layout/AdminCommandPalette';
 
 function AdminLayoutContent({
-  children
+  children,
 }: {
   children: React.ReactNode;
 }) {
@@ -22,7 +23,12 @@ function AdminLayoutContent({
   const searchParams = useSearchParams();
   const router = useRouter();
   const supabase = createClient();
+
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [adminEmail, setAdminEmail] = useState('');
+
   const { settings } = useSettings();
   const logoUrl = settings?.logo_url || settings?.favicon_url || null;
   const storeName = settings?.store_name || process.env.NEXT_PUBLIC_BRAND_NAME || 'Admin Console';
@@ -30,14 +36,67 @@ function AdminLayoutContent({
   // ⚠️ Client-only active state — avoids SSR/CSR hydration mismatch.
   const [mounted, setMounted] = useState(false);
   const [clientSearch, setClientSearch] = useState('');
+
   useEffect(() => {
     setMounted(true);
     setClientSearch(window.location.search || '');
-    document.body.classList.add('admin-shell');
+    
+    // 🌟 Enforce clean, high-contrast Light mode across Admin Console (Shopify/Stripe Standard)
+    try {
+      document.documentElement.classList.remove('dark');
+      document.documentElement.classList.add('light');
+      document.body.classList.remove('dark');
+      document.body.classList.add('admin-shell', 'light');
+    } catch (e) {
+      // ignore
+    }
+
+    // Restore sidebar collapse state (default to collapsed on tablet 768-1023px)
+    try {
+      const savedCollapsed = localStorage.getItem('admin_sidebar_collapsed');
+      if (savedCollapsed !== null) {
+        setIsSidebarCollapsed(savedCollapsed === 'true');
+      } else if (window.innerWidth >= 768 && window.innerWidth < 1024) {
+        setIsSidebarCollapsed(true);
+      }
+    } catch (e) {
+      // ignore local storage errors
+    }
+
+    // Fetch admin user email for profile card
+    async function loadAdminUser() {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user?.email) {
+          setAdminEmail(user.email);
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+    loadAdminUser();
+
     return () => {
       document.body.classList.remove('admin-shell');
     };
-  }, [pathname, searchParams]);
+  }, [pathname, searchParams, supabase]);
+
+  // Global shortcut: Cmd+K / Ctrl+K opens Command Palette
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsCommandPaletteOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, []);
+
+  // Auto-close mobile drawer on route change
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
 
   // Reset admin content scroll position to top on page or tab changes
   useEffect(() => {
@@ -80,14 +139,32 @@ function AdminLayoutContent({
     async function fetchTodayCounts() {
       try {
         const supabase = createClient();
-        const [ordersRes, pendingRes, leadsRes, cartsRes, pendingCartsRes, settingsFetch] = await Promise.all([
-          supabase.from('orders').select('id', { count: 'exact', head: true }).gte('created_at', startISO),
-          supabase.from('orders').select('id', { count: 'exact', head: true }).gte('created_at', startISO).in('status', ['pending', 'placed']),
-          supabase.from('whatsapp_subscribers').select('id', { count: 'exact', head: true }).gte('created_at', startISO),
-          supabase.from('abandoned_carts').select('id', { count: 'exact', head: true }).gte('last_activity', startISO),
-          supabase.from('abandoned_carts').select('id', { count: 'exact', head: true }).gte('last_activity', startISO).eq('email_sent', false).eq('order_placed', false),
-          fetch('/api/ai-check').then(r => r.json()).catch(() => ({ ai_enabled: false }))
-        ]);
+        const [ordersRes, pendingRes, leadsRes, cartsRes, pendingCartsRes, settingsFetch] =
+          await Promise.all([
+            supabase.from('orders').select('id', { count: 'exact', head: true }).gte('created_at', startISO),
+            supabase
+              .from('orders')
+              .select('id', { count: 'exact', head: true })
+              .gte('created_at', startISO)
+              .in('status', ['pending', 'placed']),
+            supabase
+              .from('whatsapp_subscribers')
+              .select('id', { count: 'exact', head: true })
+              .gte('created_at', startISO),
+            supabase
+              .from('abandoned_carts')
+              .select('id', { count: 'exact', head: true })
+              .gte('last_activity', startISO),
+            supabase
+              .from('abandoned_carts')
+              .select('id', { count: 'exact', head: true })
+              .gte('last_activity', startISO)
+              .eq('email_sent', false)
+              .eq('order_placed', false),
+            fetch('/api/ai-check')
+              .then((r) => r.json())
+              .catch(() => ({ ai_enabled: false })),
+          ]);
         setTodayCounts({
           orders: ordersRes?.count ?? 0,
           pending: pendingRes?.count ?? 0,
@@ -97,7 +174,10 @@ function AdminLayoutContent({
         });
         setAiEnabled(settingsFetch?.ai_enabled || false);
       } catch (err) {
-        console.warn('Network issue while fetching admin badges (connection closed or blocked). Retrying next time...', err);
+        console.warn(
+          'Network issue while fetching admin badges (connection closed or blocked). Retrying next time...',
+          err
+        );
       }
     }
     fetchTodayCounts();
@@ -120,30 +200,87 @@ function AdminLayoutContent({
     catalog: true,
     orders: true,
     customers: true,
+    analytics: true,
     reviews: true,
-    trash: true,
-    reporting: true,
-    settings: false,
+    store: true,
   });
 
+  // Restore expanded sections from localStorage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('admin_nav_expanded_sections');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setExpandedSections((prev) => ({ ...prev, ...parsed }));
+      }
+    } catch (e) {
+      // ignore
+    }
+  }, []);
+
   const toggleSection = (key: string) => {
-    setExpandedSections(prev => ({ ...prev, [key]: !prev[key] }));
+    setExpandedSections((prev) => {
+      const next = { ...prev, [key]: !prev[key] };
+      try {
+        localStorage.setItem('admin_nav_expanded_sections', JSON.stringify(next));
+      } catch (e) {
+        // ignore
+      }
+      return next;
+    });
+  };
+
+  const toggleSidebarCollapse = () => {
+    setIsSidebarCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem('admin_sidebar_collapsed', String(next));
+      } catch (e) {
+        // ignore
+      }
+      return next;
+    });
   };
 
   const navSections = getNavSections(aiEnabled, settings?.meta_sync_enabled);
 
-  const isItemActive = (href: string) => {
-    if (!mounted) return false;
-    const [basePath, searchQuery] = href.split('?');
-    if (searchQuery) {
-      const active = pathname === basePath && clientSearch === `?${searchQuery}`;
-      if (pathname === '/admin/settings' && searchQuery === 'tab=general' && (!clientSearch || clientSearch === '')) {
-        return true;
+  const isItemActive = useCallback(
+    (href: string) => {
+      if (!mounted) return false;
+      const [basePath, searchQuery] = href.split('?');
+      if (searchQuery) {
+        return pathname === basePath && clientSearch === `?${searchQuery}`;
       }
-      return active;
+      if (href === '/admin/dashboard') {
+        return pathname === '/admin/dashboard' || pathname === '/admin';
+      }
+      if (href === '/admin/settings') {
+        return pathname === '/admin/settings';
+      }
+      return pathname === href || pathname?.startsWith(href + '/');
+    },
+    [mounted, pathname, clientSearch]
+  );
+
+  // Auto-expand group containing active route
+  useEffect(() => {
+    if (!mounted) return;
+    for (const section of navSections) {
+      if (section.items.some((item) => isItemActive(item.href))) {
+        setExpandedSections((prev) => {
+          if (prev[section.key]) return prev;
+          const next = { ...prev, [section.key]: true };
+          try {
+            localStorage.setItem('admin_nav_expanded_sections', JSON.stringify(next));
+          } catch (e) {
+            // ignore
+          }
+          return next;
+        });
+        break;
+      }
     }
-    return pathname === href || (basePath !== '/admin/dashboard' && pathname?.startsWith(basePath) && !pathname?.startsWith('/admin/settings'));
-  };
+  }, [pathname, mounted, navSections, isItemActive]);
 
   const getPageTitle = () => {
     if (!mounted) return 'Console';
@@ -165,7 +302,8 @@ function AdminLayoutContent({
   }
 
   return (
-    <div className="admin-shell flex h-screen w-full max-w-full flex-col md:flex-row bg-slate-50 dark:bg-[#0b0b14] overflow-hidden text-[13px] font-sans antialiased">
+    <div className="admin-shell light flex h-screen w-full max-w-full flex-col md:flex-row bg-slate-50 overflow-hidden text-[13px] font-sans antialiased text-gray-900">
+      {/* 📱 Mobile & Tablet Off-Canvas Navigation Drawer */}
       <AdminMobileDrawer
         isMobileMenuOpen={isMobileMenuOpen}
         setIsMobileMenuOpen={setIsMobileMenuOpen}
@@ -177,8 +315,11 @@ function AdminLayoutContent({
         isItemActive={isItemActive}
         handleLogout={handleLogout}
         todayCounts={todayCounts}
+        onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
+        adminEmail={adminEmail}
       />
 
+      {/* 💻 Desktop & Tablet Navigation Sidebar (280px / 76px rail) */}
       <AdminDesktopSidebar
         logoUrl={logoUrl}
         storeName={storeName}
@@ -188,22 +329,41 @@ function AdminLayoutContent({
         isItemActive={isItemActive}
         todayCounts={todayCounts}
         handleLogout={handleLogout}
+        isCollapsed={isSidebarCollapsed}
+        toggleCollapse={toggleSidebarCollapse}
+        onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
+        adminEmail={adminEmail}
       />
 
-      {/* Main content area */}
+      {/* Main Content Area (Automatically adjusts width as sidebar expands/collapses) */}
       <div className="admin-layout-wrapper flex-1 flex flex-col min-w-0 max-w-full overflow-hidden">
         <AdminHeader
           pageTitle={getPageTitle()}
           setIsMobileMenuOpen={setIsMobileMenuOpen}
+          onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
+          pendingOrdersCount={todayCounts.pending}
         />
 
-        <main id="admin-main-content" className="flex-1 w-full max-w-full px-3 sm:px-4 md:px-5 pt-[calc(3.5rem+env(safe-area-inset-top,0px))] md:pt-4 pb-[calc(4.75rem+env(safe-area-inset-bottom,0px))] md:pb-6 overflow-y-auto overflow-x-hidden bg-slate-50/70 dark:bg-[#0b0b14] transition-colors duration-200">
+        <main
+          id="admin-main-content"
+          className="flex-1 w-full max-w-full px-3 sm:px-4 md:px-5 pt-[calc(3.5rem+env(safe-area-inset-top,0px))] md:pt-4 pb-[calc(5rem+env(safe-area-inset-bottom,0px))] md:pb-6 overflow-y-auto overflow-x-hidden bg-slate-50 text-gray-900 transition-colors duration-200"
+        >
           {children}
         </main>
       </div>
 
+      {/* 📱 Mobile Bottom Tab Bar (5 tabs: Dashboard, Orders, Products, Customers, More) */}
       <AdminMobileBottomBar
         pathname={pathname}
+        todayCounts={todayCounts}
+        onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
+      />
+
+      {/* ⚡ Command Palette / Quick Search Modal (Cmd+K) */}
+      <AdminCommandPalette
+        isOpen={isCommandPaletteOpen}
+        onClose={() => setIsCommandPaletteOpen(false)}
+        navSections={navSections}
         todayCounts={todayCounts}
       />
     </div>
@@ -211,20 +371,22 @@ function AdminLayoutContent({
 }
 
 export default function AdminLayout({
-  children
+  children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <Suspense fallback={
-      <div className="flex h-screen w-screen bg-gray-50 dark:bg-[#0f0f1b] animate-pulse">
-        <div className="hidden md:block w-64 bg-[#1a1a2e] h-full" />
-        <div className="flex-1 flex flex-col">
-          <div className="h-16 bg-white dark:bg-[#16162a] border-b border-gray-200 dark:border-gray-800" />
-          <div className="flex-1 p-6 md:p-8 bg-gray-50 dark:bg-[#0f0f1b]" />
+    <Suspense
+      fallback={
+        <div className="flex h-screen w-screen bg-slate-50 animate-pulse">
+          <div className="hidden md:block w-64 bg-slate-200 h-full" />
+          <div className="flex-1 flex flex-col">
+            <div className="h-16 bg-white border-b border-gray-200" />
+            <div className="flex-1 p-6 md:p-8 bg-slate-50" />
+          </div>
         </div>
-      </div>
-    }>
+      }
+    >
       <AdminConfirmProvider>
         <AdminLayoutContent>{children}</AdminLayoutContent>
       </AdminConfirmProvider>

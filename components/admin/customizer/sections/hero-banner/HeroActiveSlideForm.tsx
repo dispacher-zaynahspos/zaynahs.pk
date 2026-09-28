@@ -57,8 +57,8 @@ export function HeroActiveSlideForm({
         <span className="text-[10px] font-black uppercase tracking-wider text-[#e94560]">
           Editing Slide Settings
         </span>
-        <span className="text-[9px] font-bold text-gray-400 uppercase">
-          {activeSlide.title || 'Untitled'}
+        <span className="text-[9px] font-bold text-gray-400 uppercase truncate max-w-[140px]">
+          {activeSlide.title || activeSlide.mobile_title || activeSlide.tablet_title || 'Untitled slide'}
         </span>
       </div>
 
@@ -67,7 +67,7 @@ export function HeroActiveSlideForm({
         <div className="space-y-3">
           {/* Image Input */}
           <MediaField
-            label={<>Banner Image <span className="font-normal normal-case text-gray-400">(all devices)</span></>}
+            label={<>Banner Image <span className="ml-1 align-middle inline-block text-[8px] font-bold uppercase tracking-wide text-gray-500 bg-gray-100 dark:bg-gray-800 rounded px-1.5 py-0.5">All devices</span></>}
             value={activeSlide.image_url || ''}
             onChange={(v) => handleSlideChange(activeSlide.id, { image_url: v })}
             onSelect={() => onSelectMedia('content_data', 'image_url', true, activeSlide.id)}
@@ -76,7 +76,7 @@ export function HeroActiveSlideForm({
 
           {/* Video URL Input */}
           <MediaField
-            label={<>Video URL <span className="font-normal normal-case text-gray-400">(optional — all devices)</span></>}
+            label={<>Video URL <span className="ml-1 align-middle inline-block text-[8px] font-bold uppercase tracking-wide text-gray-500 bg-gray-100 dark:bg-gray-800 rounded px-1.5 py-0.5">All devices · optional</span></>}
             value={activeSlide.video_url || ''}
             onChange={(v) => handleSlideChange(activeSlide.id, { video_url: v })}
             onSelect={() => onSelectMedia('content_data', 'video_url', true, activeSlide.id)}
@@ -117,8 +117,9 @@ export function HeroActiveSlideForm({
 
       {/* Viewport-specific Text Content Editor */}
       <div className="space-y-3 pt-2 border-t border-gray-200 dark:border-gray-800">
-        <span className="text-[9px] font-black tracking-wider uppercase text-gray-400 dark:text-gray-550 capitalize">
-          {viewportMode} Text Content (Slide-level)
+        <span className="flex items-center gap-1.5 text-[9px] font-black tracking-wider uppercase text-gray-400 dark:text-gray-550">
+          <span className="inline-block text-[8px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/30 rounded px-1.5 py-0.5 capitalize">{viewportMode}</span>
+          Text Content (per device)
         </span>
         
         <div className="space-y-1.5">

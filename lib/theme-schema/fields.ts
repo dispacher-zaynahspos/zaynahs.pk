@@ -9,6 +9,9 @@
 
 import type { Device } from './responsive';
 
+/** Re-exported for convenience so control components can import device typing from here. */
+export type { Device as ControlDevice };
+
 export type FieldType =
   | 'toggle'
   | 'select'
@@ -94,5 +97,3 @@ export function isFieldVisible(field: FieldDescriptor, values: Record<string, un
   if ('equals' in field.showIf) return target === field.showIf.equals;
   return true;
 }
-
-export type { Device };

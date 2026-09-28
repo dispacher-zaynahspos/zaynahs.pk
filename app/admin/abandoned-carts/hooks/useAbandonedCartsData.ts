@@ -11,9 +11,10 @@ export function useAbandonedCartsData() {
   const { confirm } = useConfirm();
   const [carts, setCarts] = useState<AbandonedCart[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [dateFilter, setDateFilter] = useState<string>('today');
+  const [dateFilter, setDateFilter] = useState<string>('all');
   const [customStartDate, setCustomStartDate] = useState('');
   const [customEndDate, setCustomEndDate] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -23,15 +24,21 @@ export function useAbandonedCartsData() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const fetchCarts = useCallback(async () => {
+    // Timeout guard so the skeleton can never hang forever on a stalled request.
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 12000);
     try {
       setLoading(true);
-      const res = await fetch('/api/admin/abandoned-carts');
+      setError(false);
+      const res = await fetch('/api/admin/abandoned-carts', { signal: controller.signal });
       if (!res.ok) throw new Error('Failed to load');
       const data = await res.json();
       setCarts(data.carts || []);
     } catch {
+      setError(true);
       toast.error('Failed to load abandoned carts');
     } finally {
+      clearTimeout(timeout);
       setLoading(false);
     }
   }, []);
@@ -263,6 +270,8 @@ export function useAbandonedCartsData() {
   return {
     carts,
     loading,
+    error,
+    refetch: fetchCarts,
     searchQuery,
     setSearchQuery,
     statusFilter,

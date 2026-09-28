@@ -4,6 +4,7 @@ import React from 'react';
 import { HomepageSection } from '@/lib/types';
 import ResponsiveGridColumnsControl from '@/components/admin/customizer/shared/ResponsiveGridColumnsControl';
 import SocialFeedItemsEditor from './SocialFeedItemsEditor';
+import { AccordionGroup } from '@/components/admin/customizer/controls';
 
 interface SocialFeedSettingsProps {
   section: HomepageSection;
@@ -32,7 +33,9 @@ export default function SocialFeedSettings({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
+      <AccordionGroup id={`sf-${section.id}-content`} title="Content & Layout" defaultOpen>
+      <div className="space-y-4 pt-2">
       <div className="space-y-1.5">
         <label className="text-[11px] font-bold text-gray-500 dark:text-gray-400 block uppercase tracking-wider">Ribbon Title</label>
         <input
@@ -100,6 +103,8 @@ export default function SocialFeedSettings({
           onSelectMedia={onSelectMedia}
         />
       </div>
+      </div>
+      </AccordionGroup>
     </div>
   );
 }

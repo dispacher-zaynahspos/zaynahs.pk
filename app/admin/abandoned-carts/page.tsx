@@ -14,6 +14,8 @@ import { useAbandonedCartsData } from './hooks/useAbandonedCartsData';
 export default function AbandonedCartsPage() {
   const {
     loading,
+    error,
+    refetch,
     searchQuery,
     setSearchQuery,
     statusFilter,
@@ -74,7 +76,7 @@ export default function AbandonedCartsPage() {
           <AdminSearchInput
             value={searchQuery}
             onChange={setSearchQuery}
-            placeholder="Search by customer, phone, email or session ID..."
+            placeholder="Search name, phone, email..."
             className="sm:max-w-md w-full"
           />
           
@@ -141,6 +143,8 @@ export default function AbandonedCartsPage() {
       {/* Main Table View */}
       <AbandonedCartTable
         loading={loading}
+        error={error}
+        onRetry={refetch}
         filteredCarts={filteredCarts}
         paginatedCarts={paginatedCarts}
         deleting={deleting}

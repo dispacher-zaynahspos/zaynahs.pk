@@ -65,6 +65,56 @@ export const updateOrderStatus = async (id: string, status: Order['status']): Pr
   }
 };
 
+/** Set payment status (unpaid|paid|refunded) + log a timeline event. Atomic single-row update. */
+export const setPaymentStatus = async (id: string, paymentStatus: 'unpaid' | 'paid' | 'refunded', method?: string): Promise<Order> => {
+  try {
+    const supabase = await createClient();
+    const { data: cur, error: fErr } = await supabase.from('orders').select('payment_status, status_logs').eq('id', id).single();
+    if (fErr) throw fErr;
+    const logs = (cur?.status_logs || []) as StatusLogItem[];
+    if (cur?.payment_status !== paymentStatus) {
+      logs.push({
+        id: crypto.randomUUID(),
+        type: 'payment',
+        message: `Payment marked ${paymentStatus.toUpperCase()}${method ? ` (${method})` : ''}`,
+        status: paymentStatus,
+        created_at: new Date().toISOString(),
+      } as StatusLogItem);
+    }
+    const { data, error } = await supabase.from('orders').update({ payment_status: paymentStatus, status_logs: logs }).eq('id', id).select('*').single();
+    if (error) throw error;
+    return mapOrder(data);
+  } catch (error) {
+    console.error('[orders] setPaymentStatus failed:', error);
+    throw error;
+  }
+};
+
+/** Set fulfillment status (unfulfilled|fulfilled) + log a timeline event. */
+export const setFulfillmentStatus = async (id: string, fulfillmentStatus: 'unfulfilled' | 'fulfilled'): Promise<Order> => {
+  try {
+    const supabase = await createClient();
+    const { data: cur, error: fErr } = await supabase.from('orders').select('fulfillment_status, status_logs').eq('id', id).single();
+    if (fErr) throw fErr;
+    const logs = (cur?.status_logs || []) as StatusLogItem[];
+    if (cur?.fulfillment_status !== fulfillmentStatus) {
+      logs.push({
+        id: crypto.randomUUID(),
+        type: 'fulfillment',
+        message: `Order marked ${fulfillmentStatus.toUpperCase()}`,
+        status: fulfillmentStatus,
+        created_at: new Date().toISOString(),
+      } as StatusLogItem);
+    }
+    const { data, error } = await supabase.from('orders').update({ fulfillment_status: fulfillmentStatus, status_logs: logs }).eq('id', id).select('*').single();
+    if (error) throw error;
+    return mapOrder(data);
+  } catch (error) {
+    console.error('[orders] setFulfillmentStatus failed:', error);
+    throw error;
+  }
+};
+
 export const updateOrderDetails = async (
   id: string,
   updates: {
@@ -202,9 +252,26 @@ export const hardDeleteOrder = async (id: string): Promise<void> => {
   }
 };
 
+/** Replace an order's tags. */
+export const setOrderTags = async (id: string, tags: string[]): Promise<Order> => {
+  try {
+    const supabase = await createClient();
+    const clean = Array.from(new Set(tags.map((t) => t.trim()).filter(Boolean))).slice(0, 20);
+    const { data, error } = await supabase.from('orders').update({ tags: clean }).eq('id', id).select('*').single();
+    if (error) throw error;
+    return mapOrder(data);
+  } catch (error) {
+    console.error('[orders] setOrderTags failed:', error);
+    throw error;
+  }
+};
+
 // SAFE ACTION WRAPPERS
 export const updateOrderStatusSafe = async (...args: Parameters<typeof updateOrderStatus>) => safeAction(updateOrderStatus(...args));
 export const updateOrderDetailsSafe = async (...args: Parameters<typeof updateOrderDetails>) => safeAction(updateOrderDetails(...args));
+export const setPaymentStatusSafe = async (...args: Parameters<typeof setPaymentStatus>) => safeAction(setPaymentStatus(...args));
+export const setFulfillmentStatusSafe = async (...args: Parameters<typeof setFulfillmentStatus>) => safeAction(setFulfillmentStatus(...args));
+export const setOrderTagsSafe = async (...args: Parameters<typeof setOrderTags>) => safeAction(setOrderTags(...args));
 export const deleteOrderSafe = async (...args: Parameters<typeof deleteOrder>) => safeAction(deleteOrder(...args));
 export const restoreOrderSafe = async (...args: Parameters<typeof restoreOrder>) => safeAction(restoreOrder(...args));
 export const hardDeleteOrderSafe = async (...args: Parameters<typeof hardDeleteOrder>) => safeAction(hardDeleteOrder(...args));

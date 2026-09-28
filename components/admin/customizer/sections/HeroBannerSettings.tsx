@@ -4,6 +4,7 @@ import React from 'react';
 import { HomepageSection } from '@/lib/types';
 import { toast } from 'sonner';
 import { moveItemInArray } from '@/lib/utils/arrayMove';
+import { AccordionGroup, DEVICE_ICON } from '@/components/admin/customizer/controls';
 import {
   HeroSlide,
   parsePxValue,
@@ -126,50 +127,59 @@ export default function HeroBannerSettings({
   const widthMobile = parsePercentValue(settings.content_width_mobile, 100);
 
   const activeSlide = slides.find(s => s.id === activeSlideId);
+  const DeviceIcon = DEVICE_ICON[viewportMode];
 
   return (
-    <div className="space-y-5">
-      {/* Viewport Context Header */}
-      <div className="flex items-center gap-2 p-2 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-gray-800 text-xs font-bold text-gray-500 dark:text-gray-400">
-        <span className="text-base">⚙️</span>
+    <div className="space-y-4">
+      {/* Device scope banner — clarifies shared vs per-device editing */}
+      <div className="flex items-start gap-2 p-2.5 rounded-xl bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/30 text-[11px] font-semibold text-blue-700 dark:text-blue-300">
+        <DeviceIcon className="w-4 h-4 mt-0.5 shrink-0" />
         <span>
-          Showing settings for <strong className="text-[#e94560] uppercase">{viewportMode}</strong> view
+          Editing <strong className="uppercase">{viewportMode}</strong>. Media & slider options are
+          shared across devices; <strong>text &amp; sizing</strong> can be overridden per device
+          (switch device in the top bar).
         </span>
       </div>
 
-      {/* A. SLIDES LIST MANAGEMENT */}
-      <HeroSlideManager
-        slides={slides}
-        activeSlideId={activeSlideId}
-        setActiveSlideId={(id) => setActiveSlideId(id)}
-        handleAddSlide={handleAddSlide}
-        handleDeleteSlide={handleDeleteSlide}
-        handleMoveSlide={handleMoveSlide}
-      />
+      {/* CONTENT — slides + active slide */}
+      <AccordionGroup id={`hero-${section.id}-content`} title="Content" defaultOpen>
+        <div className="space-y-4 pt-2">
+          <HeroSlideManager
+            slides={slides}
+            activeSlideId={activeSlideId}
+            setActiveSlideId={(id) => setActiveSlideId(id)}
+            handleAddSlide={handleAddSlide}
+            handleDeleteSlide={handleDeleteSlide}
+            handleMoveSlide={handleMoveSlide}
+          />
+          {activeSlide && (
+            <HeroActiveSlideForm
+              activeSlide={activeSlide}
+              viewportMode={viewportMode}
+              handleSlideChange={handleSlideChange}
+              onSelectMedia={onSelectMedia}
+            />
+          )}
+        </div>
+      </AccordionGroup>
 
-      {/* B. ACTIVE SLIDE SETTINGS */}
-      {activeSlide && (
-        <HeroActiveSlideForm
-          activeSlide={activeSlide}
-          viewportMode={viewportMode}
-          handleSlideChange={handleSlideChange}
-          onSelectMedia={onSelectMedia}
-        />
-      )}
-
-      {/* C. GLOBAL SLIDER OPTIONS & SETTINGS */}
-      <HeroGlobalSettings
-        settings={settings}
-        viewportMode={viewportMode}
-        heightDesktop={heightDesktop}
-        heightTablet={heightTablet}
-        heightMobile={heightMobile}
-        widthDesktop={widthDesktop}
-        widthTablet={widthTablet}
-        widthMobile={widthMobile}
-        handleSettingsChange={handleSettingsChange}
-        onUpdateSection={(updates) => onUpdateSection(updates)}
-      />
+      {/* LAYOUT & STYLE — dimensions, position, colors, autoplay */}
+      <AccordionGroup id={`hero-${section.id}-layout`} title="Layout & Style" defaultOpen={false}>
+        <div className="pt-2">
+          <HeroGlobalSettings
+            settings={settings}
+            viewportMode={viewportMode}
+            heightDesktop={heightDesktop}
+            heightTablet={heightTablet}
+            heightMobile={heightMobile}
+            widthDesktop={widthDesktop}
+            widthTablet={widthTablet}
+            widthMobile={widthMobile}
+            handleSettingsChange={handleSettingsChange}
+            onUpdateSection={(updates) => onUpdateSection(updates)}
+          />
+        </div>
+      </AccordionGroup>
     </div>
   );
 }

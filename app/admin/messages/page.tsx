@@ -71,10 +71,9 @@ export default function AdminMessagesPage() {
     <div className="p-4 sm:p-6 space-y-5">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="flex items-center gap-2">
-          <Mail className="h-5 w-5 text-[#e94560]" />
-          <h1 className="text-xl font-black text-gray-900 dark:text-white">Contact Messages</h1>
+          {/* Page title comes from the global AdminHeader; avoid duplicate <h1>. */}
           {unreadCount > 0 && (
-            <span className="rounded-full bg-[#e94560] px-2 py-0.5 text-[11px] font-bold text-white">{unreadCount} new</span>
+            <span className="rounded-full bg-[#e94560] px-2.5 py-1 text-[11px] font-bold text-white">{unreadCount} new</span>
           )}
         </div>
         <div className="w-full sm:w-72">

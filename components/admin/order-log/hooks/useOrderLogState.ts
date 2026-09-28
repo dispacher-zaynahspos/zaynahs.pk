@@ -190,9 +190,11 @@ export function useOrderLogState({ initialOrders, settings }: UseOrderLogStatePr
     if (o.deleted_at) return false;
 
     if (activeTab === 'unfulfilled') {
-      if (!['pending', 'placed', 'confirmed'].includes(o.status)) return false;
+      if (o.fulfillment_status === 'fulfilled') return false;
+      if (['delivered', 'cancelled', 'refunded'].includes(o.status)) return false;
     } else if (activeTab === 'unpaid') {
       if (isOrderPaid(o)) return false;
+      if (['cancelled', 'refunded'].includes(o.status)) return false;
     } else if (activeTab === 'open') {
       if (['delivered', 'cancelled', 'refunded'].includes(o.status)) return false;
     } else if (activeTab === 'archived') {

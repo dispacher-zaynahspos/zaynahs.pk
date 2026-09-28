@@ -14,6 +14,7 @@ interface ShopPageHeaderProps {
   isCategoryDescExpanded: boolean;
   setIsCategoryDescExpanded: (v: boolean) => void;
   handleCategorySelect: (categoryId: string | undefined, keepCollection?: boolean) => void;
+  showBreadcrumbs?: boolean;
 }
 
 export default function ShopPageHeader({
@@ -24,10 +25,12 @@ export default function ShopPageHeader({
   isCategoryDescExpanded,
   setIsCategoryDescExpanded,
   handleCategorySelect,
+  showBreadcrumbs = true,
 }: ShopPageHeaderProps) {
   return (
     <>
       {/* Breadcrumbs */}
+      {showBreadcrumbs && (
       <div className="text-center md:text-left text-xs text-gray-500 dark:text-gray-400 font-semibold mb-2">
         <Link href="/" className="hover:text-[#e94560] transition-colors">Home</Link>
         <span className="mx-2">•</span>
@@ -44,6 +47,7 @@ export default function ShopPageHeader({
           </>
         ) : null}
       </div>
+      )}
 
       {/* Page Header / Category Banner */}
       {activeCollection ? (

@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import { HomepageSection, Review } from '@/lib/types';
 import { ChevronUp, ChevronDown, GripVertical, Trash2, Search, X } from '@/components/common/Icons';
+import { AccordionGroup } from '@/components/admin/customizer/controls';
 
 interface RecentReviewsSettingsProps {
   section: HomepageSection;
@@ -97,7 +98,9 @@ export default function RecentReviewsSettings({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
+      <AccordionGroup id={`rev-${section.id}-settings`} title="Reviews Feed Settings" defaultOpen>
+      <div className="space-y-4 pt-2">
       {/* Sort Method */}
       <div className="space-y-1.5">
         <label className="text-[11px] font-bold text-gray-500 dark:text-gray-400">
@@ -279,6 +282,8 @@ export default function RecentReviewsSettings({
           }`} />
         </button>
       </div>
+      </div>
+      </AccordionGroup>
     </div>
   );
 }

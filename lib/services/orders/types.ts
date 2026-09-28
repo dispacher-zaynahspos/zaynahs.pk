@@ -41,6 +41,9 @@ export interface OrderRow {
   shipping_method_name?: string | null;
   discount_code?: string | null;
   status: string;
+  payment_status?: string | null;
+  fulfillment_status?: string | null;
+  tags?: string[] | null;
   notes?: string | null;
   staff_notes?: string | null;
   status_logs?: unknown;
@@ -71,6 +74,9 @@ export const mapOrder = (row: OrderRow): Order => ({
   shipping_method_name: row.shipping_method_name || undefined,
   discount_code: row.discount_code || undefined,
   status: row.status as Order['status'],
+  payment_status: (row.payment_status as Order['payment_status']) || 'unpaid',
+  fulfillment_status: (row.fulfillment_status as Order['fulfillment_status']) || 'unfulfilled',
+  tags: row.tags || [],
   notes: row.notes || undefined,
   staff_notes: row.staff_notes || undefined,
   status_logs: normalizeStatusLogs(row.status_logs),

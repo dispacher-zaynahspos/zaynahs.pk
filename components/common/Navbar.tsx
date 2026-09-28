@@ -147,12 +147,14 @@ export default function Navbar({
   );
 
   const searchNode = (
-    <NavSearchButton
-      key="search"
-      isAdmin={isAdmin}
-      setSearchOpen={setSearchOpen}
-      customTextColorStyle={customTextColorStyle}
-    />
+    (settings?.enable_search ?? true) ? (
+      <NavSearchButton
+        key="search"
+        isAdmin={isAdmin}
+        setSearchOpen={setSearchOpen}
+        customTextColorStyle={customTextColorStyle}
+      />
+    ) : null
   );
 
   const wishlistDesktopNode = (

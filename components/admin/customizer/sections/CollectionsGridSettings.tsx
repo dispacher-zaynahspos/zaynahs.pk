@@ -5,6 +5,7 @@ import { HomepageSection, Category, Collection } from '@/lib/types';
 import { Trash2, ChevronUp, ChevronDown } from '@/components/common/Icons';
 import { moveItemInArray } from '@/lib/utils/arrayMove';
 import ResponsiveGridColumnsControl from '../shared/ResponsiveGridColumnsControl';
+import { AccordionGroup } from '@/components/admin/customizer/controls';
 
 interface CollectionsGridSettingsProps {
   section: HomepageSection;
@@ -64,7 +65,9 @@ export default function CollectionsGridSettings({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
+      <AccordionGroup id={`colg-${section.id}-layout`} title="Layout & Style" defaultOpen>
+      <div className="space-y-4 pt-2">
       {/* Show/Hide Section Title Toggle */}
       <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-800 pb-2.5">
         <div>
@@ -305,8 +308,11 @@ export default function CollectionsGridSettings({
           <div className="w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#e94560]" />
         </label>
       </div>
+      </div>
+      </AccordionGroup>
 
-      <div className="flex flex-col gap-3">
+      <AccordionGroup id={`colg-${section.id}-cards`} title="Grid Cards" defaultOpen>
+      <div className="flex flex-col gap-3 pt-2">
         <div className="flex items-center justify-between">
           <h4 className="text-xs font-black text-gray-800 dark:text-gray-200 uppercase tracking-wider">Grid Cards</h4>
           <div className="flex gap-2">
@@ -463,6 +469,7 @@ export default function CollectionsGridSettings({
           )}
         </div>
       </div>
+      </AccordionGroup>
     </div>
   );
 }

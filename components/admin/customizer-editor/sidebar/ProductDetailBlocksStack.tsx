@@ -3,7 +3,7 @@
 import React from 'react';
 import { StoreSettings } from '@/lib/types';
 import { isFeatureEnabled } from '@/lib/features/premium';
-import { GripVertical, EyeOff, ChevronUp, ChevronDown } from '@/components/common/Icons';
+import { GripVertical, Eye, EyeOff, ChevronUp, ChevronDown } from '@/components/common/Icons';
 import { toast } from 'sonner';
 
 interface ProductDetailBlocksStackProps {
@@ -34,6 +34,7 @@ export default function ProductDetailBlocksStack({
     'recently_viewed',
     'social_feed',
   ];
+  const hiddenBlocks = storeSettings.product_page_hidden_blocks || [];
 
   const blockLabels: Record<string, string> = {
     details: 'Product Details Component',
@@ -142,19 +143,23 @@ export default function ProductDetailBlocksStack({
                   })()}
                 </div>
                 <div className="flex items-center gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-                  <button
-                    onClick={() => {
-                      const newLayout = arr.filter((b) => b !== blockId);
-                      setStoreSettings((prev) => ({ ...prev, product_page_layout: newLayout }));
-                      if (activeSectionId === blockId) {
-                        setActiveSectionId(null);
-                      }
-                    }}
-                    className="p-1 text-gray-400 hover:text-red-500 dark:hover:text-red-400 cursor-pointer animate-none"
-                    title="Hide block"
-                  >
-                    <EyeOff className="h-3.5 w-3.5" />
-                  </button>
+                  {(() => {
+                    const isHidden = hiddenBlocks.includes(blockId);
+                    return (
+                      <button
+                        onClick={() => {
+                          const nextHidden = isHidden
+                            ? hiddenBlocks.filter((b) => b !== blockId)
+                            : [...hiddenBlocks, blockId];
+                          setStoreSettings((prev) => ({ ...prev, product_page_hidden_blocks: nextHidden }));
+                        }}
+                        className={`p-1 cursor-pointer animate-none ${isHidden ? 'text-gray-400 hover:text-[#e94560]' : 'text-[#e94560] hover:text-gray-500'}`}
+                        title={isHidden ? 'Show block' : 'Hide block'}
+                      >
+                        {isHidden ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                      </button>
+                    );
+                  })()}
                   <button
                     disabled={idx === 0}
                     onClick={() => {

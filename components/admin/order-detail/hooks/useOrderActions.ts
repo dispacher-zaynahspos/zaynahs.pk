@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Order, StatusLogItem } from '@/lib/types';
-import { updateOrderDetailsSafe, deleteOrderSafe } from '@/lib/services/orders';
+import { updateOrderDetailsSafe, deleteOrderSafe, setPaymentStatusSafe, setFulfillmentStatusSafe } from '@/lib/services/orders';
 import { useConfirm } from '@/components/admin/shared/AdminConfirmProvider';
 import { toast } from 'sonner';
 
@@ -50,6 +50,38 @@ export function useOrderActions(
     } finally {
       setIsUpdating(false);
       setIsDropdownOpen(false);
+    }
+  };
+
+  const handleSetPayment = async (paymentStatus: 'unpaid' | 'paid' | 'refunded') => {
+    try {
+      setIsUpdating(true);
+      const result = await setPaymentStatusSafe(order.id, paymentStatus);
+      if (!result.success) throw new Error(result.error);
+      setOrder(result.data);
+      toast.success(`Payment marked ${paymentStatus}`);
+      router.refresh();
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to update payment status');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleSetFulfillment = async (fulfillmentStatus: 'unfulfilled' | 'fulfilled') => {
+    try {
+      setIsUpdating(true);
+      const result = await setFulfillmentStatusSafe(order.id, fulfillmentStatus);
+      if (!result.success) throw new Error(result.error);
+      setOrder(result.data);
+      toast.success(`Order marked ${fulfillmentStatus}`);
+      router.refresh();
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to update fulfillment status');
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -234,6 +266,8 @@ export function useOrderActions(
     editingCommentText,
     setEditingCommentText,
     handleStatusChange,
+    handleSetPayment,
+    handleSetFulfillment,
     handleMoveToTrash,
     handleCancelShipment,
     handleSaveStaffNote,
