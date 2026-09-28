@@ -640,7 +640,7 @@ export const customCss = `
       border-top: 1px solid #eee;
     }
     .z-card-container .sc7 .prc { font-size: 0.9rem; font-weight: 900; color: #111; }
-    .z-card-container .sc7 .pold { font-size: 0.7rem; color: #aaa; text-decoration: line-through; }
+    .z-card-container .sc7 .pold { font-size: 0.7rem; color: #aaa; text-decoration: line-through; text-decoration-color: #ef4444; }
     .z-card-container .sc7 .card-actions { right: 8px; top: 8px; }
     .z-card-container .sc7 .action-btn,
     .z-card-container .sc7 .ai {
@@ -700,7 +700,7 @@ export const customCss = `
       margin-bottom: 4px;
     }
     .z-card-container .sc8 .prc { font-size: 0.88rem; font-weight: 900; color: #000; }
-    .z-card-container .sc8 .pold { font-size: 0.68rem; color: #999; text-decoration: line-through; }
+    .z-card-container .sc8 .pold { font-size: 0.68rem; color: #999; text-decoration: line-through; text-decoration-color: #ef4444; }
     .z-card-container .sc8 .card-actions { right: 8px; top: 8px; }
     .z-card-container .sc8 .action-btn,
     .z-card-container .sc8 .ai {
@@ -785,6 +785,7 @@ export const customCss = `
       font-size: 0.68rem;
       color: #999;
       text-decoration: line-through;
+      text-decoration-color: #ef4444;
     }
     .z-card-container .sc9 .card-actions { right: 8px; top: 8px; }
     .z-card-container .sc9 .action-btn,
@@ -876,6 +877,7 @@ export const customCss = `
       font-size: 0.68rem;
       color: #bbb;
       text-decoration: line-through;
+      text-decoration-color: #ef4444;
       margin-left: 4px;
     }
     .z-card-container .sc10 .card-actions { right: 10px; top: 10px; }
