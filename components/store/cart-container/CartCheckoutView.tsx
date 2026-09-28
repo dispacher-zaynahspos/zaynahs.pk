@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, Truck, Lock, Send } from '@/components/commo
 import { StoreSettings, ShippingMethod, PaymentMethod, CartItem } from '@/lib/types';
 import { formatPrice } from '@/lib/utils/whatsapp';
 import PhoneInput from '@/components/store/PhoneInput';
+import { PK_CITIES } from '@/lib/data/pk-cities';
 
 interface CartCheckoutViewProps {
   settings: StoreSettings;
@@ -134,7 +135,7 @@ export default function CartCheckoutView({
                 <div>
                   <label className="block text-[10px] font-black uppercase tracking-wider text-gray-400 mb-1.5">First Name<span className="text-red-500 ml-0.5">*</span></label>
                   <input
-                    type="text" required placeholder="Ali"
+                    type="text" required placeholder="Ali" autoComplete="given-name"
                     value={firstName} onChange={e => setFirstName(e.target.value)}
                     className="w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-[#0f0f1b]/50 px-4 py-3 text-sm font-medium text-gray-900 dark:text-white placeholder-gray-400 focus:border-[#e94560] focus:bg-white dark:focus:bg-[#16162a] focus:outline-none transition-all"
                   />
@@ -142,7 +143,7 @@ export default function CartCheckoutView({
                 <div>
                   <label className="block text-[10px] font-black uppercase tracking-wider text-gray-400 mb-1.5">Last Name<span className="text-red-500 ml-0.5">*</span></label>
                   <input
-                    type="text" required placeholder="Hassan"
+                    type="text" required placeholder="Hassan" autoComplete="family-name"
                     value={lastName} onChange={e => setLastName(e.target.value)}
                     className="w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-[#0f0f1b]/50 px-4 py-3 text-sm font-medium text-gray-900 dark:text-white placeholder-gray-400 focus:border-[#e94560] focus:bg-white dark:focus:bg-[#16162a] focus:outline-none transition-all"
                   />
@@ -153,7 +154,7 @@ export default function CartCheckoutView({
               <div>
                 <label className="block text-[10px] font-black uppercase tracking-wider text-gray-400 mb-1.5">Address<span className="text-red-500 ml-0.5">*</span></label>
                 <input
-                  type="text" required placeholder="Street address, house number"
+                  type="text" required placeholder="Street address, house number" autoComplete="address-line1"
                   value={address} onChange={e => setAddress(e.target.value)}
                   className="w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-[#0f0f1b]/50 px-4 py-3 text-sm font-medium text-gray-900 dark:text-white placeholder-gray-400 focus:border-[#e94560] focus:bg-white dark:focus:bg-[#16162a] focus:outline-none transition-all"
                 />
@@ -163,7 +164,7 @@ export default function CartCheckoutView({
               <div>
                 <label className="block text-[10px] font-black uppercase tracking-wider text-gray-400 mb-1.5">Address Line 2<span className="text-gray-500 ml-1 font-normal normal-case text-[9px]">(Optional)</span></label>
                 <input
-                  type="text" placeholder="Apartment, suite, floor"
+                  type="text" placeholder="Apartment, suite, floor" autoComplete="address-line2"
                   value={apartment} onChange={e => setApartment(e.target.value)}
                   className="w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-[#0f0f1b]/50 px-4 py-3 text-sm font-medium text-gray-900 dark:text-white placeholder-gray-400 focus:border-[#e94560] focus:bg-white dark:focus:bg-[#16162a] focus:outline-none transition-all"
                 />
@@ -174,15 +175,18 @@ export default function CartCheckoutView({
                 <div>
                   <label className="block text-[10px] font-black uppercase tracking-wider text-gray-400 mb-1.5">City<span className="text-red-500 ml-0.5">*</span></label>
                   <input
-                    type="text" required placeholder="Karachi"
+                    type="text" required placeholder="Karachi" list="pk-cities-list" autoComplete="address-level2"
                     value={city} onChange={e => setCity(e.target.value)}
                     className="w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-[#0f0f1b]/50 px-4 py-3 text-sm font-medium text-gray-900 dark:text-white placeholder-gray-400 focus:border-[#e94560] focus:bg-white dark:focus:bg-[#16162a] focus:outline-none transition-all"
                   />
+                  <datalist id="pk-cities-list">
+                    {PK_CITIES.map((c) => <option key={c} value={c} />)}
+                  </datalist>
                 </div>
                 <div>
                   <label className="block text-[10px] font-black uppercase tracking-wider text-gray-400 mb-1.5">Postal Code<span className="text-gray-500 ml-1 font-normal normal-case text-[9px]">(Optional)</span></label>
                   <input
-                    type="text" placeholder="75500"
+                    type="text" placeholder="75500" autoComplete="postal-code" inputMode="numeric"
                     value={postalCode} onChange={e => setPostalCode(e.target.value)}
                     className="w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-[#0f0f1b]/50 px-4 py-3 text-sm font-medium text-gray-900 dark:text-white placeholder-gray-400 focus:border-[#e94560] focus:bg-white dark:focus:bg-[#16162a] focus:outline-none transition-all"
                   />

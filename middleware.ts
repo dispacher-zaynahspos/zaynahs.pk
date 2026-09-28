@@ -17,6 +17,15 @@ export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
   const { pathname } = req.nextUrl;
 
+  // --- Canonical host: normalize www.* -> bare domain (301) so www and non-www
+  // don't both get indexed (duplicate-content). Generic across all store domains,
+  // no hardcoded host. Skips localhost/preview hosts. ---
+  const host = req.headers.get('host') || '';
+  if (host.startsWith('www.') && !host.includes('localhost')) {
+    const target = `https://${host.slice(4)}${pathname}${req.nextUrl.search}`;
+    return NextResponse.redirect(target, 301);
+  }
+
   // Only guard the admin UI; never guard the login/auth pages or API (API uses requireAdmin).
   const isAdminUi =
     pathname.startsWith('/admin') &&
@@ -74,5 +83,7 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*'],
+  // Run on all routes (for canonical-host redirect) except Next internals,
+  // API, and files with extensions (sitemap.xml, robots.txt, images, etc.).
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|api|.*\\.).*)'],
 };
