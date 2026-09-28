@@ -51,9 +51,25 @@ export interface Order {
   cancel_reason?: string;
   customer_email?: string;
   refund_amount?: number;
+  access_token?: string;
+  payment_proof_url?: string;
   deleted_at?: string;
   created_at: string;
   updated_at: string;
+}
+
+export interface ShippingZone {
+  id: string;
+  name: string;
+  cities: string[];
+  cost: number;
+  free_threshold?: number | null;
+  estimated_days?: string;
+  is_default: boolean;
+  active: boolean;
+  sort_order: number;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface ShippingMethod {

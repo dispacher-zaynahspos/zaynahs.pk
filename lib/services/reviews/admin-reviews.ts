@@ -56,6 +56,50 @@ export const getAllReviews = async (): Promise<(Review & { productName?: string;
   }
 };
 
+// 3. Assign / reassign / detach a product on an existing review (orphan review recovery).
+//    Passing null detaches the review (makes it a General/Store review).
+//    The AFTER-trigger update_product_reviews_stats recomputes the NEW product's stats;
+//    we also explicitly recompute the OLD product so its aggregates drop this review immediately.
+export const assignReviewProduct = async (
+  reviewId: string,
+  productId: string | null
+): Promise<Review> => {
+  try {
+    // Capture the previous product_id so we can recompute its stats after reassignment.
+    const { data: prev } = await supabaseAdmin
+      .from('reviews')
+      .select('product_id')
+      .eq('id', reviewId)
+      .single();
+    const previousProductId: string | null = prev?.product_id ?? null;
+
+    const { data, error } = await supabaseAdmin
+      .from('reviews')
+      .update({ product_id: productId })
+      .eq('id', reviewId)
+      .select('*')
+      .single();
+
+    if (error) throw error;
+
+    // Recompute the old product's aggregates (trigger only handles the row's current product_id).
+    // Fault-tolerant: if the RPC isn't deployed yet (migration 20260928140000), don't fail the assign.
+    if (previousProductId && previousProductId !== productId) {
+      try {
+        await supabaseAdmin.rpc('recompute_product_review_stats', { p_product_id: previousProductId });
+      } catch (rpcErr) {
+        console.error('[reviews] recompute_product_review_stats skipped (run migration 20260928140000):', rpcErr);
+      }
+    }
+
+    await revalidateStorefrontEdge('reviews', 'products');
+    return mapReview(data);
+  } catch (error) {
+    console.error('[reviews] assignReviewProduct failed:', error);
+    throw error;
+  }
+};
+
 // 4. Approve / Disapprove a review (admin)
 export const approveReview = async (id: string, approved: boolean = true): Promise<Review> => {
   try {

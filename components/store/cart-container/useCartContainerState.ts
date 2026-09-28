@@ -11,6 +11,8 @@ import { trackEvent } from '@/lib/trackEvent';
 import { toast } from 'sonner';
 import { validateCouponCode } from '@/lib/services/coupons';
 import { isValidPkMobile, normalizePkPhone } from '@/lib/phone';
+import { getClientSiteUrl } from '@/lib/site-url';
+import { resolveShippingZone, resolveZoneShippingCost } from '@/lib/utils/shipping-zones';
 import { useAbandonedCartTracker } from '@/lib/hooks/useAbandonedCartTracker';
 import { useCartTimer } from './hooks/useCartTimer';
 import { useCartMethods } from './hooks/useCartMethods';
@@ -68,6 +70,7 @@ export function useCartContainerState(settings: StoreSettings) {
   const [discountCode, setDiscountCode] = useState('');
   const [couponError, setCouponError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [paymentProofUrl, setPaymentProofUrl] = useState('');
 
   useEffect(() => {
     if (appliedCoupon && appliedCoupon.min_cart_amount && totalPrice < appliedCoupon.min_cart_amount) {
@@ -90,12 +93,20 @@ export function useCartContainerState(settings: StoreSettings) {
 
   const selectedShipping = methodsState.shippingMethods.find((m) => m.id === methodsState.selectedShippingId);
   const selectedPayment = methodsState.paymentMethods.find((p) => p.id === methodsState.selectedPaymentId);
-  const baseShippingCost = selectedShipping?.cost ?? 200;
   const subtotal = totalPrice;
   const itemCount = items.reduce((s, i) => s + i.quantity, 0);
 
+  // City-based shipping zone (optional). When a zone matches the entered city, its cost
+  // overrides the flat shipping-method cost. When no zones are configured, legacy flat cost wins.
+  const matchedZone = resolveShippingZone(methodsState.shippingZones, city);
+  const zoneResolved = resolveZoneShippingCost(matchedZone, subtotal);
+  const baseShippingCost = zoneResolved ? zoneResolved.cost : (selectedShipping?.cost ?? 200);
+  const shippingMethodLabel = matchedZone?.name ?? selectedShipping?.name ?? 'Standard Delivery';
+
   const freeShippingThreshold = settings.free_shipping_threshold ?? 2000;
-  const qualifiesForFreeShipping = isFeatureEnabled(settings, 'free_shipping_bar') && subtotal >= freeShippingThreshold;
+  const qualifiesForFreeShipping =
+    (zoneResolved?.free ?? false) ||
+    (isFeatureEnabled(settings, 'free_shipping_bar') && subtotal >= freeShippingThreshold);
   const shippingCost = qualifiesForFreeShipping ? 0 : baseShippingCost;
   const amountToFreeShipping = Math.max(0, freeShippingThreshold - subtotal);
   const shippingPercent = Math.min((subtotal / freeShippingThreshold) * 100, 100);
@@ -203,8 +214,24 @@ export function useCartContainerState(settings: StoreSettings) {
         notes: formattedAddress,
         shippingCost: shippingCost,
         discountAmount: discountAmount,
-        shippingMethodName: selectedShipping?.name ?? 'Standard Delivery',
+        shippingMethodName: shippingMethodLabel,
+        paymentProofUrl: paymentProofUrl || undefined,
+        shippingAddress: {
+          name: `${firstName.trim()} ${lastName.trim()}`,
+          phone: normalizePkPhone(phone),
+          email: emailOrPhone.includes('@') ? emailOrPhone.trim() : undefined,
+          address1: address.trim(),
+          address2: apartment.trim() || undefined,
+          city: city.trim(),
+          postalCode: postalCode.trim() || undefined,
+          country: 'Pakistan',
+          paymentMethod: selectedPayment?.name ?? 'Cash on delivery',
+        },
       });
+
+      const orderTrackUrl = order.access_token
+        ? `${getClientSiteUrl()}/order/${order.access_token}`
+        : undefined;
 
       if (saveInfo) {
         localStorage.setItem(
@@ -243,11 +270,13 @@ export function useCartContainerState(settings: StoreSettings) {
         couponDiscountAmount > 0
           ? `• Coupon Discount (${appliedCoupon?.code}): -${formatPrice(couponDiscountAmount, settings.currency_symbol)}`
           : '',
-        `• Shipping: ${selectedShipping?.name ?? 'Standard'} (${formatPrice(shippingCost, settings.currency_symbol)})`,
+        `• Shipping: ${shippingMethodLabel} (${formatPrice(shippingCost, settings.currency_symbol)})`,
         `• Payment Method: ${selectedPayment?.name ?? 'Cash on delivery'}`,
+        paymentProofUrl ? `• Payment Proof: ${paymentProofUrl}` : '',
         `*Grand Total: ${formatPrice(finalTotal, settings.currency_symbol)}*`,
         '',
         `• Order No: ${order.order_number}`,
+        orderTrackUrl ? `• Track: ${orderTrackUrl}` : '',
       ]
         .filter(Boolean)
         .join('\n');
@@ -273,12 +302,14 @@ export function useCartContainerState(settings: StoreSettings) {
         city: city.trim(),
         postalCode: postalCode.trim(),
         emailOrPhone: emailOrPhone.trim(),
-        shippingMethodName: selectedShipping?.name ?? 'Standard Delivery',
+        shippingMethodName: shippingMethodLabel,
         shippingCost: shippingCost,
         subtotal: subtotal,
         discountAmount: discountAmount,
         paymentMethodName: selectedPayment?.name ?? 'Cash on delivery',
         paymentInstructions: selectedPayment?.instructions ?? undefined,
+        paymentProofUrl: paymentProofUrl || undefined,
+        orderTrackUrl,
       };
 
       localStorage.setItem('last_placed_order', JSON.stringify(orderData));
@@ -374,6 +405,9 @@ export function useCartContainerState(settings: StoreSettings) {
     selectedPaymentId: methodsState.selectedPaymentId,
     setSelectedPaymentId: methodsState.setSelectedPaymentId,
     loadingPayments: methodsState.loadingPayments,
+    paymentProofUrl,
+    setPaymentProofUrl,
+    shippingZones: methodsState.shippingZones,
     loading,
     itemCount,
     handleOrderSubmit,

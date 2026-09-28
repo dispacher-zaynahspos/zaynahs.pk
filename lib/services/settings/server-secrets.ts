@@ -34,3 +34,45 @@ export async function getSmtpCredentials(): Promise<SmtpCredentials | null> {
     smtp_from_name: data.smtp_from_name ?? '',
   };
 }
+
+const POSTEX_BASE = 'https://api.postex.pk/services/integration/api';
+const POSTEX_STAGING = 'https://staging-api.postex.pk/services/integration/api';
+
+export interface CourierCredentials {
+  /** Whether the PostEx integration is enabled + a token is present. */
+  enabled: boolean;
+  /** 'production' | 'staging' */
+  mode: string;
+  /** Resolved PostEx API base URL for the current mode. */
+  baseUrl: string;
+  /** Decrypted PostEx API token (empty string when unset). */
+  token: string;
+}
+
+/**
+ * SSOT server-only reader for courier (PostEx) credentials.
+ *
+ * The PostEx API token is an encrypted-at-rest secret and MUST never reach the
+ * client bundle. Previously each courier API route (dispatch/fulfill/cancel/
+ * labels/test) fetched store_settings and called `decryptSecret(postex_api_token)`
+ * inline — five copies of the same logic. New courier code should call this
+ * helper instead so there is a single place that knows how to read/decrypt the
+ * token and resolve the base URL. When additional couriers are added, extend
+ * this shape (e.g. `tcs`, `leopards`) rather than re-reading secrets ad hoc.
+ */
+export async function getCourierCredentials(): Promise<CourierCredentials> {
+  const { data } = await supabaseAdmin
+    .from('store_settings')
+    .select('postex_enabled, postex_api_token, postex_mode')
+    .eq('id', STORE_SETTINGS_ID)
+    .maybeSingle();
+
+  const mode = data?.postex_mode || 'staging';
+  const token = data?.postex_api_token ? decryptSecret(data.postex_api_token) : '';
+  return {
+    enabled: !!(data?.postex_enabled && data?.postex_api_token),
+    mode,
+    baseUrl: mode === 'production' ? POSTEX_BASE : POSTEX_STAGING,
+    token,
+  };
+}

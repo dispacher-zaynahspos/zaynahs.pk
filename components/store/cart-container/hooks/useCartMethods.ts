@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ShippingMethod, PaymentMethod } from '@/lib/types';
+import { ShippingMethod, PaymentMethod, ShippingZone } from '@/lib/types';
 import { createClient } from '@/lib/supabase/client';
 
 export function useCartMethods() {
@@ -12,6 +12,8 @@ export function useCartMethods() {
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [selectedPaymentId, setSelectedPaymentId] = useState<string | null>(null);
   const [loadingPayments, setLoadingPayments] = useState(true);
+
+  const [shippingZones, setShippingZones] = useState<ShippingZone[]>([]);
 
   useEffect(() => {
     async function fetchMethods() {
@@ -82,6 +84,30 @@ export function useCartMethods() {
         } finally {
           setLoadingPayments(false);
         }
+
+        // City-based shipping zones (optional layer; empty => flat method cost is used)
+        try {
+          const zoneRes = await supabase
+            .from('shipping_zones')
+            .select('*')
+            .eq('active', true)
+            .order('sort_order', { ascending: true });
+          const zoneList: ShippingZone[] = (zoneRes.data || []).map((r: any) => ({
+            id: r.id,
+            name: r.name,
+            cities: Array.isArray(r.cities) ? r.cities : [],
+            cost: Number(r.cost) || 0,
+            free_threshold: r.free_threshold != null ? Number(r.free_threshold) : null,
+            estimated_days: r.estimated_days || undefined,
+            is_default: !!r.is_default,
+            active: !!r.active,
+            sort_order: r.sort_order ?? 0,
+            created_at: r.created_at,
+          }));
+          setShippingZones(zoneList);
+        } catch {
+          setShippingZones([]);
+        }
       } catch (e) {
         console.error('Client creation failed:', e);
         setLoadingMethods(false);
@@ -100,5 +126,6 @@ export function useCartMethods() {
     selectedPaymentId,
     setSelectedPaymentId,
     loadingPayments,
+    shippingZones,
   };
 }

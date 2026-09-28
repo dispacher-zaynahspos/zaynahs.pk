@@ -751,10 +751,13 @@ CREATE TABLE IF NOT EXISTS orders (
   tracking_url TEXT,
   cancel_reason TEXT,
   refund_amount NUMERIC(10,2),
+  access_token TEXT,                        -- unguessable public handle for /order/[token] (migration 20260928150000)
+  payment_proof_url TEXT,                   -- customer-uploaded payment screenshot (migration 20260928150000)
   deleted_at TIMESTAMPTZ DEFAULT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+CREATE UNIQUE INDEX IF NOT EXISTS idx_orders_access_token ON orders(access_token);
 
 -- Auto increment order number
 CREATE SEQUENCE IF NOT EXISTS order_number_seq START 1;
@@ -998,6 +1001,31 @@ DROP POLICY IF EXISTS "Admin all shipping_methods" ON shipping_methods;
 CREATE POLICY "Admin all shipping_methods" ON shipping_methods FOR ALL USING (auth.role() = 'authenticated');
 
 -- ============================================================
+-- SHIPPING ZONES (city-based rate engine; migration 20260928150000)
+-- Optional layer: when empty, checkout uses the flat shipping_methods cost.
+-- ============================================================
+CREATE TABLE IF NOT EXISTS shipping_zones (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name TEXT NOT NULL,
+  cities TEXT[] NOT NULL DEFAULT '{}',
+  cost NUMERIC(10,2) NOT NULL DEFAULT 0,
+  free_threshold NUMERIC(10,2),
+  estimated_days TEXT,
+  is_default BOOLEAN NOT NULL DEFAULT false,
+  active BOOLEAN NOT NULL DEFAULT true,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_shipping_zones_active ON shipping_zones(active, sort_order);
+
+ALTER TABLE shipping_zones ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public read shipping_zones" ON shipping_zones;
+CREATE POLICY "Public read shipping_zones" ON shipping_zones FOR SELECT USING (active = true);
+DROP POLICY IF EXISTS "Admin all shipping_zones" ON shipping_zones;
+CREATE POLICY "Admin all shipping_zones" ON shipping_zones FOR ALL USING (auth.role() = 'authenticated');
+
+-- ============================================================
 -- PAYMENT METHODS
 -- ============================================================
 CREATE TABLE IF NOT EXISTS payment_methods (
@@ -1123,6 +1151,40 @@ CREATE TRIGGER trigger_update_product_reviews_stats
 AFTER INSERT OR UPDATE OR DELETE ON reviews
 FOR EACH ROW
 EXECUTE FUNCTION update_product_reviews_stats();
+
+-- On-demand review-aggregate RPCs (companion to the trigger; migration 20260928140000).
+CREATE OR REPLACE FUNCTION recompute_product_review_stats(p_product_id UUID)
+RETURNS VOID AS $$
+BEGIN
+  IF p_product_id IS NULL THEN RETURN; END IF;
+  UPDATE products
+  SET
+    reviews_count = (SELECT COALESCE(COUNT(*),0) FROM reviews WHERE product_id = p_product_id AND approved = true AND COALESCE(hidden,false)=false AND deleted_at IS NULL),
+    rating = COALESCE((SELECT ROUND(AVG(rating)::numeric,1) FROM reviews WHERE product_id = p_product_id AND approved = true AND COALESCE(hidden,false)=false AND deleted_at IS NULL), 5.0)
+  WHERE id = p_product_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION recompute_all_review_stats()
+RETURNS VOID AS $$
+DECLARE r RECORD;
+BEGIN
+  FOR r IN SELECT DISTINCT product_id FROM reviews WHERE product_id IS NOT NULL LOOP
+    PERFORM recompute_product_review_stats(r.product_id);
+  END LOOP;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION get_product_rating_distribution(p_product_id UUID)
+RETURNS TABLE (stars INTEGER, count BIGINT) AS $$
+  SELECT s.stars, COALESCE(COUNT(r.id), 0) AS count
+  FROM generate_series(1, 5) AS s(stars)
+  LEFT JOIN reviews r
+    ON r.rating = s.stars AND r.product_id = p_product_id
+   AND r.approved = true AND COALESCE(r.hidden, false) = false AND r.deleted_at IS NULL
+  GROUP BY s.stars ORDER BY s.stars DESC;
+$$ LANGUAGE sql STABLE SECURITY DEFINER;
+GRANT EXECUTE ON FUNCTION get_product_rating_distribution(UUID) TO anon, authenticated;
 
 -- ============================================================
 -- HOMEPAGE SECTIONS

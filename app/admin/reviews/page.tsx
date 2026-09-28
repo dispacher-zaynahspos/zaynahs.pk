@@ -274,6 +274,11 @@ function AdminReviewsPageInner() {
           onApprove={(id, approved) => handleToggleApprove(id, approved)}
           onHide={(id, hidden) => handleToggleHide(id, hidden)}
           onDelete={(id) => handleDelete(id)}
+          onAssignProduct={(reviewId, productId, productName, productImage) => {
+            setReviews((prev) => prev.map((r) => r.id === reviewId
+              ? { ...r, product_id: productId ?? undefined, productName, productImage }
+              : r));
+          }}
           storeUrl={getClientSiteUrl()}
         />
       )}

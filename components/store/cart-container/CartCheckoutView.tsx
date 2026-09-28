@@ -1,11 +1,13 @@
 'use client';
 
-import React from 'react';
-import { ChevronLeft, ChevronRight, Truck, Lock, Send } from '@/components/common/Icons';
-import { StoreSettings, ShippingMethod, PaymentMethod, CartItem } from '@/lib/types';
+import React, { useState } from 'react';
+import { ChevronLeft, ChevronRight, Truck, Lock, Send, Upload, X, Loader2 } from '@/components/common/Icons';
+import { StoreSettings, ShippingMethod, PaymentMethod, CartItem, ShippingZone } from '@/lib/types';
 import { formatPrice } from '@/lib/utils/whatsapp';
 import PhoneInput from '@/components/store/PhoneInput';
-import { PK_CITIES } from '@/lib/data/pk-cities';
+import CitySelect from '@/components/store/CitySelect';
+import { uploadReviewImage } from '@/lib/uploadImage';
+import { toast } from 'sonner';
 
 interface CartCheckoutViewProps {
   settings: StoreSettings;
@@ -38,6 +40,9 @@ interface CartCheckoutViewProps {
   selectedPaymentId: string | null;
   setSelectedPaymentId: (id: string | null) => void;
   loadingPayments: boolean;
+  paymentProofUrl: string;
+  setPaymentProofUrl: (url: string) => void;
+  shippingZones?: ShippingZone[];
   loading: boolean;
   onBackToCart: () => void;
   handleOrderSubmit: (e: React.FormEvent) => void;
@@ -75,11 +80,43 @@ export default function CartCheckoutView({
   selectedPaymentId,
   setSelectedPaymentId,
   loadingPayments,
+  paymentProofUrl,
+  setPaymentProofUrl,
+  shippingZones = [],
   loading,
   onBackToCart,
   handleOrderSubmit,
   summaryPanel,
 }: CartCheckoutViewProps) {
+  const [uploadingProof, setUploadingProof] = useState(false);
+
+  const zoneCities = shippingZones.flatMap((z) => z.cities || []);
+  const selectedPayment = paymentMethods.find((p) => p.id === selectedPaymentId);
+  const isCashOnDelivery = (() => {
+    const c = `${selectedPayment?.code ?? ''} ${selectedPayment?.name ?? ''}`.toLowerCase();
+    return !selectedPayment || c.includes('cod') || c.includes('cash') || c.includes('delivery');
+  })();
+
+  const handleProofUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file');
+      return;
+    }
+    try {
+      setUploadingProof(true);
+      const url = await uploadReviewImage(file);
+      setPaymentProofUrl(url);
+      toast.success('Payment proof uploaded');
+    } catch {
+      toast.error('Failed to upload payment proof');
+    } finally {
+      setUploadingProof(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white dark:bg-[#0f0f1b] text-gray-900 dark:text-white">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-8">
@@ -174,14 +211,7 @@ export default function CartCheckoutView({
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[10px] font-black uppercase tracking-wider text-gray-400 mb-1.5">City<span className="text-red-500 ml-0.5">*</span></label>
-                  <input
-                    type="text" required placeholder="Karachi" list="pk-cities-list" autoComplete="address-level2"
-                    value={city} onChange={e => setCity(e.target.value)}
-                    className="w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-[#0f0f1b]/50 px-4 py-3 text-sm font-medium text-gray-900 dark:text-white placeholder-gray-400 focus:border-[#e94560] focus:bg-white dark:focus:bg-[#16162a] focus:outline-none transition-all"
-                  />
-                  <datalist id="pk-cities-list">
-                    {PK_CITIES.map((c) => <option key={c} value={c} />)}
-                  </datalist>
+                  <CitySelect value={city} onChange={setCity} extraCities={zoneCities} required placeholder="Karachi" />
                 </div>
                 <div>
                   <label className="block text-[10px] font-black uppercase tracking-wider text-gray-400 mb-1.5">Postal Code<span className="text-gray-500 ml-1 font-normal normal-case text-[9px]">(Optional)</span></label>
@@ -295,6 +325,34 @@ export default function CartCheckoutView({
                       );
                     })}
                   </div>
+                </div>
+              )}
+
+              {/* Payment proof upload (shown for non-COD / prepaid methods) */}
+              {!loadingPayments && !isCashOnDelivery && (
+                <div className="pt-1">
+                  <label className="block text-[10px] font-black uppercase tracking-wider text-gray-400 mb-1.5">
+                    Payment Proof / Screenshot<span className="text-gray-500 ml-1 font-normal normal-case text-[9px]">(Optional — speeds up confirmation)</span>
+                  </label>
+                  {paymentProofUrl ? (
+                    <div className="relative w-32 h-40 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-black/20">
+                      <img src={paymentProofUrl} alt="Payment proof" className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => setPaymentProofUrl('')}
+                        className="absolute top-1.5 right-1.5 w-6 h-6 flex items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80 cursor-pointer"
+                        aria-label="Remove payment proof"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  ) : (
+                    <label className={`flex items-center gap-2 px-4 py-3 rounded-xl border border-dashed border-gray-300 dark:border-gray-600 text-sm font-medium transition-all justify-center ${uploadingProof ? 'opacity-60 cursor-wait' : 'text-gray-500 dark:text-gray-400 hover:border-[#e94560] hover:text-[#e94560] cursor-pointer'}`}>
+                      {uploadingProof ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                      <span>{uploadingProof ? 'Uploading...' : 'Upload payment screenshot'}</span>
+                      <input type="file" accept="image/*" onChange={handleProofUpload} disabled={uploadingProof} className="hidden" />
+                    </label>
+                  )}
                 </div>
               )}
             </div>

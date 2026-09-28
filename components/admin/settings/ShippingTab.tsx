@@ -6,6 +6,7 @@ import {
   ShippingMethodsCard,
   PaymentMethodsCard,
   ShippingThresholdsCard,
+  ShippingZonesCard,
 } from './shipping';
 
 interface ShippingTabProps {
@@ -236,6 +237,8 @@ export default function ShippingTab({
         setRecentlyViewedLimit={setRecentlyViewedLimit}
         currencySymbol={currencySymbol}
       />
+
+      <ShippingZonesCard currencySymbol={currencySymbol} />
     </div>
   );
 }

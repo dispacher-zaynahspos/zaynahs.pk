@@ -185,7 +185,16 @@ export default function CartSuccessView({ placedOrder, settings, onContinueShopp
         </div>
 
         {/* Action button */}
-        <div className="pt-4 flex justify-center">
+        <div className="pt-4 flex flex-col sm:flex-row justify-center items-center gap-3">
+          {placedOrder.orderTrackUrl && (
+            <Link
+              href={placedOrder.orderTrackUrl}
+              className="inline-flex items-center gap-2 rounded-2xl border-2 border-[#e94560] text-[#e94560] hover:bg-[#e94560] hover:text-white active:scale-95 px-8 py-3.5 text-sm font-bold transition-all duration-200 cursor-pointer"
+            >
+              <Package className="h-4 w-4" />
+              View / Track Order
+            </Link>
+          )}
           <button
             onClick={onContinueShopping}
             className="inline-flex items-center gap-2 rounded-2xl bg-[#e94560] hover:bg-[#d8344e] active:scale-95 text-white px-8 py-3.5 text-sm font-bold transition-all duration-200 shadow-lg shadow-red-500/20 cursor-pointer border-none"

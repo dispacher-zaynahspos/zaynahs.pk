@@ -18,6 +18,8 @@ export const createOrder = async (order: {
   shippingCost?: number;
   discountAmount?: number;
   shippingMethodName?: string;
+  /** Customer-uploaded payment proof screenshot URL (bank/wallet transfer). */
+  paymentProofUrl?: string;
   /** Structured shipping address — written to order_addresses (source of truth going forward). */
   shippingAddress?: {
     name?: string; phone?: string; email?: string;
@@ -199,6 +201,8 @@ export const createOrder = async (order: {
     let data: any;
     let insertAttempt = 0;
     const MAX_ATTEMPTS = 3;
+    // Unguessable public handle for /order/[token] (64 hex chars).
+    const accessToken = (crypto.randomUUID() + crypto.randomUUID()).replace(/-/g, '');
     while (insertAttempt < MAX_ATTEMPTS) {
       insertAttempt++;
       const { data: result, error: insertError } = await supabase
@@ -232,7 +236,25 @@ export const createOrder = async (order: {
       data = result;
       break;
     }
+
+    // Set access_token + payment_proof_url via a fault-tolerant follow-up update.
+    // Kept separate from the base insert so an unmigrated DB (columns not yet added)
+    // never blocks order creation — the /order/[token] page simply won't resolve until
+    // migration 20260928150000 is applied. Once applied, this populates normally.
+    try {
+      const { data: updated } = await supabaseAdmin
+        .from('orders')
+        .update({ access_token: accessToken, payment_proof_url: order.paymentProofUrl || null })
+        .eq('id', data.id)
+        .select('*')
+        .single();
+      if (updated) data = updated;
+    } catch (tokErr) {
+      console.error('[orders] access_token/payment_proof update skipped (run migration 20260928150000):', tokErr);
+    }
     const mapped = mapOrder(data);
+    // Ensure the in-memory order always carries the token for the success/WhatsApp flow.
+    if (!mapped.access_token) mapped.access_token = accessToken;
 
     // Structured line-items + address (additive; failures never block the order).
     try {

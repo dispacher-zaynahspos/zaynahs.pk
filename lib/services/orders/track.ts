@@ -46,3 +46,31 @@ export async function trackOrder(orderNumber: string, phone: string): Promise<Tr
     return { ok: false, error: 'Kuch ghalat ho gaya. Thodi der baad koshish karein.' };
   }
 }
+
+/**
+ * Public order lookup by unguessable access token (the token itself is the secret,
+ * like a receipt URL). Powers /order/[token]. Runs server-side with the service-role
+ * client; no phone gate needed because the 64-char token is not enumerable.
+ */
+export async function getOrderByToken(token: string): Promise<Order | null> {
+  const t = (token || '').trim();
+  // Basic shape guard — tokens are 64 hex chars; reject junk early (no DB hit).
+  if (!t || t.length < 24 || !/^[a-f0-9]+$/i.test(t)) return null;
+
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('orders')
+      .select('*')
+      .eq('access_token', t)
+      .is('deleted_at', null)
+      .limit(1);
+
+    if (error) throw error;
+    const row = data?.[0];
+    if (!row) return null;
+    return mapOrder(row);
+  } catch (err) {
+    console.error('[getOrderByToken] failed:', err);
+    return null;
+  }
+}
