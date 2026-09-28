@@ -14,7 +14,7 @@ export function SettingsSaveBar({ activeTab, isSubmitting, isPurging, onPurgeCac
   if (activeTab === 'meta_sync') return null;
 
   return (
-    <div className="sticky bottom-[calc(4rem+env(safe-area-inset-bottom,0px))] md:bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-[#16162a]/95 backdrop-blur-md border-t border-gray-200 dark:border-gray-800 px-4 sm:px-6 py-3.5 shadow-2xl rounded-t-2xl transition-all">
+    <div className="sticky bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-[#16162a]/95 backdrop-blur-md border-t border-gray-200 dark:border-gray-800 px-3 sm:px-6 py-2.5 sm:py-3.5 shadow-2xl rounded-t-2xl transition-all">
       <div className="flex items-center justify-between gap-3 max-w-full">
         <span className="text-xs text-gray-500 dark:text-gray-400 font-semibold hidden sm:flex items-center gap-2">
           <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse flex-shrink-0" />

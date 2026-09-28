@@ -125,3 +125,11 @@ allowed.
 - Discounted price order is **fixed app-wide: SALE price FIRST (prominent), then the STRIKETHROUGH original price SECOND.** Never the reverse, anywhere (shop/home/category/collections/search grid cards, product detail, quick view, wishlist, cart lines, order summaries, customizer preview).
 - Standard convention: lead with what the customer actually pays.
 - Verified consistent across `StandardProductCard`, `ProductCardShowcaseContent` (was reversed — fixed), `ShopProductListCard`, `QuickViewModal`, product detail. If a new price display is added, follow this order (ideally extract a shared `PriceDisplay` so it can't drift again).
+
+## 11. Admin Action & Save Bar Sticky Standard (RULE DS6)
+All save/cancel action bars across the Admin Console must be sticky at the bottom on both mobile and desktop:
+- Class: `sticky bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-[#16162a]/95 backdrop-blur-md border-t border-gray-200 dark:border-gray-800 px-3 sm:px-6 py-2.5 sm:py-3.5 shadow-2xl rounded-t-2xl transition-all`
+- All forms/tables must have `pb-28 sm:pb-20` so the last inputs or table rows can always be scrolled cleanly above the sticky bar.
+- Never place save buttons as static elements at the end of long forms/sidebars.
+- Modal forms must use sticky footers (`shrink-0 border-t bg-gray-50 dark:bg-[#11111e] p-6 pt-4`) outside the scroll body.
+- See full rule: `docs/agent-rules/14-design-system.md` RULE DS6.

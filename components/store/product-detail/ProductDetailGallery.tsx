@@ -85,7 +85,7 @@ export default function ProductDetailGallery({
               >
                 <Image
                   src={getPresetImageUrl(img.url, 'zoom')}
-                  alt={product.name}
+                  alt={img.alt || product.name}
                   fill
                   sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 600px"
                   className={`object-contain p-2 sm:p-4 transition-transform duration-200 ease-out ${isZoomed && i === activeImageIndex ? 'scale-[1.75]' : 'scale-100'}`}
@@ -215,7 +215,7 @@ export default function ProductDetailGallery({
             >
               <Image
                 src={getPresetImageUrl(img.url, 'admin_thumb')}
-                alt={`${product.name} gallery ${i}`}
+                alt={img.alt || `${product.name} thumbnail ${i + 1}`}
                 fill
                 sizes="64px"
                 className="object-cover"

@@ -221,7 +221,7 @@ export default function CategoryDetailManager({ category, initialProducts }: Cat
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-28 sm:pb-20">
       <CategoryDetailHeader
         category={category}
         totalProducts={products.length}

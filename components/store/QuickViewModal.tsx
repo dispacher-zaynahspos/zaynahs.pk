@@ -166,7 +166,7 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
                     <div key={img.id || i} className="relative flex-[0_0_100%] min-w-0 w-full h-full select-none overflow-hidden">
                       <Image
                         src={getPresetImageUrl(img.url, 'card')}
-                        alt={product.name}
+                        alt={img.alt || product.name}
                         fill
                         sizes="(max-width: 640px) 100vw, 50vw"
                         className="object-cover"
@@ -223,7 +223,7 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
                     >
                       <Image
                         src={getPresetImageUrl(img.url, 'admin_thumb')}
-                        alt={`Thumbnail ${i + 1}`}
+                        alt={img.alt || `${product.name} thumbnail ${i + 1}`}
                         fill
                         sizes="48px"
                         className="object-cover"

@@ -99,13 +99,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         description: seoMeta?.og_description || description,
         url: canonicalUrl,
         type: 'website',
-        images: [{ url: imageUrl }],
+        images: [{ url: imageUrl, width: 1200, height: 1200, alt: product.images?.[0]?.alt || product.name }],
       },
       twitter: {
         card: 'summary_large_image',
         title: seoMeta?.twitter_title || title,
         description: seoMeta?.twitter_description || description,
-        images: [imageUrl],
+        images: [{ url: imageUrl, alt: product.images?.[0]?.alt || product.name }],
       },
       other: {
         'product:price:amount': product.price.toString(),
@@ -162,8 +162,10 @@ export default async function ProductPage({ params }: PageProps) {
     },
     "offers": {
       "@type": "Offer",
-      "price": product.price,
+      "price": product.price.toString(),
       "priceCurrency": "PKR",
+      "itemCondition": "https://schema.org/NewCondition",
+      "priceValidUntil": new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       "availability": product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
       "url": `${siteUrl}/product/${slug}`
     }

@@ -69,20 +69,67 @@ export default function RichMediaPreviewModal({ url, item: initialItem, onClose,
                   />
                 </ReactCrop>
               ) : (
-                /* eslint-disable-next-line @next/next/no-img-element */
-                <img
-                  src={state.previewItem.file_url}
-                  alt={state.previewItem.alt_text}
+                <div
+                  className={`relative overflow-hidden max-w-full max-h-[60vh] flex items-center justify-center ${zoom.isDragging ? 'cursor-grabbing' : zoom.isZoomed ? 'cursor-grab' : 'cursor-zoom-in'}`}
                   style={{
-                    transform: `rotate(${state.rotation}deg) scaleX(${state.flipH ? -1 : 1}) scaleY(${state.flipV ? -1 : 1})`,
-                    filter: `brightness(${state.brightness}%) contrast(${state.contrast}%) saturate(${state.saturation}%) blur(${state.blur}px) grayscale(${state.grayscale}%) sepia(${state.sepia}%) invert(${state.invert}%)`,
-                    transition: 'transform 0.2s ease, filter 0.1s ease'
+                    transform: `translate(${zoom.pos.x}px, ${zoom.pos.y}px) scale(${zoom.scale})`,
+                    transformOrigin: 'center center',
+                    transition: zoom.isDragging ? 'none' : 'transform 0.15s ease-out',
                   }}
-                  className="max-w-full max-h-[60vh] object-contain rounded-lg shadow-lg"
-                />
+                  {...zoom.bind}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={state.previewItem.file_url}
+                    alt={state.previewItem.alt_text || state.previewItem.original_filename || 'Media preview'}
+                    draggable={false}
+                    style={{
+                      transform: `rotate(${state.rotation}deg) scaleX(${state.flipH ? -1 : 1}) scaleY(${state.flipV ? -1 : 1})`,
+                      filter: `brightness(${state.brightness}%) contrast(${state.contrast}%) saturate(${state.saturation}%) blur(${state.blur}px) grayscale(${state.grayscale}%) sepia(${state.sepia}%) invert(${state.invert}%)`,
+                      transition: 'filter 0.1s ease'
+                    }}
+                    className="max-w-full max-h-[60vh] object-contain rounded-lg shadow-lg pointer-events-none select-none"
+                  />
+                </div>
               )}
             </div>
           ) : null}
+
+          {/* Zoom controls — desktop wheel/double-click + these buttons; mobile pinch/double-tap */}
+          {!state.loading && zoomActive && (
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1.5 bg-black/55 backdrop-blur-sm rounded-full px-2 py-1.5 shadow-lg">
+              <button
+                type="button"
+                onClick={zoom.zoomOut}
+                disabled={zoom.scale <= 1}
+                className="w-8 h-8 flex items-center justify-center rounded-full text-white hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                aria-label="Zoom out"
+              >
+                <ZoomOut className="w-4 h-4" />
+              </button>
+              <span className="text-[11px] font-mono text-white tabular-nums w-10 text-center select-none">
+                {Math.round(zoom.scale * 100)}%
+              </span>
+              <button
+                type="button"
+                onClick={zoom.zoomIn}
+                disabled={zoom.scale >= 4}
+                className="w-8 h-8 flex items-center justify-center rounded-full text-white hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                aria-label="Zoom in"
+              >
+                <ZoomIn className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={zoom.reset}
+                disabled={!zoom.isZoomed}
+                className="w-8 h-8 flex items-center justify-center rounded-full text-white hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                aria-label="Reset zoom"
+              >
+                <Maximize2 className="w-4 h-4" />
+              </button>
+            </div>
+          )}
 
           {!state.loading && state.previewItem && (
             <div className="absolute top-4 left-4 z-10 flex gap-2">

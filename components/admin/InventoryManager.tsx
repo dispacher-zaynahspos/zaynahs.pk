@@ -334,7 +334,7 @@ export default function InventoryManager({ products: initialProducts, categories
   );
 
   return (
-    <div className="space-y-6 relative pb-16">
+    <div className="space-y-6 relative pb-28 sm:pb-20">
       {/* Header section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
