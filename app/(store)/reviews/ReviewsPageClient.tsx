@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, useTransition, useMemo } from 'react';
+import React, { useState, useCallback, useTransition, useMemo, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Review, SocialProof } from '@/lib/types';
 import ReviewImageZoomModal from '@/components/store/ReviewImageZoomModal';
@@ -17,8 +17,10 @@ interface ReviewsPageClientProps {
 }
 
 type FilterTab = 'all' | 'store' | 'wall';
+type SortKey = 'newest' | 'oldest' | 'highest' | 'lowest';
 
 const itemsPerPage = 20;
+const SORTS: SortKey[] = ['newest', 'oldest', 'highest', 'lowest'];
 
 export default function ReviewsPageClient({
   initialReviews,
@@ -27,22 +29,34 @@ export default function ReviewsPageClient({
 }: ReviewsPageClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [, startTransition] = useTransition();
+  const [isPending, startTransition] = useTransition();
 
-  const tabFromUrl = searchParams.get('tab') as FilterTab | null;
+  // --- URL is the SINGLE SOURCE OF TRUTH. The server component (page.tsx)
+  // reads these same searchParams and fetches the data, passing it down as
+  // props. We NEVER fetch on the client here — a filter action performs exactly
+  // ONE navigation (router.replace) which triggers exactly ONE server fetch.
+  // (Previously this component did router.push AND a duplicate client fetch,
+  // causing 2 fetches per click + hitting the apex/www redirect loop.) ---
+  const tabFromUrl = (searchParams.get('tab') as FilterTab | null) || 'all';
   const searchFromUrl = searchParams.get('search') || '';
   const ratingFromUrl = searchParams.get('rating') ? parseInt(searchParams.get('rating')!) : 0;
-  const sortFromUrl = (searchParams.get('sort') || 'newest') as 'newest' | 'oldest' | 'highest' | 'lowest';
-  const pageFromUrl = parseInt(searchParams.get('page') || '1');
+  const rawSort = searchParams.get('sort') as SortKey | null;
+  const sortFromUrl: SortKey = rawSort && SORTS.includes(rawSort) ? rawSort : 'newest';
+  const pageFromUrl = Math.max(1, parseInt(searchParams.get('page') || '1') || 1);
 
-  const [activeTab, setActiveTab] = useState<FilterTab>(tabFromUrl || 'all');
+  const activeTab = tabFromUrl;
+  const ratingFilter = ratingFromUrl >= 1 && ratingFromUrl <= 5 ? ratingFromUrl : 0;
+  const sortBy = sortFromUrl;
+  const page = pageFromUrl;
+
+  // Reviews/total come straight from server props (they update on navigation).
+  const reviews = initialReviews;
+  const total = initialTotal;
+
+  // Local, controlled text for the search box only. Kept in sync with the URL
+  // for back/forward navigation, but never clobbers what the user is typing.
   const [search, setSearch] = useState(searchFromUrl);
-  const [ratingFilter, setRatingFilter] = useState<number>(ratingFromUrl);
-  const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'highest' | 'lowest'>(sortFromUrl);
-  const [reviews, setReviews] = useState(initialReviews);
-  const [total, setTotal] = useState(initialTotal);
-  const [loading, setLoading] = useState(false);
-  const [page, setPage] = useState(pageFromUrl);
+  const searchRef = useRef<HTMLInputElement>(null);
   const [copied, setCopied] = useState(false);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
 
@@ -56,77 +70,75 @@ export default function ReviewsPageClient({
     return Math.round((sum / totalItems) * 10) / 10;
   }, [reviews, proofCount]);
 
-  const updateUrl = useCallback((params: Record<string, string | number | undefined>) => {
+  // Build the canonical URL from a partial set of params (URL = source of truth).
+  const buildUrl = useCallback((overrides: Partial<{ tab: FilterTab; search: string; rating: number; sort: SortKey; page: number }>) => {
+    const next = {
+      tab: overrides.tab ?? activeTab,
+      search: overrides.search ?? search,
+      rating: overrides.rating ?? ratingFilter,
+      sort: overrides.sort ?? sortBy,
+      page: overrides.page ?? 1, // any filter change resets to page 1 unless page given
+    };
     const sp = new URLSearchParams();
-    const tab = (params.tab || activeTab || '') as string;
-    if (tab && tab !== 'all') sp.set('tab', tab);
-    const s = params.search as string | undefined ?? search;
-    if (s) sp.set('search', s);
-    const r = params.rating !== undefined ? Number(params.rating) : ratingFilter;
-    if (r && r > 0) sp.set('rating', String(r));
-    const so = (params.sort || sortBy || '') as string;
-    if (so && so !== 'newest') sp.set('sort', so);
-    const p = params.page !== undefined ? Number(params.page) : page;
-    if (p > 1) sp.set('page', String(p));
+    if (next.tab && next.tab !== 'all') sp.set('tab', next.tab);
+    if (next.search) sp.set('search', next.search);
+    if (next.rating && next.rating > 0) sp.set('rating', String(next.rating));
+    if (next.sort && next.sort !== 'newest') sp.set('sort', next.sort);
+    if (next.page > 1) sp.set('page', String(next.page));
     const qs = sp.toString();
+    return `/reviews${qs ? `?${qs}` : ''}`;
+  }, [activeTab, search, ratingFilter, sortBy]);
+
+  const navigate = useCallback((url: string) => {
     startTransition(() => {
-      router.push(`/reviews${qs ? `?${qs}` : ''}`, { scroll: false });
+      router.replace(url, { scroll: false });
     });
-  }, [activeTab, search, ratingFilter, sortBy, page, router]);
+  }, [router]);
 
-  const fetchReviews = useCallback(async (params: { search?: string; rating?: number; sort?: string; page?: number }) => {
-    setLoading(true);
-    try {
-      const query = new URLSearchParams();
-      if (params.search) query.set('search', params.search);
-      if (params.rating && params.rating > 0) query.set('rating', String(params.rating));
-      if (params.sort) query.set('sort', params.sort);
-      if (params.page) query.set('page', String(params.page));
-      query.set('limit', String(itemsPerPage));
-      const res = await fetch(`/api/reviews/global?${query.toString()}`);
-      const data = await res.json();
-      if (data.reviews) {
-        setReviews(data.reviews);
-        setTotal(data.total);
-        setPage(data.page);
-      }
-    } catch (err) {
-      console.error('Failed to fetch reviews:', err);
-    } finally {
-      setLoading(false);
+  // Keep the search box in sync when the URL changes externally (back/forward,
+  // Copy Filter Link). Never overwrite while the user is actively typing.
+  useEffect(() => {
+    if (document.activeElement !== searchRef.current && searchFromUrl !== search) {
+      setSearch(searchFromUrl);
     }
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchFromUrl]);
 
-  const changeTab = (tab: FilterTab) => {
-    setActiveTab(tab);
-    updateUrl({ tab, page: '1' });
+  // Debounced live search: one navigation 300ms after the user stops typing.
+  // Guarded so it only fires when the value actually differs from the URL,
+  // which prevents any set-URL -> re-render -> set-URL loop.
+  useEffect(() => {
+    if (search === searchFromUrl) return;
+    const t = setTimeout(() => {
+      navigate(buildUrl({ search, page: 1 }));
+    }, 300);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search]);
+
+  const submitSearch = () => {
+    if (search === searchFromUrl) return;
+    navigate(buildUrl({ search, page: 1 }));
   };
 
-  const handleSearch = () => {
-    setPage(1);
-    updateUrl({ search, rating: ratingFilter || undefined, sort: sortBy, page: '1' });
-    fetchReviews({ search, rating: ratingFilter, sort: sortBy, page: 1 });
-  };
+  const changeTab = (tab: FilterTab) => navigate(buildUrl({ tab, page: 1 }));
 
   const handleRatingFilter = (rating: number) => {
     const newRating = rating === ratingFilter ? 0 : rating;
-    setRatingFilter(newRating);
-    setPage(1);
-    updateUrl({ search, rating: newRating || undefined, sort: sortBy, page: '1' });
-    fetchReviews({ search, rating: newRating, sort: sortBy, page: 1 });
+    navigate(buildUrl({ rating: newRating, page: 1 }));
   };
 
-  const handleSort = (sort: 'newest' | 'oldest' | 'highest' | 'lowest') => {
-    setSortBy(sort);
-    setPage(1);
-    updateUrl({ search, rating: ratingFilter || undefined, sort, page: '1' });
-    fetchReviews({ search, rating: ratingFilter, sort, page: 1 });
-  };
+  const handleSort = (sort: SortKey) => navigate(buildUrl({ sort, page: 1 }));
 
   const handlePageChange = (newPage: number) => {
     if (newPage < 1 || newPage > Math.ceil(total / itemsPerPage)) return;
-    updateUrl({ search, rating: ratingFilter || undefined, sort: sortBy, page: String(newPage) });
-    fetchReviews({ search, rating: ratingFilter, sort: sortBy, page: newPage });
+    navigate(buildUrl({ page: newPage }));
+  };
+
+  const hasActiveFilters = ratingFilter > 0 || !!search || sortBy !== 'newest';
+  const clearFilters = () => {
+    setSearch('');
+    navigate('/reviews');
   };
 
   const copyFilterLink = () => {
@@ -188,33 +200,40 @@ export default function ReviewsPageClient({
             )}
           </div>
 
-          {/* ── GLOBAL SEARCH & FILTERS (full-width) ── */}
-          <div className="bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 p-4 sm:p-5 mb-6 space-y-4">
+          {/* ── GLOBAL SEARCH & FILTERS (aligned, sticky toolbar) ── */}
+          <div className="sticky top-2 z-20 bg-white/95 dark:bg-[#16162a]/95 backdrop-blur rounded-2xl border border-gray-200 dark:border-gray-800 p-4 sm:p-5 mb-6 space-y-4 shadow-sm">
             <div className="flex gap-2">
               <div className="relative flex-1">
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
+                  ref={searchRef}
                   type="text"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                  onKeyDown={(e) => e.key === 'Enter' && submitSearch()}
                   placeholder="Search by product name..."
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-[#0f0f1b]/50 text-sm font-medium text-gray-900 dark:text-white placeholder-gray-400 focus:border-[#e94560] focus:outline-none transition-all"
+                  aria-label="Search reviews by product name"
+                  className="w-full h-11 pl-10 pr-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-[#0f0f1b]/50 text-sm font-medium text-gray-900 dark:text-white placeholder-gray-400 focus:border-[#e94560] focus:outline-none transition-all"
                 />
               </div>
-              <button onClick={handleSearch} className="px-4 py-2.5 rounded-xl bg-[#1a1a2e] hover:bg-[#e94560] text-white text-sm font-bold transition-all cursor-pointer">
+              <button
+                onClick={submitSearch}
+                className="h-11 px-4 rounded-xl bg-[#1a1a2e] hover:bg-[#e94560] text-white text-sm font-bold transition-all cursor-pointer shrink-0"
+              >
                 Search
               </button>
             </div>
 
             <div className="flex items-center gap-2">
               <span className="text-xs font-bold text-gray-400 shrink-0">Filter by:</span>
-              <div className="flex flex-row flex-nowrap overflow-x-auto scrollbar-none gap-2 pb-2 w-full">
+              <div className="flex flex-row flex-nowrap overflow-x-auto scrollbar-none gap-2 pb-2 w-full" role="group" aria-label="Filter by star rating">
                 {[5, 4, 3, 2, 1].map((star) => (
                   <button
                     key={star}
                     onClick={() => handleRatingFilter(star)}
-                    className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer shrink-0 ${
+                    aria-pressed={ratingFilter === star}
+                    aria-label={`${star} star reviews`}
+                    className={`flex items-center gap-1 h-8 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer shrink-0 ${
                       ratingFilter === star
                         ? 'bg-[#e94560] text-white border-none shadow-sm'
                         : 'bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10'
@@ -230,7 +249,8 @@ export default function ReviewsPageClient({
                 <span className="text-gray-400 text-xs font-bold">Sort:</span>
                 <select
                   value={sortBy}
-                  onChange={(e) => handleSort(e.target.value as any)}
+                  onChange={(e) => handleSort(e.target.value as SortKey)}
+                  aria-label="Sort reviews"
                   className="text-xs font-bold bg-transparent text-gray-600 dark:text-gray-300 border-none focus:outline-none cursor-pointer py-1"
                 >
                   <option value="newest">Newest First</option>
@@ -239,7 +259,18 @@ export default function ReviewsPageClient({
                   <option value="lowest">Lowest Rated</option>
                 </select>
               </div>
+              {hasActiveFilters && (
+                <button
+                  onClick={clearFilters}
+                  className="ml-auto h-8 px-3 rounded-lg text-[11px] font-bold text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700 hover:text-[#e94560] hover:border-[#e94560]/30 transition-all cursor-pointer shrink-0"
+                >
+                  Clear filters
+                </button>
+              )}
             </div>
+            <p aria-live="polite" className="sr-only">
+              {isPending ? 'Loading reviews' : `${total} review${total !== 1 ? 's' : ''} found`}
+            </p>
           </div>
 
           {/* ── TAB SWITCHER ── */}
@@ -278,7 +309,7 @@ export default function ReviewsPageClient({
             {showReviews && (
               <div className="flex-1 min-w-0">
                 <ReviewsList
-                  loading={loading}
+                  loading={isPending}
                   reviews={reviews}
                   search={search}
                   formatDate={formatDate}

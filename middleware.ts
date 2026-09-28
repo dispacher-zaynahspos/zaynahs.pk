@@ -17,14 +17,13 @@ export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
   const { pathname } = req.nextUrl;
 
-  // --- Canonical host: normalize www.* -> bare domain (301) so www and non-www
-  // don't both get indexed (duplicate-content). Generic across all store domains,
-  // no hardcoded host. Skips localhost/preview hosts. ---
-  const host = req.headers.get('host') || '';
-  if (host.startsWith('www.') && !host.includes('localhost')) {
-    const target = `https://${host.slice(4)}${pathname}${req.nextUrl.search}`;
-    return NextResponse.redirect(target, 301);
-  }
+  // --- Canonical host is owned by EXACTLY ONE layer: the Vercel domain-level
+  // redirect (apex -> www, matching NEXT_PUBLIC_SITE_URL=https://www.<domain>).
+  // We deliberately do NOT emit any host redirect here. A previous www->apex
+  // 301 in this file fought the Vercel apex->www redirect and produced an
+  // infinite loop (ERR_TOO_MANY_REDIRECTS); the 301 also got cached hard by
+  // Cloudflare/browsers. Single-owner canonicalization = no ping-pong.
+  // See docs/agent-rules/18-multi-domain-rules.md. ---
 
   // Only guard the admin UI; never guard the login/auth pages or API (API uses requireAdmin).
   const isAdminUi =
@@ -83,7 +82,9 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  // Run on all routes (for canonical-host redirect) except Next internals,
-  // API, and files with extensions (sitemap.xml, robots.txt, images, etc.).
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|api|.*\\.).*)'],
+  // Host canonicalization is handled at the Vercel domain layer, so middleware
+  // only needs to run on the admin UI (auth gate + Supabase session refresh).
+  // Scoping to /admin avoids running the edge auth check on every storefront
+  // request and removes any chance of a middleware-emitted host/redirect loop.
+  matcher: ['/admin/:path*'],
 };
