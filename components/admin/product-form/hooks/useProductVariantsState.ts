@@ -73,7 +73,7 @@ export function useProductVariantsState({
 
   const handleComparePriceChange = (val: string) => {
     const newCompare = val.trim() ? parseFloat(val) : undefined;
-    setVariants(prev => prev.map(v => ({ ...v, comparePrice: newCompare })));
+    setVariants(prev => prev.map(v => ({ ...v, compare_price: newCompare })));
   };
 
   const initAxes = (): VariantAxis[] => {

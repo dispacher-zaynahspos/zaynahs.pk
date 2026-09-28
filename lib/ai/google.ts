@@ -1,44 +1,44 @@
 // Real, currently-valid Google Generative Language API model IDs.
-// Gemini 3.5 Flash is Google's active 1,500 req/day FREE model supporting both Text & Vision.
-export const DEFAULT_GOOGLE_MODEL = 'gemini-3.5-flash';
-export const GOOGLE_FALLBACK_MODEL = 'gemini-flash-latest';
+// Gemini 3.8 Flash is Google's active, high-speed 1,500 req/day FREE model supporting both Text & Vision.
+export const DEFAULT_GOOGLE_MODEL = 'gemini-3.8-flash';
+export const GOOGLE_FALLBACK_MODEL = 'gemini-3.6-flash';
 
 export const GOOGLE_MODELS = {
   text: [
-    'gemini-3.5-flash',
     'gemini-3.8-flash',
-    'gemini-flash-latest',
-    'gemini-3.5-flash-lite',
-    'gemini-3.7-flash',
     'gemini-3.6-flash',
     'gemini-3.1-flash-lite',
-    'gemma-4-31b-it',
-    'gemma-4-26b-a4b-it'
+    'gemma-4-26b-a4b-it',
+    'gemini-3.7-flash',
+    'gemini-3.5-flash',
+    'gemini-3.5-flash-lite',
+    'gemini-flash-latest',
   ],
   vision: [
-    'gemini-3.5-flash',
     'gemini-3.8-flash',
-    'gemini-flash-latest',
-    'gemini-3.5-flash-lite',
+    'gemini-3.6-flash',
+    'gemini-3.1-flash-lite',
     'gemini-3.7-flash',
-    'gemini-3.6-flash'
+    'gemini-3.5-flash',
+    'gemini-3.5-flash-lite',
+    'gemini-flash-latest',
   ],
 } as const;
 
 export const GOOGLE_FREE_LIMITS: Record<string, { reqPerDay: number; rpm: number }> = {
-  'gemini-3.5-flash': { reqPerDay: 1500, rpm: 15 },
   'gemini-3.8-flash': { reqPerDay: 1500, rpm: 15 },
-  'gemini-flash-latest': { reqPerDay: 1500, rpm: 15 },
-  'gemini-3.5-flash-lite': { reqPerDay: 1500, rpm: 15 },
-  'gemini-3.7-flash': { reqPerDay: 1500, rpm: 15 },
   'gemini-3.6-flash': { reqPerDay: 1500, rpm: 15 },
   'gemini-3.1-flash-lite': { reqPerDay: 1500, rpm: 15 },
+  'gemma-4-26b-a4b-it': { reqPerDay: 1500, rpm: 15 },
+  'gemini-3.7-flash': { reqPerDay: 1500, rpm: 15 },
+  'gemini-3.5-flash': { reqPerDay: 1500, rpm: 15 },
+  'gemini-3.5-flash-lite': { reqPerDay: 1500, rpm: 15 },
+  'gemini-flash-latest': { reqPerDay: 1500, rpm: 15 },
 };
 
 /**
- * Resolve the admin-selected Google model to a real API model ID.
- * Automatically upgrades retired models (gemini-1.5-flash, gemini-2.0-flash, gemini-2.5-flash)
- * to gemini-3.5-flash to prevent 404 NOT_FOUND errors.
+ * Resolve the admin-selected Google model to a real active API model ID.
+ * Automatically upgrades retired or high-demand models to gemini-3.8-flash.
  */
 export function normalizeGoogleModel(requestedModel: string): string {
   const m = (requestedModel || '').trim().toLowerCase();
@@ -47,7 +47,9 @@ export function normalizeGoogleModel(requestedModel: string): string {
     m === 'gemini-1.5-flash' ||
     m === 'gemini-1.5-pro' ||
     m === 'gemini-2.0-flash' ||
-    m === 'gemini-2.5-flash'
+    m === 'gemini-2.5-flash' ||
+    m === 'gemini-3.5-flash' ||
+    m === 'gemini-flash-latest'
   ) {
     return DEFAULT_GOOGLE_MODEL;
   }
@@ -67,10 +69,12 @@ export async function callGoogle(
   const primaryModel = normalizeGoogleModel(model);
   const modelsToTry = Array.from(new Set([
     primaryModel,
-    'gemini-3.5-flash-lite',
-    'gemini-flash-latest',
     'gemini-3.8-flash',
-    DEFAULT_GOOGLE_MODEL,
+    'gemini-3.6-flash',
+    'gemini-3.1-flash-lite',
+    'gemma-4-26b-a4b-it',
+    'gemini-3.7-flash',
+    'gemini-3.5-flash',
   ]));
 
   const wantsJson = /json|\{|\}/i.test(prompt) || /json/i.test(systemPrompt);
@@ -99,7 +103,7 @@ export async function callGoogle(
     }
 
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 40000);
+    const timer = setTimeout(() => controller.abort(), 14000);
 
     try {
       const res = await fetch(url, {
@@ -116,9 +120,9 @@ export async function callGoogle(
         (err as any).status = res.status;
         lastError = err;
 
-        // If 503 (high demand) or 404 (model deprecated) or 429 (rate limit), try fallback
-        if (res.status === 503 || res.status === 404 || res.status === 429) {
-          console.warn(`[callGoogle] ${currentModel} returned ${res.status}. Retrying with fallback...`);
+        // Auto-failover immediately if high-demand, rate-limited, or deprecated
+        if (res.status === 503 || res.status === 500 || res.status === 404 || res.status === 429) {
+          console.warn(`[callGoogle] ${currentModel} returned ${res.status} (${errMsg}). Auto-switching to next model...`);
           continue;
         }
         throw err;
@@ -132,8 +136,14 @@ export async function callGoogle(
       return text;
     } catch (fetchErr: any) {
       lastError = fetchErr;
-      if (fetchErr.status === 503 || fetchErr.status === 404 || fetchErr.status === 429 || fetchErr.name === 'AbortError') {
-        console.warn(`[callGoogle] ${currentModel} failed (${fetchErr.message}). Trying fallback...`);
+      if (
+        fetchErr.status === 503 ||
+        fetchErr.status === 500 ||
+        fetchErr.status === 404 ||
+        fetchErr.status === 429 ||
+        fetchErr.name === 'AbortError'
+      ) {
+        console.warn(`[callGoogle] ${currentModel} failed (${fetchErr.message}). Retrying fallback...`);
         continue;
       }
       throw fetchErr;

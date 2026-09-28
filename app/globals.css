@@ -516,6 +516,35 @@ main#admin-main-content:has(.fixed.z-50) {
   border-radius: 10px !important;
 }
 
+/* ------------------------------------------------------------
+   Cap runaway theme radius inside admin ONLY.
+   Some storefront theme presets set --border-radius-card to
+   9999px (pill), and ThemeStyleRegistry forces every
+   [class*="rounded-*"] container to that value app-wide via
+   !important. Combined with overflow-hidden, that clips text
+   near corners in the product form (rich-text editor, bought-
+   together list, pricing card, variant bulk-bar inputs).
+   Descendant specificity (0,2,0) here beats the registry's
+   (0,1,0) even though both use !important, so this wins
+   deterministically. Scoped to .admin-shell => storefront look
+   is untouched. rounded-full is preserved for pills/avatars.
+   ------------------------------------------------------------ */
+.admin-shell [class*="rounded-3xl"],
+.admin-shell [class*="rounded-2xl"],
+.admin-shell [class*="rounded-xl"],
+.admin-shell .card {
+  border-radius: 12px !important;
+}
+.admin-shell button:not(.rounded-full):not(.swatch-btn),
+.admin-shell textarea,
+.admin-shell [role="button"]:not(.rounded-full) {
+  border-radius: 10px !important;
+}
+.admin-shell [class*="rounded-lg"],
+.admin-shell [class*="rounded-md"] {
+  border-radius: 8px !important;
+}
+
 /* Remove number input spin-buttons in admin tables & cards */
 .admin-shell input[type="number"]::-webkit-outer-spin-button,
 .admin-shell input[type="number"]::-webkit-inner-spin-button,

@@ -79,9 +79,9 @@ export default function ProductForm({ categories, initialProduct, aiEnabled }: P
 
             <ProductFormPricing
               price={p.price}
-              onPriceChange={p.handlePriceChange}
+              onPriceChange={p.setPrice}
               comparePrice={p.comparePrice}
-              onComparePriceChange={p.handleComparePriceChange}
+              onComparePriceChange={p.setComparePrice}
               cost={p.cost}
               setCost={p.setCost}
               rating={p.rating}

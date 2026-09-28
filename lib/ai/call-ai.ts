@@ -87,7 +87,7 @@ export async function callAI(
     } catch (err: any) {
       console.warn(`[aiEngine] Key ${i} failed for provider ${provider}:`, err.message || err);
       const status = err.status || err.statusCode;
-      if (status === 429 || status === 503 || status === 402) {
+      if (status === 429 || status === 503 || status === 402 || status === 500) {
         continue;
       }
       throw err;
@@ -128,10 +128,12 @@ async function executeRequest(
       const primaryModel = normalizeGoogleModel(model);
       const modelsToTry = Array.from(new Set([
         primaryModel,
-        'gemini-3.5-flash-lite',
-        'gemini-flash-latest',
         'gemini-3.8-flash',
-        DEFAULT_GOOGLE_MODEL,
+        'gemini-3.6-flash',
+        'gemini-3.1-flash-lite',
+        'gemma-4-26b-a4b-it',
+        'gemini-3.7-flash',
+        'gemini-3.5-flash',
       ]));
       const wantsJson = /json|\{|\}/i.test(prompt) || /json/i.test(systemPrompt);
 
@@ -173,7 +175,7 @@ async function executeRequest(
         headers = { 'Content-Type': 'application/json' };
 
         try {
-          const res = await makeFetch(url, headers, bodyData);
+          const res = await makeFetch(url, headers, bodyData, 14000);
           const json = JSON.parse(res);
           const text = json?.candidates?.[0]?.content?.parts?.[0]?.text;
           if (!text) throw new Error('Empty response from Gemini API');
@@ -181,7 +183,7 @@ async function executeRequest(
         } catch (fetchErr: any) {
           lastError = fetchErr;
           const status = fetchErr.status || fetchErr.statusCode;
-          if (status === 503 || status === 404 || status === 429) {
+          if (status === 503 || status === 500 || status === 404 || status === 429) {
             console.warn(`[callAI] Gemini model ${currentModel} returned ${status}. Retrying fallback...`);
             continue;
           }
@@ -329,7 +331,7 @@ async function executeRequest(
   }
 }
 
-async function makeFetch(url: string, headers: Record<string, string>, body: any, timeoutMs: number = 40000): Promise<string> {
+async function makeFetch(url: string, headers: Record<string, string>, body: any, timeoutMs: number = 15000): Promise<string> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
 
