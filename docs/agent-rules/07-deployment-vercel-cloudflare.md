@@ -55,3 +55,14 @@ Whenever the user asks to clone, fork, or set up a new store:
    * **Stage 5 (Vercel Sync)**: Pushes environment variables to Vercel and links domain.
    * **Stage 6 (Audit & Verify)**: Executes `node scripts/post-deploy-fix.mjs` to purge all caches and verify HTTP 200 and `{ revalidated: true }`.
 3. **Report to user**: Once complete, provide a concise summary showing all 6 stages verified green (`OK ✅`).
+
+---
+
+## RULE CLONE2 — Setup must stay 100% agent-automated & error-free after EVERY feature change (STRICT)
+The user does **zero** manual setup. A fresh `clone → give credentials → agent runs A-Z` must produce a fully working store with **no errors/bugs**, forever. To keep this true as the codebase grows:
+
+1. **Master schema is the law.** `supabase/schema/SUPER_MASTER_SCHEMA.sql` must ALWAYS be complete and current. Any feature work (including customizer phases) that adds/renames a table, column, index, view, policy, bucket, trigger, or seed row MUST update the master schema in the SAME task — with **UUID PK + snake_case + RLS on every data table** (RULE D13/D14 + rule 27). No column ships to code that isn't in the master schema.
+2. **Setup guide is the law.** `docs/NEW_PROJECT_SETUP_GUIDE.md` must reflect the current agent-automated flow end-to-end: env, schema apply, RLS, storage bucket, cache rules + webhooks (RULE AUTO1/CLONE1), first-admin creation (`scripts/create-admin.mjs`, email pre-confirmed, creds from env or prompted), disable public signups, deploy, post-deploy REVOKE + purge, verify. Update it whenever any of these steps change.
+3. **Agent owns RLS / UUID / cache / auth / admin creation** — never delegate a dashboard step to the user. Everything reproducible from migrations + scripts + env vars + Management/Cloudflare/Vercel APIs.
+4. **Zero-error acceptance:** after an agent setup, a customer-flow + admin-flow smoke test (`/`, `/shop`, `/product/[slug]`, `/checkout`, `/admin/login`, `/admin/dashboard`) must pass with no runtime errors, no missing columns, no RLS lockouts. If a new feature could break a fresh clone, fix the schema/setup, don't patch per-store.
+5. **New settings default to current look** so a fresh clone renders correctly with defaults (no undefined-driven breakage).
