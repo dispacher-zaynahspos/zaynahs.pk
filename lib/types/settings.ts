@@ -122,6 +122,8 @@ export interface StoreSettings {
   header_sticky_desktop?: boolean;
   header_sticky_mobile?: boolean;
   mobile_bottom_nav_enabled?: boolean;
+  mobile_bottom_nav_show_labels?: boolean;
+  mobile_bottom_nav_items?: { key: string; label: string; visible: boolean }[] | null;
   header_show_top_bar?: boolean;
   header_top_bar_phone?: string;
   header_top_bar_email?: string;

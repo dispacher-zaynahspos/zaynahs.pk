@@ -30,6 +30,8 @@ export const updateSettings = async (settings: Partial<StoreSettings>): Promise<
     if (settings.show_compare_price !== undefined) updatePayload.show_compare_price = settings.show_compare_price;
     if (settings.enable_search !== undefined) updatePayload.enable_search = settings.enable_search;
     if (settings.mobile_bottom_nav_enabled !== undefined) updatePayload.mobile_bottom_nav_enabled = settings.mobile_bottom_nav_enabled;
+    if (settings.mobile_bottom_nav_show_labels !== undefined) updatePayload.mobile_bottom_nav_show_labels = settings.mobile_bottom_nav_show_labels;
+    if (settings.mobile_bottom_nav_items !== undefined) updatePayload.mobile_bottom_nav_items = settings.mobile_bottom_nav_items;
     if (settings.enable_category_filter !== undefined) updatePayload.enable_category_filter = settings.enable_category_filter;
 
     if (settings.whatsapp_greeting !== undefined) updatePayload.whatsapp_greeting = settings.whatsapp_greeting;

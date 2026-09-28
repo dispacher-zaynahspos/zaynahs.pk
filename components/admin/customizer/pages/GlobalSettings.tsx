@@ -4,6 +4,7 @@ import React from 'react';
 import { StoreSettings } from '@/lib/types';
 import MediaField from '@/components/admin/customizer/shared/MediaField';
 import HeaderAnnouncementFields from '@/components/admin/shared/HeaderAnnouncementFields';
+import MobileBottomNavBuilder from '@/components/admin/customizer/pages/global/MobileBottomNavBuilder';
 
 interface GlobalSettingsProps {
   settings: StoreSettings;
@@ -106,6 +107,10 @@ export default function GlobalSettings({
             <div className="w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#e94560]" />
           </label>
         </div>
+
+        {(settings.mobile_bottom_nav_enabled ?? true) && (
+          <MobileBottomNavBuilder settings={settings} onUpdateSettings={onUpdateSettings} />
+        )}
 
         <HeaderAnnouncementFields settings={settings} onUpdate={onUpdateSettings} />
       </div>

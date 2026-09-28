@@ -6,7 +6,39 @@ import { usePathname } from 'next/navigation';
 import { Home, User, ShoppingBag, Heart, ShoppingCart } from '@/components/common/Icons';
 import { useCart } from '@/lib/hooks/useCart';
 
-export default function MobileBottomNav({ enabled = true }: { enabled?: boolean }) {
+export interface MobileBottomNavItem {
+  key: 'home' | 'shop' | 'wishlist' | 'cart' | 'account' | string;
+  label: string;
+  visible: boolean;
+}
+
+// Canonical registry — the ONLY place item key -> icon/href/badge is defined (SSOT).
+const NAV_ITEM_REGISTRY: Record<string, { defaultLabel: string; icon: any; href: (loggedIn: boolean) => string; badge?: 'wishlist' | 'cart' }> = {
+  home: { defaultLabel: 'Home', icon: Home, href: () => '/' },
+  shop: { defaultLabel: 'Shop', icon: ShoppingBag, href: () => '/shop' },
+  wishlist: { defaultLabel: 'Wishlist', icon: Heart, href: () => '/wishlist', badge: 'wishlist' },
+  cart: { defaultLabel: 'Cart', icon: ShoppingCart, href: () => '/cart', badge: 'cart' },
+  account: { defaultLabel: 'Account', icon: User, href: (loggedIn) => (loggedIn ? '/account' : '/login') },
+};
+
+// Standard high-conversion native e-commerce sequence.
+export const DEFAULT_MOBILE_NAV_ITEMS: MobileBottomNavItem[] = [
+  { key: 'home', label: 'Home', visible: true },
+  { key: 'shop', label: 'Shop', visible: true },
+  { key: 'wishlist', label: 'Wishlist', visible: true },
+  { key: 'cart', label: 'Cart', visible: true },
+  { key: 'account', label: 'Account', visible: true },
+];
+
+export default function MobileBottomNav({
+  enabled = true,
+  items,
+  showLabels = true,
+}: {
+  enabled?: boolean;
+  items?: MobileBottomNavItem[] | null;
+  showLabels?: boolean;
+}) {
   const pathname = usePathname();
   const totalItems = useCart((state) => state.totalItems());
   const [mounted, setMounted] = useState(false);
@@ -47,16 +79,21 @@ export default function MobileBottomNav({ enabled = true }: { enabled?: boolean 
     loadSession();
   }, [mounted]);
 
-  // Standard high-conversion native e-commerce sequence: Home -> Shop -> Wishlist -> Cart -> Account
-  const navItems = [
-    { label: 'Home', href: '/', icon: Home },
-    { label: 'Shop', href: '/shop', icon: ShoppingBag },
-    { label: 'Wishlist', href: '/wishlist', icon: Heart, badgeCount: wishlistCount },
-    { label: 'Cart', href: '/cart', icon: ShoppingCart, badgeCount: totalItems },
-    { label: 'Account', href: customerSession ? '/account' : '/login', icon: User },
-  ];
+  // Build nav from config (order + visibility + custom label); fall back to defaults.
+  const configItems = (Array.isArray(items) && items.length > 0 ? items : DEFAULT_MOBILE_NAV_ITEMS)
+    .filter((it) => it.visible !== false && NAV_ITEM_REGISTRY[it.key]);
+  const navItems = configItems.map((it) => {
+    const reg = NAV_ITEM_REGISTRY[it.key];
+    return {
+      key: it.key,
+      label: it.label || reg.defaultLabel,
+      href: reg.href(!!customerSession),
+      icon: reg.icon,
+      badgeCount: reg.badge === 'wishlist' ? wishlistCount : reg.badge === 'cart' ? totalItems : undefined,
+    };
+  });
 
-  if (!enabled) return null;
+  if (!enabled || navItems.length === 0) return null;
 
   return (
     <nav 
@@ -66,7 +103,7 @@ export default function MobileBottomNav({ enabled = true }: { enabled?: boolean 
       <div className="flex items-center justify-around h-16 px-1">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive = item.label === 'Account'
+          const isActive = item.key === 'account'
             ? (pathname === '/account' || pathname === '/login' || pathname === '/signup')
             : item.href === '/' 
               ? pathname === '/'
@@ -74,12 +111,12 @@ export default function MobileBottomNav({ enabled = true }: { enabled?: boolean 
 
           return (
             <Link
-              key={item.label}
+              key={item.key}
               href={item.href}
               prefetch={true}
               id={
-                item.label === 'Wishlist' ? 'mobile-bottom-wishlist-icon' :
-                item.label === 'Cart' ? 'mobile-bottom-cart-icon' :
+                item.key === 'wishlist' ? 'mobile-bottom-wishlist-icon' :
+                item.key === 'cart' ? 'mobile-bottom-cart-icon' :
                 undefined
               }
               className={`flex flex-col items-center justify-center flex-1 h-full relative text-[10px] font-bold transition-all duration-150 active:scale-90 ${
@@ -109,7 +146,7 @@ export default function MobileBottomNav({ enabled = true }: { enabled?: boolean 
                   />
                 )}
               </div>
-              <span className="mt-0.5 tracking-tight leading-none">{item.label}</span>
+              {showLabels && <span className="mt-0.5 tracking-tight leading-none">{item.label}</span>}
             </Link>
           );
         })}

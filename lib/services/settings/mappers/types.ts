@@ -31,6 +31,8 @@ export interface SettingsRow {
   show_compare_price?: boolean | null;
   enable_search?: boolean | null;
   mobile_bottom_nav_enabled?: boolean | null;
+  mobile_bottom_nav_show_labels?: boolean | null;
+  mobile_bottom_nav_items?: any[] | null;
   enable_category_filter?: boolean | null;
   verticals_enabled?: boolean | null;
   verticals_hub_title?: string | null;

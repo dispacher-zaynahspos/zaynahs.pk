@@ -20,6 +20,8 @@ export const mapSettings = (row: SettingsRow): StoreSettings => ({
   show_compare_price: row.show_compare_price ?? true,
   enable_search: row.enable_search ?? true,
   mobile_bottom_nav_enabled: row.mobile_bottom_nav_enabled ?? true,
+  mobile_bottom_nav_show_labels: row.mobile_bottom_nav_show_labels ?? true,
+  mobile_bottom_nav_items: row.mobile_bottom_nav_items ?? null,
   enable_category_filter: row.enable_category_filter ?? true,
   
   last_vercel_purge: row.last_vercel_purge || undefined,
