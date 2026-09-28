@@ -28,7 +28,7 @@ export default async function StoreLayout({
       </main>
       <Footer settings={settings} brandName={brandName} />
       <CartBar currencySymbol={settings.currency_symbol} />
-      <MobileBottomNav />
+      <MobileBottomNav enabled={settings?.mobile_bottom_nav_enabled !== false} />
       <FloatingContacts settings={settings} />
       <PremiumFeaturesProvider settings={settings} />
     </div>

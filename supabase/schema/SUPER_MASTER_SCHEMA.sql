@@ -377,6 +377,7 @@ CREATE TABLE IF NOT EXISTS store_settings (
   header_sticky BOOLEAN DEFAULT true,
   header_sticky_desktop BOOLEAN DEFAULT true,
   header_sticky_mobile BOOLEAN DEFAULT true,
+  mobile_bottom_nav_enabled BOOLEAN DEFAULT true,
   header_show_top_bar BOOLEAN DEFAULT true,
   header_top_bar_phone TEXT DEFAULT '',
   header_top_bar_email TEXT DEFAULT '',

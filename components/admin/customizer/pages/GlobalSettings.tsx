@@ -94,6 +94,19 @@ export default function GlobalSettings({
           </label>
         </div>
 
+        <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-800 pb-2">
+          <span className="text-xs font-bold text-gray-700 dark:text-gray-300">Mobile Bottom Nav Bar</span>
+          <label className="relative inline-flex items-center cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={settings.mobile_bottom_nav_enabled ?? true}
+              onChange={(e) => onUpdateSettings({ mobile_bottom_nav_enabled: e.target.checked })}
+              className="sr-only peer"
+            />
+            <div className="w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#e94560]" />
+          </label>
+        </div>
+
         <HeaderAnnouncementFields settings={settings} onUpdate={onUpdateSettings} />
       </div>
     );

@@ -32,6 +32,10 @@ export function AppearanceColorTokensTab({ colors, updateConfigField }: Appearan
           { key: 'textHeading', label: 'Heading Font Color', desc: 'Custom color for all h1-h6 and heading blocks' },
           { key: 'textAccent', label: 'Accent Text Color', desc: 'Custom color for highlighted text elements' },
           { key: 'price', label: 'Price Display Color', desc: 'Custom color for product pricing and price ranges' },
+          { key: 'sale', label: 'Sale / Discount', desc: 'Sale badges, discount %, compare-at strike accents' },
+          { key: 'success', label: 'Success / In-Stock', desc: 'Verified, in-stock, success toasts & ticks' },
+          { key: 'warning', label: 'Warning / Low-Stock', desc: 'Low-stock urgency, warnings, countdowns' },
+          { key: 'link', label: 'Link Color', desc: 'Inline links and "view all" actions' },
           { key: 'border', label: 'Borders/Dividers', desc: 'Layout segment borders and list dividers' }
         ].map(item => {
           let val = colors[item.key as keyof typeof colors] || '';
@@ -41,6 +45,14 @@ export function AppearanceColorTokensTab({ colors, updateConfigField }: Appearan
             } else if (item.key === 'textAccent') {
               val = colors.accent || '#e94560';
             } else if (item.key === 'price') {
+              val = colors.accent || '#e94560';
+            } else if (item.key === 'sale') {
+              val = '#e94560';
+            } else if (item.key === 'success') {
+              val = '#10b981';
+            } else if (item.key === 'warning') {
+              val = '#f59e0b';
+            } else if (item.key === 'link') {
               val = colors.accent || '#e94560';
             } else {
               val = '#000000';

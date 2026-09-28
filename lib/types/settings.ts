@@ -23,6 +23,10 @@ export interface ThemeConfig {
     textHeading?: string;
     textAccent?: string;
     price?: string;
+    sale?: string;
+    success?: string;
+    warning?: string;
+    link?: string;
   };
   fonts: {
     heading: string;
@@ -117,6 +121,7 @@ export interface StoreSettings {
   header_sticky?: boolean;
   header_sticky_desktop?: boolean;
   header_sticky_mobile?: boolean;
+  mobile_bottom_nav_enabled?: boolean;
   header_show_top_bar?: boolean;
   header_top_bar_phone?: string;
   header_top_bar_email?: string;

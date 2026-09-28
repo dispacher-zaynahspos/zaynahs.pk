@@ -199,3 +199,29 @@ Reverse gap: `header_sticky_mobile` is consumed but has no matching customizer t
 5. Preview device widths: keep current 1280/800/375 or switch to prompt's 1280/768/390?
 
 **STOP — awaiting your approval / "next" to begin Phase 1.**
+
+---
+
+## 10. PROGRESS LOG (post-audit implementation)
+
+Phases 1–3 + foundation shipped in prior sessions (theme-schema SSOT, shared control library, section-editor migration, product-detail reversible visibility, card appearance, shop grid). This session added:
+
+### Gap A — dead settings closed
+- **`enable_search`** — now gates the storefront search button (`components/common/Navbar.tsx` searchNode; only `setSearchOpen(true)` caller is that button, so disabling fully hides search). Was: button always rendered.
+- **`enable_safe_checkout`** — now gates the product-detail "Safe Checkout" block (`components/store/product-detail/info/ProductDetailTrustBadges.tsx:55` → `settings.enable_safe_checkout !== false && ...`). Default-true so legacy stores unchanged. Was: toggle did nothing.
+- **`swatch_size`** — re-verified: NOT dead, still an active fallback in `VariantSelector.tsx:46` / `ProductCard.tsx:123`. Left as-is (backward-compat).
+- **ticker colors** — re-verified already fixed (editor writes both `tickerBgColor` + `bgColor`; storefront reads both).
+
+### Phase 4 Global
+- **Mobile Bottom Nav enable toggle** (was 0 controls) — new `mobile_bottom_nav_enabled` setting (migration `20260927190000`, applied 4/4 stores + master schema). Full chain: type → mapper types → dbToSettingsMapper → mutations whitelist → `GlobalSettings.tsx` toggle. `MobileBottomNav` accepts `enabled` prop; store layout + customizer preview both pass it. Default true = no visual change.
+
+### Phase 4 Appearance — semantic tokens
+- Added **`sale` / `success` / `warning` / `link`** color tokens (theme_config JSONB — no migration). Wired end-to-end: `ThemeConfig` type → `AppearanceColorTokensTab` UI (with sensible defaults #e94560/#10b981/#f59e0b/accent) → `ThemeStyleRegistry` emits `--color-sale/--color-success/--color-warning/--color-link` on `:root`. Storefront can now consume these vars instead of hardcoded hex.
+
+Verified each batch: `tsc --noEmit` = 0 errors, `next build` ✓ 294/294 pages.
+
+### Still open (large, tracked — recommend focused follow-up passes, not one burst)
+- Phase 4 Global: header layout variants, footer column/menu builder, full mobile-bottom-nav **item builder** (labels/icons/order/per-item visibility/colors), WhatsApp floating button controls in customizer (currently in Settings form — functional, just not in customizer).
+- Phase 4 Appearance: dark-mode token SET, secondary/ghost button styling, border-width/shadow/spacing-scale/container-width tokens, typography weight/line-height.
+- Phase 5 Gap B: source-level replacement of pervasive `#e94560`/`#10b981`/`#1a1a2e` literals with the new tokens. NOTE: `ThemeStyleRegistry` already runtime-remaps these hex → theme vars (lines ~101-250), so themes already apply; source-level cleanup is polish, not a functional blocker.
+

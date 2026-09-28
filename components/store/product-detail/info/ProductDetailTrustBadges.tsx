@@ -52,7 +52,7 @@ export function ProductDetailTrustBadges({ settings, mounted }: ProductDetailTru
       </div>
 
       {/* Safe Checkout Block */}
-      {settings.safe_checkout_methods && settings.safe_checkout_methods.length > 0 && (
+      {settings.enable_safe_checkout !== false && settings.safe_checkout_methods && settings.safe_checkout_methods.length > 0 && (
         <div className="border border-gray-200 dark:border-gray-800 bg-gray-50/20 dark:bg-white/5 rounded-2xl p-4 text-center space-y-3 transition-colors">
           <span className="text-[11px] font-extrabold uppercase tracking-wider text-gray-500 dark:text-gray-400 block">
             {settings.safe_checkout_text || 'Guarantee Safe Checkout:'}

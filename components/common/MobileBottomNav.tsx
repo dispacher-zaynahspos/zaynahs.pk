@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { Home, User, ShoppingBag, Heart, ShoppingCart } from '@/components/common/Icons';
 import { useCart } from '@/lib/hooks/useCart';
 
-export default function MobileBottomNav() {
+export default function MobileBottomNav({ enabled = true }: { enabled?: boolean }) {
   const pathname = usePathname();
   const totalItems = useCart((state) => state.totalItems());
   const [mounted, setMounted] = useState(false);
@@ -55,6 +55,8 @@ export default function MobileBottomNav() {
     { label: 'Cart', href: '/cart', icon: ShoppingCart, badgeCount: totalItems },
     { label: 'Account', href: customerSession ? '/account' : '/login', icon: User },
   ];
+
+  if (!enabled) return null;
 
   return (
     <nav 

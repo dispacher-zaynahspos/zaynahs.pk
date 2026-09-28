@@ -43,6 +43,10 @@ export default function ThemeStyleRegistry({ settings }: ThemeStyleRegistryProps
       --color-text-heading: ${colors.textHeading || colors.textPrimary || colors.primary} !important;
       --color-text-accent: ${colors.textAccent || colors.accent} !important;
       --color-price: ${colors.price || colors.accent || '#e94560'} !important;
+      --color-sale: ${colors.sale || '#e94560'} !important;
+      --color-success: ${colors.success || '#10b981'} !important;
+      --color-warning: ${colors.warning || '#f59e0b'} !important;
+      --color-link: ${colors.link || colors.accent || '#e94560'} !important;
       --color-border: ${colors.border} !important;
 
       --font-heading: "${headingFont}", sans-serif !important;
