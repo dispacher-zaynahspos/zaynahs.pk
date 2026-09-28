@@ -74,7 +74,7 @@ export function SettingsTabBar({ activeTab, setActiveTab, metaSyncEnabled }: Set
 
   return (
     <div className="hidden md:block w-full bg-white dark:bg-[#16162a] border border-gray-200 dark:border-gray-800 rounded-xl p-1.5 shadow-xs mb-6">
-      <div id="settings-tab-bar" className="flex gap-1 overflow-x-auto scrollbar-hide flex-nowrap scroll-smooth py-0.5">
+      <div id="settings-tab-bar" className="flex gap-1 flex-wrap py-0.5">
         {TABS.filter(tab => tab.id !== 'meta_sync' || metaSyncEnabled).map((tab) => {
           const { id, label, icon: Icon } = tab;
           const isActive = activeTab === id;

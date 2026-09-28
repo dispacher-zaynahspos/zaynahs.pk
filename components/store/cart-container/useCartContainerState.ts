@@ -143,6 +143,8 @@ export function useCartContainerState(settings: StoreSettings) {
 
   const handleOrderSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Double-submit guard: ignore re-entry while an order is already in flight
+    if (loading) return;
     if (!firstName.trim() || !lastName.trim()) {
       toast.error('Please enter your full name');
       return;

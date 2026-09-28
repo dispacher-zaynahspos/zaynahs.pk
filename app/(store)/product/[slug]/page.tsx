@@ -98,7 +98,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         title: seoMeta?.og_title || title,
         description: seoMeta?.og_description || description,
         url: canonicalUrl,
-        type: 'website',
+        type: 'website', // NOTE: OpenGraph 'product' type below via product:* tags; keep 'website' for Next OG typing
         images: [{ url: imageUrl, width: 1200, height: 1200, alt: product.images?.[0]?.alt || product.name }],
       },
       twitter: {
@@ -188,9 +188,9 @@ export default async function ProductPage({ params }: PageProps) {
       "@type": "Review",
       "author": {
         "@type": "Person",
-        "name": r.customerName
+        "name": r.customer_name || 'Customer'
       },
-      "datePublished": r.createdAt ? new Date(r.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+      "datePublished": r.created_at ? new Date(r.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
       "reviewBody": r.comment || '',
       "reviewRating": {
         "@type": "Rating",

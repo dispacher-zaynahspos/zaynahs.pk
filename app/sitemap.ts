@@ -24,14 +24,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .select('slug, updated_at')
     .eq('active', true);
 
-  // 2. Base static routes
+  const { data: collections } = await supabaseAdmin
+    .from('collections')
+    .select('slug, updated_at')
+    .eq('active', true);
+
+  // 2. Base static routes (only indexable, canonical URLs — no wishlist/login/cart)
   const staticPages = [
     { path: '', priority: 1.0, freq: 'daily' as const },
+    { path: '/shop', priority: 0.9, freq: 'daily' as const },
+    { path: '/reviews', priority: 0.6, freq: 'weekly' as const },
     { path: '/faq', priority: 0.5, freq: 'monthly' as const },
     { path: '/returns', priority: 0.5, freq: 'monthly' as const },
     { path: '/contact', priority: 0.5, freq: 'monthly' as const },
     { path: '/privacy-policy', priority: 0.3, freq: 'monthly' as const },
-    { path: '/wishlist', priority: 0.4, freq: 'weekly' as const },
   ];
 
   const routes: MetadataRoute.Sitemap = staticPages.map((p) => ({
@@ -61,6 +67,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         lastModified: c.updated_at ? new Date(c.updated_at) : new Date(),
         changeFrequency: 'weekly',
         priority: 0.8,
+      });
+    });
+  }
+
+  // 5. Add collections
+  if (collections) {
+    collections.forEach((c) => {
+      routes.push({
+        url: `${siteUrl}/shop?collection=${c.slug}`,
+        lastModified: c.updated_at ? new Date(c.updated_at) : new Date(),
+        changeFrequency: 'weekly',
+        priority: 0.7,
       });
     });
   }

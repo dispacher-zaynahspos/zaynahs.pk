@@ -122,7 +122,7 @@ export function RecentReviewsSection({
           return (
             <div
               key={review.id}
-              className="flex flex-col gap-3 p-4 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] shadow-sm text-gray-900 dark:text-white"
+              className="flex flex-col gap-3 p-4 h-full rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] shadow-sm text-gray-900 dark:text-white"
             >
               <div className="flex gap-3">
                 <div
@@ -153,7 +153,7 @@ export function RecentReviewsSection({
                     )}
                   </div>
                   {sanitizeReviewText(review.comment) && (
-                    <p className="text-[11px] text-gray-700 dark:text-gray-300 leading-relaxed font-medium">
+                    <p className="text-[11px] text-gray-700 dark:text-gray-300 leading-relaxed font-medium line-clamp-4">
                       &ldquo;{sanitizeReviewText(review.comment)}&rdquo;
                     </p>
                   )}
