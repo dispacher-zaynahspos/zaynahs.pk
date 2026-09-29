@@ -46,7 +46,7 @@ export async function getAISettings(): Promise<AISettings> {
     content_keys: decryptSecret(data.content_keys ?? ''),
     ai_model_credentials: decryptSecretObject(data.ai_model_credentials),
     vision_provider: data.vision_provider ?? 'gemini',
-    vision_model: data.vision_model || 'gemini-3.6-flash',
+    vision_model: data.vision_model || 'gemini-3-flash-preview',
     vision_keys: decryptSecret(data.vision_keys ?? ''),
     brand_name: data.store_name ?? '',
     store_type: productTypesFlat || 'General',

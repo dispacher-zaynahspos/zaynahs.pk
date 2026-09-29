@@ -63,55 +63,31 @@ export default function OrderLog({ initialOrders, settings }: OrderLogProps) {
       />
 
       {/* Filter Tabs Row */}
-      <div className="filter-tabs-row flex items-center border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] rounded-t-xl px-3 py-1 overflow-x-auto select-none">
-        <button
-          onClick={() => { o.setActiveTab('all'); o.setSelectedOrderIds([]); }}
-          className={`filter-tab px-3 py-2.5 text-[13.5px] transition-all font-semibold border-b-2 mr-2 ${o.activeTab === 'all'
-              ? 'border-gray-900 dark:border-white text-gray-900 dark:text-white'
-              : 'border-transparent text-gray-500 hover:text-gray-900 dark:hover:text-white'
-            }`}
-        >
-          All
-        </button>
-        <button
-          onClick={() => { o.setActiveTab('unfulfilled'); o.setSelectedOrderIds([]); }}
-          className={`filter-tab px-3 py-2.5 text-[13.5px] transition-all font-semibold border-b-2 mr-2 ${o.activeTab === 'unfulfilled'
-              ? 'border-gray-900 dark:border-white text-gray-900 dark:text-white'
-              : 'border-transparent text-gray-500 hover:text-gray-900 dark:hover:text-white'
-            }`}
-        >
-          Unfulfilled
-        </button>
-        <button
-          onClick={() => { o.setActiveTab('unpaid'); o.setSelectedOrderIds([]); }}
-          className={`filter-tab px-3 py-2.5 text-[13.5px] transition-all font-semibold border-b-2 mr-2 ${o.activeTab === 'unpaid'
-              ? 'border-gray-900 dark:border-white text-gray-900 dark:text-white'
-              : 'border-transparent text-gray-500 hover:text-gray-900 dark:hover:text-white'
-            }`}
-        >
-          Unpaid
-        </button>
-        <button
-          onClick={() => { o.setActiveTab('open'); o.setSelectedOrderIds([]); }}
-          className={`filter-tab px-3 py-2.5 text-[13.5px] transition-all font-semibold border-b-2 mr-2 ${o.activeTab === 'open'
-              ? 'border-gray-900 dark:border-white text-gray-900 dark:text-white'
-              : 'border-transparent text-gray-500 hover:text-gray-900 dark:hover:text-white'
-            }`}
-        >
-          Open
-        </button>
-        <button
-          onClick={() => { o.setActiveTab('archived'); o.setSelectedOrderIds([]); }}
-          className={`filter-tab px-3 py-2.5 text-[13.5px] transition-all font-semibold border-b-2 mr-2 ${o.activeTab === 'archived'
-              ? 'border-gray-900 dark:border-white text-gray-900 dark:text-white'
-              : 'border-transparent text-gray-500 hover:text-gray-900 dark:hover:text-white'
-            }`}
-        >
-          Archived
-        </button>
+      <div className="filter-tabs-row flex items-center gap-2 border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] rounded-t-xl px-3 py-1 select-none">
+        {/* Scrollable tabs — kept separate from the action icons so tabs never clip */}
+        <div className="filter-tabs-scroll flex items-center flex-1 min-w-0 overflow-x-auto">
+          {([
+            { key: 'all', label: 'All' },
+            { key: 'unfulfilled', label: 'Unfulfilled' },
+            { key: 'unpaid', label: 'Unpaid' },
+            { key: 'open', label: 'Open' },
+            { key: 'archived', label: 'Archived' },
+          ] as const).map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => { o.setActiveTab(tab.key); o.setSelectedOrderIds([]); }}
+              className={`filter-tab shrink-0 whitespace-nowrap px-3 py-2.5 text-[13.5px] transition-all font-semibold border-b-2 mr-2 ${o.activeTab === tab.key
+                  ? 'border-gray-900 dark:border-white text-gray-900 dark:text-white'
+                  : 'border-transparent text-gray-500 hover:text-gray-900 dark:hover:text-white'
+                }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
 
-        {/* Right side icons */}
-        <div className="ml-auto flex items-center gap-1.5 py-1">
+        {/* Right side icons — fixed, never part of the scroll track */}
+        <div className="flex items-center gap-1.5 py-1 shrink-0">
           <button
             onClick={() => o.setIsSearchExpanded(!o.isSearchExpanded)}
             className={`table-ctrl-btn w-8 h-8 rounded-md border flex items-center justify-center transition-all ${o.isSearchExpanded
@@ -236,10 +212,10 @@ export default function OrderLog({ initialOrders, settings }: OrderLogProps) {
       {/* Hide scrollbar styling */}
       <style dangerouslySetInnerHTML={{
         __html: `
-        .filter-tabs-row::-webkit-scrollbar {
+        .filter-tabs-scroll::-webkit-scrollbar {
           display: none;
         }
-        .filter-tabs-row {
+        .filter-tabs-scroll {
           -ms-overflow-style: none;
           scrollbar-width: none;
         }

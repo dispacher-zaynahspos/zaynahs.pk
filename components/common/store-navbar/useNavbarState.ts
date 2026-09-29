@@ -4,11 +4,17 @@ import { useState, useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { useBodyScrollLock } from '@/lib/hooks/useBodyScrollLock';
 
-export function useNavbarState(mobileMenuOpen: boolean, searchOpen: boolean) {
+export function useNavbarState(
+  mobileMenuOpen: boolean,
+  searchOpen: boolean,
+  initialCustomerSession: any = null
+) {
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
   const [wishlistCount, setWishlistCount] = useState(0);
-  const [customerSession, setCustomerSession] = useState<any>(null);
+  // Seed with the server-hydrated session so the logged-in state renders on first
+  // paint and persists across refresh; the client effect below keeps it fresh.
+  const [customerSession, setCustomerSession] = useState<any>(initialCustomerSession);
   const [isPreview, setIsPreview] = useState(false);
   const moreOpenRef = useRef(false);
   const [moreDropdownOpen, setMoreDropdownOpen] = useState(false);

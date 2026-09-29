@@ -34,7 +34,6 @@ export function AdminHeader({
         </button>
 
         <div className="flex items-center gap-2 min-w-0">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse hidden sm:inline-block shrink-0" title="Store Live" />
           <h1 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white tracking-tight truncate">
             {pageTitle}
           </h1>
@@ -82,12 +81,12 @@ export function AdminHeader({
           href="/"
           target="_blank"
           rel="noopener noreferrer"
-          className="h-9 px-3 rounded-xl bg-gray-900 text-white dark:bg-white dark:text-gray-900 hover:opacity-90 active:scale-95 transition-all flex items-center gap-1.5 text-xs font-bold shadow-xs shrink-0 cursor-pointer"
+          className="group h-9 px-3 rounded-xl bg-white dark:bg-white/5 border border-gray-200/80 dark:border-white/10 text-gray-700 dark:text-gray-200 hover:border-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-white/10 active:scale-95 transition-all flex items-center gap-1.5 text-xs font-bold shadow-2xs shrink-0 cursor-pointer"
           title="View Storefront (opens in new tab)"
         >
           <span className="hidden sm:inline">View Store</span>
           <span className="sm:hidden">Store</span>
-          <ExternalLink className="h-3.5 w-3.5 opacity-80" />
+          <ExternalLink className="h-3.5 w-3.5 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
         </Link>
       </div>
     </header>

@@ -51,6 +51,54 @@ export function useOrderLogState({ initialOrders, settings }: UseOrderLogStatePr
     setOrders(initialOrders);
   }, [initialOrders]);
 
+  // Global order search: when the user types a query, search the FULL orders table
+  // (ignoring the date window) instead of only filtering the current date-paginated
+  // page. Debounced so we don't hit Supabase on every keystroke. When the query is
+  // cleared we fall back to the normal date-based fetch (handled by the effect below).
+  const searchOrders = async (rawQuery: string) => {
+    const term = rawQuery.trim();
+    if (!term) return;
+    setIsRefreshing(true);
+    try {
+      const supabase = createClient();
+      // Strip PostgREST filter metacharacters to avoid `.or()` filter injection.
+      const safe = term.replace(/[%,()*:]/g, ' ').trim();
+      const { data, error } = await supabase
+        .from('orders')
+        .select('*')
+        .is('deleted_at', null)
+        .or(
+          `order_number.ilike.%${safe}%,customer_name.ilike.%${safe}%,customer_phone.ilike.%${safe}%`
+        )
+        .order('created_at', { ascending: false })
+        .limit(200);
+      if (error) throw error;
+      if (data) {
+        setOrders(data.map(mapOrderRow));
+        setTotalRows(data.length);
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to search orders');
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    const term = searchQuery.trim();
+    // Empty query → restore the date-filtered list.
+    if (!term) {
+      fetchOrdersByDate(dateFilter, customStartDate, customEndDate, 1, rowsPerPage);
+      return;
+    }
+    const t = setTimeout(() => {
+      searchOrders(term);
+    }, 300);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery]);
+
   // Sync dateFilter with URL search param
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -213,6 +261,12 @@ export function useOrderLogState({ initialOrders, settings }: UseOrderLogStatePr
     const orderDate = new Date(o.created_at);
     const orderTime = orderDate.getTime();
     const now = new Date();
+
+    // When a search query is active we search across ALL dates (results are fetched
+    // globally), so skip the date-window filter to avoid hiding valid matches.
+    if (searchQuery.trim()) {
+      return true;
+    }
 
     const getStartOfDay = (d: Date) => {
       const copy = new Date(d);

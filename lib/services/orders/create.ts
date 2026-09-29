@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { Order, CartItem, StatusLogItem } from '@/lib/types';
 import { getCustomerSession } from '@/lib/utils/customer-auth';
+import { setCustomerSessionCookie } from '@/lib/utils/customer-auth';
 import { isValidPkMobile, normalizePkPhone } from '@/lib/phone';
 import { mapOrder } from './types';
 
@@ -271,6 +272,22 @@ export const createOrder = async (order: {
       await onOrderPlaced(mapped, { email: order.customerEmail, name: order.customerName, phone: order.customerPhone });
     } catch (err) {
       console.error('[Email Trigger] failed in createOrder:', err);
+    }
+
+    // Auto-login: after placing an order the customer's details are already known,
+    // so establish a session for the linked customer if they weren't logged in.
+    // Fault-tolerant — a cookie failure must never break order creation.
+    if (!session && customerId) {
+      try {
+        await setCustomerSessionCookie({
+          id: customerId,
+          name: order.customerName || 'Guest Customer',
+          email: order.customerEmail ? order.customerEmail.trim().toLowerCase() : null,
+          phone: order.customerPhone || null,
+        });
+      } catch (loginErr) {
+        console.error('[orders] auto-login after order skipped:', loginErr);
+      }
     }
 
     return mapped;

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { ChevronDown, ChevronRight } from '@/components/common/Icons';
+import { Plus } from '@/components/common/Icons';
 import { NavigationItem } from '@/lib/types';
 
 interface NavbarMobileNavItemProps {
@@ -36,79 +36,55 @@ export function NavbarMobileNavItem({
   const hasChildren = item.children && item.children.length > 0;
   const isAccOpen = mobileAccordionOpen[item.id];
   const labelText = item.label || (item as any).title || '';
-  const lower = labelText.toLowerCase();
 
-  let badge = null;
-  if (lower.includes('sale') || lower.includes('discount') || lower.includes('off') || lower.includes('clearance')) {
-    badge = (
-      <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400 border border-rose-200/80 dark:border-rose-900/40 shrink-0 ml-2 shadow-2xs">
-        SALE
-      </span>
-    );
-  } else if (lower.includes('new') || lower.includes('arrival') || lower.includes('fresh')) {
-    badge = (
-      <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200/80 dark:border-emerald-900/40 shrink-0 ml-2 shadow-2xs">
-        NEW
-      </span>
-    );
-  } else if (lower.includes('hot') || lower.includes('trend') || lower.includes('best')) {
-    badge = (
-      <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 border border-amber-200/80 dark:border-amber-900/40 shrink-0 ml-2 shadow-2xs">
-        HOT
-      </span>
-    );
-  }
+  // Reference-style typographic rows: large, bold, uppercase, one line, no boxes/pills/badges.
+  // Top-level rows are largest; nested children step down in size for a clear hierarchy.
+  const rowTextSize =
+    depth === 0 ? 'text-[19px] sm:text-xl' : depth === 1 ? 'text-[15px] sm:text-base' : 'text-sm';
+
+  const toggleAccordion = () => {
+    const nextState = !isAccOpen;
+    setMobileAccordionOpen((prev) => {
+      const updated = { ...prev, [item.id]: nextState };
+      if (nextState) {
+        getDescendantIds(item).forEach((id) => {
+          updated[id] = true;
+        });
+      }
+      return updated;
+    });
+  };
 
   return (
     <div className="w-full">
-      <div className="flex items-center justify-between py-1 px-2.5 rounded-xl hover:bg-gray-50 dark:hover:bg-white/5 active:scale-[0.99] transition-all group">
+      <div className="flex items-center justify-between gap-3">
         <Link
           href={item.url}
           prefetch={true}
           onClick={() => {
             if (!hasChildren) setMobileMenuOpen(false);
           }}
-          className="flex-1 flex items-center justify-between pr-2 text-[14.5px] font-bold text-gray-900 dark:text-gray-100 group-hover:text-black dark:group-hover:text-white transition-colors min-h-[40px]"
+          className={`flex-1 min-w-0 py-3 font-[family-name:var(--font-heading)] font-bold uppercase tracking-tight text-gray-900 dark:text-gray-100 hover:text-black dark:hover:text-white transition-colors ${rowTextSize}`}
         >
-          <span className="truncate">{labelText}</span>
-          {badge}
+          <span className="block truncate">{labelText}</span>
         </Link>
-        {hasChildren ? (
+        {hasChildren && (
           <button
             type="button"
-            onClick={() => {
-              const nextState = !isAccOpen;
-              setMobileAccordionOpen((prev) => {
-                const updated = { ...prev, [item.id]: nextState };
-                if (nextState) {
-                  getDescendantIds(item).forEach((id) => {
-                    updated[id] = true;
-                  });
-                }
-                return updated;
-              });
-            }}
-            className="h-8 w-8 rounded-lg flex items-center justify-center bg-gray-100/80 hover:bg-gray-200/80 dark:bg-white/5 dark:hover:bg-white/10 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors cursor-pointer"
-            aria-label="Toggle category submenu"
+            onClick={toggleAccordion}
+            className="h-10 w-10 -mr-2 flex items-center justify-center text-gray-400 hover:text-gray-900 dark:text-gray-500 dark:hover:text-white transition-colors cursor-pointer shrink-0"
+            aria-label={isAccOpen ? 'Collapse submenu' : 'Expand submenu'}
+            aria-expanded={isAccOpen}
           >
-            <ChevronDown
-              className={`h-4 w-4 transition-transform duration-200 ${isAccOpen ? 'rotate-180' : ''}`}
+            <Plus
+              className={`h-5 w-5 transition-transform duration-200 ${isAccOpen ? 'rotate-45' : ''}`}
+              strokeWidth={1.5}
             />
           </button>
-        ) : (
-          <Link
-            href={item.url}
-            prefetch={true}
-            onClick={() => setMobileMenuOpen(false)}
-            className="p-1 text-gray-300 dark:text-gray-600 group-hover:text-gray-500 dark:group-hover:text-gray-400 group-hover:translate-x-0.5 transition-all"
-            aria-label={`Go to ${labelText}`}
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Link>
         )}
       </div>
       {hasChildren && isAccOpen && (
-        <div className="ml-3 mt-1 space-y-0.5 border-l-2 border-gray-100 dark:border-gray-800/80 pl-3 py-1 animate-in fade-in slide-in-from-top-1 duration-200">
+        <div className="pl-4 pb-1 animate-in fade-in slide-in-from-top-1 duration-200">
           {item.children!.map((child) => (
             <NavbarMobileNavItem
               key={child.id}

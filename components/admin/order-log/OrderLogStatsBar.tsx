@@ -97,64 +97,46 @@ export function OrderLogStatsBar({
     return statsFulfilledCount > 0 ? '1.8 days' : '0';
   })();
 
+  const statCards: { label: string; value: React.ReactNode }[] = [
+    { label: 'Orders', value: statsOrdersCount },
+    { label: 'Items ordered', value: statsItemsCount },
+    { label: 'Returns', value: formatPrice(statsReturnsCount, settings.currency_symbol) },
+    { label: 'Orders fulfilled', value: statsFulfilledCount },
+    { label: 'Orders delivered', value: statsDeliveredCount },
+    { label: 'Order to fulfillment time', value: averageFulfillmentTimeStr },
+  ];
+
   return (
-    <div className="stats-bar flex flex-wrap border border-gray-200 dark:border-gray-800 rounded-xl bg-white dark:bg-[#16162a] overflow-hidden shadow-xs text-xs md:text-sm">
-      <div className="stat-item min-w-[160px] p-4 border-r border-gray-200 dark:border-gray-800 flex flex-col justify-center relative">
-        <AdminDateFilter
-          value={dateFilter}
-          onChange={setDateFilter}
-          className="border-none bg-transparent dark:bg-transparent shadow-none"
-          options={[
-            { value: 'all', label: 'All Dates' },
-            { value: 'today', label: 'Today' },
-            { value: 'yesterday', label: 'Yesterday' },
-            { value: 'last7', label: 'Last 7 days' },
-            { value: 'last30', label: 'Last 30 days' },
-            { value: 'custom', label: 'Custom range' }
-          ]}
-        />
-      </div>
-
-      <div className="stat-item flex-1 min-w-[110px] p-4 border-r border-gray-200 dark:border-gray-800 last:border-r-0 flex flex-col gap-1">
-        <div className="stat-item-header text-gray-500 font-medium">Orders</div>
-        <div className="stat-value font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
-          {statsOrdersCount} <span className="text-gray-400 font-normal">—</span>
+    <div className="stats-bar text-xs md:text-sm">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-2">
+        {/* Date range selector — full-width on mobile, first cell on desktop */}
+        <div className="col-span-2 sm:col-span-3 lg:col-span-1 flex items-center rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] px-3 py-2 shadow-xs">
+          <AdminDateFilter
+            value={dateFilter}
+            onChange={setDateFilter}
+            className="border-none bg-transparent dark:bg-transparent shadow-none w-full"
+            options={[
+              { value: 'all', label: 'All Dates' },
+              { value: 'today', label: 'Today' },
+              { value: 'yesterday', label: 'Yesterday' },
+              { value: 'last7', label: 'Last 7 days' },
+              { value: 'last30', label: 'Last 30 days' },
+              { value: 'custom', label: 'Custom range' }
+            ]}
+          />
         </div>
-      </div>
 
-      <div className="stat-item flex-1 min-w-[110px] p-4 border-r border-gray-200 dark:border-gray-800 last:border-r-0 flex flex-col gap-1">
-        <div className="stat-item-header text-gray-500 font-medium">Items ordered</div>
-        <div className="stat-value font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
-          {statsItemsCount} <span className="text-gray-400 font-normal">—</span>
-        </div>
-      </div>
-
-      <div className="stat-item flex-1 min-w-[110px] p-4 border-r border-gray-200 dark:border-gray-800 last:border-r-0 flex flex-col gap-1">
-        <div className="stat-item-header text-gray-500 font-medium">Returns</div>
-        <div className="stat-value font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
-          {formatPrice(statsReturnsCount, settings.currency_symbol)} <span className="text-gray-400 font-normal">—</span>
-        </div>
-      </div>
-
-      <div className="stat-item flex-1 min-w-[110px] p-4 border-r border-gray-200 dark:border-gray-800 last:border-r-0 flex flex-col gap-1">
-        <div className="stat-item-header text-gray-500 font-medium">Orders fulfilled</div>
-        <div className="stat-value font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
-          {statsFulfilledCount} <span className="text-gray-400 font-normal">—</span>
-        </div>
-      </div>
-
-      <div className="stat-item flex-1 min-w-[110px] p-4 border-r border-gray-200 dark:border-gray-800 last:border-r-0 flex flex-col gap-1">
-        <div className="stat-item-header text-gray-500 font-medium">Orders delivered</div>
-        <div className="stat-value font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
-          {statsDeliveredCount} <span className="text-gray-400 font-normal">—</span>
-        </div>
-      </div>
-
-      <div className="stat-item flex-1 min-w-[110px] p-4 flex flex-col gap-1">
-        <div className="stat-item-header text-gray-500 font-medium">Order to fulfillment time</div>
-        <div className="stat-value font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
-          {averageFulfillmentTimeStr} <span className="text-gray-400 font-normal">—</span>
-        </div>
+        {statCards.map((s) => (
+          <div
+            key={s.label}
+            className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] px-3 py-2.5 shadow-xs flex flex-col gap-1 min-w-0"
+          >
+            <div className="stat-item-header text-gray-500 font-medium truncate">{s.label}</div>
+            <div className="stat-value font-bold text-gray-900 dark:text-white truncate">
+              {s.value}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

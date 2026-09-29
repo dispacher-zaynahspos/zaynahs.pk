@@ -346,7 +346,7 @@ function AdminLayoutContent({
 
         <main
           id="admin-main-content"
-          className="flex-1 w-full max-w-full px-3 sm:px-4 md:px-5 pt-[calc(3.5rem+env(safe-area-inset-top,0px))] md:pt-4 pb-[calc(5rem+env(safe-area-inset-bottom,0px))] md:pb-6 overflow-y-auto overflow-x-hidden bg-slate-50 text-gray-900 transition-colors duration-200"
+          className="flex-1 w-full max-w-full px-3 sm:px-4 md:px-5 pt-[calc(3.5rem+env(safe-area-inset-top,0px))] md:pt-4 pb-[calc(4rem+env(safe-area-inset-bottom,0px))] md:pb-6 overflow-y-auto overflow-x-hidden bg-slate-50 text-gray-900 transition-colors duration-200"
         >
           {children}
         </main>

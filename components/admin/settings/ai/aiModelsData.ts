@@ -22,14 +22,13 @@ export const TEXT_MODELS: Record<string, string[]> = {
     'llama3-8b-8192',
   ],
   gemini: [
-    'gemini-3.6-flash',
-    'gemma-4-26b-a4b-it',
-    'gemma-4-31b-it',
-    'gemini-3.8-flash',
+    'gemini-3-flash-preview',
     'gemini-3.1-flash-lite',
-    'gemini-3.7-flash',
+    'gemini-3.1-flash-lite-preview',
     'gemini-3.5-flash',
-    'gemini-3.5-flash-lite',
+    'gemini-3.6-flash',
+    'gemini-3.8-flash',
+    'gemini-3.7-flash',
     'gemini-flash-latest',
   ],
   cerebras: [
@@ -219,12 +218,13 @@ export const VISION_MODELS: Record<string, string[]> = {
     'llama-3.2-90b-vision-preview',
   ],
   gemini: [
+    'gemini-3-flash-preview',
+    'gemini-3.1-flash-lite',
+    'gemini-3.1-flash-lite-preview',
+    'gemini-3.5-flash',
     'gemini-3.6-flash',
     'gemini-3.8-flash',
-    'gemini-3.1-flash-lite',
     'gemini-3.7-flash',
-    'gemini-3.5-flash',
-    'gemini-3.5-flash-lite',
     'gemini-flash-latest',
   ],
   cerebras: [
@@ -332,17 +332,18 @@ export const VISION_MODELS: Record<string, string[]> = {
 };
 
 export function getModelLabel(provider: string, model: string): string {
-  if (model.includes('llama-4-scout')) return `${model} ⭐ (Recommended • 14,400 req/day FREE)`;
-  if (model === 'gemini-3.6-flash') return `${model} ⭐ (Recommended • Ultra-Fast & Stable • 1,500 req/day FREE)`;
-  if (model === 'gemma-4-26b-a4b-it') return `${model} ⚡ (Google Gemma • Fast & Free • 1,500 req/day)`;
-  if (model === 'gemma-4-31b-it') return `${model} (Google Gemma 31B • 1,500 req/day FREE)`;
-  if (model === 'gemini-3.8-flash') return `${model} (High-Speed • 1,500 req/day FREE)`;
-  if (model === 'gemini-3.1-flash-lite') return `${model} (High-Speed • 1,500 req/day FREE)`;
-  if (model === 'gemini-3.5-flash') return `${model} (1,500 req/day FREE)`;
-  if (model === 'gemini-flash-latest') return `${model} (Auto-Updating Google Gemini • 1,500 req/day FREE)`;
-  if (model.startsWith('gemini-3.')) return `${model} (1,500 req/day FREE)`;
-  if (model === 'llama-3.3-70b-versatile') return `${model} (Fast & Smart • 6,000 req/day FREE)`;
-  if (model === 'llama-3.1-8b-instant') return `${model} (Ultra-Fast • 14,400 req/day FREE)`;
+  if (model === 'gemini-3-flash-preview') return `${model} ⭐ (Recommended • Ultra-Fast 1.5s • 15 req/min • 1,500 req/day FREE)`;
+  if (model === 'gemini-3.1-flash-lite') return `${model} ⚡ (High-Speed Lite • 15 req/min • 1,500 req/day FREE)`;
+  if (model === 'gemini-3.1-flash-lite-preview') return `${model} (Fast Preview • 15 req/min • 1,500 req/day FREE)`;
+  if (model === 'gemini-3.5-flash') return `${model} (Smart & Stable • 15 req/min • 1,500 req/day FREE)`;
+  if (model === 'gemini-3.6-flash') return `${model} (High Demand in Peak Hours • 15 req/min • 1,500 req/day FREE)`;
+  if (model === 'gemini-3.8-flash') return `${model} (High Demand in Peak Hours • 15 req/min • 1,500 req/day FREE)`;
+  if (model === 'gemini-3.7-flash') return `${model} (High Demand • 15 req/min • 1,500 req/day FREE)`;
+  if (model === 'gemini-flash-latest') return `${model} (Auto-Updating • 15 req/min • 1,500 req/day FREE)`;
+  if (model.startsWith('gemini-3.')) return `${model} (15 req/min • 1,500 req/day FREE)`;
+  if (model === 'llama-3.1-8b-instant') return `${model} ⭐ (Ultra-Fast 0.5s • 30 req/min • 14,400 req/day FREE)`;
+  if (model === 'llama-3.3-70b-versatile') return `${model} 🧠 (Smart 70B • 30 req/min • 6,000 req/day FREE)`;
+  if (model.includes('llama-4-scout')) return `${model} (14,400 req/day FREE)`;
   if (model.endsWith(':free')) return `${model} (100% Free)`;
   return model;
 }

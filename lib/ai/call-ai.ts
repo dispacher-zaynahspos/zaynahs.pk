@@ -101,8 +101,8 @@ export async function callAI(
   }
 
   const freeHint = isVision
-    ? ' Try switching to: Gemini 3.6 Flash (1,500 req/day FREE), Groq llama-4-scout (14,400 req/day FREE), or OpenRouter free models.'
-    : ' Try switching to: Gemini 3.6 Flash (1,500 req/day FREE) or Groq llama-4-scout (fastest, 14,400 req/day FREE).';
+    ? ' Try switching to: Gemini 3 Flash Preview (15 req/min • 1,500 req/day FREE), Gemini 3.1 Flash Lite (15 req/min • 1,500 req/day FREE), or Groq.'
+    : ' Try switching to: Gemini 3 Flash Preview (15 req/min • 1,500 req/day FREE), Gemini 3.1 Flash Lite (15 req/min • 1,500 req/day FREE), or Groq llama-3.1-8b-instant (fastest • 14,400 req/day FREE).';
   throw new Error(`All ${provider} API keys exhausted (rate limited).${freeHint} Update keys or switch provider in Settings → AI Models.`);
 }
 
@@ -132,26 +132,14 @@ async function executeRequest(
   switch (provider.toLowerCase()) {
     case 'gemini': {
       const primaryModel = normalizeGoogleModel(model);
-      const isVisionRequest = isVision && !!base64Data;
-      const modelsToTry = isVisionRequest
-        ? Array.from(new Set([
-            primaryModel,
-            'gemini-3.6-flash',
-            'gemini-3.1-flash-lite',
-            'gemini-3.8-flash',
-            'gemini-3.5-flash',
-            'gemini-3.7-flash',
-          ]))
-        : Array.from(new Set([
-            primaryModel,
-            'gemini-3.6-flash',
-            'gemini-3.1-flash-lite',
-            'gemini-3.8-flash',
-            'gemma-4-26b-a4b-it',
-            'gemini-3.5-flash',
-            'gemini-3.7-flash',
-            'gemma-4-31b-it',
-          ]));
+      const modelsToTry = Array.from(new Set([
+        primaryModel,
+        'gemini-3-flash-preview',
+        'gemini-3.1-flash-lite',
+        'gemini-3.1-flash-lite-preview',
+        'gemini-3.5-flash',
+        'gemini-3.6-flash',
+      ]));
       const wantsJson = /json|\{|\}/i.test(prompt) || /json/i.test(systemPrompt);
 
       const parts: any[] = [];
@@ -192,9 +180,10 @@ async function executeRequest(
         url = `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent?key=${apiKey}`;
         headers = { 'Content-Type': 'application/json' };
 
-        // Disable thinking tokens on Gemini to accelerate responses from 14s down to 1.5s
+        // Disable thinking tokens on non-lite models to accelerate responses from 14s down to 1.5s
+        // Note: Flash-Lite models reject thinkingConfig with 400 error, so only apply to non-lite gemini models.
         const modelBody = { ...bodyData };
-        if (currentModel.startsWith('gemini-')) {
+        if (currentModel.startsWith('gemini-') && !currentModel.includes('lite')) {
           modelBody.generationConfig = {
             ...(modelBody.generationConfig || {}),
             thinkingConfig: { thinkingBudget: 0 }
@@ -202,7 +191,7 @@ async function executeRequest(
         }
 
         try {
-          const res = await makeFetch(url, headers, modelBody, 45000);
+          const res = await makeFetch(url, headers, modelBody, 14000);
           const json = JSON.parse(res);
           const parts = json?.candidates?.[0]?.content?.parts || [];
           const nonThought = parts.filter((p: any) => !p.thought);
@@ -217,7 +206,7 @@ async function executeRequest(
           const status = fetchErr.status || fetchErr.statusCode;
           if (status === 503 || status === 500 || status === 404 || status === 429) {
             console.warn(`[callAI] Gemini model ${currentModel} returned ${status}. Retrying fallback...`);
-            await new Promise((r) => setTimeout(r, status === 429 ? 1000 : 250));
+            await new Promise((r) => setTimeout(r, 50));
             continue;
           }
           throw fetchErr;

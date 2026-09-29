@@ -1,46 +1,45 @@
 // Real, currently-valid Google Generative Language API model IDs.
-// Gemini 3.6 Flash is Google's active, ultra-fast 1,500 req/day FREE model supporting both Text & Vision.
-export const DEFAULT_GOOGLE_MODEL = 'gemini-3.6-flash';
-export const GOOGLE_FALLBACK_MODEL = 'gemma-4-26b-a4b-it';
+// Gemini 3 Flash Preview is Google's active, ultra-fast (1.5-2.5s) 1,500 req/day FREE model (15 req/min) supporting both Text & Vision.
+export const DEFAULT_GOOGLE_MODEL = 'gemini-3-flash-preview';
+export const GOOGLE_FALLBACK_MODEL = 'gemini-3.1-flash-lite';
 
 export const GOOGLE_MODELS = {
   text: [
-    'gemini-3.6-flash',
-    'gemma-4-26b-a4b-it',
-    'gemma-4-31b-it',
-    'gemini-3.8-flash',
+    'gemini-3-flash-preview',
     'gemini-3.1-flash-lite',
-    'gemini-3.7-flash',
+    'gemini-3.1-flash-lite-preview',
     'gemini-3.5-flash',
-    'gemini-3.5-flash-lite',
+    'gemini-3.6-flash',
+    'gemini-3.8-flash',
+    'gemini-3.7-flash',
     'gemini-flash-latest',
   ],
   vision: [
+    'gemini-3-flash-preview',
+    'gemini-3.1-flash-lite',
+    'gemini-3.1-flash-lite-preview',
+    'gemini-3.5-flash',
     'gemini-3.6-flash',
     'gemini-3.8-flash',
-    'gemini-3.1-flash-lite',
     'gemini-3.7-flash',
-    'gemini-3.5-flash',
-    'gemini-3.5-flash-lite',
     'gemini-flash-latest',
   ],
 } as const;
 
 export const GOOGLE_FREE_LIMITS: Record<string, { reqPerDay: number; rpm: number }> = {
-  'gemini-3.6-flash': { reqPerDay: 1500, rpm: 15 },
-  'gemma-4-26b-a4b-it': { reqPerDay: 1500, rpm: 15 },
-  'gemma-4-31b-it': { reqPerDay: 1500, rpm: 15 },
-  'gemini-3.8-flash': { reqPerDay: 1500, rpm: 15 },
+  'gemini-3-flash-preview': { reqPerDay: 1500, rpm: 15 },
   'gemini-3.1-flash-lite': { reqPerDay: 1500, rpm: 15 },
-  'gemini-3.7-flash': { reqPerDay: 1500, rpm: 15 },
+  'gemini-3.1-flash-lite-preview': { reqPerDay: 1500, rpm: 15 },
   'gemini-3.5-flash': { reqPerDay: 1500, rpm: 15 },
-  'gemini-3.5-flash-lite': { reqPerDay: 1500, rpm: 15 },
+  'gemini-3.6-flash': { reqPerDay: 1500, rpm: 15 },
+  'gemini-3.8-flash': { reqPerDay: 1500, rpm: 15 },
+  'gemini-3.7-flash': { reqPerDay: 1500, rpm: 15 },
   'gemini-flash-latest': { reqPerDay: 1500, rpm: 15 },
 };
 
 /**
  * Resolve the admin-selected Google model to a real active API model ID.
- * Automatically upgrades retired or high-demand models to gemini-3.6-flash.
+ * Automatically upgrades retired, invalid, or high-demand models to the fast, reliable DEFAULT_GOOGLE_MODEL.
  */
 export function normalizeGoogleModel(requestedModel: string): string {
   const m = (requestedModel || '').trim().toLowerCase();
@@ -52,6 +51,8 @@ export function normalizeGoogleModel(requestedModel: string): string {
     m === 'gemini-2.5-flash' ||
     m === 'gemini-2.5-pro' ||
     m === 'gemini-2.5-flash-lite' ||
+    m === 'gemini-3.6-flash' ||
+    m === 'gemini-3.8-flash' ||
     m === 'gemini-flash-latest'
   ) {
     return DEFAULT_GOOGLE_MODEL;
@@ -70,25 +71,14 @@ export async function callGoogle(
   mimeType?: string,
 ): Promise<string> {
   const primaryModel = normalizeGoogleModel(model);
-  const modelsToTry = isVision
-    ? Array.from(new Set([
-        primaryModel,
-        'gemini-3.6-flash',
-        'gemini-3.1-flash-lite',
-        'gemini-3.8-flash',
-        'gemini-3.5-flash',
-        'gemini-3.7-flash',
-      ]))
-    : Array.from(new Set([
-        primaryModel,
-        'gemini-3.6-flash',
-        'gemini-3.1-flash-lite',
-        'gemini-3.8-flash',
-        'gemma-4-26b-a4b-it',
-        'gemini-3.5-flash',
-        'gemini-3.7-flash',
-        'gemma-4-31b-it',
-      ]));
+  const modelsToTry = Array.from(new Set([
+    primaryModel,
+    'gemini-3-flash-preview',
+    'gemini-3.1-flash-lite',
+    'gemini-3.1-flash-lite-preview',
+    'gemini-3.5-flash',
+    'gemini-3.6-flash',
+  ]));
 
   const wantsJson = /json|\{|\}/i.test(prompt) || /json/i.test(systemPrompt);
 
@@ -116,8 +106,9 @@ export async function callGoogle(
       body.generationConfig = { responseMimeType: 'application/json' };
     }
 
-    // Disable thinking tokens on Gemini to accelerate generation from 14s down to 1.5s
-    if (currentModel.startsWith('gemini-')) {
+    // Disable thinking tokens on non-lite models to accelerate generation from 14s down to 1.5s
+    // Note: Flash-Lite models reject thinkingConfig with 400 error, so only apply to non-lite gemini models.
+    if (currentModel.startsWith('gemini-') && !currentModel.includes('lite')) {
       body.generationConfig = {
         ...(body.generationConfig || {}),
         thinkingConfig: { thinkingBudget: 0 }
@@ -125,7 +116,7 @@ export async function callGoogle(
     }
 
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 45000);
+    const timer = setTimeout(() => controller.abort(), 14000);
 
     try {
       const res = await fetch(url, {
@@ -142,11 +133,10 @@ export async function callGoogle(
         (err as any).status = res.status;
         lastError = err;
 
-        // Auto-failover immediately if high-demand, rate-limited, or deprecated
+        // Auto-failover immediately if high-demand (503), rate-limited (429), or error
         if (res.status === 503 || res.status === 500 || res.status === 404 || res.status === 429) {
-          console.warn(`[callGoogle] ${currentModel} returned ${res.status} (${errMsg}). Auto-switching to next model...`);
-          // Pause before trying fallback (wait 1s on 429 rate limit to respect RPM window)
-          await new Promise((r) => setTimeout(r, res.status === 429 ? 1000 : 250));
+          console.warn(`[callGoogle] ${currentModel} returned ${res.status} (${errMsg}). Switching to next fallback model...`);
+          await new Promise((r) => setTimeout(r, 50));
           continue;
         }
         throw err;
@@ -173,7 +163,7 @@ export async function callGoogle(
         fetchErr.name === 'AbortError'
       ) {
         console.warn(`[callGoogle] ${currentModel} failed (${fetchErr.message}). Retrying fallback...`);
-        await new Promise((r) => setTimeout(r, 250));
+        await new Promise((r) => setTimeout(r, 50));
         continue;
       }
       throw fetchErr;
