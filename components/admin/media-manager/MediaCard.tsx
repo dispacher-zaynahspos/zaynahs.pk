@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { MediaItem } from './hooks/useMediaManagerData';
-import { Check, Play, Eye, Copy, Edit, Trash2, CheckCircle2, Loader2, Zap, X, Sparkles } from '@/components/common/Icons';
+import { Check, Play, Eye, Copy, Edit, Trash2, CheckCircle2, Loader2, Zap, X, Sparkles, Clock } from '@/components/common/Icons';
 
 interface MediaCardProps {
   item: MediaItem;
@@ -107,13 +107,20 @@ export function MediaCard({
         <img src={item.file_url} alt={item.alt_text} className="absolute inset-0 w-full h-full object-cover z-0" />
       )}
 
-      {/* Tagged Status Badge */}
-      {showBadge && mode === 'library' && !bulkGenerating && (item.alt_text || item.ai_generated) && (
-        <div className="absolute top-2.5 right-2.5 z-10">
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-bold bg-black/60 backdrop-blur-xs text-white shadow-xs">
-            <CheckCircle2 className="w-2.5 h-2.5 text-emerald-400" />
-            Tagged
-          </span>
+      {/* Tagged / Pending Status Badge */}
+      {showBadge && mode === 'library' && !bulkGenerating && (
+        <div className="absolute top-2.5 right-2.5 z-10 pointer-events-none">
+          {item.ai_generated ? (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-bold bg-black/70 backdrop-blur-xs text-emerald-400 border border-emerald-500/30 shadow-xs">
+              <CheckCircle2 className="w-2.5 h-2.5 text-emerald-400" />
+              Tagged
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-bold bg-black/70 backdrop-blur-xs text-amber-300 border border-amber-500/30 shadow-xs">
+              <Clock className="w-2.5 h-2.5 text-amber-400" />
+              Pending
+            </span>
+          )}
         </div>
       )}
 

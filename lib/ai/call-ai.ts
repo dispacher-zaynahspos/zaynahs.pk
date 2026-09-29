@@ -137,20 +137,20 @@ async function executeRequest(
         ? Array.from(new Set([
             primaryModel,
             'gemini-3.6-flash',
-            'gemini-3.8-flash',
             'gemini-3.1-flash-lite',
-            'gemini-3.7-flash',
+            'gemini-3.8-flash',
             'gemini-3.5-flash',
+            'gemini-3.7-flash',
           ]))
         : Array.from(new Set([
             primaryModel,
             'gemini-3.6-flash',
-            'gemma-4-26b-a4b-it',
-            'gemma-4-31b-it',
-            'gemini-3.8-flash',
             'gemini-3.1-flash-lite',
-            'gemini-3.7-flash',
+            'gemini-3.8-flash',
+            'gemma-4-26b-a4b-it',
             'gemini-3.5-flash',
+            'gemini-3.7-flash',
+            'gemma-4-31b-it',
           ]));
       const wantsJson = /json|\{|\}/i.test(prompt) || /json/i.test(systemPrompt);
 
@@ -192,8 +192,17 @@ async function executeRequest(
         url = `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent?key=${apiKey}`;
         headers = { 'Content-Type': 'application/json' };
 
+        // Disable thinking tokens on Gemini to accelerate responses from 14s down to 1.5s
+        const modelBody = { ...bodyData };
+        if (currentModel.startsWith('gemini-')) {
+          modelBody.generationConfig = {
+            ...(modelBody.generationConfig || {}),
+            thinkingConfig: { thinkingBudget: 0 }
+          };
+        }
+
         try {
-          const res = await makeFetch(url, headers, bodyData, 45000);
+          const res = await makeFetch(url, headers, modelBody, 45000);
           const json = JSON.parse(res);
           const parts = json?.candidates?.[0]?.content?.parts || [];
           const nonThought = parts.filter((p: any) => !p.thought);
@@ -208,7 +217,7 @@ async function executeRequest(
           const status = fetchErr.status || fetchErr.statusCode;
           if (status === 503 || status === 500 || status === 404 || status === 429) {
             console.warn(`[callAI] Gemini model ${currentModel} returned ${status}. Retrying fallback...`);
-            await new Promise((r) => setTimeout(r, 250));
+            await new Promise((r) => setTimeout(r, status === 429 ? 1000 : 250));
             continue;
           }
           throw fetchErr;

@@ -100,7 +100,7 @@ export function useMediaManagerData({ mode, multiple, onSelect, onClose }: UseMe
       if (aiFilter === 'generated') {
         query = query.eq('ai_generated', true);
       } else if (aiFilter === 'pending') {
-        query = query.eq('ai_generated', false);
+        query = query.or('ai_generated.eq.false,ai_generated.is.null');
       }
       if (typeFilter === 'image') {
         query = query.like('mime_type', 'image/%');
@@ -286,6 +286,8 @@ export function useMediaManagerData({ mode, multiple, onSelect, onClose }: UseMe
     uploading,
     fileInputRef,
     globalAi: mediaAi.globalAi,
+    setGlobalAi: mediaAi.setGlobalAi,
+    toggleGlobalAi: mediaAi.toggleGlobalAi,
     generatingId: mediaAi.generatingId,
     bulkGenerating: mediaAi.bulkGenerating,
     bulkCompletedIds: mediaAi.bulkCompletedIds,

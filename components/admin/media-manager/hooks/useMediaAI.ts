@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { getAutoMediaAi } from '@/lib/services/ai/ai-settings-client';
+import { getAutoMediaAi, setAutoMediaAi } from '@/lib/services/ai/ai-settings-client';
 import { toast } from 'sonner';
 import { MediaItem } from './useMediaManagerData';
 
@@ -16,9 +16,22 @@ export function useMediaAI() {
 
   const fetchAiSettings = async () => {
     try {
-      setGlobalAi(await getAutoMediaAi());
+      const val = await getAutoMediaAi();
+      setGlobalAi(val);
     } catch (err) {
       console.warn('[Media Manager] Could not load global AI settings:', err);
+    }
+  };
+
+  const toggleGlobalAi = async () => {
+    const nextVal = !globalAi;
+    setGlobalAi(nextVal);
+    try {
+      await setAutoMediaAi(nextVal);
+      toast.success(`Auto vision tags ${nextVal ? 'enabled' : 'disabled'}`);
+    } catch (err) {
+      setGlobalAi(globalAi);
+      toast.error('Failed to save settings');
     }
   };
 
@@ -111,6 +124,8 @@ export function useMediaAI() {
 
   return {
     globalAi,
+    setGlobalAi,
+    toggleGlobalAi,
     generatingId,
     bulkGenerating,
     bulkCompletedIds,

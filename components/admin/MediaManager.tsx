@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useRef, useCallback } from 'react';
-import { setAutoMediaAi } from '@/lib/services/ai/ai-settings-client';
 import {
   Upload,
   Image as ImageIcon,
@@ -97,13 +96,7 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
     toggleSelectAllUsed,
     toggleCleanerUnused,
     toggleSelectAllUnused,
-    handleGlobalAiToggle = async () => {
-      try {
-        await setAutoMediaAi(!globalAi);
-        toast.success(`Auto vision tags ${!globalAi ? 'enabled' : 'disabled'}`);
-        fetchMedia();
-      } catch { toast.error('Failed to save settings'); }
-    }
+    toggleGlobalAi,
   } = data as any;
 
   const {
@@ -227,7 +220,7 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
             mode={mode}
             multiple={multiple}
             globalAi={globalAi}
-            handleGlobalAiToggle={handleGlobalAiToggle}
+            handleGlobalAiToggle={toggleGlobalAi}
             aiFilter={aiFilter}
             setAiFilter={setAiFilter}
             media={media}

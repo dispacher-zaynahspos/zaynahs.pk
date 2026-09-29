@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { AI_SETTINGS_ID } from '@/lib/config/singleton-ids';
+import { getAutoContentSeo } from '@/lib/services/ai/ai-settings-client';
 import { Category } from '@/lib/types';
 import { createCategorySafe, updateCategorySafe, deleteCategorySafe } from '@/lib/services/categories';
 import { createClient } from '@/lib/supabase/client';
@@ -189,14 +189,7 @@ export function useCategoryManagerState({
       }
       setIsOpen(false);
 
-      const supabase = createClient();
-      const { data: aiSettings } = await supabase
-        .from('ai_settings')
-        .select('auto_content_seo')
-        .eq('id', AI_SETTINGS_ID)
-        .single();
-
-      const isAutoSeoOn = aiSettings?.auto_content_seo ?? true;
+      const isAutoSeoOn = await getAutoContentSeo();
       const categoryIdToOptimize = savedCategory.id;
       const categorySlugToOptimize = savedCategory.slug;
 

@@ -74,20 +74,20 @@ export async function callGoogle(
     ? Array.from(new Set([
         primaryModel,
         'gemini-3.6-flash',
-        'gemini-3.8-flash',
         'gemini-3.1-flash-lite',
-        'gemini-3.7-flash',
+        'gemini-3.8-flash',
         'gemini-3.5-flash',
+        'gemini-3.7-flash',
       ]))
     : Array.from(new Set([
         primaryModel,
         'gemini-3.6-flash',
-        'gemma-4-26b-a4b-it',
-        'gemma-4-31b-it',
-        'gemini-3.8-flash',
         'gemini-3.1-flash-lite',
-        'gemini-3.7-flash',
+        'gemini-3.8-flash',
+        'gemma-4-26b-a4b-it',
         'gemini-3.5-flash',
+        'gemini-3.7-flash',
+        'gemma-4-31b-it',
       ]));
 
   const wantsJson = /json|\{|\}/i.test(prompt) || /json/i.test(systemPrompt);
@@ -116,6 +116,14 @@ export async function callGoogle(
       body.generationConfig = { responseMimeType: 'application/json' };
     }
 
+    // Disable thinking tokens on Gemini to accelerate generation from 14s down to 1.5s
+    if (currentModel.startsWith('gemini-')) {
+      body.generationConfig = {
+        ...(body.generationConfig || {}),
+        thinkingConfig: { thinkingBudget: 0 }
+      };
+    }
+
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 45000);
 
@@ -137,8 +145,8 @@ export async function callGoogle(
         // Auto-failover immediately if high-demand, rate-limited, or deprecated
         if (res.status === 503 || res.status === 500 || res.status === 404 || res.status === 429) {
           console.warn(`[callGoogle] ${currentModel} returned ${res.status} (${errMsg}). Auto-switching to next model...`);
-          // Brief pause before trying fallback to avoid hammering
-          await new Promise((r) => setTimeout(r, 250));
+          // Pause before trying fallback (wait 1s on 429 rate limit to respect RPM window)
+          await new Promise((r) => setTimeout(r, res.status === 429 ? 1000 : 250));
           continue;
         }
         throw err;
