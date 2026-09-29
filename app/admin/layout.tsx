@@ -302,7 +302,7 @@ function AdminLayoutContent({
   }
 
   return (
-    <div className="admin-shell light flex h-screen w-full max-w-full flex-col md:flex-row bg-slate-50 overflow-hidden text-[13px] font-sans antialiased text-gray-900">
+    <div className="admin-shell light flex h-[100dvh] w-full max-w-full flex-col md:flex-row bg-slate-50 overflow-hidden text-[13px] font-sans antialiased text-gray-900">
       {/* 📱 Mobile & Tablet Off-Canvas Navigation Drawer */}
       <AdminMobileDrawer
         isMobileMenuOpen={isMobileMenuOpen}

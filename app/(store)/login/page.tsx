@@ -40,6 +40,7 @@ export default function LoginPage() {
       const res = await customerLogin({ emailOrPhone, password });
       if (res.success) {
         toast.success(`Welcome back, ${res.customer.name}!`);
+        window.dispatchEvent(new Event('customer-auth-changed'));
         router.push('/account');
         router.refresh();
       } else {

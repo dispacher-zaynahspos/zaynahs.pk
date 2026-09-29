@@ -28,6 +28,7 @@ export default function AccountDashboard({ profile, orders }: AccountDashboardPr
       const res = await customerLogout();
       if (res.success) {
         toast.success('Logged out successfully');
+        window.dispatchEvent(new Event('customer-auth-changed'));
         router.push('/');
         router.refresh();
       } else {

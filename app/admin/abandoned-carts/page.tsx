@@ -87,7 +87,6 @@ export default function AbandonedCartsPage() {
               onChange={setDateFilter}
               className="py-2 sm:py-1 w-full sm:w-auto"
               options={[
-                { value: 'all', label: 'All Dates' },
                 { value: 'today', label: 'Today' },
                 { value: 'yesterday', label: 'Yesterday' },
                 { value: 'last7', label: 'Last 7 Days' },

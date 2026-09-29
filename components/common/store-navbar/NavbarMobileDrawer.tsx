@@ -66,9 +66,9 @@ export function NavbarMobileDrawer({
       {/* Drawer Container — clean white panel, sharp edge, rounded bottom-right */}
       <div className="relative flex w-[87%] max-w-[400px] flex-1 flex-col bg-white dark:bg-[#0c0c16] text-gray-900 dark:text-white shadow-2xl h-full transition-transform duration-300 ease-in-out rounded-br-3xl animate-in slide-in-from-left duration-300 select-none">
 
-        {/* Drawer Header — brand name (from General settings) next to logo, small clean close */}
+        {/* Drawer Header — brand wordmark (from General settings) next to logo, small clean close */}
         <div className="flex items-center justify-between px-6 pt-6 pb-3">
-          <div className="flex items-center gap-3 min-w-0">
+          <div className="flex items-center gap-2.5 min-w-0">
             {logoUrl && (
               <div className="relative h-9 w-9 shrink-0">
                 <Image
@@ -80,7 +80,7 @@ export function NavbarMobileDrawer({
                 />
               </div>
             )}
-            <span className="font-[family-name:var(--font-heading)] text-lg font-extrabold tracking-tight text-gray-950 dark:text-white truncate">
+            <span className="font-[family-name:var(--font-heading)] text-[22px] leading-none font-black tracking-[-0.02em] text-gray-950 dark:text-white truncate">
               {storeName}
             </span>
           </div>
@@ -105,7 +105,7 @@ export function NavbarMobileDrawer({
             >
               <Search className="h-4 w-4 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors" />
               <span className="text-sm group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
-                Search products, collections...
+                Search products, collections, categories...
               </span>
             </button>
           </div>

@@ -54,8 +54,8 @@ export function NavbarDesktopNav({
     return (
       <div
         className={`absolute ${
-          level === 1 ? 'top-full left-0 mt-2' : 'top-0 left-full ml-1.5'
-        } min-w-[220px] rounded-2xl border border-gray-150/80 dark:border-gray-800 bg-white/95 dark:bg-[#121222]/95 p-2 shadow-2xl backdrop-blur-xl z-[120] animate-in fade-in zoom-in-95 duration-150`}
+          level === 1 ? 'top-full left-0 mt-2.5' : 'top-0 left-full ml-2'
+        } min-w-[248px] rounded-2xl border border-gray-200/70 dark:border-white/10 bg-white/98 dark:bg-[#121222]/98 p-2 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.25)] backdrop-blur-xl z-[120] animate-in fade-in zoom-in-95 slide-in-from-top-1 duration-150`}
         onMouseEnter={() => {
           if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
         }}
@@ -68,10 +68,13 @@ export function NavbarDesktopNav({
               <Link
                 href={child.url}
                 prefetch={true}
-                className="flex items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-100/80 dark:hover:bg-white/10 hover:text-[var(--color-primary,#C2185B)] transition-all"
+                className="group/link flex items-center justify-between gap-2 rounded-xl px-3.5 py-2.5 text-[13px] font-semibold text-gray-600 dark:text-gray-300 hover:bg-[var(--color-primary,#C2185B)]/8 hover:text-[var(--color-primary,#C2185B)] transition-all duration-150"
               >
-                <span>{child.label || (child as any).title}</span>
-                {hasChildChildren && <ChevronDown className="h-3 w-3 -rotate-90 text-gray-400" />}
+                <span className="flex items-center gap-2.5 min-w-0">
+                  <span className="h-1.5 w-1.5 rounded-full bg-gray-300 dark:bg-gray-600 group-hover/link:bg-[var(--color-primary,#C2185B)] transition-colors shrink-0" />
+                  <span className="truncate">{child.label || (child as any).title}</span>
+                </span>
+                {hasChildChildren && <ChevronDown className="h-3.5 w-3.5 -rotate-90 text-gray-400 group-hover/link:text-[var(--color-primary,#C2185B)] shrink-0" />}
               </Link>
               {hasChildChildren && (
                 <div className="hidden group-hover/sub:block">

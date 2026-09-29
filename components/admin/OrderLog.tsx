@@ -139,7 +139,6 @@ export default function OrderLog({ initialOrders, settings }: OrderLogProps) {
             onChange={o.setDateFilter}
             className="flex-1 sm:flex-initial"
             options={[
-              { value: 'all', label: 'All Dates' },
               { value: 'today', label: 'Today' },
               { value: 'yesterday', label: 'Yesterday' },
               { value: 'tomorrow', label: 'Tomorrow' },

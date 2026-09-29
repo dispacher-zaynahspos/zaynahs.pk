@@ -104,14 +104,14 @@ export function useOrderLogState({ initialOrders, settings }: UseOrderLogStatePr
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const timeParam = params.get('timeRange');
-      if (timeParam && ['all', 'today', 'yesterday', 'tomorrow', 'last7', 'last30', 'custom'].includes(timeParam)) {
+      if (timeParam && ['today', 'yesterday', 'tomorrow', 'last7', 'last30', 'custom'].includes(timeParam)) {
         setDateFilter(timeParam);
       }
     }
     const handlePopState = () => {
       const params = new URLSearchParams(window.location.search);
       const timeParam = params.get('timeRange');
-      if (timeParam && ['all', 'today', 'yesterday', 'tomorrow', 'last7', 'last30', 'custom'].includes(timeParam)) {
+      if (timeParam && ['today', 'yesterday', 'tomorrow', 'last7', 'last30', 'custom'].includes(timeParam)) {
         setDateFilter(timeParam);
       } else {
         setDateFilter('today');

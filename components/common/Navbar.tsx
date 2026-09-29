@@ -28,7 +28,6 @@ interface NavbarProps {
   logoUrl?: string;
   logoWidth?: number;
   settings?: StoreSettings;
-  initialCustomerSession?: any;
 }
 
 export default function Navbar({
@@ -36,7 +35,6 @@ export default function Navbar({
   logoUrl: propLogoUrl,
   logoWidth: propLogoWidth = 120,
   settings,
-  initialCustomerSession = null,
 }: NavbarProps) {
   const pathname = usePathname();
   const router = useRouter();
@@ -131,7 +129,7 @@ export default function Navbar({
     moreOpenRef,
     moreDropdownOpen,
     setMoreDropdownOpen,
-  } = useNavbarState(mobileMenuOpen, searchOpen, initialCustomerSession);
+  } = useNavbarState(mobileMenuOpen, searchOpen);
 
   const customTextColorStyle = headerTextColor !== '#1a1a2e' ? { color: headerTextColor } : {};
 

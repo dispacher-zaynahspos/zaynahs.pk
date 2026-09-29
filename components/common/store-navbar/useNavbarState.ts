@@ -7,14 +7,11 @@ import { useBodyScrollLock } from '@/lib/hooks/useBodyScrollLock';
 export function useNavbarState(
   mobileMenuOpen: boolean,
   searchOpen: boolean,
-  initialCustomerSession: any = null
 ) {
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
   const [wishlistCount, setWishlistCount] = useState(0);
-  // Seed with the server-hydrated session so the logged-in state renders on first
-  // paint and persists across refresh; the client effect below keeps it fresh.
-  const [customerSession, setCustomerSession] = useState<any>(initialCustomerSession);
+  const [customerSession, setCustomerSession] = useState<any>(null);
   const [isPreview, setIsPreview] = useState(false);
   const moreOpenRef = useRef(false);
   const [moreDropdownOpen, setMoreDropdownOpen] = useState(false);
@@ -29,17 +26,30 @@ export function useNavbarState(
     return () => clearTimeout(timer);
   }, []);
 
+  // Load the customer session from the (httpOnly) cookie via a server action.
+  // Runs on mount, on every route change (so it refreshes right after login
+  // redirects to /account), and on an explicit 'customer-auth-changed' event
+  // dispatched by login/signup/logout so the navbar updates without a reload.
+  // Kept client-side on purpose so storefront pages stay static/ISR (no per-request
+  // cookie read in the layout, which would force dynamic rendering).
   useEffect(() => {
     if (!mounted) return;
-    async function loadSession() {
+    let cancelled = false;
+    const loadSession = async () => {
       try {
         const { getCustomerProfile } = await import('@/lib/services/customers');
         const profile = await getCustomerProfile();
-        setCustomerSession(profile);
-      } catch { }
-    }
+        if (!cancelled) setCustomerSession(profile);
+      } catch { /* ignore */ }
+    };
     loadSession();
-  }, [mounted]);
+    const onAuthChanged = () => loadSession();
+    window.addEventListener('customer-auth-changed', onAuthChanged);
+    return () => {
+      cancelled = true;
+      window.removeEventListener('customer-auth-changed', onAuthChanged);
+    };
+  }, [mounted, pathname]);
 
   useEffect(() => {
     if (!mounted) return;
@@ -61,26 +71,13 @@ export function useNavbarState(
   // Shared SSOT hook (iOS-safe, ref-counted, restores scroll position) — RULE UI-POPUP-SCROLL §9c.
   useBodyScrollLock(mobileMenuOpen || searchOpen);
 
+  // Close the "More" dropdown on route change. Scroll position is handled solely by
+  // ScrollRestorer (single source of truth); doing scrollTo here fought with it and
+  // caused back-navigation to land at the footer instead of the saved position.
   useEffect(() => {
     if (moreOpenRef.current) {
       setMoreDropdownOpen(false);
       moreOpenRef.current = false;
-    }
-    if (typeof window !== 'undefined') {
-      const raw = sessionStorage.getItem('store_scroll_restore');
-      let shouldRestore = false;
-      if (raw) {
-        try {
-          const data = JSON.parse(raw);
-          const currentPath = window.location.pathname + window.location.search;
-          if (data.path === currentPath) {
-            shouldRestore = true;
-          }
-        } catch {}
-      }
-      if (!shouldRestore) {
-        window.scrollTo({ top: 0, behavior: 'instant' });
-      }
     }
   }, [pathname]);
 

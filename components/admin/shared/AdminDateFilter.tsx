@@ -13,7 +13,6 @@ export default function AdminDateFilter({
   onChange,
   className = "",
   options = [
-    { value: 'all', label: 'All Dates' },
     { value: 'today', label: 'Today' },
     { value: 'yesterday', label: 'Yesterday' },
     { value: 'tomorrow', label: 'Tomorrow' },

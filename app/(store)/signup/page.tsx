@@ -42,6 +42,7 @@ export default function SignupPage() {
 
       if (res.success) {
         toast.success('Account created successfully!');
+        window.dispatchEvent(new Event('customer-auth-changed'));
         router.push('/account');
         router.refresh();
       } else {

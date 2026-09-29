@@ -116,7 +116,6 @@ export function OrderLogStatsBar({
             onChange={setDateFilter}
             className="border-none bg-transparent dark:bg-transparent shadow-none w-full"
             options={[
-              { value: 'all', label: 'All Dates' },
               { value: 'today', label: 'Today' },
               { value: 'yesterday', label: 'Yesterday' },
               { value: 'last7', label: 'Last 7 days' },
