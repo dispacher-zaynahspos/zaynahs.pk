@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { useSearchParams, usePathname } from 'next/navigation';
 import { Category, Collection } from '@/lib/types';
 import { trackEvent } from '@/lib/trackEvent';
 import { SORT_OPTIONS, toNumber } from '../shopFilterUtils';
@@ -70,8 +70,22 @@ export function useShopUrlParamsSync({
   currentPage,
 }: UseShopUrlParamsSyncProps) {
   const searchParams = useSearchParams();
-  const router = useRouter();
   const pathname = usePathname();
+
+  // Update the URL WITHOUT a server round-trip. All shop filtering/sorting is done
+  // client-side (useMemo), so a full RSC navigation (router.replace) is unnecessary —
+  // it caused an extra server fetch on every filter click (slow, extra DB load) and a
+  // blank page when the dynamic /shop RSC request failed (e.g. 503). history.replaceState
+  // keeps the URL shareable/bookmarkable while filtering stays instant (0ms).
+  const updateUrl = (params: URLSearchParams) => {
+    if (typeof window === 'undefined') return;
+    const qs = params.toString();
+    const newUrl = qs ? `${pathname}?${qs}` : pathname;
+    window.history.replaceState({ ...window.history.state, as: newUrl, url: newUrl }, '', newUrl);
+  };
+  // Always build off the live URL (history.replaceState doesn't refresh useSearchParams).
+  const currentParams = () =>
+    new URLSearchParams(typeof window !== 'undefined' ? window.location.search : searchParams.toString());
 
   useEffect(() => {
     if (priceDirtyRef.current) return;
@@ -132,7 +146,8 @@ export function useShopUrlParamsSync({
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      const params = new URLSearchParams(searchParams.toString());
+      const params = currentParams();
+      const before = params.toString();
       const minActive = priceMin > priceLimits.min;
       const maxActive = priceMax < priceLimits.max;
       if (minActive) params.set('minPrice', String(priceMin));
@@ -141,12 +156,11 @@ export function useShopUrlParamsSync({
       else params.delete('maxPrice');
       if (minActive || maxActive) params.delete('page');
       const next = params.toString();
-      if (next !== searchParams.toString()) {
-        router.replace(`${pathname}?${next}`, { scroll: false });
-      }
+      if (next !== before) updateUrl(params);
     }, 500);
     return () => clearTimeout(timer);
-  }, [priceMin, priceMax, priceLimits, searchParams, pathname, router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [priceMin, priceMax, priceLimits]);
 
   useEffect(() => {
     setSearchQuery(urlSearchQuery);
@@ -159,7 +173,7 @@ export function useShopUrlParamsSync({
     setSelectedCategoryId(categoryId);
     const slug = categoryId ? displayCategories.find((c) => c.id === categoryId)?.slug : undefined;
 
-    const params = new URLSearchParams(searchParams.toString());
+    const params = currentParams();
     params.delete('page');
     if (slug) {
       params.set('category', slug);
@@ -169,24 +183,24 @@ export function useShopUrlParamsSync({
     } else {
       params.delete('category');
     }
-    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    updateUrl(params);
   };
 
   const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value;
     setSortBy(value);
-    const params = new URLSearchParams(searchParams.toString());
+    const params = currentParams();
     if (value === 'manual') params.delete('sort');
     else params.set('sort', value);
     params.delete('page');
-    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    updateUrl(params);
     setLoadMoreLimit(PAGE_SIZE);
   };
 
   const handleAvailabilityChange = (key: 'onSale' | 'inStock' | 'outStock', checked: boolean) => {
     const next = { ...availability, [key]: checked };
     setAvailability(next);
-    const params = new URLSearchParams(searchParams.toString());
+    const params = currentParams();
     const flags: string[] = [];
     if (next.onSale) flags.push('on-sale');
     if (next.inStock) flags.push('in-stock');
@@ -194,7 +208,7 @@ export function useShopUrlParamsSync({
     if (flags.length > 0) params.set('availability', flags.join(','));
     else params.delete('availability');
     params.delete('page');
-    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    updateUrl(params);
     setLoadMoreLimit(PAGE_SIZE);
   };
 
@@ -204,10 +218,10 @@ export function useShopUrlParamsSync({
       categories.find((c) => c.id === SYSTEM_CATEGORY_ID)?.active_sort_preference ||
       'manual';
     setSortBy(preference);
-    const params = new URLSearchParams(searchParams.toString());
+    const params = currentParams();
     params.delete('sort');
     params.delete('page');
-    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    updateUrl(params);
     setLoadMoreLimit(PAGE_SIZE);
   };
 
@@ -215,24 +229,23 @@ export function useShopUrlParamsSync({
     priceDirtyRef.current = false;
     setPriceMin(priceLimits.min);
     setPriceMax(priceLimits.max);
-    const params = new URLSearchParams(searchParams.toString());
+    const params = currentParams();
     params.delete('minPrice');
     params.delete('maxPrice');
     params.delete('page');
-    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    updateUrl(params);
     setLoadMoreLimit(PAGE_SIZE);
   };
 
   const handleLoadMore = () => {
     const nextPage = currentPage + 1;
-    const params = new URLSearchParams(searchParams.toString());
+    const params = currentParams();
     if (nextPage > 1) {
       params.set('page', String(nextPage));
     } else {
       params.delete('page');
     }
-    const newUrl = `${pathname}?${params.toString()}`;
-    window.history.replaceState({ ...window.history.state, as: newUrl, url: newUrl }, '', newUrl);
+    updateUrl(params);
     setLoadMoreLimit(nextPage * PAGE_SIZE);
   };
 
@@ -256,14 +269,14 @@ export function useShopUrlParamsSync({
       'manual';
     setSortBy(preference);
     setLoadMoreLimit(PAGE_SIZE);
-    const params = new URLSearchParams(searchParams.toString());
+    const params = currentParams();
     params.delete('sort');
     params.delete('availability');
     params.delete('minPrice');
     params.delete('maxPrice');
     params.delete('search');
     params.delete('page');
-    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    updateUrl(params);
   };
 
   return {

@@ -1,11 +1,15 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ShoppingBag, Heart, User, X, Search, Truck, ChevronRight, WhatsAppIcon } from '@/components/common/Icons';
 import { cleanWhatsAppPhone } from '@/lib/utils/whatsapp';
-import { NavigationItem, StoreSettings } from '@/lib/types';
+import { formatPrice } from '@/lib/utils/whatsapp';
+import { NavigationItem, StoreSettings, Product } from '@/lib/types';
+
+// Session-level cache so opening the menu doesn't refetch the catalog every time.
+let cachedFeatured: Product[] | null = null;
 
 interface NavbarMobileDrawerProps {
   mounted: boolean;
@@ -41,6 +45,25 @@ export function NavbarMobileDrawer({
   logoUrl,
   onOpenSearch,
 }: NavbarMobileDrawerProps) {
+  const [featured, setFeatured] = useState<Product[]>(cachedFeatured ?? []);
+
+  // Lazily load a few featured products the first time the menu opens (cached for the
+  // session so re-opening the menu never refetches the catalog).
+  useEffect(() => {
+    if (!mobileMenuOpen || isAdmin || cachedFeatured) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { getProductsClient } = await import('@/lib/services/products-client');
+        const data = await getProductsClient();
+        const picks = data.filter((p) => p.is_featured).slice(0, 4);
+        cachedFeatured = picks.length > 0 ? picks : data.slice(0, 4);
+        if (!cancelled) setFeatured(cachedFeatured);
+      } catch { /* ignore */ }
+    })();
+    return () => { cancelled = true; };
+  }, [mobileMenuOpen, isAdmin]);
+
   if (!mounted || !mobileMenuOpen) return null;
 
   const whatsappNumber = settings?.whatsapp_number || settings?.floating_whatsapp_number || topBarPhone;
@@ -114,6 +137,48 @@ export function NavbarMobileDrawer({
         {/* Navigation Items (Main Catalog List) — big typographic rows */}
         <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-6 pt-2 pb-4">
           {navItems.map((item) => renderMobileNavItem(item))}
+
+          {/* Featured products — appears right after the categories end */}
+          {!isAdmin && featured.length > 0 && (
+            <div className="mt-5 pt-5 border-t border-gray-100 dark:border-white/5">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+                Featured
+              </span>
+              <div className="mt-3 grid grid-cols-2 gap-3">
+                {featured.map((p) => {
+                  const img = p.images?.find((i) => i.is_primary)?.url || p.images?.[0]?.url;
+                  return (
+                    <Link
+                      key={p.id}
+                      href={`/product/${p.slug}`}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="group flex flex-col gap-1.5 active:scale-[0.98] transition-transform"
+                    >
+                      <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-gray-100 dark:bg-white/5">
+                        {img ? (
+                          <Image
+                            src={img}
+                            alt={p.name}
+                            fill
+                            sizes="160px"
+                            className="object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                        ) : (
+                          <div className="h-full w-full flex items-center justify-center text-[10px] text-gray-400">No Image</div>
+                        )}
+                      </div>
+                      <span className="text-[11px] font-semibold text-gray-800 dark:text-gray-200 line-clamp-1 leading-tight">
+                        {p.name}
+                      </span>
+                      <span className="text-[11px] font-black text-gray-900 dark:text-white">
+                        {formatPrice(p.price, settings?.currency_symbol)}
+                      </span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Quick Actions Row — plain icons + labels, no pills */}

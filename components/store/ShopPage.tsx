@@ -42,6 +42,7 @@ export default function ShopPage({
     sortBy,
     viewMode,
     setViewMode,
+    desktopColsOverride,
     isCollectionDescExpanded,
     setIsCollectionDescExpanded,
     isCategoryDescExpanded,
@@ -219,7 +220,7 @@ export default function ShopPage({
               className={`grid ${gridGapClass} ${getResponsiveGridClasses({
                 mobile: activeSettings?.shop_columns_mobile || (activeSettings?.card_mobile_columns === 1 ? 1 : 2),
                 tablet: activeSettings?.shop_columns_tablet || (viewMode === 'grid-3' ? 2 : 3),
-                desktop: activeSettings?.shop_columns_desktop || (viewMode === 'grid-3' ? 3 : 4),
+                desktop: desktopColsOverride ?? activeSettings?.shop_columns_desktop ?? (viewMode === 'grid-3' ? 3 : 4),
               })}`}
             >
               {displayProducts.map((product: Product, index: number) => (

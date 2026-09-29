@@ -70,7 +70,15 @@ export function useShopPageFilters({
   const [sortBy, setSortBy] = useState<string>(
     urlSortParam && SORT_OPTIONS.some((o) => o.value === urlSortParam) ? urlSortParam : defaultSort
   );
-  const [viewMode, setViewMode] = useState<'grid-3' | 'grid-4' | 'list'>('grid-4');
+  const [viewMode, setViewModeRaw] = useState<'grid-3' | 'grid-4' | 'list'>('grid-4');
+  // Desktop columns chosen by the user via the view toggle. Overrides the admin
+  // default (shop_columns_desktop) so the per-line toggle actually takes effect.
+  const [desktopColsOverride, setDesktopColsOverride] = useState<number | null>(null);
+  const setViewMode = (mode: 'grid-3' | 'grid-4' | 'list') => {
+    setViewModeRaw(mode);
+    if (mode === 'grid-3') setDesktopColsOverride(3);
+    else if (mode === 'grid-4') setDesktopColsOverride(4);
+  };
   const [isCollectionDescExpanded, setIsCollectionDescExpanded] = useState(false);
   const [isCategoryDescExpanded, setIsCategoryDescExpanded] = useState(false);
 
@@ -299,6 +307,7 @@ export function useShopPageFilters({
     sortBy,
     viewMode,
     setViewMode,
+    desktopColsOverride,
     isCollectionDescExpanded,
     setIsCollectionDescExpanded,
     isCategoryDescExpanded,
