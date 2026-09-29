@@ -1,5 +1,5 @@
 import { Product } from '@/lib/types';
-import { revalidateProduct, revalidateTagSafe } from '@/lib/revalidate';
+import { revalidateProduct, revalidateTagSafe, revalidateAfterResponse } from '@/lib/revalidate';
 import { staticSupabase, mapProduct } from './mappers';
 import { getProductById } from './queries';
 
@@ -21,11 +21,11 @@ export const deleteProduct = async (id: string): Promise<void> => {
     if (error) throw error;
 
     if (prodData?.slug) {
-      try {
-        await revalidateProduct(prodData.slug);
-      } catch (revalErr) {
-        console.error('[products] revalidateProduct failed during deleteProduct:', revalErr);
-      }
+      const slug = prodData.slug;
+      revalidateTagSafe('products');
+      await revalidateAfterResponse(async () => {
+        await revalidateProduct(slug);
+      });
     } else {
       revalidateTagSafe('products');
     }
@@ -84,11 +84,10 @@ export const restoreProduct = async (id: string): Promise<void> => {
     if (error) throw error;
 
     if (prodData?.slug) {
-      try {
-        await revalidateProduct(prodData.slug);
-      } catch (revalErr) {
-        console.error('[products] revalidateProduct failed during restoreProduct:', revalErr);
-      }
+      const slug = prodData.slug;
+      await revalidateAfterResponse(async () => {
+        await revalidateProduct(slug);
+      });
     }
     revalidateTagSafe('products');
   } catch (error) {

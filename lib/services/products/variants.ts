@@ -1,5 +1,5 @@
 import { ProductVariant } from '@/lib/types';
-import { revalidateProduct, revalidateTagSafe } from '@/lib/revalidate';
+import { revalidateProduct, revalidateTagSafe, revalidateAfterResponse } from '@/lib/revalidate';
 import { staticSupabase } from './mappers';
 
 export const updateProductVariantFields = async (
@@ -37,11 +37,10 @@ export const updateProductVariantFields = async (
         .single();
 
       if (prodData?.slug) {
-        try {
-          await revalidateProduct(prodData.slug);
-        } catch (revalErr) {
-          console.error('[products] revalidateProduct failed during updateProductVariantFields:', revalErr);
-        }
+        const slug = prodData.slug;
+        await revalidateAfterResponse(async () => {
+          await revalidateProduct(slug);
+        });
       }
     }
     revalidateTagSafe('products');

@@ -1,6 +1,6 @@
 import { Product } from '@/lib/types';
 import { SHOP_CATEGORY_ID } from '@/lib/config/singleton-ids';
-import { revalidateProduct, revalidateTagSafe } from '@/lib/revalidate';
+import { revalidateProduct, revalidateTagSafe, revalidateAfterResponse } from '@/lib/revalidate';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 
 export const updateProductFields = async (
@@ -81,11 +81,11 @@ export const updateProductFields = async (
     }
 
     if (prodData?.slug) {
-      try {
-        await revalidateProduct(prodData.slug);
-      } catch (revalErr) {
-        console.error('[products] revalidateProduct failed during updateProductFields:', revalErr);
-      }
+      const slug = prodData.slug;
+      revalidateTagSafe('products');
+      await revalidateAfterResponse(async () => {
+        await revalidateProduct(slug);
+      });
     } else {
       revalidateTagSafe('products');
     }

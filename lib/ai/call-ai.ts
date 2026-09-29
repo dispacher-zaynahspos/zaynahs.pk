@@ -50,30 +50,36 @@ export async function callAI(
     (isVision ? settings.vision_keys : settings.content_keys) ||
     '';
 
-  let keys = keysRaw
+  const settingsKeys = keysRaw
     .split('\n')
     .map((k) => k.trim())
     .filter(Boolean);
 
-  // Fallback to environment keys if none configured in settings
-  if (keys.length === 0) {
-    if (provider.toLowerCase() === 'gemini' || provider.toLowerCase() === 'google') {
-      const envKey = (process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY)?.trim();
-      if (envKey) keys.push(envKey);
-    } else if (provider.toLowerCase() === 'groq') {
-      const envKey = process.env.GROQ_API_KEY?.trim();
-      if (envKey) keys.push(envKey);
-    }
-  }
+  const envGemini = (process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY)?.trim();
+  const envGroq = process.env.GROQ_API_KEY?.trim();
+
+  const providerLower = provider.toLowerCase();
+  const extraEnvKey =
+    providerLower === 'gemini' || providerLower === 'google'
+      ? envGemini
+      : providerLower === 'groq'
+      ? envGroq
+      : undefined;
+
+  // Pool settings keys AND environment keys together:
+  // If one key hits a 429 quota exhaustion or 503, the engine auto-rotates to the next key!
+  let keys = Array.from(
+    new Set([
+      ...settingsKeys,
+      ...(extraEnvKey ? [extraEnvKey] : []),
+    ])
+  );
 
   // If still no keys found, fallback to Gemini if env key is available
-  if (keys.length === 0) {
-    const envGemini = (process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY)?.trim();
-    if (envGemini) {
-      provider = 'gemini';
-      model = DEFAULT_GOOGLE_MODEL;
-      keys.push(envGemini);
-    }
+  if (keys.length === 0 && envGemini) {
+    provider = 'gemini';
+    model = DEFAULT_GOOGLE_MODEL;
+    keys.push(envGemini);
   }
 
   if (keys.length === 0) {
@@ -95,8 +101,8 @@ export async function callAI(
   }
 
   const freeHint = isVision
-    ? ' Try switching to: Groq llama-4-scout (14,400 req/day FREE), Gemini 3.5 Flash (1,500 req/day FREE), or OpenRouter free models.'
-    : ' Try switching to: Groq llama-4-scout (fastest, 14,400 req/day FREE) or Gemini 3.5 Flash (1,500 req/day FREE).';
+    ? ' Try switching to: Gemini 3.6 Flash (1,500 req/day FREE), Groq llama-4-scout (14,400 req/day FREE), or OpenRouter free models.'
+    : ' Try switching to: Gemini 3.6 Flash (1,500 req/day FREE) or Groq llama-4-scout (fastest, 14,400 req/day FREE).';
   throw new Error(`All ${provider} API keys exhausted (rate limited).${freeHint} Update keys or switch provider in Settings → AI Models.`);
 }
 
@@ -126,15 +132,26 @@ async function executeRequest(
   switch (provider.toLowerCase()) {
     case 'gemini': {
       const primaryModel = normalizeGoogleModel(model);
-      const modelsToTry = Array.from(new Set([
-        primaryModel,
-        'gemini-3.8-flash',
-        'gemini-3.6-flash',
-        'gemini-3.1-flash-lite',
-        'gemma-4-26b-a4b-it',
-        'gemini-3.7-flash',
-        'gemini-3.5-flash',
-      ]));
+      const isVisionRequest = isVision && !!base64Data;
+      const modelsToTry = isVisionRequest
+        ? Array.from(new Set([
+            primaryModel,
+            'gemini-3.6-flash',
+            'gemini-3.8-flash',
+            'gemini-3.1-flash-lite',
+            'gemini-3.7-flash',
+            'gemini-3.5-flash',
+          ]))
+        : Array.from(new Set([
+            primaryModel,
+            'gemini-3.6-flash',
+            'gemma-4-26b-a4b-it',
+            'gemma-4-31b-it',
+            'gemini-3.8-flash',
+            'gemini-3.1-flash-lite',
+            'gemini-3.7-flash',
+            'gemini-3.5-flash',
+          ]));
       const wantsJson = /json|\{|\}/i.test(prompt) || /json/i.test(systemPrompt);
 
       const parts: any[] = [];
@@ -170,14 +187,20 @@ async function executeRequest(
       }
 
       let lastError: any = null;
-      for (const currentModel of modelsToTry) {
+      for (let idx = 0; idx < modelsToTry.length; idx++) {
+        const currentModel = modelsToTry[idx];
         url = `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent?key=${apiKey}`;
         headers = { 'Content-Type': 'application/json' };
 
         try {
-          const res = await makeFetch(url, headers, bodyData, 14000);
+          const res = await makeFetch(url, headers, bodyData, 45000);
           const json = JSON.parse(res);
-          const text = json?.candidates?.[0]?.content?.parts?.[0]?.text;
+          const parts = json?.candidates?.[0]?.content?.parts || [];
+          const nonThought = parts.filter((p: any) => !p.thought);
+          const text = (nonThought.length > 0 ? nonThought : parts)
+            .map((p: any) => p.text || '')
+            .join('')
+            .trim();
           if (!text) throw new Error('Empty response from Gemini API');
           return text;
         } catch (fetchErr: any) {
@@ -185,6 +208,7 @@ async function executeRequest(
           const status = fetchErr.status || fetchErr.statusCode;
           if (status === 503 || status === 500 || status === 404 || status === 429) {
             console.warn(`[callAI] Gemini model ${currentModel} returned ${status}. Retrying fallback...`);
+            await new Promise((r) => setTimeout(r, 250));
             continue;
           }
           throw fetchErr;
@@ -331,7 +355,7 @@ async function executeRequest(
   }
 }
 
-async function makeFetch(url: string, headers: Record<string, string>, body: any, timeoutMs: number = 15000): Promise<string> {
+async function makeFetch(url: string, headers: Record<string, string>, body: any, timeoutMs: number = 45000): Promise<string> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
 

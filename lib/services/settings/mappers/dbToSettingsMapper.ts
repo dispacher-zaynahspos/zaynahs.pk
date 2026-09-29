@@ -265,7 +265,7 @@ export const mapSettings = (row: SettingsRow): StoreSettings => ({
   content_provider: row.content_provider ?? 'groq',
   content_model: row.content_model ?? 'llama-3.3-70b-versatile',
   vision_provider: row.vision_provider ?? 'gemini',
-  vision_model: row.vision_model || 'gemini-3.8-flash',
+  vision_model: row.vision_model || 'gemini-3.6-flash',
   ai_tone: row.ai_tone ?? 'Professional',
   ai_language: row.ai_language ?? 'English',
   ai_custom_instructions: row.ai_custom_instructions ?? '',

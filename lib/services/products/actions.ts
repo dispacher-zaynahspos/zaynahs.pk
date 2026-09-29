@@ -2,7 +2,7 @@
 
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { Product, ProductImage, ProductVariant, ProductModifier } from '@/lib/types';
-import { revalidateProduct, revalidateTagSafe } from '@/lib/revalidate';
+import { revalidateProduct, revalidateTagSafe, revalidateAfterResponse } from '@/lib/revalidate';
 import { SHOP_CATEGORY_ID } from '@/lib/config/singleton-ids';
 import { getProductById } from './queries';
 
@@ -154,12 +154,13 @@ export async function createProductAction(
 
     const updatedProduct = await getProductById(productId);
     if (!updatedProduct) throw new Error('Product created but could not be retrieved');
-    try {
+    // Run the network-bound cache purge + search-engine ping AFTER the response is
+    // sent so the admin save returns instantly (RULE C10 / instant-save). The
+    // storefront reflects the change a moment later once the background task runs.
+    revalidateTagSafe('products');
+    await revalidateAfterResponse(async () => {
       await revalidateProduct(updatedProduct.slug);
-      revalidateTagSafe('products');
-    } catch (revalErr) {
-      console.warn('[products] createProductAction revalidation warning:', revalErr);
-    }
+    });
     return updatedProduct;
   } catch (error) {
     console.error('[products] createProductAction failed:', error);
@@ -378,12 +379,11 @@ export async function updateProductAction(
 
     const updatedProduct = await getProductById(id);
     if (!updatedProduct) throw new Error('Product updated but could not be retrieved');
-    try {
+    // Network-bound purge + indexing runs AFTER the response so the save is instant.
+    revalidateTagSafe('products');
+    await revalidateAfterResponse(async () => {
       await revalidateProduct(updatedProduct.slug);
-      revalidateTagSafe('products');
-    } catch (revalErr) {
-      console.warn('[products] updateProductAction revalidation warning:', revalErr);
-    }
+    });
     return updatedProduct;
   } catch (error) {
     console.error('[products] updateProductAction failed:', error);
@@ -469,11 +469,10 @@ export async function updateProductFieldsAction(
     }
 
     if (prodData?.slug) {
-      try {
-        await revalidateProduct(prodData.slug);
-      } catch (revalErr) {
-        console.error('[products] revalidateProduct failed during updateProductFieldsAction:', revalErr);
-      }
+      const slug = prodData.slug;
+      await revalidateAfterResponse(async () => {
+        await revalidateProduct(slug);
+      });
     }
     revalidateTagSafe('products');
   } catch (error) {
@@ -500,11 +499,10 @@ export async function deleteProductAction(id: string): Promise<void> {
     if (error) throw error;
 
     if (prodData?.slug) {
-      try {
-        await revalidateProduct(prodData.slug);
-      } catch (revalErr) {
-        console.error('[products] revalidateProduct failed during deleteProductAction:', revalErr);
-      }
+      const slug = prodData.slug;
+      await revalidateAfterResponse(async () => {
+        await revalidateProduct(slug);
+      });
     }
     revalidateTagSafe('products');
   } catch (error) {
@@ -548,11 +546,10 @@ export async function updateProductVariantFieldsAction(
         .single();
 
       if (prodData?.slug) {
-        try {
-          await revalidateProduct(prodData.slug);
-        } catch (revalErr) {
-          console.error('[products] revalidateProduct failed during updateProductVariantFieldsAction:', revalErr);
-        }
+        const slug = prodData.slug;
+        await revalidateAfterResponse(async () => {
+          await revalidateProduct(slug);
+        });
       }
     }
     revalidateTagSafe('products');
