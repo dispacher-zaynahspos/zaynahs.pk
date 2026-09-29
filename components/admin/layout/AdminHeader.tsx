@@ -55,7 +55,7 @@ export function AdminHeader({
             <Search className="h-4 w-4 shrink-0" />
             <span className="hidden xl:inline text-xs font-medium">Search...</span>
             <kbd className="hidden sm:inline-flex items-center text-[10px] font-bold bg-white dark:bg-white/10 px-1.5 py-0.5 rounded text-gray-500 dark:text-gray-300 border border-gray-200/80 dark:border-white/10 font-mono shadow-3xs">
-              ⌘K
+              ⌘ / Ctrl K
             </kbd>
           </button>
         )}

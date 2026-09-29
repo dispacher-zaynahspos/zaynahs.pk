@@ -20,9 +20,10 @@ import {
 
 interface CartContainerProps {
   settings: StoreSettings;
+  initialCustomer?: { id: string; name: string; email: string | null; phone: string | null } | null;
 }
 
-export default function CartContainer({ settings }: CartContainerProps) {
+export default function CartContainer({ settings, initialCustomer }: CartContainerProps) {
   const {
     items,
     updateQuantity,
@@ -70,7 +71,7 @@ export default function CartContainer({ settings }: CartContainerProps) {
     handleOrderSubmit,
     summaryProps,
     router,
-  } = useCartContainerState(settings);
+  } = useCartContainerState(settings, initialCustomer);
 
   if (view === 'success' && placedOrder) {
     return (

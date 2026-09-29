@@ -73,8 +73,11 @@ export function SettingsTabBar({ activeTab, setActiveTab, metaSyncEnabled }: Set
   };
 
   return (
-    <div className="hidden md:block w-full bg-white dark:bg-[#16162a] border border-gray-200 dark:border-gray-800 rounded-xl p-1.5 shadow-xs mb-6">
-      <div id="settings-tab-bar" className="flex gap-1 flex-wrap py-0.5">
+    <div className="w-full bg-white dark:bg-[#16162a] border border-gray-200 dark:border-gray-800 rounded-2xl p-1.5 shadow-xs mb-6 overflow-hidden">
+      <div
+        id="settings-tab-bar"
+        className="flex gap-1.5 overflow-x-auto no-scrollbar scrollbar-none touch-pan-x py-0.5 md:flex-wrap"
+      >
         {TABS.filter(tab => tab.id !== 'meta_sync' || metaSyncEnabled).map((tab) => {
           const { id, label, icon: Icon } = tab;
           const isActive = activeTab === id;
@@ -85,10 +88,10 @@ export function SettingsTabBar({ activeTab, setActiveTab, metaSyncEnabled }: Set
               type="button"
               onClick={() => handleTabClick(tab)}
               style={isActive ? { backgroundColor: 'var(--color-primary, #C2185B)' } : undefined}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all duration-150 cursor-pointer shrink-0 ${
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-150 cursor-pointer shrink-0 min-h-[36px] ${
                 isActive
                   ? 'text-white shadow-xs font-black'
-                  : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white'
+                  : 'text-gray-600 dark:text-gray-400 bg-gray-50/80 dark:bg-white/5 md:bg-transparent hover:bg-gray-100 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
               <Icon className="h-3.5 w-3.5 shrink-0" />

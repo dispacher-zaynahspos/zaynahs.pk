@@ -20,7 +20,10 @@ import { useCheckoutFormState } from './hooks/useCheckoutFormState';
 
 export type CartView = 'cart' | 'checkout' | 'success';
 
-export function useCartContainerState(settings: StoreSettings) {
+export function useCartContainerState(
+  settings: StoreSettings,
+  initialCustomer?: { id: string; name: string; email: string | null; phone: string | null } | null
+) {
   const items = useCartStore((state) => state.items);
   const updateQuantity = useCartStore((state) => state.updateQuantity);
   const removeItem = useCartStore((state) => state.removeItem);
@@ -65,7 +68,7 @@ export function useCartContainerState(settings: StoreSettings) {
     placedOrder, setPlacedOrder,
     coordinates,
     markOrdered
-  } = useCheckoutFormState(settings.currency || 'PKR', view);
+  } = useCheckoutFormState(settings.currency || 'PKR', view, initialCustomer);
 
   const [discountCode, setDiscountCode] = useState('');
   const [couponError, setCouponError] = useState('');

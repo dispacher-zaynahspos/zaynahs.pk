@@ -34,7 +34,7 @@ export default function SettingsForm({ initialSettings }: SettingsFormProps) {
   const s = useSettingsFormState({ initialSettings });
 
   return (
-    <form onSubmit={s.handleSubmit} className="w-full max-w-full space-y-6 pb-28 sm:pb-20">
+    <form onSubmit={s.handleSubmit} className="w-full max-w-full space-y-6 pb-36 sm:pb-20">
       <SettingsTabBar activeTab={activeTab} setActiveTab={setActiveTab} metaSyncEnabled={s.metaSyncEnabled} />
 
       <SettingsFormTabRenderer activeTab={activeTab} s={s} />

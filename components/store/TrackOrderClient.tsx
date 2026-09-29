@@ -30,7 +30,7 @@ export default function TrackOrderClient({ currencySymbol = 'Rs.' }: { currencyS
   const order = result?.order;
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-8 sm:py-12">
+    <div className="mx-auto max-w-2xl px-4 pt-28 sm:pt-32 pb-16">
       <div className="text-center mb-6">
         <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl" style={{ backgroundColor: 'var(--color-primary, #C2185B)' }}>
           <Package className="h-6 w-6 text-white" />

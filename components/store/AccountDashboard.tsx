@@ -37,7 +37,7 @@ export default function AccountDashboard({ profile, orders }: AccountDashboardPr
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-[#0f0f1b] py-8 px-4 sm:px-6 lg:px-8 animate-fade-in">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#0f0f1b] pt-28 sm:pt-32 pb-16 px-4 sm:px-6 lg:px-8 animate-fade-in">
       <div className="max-w-5xl mx-auto space-y-6">
         
         {/* Profile Details Header Card */}

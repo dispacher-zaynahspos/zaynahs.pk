@@ -84,9 +84,10 @@ export function NavbarMobileDrawer({
                 {storeName}
               </span>
             )}
-            <span className="text-[9px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.5 rounded-md shrink-0">
-              Online
-            </span>
+            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 shrink-0">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span>Official Store</span>
+            </div>
           </div>
 
           <button
@@ -108,21 +109,18 @@ export function NavbarMobileDrawer({
               className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-gray-100/70 hover:bg-gray-100 dark:bg-white/5 dark:hover:bg-white/10 border border-gray-200/60 dark:border-white/5 text-gray-400 dark:text-gray-500 text-xs font-semibold transition-all cursor-pointer group"
             >
               <div className="flex items-center gap-2">
-                <Search className="h-3.5 w-3.5 text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors" />
-                <span className="group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors">
+                <Search className="h-4 w-4 text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors" />
+                <span className="text-xs text-gray-500 dark:text-gray-400 group-hover:text-gray-800 dark:group-hover:text-gray-200 transition-colors">
                   Search products, collections...
                 </span>
               </div>
-              <span className="text-[10px] font-mono font-bold text-gray-400 bg-white dark:bg-white/10 px-1.5 py-0.5 rounded shadow-2xs">
-                ⌘K
-              </span>
             </button>
           </div>
         )}
 
         {/* Navigation Items (Main Catalog List) */}
         <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-3 py-2 space-y-0.5">
-          <div className="text-[10px] font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 px-3 pt-2 pb-1">
+          <div className="text-[11px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 px-3 pt-2.5 pb-1">
             Collections & Categories
           </div>
           {navItems.map((item) => renderMobileNavItem(item))}
@@ -227,10 +225,17 @@ export function NavbarMobileDrawer({
           </div>
         )}
 
-        {/* Drawer Footer - Minimal & Smart */}
-        <div className="mt-auto border-t border-gray-100 dark:border-white/5 px-4 py-2.5 text-[11px] text-gray-400 flex items-center justify-between">
-          <span className="font-semibold text-gray-500 dark:text-gray-400">© {storeName}</span>
-          {topBarPhone && <span className="text-[10px] text-gray-400 font-medium">📞 {topBarPhone}</span>}
+        {/* Drawer Footer - Minimal & Well-Aligned */}
+        <div className="mt-auto border-t border-gray-100 dark:border-white/5 px-5 pt-3.5 pb-[calc(1.25rem+env(safe-area-inset-bottom,0.75rem))] text-xs text-gray-500 dark:text-gray-400 flex items-center justify-between">
+          <span className="font-bold text-gray-700 dark:text-gray-300 tracking-tight">© {storeName}</span>
+          {topBarPhone && (
+            <a
+              href={`tel:${topBarPhone.replace(/\D/g, '')}`}
+              className="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-950 dark:hover:text-white font-medium transition-colors"
+            >
+              {topBarPhone}
+            </a>
+          )}
         </div>
       </div>
     </div>

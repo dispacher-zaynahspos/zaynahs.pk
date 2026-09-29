@@ -19,7 +19,7 @@ export function ProductSaveBar({
   onCancel,
 }: ProductSaveBarProps) {
   return (
-    <div className="sticky bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-[#16162a]/95 backdrop-blur-md border-t border-gray-200 dark:border-gray-800 px-3 sm:px-6 py-2.5 sm:py-3.5 shadow-2xl rounded-t-2xl transition-all">
+    <div className="sticky bottom-[calc(4rem+env(safe-area-inset-bottom,0px))] md:bottom-0 left-0 right-0 z-30 bg-white/95 dark:bg-[#16162a]/95 backdrop-blur-md border-t border-gray-200 dark:border-gray-800 px-3 sm:px-6 py-2.5 sm:py-3.5 shadow-2xl rounded-t-2xl transition-all">
       <div className="flex items-center justify-between gap-2.5 max-w-full">
         {/* Left: Product context / title / status */}
         <div className="flex items-center gap-2 min-w-0 flex-1">

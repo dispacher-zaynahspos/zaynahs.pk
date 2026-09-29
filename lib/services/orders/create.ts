@@ -46,104 +46,73 @@ export const createOrder = async (order: {
 
     console.log('[orders] Step 1: customerId resolved to', customerId);
 
-    // Auto-create/lookup guest customer record if phone is provided and they aren't logged in
+    // Auto-create/lookup guest customer record if phone or email is provided and customer is not logged in
     if (!customerId && (order.customerPhone || order.customerEmail)) {
-      console.log('[orders] Step 2: looking up or creating customer');
       try {
-        let existingCustomer = null;
+        const orderEmail = order.customerEmail ? order.customerEmail.trim().toLowerCase() : null;
+        const orderPhone = order.customerPhone ? normalizePkPhone(order.customerPhone) : null;
 
-        // 1. Try to find by email if email is provided
-        if (order.customerEmail) {
+        let byEmail: any = null;
+        if (orderEmail) {
           const { data } = await supabaseAdmin
             .from('customers')
-            .select('id, phone, email')
-            .eq('email', order.customerEmail.trim().toLowerCase())
+            .select('id, phone, email, password_hash')
+            .eq('email', orderEmail)
             .maybeSingle();
-          if (data) {
-            existingCustomer = data;
-          }
+          byEmail = data;
         }
 
-        // 2. Try to find by phone if not found by email
-        if (!existingCustomer && order.customerPhone) {
-          const rawPhone = order.customerPhone.trim();
-          const cleanPhone = rawPhone.replace(/\D/g, '');
-
-          // Check raw phone
-          let { data } = await supabaseAdmin
+        let byPhone: any = null;
+        if (orderPhone) {
+          const { data } = await supabaseAdmin
             .from('customers')
-            .select('id, phone, email')
-            .eq('phone', rawPhone)
+            .select('id, phone, email, password_hash')
+            .eq('phone', orderPhone)
             .maybeSingle();
-
-          if (!data && cleanPhone) {
-            // Check clean phone
-            const { data: dataClean } = await supabaseAdmin
-              .from('customers')
-              .select('id, phone, email')
-              .eq('phone', cleanPhone)
-              .maybeSingle();
-            data = dataClean;
-          }
-          
-          if (data) {
-            existingCustomer = data;
-          }
+          byPhone = data;
         }
 
-        if (existingCustomer) {
-          customerId = existingCustomer.id;
-          
-          // Update customer fields if they changed or were empty
-          const updates: Record<string, any> = {};
-          if (order.customerEmail && existingCustomer.email !== order.customerEmail) {
-            updates.email = order.customerEmail.trim().toLowerCase();
+        if (byEmail && byPhone) {
+          if (byEmail.id === byPhone.id) {
+            customerId = byEmail.id;
+          } else {
+            // Two different rows found.
+            // If neither has a password_hash, merge byPhone into byEmail
+            if (!byEmail.password_hash && !byPhone.password_hash) {
+              await supabaseAdmin.from('orders').update({ customer_id: byEmail.id }).eq('customer_id', byPhone.id);
+              await supabaseAdmin.from('customers').delete().eq('id', byPhone.id);
+              await supabaseAdmin.from('customers').update({ phone: orderPhone }).eq('id', byEmail.id);
+              customerId = byEmail.id;
+            } else if (byEmail.password_hash) {
+              customerId = byEmail.id;
+            } else {
+              customerId = byPhone.id;
+            }
           }
-          if (order.customerPhone && existingCustomer.phone !== order.customerPhone) {
-            updates.phone = order.customerPhone.trim();
+        } else if (byEmail) {
+          customerId = byEmail.id;
+          if (!byEmail.phone && orderPhone) {
+            await supabaseAdmin.from('customers').update({ phone: orderPhone }).eq('id', byEmail.id);
           }
-          if (order.customerName && order.customerName !== 'Guest Customer') {
-            updates.name = order.customerName;
-          }
-
-          if (Object.keys(updates).length > 0) {
-            await supabaseAdmin
-              .from('customers')
-              .update(updates)
-              .eq('id', customerId);
+        } else if (byPhone) {
+          customerId = byPhone.id;
+          if (!byPhone.email && orderEmail) {
+            await supabaseAdmin.from('customers').update({ email: orderEmail }).eq('id', byPhone.id);
           }
         } else {
-          // Create new customer record
-          const { data: newCustomer, error: insertError } = await supabaseAdmin
+          // Neither exists, create guest customer record
+          const { data: newCustomer } = await supabaseAdmin
             .from('customers')
             .insert({
               name: order.customerName || 'Guest Customer',
-              phone: order.customerPhone ? order.customerPhone.trim() : null,
-              email: order.customerEmail ? order.customerEmail.trim().toLowerCase() : null,
+              phone: orderPhone,
+              email: orderEmail,
               password_hash: null
             })
             .select('id')
-            .single();
+            .maybeSingle();
 
-          if (insertError) {
-            console.error('Error inserting customer:', insertError);
-            if (order.customerEmail) {
-              const { data } = await supabaseAdmin
-                .from('customers')
-                .select('id')
-                .eq('email', order.customerEmail.trim().toLowerCase())
-                .maybeSingle();
-              if (data) customerId = data.id;
-            }
-            if (!customerId && order.customerPhone) {
-              const { data } = await supabaseAdmin
-                .from('customers')
-                .select('id')
-                .eq('phone', order.customerPhone.trim())
-                .maybeSingle();
-              if (data) customerId = data.id;
-            }
-          } else if (newCustomer) {
+          if (newCustomer) {
             customerId = newCustomer.id;
           }
         }

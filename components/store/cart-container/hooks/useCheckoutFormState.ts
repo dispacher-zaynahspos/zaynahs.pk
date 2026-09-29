@@ -3,7 +3,11 @@
 import { useState, useEffect } from 'react';
 import { useAbandonedCartTracker } from '@/lib/hooks/useAbandonedCartTracker';
 
-export function useCheckoutFormState(currency: string, view: 'cart' | 'checkout' | 'success') {
+export function useCheckoutFormState(
+  currency: string,
+  view: 'cart' | 'checkout' | 'success',
+  initialCustomer?: { id: string; name: string; email: string | null; phone: string | null } | null
+) {
   const [emailOrPhone, setEmailOrPhone] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -20,21 +24,34 @@ export function useCheckoutFormState(currency: string, view: 'cart' | 'checkout'
   const [coordinates, setCoordinates] = useState('');
 
   useEffect(() => {
+    // 1. First pre-fill from customer account session if available
+    if (initialCustomer) {
+      const parts = (initialCustomer.name || '').trim().split(/\s+/);
+      const fName = parts[0] || '';
+      const lName = parts.slice(1).join(' ') || '';
+      if (fName) setFirstName(fName);
+      if (lName) setLastName(lName);
+      if (initialCustomer.email) setEmailOrPhone(initialCustomer.email);
+      else if (initialCustomer.phone) setEmailOrPhone(initialCustomer.phone);
+      if (initialCustomer.phone) setPhone(initialCustomer.phone);
+    }
+
+    // 2. Check localStorage for previously saved checkout details
     const saved = localStorage.getItem('checkout_info');
     if (saved) {
       try {
         const info = JSON.parse(saved);
-        setEmailOrPhone(info.emailOrPhone || '');
-        setFirstName(info.firstName || '');
-        setLastName(info.lastName || '');
-        setAddress(info.address || '');
-        setApartment(info.apartment || '');
-        setCity(info.city || '');
-        setPostalCode(info.postalCode || '');
-        setPhone(info.phone || '');
+        if (info.emailOrPhone) setEmailOrPhone(info.emailOrPhone);
+        if (info.firstName) setFirstName(info.firstName);
+        if (info.lastName) setLastName(info.lastName);
+        if (info.address) setAddress(info.address);
+        if (info.apartment) setApartment(info.apartment);
+        if (info.city) setCity(info.city);
+        if (info.postalCode) setPostalCode(info.postalCode);
+        if (info.phone) setPhone(info.phone);
       } catch {}
     }
-  }, []);
+  }, [initialCustomer]);
 
   useEffect(() => {
     if (view === 'checkout' && typeof window !== 'undefined' && navigator.geolocation) {

@@ -149,7 +149,7 @@ export function AdminDesktopSidebar({
             </button>
             <div className="absolute left-[82px] top-1/2 -translate-y-1/2 z-50 px-2.5 py-1.5 rounded-lg bg-gray-950/95 text-white text-xs font-bold whitespace-nowrap shadow-xl border border-white/15 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-150 flex items-center gap-1.5">
               <span>Quick Search</span>
-              <kbd className="text-[10px] bg-white text-gray-950 font-black px-1.5 py-0.5 rounded font-mono">⌘K</kbd>
+              <kbd className="text-[10px] bg-white text-gray-950 font-black px-1.5 py-0.5 rounded font-mono">⌘ / Ctrl K</kbd>
             </div>
           </div>
         ) : (
@@ -163,7 +163,7 @@ export function AdminDesktopSidebar({
               <span className="text-xs font-semibold text-white/90">Quick search...</span>
             </div>
             <kbd className="text-[11px] font-black bg-white text-gray-950 px-2 py-0.5 rounded-md shadow-xs border border-white/40 font-mono tracking-tight">
-              ⌘K
+              ⌘ / Ctrl K
             </kbd>
           </button>
         )}

@@ -110,13 +110,13 @@ New page/category/route: copy the `generateMetadata()` pattern from an existing 
 Whenever creating, modifying, or refactoring ANY form, editor, modal, or management screen across the Admin Console (`/admin/*`):
 1. **Never Buried Action Buttons**: Primary actions (Save, Update, Create, Discard, Cancel) MUST NOT be buried inside scrollable content or placed at the bottom of long columns/sidebars where users are forced to scroll down to reach them.
 2. **Mobile & Desktop Sticky Standard**:
-   - Save and Cancel actions must live in a unified, floating, sticky bottom bar pinned at the bottom of the viewport (`bottom-0`) for BOTH mobile and desktop.
+   - Save and Cancel actions must live in a unified, floating, sticky bottom bar pinned cleanly above the mobile bottom nav bar (`bottom-[calc(4rem+env(safe-area-inset-bottom,0px))] md:bottom-0`) so it NEVER gets buried behind `AdminMobileBottomBar` on mobile screens.
    - **Exact Tailwind positioning class**:
      ```tsx
-     className="sticky bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-[#16162a]/95 backdrop-blur-md border-t border-gray-200 dark:border-gray-800 px-3 sm:px-6 py-2.5 sm:py-3.5 shadow-2xl rounded-t-2xl transition-all"
+     className="sticky bottom-[calc(4rem+env(safe-area-inset-bottom,0px))] md:bottom-0 left-0 right-0 z-30 bg-white/95 dark:bg-[#16162a]/95 backdrop-blur-md border-t border-gray-200 dark:border-gray-800 px-3 sm:px-6 py-2.5 sm:py-3.5 shadow-2xl rounded-t-2xl transition-all"
      ```
-   - **Bottom alignment (`bottom-0`)**: Sticks cleanly at the bottom edge on both mobile and desktop without floating high in the middle of the screen or covering active inputs.
-   - **Form scroll clearance (`pb-28 sm:pb-20`)**: Any form or table hosting a sticky bottom bar MUST provide generous bottom padding (`pb-28 sm:pb-20`) so the final form inputs, checkboxes, variants, and fields can always be scrolled completely into clear, unobstructed view well above the bar and bottom navigation.
+   - **Bottom alignment**: On mobile (`< md`), sticks at `4rem + safe-area` above the bottom, resting smoothly right above the mobile navigation bar without any overlap. On desktop (`md:`), sticks at `0px` (`bottom: 0`).
+   - **Form scroll clearance (`pb-36 sm:pb-20`)**: Any form or table hosting a sticky bottom bar MUST provide generous bottom padding (`pb-36 sm:pb-20`) so the final form inputs, checkboxes, variants, and fields can always be scrolled completely into clear, unobstructed view well above the bar and bottom navigation.
 3. **Bar Structure & Visual Polish**:
    - **Left side**: Context and item state (animated pulse dot, active/inactive pill, title of product/setting, or unsaved item count).
    - **Right side**: Responsive button group with min 40px/44px touch targets (`active:scale-95`, `Loader2` spin on save, `Save` icon when idle).

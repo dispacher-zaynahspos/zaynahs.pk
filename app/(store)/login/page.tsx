@@ -68,7 +68,7 @@ export default function LoginPage() {
 
   if (isForgotPassword) {
     return (
-      <div className="min-h-[80vh] flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-[#0f0f1b] animate-fade-in">
+      <div className="min-h-[85vh] flex flex-col justify-center pt-28 sm:pt-32 pb-16 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-[#0f0f1b] animate-fade-in">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <div className="flex justify-center">
             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#e94560]/10 border border-[#e94560]/20 text-[#e94560]">
@@ -133,7 +133,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-[80vh] flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-[#0f0f1b] animate-fade-in">
+    <div className="min-h-[85vh] flex flex-col justify-center pt-28 sm:pt-32 pb-16 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-[#0f0f1b] animate-fade-in">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
           <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#e94560]/10 border border-[#e94560]/20 text-[#e94560]">
