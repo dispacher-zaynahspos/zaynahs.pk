@@ -233,6 +233,10 @@ export default async function RootLayout({
                 var el = document.createElement('link');
                 el.rel = 'manifest';
                 el.href = m;
+                // Send credentials so a protected deployment (Vercel Auth/SSO) serves the
+                // manifest with the auth cookie instead of redirecting to the SSO login
+                // (which triggers the cross-origin CORS block on manifest.json).
+                el.crossOrigin = 'use-credentials';
                 document.head.appendChild(el);
               })();
               if ('serviceWorker' in navigator) {
