@@ -53,7 +53,6 @@ export default function WhatsAppLeadsTab({
           value={timeFilter}
           onChange={(val: any) => setTimeFilter(val)}
           options={[
-            { value: 'all', label: 'All Time' },
             { value: 'today', label: 'Today' },
             { value: 'yesterday', label: 'Yesterday' },
             { value: 'week', label: 'Last 7 Days' },

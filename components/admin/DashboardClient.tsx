@@ -19,7 +19,7 @@ import {
 } from './dashboard';
 
 export default function DashboardClient({ orders, products, customers, settings }: DashboardClientProps) {
-  const [dateFilter, setDateFilter] = useState<DateRange>('all');
+  const [dateFilter, setDateFilter] = useState<DateRange>('last30');
 
   const now = new Date();
 
@@ -168,7 +168,6 @@ export default function DashboardClient({ orders, products, customers, settings 
     { key: 'last7', label: '7d' },
     { key: 'last30', label: '30d' },
     { key: 'thisMonth', label: 'Month' },
-    { key: 'all', label: 'All Time' },
   ];
 
   const chartEmpty = chartData.length === 0 || chartData.every(d => d.revenue === 0 && d.cogs === 0 && d.profit === 0);
