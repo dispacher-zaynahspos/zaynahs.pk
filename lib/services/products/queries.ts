@@ -84,13 +84,32 @@ export const getRelatedProducts = cache(async (productId: string, categoryId?: s
 
 const fetchProductBySlug = async (slug: string): Promise<Product | null> => {
   try {
-    const { data, error } = await staticSupabase
+    let decodedSlug = slug;
+    try {
+      decodedSlug = decodeURIComponent(slug);
+    } catch {}
+
+    // First try decoded slug
+    let { data, error } = await staticSupabase
       .from('products')
       .select('*, product_images(*), product_variants(*), product_modifiers(*), categories!category_id(*), product_categories(*, categories(*)), badges(*), size_guides(*)')
-      .eq('slug', slug)
+      .eq('slug', decodedSlug)
       .is('deleted_at', null)
       .eq('is_active', true)
       .maybeSingle();
+
+    // If not found and raw slug is different, fallback to querying raw slug
+    if (!data && decodedSlug !== slug) {
+      const fallback = await staticSupabase
+        .from('products')
+        .select('*, product_images(*), product_variants(*), product_modifiers(*), categories!category_id(*), product_categories(*, categories(*)), badges(*), size_guides(*)')
+        .eq('slug', slug)
+        .is('deleted_at', null)
+        .eq('is_active', true)
+        .maybeSingle();
+      data = fallback.data;
+      error = fallback.error;
+    }
 
     if (error) {
       console.error('[Products Error Debug] fetchProductBySlug failed:', error);
@@ -107,19 +126,25 @@ const fetchProductBySlug = async (slug: string): Promise<Product | null> => {
 };
 
 export const getProductBySlug = cache(async (slug: string) => {
+  let decodedSlug = slug;
+  try {
+    decodedSlug = decodeURIComponent(slug);
+  } catch {}
+
   if (typeof window !== 'undefined') {
-    return fetchProductBySlug(slug);
+    return fetchProductBySlug(decodedSlug);
   }
   try {
     const { unstable_cache } = await import('next/cache');
+    const safeTag = decodedSlug.replace(/[^a-zA-Z0-9-_]/g, '_');
     const cachedFn = unstable_cache(
-      async () => fetchProductBySlug(slug),
-      [`product-by-slug-${slug}`],
-      { revalidate: 86400, tags: [`product-${slug}`, 'products'] }
+      async () => fetchProductBySlug(decodedSlug),
+      [`product-by-slug-${safeTag}`],
+      { revalidate: 86400, tags: [`product-${safeTag}`, 'products'] }
     );
     return cachedFn();
   } catch {
-    return fetchProductBySlug(slug);
+    return fetchProductBySlug(decodedSlug);
   }
 });
 

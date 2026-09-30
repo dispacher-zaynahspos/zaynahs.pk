@@ -14,7 +14,15 @@ import { usePathname, useSearchParams } from 'next/navigation';
 export default function ScrollRestorer() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  // Effect trigger key (reacts to route/query changes).
   const key = `scroll:${pathname}?${searchParams?.toString() ?? ''}`;
+  // Live key read from the actual URL — the shop updates the URL via history.replaceState
+  // (for instant filtering) which does NOT refresh useSearchParams, so save/restore must
+  // key off window.location to stay in sync and land on the exact saved position.
+  const liveKey = () =>
+    typeof window !== 'undefined'
+      ? `scroll:${window.location.pathname}?${window.location.search.replace(/^\?/, '')}`
+      : key;
   const isPopRef = useRef(false);
   const rafRef = useRef<number | null>(null);
   const cancelRestoreRef = useRef(false);

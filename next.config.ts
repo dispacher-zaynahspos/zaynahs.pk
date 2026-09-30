@@ -95,11 +95,41 @@ const nextConfig: NextConfig = {
         ],
       },
       {
+        source: '/account',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, no-cache, must-revalidate',
+          },
+          {
+            key: 'CDN-Cache-Control',
+            value: 'no-store, no-cache, must-revalidate',
+          },
+        ],
+      },
+      {
         source: '/account/:path*',
         headers: [
           {
             key: 'Cache-Control',
-            value: 'no-store',
+            value: 'no-store, no-cache, must-revalidate',
+          },
+          {
+            key: 'CDN-Cache-Control',
+            value: 'no-store, no-cache, must-revalidate',
+          },
+        ],
+      },
+      {
+        source: '/login',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, no-cache, must-revalidate',
+          },
+          {
+            key: 'CDN-Cache-Control',
+            value: 'no-store, no-cache, must-revalidate',
           },
         ],
       },
@@ -122,7 +152,7 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        source: '/((?!api|_next|static|fonts|cart|checkout|account|admin).*)',
+        source: '/((?!api|_next|static|fonts|cart|checkout|account|login|admin).*)',
         headers: [
           {
           key: 'Cache-Control',

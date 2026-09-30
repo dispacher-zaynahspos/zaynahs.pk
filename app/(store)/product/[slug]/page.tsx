@@ -62,9 +62,12 @@ function cleanMetaDescription(htmlText: string, siteUrl: string): string {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   try {
     const { slug } = await params;
+    let decodedSlug = slug;
+    try { decodedSlug = decodeURIComponent(slug); } catch {}
+
     const [brand, product, settings] = await Promise.all([
       getDomainBrand(),
-      getProductBySlug(slug),
+      getProductBySlug(decodedSlug),
       getSettings()
     ]);
     if (!product) return {};
@@ -77,7 +80,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const rawDescription = cleanBrandName(seoMeta?.meta_description, brand.name) || cleanMetaDescription(product.description || '', siteUrl);
     const description = rawDescription.length > 160 ? `${rawDescription.slice(0, 157)}...` : rawDescription;
 
-    const canonicalUrl = `${siteUrl}/product/${slug}`;
+    const canonicalUrl = `${siteUrl}/product/${encodeURIComponent(decodedSlug)}`;
     const imageUrl = product.images?.[0]?.url 
       ? cleanLocalhostUrls(product.images[0].url, siteUrl) 
       : settings.logo_url || settings.favicon_url || '';
@@ -124,9 +127,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function ProductPage({ params }: PageProps) {
   const { slug } = await params;
+  let decodedSlug = slug;
+  try { decodedSlug = decodeURIComponent(slug); } catch {}
   
   const [product, settings, brand] = await Promise.all([
-    getProductBySlug(slug),
+    getProductBySlug(decodedSlug),
     getSettings(),
     getDomainBrand()
   ]);

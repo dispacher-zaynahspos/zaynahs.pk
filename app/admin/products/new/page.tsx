@@ -5,6 +5,8 @@ import ProductForm from '@/components/admin/ProductForm';
 import { getProductById } from '@/lib/services/products';
 import { getAllCategories } from '@/lib/services/categories';
 
+import { slugify } from '@/lib/utils/slugify';
+
 import { getSettings } from '@/lib/services/settings';
 import type { Product } from '@/lib/types';
 
@@ -30,10 +32,11 @@ export default async function NewProductPage({ searchParams }: PageProps) {
     const original = await getProductById(duplicate);
     if (original) {
       const { id, created_at, updated_at, meta_sync_status, meta_sync_error, meta_last_synced_at, ...rest } = original;
+      const baseSlug = slugify(original.slug || original.name);
       initialProduct = {
         ...rest,
         id: '',
-        slug: `${original.slug}-copy-${Date.now()}`,
+        slug: `${baseSlug}-copy-${Date.now()}`,
         sku: original.sku ? `${original.sku}-copy` : '',
         name: `${original.name} (Copy)`,
         created_at: '',

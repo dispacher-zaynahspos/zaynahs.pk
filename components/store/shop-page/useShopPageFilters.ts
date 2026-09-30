@@ -305,6 +305,7 @@ export function useShopPageFilters({
     searchQuery,
     setSearchQuery,
     sortBy,
+    defaultSort,
     viewMode,
     setViewMode,
     desktopColsOverride,

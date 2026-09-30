@@ -1,6 +1,6 @@
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { SHOP_CATEGORY_ID } from '@/lib/config/singleton-ids';
-import { revalidateProduct, revalidateTagSafe } from '@/lib/revalidate';
+import { revalidateProduct, revalidateTagSafe, revalidateStorefrontEdge } from '@/lib/revalidate';
 import { staticSupabase } from './mappers';
 
 export const updateProductCategoryRelationFields = async (
@@ -221,7 +221,7 @@ export const updateProductSortOrders = async (productIds: string[]): Promise<voi
           .eq('id', id)
       )
     );
-    revalidateTagSafe('products');
+    await revalidateStorefrontEdge('products', 'categories');
   } catch (error) {
     console.error('[products] updateProductSortOrders failed:', error);
     throw error;

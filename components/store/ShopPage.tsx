@@ -40,6 +40,7 @@ export default function ShopPage({
     searchQuery,
     setSearchQuery,
     sortBy,
+    defaultSort,
     viewMode,
     setViewMode,
     desktopColsOverride,
@@ -191,6 +192,7 @@ export default function ShopPage({
             handleCategorySelect={handleCategorySelect}
             hasSortParam={searchParams.has('sort')}
             getSortLabel={getSortLabel}
+            defaultSort={defaultSort}
           />
 
           {/* Catalog Listing */}
@@ -219,8 +221,8 @@ export default function ShopPage({
             <div
               className={`grid ${gridGapClass} ${getResponsiveGridClasses({
                 mobile: activeSettings?.shop_columns_mobile || (activeSettings?.card_mobile_columns === 1 ? 1 : 2),
-                tablet: activeSettings?.shop_columns_tablet || (viewMode === 'grid-3' ? 2 : 3),
-                desktop: desktopColsOverride ?? activeSettings?.shop_columns_desktop ?? (viewMode === 'grid-3' ? 3 : 4),
+                tablet: viewMode === 'grid-3' ? 2 : (activeSettings?.shop_columns_tablet || 3),
+                desktop: viewMode === 'grid-3' ? 3 : viewMode === 'grid-4' ? 4 : (desktopColsOverride ?? activeSettings?.shop_columns_desktop ?? 4),
               })}`}
             >
               {displayProducts.map((product: Product, index: number) => (

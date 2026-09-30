@@ -169,18 +169,35 @@ export function filterProductsList({
     );
   }
 
-  if (sortBy === 'newest') {
-    list.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  if (sortBy === 'manual') {
+    list.sort((a, b) => {
+      const orderA = typeof a.sort_order === 'number' && a.sort_order > 0 ? a.sort_order : 999999;
+      const orderB = typeof b.sort_order === 'number' && b.sort_order > 0 ? b.sort_order : 999999;
+      if (orderA !== orderB) return orderA - orderB;
+      const timeA = new Date(a.created_at || 0).getTime();
+      const timeB = new Date(b.created_at || 0).getTime();
+      return timeB - timeA;
+    });
+  } else if (sortBy === 'newest') {
+    list.sort((a, b) => {
+      const timeA = new Date(a.created_at || 0).getTime();
+      const timeB = new Date(b.created_at || 0).getTime();
+      return timeB - timeA;
+    });
   } else if (sortBy === 'oldest') {
-    list.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    list.sort((a, b) => {
+      const timeA = new Date(a.created_at || 0).getTime();
+      const timeB = new Date(b.created_at || 0).getTime();
+      return timeA - timeB;
+    });
   } else if (sortBy === 'price_desc') {
-    list.sort((a, b) => b.price - a.price);
+    list.sort((a, b) => (Number(b.price) || 0) - (Number(a.price) || 0));
   } else if (sortBy === 'price_asc') {
-    list.sort((a, b) => a.price - b.price);
+    list.sort((a, b) => (Number(a.price) || 0) - (Number(b.price) || 0));
   } else if (sortBy === 'alpha_asc') {
-    list.sort((a, b) => a.name.localeCompare(b.name));
+    list.sort((a, b) => (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' }));
   } else if (sortBy === 'alpha_desc') {
-    list.sort((a, b) => b.name.localeCompare(a.name));
+    list.sort((a, b) => (b.name || '').localeCompare(a.name || '', undefined, { sensitivity: 'base' }));
   }
 
   return list;

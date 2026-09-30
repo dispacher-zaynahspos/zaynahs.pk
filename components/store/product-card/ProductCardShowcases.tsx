@@ -94,7 +94,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
     scClass === 'sc10' ? 'bg-gradient-to-br from-[#fdf6ec] to-[#f5e6d0] rounded-t-[24px]' :
     '';
 
-  const productUrl = `/product/${product.slug}`;
+  const productUrl = `/product/${encodeURIComponent(product.slug || '')}`;
   const handleNav = () => saveScrollPosition(product.id);
 
   const hoverStyle = settings?.image_hover_style ?? 'second_image';

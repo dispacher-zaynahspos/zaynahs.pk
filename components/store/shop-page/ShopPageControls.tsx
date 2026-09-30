@@ -33,6 +33,7 @@ interface ShopPageControlsProps {
   handleCategorySelect: (id: string | undefined) => void;
   hasSortParam: boolean;
   getSortLabel: (val: string) => string;
+  defaultSort?: string;
 }
 
 export default function ShopPageControls({
@@ -64,11 +65,12 @@ export default function ShopPageControls({
   handleCategorySelect,
   hasSortParam,
   getSortLabel,
+  defaultSort = 'manual',
 }: ShopPageControlsProps) {
   const showActivePills =
     selectedCategoryId ||
     searchQuery ||
-    (hasSortParam && sortBy !== 'manual') ||
+    (hasSortParam && sortBy !== defaultSort) ||
     availability.onSale ||
     availability.inStock ||
     availability.outStock ||
@@ -107,34 +109,41 @@ export default function ShopPageControls({
         <div className="flex items-center justify-between sm:justify-end gap-4">
           <div className="flex items-center gap-1.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-1 shrink-0">
             <button
-              onClick={() => setViewMode('grid-3')}
-              className={`md:hidden p-1.5 rounded-lg transition-all ${viewMode === 'grid-3' ? 'bg-white dark:bg-[#16162a] text-[#e94560] shadow-sm' : 'text-gray-400 hover:text-gray-650'}`}
-              title="3 Columns Grid"
+              type="button"
+              onClick={() => setViewMode('grid-4')}
+              className={`md:hidden p-1.5 rounded-lg transition-all ${viewMode !== 'list' ? 'bg-white dark:bg-[#16162a] text-[#e94560] shadow-sm' : 'text-gray-400 hover:text-gray-600 dark:hover:text-white'}`}
+              title="Grid Layout"
+              aria-label="Grid Layout"
             >
               <Grid2X2 className="h-4 w-4" />
             </button>
 
             <button
+              type="button"
               onClick={() => setViewMode('grid-3')}
               className={`hidden md:block p-1.5 rounded-lg transition-all ${viewMode === 'grid-3' ? 'bg-white dark:bg-[#16162a] text-[#e94560] shadow-sm' : 'text-gray-400 hover:text-gray-600 dark:hover:text-white'}`}
               title="3 Columns Layout"
+              aria-label="3 Columns Layout"
             >
               <Grid3X3 className="h-4 w-4" />
             </button>
 
             <button
+              type="button"
               onClick={() => setViewMode('grid-4')}
               className={`hidden md:block p-1.5 rounded-lg transition-all ${viewMode === 'grid-4' ? 'bg-white dark:bg-[#16162a] text-[#e94560] shadow-sm' : 'text-gray-400 hover:text-gray-600 dark:hover:text-white'}`}
               title="4 Columns Layout"
+              aria-label="4 Columns Layout"
             >
               <Grid2X2 className="h-4 w-4" />
             </button>
 
             <button
+              type="button"
               onClick={() => setViewMode('list')}
-              style={viewMode === 'list' ? { color: 'var(--color-primary, #C2185B)' } : undefined}
-              className={`p-1.5 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white dark:bg-[#16162a] shadow-xs' : 'text-gray-400 hover:text-gray-600 dark:hover:text-white'}`}
+              className={`p-1.5 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white dark:bg-[#16162a] text-[#e94560] shadow-sm' : 'text-gray-400 hover:text-gray-600 dark:hover:text-white'}`}
               title="List Layout"
+              aria-label="List Layout"
             >
               <List className="h-4 w-4" />
             </button>
@@ -164,7 +173,7 @@ export default function ShopPageControls({
         <div className="flex flex-wrap items-center gap-2.5 bg-gray-100/50 dark:bg-gray-900/30 p-3 rounded-xl">
           <span className="text-[10px] font-black text-gray-450 uppercase tracking-wider">Active Filters:</span>
 
-          {hasSortParam && sortBy !== 'manual' && (
+          {hasSortParam && sortBy !== defaultSort && (
             <span className="inline-flex items-center gap-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-xs px-2.5 py-1 rounded-full font-bold text-gray-800 dark:text-gray-200">
               Sort: {getSortLabel(sortBy)}
               <button onClick={removeSortPill} className="hover:text-red-500 shrink-0"><X className="h-3 w-3" /></button>

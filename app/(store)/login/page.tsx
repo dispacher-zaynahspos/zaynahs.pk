@@ -1,16 +1,33 @@
 'use client';
 
-import React, { useState, useTransition } from 'react';
+import React, { useState, useEffect, useTransition } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Mail, Phone, Lock, Eye, EyeOff, Store, ArrowRight } from '@/components/common/Icons';
-import { customerLogin, requestCustomerPasswordReset } from '@/lib/services/customers';
+import { customerLogin, requestCustomerPasswordReset, getCustomerProfile } from '@/lib/services/customers';
 import { useSettings } from '@/lib/hooks/useSettings';
 import { toast } from 'sonner';
 
 export default function LoginPage() {
   const router = useRouter();
   
+  // Auto-redirect if already logged in
+  useEffect(() => {
+    let cancelled = false;
+    async function checkSession() {
+      try {
+        const profile = await getCustomerProfile();
+        if (profile && !cancelled) {
+          router.replace('/account');
+        }
+      } catch {
+        // Guest user
+      }
+    }
+    checkSession();
+    return () => { cancelled = true; };
+  }, [router]);
+
   // Login form states
   const [emailOrPhone, setEmailOrPhone] = useState('');
   const [password, setPassword] = useState('');

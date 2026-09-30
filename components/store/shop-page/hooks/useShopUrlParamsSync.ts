@@ -190,8 +190,7 @@ export function useShopUrlParamsSync({
     const value = e.target.value;
     setSortBy(value);
     const params = currentParams();
-    if (value === 'manual') params.delete('sort');
-    else params.set('sort', value);
+    params.set('sort', value);
     params.delete('page');
     updateUrl(params);
     setLoadMoreLimit(PAGE_SIZE);

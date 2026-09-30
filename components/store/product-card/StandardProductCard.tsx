@@ -91,7 +91,7 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
   const imageFit = settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain p-2 sm:p-3';
   const compareColor = settings?.card_compare_color || '#ef4444';
 
-  const productUrl = `/product/${product.slug}`;
+  const productUrl = `/product/${encodeURIComponent(product.slug || '')}`;
   const handleNav = () => saveScrollPosition(product.id);
 
   const renderElement = (element: string) => {

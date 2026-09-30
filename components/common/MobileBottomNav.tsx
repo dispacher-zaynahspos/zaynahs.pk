@@ -18,7 +18,7 @@ const NAV_ITEM_REGISTRY: Record<string, { defaultLabel: string; icon: any; href:
   shop: { defaultLabel: 'Shop', icon: ShoppingBag, href: () => '/shop' },
   wishlist: { defaultLabel: 'Wishlist', icon: Heart, href: () => '/wishlist', badge: 'wishlist' },
   cart: { defaultLabel: 'Cart', icon: ShoppingCart, href: () => '/cart', badge: 'cart' },
-  account: { defaultLabel: 'Account', icon: User, href: (loggedIn) => (loggedIn ? '/account' : '/login') },
+  account: { defaultLabel: 'Account', icon: User, href: () => '/account' },
 };
 
 // Standard high-conversion native e-commerce sequence.
@@ -67,17 +67,24 @@ export default function MobileBottomNav({
 
   useEffect(() => {
     if (!mounted) return;
+    let cancelled = false;
     async function loadSession() {
       try {
         const { getCustomerProfile } = await import('@/lib/services/customers');
         const profile = await getCustomerProfile();
-        setCustomerSession(profile);
+        if (!cancelled) setCustomerSession(profile);
       } catch {
         // Session not present, remains guest
       }
     }
     loadSession();
-  }, [mounted]);
+    const onAuthChanged = () => loadSession();
+    window.addEventListener('customer-auth-changed', onAuthChanged);
+    return () => {
+      cancelled = true;
+      window.removeEventListener('customer-auth-changed', onAuthChanged);
+    };
+  }, [mounted, pathname]);
 
   // Build nav from config (order + visibility + custom label); fall back to defaults.
   const configItems = (Array.isArray(items) && items.length > 0 ? items : DEFAULT_MOBILE_NAV_ITEMS)

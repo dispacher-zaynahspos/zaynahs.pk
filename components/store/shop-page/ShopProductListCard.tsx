@@ -38,7 +38,7 @@ export default function ShopProductListCard({ product, settings, addItem }: Shop
       {/* Stretched navigation link (covers card, sits above non-interactive content,
           below the action buttons — avoids invalid <button> inside <a> nesting) */}
       <Link
-        href={`/product/${product.slug}`}
+        href={`/product/${encodeURIComponent(product.slug || '')}`}
         aria-label={product.name}
         className="absolute inset-0 z-10"
       />
@@ -156,7 +156,7 @@ export default function ShopProductListCard({ product, settings, addItem }: Shop
                 e.preventDefault();
                 e.stopPropagation();
                 if (product.has_variants) {
-                  window.location.href = `/product/${product.slug}`;
+                  window.location.href = `/product/${encodeURIComponent(product.slug || '')}`;
                   return;
                 }
                 addItem(product, undefined, [], 1);

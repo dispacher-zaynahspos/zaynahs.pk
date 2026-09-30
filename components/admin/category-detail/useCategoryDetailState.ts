@@ -17,7 +17,7 @@ export function useCategoryDetailState(category: Category, initialProducts: Prod
   const router = useRouter();
   const { confirm } = useConfirm();
   const [products, setProducts] = useState<Product[]>(initialProducts);
-  const [sortBy, setSortBy] = useState('newest');
+  const [sortBy, setSortBy] = useState(category.active_sort_preference || 'manual');
   const [searchQuery, setSearchQuery] = useState('');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [savingSortOrder, setSavingSortOrder] = useState(false);

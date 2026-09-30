@@ -6,6 +6,7 @@ import { Product } from '@/lib/types';
 import { createProductSafe, updateProductSafe } from '@/lib/services/products/actions';
 import { toast } from 'sonner';
 import { buildVariantCombinations } from './useProductVariantsState';
+import { slugify } from '@/lib/utils/slugify';
 
 interface ProductSubmitPayloadParams {
   name: string;
@@ -100,7 +101,7 @@ export function useProductFormSubmit() {
 
       const productPayload = {
         name: params.name.trim(),
-        slug: params.slug.trim(),
+        slug: slugify(params.slug.trim()) || params.slug.trim(),
         sku: params.sku.trim() || undefined,
         price: parseFloat(params.price) || 0,
         compare_price: params.comparePrice.trim() ? parseFloat(params.comparePrice) : undefined,
