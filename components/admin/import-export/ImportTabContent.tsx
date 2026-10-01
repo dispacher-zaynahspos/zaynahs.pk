@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Upload, PackageOpen, FileUp, Loader2 } from '@/components/common/Icons';
 
 interface ImportProgressLog {
@@ -50,6 +50,13 @@ export default function ImportTabContent({
   handleImportClose,
   onClose,
 }: ImportTabContentProps) {
+  const logsContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (logsContainerRef.current) {
+      logsContainerRef.current.scrollTop = logsContainerRef.current.scrollHeight;
+    }
+  }, [importLogs.length]);
   return (
     <div className="flex flex-col h-full gap-4">
       {!importFile ? (
@@ -157,7 +164,7 @@ export default function ImportTabContent({
               )}
 
               {/* Logs scrolling panel */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-2 font-mono text-xs max-h-56">
+              <div ref={logsContainerRef} className="flex-1 overflow-y-auto p-4 space-y-2 font-mono text-xs max-h-56">
                 {importLogs.map((log, index) => (
                   <div 
                     key={index}

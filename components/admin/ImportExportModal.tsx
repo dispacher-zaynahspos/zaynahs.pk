@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useRef } from 'react';
 import { Product } from '@/lib/types';
-import { exportProducts, importProductsStream } from '@/lib/services/importExport';
+import { exportProducts, importProductsBatchClient } from '@/lib/services/importExport';
 import { toast } from 'sonner';
 import {
   X,
@@ -207,10 +207,19 @@ export default function ImportExportModal({
     setIsImporting(true);
     setImportLogs([]);
     setImportProgress({ current: 0, total: importMeta?.productCount || 0 });
-    const toastId = toast.loading('Initializing product import...');
+    const toastId = toast.loading('Reading export file...');
 
     try {
-      await importProductsStream(importFile, conflictStrategy, (progress) => {
+      const text = await importFile.text();
+      const bundle = JSON.parse(text);
+
+      if (!bundle || !Array.isArray(bundle.products)) {
+        throw new Error('Invalid export file format. No products array found.');
+      }
+
+      toast.loading(`Importing ${bundle.products.length} products...`, { id: toastId });
+
+      await importProductsBatchClient(bundle.products, conflictStrategy, (progress) => {
         if (progress.type === 'start') {
           setImportProgress({ current: 0, total: progress.total });
         } else {
