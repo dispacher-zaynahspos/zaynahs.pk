@@ -96,6 +96,10 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
 
   const productUrl = `/product/${encodeURIComponent(product.slug || '')}`;
   const handleNav = () => saveScrollPosition(product.id);
+  const handleClick = (e: React.MouseEvent) => {
+    handleNav();
+    if (onCardClick) onCardClick(e);
+  };
 
   const hoverStyle = settings?.image_hover_style ?? 'second_image';
 
@@ -118,7 +122,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
       {/* Full-card transparent overlay link — single-tap = navigate, no double-tap */}
       <Link
         href={productUrl}
-        onClick={onCardClick || handleNav}
+        onClick={handleClick}
         prefetch={true}
         className="absolute inset-0 z-[1]"
         aria-label={`View ${product.name}`}
@@ -171,7 +175,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
           displayDescription={displayDescription}
           finalRenderedGroups={finalRenderedGroups}
           productUrl={productUrl}
-          onCardClick={onCardClick || handleNav}
+          onCardClick={handleClick}
         />
       </div>
     </div>

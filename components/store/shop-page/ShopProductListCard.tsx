@@ -11,6 +11,7 @@ import { animateFlyTo } from '@/lib/utils/flyAnimation';
 import { getSharedAspectClass } from '@/lib/utils/styles';
 import { getPresetImageUrl } from '@/lib/utils/imageUrl';
 import { useWishlist } from '@/components/store/product-card/hooks/useWishlist';
+import { saveScrollPosition } from '@/lib/hooks/useScrollRestoration';
 
 interface ShopProductListCardProps {
   product: Product;
@@ -33,12 +34,14 @@ export default function ShopProductListCard({ product, settings, addItem }: Shop
 
   return (
     <div
+      id={`product-card-${product.id}`}
       className="group flex flex-row overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] shadow-sm hover:shadow-md transition-all duration-300 relative"
     >
       {/* Stretched navigation link (covers card, sits above non-interactive content,
           below the action buttons — avoids invalid <button> inside <a> nesting) */}
       <Link
         href={`/product/${encodeURIComponent(product.slug || '')}`}
+        onClick={() => saveScrollPosition(product.id)}
         aria-label={product.name}
         className="absolute inset-0 z-10"
       />

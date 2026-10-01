@@ -93,6 +93,10 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
 
   const productUrl = `/product/${encodeURIComponent(product.slug || '')}`;
   const handleNav = () => saveScrollPosition(product.id);
+  const handleClick = (e: React.MouseEvent) => {
+    handleNav();
+    if (onCardClick) onCardClick(e);
+  };
 
   const renderElement = (element: string) => {
     switch (element) {
@@ -101,7 +105,7 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
           <Link
             key="title"
             href={productUrl}
-            onClick={onCardClick || handleNav}
+            onClick={handleClick}
             prefetch={true}
             className={`product-card-title relative z-[2] font-semibold text-[11px] sm:text-xs text-gray-900 dark:text-white leading-tight pb-0.5 ${titleClampClass}`}
           >
@@ -176,7 +180,7 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
       {/* Sits at z-[1], covers entire card, enables single-tap navigation on mobile */}
       <Link
         href={productUrl}
-        onClick={onCardClick || handleNav}
+        onClick={handleClick}
         prefetch={true}
         className="absolute inset-0 z-[1]"
         aria-label={`View ${product.name}`}

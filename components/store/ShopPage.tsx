@@ -14,6 +14,7 @@ import {
   getSortLabel,
 } from './shop-page';
 import { getResponsiveGridClasses } from '@/lib/utils/responsiveGrid';
+import { useScrollRestoration } from '@/lib/hooks/useScrollRestoration';
 
 interface ShopPageProps {
   initialProducts: Product[];
@@ -30,6 +31,7 @@ export default function ShopPage({
   settings,
   isPreview = false,
 }: ShopPageProps) {
+  useScrollRestoration();
   const {
     addItem,
     searchParams,
