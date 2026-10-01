@@ -12,6 +12,45 @@ export interface ScrollRestoreData {
 }
 
 /**
+ * Compare two storefront paths (ignoring trailing slashes and parameter order).
+ * Ensures /shop?page=10 and /shop?page=10 match cleanly across client-side router transitions.
+ */
+export function isSameStorePath(savedPath: string, currentPath: string): boolean {
+  if (!savedPath || !currentPath) return false;
+  try {
+    const cleanSaved = decodeURIComponent(savedPath).trim();
+    const cleanCurrent = decodeURIComponent(currentPath).trim();
+
+    if (cleanSaved === cleanCurrent) return true;
+
+    const [savedBase, savedQuery = ''] = cleanSaved.split('?');
+    const [currentBase, currentQuery = ''] = cleanCurrent.split('?');
+
+    const normBase = (b: string) => b.replace(/\/+$/, '') || '/';
+    if (normBase(savedBase) !== normBase(currentBase)) {
+      return false;
+    }
+
+    if (!savedQuery && !currentQuery) {
+      return true;
+    }
+
+    const sp1 = new URLSearchParams(savedQuery);
+    const sp2 = new URLSearchParams(currentQuery);
+
+    const keys = new Set([...sp1.keys(), ...sp2.keys()]);
+    for (const key of keys) {
+      if (sp1.get(key) !== sp2.get(key)) {
+        return false;
+      }
+    }
+    return true;
+  } catch {
+    return savedPath === currentPath;
+  }
+}
+
+/**
  * Call before navigating to product detail — synchronously saves current scroll + product id.
  * Also synchronizes the live URL key used by ScrollRestorer.
  */
@@ -49,8 +88,7 @@ export function restoreProductCardOrScroll(options?: { force?: boolean }): boole
     const data: ScrollRestoreData = JSON.parse(raw);
     const currentPath = window.location.pathname + window.location.search;
 
-    const norm = (p: string) => p.replace(/\/+(\?|$)/, '$1') || '/';
-    if (!options?.force && norm(data.path) !== norm(currentPath)) {
+    if (!options?.force && !isSameStorePath(data.path, currentPath)) {
       return false;
     }
 
@@ -64,41 +102,43 @@ export function restoreProductCardOrScroll(options?: { force?: boolean }): boole
     let rafId: number | null = null;
     let observer: MutationObserver | null = null;
     let tries = 0;
-    const maxTries = 240; // ~4 seconds at 60fps
+    const maxTries = 300; // ~5 seconds
 
-    const cleanup = () => {
+    const cleanup = (removeFromStorage = true) => {
       isFinished = true;
       if (rafId) cancelAnimationFrame(rafId);
       if (observer) observer.disconnect();
       window.removeEventListener('wheel', onUserInterrupt);
       window.removeEventListener('touchmove', onUserInterrupt);
-      try { sessionStorage.removeItem(SCROLL_KEY); } catch {}
+      if (removeFromStorage) {
+        try {
+          sessionStorage.removeItem(SCROLL_KEY);
+        } catch {}
+      }
     };
 
-    // User scrolled manually? Cancel so we don't fight their active scrolling
     const onUserInterrupt = () => {
-      cleanup();
+      cleanup(true);
     };
 
     window.addEventListener('wheel', onUserInterrupt, { passive: true });
     window.addEventListener('touchmove', onUserInterrupt, { passive: true });
 
     const applyCardFocus = (card: HTMLElement) => {
-      // Instant scroll card to center of viewport
+      // Center the card in the viewport
       card.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' });
       card.focus?.({ preventScroll: true });
       card.classList.add('scroll-restore-highlight');
       setTimeout(() => card.classList.remove('scroll-restore-highlight'), 1600);
 
-      // Settle check: within next 300ms, if images cause layout shifts, keep card centered
+      // Settle check: within next 500ms, as deferred images/content load, keep card centered
       let settleFrames = 0;
       const keepCentered = () => {
-        if (isFinished && settleFrames > 18) return;
         settleFrames++;
-        if (settleFrames <= 18) {
+        if (settleFrames <= 30) {
           const rect = card.getBoundingClientRect();
           const idealTop = (window.innerHeight - rect.height) / 2;
-          if (Math.abs(rect.top - idealTop) > 100) {
+          if (Math.abs(rect.top - idealTop) > 80) {
             card.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' });
           }
           requestAnimationFrame(keepCentered);
@@ -106,7 +146,7 @@ export function restoreProductCardOrScroll(options?: { force?: boolean }): boole
       };
       requestAnimationFrame(keepCentered);
 
-      cleanup();
+      cleanup(true);
     };
 
     const tick = () => {
@@ -122,34 +162,26 @@ export function restoreProductCardOrScroll(options?: { force?: boolean }): boole
         }
       }
 
-      // 2. If card is not in DOM yet:
-      // DO NOT clamp to maxScroll (which would jump to footer)!
-      // Only scroll to data.scrollY if document height has actually expanded enough:
-      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-      if (maxScroll >= data.scrollY - 10) {
-        // Document has grown enough to hold the target position.
-        const card = data.productId ? document.getElementById(`product-card-${data.productId}`) : null;
-        if (card) {
-          applyCardFocus(card);
+      // 2. If card is still not found after 45 frames (~750ms), fallback to scrollY if document is tall enough
+      if (tries > 45 && data.scrollY > 0) {
+        const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+        if (maxScroll >= data.scrollY - 20) {
+          window.scrollTo({ top: data.scrollY, behavior: 'instant' });
+          cleanup(true);
           return;
         }
-        window.scrollTo({ top: data.scrollY, behavior: 'instant' });
-        cleanup();
-        return;
       }
 
-      // 3. Keep waiting if within timeout
+      // 3. Keep waiting up to maxTries
       if (tries < maxTries) {
         rafId = requestAnimationFrame(tick);
       } else {
-        // Timeout reached (~4s): final attempt
-        const card = data.productId ? document.getElementById(`product-card-${data.productId}`) : null;
-        if (card) {
-          applyCardFocus(card);
-        } else if (data.scrollY > 0) {
+        // Final fallback on timeout
+        if (data.scrollY > 0) {
+          const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
           window.scrollTo({ top: Math.min(data.scrollY, Math.max(0, maxScroll)), behavior: 'instant' });
         }
-        cleanup();
+        cleanup(true);
       }
     };
 
@@ -162,9 +194,7 @@ export function restoreProductCardOrScroll(options?: { force?: boolean }): boole
     });
     observer.observe(document.documentElement, { childList: true, subtree: true });
 
-    // Kick off first frame
     rafId = requestAnimationFrame(tick);
-
     return true;
   } catch {
     sessionStorage.removeItem(SCROLL_KEY);

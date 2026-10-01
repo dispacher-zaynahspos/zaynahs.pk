@@ -2,35 +2,37 @@
 
 import { useEffect, useRef } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { restoreProductCardOrScroll, SCROLL_KEY } from '@/lib/hooks/useScrollRestoration';
+import {
+  restoreProductCardOrScroll,
+  isSameStorePath,
+  SCROLL_KEY,
+  ScrollRestoreData
+} from '@/lib/hooks/useScrollRestoration';
 
 /**
  * Storefront scroll restoration (single source of truth).
- * - Back/forward (popstate): restore the exact saved product card focus & scroll position,
- *   waiting for lazy grids/content height to be ready (rAF + MutationObserver) so a shorter
- *   first paint NEVER clamps the page to the footer or upper banner.
- * - Fresh navigation (push): scroll to top (or to #hash target if present) per RULE N3.
+ * - Back/forward: restore the exact saved product card focus & scroll position.
+ *   Waits for lazy grids/content height to be ready (rAF + MutationObserver)
+ *   so a shorter first paint NEVER clamps to the footer or upper banner.
+ * - Fresh navigation: scroll to top (RULE N3).
  * Takes over from the browser via history.scrollRestoration = 'manual'.
  */
 export default function ScrollRestorer() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  // Effect trigger key (reacts to route/query changes)
   const key = `scroll:${pathname}?${searchParams?.toString() ?? ''}`;
-
-  // Live key read from the actual URL
   const liveKey = () =>
     typeof window !== 'undefined'
       ? `scroll:${window.location.pathname}?${window.location.search.replace(/^\?/, '')}`
       : key;
 
-  const lastPopTimeRef = useRef<number>(0);
+  const isPopRef = useRef(false);
   const rafRef = useRef<number | null>(null);
   const cancelRestoreRef = useRef(false);
   const observerRef = useRef<MutationObserver | null>(null);
 
-  // Take manual control of scroll restoration
+  // Take manual control of browser scroll restoration
   useEffect(() => {
     if (typeof history === 'undefined' || !('scrollRestoration' in history)) return;
     const prev = history.scrollRestoration;
@@ -40,30 +42,13 @@ export default function ScrollRestorer() {
     };
   }, []);
 
-  // Detect back/forward navigations and record timestamp
+  // Track popstate (browser back/forward or history.back())
   useEffect(() => {
     const onPop = () => {
-      lastPopTimeRef.current = Date.now();
+      isPopRef.current = true;
     };
     window.addEventListener('popstate', onPop);
     return () => window.removeEventListener('popstate', onPop);
-  }, []);
-
-  // Proactively detect non-card link clicks (navbar, footer, logo, category menu)
-  // to clear any pending card restoration and ensure fresh navigations start at top
-  useEffect(() => {
-    const onDocClick = (e: MouseEvent) => {
-      const target = e.target as HTMLElement | null;
-      const link = target?.closest('a');
-      if (link && !link.closest('[id^="product-card-"]')) {
-        lastPopTimeRef.current = 0;
-        try {
-          sessionStorage.removeItem(SCROLL_KEY);
-        } catch {}
-      }
-    };
-    document.addEventListener('click', onDocClick, { capture: true });
-    return () => document.removeEventListener('click', onDocClick, { capture: true });
   }, []);
 
   // Continuously save current scroll for the current URL
@@ -72,9 +57,7 @@ export default function ScrollRestorer() {
     const save = () => {
       try {
         sessionStorage.setItem(liveKey(), String(Math.round(window.scrollY)));
-      } catch {
-        /* quota */
-      }
+      } catch {}
     };
     const onScroll = () => {
       clearTimeout(t);
@@ -90,36 +73,45 @@ export default function ScrollRestorer() {
     };
   }, [key]);
 
-  // On URL change: restore (back/forward) or reset to top (fresh navigation)
+  // Main route/URL change handler
   useEffect(() => {
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
     if (observerRef.current) observerRef.current.disconnect();
     cancelRestoreRef.current = false;
 
-    // Anchor link: let the browser/app jump to the element
+    // 1. Hash anchor links jump to target
     if (window.location.hash) {
       const el = document.getElementById(window.location.hash.slice(1));
       if (el) {
         el.scrollIntoView();
+        isPopRef.current = false;
         return;
       }
     }
 
-    // Is this a back/forward navigation?
-    const isPop =
-      Date.now() - lastPopTimeRef.current < 2500 ||
-      (typeof performance !== 'undefined' &&
-        (performance.getEntriesByType?.('navigation')?.[0] as PerformanceNavigationTiming)?.type ===
-          'back_forward');
+    const currentPath = window.location.pathname + window.location.search;
 
-    if (isPop) {
-      // 1. First priority: restore specific product card and position
-      const restored = restoreProductCardOrScroll();
-      if (restored) {
-        return;
-      }
+    // 2. CHECK PRODUCT CARD RESTORATION FIRST (Absolute Highest Priority)
+    // If a saved product card click matches this current URL, this is guaranteed
+    // to be a return to this listing page! Restore it immediately!
+    const raw = sessionStorage.getItem(SCROLL_KEY);
+    if (raw) {
+      try {
+        const data: ScrollRestoreData = JSON.parse(raw);
+        if (isSameStorePath(data.path, currentPath)) {
+          // DO NOT reset to top! DO NOT remove from storage yet!
+          const restored = restoreProductCardOrScroll();
+          if (restored) {
+            isPopRef.current = false;
+            return;
+          }
+        }
+      } catch {}
+    }
 
-      // 2. Fallback: restore saved page-level scroll position
+    // 3. Page-level popstate restore (fallback when no specific card was clicked)
+    if (isPopRef.current) {
+      isPopRef.current = false;
       const saved = sessionStorage.getItem(liveKey());
       if (saved != null) {
         const target = parseInt(saved, 10);
@@ -137,7 +129,6 @@ export default function ScrollRestorer() {
             if (cancelRestoreRef.current) return;
             const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
 
-            // CRITICAL: NEVER clamp to small maxScroll before content loads (avoids jumping to footer)
             if (maxScroll >= target - 10) {
               window.scrollTo({ top: target, behavior: 'instant' });
               return;
@@ -167,10 +158,10 @@ export default function ScrollRestorer() {
       }
     }
 
-    // Fresh navigation (push) or un-scrolled page: reset to top (RULE N3)
-    try {
-      sessionStorage.removeItem(SCROLL_KEY);
-    } catch {}
+    // 4. Fresh navigation to a new page (e.g. entering product page or clicking a menu link)
+    // Reset scroll to top (RULE N3).
+    // CRITICAL: DO NOT DELETE SCROLL_KEY HERE!
+    // (If the user navigated to a product page, SCROLL_KEY holds the return destination!)
     window.scrollTo({ top: 0, behavior: 'instant' });
   }, [key]);
 
