@@ -109,26 +109,26 @@ export default function ScrollRestorer() {
     const wasPop = isPopRef.current;
     isPopRef.current = false;
 
-    // 2. PRODUCT CARD RESTORATION (highest priority)
-    // If SCROLL_KEY has saved card data matching this URL, this is a "return to listing"
-    const raw = sessionStorage.getItem(SCROLL_KEY);
-    if (raw) {
-      try {
-        const data: ScrollRestoreData = JSON.parse(raw);
-        if (isSameStorePath(data.path, currentPath)) {
-          // Ignore stale data (> 30 mins)
-          if (!data.timestamp || Date.now() - data.timestamp > 30 * 60 * 1000) {
-            sessionStorage.removeItem(SCROLL_KEY);
-          } else {
-            startCardRestore(data);
-            return;
-          }
-        }
-      } catch {}
-    }
-
-    // 3. Page-level popstate restore (fallback when no specific card was clicked)
+    // 2. PRODUCT CARD RESTORATION — ONLY on back/forward navigation
+    // Never on fresh page loads (prevents overlay blocking the initial page render)
     if (wasPop) {
+      const raw = sessionStorage.getItem(SCROLL_KEY);
+      if (raw) {
+        try {
+          const data: ScrollRestoreData = JSON.parse(raw);
+          if (isSameStorePath(data.path, currentPath)) {
+            // Ignore stale data (> 30 mins)
+            if (!data.timestamp || Date.now() - data.timestamp > 30 * 60 * 1000) {
+              sessionStorage.removeItem(SCROLL_KEY);
+            } else {
+              startCardRestore(data);
+              return;
+            }
+          }
+        } catch {}
+      }
+
+      // 3. Page-level popstate restore (fallback when no specific card was clicked)
       const liveKey = `scroll:${window.location.pathname}?${window.location.search.replace(/^\?/, '')}`;
       const saved = sessionStorage.getItem(liveKey);
       if (saved != null) {
@@ -140,7 +140,7 @@ export default function ScrollRestorer() {
       }
     }
 
-    // 4. Fresh navigation → scroll to top
+    // 4. Fresh navigation → scroll to top & clear stale card data if path doesn't match
     window.scrollTo({ top: 0, behavior: 'instant' });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentKey]);
