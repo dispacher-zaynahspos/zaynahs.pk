@@ -65,12 +65,19 @@ export default function StoreFront({
   }, [sections, isPreview, activeSectionId]);
 
   // Per-section Load More limits — persisted in sessionStorage so back navigation
-  // restores all previously loaded products (prevents card-not-found scroll failures)
+  // restores all previously loaded products (prevents card-not-found scroll failures).
+  // ONLY restore on back navigation (popstate) — fresh loads start clean.
   const [loadMoreLimits, setLoadMoreLimits] = useState<Record<string, number>>(() => {
     if (typeof window === 'undefined') return {};
+    // Check if this is a back navigation by looking for the performance nav type
+    // or if there's active scroll restore data matching this path
     try {
-      const saved = sessionStorage.getItem(LOAD_MORE_KEY);
-      if (saved) return JSON.parse(saved);
+      const navEntries = performance?.getEntriesByType?.('navigation') as PerformanceNavigationTiming[];
+      const isBackForward = navEntries?.[0]?.type === 'back_forward';
+      if (isBackForward) {
+        const saved = sessionStorage.getItem(LOAD_MORE_KEY);
+        if (saved) return JSON.parse(saved);
+      }
     } catch {}
     return {};
   });
