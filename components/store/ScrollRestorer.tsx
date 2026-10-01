@@ -155,19 +155,20 @@ export default function ScrollRestorer() {
     };
     activeRestoreRef.current = state;
 
-    // ── VISUAL CLOAK: hide page while searching to prevent banner/footer flash ──
-    const root = document.documentElement;
-    root.style.opacity = '0';
-    root.style.transition = 'none';
+    // ── VISUAL CLOAK: overlay div covers screen to prevent banner/footer flash ──
+    // Uses an overlay instead of opacity:0 so lazy images keep loading behind it.
+    const overlay = document.createElement('div');
+    overlay.id = 'scroll-restore-cloak';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:var(--bg-body,#fff);pointer-events:none;transition:opacity 120ms ease-out;';
+    // Match dark mode
+    if (document.documentElement.classList.contains('dark')) {
+      overlay.style.background = '#0f0f1b';
+    }
+    document.body.appendChild(overlay);
 
     const revealPage = () => {
-      root.style.transition = 'opacity 120ms ease-out';
-      root.style.opacity = '1';
-      // Clean up inline styles after transition
-      setTimeout(() => {
-        root.style.removeProperty('opacity');
-        root.style.removeProperty('transition');
-      }, 150);
+      overlay.style.opacity = '0';
+      setTimeout(() => { overlay.remove(); }, 150);
     };
 
     // User interaction aborts restoration & reveals page
@@ -298,18 +299,18 @@ export default function ScrollRestorer() {
     };
     activeRestoreRef.current = state;
 
-    // ── VISUAL CLOAK: hide page while restoring scroll position ──
-    const root = document.documentElement;
-    root.style.opacity = '0';
-    root.style.transition = 'none';
+    // ── VISUAL CLOAK: overlay div covers screen to prevent banner/footer flash ──
+    const overlay = document.createElement('div');
+    overlay.id = 'scroll-restore-cloak';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:var(--bg-body,#fff);pointer-events:none;transition:opacity 120ms ease-out;';
+    if (document.documentElement.classList.contains('dark')) {
+      overlay.style.background = '#0f0f1b';
+    }
+    document.body.appendChild(overlay);
 
     const revealPage = () => {
-      root.style.transition = 'opacity 120ms ease-out';
-      root.style.opacity = '1';
-      setTimeout(() => {
-        root.style.removeProperty('opacity');
-        root.style.removeProperty('transition');
-      }, 150);
+      overlay.style.opacity = '0';
+      setTimeout(() => { overlay.remove(); }, 150);
     };
 
     const fullCleanup = () => {
