@@ -33,29 +33,30 @@ export function CustomizerTopBar({
   const router = useRouter();
 
   return (
-    <header className="h-16 bg-[#1a1a2e] text-white border-b border-white/10 flex items-center justify-between px-3 sm:px-6 z-50 shadow-md flex-shrink-0 gap-1">
+    <header className="h-16 bg-[#1a1a2e] text-white border-b border-white/10 flex items-center justify-between px-2 sm:px-4 lg:px-6 z-50 shadow-md flex-shrink-0 gap-2 overflow-hidden">
       {/* Left: Back to Dashboard & Page Selector */}
-      <div className="flex items-center gap-1 sm:gap-3 min-w-0">
+      <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0 shrink">
         <button
           onClick={() => router.push('/admin/dashboard')}
-          className="flex items-center gap-1.5 text-white/80 hover:text-white px-2 sm:px-3 py-1.5 hover:bg-white/5 rounded-xl transition-all font-bold text-xs cursor-pointer select-none shrink-0"
+          className="flex items-center gap-1 sm:gap-1.5 text-white/80 hover:text-white px-2 sm:px-2.5 py-1.5 hover:bg-white/5 rounded-xl transition-all font-bold text-xs cursor-pointer select-none shrink-0"
+          title="Back to Dashboard"
         >
-          <ChevronLeft className="h-4 w-4" />
-          <span className="hidden sm:inline">Back to Dashboard</span>
+          <ChevronLeft className="h-4 w-4 shrink-0" />
+          <span className="hidden md:inline">Dashboard</span>
         </button>
-        <div className="w-[1px] h-6 bg-white/10 hidden sm:block shrink-0" />
-        <div className="hidden sm:flex flex-col items-start leading-none gap-0.5 mr-2 shrink-0">
-          <span className="text-xs font-black tracking-wider text-white uppercase">{storeSettings.store_name || 'OurStore'}</span>
-          <span className="text-[9px] font-bold text-white/50 uppercase tracking-widest">Theme Customizer</span>
+        <div className="w-[1px] h-6 bg-white/10 hidden xl:block shrink-0" />
+        <div className="hidden xl:flex flex-col items-start leading-none gap-0.5 mr-1 shrink-0">
+          <span className="text-xs font-black tracking-wider text-white uppercase truncate max-w-[120px]">{storeSettings.store_name || 'OurStore'}</span>
+          <span className="text-[9px] font-bold text-white/50 uppercase tracking-widest">Customizer</span>
         </div>
         <div className="w-[1px] h-6 bg-white/10 hidden sm:block shrink-0" />
         
         {/* Page Selector dropdown */}
         <div 
-          className="flex items-center border px-2 sm:px-3 py-1.5 rounded-xl gap-1 sm:gap-2 text-xs font-bold text-white min-w-0"
+          className="flex items-center border px-2 sm:px-2.5 py-1.5 rounded-xl gap-1 sm:gap-1.5 text-xs font-bold text-white min-w-0 shrink"
           style={{ backgroundColor: 'rgba(0, 0, 0, 0.25)', borderColor: 'rgba(0, 0, 0, 0.15)' }}
         >
-          <span className="text-white/80 hidden md:inline shrink-0">Page:</span>
+          <span className="text-white/70 hidden sm:inline shrink-0 text-[11px]">Page:</span>
           <select
             value={activePage}
             onChange={(e) => {
@@ -88,7 +89,7 @@ export function CustomizerTopBar({
                 setActiveSubTab('');
               }
             }}
-            className="bg-transparent border-none focus:ring-0 text-white font-black cursor-pointer outline-none truncate max-w-[100px] sm:max-w-none"
+            className="bg-transparent border-none focus:ring-0 text-white font-black cursor-pointer outline-none truncate max-w-[90px] sm:max-w-[120px] md:max-w-[150px] text-xs"
           >
             <option value="home" className="bg-[#1a1a2e] text-white">Home Page</option>
             <option value="shop" className="bg-[#1a1a2e] text-white">Shop Page</option>
@@ -107,50 +108,53 @@ export function CustomizerTopBar({
       >
         <button
           onClick={() => setViewportMode('desktop')}
-          className={`px-1.5 sm:px-3 py-1.5 rounded-lg flex items-center gap-1 sm:gap-1.5 text-[10px] font-extrabold uppercase tracking-wider transition-all cursor-pointer ${
+          className={`px-2 lg:px-3 py-1.5 rounded-lg flex items-center gap-1 sm:gap-1.5 text-[10px] font-extrabold uppercase tracking-wider transition-all cursor-pointer ${
             viewportMode === 'desktop'
               ? 'bg-[#e94560] text-white shadow-sm'
               : 'text-white/75 hover:text-white'
           }`}
+          title="Desktop View"
         >
-          <Monitor className="h-3.5 w-3.5" />
-          <span className="hidden sm:inline">Desktop</span>
+          <Monitor className="h-3.5 w-3.5 shrink-0" />
+          <span className="hidden lg:inline">Desktop</span>
         </button>
         <button
           onClick={() => setViewportMode('tablet')}
-          className={`px-1.5 sm:px-3 py-1.5 rounded-lg flex items-center gap-1 sm:gap-1.5 text-[10px] font-extrabold uppercase tracking-wider transition-all cursor-pointer ${
+          className={`px-2 lg:px-3 py-1.5 rounded-lg flex items-center gap-1 sm:gap-1.5 text-[10px] font-extrabold uppercase tracking-wider transition-all cursor-pointer ${
             viewportMode === 'tablet'
               ? 'bg-[#e94560] text-white shadow-sm'
               : 'text-white/75 hover:text-white'
           }`}
+          title="Tablet View"
         >
-          <Tablet className="h-3.5 w-3.5" />
-          <span className="hidden sm:inline">Tablet</span>
+          <Tablet className="h-3.5 w-3.5 shrink-0" />
+          <span className="hidden lg:inline">Tablet</span>
         </button>
         <button
           onClick={() => setViewportMode('mobile')}
-          className={`px-1.5 sm:px-3 py-1.5 rounded-lg flex items-center gap-1 sm:gap-1.5 text-[10px] font-extrabold uppercase tracking-wider transition-all cursor-pointer ${
+          className={`px-2 lg:px-3 py-1.5 rounded-lg flex items-center gap-1 sm:gap-1.5 text-[10px] font-extrabold uppercase tracking-wider transition-all cursor-pointer ${
             viewportMode === 'mobile'
               ? 'bg-[#e94560] text-white shadow-sm'
               : 'text-white/75 hover:text-white'
           }`}
+          title="Mobile View"
         >
-          <Smartphone className="h-3.5 w-3.5" />
-          <span className="hidden sm:inline">Mobile</span>
+          <Smartphone className="h-3.5 w-3.5 shrink-0" />
+          <span className="hidden lg:inline">Mobile</span>
         </button>
       </div>
 
       {/* Right: Save Button */}
-      <div className="flex items-center gap-1 sm:gap-3 shrink-0">
+      <div className="flex items-center gap-1 sm:gap-2 shrink-0">
         <button
           onClick={onSaveLayout}
           disabled={isPending}
-          className="flex items-center gap-1.5 px-2 sm:px-4 py-2 bg-[#e94560] hover:bg-[#d83550] text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all shadow-md active:scale-95 disabled:opacity-50 cursor-pointer"
+          className="flex items-center gap-1 sm:gap-1.5 px-3 sm:px-4 py-2 bg-[#e94560] hover:bg-[#d83550] text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all shadow-md active:scale-95 disabled:opacity-50 cursor-pointer"
         >
           {isPending ? (
-            <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+            <RefreshCw className="h-3.5 w-3.5 animate-spin shrink-0" />
           ) : (
-            <Check className="h-3.5 w-3.5" />
+            <Check className="h-3.5 w-3.5 shrink-0" />
           )}
           <span className="hidden sm:inline">Save Layout</span>
         </button>
