@@ -29,7 +29,7 @@ export function NewsletterForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="mt-3 flex gap-2">
+    <form onSubmit={handleSubmit} className="mt-3 flex flex-col gap-2.5 w-full max-w-full">
       <input
         type="email"
         value={email}
@@ -37,14 +37,14 @@ export function NewsletterForm() {
         required
         placeholder="Your email address"
         disabled={loading}
-        className="flex-grow rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-100/50 dark:bg-[#16162a]/50 px-3.5 py-2 text-sm font-semibold text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-[#e94560] focus:bg-white dark:focus:bg-[#16162a] disabled:opacity-50"
+        className="w-full min-w-0 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-100/50 dark:bg-[#16162a]/50 px-3.5 py-2.5 text-sm font-medium text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-[#e94560] focus:bg-white dark:focus:bg-[#16162a] disabled:opacity-50 transition-colors"
       />
       <button
         type="submit"
         disabled={loading}
-        className="rounded-xl bg-[#e94560] px-4 py-2 text-xs font-bold text-white hover:bg-[#d8344f] transition-all cursor-pointer shrink-0 disabled:opacity-70"
+        className="w-full rounded-xl bg-[#e94560] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#d8344f] transition-all cursor-pointer shrink-0 disabled:opacity-70 text-center"
       >
-        {loading ? '...' : 'Subscribe'}
+        {loading ? 'Subscribing...' : 'Subscribe'}
       </button>
     </form>
   );

@@ -42,12 +42,12 @@ export default function Footer({ settings, brandName }: FooterProps) {
   const showCol3 = showMenu;
   const showCol4 = showNewsletter || (showSocial && hasSocialLinks);
 
-  let gridColsClass = 'grid-cols-1 sm:grid-cols-2 md:grid-cols-4';
+  let gridColsClass = 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4';
   const activeCols = 2 + (showCol3 ? 1 : 0) + (showCol4 ? 1 : 0);
   if (activeCols === 2) {
-    gridColsClass = 'grid-cols-1 sm:grid-cols-2 md:grid-cols-2 max-w-4xl';
+    gridColsClass = 'grid-cols-1 sm:grid-cols-2 max-w-4xl';
   } else if (activeCols === 3) {
-    gridColsClass = 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3';
+    gridColsClass = 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3';
   }
 
   return (
@@ -59,7 +59,7 @@ export default function Footer({ settings, brandName }: FooterProps) {
           window.parent.postMessage({ type: 'select_global_tab', subTab: 'footer' }, '*');
         }
       }}
-      className={`w-full bg-white dark:bg-[#0f0f1b] border-t border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400 select-none transition-colors duration-200 ${
+      className={`w-full overflow-hidden bg-white dark:bg-[#0f0f1b] border-t border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400 select-none transition-colors duration-200 ${
         isPreview ? 'cursor-pointer hover:ring-2 hover:ring-[#e94560] hover:ring-offset-2' : ''
       }`}
     >
