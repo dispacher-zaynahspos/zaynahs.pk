@@ -235,20 +235,13 @@ export default function ScrollRestorer() {
       tries++;
       if (tryFindCard()) return;
 
-      // After 60 frames (~1s), try scrollY fallback if page is tall enough
-      if (tries > 60 && data.scrollY > 0) {
-        const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-        if (maxScroll >= data.scrollY - 20) {
-          window.scrollTo({ top: data.scrollY, behavior: 'instant' });
-          cleanup(true);
-          return;
-        }
-      }
-
-      if (tries < 180) { // ~3 seconds max
+      // When we have a productId, do NOT fall back to scrollY early!
+      // The card might not be in the DOM yet (e.g., "Load More" products restoring).
+      // Only use scrollY as an absolute final fallback at the end.
+      if (tries < 300) { // ~5 seconds max — wait for lazy grids to render
         state.rafId = requestAnimationFrame(tick);
       } else {
-        // Final fallback: scroll to saved Y clamped to available height
+        // Final fallback: card was never found, try scrollY as last resort
         if (data.scrollY > 0) {
           const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
           window.scrollTo({ top: Math.min(data.scrollY, Math.max(0, maxScroll)), behavior: 'instant' });
@@ -258,16 +251,19 @@ export default function ScrollRestorer() {
     };
     state.rafId = requestAnimationFrame(tick);
 
-    // Hard timeout safety net: if nothing worked in 4s, stop trying
+    // Hard timeout safety net: if nothing worked in 6s, stop trying
     state.timeoutId = setTimeout(() => {
       if (!state.cancelled) {
+        // One final attempt to find the card
+        if (tryFindCard()) return;
+        // If still not found, scroll to saved Y as last resort
         if (data.scrollY > 0) {
           const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
           window.scrollTo({ top: Math.min(data.scrollY, Math.max(0, maxScroll)), behavior: 'instant' });
         }
         cleanup(true);
       }
-    }, 4000);
+    }, 6000);
   }
 
   // ── Generic scrollY restoration (for pages without product card data) ──

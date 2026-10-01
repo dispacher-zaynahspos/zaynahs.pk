@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Product, Category, StoreSettings, Review, HomepageSection } from '@/lib/types';
 import CategoryFilter from './CategoryFilter';
 import ProductGrid from './ProductGrid';
@@ -19,6 +19,8 @@ import {
   RecentReviewsSection,
 } from './store-front';
 import { StoreFrontProductGridSection } from './store-front/StoreFrontProductGridSection';
+
+const LOAD_MORE_KEY = 'storefront_load_more_limits';
 
 interface StoreFrontProps {
   initialProducts: Product[];
@@ -62,15 +64,32 @@ export default function StoreFront({
     ] as HomepageSection[];
   }, [sections, isPreview, activeSectionId]);
 
-  // Per-section Load More limits
-  const [loadMoreLimits, setLoadMoreLimits] = useState<Record<string, number>>({});
+  // Per-section Load More limits — persisted in sessionStorage so back navigation
+  // restores all previously loaded products (prevents card-not-found scroll failures)
+  const [loadMoreLimits, setLoadMoreLimits] = useState<Record<string, number>>(() => {
+    if (typeof window === 'undefined') return {};
+    try {
+      const saved = sessionStorage.getItem(LOAD_MORE_KEY);
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return {};
+  });
 
-  const handleLoadMore = (sectionId: string, baseLimit: number) => {
+  // Persist loadMoreLimits changes to sessionStorage
+  useEffect(() => {
+    try {
+      if (Object.keys(loadMoreLimits).length > 0) {
+        sessionStorage.setItem(LOAD_MORE_KEY, JSON.stringify(loadMoreLimits));
+      }
+    } catch {}
+  }, [loadMoreLimits]);
+
+  const handleLoadMore = useCallback((sectionId: string, baseLimit: number) => {
     setLoadMoreLimits((prev) => ({
       ...prev,
       [sectionId]: (prev[sectionId] || baseLimit) + 8,
     }));
-  };
+  }, []);
 
   const getValidCategoryIds = (catIdOrSlug: string) => {
     const parent = categories.find((c) => c.id === catIdOrSlug || c.slug === catIdOrSlug);
