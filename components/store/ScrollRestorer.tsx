@@ -1,9 +1,8 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import {
-  restoreProductCardOrScroll,
   isSameStorePath,
   SCROLL_KEY,
   ScrollRestoreData
@@ -11,28 +10,31 @@ import {
 
 /**
  * Storefront scroll restoration (single source of truth).
- * - Back/forward: restore the exact saved product card focus & scroll position.
- *   Waits for lazy grids/content height to be ready (rAF + MutationObserver)
- *   so a shorter first paint NEVER clamps to the footer or upper banner.
- * - Fresh navigation: scroll to top (RULE N3).
+ * 
+ * BACK/FORWARD: Restore the exact saved product card into viewport center.
+ *   - Uses MutationObserver to wait for lazy grids/product cards to appear
+ *   - Prevents the "header flash → footer jump" by holding scroll position
+ *     until the target card is found or a final fallback triggers
+ * 
+ * FRESH NAV: Scroll to top (RULE N3).
+ * 
  * Takes over from the browser via history.scrollRestoration = 'manual'.
  */
 export default function ScrollRestorer() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const key = `scroll:${pathname}?${searchParams?.toString() ?? ''}`;
-  const liveKey = () =>
-    typeof window !== 'undefined'
-      ? `scroll:${window.location.pathname}?${window.location.search.replace(/^\?/, '')}`
-      : key;
+  const currentKey = `scroll:${pathname}?${searchParams?.toString() ?? ''}`;
 
   const isPopRef = useRef(false);
-  const rafRef = useRef<number | null>(null);
-  const cancelRestoreRef = useRef(false);
-  const observerRef = useRef<MutationObserver | null>(null);
+  const activeRestoreRef = useRef<{
+    rafId: number | null;
+    observer: MutationObserver | null;
+    cancelled: boolean;
+    timeoutId: ReturnType<typeof setTimeout> | null;
+  } | null>(null);
 
-  // Take manual control of browser scroll restoration
+  // ── Take manual control of browser scroll restoration ──────────────────
   useEffect(() => {
     if (typeof history === 'undefined' || !('scrollRestoration' in history)) return;
     const prev = history.scrollRestoration;
@@ -42,7 +44,7 @@ export default function ScrollRestorer() {
     };
   }, []);
 
-  // Track popstate (browser back/forward or history.back())
+  // ── Track popstate (browser back/forward or history.back()) ────────────
   useEffect(() => {
     const onPop = () => {
       isPopRef.current = true;
@@ -51,9 +53,24 @@ export default function ScrollRestorer() {
     return () => window.removeEventListener('popstate', onPop);
   }, []);
 
-  // Continuously save current scroll for the current URL
+  // ── Cancel any active restoration ──────────────────────────────────────
+  const cancelActiveRestore = useCallback(() => {
+    const active = activeRestoreRef.current;
+    if (!active) return;
+    active.cancelled = true;
+    if (active.rafId) cancelAnimationFrame(active.rafId);
+    if (active.observer) active.observer.disconnect();
+    if (active.timeoutId) clearTimeout(active.timeoutId);
+    activeRestoreRef.current = null;
+  }, []);
+
+  // ── Continuously save current scroll for the current URL ───────────────
   useEffect(() => {
     let t: ReturnType<typeof setTimeout>;
+    const liveKey = () => {
+      const cleanSearch = window.location.search.replace(/^\?/, '');
+      return `scroll:${window.location.pathname}?${cleanSearch}`;
+    };
     const save = () => {
       try {
         sessionStorage.setItem(liveKey(), String(Math.round(window.scrollY)));
@@ -71,13 +88,12 @@ export default function ScrollRestorer() {
       window.removeEventListener('pagehide', save);
       clearTimeout(t);
     };
-  }, [key]);
+  }, [currentKey]);
 
-  // Main route/URL change handler
+  // ── Main route/URL change handler ──────────────────────────────────────
   useEffect(() => {
-    if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    if (observerRef.current) observerRef.current.disconnect();
-    cancelRestoreRef.current = false;
+    // Cancel any previous restoration in progress
+    cancelActiveRestore();
 
     // 1. Hash anchor links jump to target
     if (window.location.hash) {
@@ -90,19 +106,21 @@ export default function ScrollRestorer() {
     }
 
     const currentPath = window.location.pathname + window.location.search;
+    const wasPop = isPopRef.current;
+    isPopRef.current = false;
 
-    // 2. CHECK PRODUCT CARD RESTORATION FIRST (Absolute Highest Priority)
-    // If a saved product card click matches this current URL, this is guaranteed
-    // to be a return to this listing page! Restore it immediately!
+    // 2. PRODUCT CARD RESTORATION (highest priority)
+    // If SCROLL_KEY has saved card data matching this URL, this is a "return to listing"
     const raw = sessionStorage.getItem(SCROLL_KEY);
     if (raw) {
       try {
         const data: ScrollRestoreData = JSON.parse(raw);
         if (isSameStorePath(data.path, currentPath)) {
-          // DO NOT reset to top! DO NOT remove from storage yet!
-          const restored = restoreProductCardOrScroll();
-          if (restored) {
-            isPopRef.current = false;
+          // Ignore stale data (> 30 mins)
+          if (!data.timestamp || Date.now() - data.timestamp > 30 * 60 * 1000) {
+            sessionStorage.removeItem(SCROLL_KEY);
+          } else {
+            startCardRestore(data);
             return;
           }
         }
@@ -110,60 +128,213 @@ export default function ScrollRestorer() {
     }
 
     // 3. Page-level popstate restore (fallback when no specific card was clicked)
-    if (isPopRef.current) {
-      isPopRef.current = false;
-      const saved = sessionStorage.getItem(liveKey());
+    if (wasPop) {
+      const liveKey = `scroll:${window.location.pathname}?${window.location.search.replace(/^\?/, '')}`;
+      const saved = sessionStorage.getItem(liveKey);
       if (saved != null) {
         const target = parseInt(saved, 10);
         if (Number.isFinite(target) && target > 0) {
-          let tries = 0;
-          const maxTries = 240;
-
-          const onUserScroll = () => {
-            cancelRestoreRef.current = true;
-          };
-          window.addEventListener('wheel', onUserScroll, { passive: true, once: true });
-          window.addEventListener('touchmove', onUserScroll, { passive: true, once: true });
-
-          const attemptScroll = () => {
-            if (cancelRestoreRef.current) return;
-            const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-
-            if (maxScroll >= target - 10) {
-              window.scrollTo({ top: target, behavior: 'instant' });
-              return;
-            }
-
-            tries++;
-            if (tries < maxTries) {
-              rafRef.current = requestAnimationFrame(attemptScroll);
-            } else {
-              window.scrollTo({ top: Math.min(target, Math.max(0, maxScroll)), behavior: 'instant' });
-            }
-          };
-
-          const observer = new MutationObserver(() => {
-            if (cancelRestoreRef.current) return;
-            const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-            if (maxScroll >= target - 10) {
-              attemptScroll();
-            }
-          });
-          observer.observe(document.documentElement, { childList: true, subtree: true });
-          observerRef.current = observer;
-
-          rafRef.current = requestAnimationFrame(attemptScroll);
+          startScrollYRestore(target);
           return;
         }
       }
     }
 
-    // 4. Fresh navigation to a new page (e.g. entering product page or clicking a menu link)
-    // Reset scroll to top (RULE N3).
-    // CRITICAL: DO NOT DELETE SCROLL_KEY HERE!
-    // (If the user navigated to a product page, SCROLL_KEY holds the return destination!)
+    // 4. Fresh navigation → scroll to top
     window.scrollTo({ top: 0, behavior: 'instant' });
-  }, [key]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentKey]);
+
+  // ── Product card restoration (find card by ID, scrollIntoView center) ──
+  function startCardRestore(data: ScrollRestoreData) {
+    const state = {
+      rafId: null as number | null,
+      observer: null as MutationObserver | null,
+      cancelled: false,
+      timeoutId: null as ReturnType<typeof setTimeout> | null,
+    };
+    activeRestoreRef.current = state;
+
+    // User interaction aborts restoration
+    const onUserInterrupt = () => {
+      if (state.cancelled) return;
+      state.cancelled = true;
+      cleanup(true);
+    };
+    window.addEventListener('wheel', onUserInterrupt, { passive: true, once: true });
+    window.addEventListener('touchmove', onUserInterrupt, { passive: true, once: true });
+
+    const cleanup = (removeFromStorage: boolean) => {
+      state.cancelled = true;
+      if (state.rafId) cancelAnimationFrame(state.rafId);
+      if (state.observer) state.observer.disconnect();
+      if (state.timeoutId) clearTimeout(state.timeoutId);
+      window.removeEventListener('wheel', onUserInterrupt);
+      window.removeEventListener('touchmove', onUserInterrupt);
+      if (removeFromStorage) {
+        try { sessionStorage.removeItem(SCROLL_KEY); } catch {}
+      }
+      if (activeRestoreRef.current === state) {
+        activeRestoreRef.current = null;
+      }
+    };
+
+    const applyCardFocus = (card: HTMLElement) => {
+      // Instantly center the card
+      card.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' as ScrollBehavior });
+      card.focus?.({ preventScroll: true });
+
+      // Visual highlight
+      card.classList.add('scroll-restore-highlight');
+      setTimeout(() => card.classList.remove('scroll-restore-highlight'), 1600);
+
+      // Keep card centered for a few frames while images/layout settles
+      let settleCount = 0;
+      const settle = () => {
+        if (state.cancelled || settleCount >= 15) return;
+        settleCount++;
+        const rect = card.getBoundingClientRect();
+        const idealTop = (window.innerHeight - rect.height) / 2;
+        if (Math.abs(rect.top - idealTop) > 60) {
+          card.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' as ScrollBehavior });
+        }
+        requestAnimationFrame(settle);
+      };
+      requestAnimationFrame(settle);
+
+      cleanup(true);
+    };
+
+    const tryFindCard = (): boolean => {
+      if (state.cancelled) return false;
+      if (data.productId) {
+        const card = document.getElementById(`product-card-${data.productId}`);
+        if (card) {
+          applyCardFocus(card);
+          return true;
+        }
+      }
+      return false;
+    };
+
+    // Try immediately
+    if (tryFindCard()) return;
+
+    // Watch DOM for card appearing (lazy grids, SSR hydration, etc.)
+    const observer = new MutationObserver(() => {
+      if (state.cancelled) return;
+      tryFindCard();
+    });
+    observer.observe(document.documentElement, { childList: true, subtree: true });
+    state.observer = observer;
+
+    // Also poll via rAF for cases where mutations don't fire
+    let tries = 0;
+    const tick = () => {
+      if (state.cancelled) return;
+      tries++;
+      if (tryFindCard()) return;
+
+      // After 60 frames (~1s), try scrollY fallback if page is tall enough
+      if (tries > 60 && data.scrollY > 0) {
+        const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+        if (maxScroll >= data.scrollY - 20) {
+          window.scrollTo({ top: data.scrollY, behavior: 'instant' });
+          cleanup(true);
+          return;
+        }
+      }
+
+      if (tries < 180) { // ~3 seconds max
+        state.rafId = requestAnimationFrame(tick);
+      } else {
+        // Final fallback: scroll to saved Y clamped to available height
+        if (data.scrollY > 0) {
+          const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+          window.scrollTo({ top: Math.min(data.scrollY, Math.max(0, maxScroll)), behavior: 'instant' });
+        }
+        cleanup(true);
+      }
+    };
+    state.rafId = requestAnimationFrame(tick);
+
+    // Hard timeout safety net: if nothing worked in 4s, stop trying
+    state.timeoutId = setTimeout(() => {
+      if (!state.cancelled) {
+        if (data.scrollY > 0) {
+          const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+          window.scrollTo({ top: Math.min(data.scrollY, Math.max(0, maxScroll)), behavior: 'instant' });
+        }
+        cleanup(true);
+      }
+    }, 4000);
+  }
+
+  // ── Generic scrollY restoration (for pages without product card data) ──
+  function startScrollYRestore(target: number) {
+    const state = {
+      rafId: null as number | null,
+      observer: null as MutationObserver | null,
+      cancelled: false,
+      timeoutId: null as ReturnType<typeof setTimeout> | null,
+    };
+    activeRestoreRef.current = state;
+
+    const onUserInterrupt = () => {
+      if (state.cancelled) return;
+      state.cancelled = true;
+      if (state.rafId) cancelAnimationFrame(state.rafId);
+      if (state.observer) state.observer.disconnect();
+      if (state.timeoutId) clearTimeout(state.timeoutId);
+      window.removeEventListener('wheel', onUserInterrupt);
+      window.removeEventListener('touchmove', onUserInterrupt);
+      if (activeRestoreRef.current === state) activeRestoreRef.current = null;
+    };
+    window.addEventListener('wheel', onUserInterrupt, { passive: true, once: true });
+    window.addEventListener('touchmove', onUserInterrupt, { passive: true, once: true });
+
+    let tries = 0;
+    const attemptScroll = () => {
+      if (state.cancelled) return;
+      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+
+      if (maxScroll >= target - 10) {
+        window.scrollTo({ top: target, behavior: 'instant' });
+        onUserInterrupt(); // cleanup
+        return;
+      }
+
+      tries++;
+      if (tries < 180) {
+        state.rafId = requestAnimationFrame(attemptScroll);
+      } else {
+        window.scrollTo({ top: Math.min(target, Math.max(0, maxScroll)), behavior: 'instant' });
+        onUserInterrupt(); // cleanup
+      }
+    };
+
+    // Watch DOM growth
+    const observer = new MutationObserver(() => {
+      if (state.cancelled) return;
+      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+      if (maxScroll >= target - 10) {
+        attemptScroll();
+      }
+    });
+    observer.observe(document.documentElement, { childList: true, subtree: true });
+    state.observer = observer;
+
+    state.rafId = requestAnimationFrame(attemptScroll);
+
+    // Hard timeout
+    state.timeoutId = setTimeout(() => {
+      if (!state.cancelled) {
+        const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+        window.scrollTo({ top: Math.min(target, Math.max(0, maxScroll)), behavior: 'instant' });
+        onUserInterrupt();
+      }
+    }, 4000);
+  }
 
   return null;
 }
