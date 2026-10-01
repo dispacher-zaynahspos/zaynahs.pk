@@ -67,150 +67,212 @@ export default function GlobalSettings({
   }
 
   if (subTab === 'header') {
+    const currentTopBarBg = settings.header_top_bar_bg || settings.theme_config?.colors?.headerTopBarBg || settings.theme_config?.colors?.primary || '#0F2A5E';
+    const currentTopBarText = settings.header_top_bar_text_color || settings.theme_config?.colors?.headerTopBarTextColor || '#ffffff';
+    const currentHeaderBg = settings.header_bg || settings.theme_config?.colors?.surface || '#ffffff';
+    const currentHeaderText = settings.header_text_color || settings.theme_config?.colors?.textPrimary || '#1a1a2e';
+
+    const TOPBAR_PALETTES = [
+      { label: 'Theme Navy', color: '#0F2A5E' },
+      { label: 'Dark Slate', color: '#111827' },
+      { label: 'Vibrant Coral', color: '#FF5A5F' },
+      { label: 'Emerald', color: '#0F5132' },
+      { label: 'Royal Blue', color: '#1E40AF' },
+      { label: 'Pure White', color: '#FFFFFF', text: '#111827' },
+    ];
+
     return (
-      <div className="space-y-4">
-        <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-800 pb-2">
-          <span className="text-xs font-bold text-gray-700 dark:text-gray-300">Sticky Header (Desktop)</span>
-          <label className="relative inline-flex items-center cursor-pointer select-none">
-            <input
-              type="checkbox"
-              checked={settings.header_sticky_desktop ?? true}
-              onChange={(e) => onUpdateSettings({ header_sticky_desktop: e.target.checked })}
-              className="sr-only peer"
-            />
-            <div className="w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#e94560]" />
-          </label>
-        </div>
-
-        <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-800 pb-2">
-          <span className="text-xs font-bold text-gray-700 dark:text-gray-300">Sticky Header (Mobile)</span>
-          <label className="relative inline-flex items-center cursor-pointer select-none">
-            <input
-              type="checkbox"
-              checked={settings.header_sticky_mobile ?? true}
-              onChange={(e) => onUpdateSettings({ header_sticky_mobile: e.target.checked })}
-              className="sr-only peer"
-            />
-            <div className="w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#e94560]" />
-          </label>
-        </div>
-
-        <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-800 pb-2">
-          <span className="text-xs font-bold text-gray-700 dark:text-gray-300">Mobile Bottom Nav Bar</span>
-          <label className="relative inline-flex items-center cursor-pointer select-none">
-            <input
-              type="checkbox"
-              checked={settings.mobile_bottom_nav_enabled ?? true}
-              onChange={(e) => onUpdateSettings({ mobile_bottom_nav_enabled: e.target.checked })}
-              className="sr-only peer"
-            />
-            <div className="w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#e94560]" />
-          </label>
-        </div>
-
-        {(settings.mobile_bottom_nav_enabled ?? true) && (
-          <MobileBottomNavBuilder settings={settings} onUpdateSettings={onUpdateSettings} />
-        )}
-
-        <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-800 pb-2">
-          <div className="min-w-0 pr-3">
-            <span className="text-xs font-bold text-gray-700 dark:text-gray-300 block">Mobile "View Bag" Cart Bar</span>
-            <span className="text-[10px] text-gray-400 dark:text-gray-500">Sticky bottom cart summary (theme-colored). Shows when cart has items.</span>
+      <div className="space-y-5">
+        {/* SECTION 1: Top Bar & Announcement */}
+        <div className="space-y-3.5 p-3.5 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-200/80 dark:border-gray-800">
+          <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-800 pb-2">
+            <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#e94560] block">
+              Top Bar & Announcement Colors
+            </span>
           </div>
-          <label className="relative inline-flex items-center cursor-pointer select-none shrink-0">
-            <input
-              type="checkbox"
-              checked={settings.cart_bar_enabled ?? true}
-              onChange={(e) => onUpdateSettings({ cart_bar_enabled: e.target.checked })}
-              className="sr-only peer"
-            />
-            <div className="w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#e94560]" />
-          </label>
-        </div>
 
-        <HeaderAnnouncementFields settings={settings} onUpdate={onUpdateSettings} />
-
-        {/* Top Bar & Header Customizer Colors */}
-        <div className="space-y-3 p-3 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-gray-800">
-          <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#e94560] block">
-            Top Bar & Header Colors
-          </span>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 block uppercase tracking-wider">Top Bar Background</label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* Top Bar Background */}
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 block uppercase tracking-wider">
+                Top Bar Background
+              </label>
               <div className="flex items-center gap-2">
                 <input
                   type="color"
-                  value={settings.header_top_bar_bg || settings.theme_config?.colors?.headerTopBarBg || '#0F2A5E'}
+                  value={currentTopBarBg.startsWith('#') ? currentTopBarBg : '#0F2A5E'}
                   onChange={(e) => onUpdateSettings({ header_top_bar_bg: e.target.value })}
-                  className="w-7 h-7 rounded border border-gray-200 cursor-pointer overflow-hidden p-0 bg-transparent shrink-0"
+                  className="w-8 h-8 rounded-lg border border-gray-200 dark:border-gray-700 cursor-pointer overflow-hidden p-0 bg-transparent shrink-0"
                 />
                 <input
                   type="text"
                   value={settings.header_top_bar_bg || ''}
                   onChange={(e) => onUpdateSettings({ header_top_bar_bg: e.target.value })}
-                  placeholder={settings.theme_config?.colors?.headerTopBarBg || '#0F2A5E'}
-                  className="w-full px-2 py-1 bg-white dark:bg-[#0f0f1b] border border-gray-200 dark:border-gray-800 rounded-lg text-xs font-mono"
+                  placeholder={currentTopBarBg}
+                  className="w-full px-2.5 py-1.5 bg-white dark:bg-[#0f0f1b] border border-gray-200 dark:border-gray-800 rounded-lg text-xs font-mono font-semibold"
                 />
+              </div>
+              {/* Quick Preset Colors */}
+              <div className="flex items-center gap-1.5 pt-1">
+                {TOPBAR_PALETTES.map((p) => (
+                  <button
+                    key={p.color}
+                    type="button"
+                    title={p.label}
+                    onClick={() => {
+                      onUpdateSettings({
+                        header_top_bar_bg: p.color,
+                        ...(p.text ? { header_top_bar_text_color: p.text } : {}),
+                      });
+                    }}
+                    style={{ backgroundColor: p.color }}
+                    className="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 shadow-xs hover:scale-110 active:scale-95 transition-transform"
+                  />
+                ))}
               </div>
             </div>
 
-            <div className="space-y-1">
-              <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 block uppercase tracking-wider">Top Bar Text</label>
+            {/* Top Bar Text Color */}
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 block uppercase tracking-wider">
+                Top Bar Text Color
+              </label>
               <div className="flex items-center gap-2">
                 <input
                   type="color"
-                  value={settings.header_top_bar_text_color || settings.theme_config?.colors?.headerTopBarTextColor || '#ffffff'}
+                  value={currentTopBarText.startsWith('#') ? currentTopBarText : '#ffffff'}
                   onChange={(e) => onUpdateSettings({ header_top_bar_text_color: e.target.value })}
-                  className="w-7 h-7 rounded border border-gray-200 cursor-pointer overflow-hidden p-0 bg-transparent shrink-0"
+                  className="w-8 h-8 rounded-lg border border-gray-200 dark:border-gray-700 cursor-pointer overflow-hidden p-0 bg-transparent shrink-0"
                 />
                 <input
                   type="text"
                   value={settings.header_top_bar_text_color || ''}
                   onChange={(e) => onUpdateSettings({ header_top_bar_text_color: e.target.value })}
-                  placeholder={settings.theme_config?.colors?.headerTopBarTextColor || '#FFFFFF'}
-                  className="w-full px-2 py-1 bg-white dark:bg-[#0f0f1b] border border-gray-200 dark:border-gray-800 rounded-lg text-xs font-mono"
+                  placeholder={currentTopBarText}
+                  className="w-full px-2.5 py-1.5 bg-white dark:bg-[#0f0f1b] border border-gray-200 dark:border-gray-800 rounded-lg text-xs font-mono font-semibold"
                 />
               </div>
             </div>
+          </div>
 
-            <div className="space-y-1">
+          {/* Announcement & Top Bar Content Controls */}
+          <div className="pt-2 border-t border-gray-200/80 dark:border-gray-800">
+            <HeaderAnnouncementFields settings={settings} onUpdate={onUpdateSettings} />
+          </div>
+        </div>
+
+        {/* SECTION 2: Main Header Bar & Stickiness */}
+        <div className="space-y-3.5 p-3.5 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-200/80 dark:border-gray-800">
+          <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#e94560] block">
+            Main Header Settings
+          </span>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-1.5">
               <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 block uppercase tracking-wider">Header Background</label>
               <div className="flex items-center gap-2">
                 <input
                   type="color"
-                  value={settings.header_bg || '#ffffff'}
+                  value={currentHeaderBg.startsWith('#') ? currentHeaderBg : '#ffffff'}
                   onChange={(e) => onUpdateSettings({ header_bg: e.target.value })}
-                  className="w-7 h-7 rounded border border-gray-200 cursor-pointer overflow-hidden p-0 bg-transparent shrink-0"
+                  className="w-8 h-8 rounded-lg border border-gray-200 cursor-pointer overflow-hidden p-0 bg-transparent shrink-0"
                 />
                 <input
                   type="text"
                   value={settings.header_bg || ''}
                   onChange={(e) => onUpdateSettings({ header_bg: e.target.value })}
-                  placeholder="#FFFFFF"
-                  className="w-full px-2 py-1 bg-white dark:bg-[#0f0f1b] border border-gray-200 dark:border-gray-800 rounded-lg text-xs font-mono"
+                  placeholder={currentHeaderBg}
+                  className="w-full px-2.5 py-1.5 bg-white dark:bg-[#0f0f1b] border border-gray-200 dark:border-gray-800 rounded-lg text-xs font-mono font-semibold"
                 />
               </div>
             </div>
 
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 block uppercase tracking-wider">Header Text Color</label>
               <div className="flex items-center gap-2">
                 <input
                   type="color"
-                  value={settings.header_text_color || '#1a1a2e'}
+                  value={currentHeaderText.startsWith('#') ? currentHeaderText : '#1a1a2e'}
                   onChange={(e) => onUpdateSettings({ header_text_color: e.target.value })}
-                  className="w-7 h-7 rounded border border-gray-200 cursor-pointer overflow-hidden p-0 bg-transparent shrink-0"
+                  className="w-8 h-8 rounded-lg border border-gray-200 cursor-pointer overflow-hidden p-0 bg-transparent shrink-0"
                 />
                 <input
                   type="text"
                   value={settings.header_text_color || ''}
                   onChange={(e) => onUpdateSettings({ header_text_color: e.target.value })}
-                  placeholder="#1A1A2E"
-                  className="w-full px-2 py-1 bg-white dark:bg-[#0f0f1b] border border-gray-200 dark:border-gray-800 rounded-lg text-xs font-mono"
+                  placeholder={currentHeaderText}
+                  className="w-full px-2.5 py-1.5 bg-white dark:bg-[#0f0f1b] border border-gray-200 dark:border-gray-800 rounded-lg text-xs font-mono font-semibold"
                 />
               </div>
             </div>
+          </div>
+
+          <div className="space-y-2 pt-1 border-t border-gray-200/80 dark:border-gray-800">
+            <div className="flex justify-between items-center py-1">
+              <span className="text-xs font-bold text-gray-700 dark:text-gray-300">Sticky Header (Desktop)</span>
+              <label className="relative inline-flex items-center cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={settings.header_sticky_desktop ?? true}
+                  onChange={(e) => onUpdateSettings({ header_sticky_desktop: e.target.checked })}
+                  className="sr-only peer"
+                />
+                <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#e94560]" />
+              </label>
+            </div>
+
+            <div className="flex justify-between items-center py-1">
+              <span className="text-xs font-bold text-gray-700 dark:text-gray-300">Sticky Header (Mobile)</span>
+              <label className="relative inline-flex items-center cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={settings.header_sticky_mobile ?? true}
+                  onChange={(e) => onUpdateSettings({ header_sticky_mobile: e.target.checked })}
+                  className="sr-only peer"
+                />
+                <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#e94560]" />
+              </label>
+            </div>
+          </div>
+        </div>
+
+        {/* SECTION 3: Mobile Bottom Navigation & Cart Bar */}
+        <div className="space-y-3.5 p-3.5 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-200/80 dark:border-gray-800">
+          <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#e94560] block">
+            Mobile Navigation Bars
+          </span>
+
+          <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-800 pb-2">
+            <span className="text-xs font-bold text-gray-700 dark:text-gray-300">Mobile Bottom Nav Bar</span>
+            <label className="relative inline-flex items-center cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={settings.mobile_bottom_nav_enabled ?? true}
+                onChange={(e) => onUpdateSettings({ mobile_bottom_nav_enabled: e.target.checked })}
+                className="sr-only peer"
+              />
+              <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#e94560]" />
+            </label>
+          </div>
+
+          {(settings.mobile_bottom_nav_enabled ?? true) && (
+            <MobileBottomNavBuilder settings={settings} onUpdateSettings={onUpdateSettings} />
+          )}
+
+          <div className="flex justify-between items-center pt-2">
+            <div className="min-w-0 pr-3">
+              <span className="text-xs font-bold text-gray-700 dark:text-gray-300 block">Mobile "View Bag" Cart Bar</span>
+              <span className="text-[10px] text-gray-400 dark:text-gray-500">Sticky bottom cart summary (theme-colored). Shows when cart has items.</span>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer select-none shrink-0">
+              <input
+                type="checkbox"
+                checked={settings.cart_bar_enabled ?? true}
+                onChange={(e) => onUpdateSettings({ cart_bar_enabled: e.target.checked })}
+                className="sr-only peer"
+              />
+              <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#e94560]" />
+            </label>
           </div>
         </div>
       </div>

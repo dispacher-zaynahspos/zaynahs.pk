@@ -108,9 +108,6 @@ export function CustomizerPreview({
                   }}
                   className="absolute top-0 left-0 overflow-hidden shadow-2xl bg-white dark:bg-[#0f0f1b] rounded-[36px] border-[12px] border-gray-800 dark:border-gray-900 flex flex-col scrollbar-none"
                 >
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 h-4 w-32 bg-gray-800 dark:bg-gray-900 rounded-b-xl z-50 flex items-center justify-center">
-                    <div className="h-1.5 w-1.5 bg-black rounded-full" />
-                  </div>
                   <iframe
                     ref={iframeRef}
                     src="/admin/settings/customizer/preview"
@@ -155,9 +152,6 @@ export function CustomizerPreview({
                   }}
                   className="absolute top-0 left-0 overflow-hidden shadow-2xl bg-white dark:bg-[#0f0f1b] rounded-[24px] border-[12px] border-gray-800 dark:border-gray-900 flex flex-col"
                 >
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 h-3 w-16 bg-gray-800 dark:bg-gray-900 rounded-b-lg z-50 flex items-center justify-center">
-                    <div className="h-1.5 w-1.5 bg-black rounded-full" />
-                  </div>
                   <iframe
                     ref={iframeRef}
                     src="/admin/settings/customizer/preview"

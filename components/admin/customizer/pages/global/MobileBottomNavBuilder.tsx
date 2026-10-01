@@ -38,16 +38,18 @@ export default function MobileBottomNavBuilder({ settings, onUpdateSettings }: M
     <div className="space-y-3 border-b border-gray-200 dark:border-gray-800 pb-4">
       <div className="flex items-center justify-between">
         <span className="text-xs font-bold text-gray-700 dark:text-gray-300">Bottom Nav Items</span>
-        <label className="relative inline-flex items-center gap-2 cursor-pointer select-none">
+        <div className="flex items-center gap-2">
           <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400">Show Labels</span>
-          <input
-            type="checkbox"
-            checked={settings.mobile_bottom_nav_show_labels ?? true}
-            onChange={(e) => onUpdateSettings({ mobile_bottom_nav_show_labels: e.target.checked })}
-            className="sr-only peer"
-          />
-          <div className="w-10 h-5 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#e94560]" />
-        </label>
+          <label className="relative inline-flex items-center cursor-pointer select-none shrink-0">
+            <input
+              type="checkbox"
+              checked={settings.mobile_bottom_nav_show_labels ?? true}
+              onChange={(e) => onUpdateSettings({ mobile_bottom_nav_show_labels: e.target.checked })}
+              className="sr-only peer"
+            />
+            <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#e94560]" />
+          </label>
+        </div>
       </div>
 
       <div className="space-y-2">
