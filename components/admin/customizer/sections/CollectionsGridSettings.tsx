@@ -254,11 +254,28 @@ export default function CollectionsGridSettings({
               />
             </div>
             <div className="space-y-1">
-              <label className="text-[10px] font-bold text-gray-500 uppercase">Background Color</label>
+              <div className="flex items-center justify-between">
+                <label className="text-[10px] font-bold text-gray-500 uppercase">Background Color</label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onUpdateSection({
+                      settings: {
+                        ...section.settings,
+                        bottom_view_all_bg_color: '',
+                      }
+                    });
+                  }}
+                  className="text-[9px] text-gray-400 hover:text-[#e94560] font-bold uppercase tracking-wider cursor-pointer"
+                  title="Reset to theme primary"
+                >
+                  Reset to Theme
+                </button>
+              </div>
               <div className="flex gap-2">
                 <input
                   type="color"
-                  value={section.settings?.bottom_view_all_bg_color || '#e94560'}
+                  value={section.settings?.bottom_view_all_bg_color || '#0F2A5E'}
                   onChange={(e) => {
                     onUpdateSection({
                       settings: {
@@ -271,7 +288,7 @@ export default function CollectionsGridSettings({
                 />
                 <input
                   type="text"
-                  value={section.settings?.bottom_view_all_bg_color || '#e94560'}
+                  value={section.settings?.bottom_view_all_bg_color || ''}
                   onChange={(e) => {
                     onUpdateSection({
                       settings: {
@@ -280,7 +297,8 @@ export default function CollectionsGridSettings({
                       }
                     });
                   }}
-                  className="flex-1 px-3 py-1.5 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-gray-800 rounded-xl text-xs font-semibold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
+                  placeholder="#0F2A5E (Theme Default)"
+                  className="flex-1 px-3 py-1.5 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-gray-800 rounded-xl text-xs font-semibold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white font-mono"
                 />
               </div>
             </div>

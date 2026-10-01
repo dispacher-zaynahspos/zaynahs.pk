@@ -23,6 +23,8 @@ export default function TrafficGlobe({
       countries={countries}
       height={height}
       showControls={true}
+      initialZoom={1.1}
+      initialCenter={[20, 25]}
     />
   );
 }

@@ -255,7 +255,12 @@ export default function ShopPage({
                     e.preventDefault();
                     handleLoadMore();
                   }}
-                  className="px-8 py-3 text-sm font-bold uppercase tracking-wider rounded-full bg-[#e94560] text-white hover:bg-[#d8344f] hover:shadow-md hover:scale-[1.02] active:scale-95 transition-all duration-300 shadow-sm cursor-pointer select-none touch-manipulation relative z-10"
+                  style={{
+                    backgroundColor: activeSettings?.shop_load_more_bg || 'var(--btn-primary-bg, var(--color-primary, #0F2A5E))',
+                    color: activeSettings?.shop_load_more_text_color || 'var(--btn-primary-text, #ffffff)',
+                    borderRadius: 'var(--border-radius-btn, 9999px)',
+                  }}
+                  className="px-8 py-3 text-sm font-bold uppercase tracking-wider hover:brightness-110 hover:shadow-md hover:scale-[1.02] active:scale-95 transition-all duration-300 shadow-sm cursor-pointer select-none touch-manipulation relative z-10"
                 >
                   Load More ({totalResults - displayProducts.length} remaining)
                 </button>

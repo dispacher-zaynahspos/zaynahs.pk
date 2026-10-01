@@ -80,17 +80,15 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
   };
 
   const styleClassMap: Record<string, string> = {
-    showcase_1: 'sc1', showcase_2: 'sc2', showcase_3: 'sc3', showcase_4: 'sc4',
-    showcase_5: 'sc5', showcase_6: 'sc6', showcase_7: 'sc7', showcase_8: 'sc8',
-    showcase_9: 'sc9', showcase_10: 'sc10',
+    showcase_1: 'sc1', showcase_8: 'sc8', showcase_10: 'sc10',
   };
 
-  const scClass = styleClassMap[activeStyle] || 'sc1';
+  // Backward compat: if activeStyle is a removed template ID, fall back to 'style1' (sc1)
+  const validStyles = new Set(['showcase_1', 'showcase_8', 'showcase_10']);
+  const safeStyle = validStyles.has(activeStyle) ? activeStyle : 'showcase_1';
+  const scClass = styleClassMap[safeStyle] || 'sc1';
   const imgBgClass =
-    scClass === 'sc4' ? 'bg-[#fcefee]' :
-    scClass === 'sc7' ? 'bg-[#f5f5f5]' :
     scClass === 'sc8' ? 'bg-[#fef9e7]' :
-    scClass === 'sc9' ? 'bg-[#f0eaf2] rounded-t-[20px]' :
     scClass === 'sc10' ? 'bg-gradient-to-br from-[#fdf6ec] to-[#f5e6d0] rounded-t-[24px]' :
     '';
 
@@ -180,17 +178,6 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
       </div>
     </div>
   );
-
-  if (activeStyle === 'showcase_3') {
-    return (
-      <>
-        <ProductCardStyleInjector />
-        <div className="z-card-container flex flex-col h-full">
-          <div className="sc3-wrap">{renderContent}</div>
-        </div>
-      </>
-    );
-  }
 
   return (
     <>

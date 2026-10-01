@@ -104,6 +104,65 @@ export default function ShopPageSettings({
           </label>
         </div>
 
+        {/* Load More Button Style (When Infinite Scroll is Off) */}
+        {!settings.shop_infinite_scroll && (
+          <div className="space-y-3 p-3 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-200/80 dark:border-gray-800">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#e94560] block">
+                Load More Button Style
+              </span>
+              <button
+                type="button"
+                onClick={() => onUpdateSettings({ shop_load_more_bg: '', shop_load_more_text_color: '' })}
+                className="text-[9px] text-gray-400 hover:text-[#e94560] font-bold uppercase tracking-wider cursor-pointer"
+                title="Reset to theme primary button colors"
+              >
+                Reset to Theme
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 block uppercase tracking-wider">Button Bg</label>
+                <div className="flex items-center gap-1.5">
+                  <input
+                    type="color"
+                    value={settings.shop_load_more_bg || settings.theme_config?.buttons?.primaryBg || settings.theme_config?.colors?.primary || '#0F2A5E'}
+                    onChange={(e) => onUpdateSettings({ shop_load_more_bg: e.target.value })}
+                    className="w-7 h-7 rounded-lg border border-gray-200 dark:border-gray-700 cursor-pointer overflow-hidden p-0 bg-transparent shrink-0"
+                  />
+                  <input
+                    type="text"
+                    value={settings.shop_load_more_bg || ''}
+                    onChange={(e) => onUpdateSettings({ shop_load_more_bg: e.target.value })}
+                    placeholder={settings.theme_config?.buttons?.primaryBg || settings.theme_config?.colors?.primary || '#0F2A5E'}
+                    className="w-full px-2 py-1 bg-white dark:bg-[#0f0f1b] border border-gray-200 dark:border-gray-800 rounded-lg text-xs font-mono font-semibold"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 block uppercase tracking-wider">Text Color</label>
+                <div className="flex items-center gap-1.5">
+                  <input
+                    type="color"
+                    value={settings.shop_load_more_text_color || settings.theme_config?.buttons?.primaryText || '#ffffff'}
+                    onChange={(e) => onUpdateSettings({ shop_load_more_text_color: e.target.value })}
+                    className="w-7 h-7 rounded-lg border border-gray-200 dark:border-gray-700 cursor-pointer overflow-hidden p-0 bg-transparent shrink-0"
+                  />
+                  <input
+                    type="text"
+                    value={settings.shop_load_more_text_color || ''}
+                    onChange={(e) => onUpdateSettings({ shop_load_more_text_color: e.target.value })}
+                    placeholder={settings.theme_config?.buttons?.primaryText || '#FFFFFF'}
+                    className="w-full px-2 py-1 bg-white dark:bg-[#0f0f1b] border border-gray-200 dark:border-gray-800 rounded-lg text-xs font-mono font-semibold"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Responsive Columns per Device (Mobile: 1-3, Tablet: 2-4, Desktop: 3-8) */}
         <ResponsiveGridColumnsControl
           label="Shop Catalog Grid Columns"

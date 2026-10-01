@@ -159,7 +159,7 @@ export default function FlashSaleGeneralConfig({
               <div className="flex items-center gap-1.5">
                 <input
                   type="color"
-                  value={settings.bottomViewAllBgColor || '#FFD147'}
+                  value={settings.bottomViewAllBgColor || '#0F2A5E'}
                   onChange={e => handleSettingsChange('bottomViewAllBgColor', e.target.value)}
                   className="w-7 h-7 rounded-lg border border-gray-200 dark:border-gray-700 cursor-pointer"
                 />
@@ -167,8 +167,9 @@ export default function FlashSaleGeneralConfig({
                   type="button"
                   onClick={() => handleSettingsChange('bottomViewAllBgColor', '')}
                   className="text-[9px] text-gray-400 hover:text-[#e94560] font-bold uppercase tracking-wider cursor-pointer"
+                  title="Reset to theme primary"
                 >
-                  Reset
+                  Reset to Theme
                 </button>
               </div>
             </div>
@@ -177,7 +178,7 @@ export default function FlashSaleGeneralConfig({
               <div className="flex items-center gap-1.5">
                 <input
                   type="color"
-                  value={settings.bottomViewAllTextColor || '#0f172a'}
+                  value={settings.bottomViewAllTextColor || '#ffffff'}
                   onChange={e => handleSettingsChange('bottomViewAllTextColor', e.target.value)}
                   className="w-7 h-7 rounded-lg border border-gray-200 dark:border-gray-700 cursor-pointer"
                 />
@@ -185,8 +186,9 @@ export default function FlashSaleGeneralConfig({
                   type="button"
                   onClick={() => handleSettingsChange('bottomViewAllTextColor', '')}
                   className="text-[9px] text-gray-400 hover:text-[#e94560] font-bold uppercase tracking-wider cursor-pointer"
+                  title="Reset to theme text"
                 >
-                  Reset
+                  Reset to Theme
                 </button>
               </div>
             </div>

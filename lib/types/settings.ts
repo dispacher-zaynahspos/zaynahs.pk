@@ -261,6 +261,8 @@ export interface StoreSettings {
   shop_products_per_page_mobile?: number;
   shop_category_chips_enabled?: boolean;
   shop_infinite_scroll?: boolean;
+  shop_load_more_bg?: string;
+  shop_load_more_text_color?: string;
   shop_grid_gap?: 'tight' | 'normal' | 'relaxed';
   shop_show_breadcrumbs?: boolean;
   recent_buyers_enabled?: boolean;
@@ -279,7 +281,7 @@ export interface StoreSettings {
   size_guide_enabled?: boolean;
 
   // Product Card Customizations
-  card_style?: 'style1' | 'showcase_1' | 'showcase_2' | 'showcase_3' | 'showcase_4' | 'showcase_5' | 'showcase_6' | 'showcase_7' | 'showcase_8' | 'showcase_9' | 'showcase_10';
+  card_style?: 'style1' | 'showcase_1' | 'showcase_8' | 'showcase_10';
   card_variant?: 'v1';
   /** How a card reveals hover image + action icons on touch devices. */
   card_mobile_activation?: 'scroll' | 'touch' | 'off';

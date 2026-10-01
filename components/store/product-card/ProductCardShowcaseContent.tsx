@@ -41,47 +41,31 @@ export const ProductCardShowcaseContent: React.FC<ProductCardShowcaseContentProp
   onCardClick,
 }) => {
   const starsColor =
-    styleClass === 'sc2' ? 'rgba(255,255,255,.8)' :
-    styleClass === 'sc3' ? 'rgba(255,255,255,.9)' :
-    styleClass === 'sc4' ? '#ffeaa7' :
-    styleClass === 'sc6' ? '#d4af37' :
-    styleClass === 'sc7' ? '#000' :
     styleClass === 'sc8' ? '#000' :
     styleClass === 'sc9' ? '#6750a4' :
     styleClass === 'sc10' ? '#8e44ad' :
     '#f59e0b';
 
   const countColor =
-    styleClass === 'sc2' ? 'rgba(255,255,255,.4)' :
-    styleClass === 'sc3' ? 'rgba(255,255,255,.5)' :
-    styleClass === 'sc4' ? 'rgba(255,255,255,.6)' :
-    styleClass === 'sc7' ? '#555' :
     styleClass === 'sc8' ? '#666' :
     styleClass === 'sc9' ? '#666' :
     '#888';
 
-  const poldStyle =
-    styleClass === 'sc2' ? { color: 'rgba(255,255,255,.5)' } :
-    styleClass === 'sc3' ? { color: 'rgba(255,255,255,.6)' } :
-    styleClass === 'sc4' ? { color: 'rgba(255,255,255,.6)' } :
-    styleClass === 'sc6' ? { color: 'rgba(255,255,255,.4)' } :
-    undefined;
 
   const descClass =
-    styleClass === 'sc2' ? 'text-white/70' :
-    styleClass === 'sc3' ? 'text-white/80' :
-    styleClass === 'sc4' ? 'text-white/80' :
-    styleClass === 'sc6' ? 'text-[#d4af37]/70' :
-    styleClass === 'sc7' ? 'text-gray-700' :
     styleClass === 'sc8' ? 'text-gray-500' :
     styleClass === 'sc10' ? 'text-gray-500' :
     'text-gray-500';
 
-  const contentClass = styleClass === 'sc8'
+  // Backward compat: treat any removed styleClass as sc1
+  const validSc = ['sc1', 'sc8', 'sc9', 'sc10'];
+  const safeStyleClass = validSc.includes(styleClass) ? styleClass : 'sc1';
+
+  const contentClass = safeStyleClass === 'sc8'
     ? 'z-card-content-geo flex-grow flex flex-col justify-end'
     : 'card-content';
 
-  const needsCbWrapper = ['sc7', 'sc8', 'sc9', 'sc10'].includes(styleClass);
+  const needsCbWrapper = ['sc8', 'sc9', 'sc10'].includes(safeStyleClass);
 
   const inner = (
     <>
@@ -121,12 +105,11 @@ export const ProductCardShowcaseContent: React.FC<ProductCardShowcaseContentProp
                   <span
                     className="pold ml-1.5 line-through decoration-red-500 decoration-[1.5px]"
                     style={{
-                      ...poldStyle,
                       textDecoration: 'line-through',
                       textDecorationColor: '#ef4444',
                       WebkitTextDecorationColor: '#ef4444',
                       textDecorationThickness: '1.5px',
-                      color: poldStyle?.color || '#888',
+                      color: '#888',
                     }}
                   >
                     {formatPrice(currentComparePrice, currencySymbol)}

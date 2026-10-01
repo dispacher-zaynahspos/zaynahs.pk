@@ -195,9 +195,28 @@ export default function ThemeStyleRegistry({ settings }: ThemeStyleRegistryProps
       background-color: var(--btn-primary-hover) !important;
     }
 
-    /* Backgrounds hardcoded to accent red */
-    .bg-\\[\\#e94560\\], .dark .bg-\\[\\#e94560\\], 
-    [class*="bg-[#e94560]"]:not([class*="bg-[#e94560]/"]):not([class*="hover:"]),
+    /* Primary buttons & Action CTAs linked to theme button tokens */
+    button.bg-\\[\\#e94560\\],
+    a.bg-\\[\\#e94560\\],
+    .btn-primary,
+    .btn-theme-primary,
+    [data-theme-btn="primary"],
+    button[class*="bg-[#e94560]"]:not([class*="bg-[#e94560]/"]):not([class*="hover:"]),
+    a[class*="bg-[#e94560]"]:not([class*="bg-[#e94560]/"]):not([class*="hover:"]) {
+      background-color: var(--btn-primary-bg, var(--color-primary)) !important;
+      color: var(--btn-primary-text, #ffffff) !important;
+    }
+
+    button.bg-\\[\\#e94560\\]:hover,
+    a.bg-\\[\\#e94560\\]:hover,
+    button[class*="hover:bg-[#d8344f]"]:hover,
+    a[class*="hover:bg-[#d8344f]"]:hover {
+      background-color: var(--btn-primary-hover, var(--color-secondary)) !important;
+    }
+
+    /* Backgrounds hardcoded to accent red/coral */
+    span.bg-\\[\\#e94560\\], div.bg-\\[\\#e94560\\], 
+    [class*="bg-[#e94560]"]:not(button):not(a):not([class*="bg-[#e94560]/"]):not([class*="hover:"]):not([class*="peer-checked:"]),
     .bg-accent, .dark .bg-accent {
       background-color: var(--color-accent) !important;
       color: #ffffff !important;

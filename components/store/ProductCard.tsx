@@ -245,6 +245,10 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
   const activeImage = hoveredImage || currentImage;
   const activeStyle = settings?.card_style || 'style1';
 
+  // Backward compatibility: fall back to 'style1' if saved setting holds a removed template ID
+  const validStyles = new Set(['style1', 'showcase_1', 'showcase_8', 'showcase_10']);
+  const safeStyle = validStyles.has(activeStyle) ? activeStyle : 'style1';
+
   const finalRenderedGroups = (
     <ProductCardSwatches
       availableGroups={availableGroups}
@@ -258,14 +262,14 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
     />
   );
 
-  const isShowcase = activeStyle.startsWith('showcase_');
+  const isShowcase = safeStyle.startsWith('showcase_');
 
   return (
     <>
       <ProductCardStyleInjector />
       {isShowcase ? (
         <ProductCardShowcases
-          activeStyle={activeStyle}
+          activeStyle={safeStyle}
           product={product}
           settings={settings}
           currencySymbol={currencySymbol}

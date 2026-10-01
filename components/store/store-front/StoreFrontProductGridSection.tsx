@@ -221,8 +221,9 @@ export function StoreFrontProductGridSection({
               }}
               className="px-5 py-2.5 text-xs md:text-sm font-semibold tracking-wide uppercase rounded-full transition-all duration-200 shadow-sm active:scale-95 hover:brightness-90 cursor-pointer select-none touch-manipulation relative z-10"
               style={{
-                backgroundColor: section.settings?.bottomLoadMoreBgColor || '#f1f5f9',
-                color: section.settings?.bottomLoadMoreTextColor || '#1e293b',
+                backgroundColor: section.settings?.bottomLoadMoreBgColor || 'var(--color-surface, #f1f5f9)',
+                color: section.settings?.bottomLoadMoreTextColor || 'var(--color-text-primary, #1e293b)',
+                borderRadius: 'var(--border-radius-btn, 9999px)',
               }}
             >
               {section.settings?.bottomLoadMoreText || 'Load More'}
@@ -234,8 +235,9 @@ export function StoreFrontProductGridSection({
               prefetch={true}
               className="px-5 py-2.5 text-xs md:text-sm font-semibold tracking-wide uppercase rounded-full transition-all duration-200 shadow-sm active:scale-95 hover:brightness-90 select-none touch-manipulation relative z-10"
               style={{
-                backgroundColor: section.settings?.bottomViewAllBgColor || '#FFD147',
-                color: section.settings?.bottomViewAllTextColor || '#0f172a',
+                backgroundColor: section.settings?.bottomViewAllBgColor || 'var(--btn-primary-bg, var(--color-primary, #0F2A5E))',
+                color: section.settings?.bottomViewAllTextColor || 'var(--btn-primary-text, #ffffff)',
+                borderRadius: 'var(--border-radius-btn, 9999px)',
               }}
             >
               {section.settings?.bottomViewAllText || 'View All'}

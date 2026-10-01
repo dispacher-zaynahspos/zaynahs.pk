@@ -68,14 +68,7 @@ export default function ProductCardSettings({ settings, onUpdateSettings }: Prod
 
             <optgroup label="Modern Showcase Layouts">
               <option value="showcase_1">Showcase 1 — Neumorphic Soft Grey</option>
-              <option value="showcase_2">Showcase 2 — Color Block Neon</option>
-              <option value="showcase_3">Showcase 3 — Glassmorphism Glow</option>
-              <option value="showcase_4">Showcase 4 — Claymorphism Coral</option>
-              <option value="showcase_5">Showcase 5 — Detailed E-Commerce</option>
-              <option value="showcase_6">Showcase 6 — Dark Elegance Gold</option>
-              <option value="showcase_7">Showcase 7 — Typographic Brutalist</option>
               <option value="showcase_8">Showcase 8 — Geometric Mondrian</option>
-              <option value="showcase_9">Showcase 9 — Material M3 Dynamic</option>
               <option value="showcase_10">Showcase 10 — Organic & Wavy</option>
             </optgroup>
           </select>

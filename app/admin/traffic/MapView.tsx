@@ -23,6 +23,8 @@ export default function MapView({
       countries={countries}
       height={height}
       showControls={true}
+      initialZoom={4.5}
+      initialCenter={[69.3, 30.4]}
     />
   );
 }
