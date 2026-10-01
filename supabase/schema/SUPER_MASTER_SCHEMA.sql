@@ -1190,7 +1190,7 @@ GRANT EXECUTE ON FUNCTION get_product_rating_distribution(UUID) TO anon, authent
 -- ============================================================
 CREATE TABLE IF NOT EXISTS homepage_sections (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  section_type TEXT NOT NULL,
+  section_type TEXT NOT NULL DEFAULT 'custom',
   title TEXT,
   settings JSONB NOT NULL DEFAULT '{}',
   content_data JSONB NOT NULL DEFAULT '{}',
@@ -1199,6 +1199,17 @@ CREATE TABLE IF NOT EXISTS homepage_sections (
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Seed default homepage sections if empty (permanent default for all clones)
+INSERT INTO homepage_sections (id, section_type, title, settings, content_data, sort_order, active)
+VALUES 
+  ('00000000-0000-4000-8000-000000000011', 'hero_banner', 'Hero Slider', '{"height_desktop": "450px", "height_mobile": "220px", "overlay_opacity": 0.3}', '{}', 1, true),
+  ('00000000-0000-4000-8000-000000000012', 'category_list', 'Shop By Category', '{"columns_desktop": 6, "columns_mobile": 3}', '{}', 2, true),
+  ('00000000-0000-4000-8000-000000000013', 'product_grid', 'Featured Collection', '{"limit": 8, "columns_desktop": 4, "columns_mobile": 2, "source": "featured"}', '{}', 3, true),
+  ('00000000-0000-4000-8000-000000000014', 'trust_badges', 'Our Guarantees', '{}', '{}', 4, true),
+  ('00000000-0000-4000-8000-000000000015', 'recent_reviews', 'Customer Feedback', '{"limit": 3}', '{}', 5, true)
+ON CONFLICT (id) DO NOTHING;
+
 
 -- ============================================================
 -- WHATSAPP SUBSCRIBERS

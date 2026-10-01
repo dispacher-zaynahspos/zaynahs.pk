@@ -1491,3 +1491,52 @@ Yeh do alag problems ka mix tha:
 ```
 
 > **Ek line mein:** "Invisible spacer divs ke z-index overlaps hamesha clicks khate hain — `pointer-events-none` ka istamal karein, aur native `<Link>` behavior ko custom `router.push` se bypass na karein." 🚀
+
+---
+
+# Masla 11: Customizer Save 500 Failure on Fresh Clones (October 2026)
+
+---
+
+## Pehle Kya Tha (Symptom)
+Naye store clone setup karne ke baad `/admin/settings/customizer` mein layout adjust karke "Save Layout" button par click karne se error aata tha:
+`"Failed to save layout adjustments and settings"` (500 Internal Server Error). Localhost aur production dono par save nahi ho raha tha.
+
+---
+
+## Issue Kya Tha (Root Cause)
+Yeh 4 interconnected issues the:
+1. **Unseeded Schema on Fresh Clones:** `SUPER_MASTER_SCHEMA.sql` mein `homepage_sections` table create hoti thi magar uske andar default rows seed nahi theen. Fresh database mein table 0 rows par rehti thi.
+2. **Server Action Auth Mismatch:** `lib/services/sections/homepage-sections.ts` mein mutation functions (`updateHomepageSection`, `reorderHomepageSections`, `fetchSectionsForVerticalAdmin`) cookie-based `createClient()` use kar rahe the jo server actions mein session context loose hone par RLS policy fail karta tha. Jabke settings/products mutations `supabaseAdmin` (service role) use karti hain.
+3. **NOT NULL Constraint Violation on Upsert:** `homepage_sections` table mein column `section_type TEXT NOT NULL` tha jisme koi default value nahi thi. Jab customizer se update payload bheja jata, usme sirf `{ title, active, settings, content_data }` jata tha (`section_type` nahi tha). Postgres ne upsert ke waqt `null value in column "section_type" of relation "homepage_sections" violates not-null constraint` error fek diya.
+4. **PGRST116 `.single()` Crash:** `updateProductFields` aur sections update mein `.single()` use ho raha tha jo row na milne par exception throw karta tha.
+
+---
+
+## Fix Kaise Hua (Permanent Solution)
+1. **Schema Seeding & Default Column (`SUPER_MASTER_SCHEMA.sql`):**
+   - `section_type TEXT NOT NULL DEFAULT 'custom'` banaya taake kabhi bhi missing type par null constraint error na aaye.
+   - 5 default sections (`hero_banner`, `category_list`, `product_grid`, `trust_badges`, `recent_reviews`) permanent seed kiye `ON CONFLICT (id) DO NOTHING` ke saath. Har naye clone par ye automatically seed honge.
+2. **Admin Service-Role Enforcement (`lib/services/sections/homepage-sections.ts`):**
+   - Sabhi mutation functions aur vertical fetch ko `supabaseAdmin` (service role) par convert kiya.
+   - `updateHomepageSection` ko two-stage safe update/insert banaya: pehle `.update(payload).eq('id', id).select('*').maybeSingle()` karta hai. Agar row exist na kare toh safe fallback values (`section_type: 'custom'`) ke saath insert karta hai.
+3. **Frontend Payload Completeness (`useCustomizerState.ts`):**
+   - `updateHomepageSection` call mein `section_type: sec.section_type` aur `sort_order: sec.sort_order` explicitly pass kiye.
+   - Error handling mein `console.error` aur backend se aane wala `err?.message` toast mein show kiya taake debugging transparent rahe.
+4. **Product Update Safety (`updateProductFields.ts`):**
+   - `.single()` ko `.maybeSingle()` se replace kiya taake missing product ID par 500 error na aaye.
+
+---
+
+## Next Time Yeh Na Aaye — Rules
+
+```
+✅ RULE: Database schema mein jab bhi naye clone ke liye critical table banayein (jaise homepage_sections, store_settings), SUPER_MASTER_SCHEMA.sql ke andar hi unke initial default rows seed karein (ON CONFLICT DO NOTHING).
+
+✅ RULE: Admin mutations / server actions jo system settings ya layout save karti hain, unhe hamesha supabaseAdmin (service role) se execute karein taake cookie/RLS auth mismatch na ho.
+
+✅ RULE: Supabase PostgREST queries mein jahan row na milne ka imkan ho, kabhi bhi .single() use na karein — hamesha .maybeSingle() use karein taake PGRST116 exception throw na ho.
+
+✅ RULE: Columns jo NOT NULL hon unpar sensible DEFAULT value (e.g. DEFAULT 'custom') lagayein taake partial upsert operations fail na hon.
+```
+

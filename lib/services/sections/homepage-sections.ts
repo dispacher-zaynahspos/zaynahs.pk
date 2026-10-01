@@ -66,7 +66,7 @@ export const getHomepageSections = async (onlyActive = false): Promise<HomepageS
 
 export const fetchSectionsForVerticalAdmin = async (): Promise<HomepageSection[]> => {
   try {
-    const supabase = await createClient();
+    const supabase = supabaseAdmin;
     let query = supabase
       .from('homepage_sections')
       .select('*')
@@ -87,16 +87,51 @@ export const updateHomepageSection = async (
 ): Promise<HomepageSection> => {
   try {
     const supabase = supabaseAdmin;
-    const { data, error } = await supabase
+    const updatePayload: Record<string, any> = {
+      updated_at: new Date().toISOString()
+    };
+    if (updates.title !== undefined) updatePayload.title = updates.title;
+    if (updates.active !== undefined) updatePayload.active = updates.active;
+    if (updates.settings !== undefined) updatePayload.settings = updates.settings;
+    if (updates.content_data !== undefined) updatePayload.content_data = updates.content_data;
+    if (updates.sort_order !== undefined) updatePayload.sort_order = updates.sort_order;
+    if (updates.section_type !== undefined) updatePayload.section_type = updates.section_type;
+
+    // 1. Try update first on the existing record
+    const { data: updated, error: updateError } = await supabase
       .from('homepage_sections')
-      .update(updates)
+      .update(updatePayload)
       .eq('id', id)
+      .select('*')
+      .maybeSingle();
+
+    if (updateError) throw updateError;
+    if (updated) {
+      await revalidateBanner();
+      return updated;
+    }
+
+    // 2. If row did not exist yet (e.g. freshly created or ID mismatch), insert it safely with fallback section_type
+    const insertPayload = {
+      id,
+      section_type: updates.section_type || 'custom',
+      title: updates.title || '',
+      settings: updates.settings || {},
+      content_data: updates.content_data || {},
+      sort_order: updates.sort_order ?? 0,
+      active: updates.active ?? true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+    const { data: inserted, error: insertError } = await supabase
+      .from('homepage_sections')
+      .insert(insertPayload)
       .select('*')
       .single();
 
-    if (error) throw error;
+    if (insertError) throw insertError;
     await revalidateBanner();
-    return data;
+    return inserted;
   } catch (error) {
     console.error('[sections] updateHomepageSection failed:', error);
     throw error;

@@ -45,7 +45,7 @@ export const updateProductFields = async (
       .from('products')
       .select('slug')
       .eq('id', id)
-      .single();
+      .maybeSingle();
 
     const { error } = await supabase
       .from('products')

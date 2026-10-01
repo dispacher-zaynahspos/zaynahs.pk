@@ -312,12 +312,14 @@ export function useCustomizerState({
         const orderPayload = sections.map((s, idx) => ({ id: s.id, sort_order: idx + 1 }));
         await reorderHomepageSections(orderPayload);
 
-        const updatePromises = sections.map(sec => 
+        const updatePromises = sections.map((sec, idx) => 
           updateHomepageSection(sec.id, {
+            section_type: sec.section_type,
             title: sec.title,
             active: sec.active,
             settings: sec.settings,
-            content_data: sec.content_data
+            content_data: sec.content_data,
+            sort_order: sec.sort_order ?? idx + 1
           })
         );
 
@@ -341,8 +343,10 @@ export function useCustomizerState({
         } catch {
           toast.success('Customizer settings saved successfully.');
         }
-      } catch (err) {
-        toast.error('Failed to save layout adjustments and settings');
+      } catch (err: any) {
+        console.error('[useCustomizerState] handleSaveLayout failed:', err);
+        const msg = err?.message || (typeof err === 'string' ? err : 'Failed to save layout adjustments and settings');
+        toast.error(msg);
       }
     });
   };
