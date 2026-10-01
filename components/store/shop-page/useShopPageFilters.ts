@@ -6,7 +6,6 @@ import { Product, Category, Collection, StoreSettings } from '@/lib/types';
 import { useCartStore } from '@/store/cartStore';
 import { SHOP_CATEGORY_ID as SYSTEM_CATEGORY_ID } from '@/lib/config/singleton-ids';
 import { trackEvent } from '@/lib/trackEvent';
-import { useScrollRestoration } from '@/lib/hooks/useScrollRestoration';
 import { useSettings } from '@/lib/hooks/useSettings';
 import { SORT_OPTIONS, getSortLabel, toNumber, extractUsedVariants, filterProductsList } from './shopFilterUtils';
 import { useShopUrlParamsSync } from './hooks/useShopUrlParamsSync';
@@ -114,7 +113,6 @@ export function useShopPageFilters({
 
   const PAGE_SIZE = devicePageSize;
 
-  useScrollRestoration();
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
   const allProducts = initialProducts;

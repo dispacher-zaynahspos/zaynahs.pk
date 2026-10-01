@@ -14,7 +14,7 @@ import { ProductCardSwatches, VariationGroup } from './product-card/ProductCardS
 import { ProductCardShowcases } from './product-card/ProductCardShowcases';
 import { StandardProductCard } from './product-card/StandardProductCard';
 import { ProductCardStyleInjector } from './product-card/ProductCardStyles';
-import { saveScrollPosition } from '@/lib/hooks/useScrollRestoration';
+
 
 // Lazy load QuickViewModal to reduce initial JS bundle
 const QuickViewModal = dynamic(() => import('./QuickViewModal'), {
@@ -49,7 +49,6 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
   const elementsOrder = settings?.card_elements_order || ['title', 'rating', 'price', 'swatches'];
 
   const handleCardClick = () => {
-    saveScrollPosition(product.id);
   };
 
   const activeVariants = product.variants.filter(v => v.active);

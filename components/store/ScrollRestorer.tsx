@@ -4,10 +4,10 @@ import { useEffect, useRef } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 
 /**
- * Storefront scroll restoration (single source).
+ * Storefront scroll restoration (single source of truth).
  * - Back/forward (popstate): restore the exact saved scroll position, waiting
- *   for content height to be ready (rAF retries, ~1s cap) so a shorter first
- *   paint never clamps the page to the footer.
+ *   for content height to be ready (rAF retries + MutationObserver) so a shorter
+ *   first paint never clamps the page to the footer.
  * - Fresh navigation (push): scroll to top (or to #hash target if present).
  * Takes over from the browser via history.scrollRestoration = 'manual'.
  */
@@ -26,6 +26,7 @@ export default function ScrollRestorer() {
   const isPopRef = useRef(false);
   const rafRef = useRef<number | null>(null);
   const cancelRestoreRef = useRef(false);
+  const observerRef = useRef<MutationObserver | null>(null);
 
   // Take manual control of scroll restoration
   useEffect(() => {
@@ -46,7 +47,7 @@ export default function ScrollRestorer() {
   useEffect(() => {
     let t: ReturnType<typeof setTimeout>;
     const save = () => {
-      try { sessionStorage.setItem(key, String(Math.round(window.scrollY))); } catch { /* quota */ }
+      try { sessionStorage.setItem(liveKey(), String(Math.round(window.scrollY))); } catch { /* quota */ }
     };
     const onScroll = () => { clearTimeout(t); t = setTimeout(save, 120); };
     window.addEventListener('scroll', onScroll, { passive: true });
@@ -70,7 +71,7 @@ export default function ScrollRestorer() {
       if (el) { el.scrollIntoView(); isPopRef.current = false; return; }
     }
 
-    const saved = isPopRef.current ? sessionStorage.getItem(key) : null;
+    const saved = isPopRef.current ? sessionStorage.getItem(liveKey()) : null;
     isPopRef.current = false;
 
     if (saved == null) {
@@ -81,13 +82,19 @@ export default function ScrollRestorer() {
     const target = parseInt(saved, 10);
     if (!Number.isFinite(target) || target <= 0) { window.scrollTo(0, 0); return; }
 
-    // User scroll cancels restoration
-    const onUserScroll = () => { cancelRestoreRef.current = true; };
-    window.addEventListener('wheel', onUserScroll, { passive: true, once: true });
-    window.addEventListener('touchmove', onUserScroll, { passive: true, once: true });
+    // User scroll cancels restoration — but only if they scroll significantly away from the target area
+    const onUserScroll = () => {
+      // Only cancel if user scrolled significantly away from the target (±50px)
+      if (Math.abs(window.scrollY - target) > 50) {
+        cancelRestoreRef.current = true;
+      }
+    };
+    window.addEventListener('wheel', onUserScroll, { passive: true });
+    window.addEventListener('touchmove', onUserScroll, { passive: true });
 
     let tries = 0;
-    const maxTries = 60; // ~1s at 60fps
+    const maxTries = 300; // ~5s at 60fps — enough for lazy content to fully load
+
     const attempt = () => {
       if (cancelRestoreRef.current) return;
       const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
@@ -101,10 +108,32 @@ export default function ScrollRestorer() {
     };
     rafRef.current = requestAnimationFrame(attempt);
 
+    // Also listen for content growth (lazy images, deferred sections) to re-attempt
+    const reattempt = () => {
+      if (cancelRestoreRef.current) return;
+      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+      if (maxScroll >= target) {
+        // Content grew enough — try again immediately
+        tries = 0;
+        rafRef.current = requestAnimationFrame(attempt);
+      }
+    };
+
+    // MutationObserver for DOM changes (lazy-loaded images, deferred sections)
+    const observer = new MutationObserver(() => reattempt());
+    observer.observe(document.documentElement, { childList: true, subtree: true, attributes: true, characterData: true });
+    observerRef.current = observer;
+
+    // Also listen for window load/resize as backup
+    window.addEventListener('load', reattempt, { once: true });
+    window.addEventListener('resize', reattempt);
+
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       window.removeEventListener('wheel', onUserScroll);
       window.removeEventListener('touchmove', onUserScroll);
+      window.removeEventListener('resize', reattempt);
+      observer.disconnect();
     };
   }, [key]);
 
