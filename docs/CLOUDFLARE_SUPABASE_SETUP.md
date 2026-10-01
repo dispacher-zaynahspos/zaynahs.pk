@@ -24,6 +24,22 @@
 
 ---
 
+## ⚡ ONE-COMMAND CLONE SETUP (new store, full bring-up)
+
+Naya store setup karna ho (DB + webhooks + Vercel env + Cloudflare DNS/cache rules + verify) to **ek command** — details `docs/NEW_PROJECT_SETUP_GUIDE.md` top section:
+```bash
+npm run clone:setup -- --store=<store> --deploy --yes
+```
+Cloudflare-only phase (DNS records + 4 cache rules), idempotent:
+```bash
+npm run cf:dns      # A @ → 76.76.21.21  +  CNAME www → cname.vercel-dns.com (proxied)
+npm run cf:rules    # no-cache-dynamic, static-assets, html-pages, supabase-images
+```
+> `cf:dns` DNS records bana deta hai chahe zone abhi `pending` ho (NS registrar par switch hone ka intezaar) — jaise hi NS propagate hogi site live aa jayegi.
+
+---
+
+
 ## ✅ ONE-COMMAND FULL AUDIT (Run After Every Deploy)
 
 ```bash

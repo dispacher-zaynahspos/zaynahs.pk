@@ -159,3 +159,18 @@ Product slug kabhi bhi spaces, UPPERCASE, pipes `|`, ya kisi non-URL-safe char k
 - **Duplicate uniqueness:** duplicate product ka slug `slugify(base) + '-copy-' + Date.now()` (app/admin/products/new/page.tsx) — clean + unique.
 - Same approach categories/collections slugs ke liye bhi apply karo agar wahan dirty-slug risk mile.
 
+## RULE SYNC1 — Setup system har action pe sync rahe (STRICT — Definition of Done)
+Jab bhi migration create ho, feature add/remove ho, ya env/trigger change ho — **setup files usi task me update** hon. "Baad me" ka concept nahi. Ye enforce hota hai: `npm run check:setup` har `build` se pehle (`prebuild`) + optional git `pre-commit` hook (`npm run setup:hooks`) se chalta hai aur drift pe **commit/build block** kar deta hai.
+
+**Definition of Done — kaunsa change → kya update karna hai:**
+| Change | Zaroori update |
+|--------|----------------|
+| Nayi `supabase/migrations/*.sql` | Wahi change `SUPER_MASTER_SCHEMA.sql` me bhi reflect (RULE D6). `npm run check:schema` green hona chahiye. |
+| Nayi table jisko storefront cache revalidation chahiye | `revalidate-*` trigger **dono** jagah: master schema + `scripts/setup-triggers.mjs` ki `TRIGGERS` list. (Cross-check `check:setup` karta hai.) |
+| Naya **required** env var (app chalne ke liye zaroori) | `.env.example` me add + agar clone ko chahiye to `scripts/clone-setup.mjs` ki `REQUIRED` list. (`vercel-setup.mjs` env file se saari keys khud push karta hai — usme manual add nahi.) |
+| `lib/types.ts` ya DB column | Types + master schema dono (Types synchronization section). |
+| Feature **remove** | Migration (drop/cleanup) + master schema se nikaalo + stale types/triggers/env-docs bhi hatao. |
+
+**Guard commands:** `npm run check:setup` (sab sync-checks), `npm run check:schema` (sirf migrations↔master). CI/agent: in dono me se koi red = kaam adhoora. `clone-setup.mjs` fresh clone par master schema hi apply karta hai, isliye master ka 100% complete + in-sync hona hi "1-time 100% clone" ki guarantee hai.
+
+

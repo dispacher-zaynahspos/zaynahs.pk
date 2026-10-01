@@ -31,6 +31,10 @@ export interface ThemeConfig {
     success?: string;
     warning?: string;
     link?: string;
+    headerTopBarBg?: string;
+    headerTopBarTextColor?: string;
+    footerBg?: string;
+    footerTextColor?: string;
   };
   fonts: {
     heading: string;
@@ -199,6 +203,9 @@ export interface StoreSettings {
   footer_col4_title?: string;
   footer_col4_text?: string;
   footer_bottom_text?: string;
+  footer_bg?: string;
+  footer_text_color?: string;
+  footer_border_color?: string;
   footer_show_payments?: boolean;
   footer_show_menu?: boolean;
   footer_show_newsletter?: boolean;

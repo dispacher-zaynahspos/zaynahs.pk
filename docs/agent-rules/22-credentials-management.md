@@ -93,9 +93,18 @@ grep "VERCEL_PROJECT_NAME" env-backups/*.env.local
 - NEVER mark a deploy complete if the Vercel purge was SKIPPED.
 
 ## Clone / setup from scratch
-1. Copy `.env.example` → `.env.local`, fill in your store's Supabase project details.
-2. Backup: `cp .env.local env-backups/<yourstore>.env.local`.
-3. `node scripts/init-db.mjs` to apply `SUPER_MASTER_SCHEMA.sql`.
-4. `node scripts/run-migration.mjs supabase/migrations/<filename>.sql` for individual migrations.
-5. Fill in `CLOUDFLARE_ZONE_ID`, `CLOUDFLARE_API_TOKEN` (unique per store).
-6. `npm run dev` — everything works.
+
+### ✅ Preferred — one command (POS-style, idempotent)
+1. Supabase project banao; `env-backups/<store>.env.local` me saari keys bharo (`.env.example` ki list; required: Supabase ref/tokens/url/keys, `NEXT_PUBLIC_SITE_URL`, `REVALIDATE_SECRET`, `NEXT_PUBLIC_BRAND_NAME`, `VERCEL_TOKEN`, `VERCEL_PROJECT_NAME`, `CLOUDFLARE_ZONE_ID`, `CLOUDFLARE_API_TOKEN`).
+2. `npm run clone:setup -- --store=<store> --deploy --yes`
+   → preflight → db:schema (`init-db.mjs`) → db:webhooks (`setup-triggers.mjs`) → db:admin → db:brand → Vercel env push (+deploy) → Cloudflare DNS + cache rules → verify. Sab idempotent, dubara chalana safe.
+3. Sirf manual baaki: registrar (PKNIC for .pk) par nameservers Cloudflare NS pe point karna. NS switch tak `https://<project>.vercel.app` pe test.
+Full guide: `docs/NEW_PROJECT_SETUP_GUIDE.md` (top section).
+
+### Manual fallback (debug / single phase)
+Individual npm scripts: `npm run db:schema`, `db:webhooks`, `db:admin`, `db:brand`, `vercel:setup`, `cf:dns`, `cf:rules`, `check:schema`. Ya raw: `node scripts/run-migration.mjs supabase/migrations/<file>.sql` ek migration ke liye.
+
+### Agent rule — master schema hamesha updated
+- Koi bhi naya migration add karo → turant `SUPER_MASTER_SCHEMA.sql` me bhi reflect karo (RULE D6).
+- Commit se pehle `npm run check:schema` chalao — ye assert karta hai ke har migration master schema me maujood hai. Red = master schema update karo. (`clone:setup` fresh clone par master schema hi apply karta hai, isliye master ka 100% complete hona zaroori hai.)
+

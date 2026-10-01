@@ -2,14 +2,14 @@
 
 import React from 'react';
 import { StoreSettings, ThemeConfig } from '@/lib/types';
-import { THEME_PRESETS } from '@/lib/theme-presets';
+import { THEME_PRESETS, ThemePreset } from '@/lib/theme-presets';
 import { Check } from '@/components/common/Icons';
 import { toast } from 'sonner';
 import { useConfirm } from '@/components/admin/shared/AdminConfirmProvider';
 
 interface AppearancePresetsListProps {
   settings: StoreSettings;
-  onSelectPreset: (presetId: string, presetConfig: ThemeConfig) => void;
+  onSelectPreset: (presetId: string, presetConfig: ThemeConfig, preset?: ThemePreset) => void;
   onUpdateSettings?: (updates: Partial<StoreSettings>) => void;
 }
 
@@ -44,7 +44,7 @@ export function AppearancePresetsList({ settings, onSelectPreset }: AppearancePr
                   confirmText: 'Apply',
                 });
                 if (confirmed) {
-                  onSelectPreset(preset.id, preset.config);
+                  onSelectPreset(preset.id, preset.config, preset);
                   toast.info(`Theme Preset "${preset.name}" applied in preview.`);
                 }
               }}

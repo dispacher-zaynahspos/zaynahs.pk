@@ -50,6 +50,9 @@ export default function Footer({ settings, brandName }: FooterProps) {
     gridColsClass = 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3';
   }
 
+  const footerBg = settings.footer_bg || settings.theme_config?.colors?.footerBg;
+  const footerTextColor = settings.footer_text_color || settings.theme_config?.colors?.footerTextColor;
+
   return (
     <footer
       onClick={(e) => {
@@ -62,6 +65,10 @@ export default function Footer({ settings, brandName }: FooterProps) {
       className={`w-full overflow-hidden bg-white dark:bg-[#0f0f1b] border-t border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400 select-none transition-colors duration-200 ${
         isPreview ? 'cursor-pointer hover:ring-2 hover:ring-[#e94560] hover:ring-offset-2' : ''
       }`}
+      style={{
+        backgroundColor: footerBg,
+        color: footerTextColor,
+      }}
     >
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         {/* Footer Top - Shopify Dynamic Responsive Grid */}

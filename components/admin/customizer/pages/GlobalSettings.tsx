@@ -129,12 +129,142 @@ export default function GlobalSettings({
         </div>
 
         <HeaderAnnouncementFields settings={settings} onUpdate={onUpdateSettings} />
+
+        {/* Top Bar & Header Customizer Colors */}
+        <div className="space-y-3 p-3 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-gray-800">
+          <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#e94560] block">
+            Top Bar & Header Colors
+          </span>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 block uppercase tracking-wider">Top Bar Background</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  value={settings.header_top_bar_bg || settings.theme_config?.colors?.headerTopBarBg || '#0F2A5E'}
+                  onChange={(e) => onUpdateSettings({ header_top_bar_bg: e.target.value })}
+                  className="w-7 h-7 rounded border border-gray-200 cursor-pointer overflow-hidden p-0 bg-transparent shrink-0"
+                />
+                <input
+                  type="text"
+                  value={settings.header_top_bar_bg || ''}
+                  onChange={(e) => onUpdateSettings({ header_top_bar_bg: e.target.value })}
+                  placeholder={settings.theme_config?.colors?.headerTopBarBg || '#0F2A5E'}
+                  className="w-full px-2 py-1 bg-white dark:bg-[#0f0f1b] border border-gray-200 dark:border-gray-800 rounded-lg text-xs font-mono"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 block uppercase tracking-wider">Top Bar Text</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  value={settings.header_top_bar_text_color || settings.theme_config?.colors?.headerTopBarTextColor || '#ffffff'}
+                  onChange={(e) => onUpdateSettings({ header_top_bar_text_color: e.target.value })}
+                  className="w-7 h-7 rounded border border-gray-200 cursor-pointer overflow-hidden p-0 bg-transparent shrink-0"
+                />
+                <input
+                  type="text"
+                  value={settings.header_top_bar_text_color || ''}
+                  onChange={(e) => onUpdateSettings({ header_top_bar_text_color: e.target.value })}
+                  placeholder={settings.theme_config?.colors?.headerTopBarTextColor || '#FFFFFF'}
+                  className="w-full px-2 py-1 bg-white dark:bg-[#0f0f1b] border border-gray-200 dark:border-gray-800 rounded-lg text-xs font-mono"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 block uppercase tracking-wider">Header Background</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  value={settings.header_bg || '#ffffff'}
+                  onChange={(e) => onUpdateSettings({ header_bg: e.target.value })}
+                  className="w-7 h-7 rounded border border-gray-200 cursor-pointer overflow-hidden p-0 bg-transparent shrink-0"
+                />
+                <input
+                  type="text"
+                  value={settings.header_bg || ''}
+                  onChange={(e) => onUpdateSettings({ header_bg: e.target.value })}
+                  placeholder="#FFFFFF"
+                  className="w-full px-2 py-1 bg-white dark:bg-[#0f0f1b] border border-gray-200 dark:border-gray-800 rounded-lg text-xs font-mono"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 block uppercase tracking-wider">Header Text Color</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  value={settings.header_text_color || '#1a1a2e'}
+                  onChange={(e) => onUpdateSettings({ header_text_color: e.target.value })}
+                  className="w-7 h-7 rounded border border-gray-200 cursor-pointer overflow-hidden p-0 bg-transparent shrink-0"
+                />
+                <input
+                  type="text"
+                  value={settings.header_text_color || ''}
+                  onChange={(e) => onUpdateSettings({ header_text_color: e.target.value })}
+                  placeholder="#1A1A2E"
+                  className="w-full px-2 py-1 bg-white dark:bg-[#0f0f1b] border border-gray-200 dark:border-gray-800 rounded-lg text-xs font-mono"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="space-y-4">
+      {/* Footer Colors */}
+      <div className="space-y-3 p-3 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-gray-800">
+        <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#e94560] block">
+          Footer Colors
+        </span>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 block uppercase tracking-wider">Footer Background</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={settings.footer_bg || settings.theme_config?.colors?.footerBg || '#ffffff'}
+                onChange={(e) => onUpdateSettings({ footer_bg: e.target.value })}
+                className="w-7 h-7 rounded border border-gray-200 cursor-pointer overflow-hidden p-0 bg-transparent shrink-0"
+              />
+              <input
+                type="text"
+                value={settings.footer_bg || ''}
+                onChange={(e) => onUpdateSettings({ footer_bg: e.target.value })}
+                placeholder={settings.theme_config?.colors?.footerBg || '#FFFFFF'}
+                className="w-full px-2 py-1 bg-white dark:bg-[#0f0f1b] border border-gray-200 dark:border-gray-800 rounded-lg text-xs font-mono"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 block uppercase tracking-wider">Footer Text Color</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={settings.footer_text_color || settings.theme_config?.colors?.footerTextColor || '#5B6B85'}
+                onChange={(e) => onUpdateSettings({ footer_text_color: e.target.value })}
+                className="w-7 h-7 rounded border border-gray-200 cursor-pointer overflow-hidden p-0 bg-transparent shrink-0"
+              />
+              <input
+                type="text"
+                value={settings.footer_text_color || ''}
+                onChange={(e) => onUpdateSettings({ footer_text_color: e.target.value })}
+                placeholder={settings.theme_config?.colors?.footerTextColor || '#5B6B85'}
+                className="w-full px-2 py-1 bg-white dark:bg-[#0f0f1b] border border-gray-200 dark:border-gray-800 rounded-lg text-xs font-mono"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="space-y-1.5">
         <label className="text-[11px] font-bold text-gray-500 dark:text-gray-400 block uppercase tracking-wider">Footer Copyright text</label>
         <input

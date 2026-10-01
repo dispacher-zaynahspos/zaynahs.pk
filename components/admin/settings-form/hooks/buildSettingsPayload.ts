@@ -191,6 +191,8 @@ export function buildSettingsPayload(data: {
     footer_col4_title: headerFooter.footerCol4Title.trim(),
     footer_col4_text: headerFooter.footerCol4Text.trim(),
     footer_bottom_text: headerFooter.footerBottomText.trim(),
+    footer_bg: headerFooter.footerBg?.trim() || undefined,
+    footer_text_color: headerFooter.footerTextColor?.trim() || undefined,
     footer_show_payments: headerFooter.footerShowPayments,
     footer_show_menu: headerFooter.footerShowMenu,
     footer_show_newsletter: headerFooter.footerShowNewsletter,

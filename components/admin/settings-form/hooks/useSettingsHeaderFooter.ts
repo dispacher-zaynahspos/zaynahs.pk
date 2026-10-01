@@ -25,6 +25,8 @@ export function useSettingsHeaderFooter({ initialSettings }: UseSettingsHeaderFo
     initialSettings.footer_col4_text || 'Subscribe to get special offers, free giveaways, and once-in-a-lifetime deals.'
   );
   const [footerBottomText, setFooterBottomText] = useState(initialSettings.footer_bottom_text || '');
+  const [footerBg, setFooterBg] = useState(initialSettings.footer_bg || '');
+  const [footerTextColor, setFooterTextColor] = useState(initialSettings.footer_text_color || '');
   const [footerShowPayments, setFooterShowPayments] = useState(initialSettings.footer_show_payments ?? true);
   const [footerShowMenu, setFooterShowMenu] = useState(initialSettings.footer_show_menu ?? true);
   const [footerShowNewsletter, setFooterShowNewsletter] = useState(initialSettings.footer_show_newsletter ?? true);
@@ -139,6 +141,10 @@ export function useSettingsHeaderFooter({ initialSettings }: UseSettingsHeaderFo
     setFooterCol4Text,
     footerBottomText,
     setFooterBottomText,
+    footerBg,
+    setFooterBg,
+    footerTextColor,
+    setFooterTextColor,
     footerShowPayments,
     setFooterShowPayments,
     footerShowMenu,

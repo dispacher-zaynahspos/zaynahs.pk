@@ -1,0 +1,14 @@
+#!/bin/sh
+# Pre-commit guard — blocks commits that leave the setup system out of sync.
+# Enable once per clone:  npm run setup:hooks
+# Checks: migrations ↔ master schema, revalidate triggers, clone:setup env docs.
+echo "[pre-commit] verifying setup system is in sync..."
+node scripts/check-setup-sync.mjs
+status=$?
+if [ $status -ne 0 ]; then
+  echo "[pre-commit] ❌ Commit blocked — update the setup files (see RULE SYNC1), then re-commit."
+  echo "[pre-commit]    (bypass only if you know what you're doing: git commit --no-verify)"
+  exit 1
+fi
+echo "[pre-commit] ✅ setup system in sync."
+exit 0

@@ -133,6 +133,9 @@ export interface SettingsRow {
   footer_col_4_title?: string | null;
   footer_col_4_text?: string | null;
   footer_bottom_text?: string | null;
+  footer_bg?: string | null;
+  footer_text_color?: string | null;
+  footer_border_color?: string | null;
   footer_show_payments?: boolean | null;
   footer_show_menu?: boolean | null;
   footer_show_newsletter?: boolean | null;

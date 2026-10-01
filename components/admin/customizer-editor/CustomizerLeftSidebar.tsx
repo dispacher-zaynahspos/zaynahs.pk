@@ -135,11 +135,15 @@ export function CustomizerLeftSidebar({
             <AppearancePresetsList
               settings={storeSettings}
               onUpdateSettings={(updates) => setStoreSettings(prev => ({ ...prev, ...updates }))}
-              onSelectPreset={(presetId: string, presetConfig: ThemeConfig) => {
+              onSelectPreset={(presetId, presetConfig, preset) => {
                 setStoreSettings(prev => ({
                   ...prev,
                   theme_preset: presetId,
                   theme_config: presetConfig,
+                  header_top_bar_bg: preset?.header_top_bar_bg ?? presetConfig.colors.headerTopBarBg ?? presetConfig.colors.primary,
+                  header_top_bar_text_color: preset?.header_top_bar_text_color ?? presetConfig.colors.headerTopBarTextColor ?? '#FFFFFF',
+                  footer_bg: preset?.footer_bg ?? presetConfig.colors.footerBg ?? (presetConfig.colors.background === '#0E0E10' || presetConfig.colors.background === '#0B1120' || presetConfig.colors.background === '#121212' ? presetConfig.colors.surface : '#FFFFFF'),
+                  footer_text_color: preset?.footer_text_color ?? presetConfig.colors.footerTextColor ?? presetConfig.colors.textSecondary,
                 }));
               }}
             />

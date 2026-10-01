@@ -7,6 +7,44 @@
 
 ---
 
+## 🚀 ONE-COMMAND CLONE SETUP (POS-style — do this first)
+
+Agar store ka `env-backups/<store>.env.local` ready hai (saari keys bhari hui), to **poora bring-up ek command se** — DB schema + webhooks + admin + brand + Vercel env + Cloudflare DNS + cache rules + verify, sahi order mein:
+
+```bash
+npm run clone:setup -- --store=lobo --deploy --yes
+```
+
+- `--store=<name>` → `env-backups/<name>.env.local` use karta hai (`.env.local` ko temporarily swap karke restore kar deta hai). Ya `--env=path`, ya kuch na do to active `.env.local`.
+- `--deploy` → Vercel production deploy bhi trigger karta hai (chhodo to sirf env push).
+- `--yes` → confirmation skip.
+- Phase controls: `--skip-db --skip-vercel --skip-cloudflare --skip-verify`, ya `--only=db|vercel|cloudflare|verify`.
+
+**Steps jo ye chalata hai (sab idempotent — dubara chalana safe):**
+| # | Phase | Script | Kaam |
+|---|-------|--------|------|
+| 1 | preflight | (built-in) | required env keys + site-URL no-redirect check |
+| 2 | db:schema | `init-db.mjs` | `SUPER_MASTER_SCHEMA.sql` apply (tables, RLS, RPCs, triggers, seed) |
+| 3 | db:webhooks | `setup-triggers.mjs` | 21 `revalidate-*` triggers (real URL + secret) |
+| 4 | db:admin | `create-admin.mjs` | Supabase Auth admin user |
+| 5 | db:brand | `seed-brand.mjs` | brand text (settings/ai/seo) |
+| 6 | vercel | `vercel-setup.mjs` | saari env vars push (+ `--deploy`) |
+| 7 | cf:dns | `cloudflare-dns.mjs` | `A @ → 76.76.21.21` + `CNAME www → cname.vercel-dns.com` (proxied) |
+| 8 | cf:rules | `deploy-cloudflare-rules.js` | 4 cache rules + proxy on |
+| 9 | verify | `post-deploy-fix.mjs` | HTTP 200 + webhook test |
+
+**Individual phase npm scripts** (manual/debug): `npm run db:schema`, `db:webhooks`, `db:admin`, `db:brand`, `vercel:setup`, `cf:dns`, `cf:rules`, `check:schema`.
+
+> **Sirf baqi manual kaam** (API se automate nahi hota): (a) Supabase project create karna + uski keys `env-backups/<store>.env.local` me daalna, (b) domain ke **nameservers registrar (PKNIC for .pk) par Cloudflare NS** pe point karna. Baqi sab ek command. NS switch hone tak `https://<project>.vercel.app` par test karo.
+
+> ⚠️ **FRESH clone ke liye hai.** Step 5 (`db:brand`) brand text (store_settings/ai_settings/seo_meta) ko generated defaults se **overwrite** karta hai. Pehle se LIVE store par chalana ho to `--skip-db` do (ya sirf zaroori `--only=` phase) taake customized content na mite.
+
+
+Manual step-by-step reference (jab zaroorat ho) neeche hai.
+
+---
+
+
 ## 🏪 Current Active Projects
 
 | Store | GitHub Repo | Site | env-backup file |

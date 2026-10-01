@@ -139,7 +139,7 @@ export function FooterQuickLinks({ settings, navigationMenu }: FooterQuickLinksP
         <li key="toggle-more">
           <button
             onClick={() => setShowAllQuickLinks(!showAllQuickLinks)}
-            className="text-[#e94560] hover:text-[#d8344f] dark:text-[#ff6b84] dark:hover:text-[#ff8a9f] transition-colors font-bold flex items-center gap-1 mt-2 cursor-pointer"
+            className="text-primary hover:opacity-80 transition-colors font-bold flex items-center gap-1 mt-2 cursor-pointer"
           >
             {showAllQuickLinks ? 'Show Less' : 'Show More'}
             <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${showAllQuickLinks ? 'rotate-180' : ''}`} />

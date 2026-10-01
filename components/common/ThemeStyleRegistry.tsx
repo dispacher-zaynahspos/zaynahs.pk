@@ -48,6 +48,10 @@ export default function ThemeStyleRegistry({ settings }: ThemeStyleRegistryProps
       --color-warning: ${colors.warning || '#f59e0b'} !important;
       --color-link: ${colors.link || colors.accent || '#e94560'} !important;
       --color-border: ${colors.border} !important;
+      --header-top-bar-bg: ${settings.header_top_bar_bg || colors.headerTopBarBg || colors.primary} !important;
+      --header-top-bar-text: ${settings.header_top_bar_text_color || colors.headerTopBarTextColor || '#ffffff'} !important;
+      --footer-bg: ${settings.footer_bg || colors.footerBg || (colors.background === '#0E0E10' || colors.background === '#0B1120' || colors.background === '#121212' ? colors.surface : '#FFFFFF')} !important;
+      --footer-text: ${settings.footer_text_color || colors.footerTextColor || colors.textSecondary} !important;
 
       --font-heading: "${headingFont}", sans-serif !important;
       --font-body: "${bodyFont}", sans-serif !important;
@@ -194,9 +198,17 @@ export default function ThemeStyleRegistry({ settings }: ThemeStyleRegistryProps
     }
     
     /* Text color hardcoded overrides */
-    .text-\\[\\#e94560\\], [class*="text-[#e94560]"],
+    .text-\\[\\#e94560\\], 
+    [class~="text-[#e94560]"],
+    [class*="text-[#e94560]"]:not([class*="hover:text-[#e94560]"]):not([class*="group-hover:text-[#e94560]"]):not([class*="focus:text-[#e94560]"]),
     .text-accent, .dark .text-accent {
       color: var(--color-text-accent) !important;
+    }
+
+    /* Hover text color overrides */
+    .hover\\:text-\\[\\#e94560\\]:hover,
+    [class*="hover:text-[#e94560]"]:hover {
+      color: var(--color-primary, var(--color-text-accent)) !important;
     }
     .text-\\[\\#1a1a2e\\], [class*="text-[#1a1a2e]"],
     .text-secondary, .dark .text-secondary {

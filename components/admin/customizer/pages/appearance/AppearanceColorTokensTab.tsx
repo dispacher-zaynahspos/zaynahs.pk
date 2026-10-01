@@ -36,7 +36,11 @@ export function AppearanceColorTokensTab({ colors, updateConfigField }: Appearan
           { key: 'success', label: 'Success / In-Stock', desc: 'Verified, in-stock, success toasts & ticks' },
           { key: 'warning', label: 'Warning / Low-Stock', desc: 'Low-stock urgency, warnings, countdowns' },
           { key: 'link', label: 'Link Color', desc: 'Inline links and "view all" actions' },
-          { key: 'border', label: 'Borders/Dividers', desc: 'Layout segment borders and list dividers' }
+          { key: 'border', label: 'Borders/Dividers', desc: 'Layout segment borders and list dividers' },
+          { key: 'headerTopBarBg', label: 'Header Top Bar BG', desc: 'Announcement ticker & contact top bar background' },
+          { key: 'headerTopBarTextColor', label: 'Header Top Bar Text', desc: 'Announcement ticker & phone/email text' },
+          { key: 'footerBg', label: 'Footer Background', desc: 'Storefront footer area background color' },
+          { key: 'footerTextColor', label: 'Footer Text Color', desc: 'Storefront footer links and content text' }
         ].map(item => {
           let val = colors[item.key as keyof typeof colors] || '';
           if (!val) {
@@ -54,6 +58,14 @@ export function AppearanceColorTokensTab({ colors, updateConfigField }: Appearan
               val = '#f59e0b';
             } else if (item.key === 'link') {
               val = colors.accent || '#e94560';
+            } else if (item.key === 'headerTopBarBg') {
+              val = colors.primary || '#0F2A5E';
+            } else if (item.key === 'headerTopBarTextColor') {
+              val = '#FFFFFF';
+            } else if (item.key === 'footerBg') {
+              val = colors.surface || colors.background || '#FFFFFF';
+            } else if (item.key === 'footerTextColor') {
+              val = colors.textSecondary || '#5B6B85';
             } else {
               val = '#000000';
             }

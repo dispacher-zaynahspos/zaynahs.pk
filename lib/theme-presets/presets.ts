@@ -5,6 +5,10 @@ export interface ThemePreset {
   name: string;
   feel: string;
   config: ThemeConfig;
+  header_top_bar_bg?: string;
+  header_top_bar_text_color?: string;
+  footer_bg?: string;
+  footer_text_color?: string;
 }
 
 export const THEME_PRESETS: ThemePreset[] = [
@@ -12,6 +16,10 @@ export const THEME_PRESETS: ThemePreset[] = [
     id: 'classic_white',
     name: 'Classic White',
     feel: 'Luxury minimal like Zara',
+    header_top_bar_bg: '#000000',
+    header_top_bar_text_color: '#FFFFFF',
+    footer_bg: '#F9F9F9',
+    footer_text_color: '#666666',
     config: {
       colors: {
         primary: '#000000',
@@ -25,6 +33,10 @@ export const THEME_PRESETS: ThemePreset[] = [
         textHeading: '#000000',
         textAccent: '#C8A97E',
         price: '#C8A97E',
+        headerTopBarBg: '#000000',
+        headerTopBarTextColor: '#FFFFFF',
+        footerBg: '#F9F9F9',
+        footerTextColor: '#666666',
       },
       fonts: {
         heading: 'Playfair Display',
@@ -48,6 +60,10 @@ export const THEME_PRESETS: ThemePreset[] = [
     id: 'little_explorers',
     name: 'Little Explorers',
     feel: 'Playful & trusted kids & family boutique',
+    header_top_bar_bg: '#0F2A5E',
+    header_top_bar_text_color: '#FFFFFF',
+    footer_bg: '#FFFFFF',
+    footer_text_color: '#5B6B85',
     config: {
       colors: {
         primary: '#0F2A5E',
@@ -61,6 +77,10 @@ export const THEME_PRESETS: ThemePreset[] = [
         textHeading: '#0B2559',
         textAccent: '#F5A800',
         price: '#0F2A5E',
+        headerTopBarBg: '#0F2A5E',
+        headerTopBarTextColor: '#FFFFFF',
+        footerBg: '#FFFFFF',
+        footerTextColor: '#5B6B85',
       },
       fonts: {
         heading: 'Lexend',
@@ -84,6 +104,10 @@ export const THEME_PRESETS: ThemePreset[] = [
     id: 'rose_blush',
     name: 'Rose Blush',
     feel: 'Feminine fashion like Shein',
+    header_top_bar_bg: '#C2185B',
+    header_top_bar_text_color: '#FFFFFF',
+    footer_bg: '#FFF8F9',
+    footer_text_color: '#718096',
     config: {
       colors: {
         primary: '#C2185B',
@@ -97,6 +121,10 @@ export const THEME_PRESETS: ThemePreset[] = [
         textHeading: '#880E4F',
         textAccent: '#C2185B',
         price: '#C2185B',
+        headerTopBarBg: '#C2185B',
+        headerTopBarTextColor: '#FFFFFF',
+        footerBg: '#FFF8F9',
+        footerTextColor: '#718096',
       },
       fonts: {
         heading: 'Cormorant Garamond',
@@ -120,6 +148,10 @@ export const THEME_PRESETS: ThemePreset[] = [
     id: 'midnight_dark',
     name: 'Midnight Dark',
     feel: 'Premium dark mode like Farfetch dark',
+    header_top_bar_bg: '#1E1E1E',
+    header_top_bar_text_color: '#BB86FC',
+    footer_bg: '#1E1E1E',
+    footer_text_color: '#A0A0A0',
     config: {
       colors: {
         primary: '#BB86FC',
@@ -133,6 +165,10 @@ export const THEME_PRESETS: ThemePreset[] = [
         textHeading: '#BB86FC',
         textAccent: '#CF6679',
         price: '#CF6679',
+        headerTopBarBg: '#1E1E1E',
+        headerTopBarTextColor: '#BB86FC',
+        footerBg: '#1E1E1E',
+        footerTextColor: '#A0A0A0',
       },
       fonts: {
         heading: 'Montserrat',
@@ -156,6 +192,10 @@ export const THEME_PRESETS: ThemePreset[] = [
     id: 'ocean_blue',
     name: 'Ocean Blue',
     feel: 'Clean corporate like ASOS',
+    header_top_bar_bg: '#0D47A1',
+    header_top_bar_text_color: '#FFFFFF',
+    footer_bg: '#FFFFFF',
+    footer_text_color: '#64748B',
     config: {
       colors: {
         primary: '#1565C0',
@@ -169,6 +209,10 @@ export const THEME_PRESETS: ThemePreset[] = [
         textHeading: '#0D47A1',
         textAccent: '#1565C0',
         price: '#1565C0',
+        headerTopBarBg: '#0D47A1',
+        headerTopBarTextColor: '#FFFFFF',
+        footerBg: '#FFFFFF',
+        footerTextColor: '#64748B',
       },
       fonts: {
         heading: 'Raleway',
@@ -192,6 +236,10 @@ export const THEME_PRESETS: ThemePreset[] = [
     id: 'forest_green',
     name: 'Forest Green',
     feel: 'Organic natural like Allbirds',
+    header_top_bar_bg: '#1B5E20',
+    header_top_bar_text_color: '#FFFFFF',
+    footer_bg: '#FFFFFF',
+    footer_text_color: '#556B56',
     config: {
       colors: {
         primary: '#2E7D32',
@@ -205,6 +253,10 @@ export const THEME_PRESETS: ThemePreset[] = [
         textHeading: '#1B5E20',
         textAccent: '#2E7D32',
         price: '#2E7D32',
+        headerTopBarBg: '#1B5E20',
+        headerTopBarTextColor: '#FFFFFF',
+        footerBg: '#FFFFFF',
+        footerTextColor: '#556B56',
       },
       fonts: {
         heading: 'Josefin Sans',
@@ -228,6 +280,10 @@ export const THEME_PRESETS: ThemePreset[] = [
     id: 'warm_sand',
     name: 'Warm Sand',
     feel: 'Earthy artisan like Anthropologie',
+    header_top_bar_bg: '#5D4037',
+    header_top_bar_text_color: '#FFFFFF',
+    footer_bg: '#FFF8F5',
+    footer_text_color: '#795548',
     config: {
       colors: {
         primary: '#8D6E63',
@@ -241,6 +297,10 @@ export const THEME_PRESETS: ThemePreset[] = [
         textHeading: '#3E2723',
         textAccent: '#8D6E63',
         price: '#8D6E63',
+        headerTopBarBg: '#5D4037',
+        headerTopBarTextColor: '#FFFFFF',
+        footerBg: '#FFF8F5',
+        footerTextColor: '#795548',
       },
       fonts: {
         heading: 'Libre Baskerville',
@@ -264,6 +324,10 @@ export const THEME_PRESETS: ThemePreset[] = [
     id: 'bold_red',
     name: 'Bold Red',
     feel: 'Bold energetic like H&M sale',
+    header_top_bar_bg: '#B71C1C',
+    header_top_bar_text_color: '#FFFFFF',
+    footer_bg: '#F5F5F5',
+    footer_text_color: '#4A4A4A',
     config: {
       colors: {
         primary: '#D32F2F',
@@ -277,6 +341,10 @@ export const THEME_PRESETS: ThemePreset[] = [
         textHeading: '#B71C1C',
         textAccent: '#D32F2F',
         price: '#D32F2F',
+        headerTopBarBg: '#B71C1C',
+        headerTopBarTextColor: '#FFFFFF',
+        footerBg: '#F5F5F5',
+        footerTextColor: '#4A4A4A',
       },
       fonts: {
         heading: 'Anton',
@@ -300,6 +368,10 @@ export const THEME_PRESETS: ThemePreset[] = [
     id: 'lavender_dream',
     name: 'Lavender Dream',
     feel: 'Soft luxury like Glossier',
+    header_top_bar_bg: '#4A148C',
+    header_top_bar_text_color: '#FFFFFF',
+    footer_bg: '#FAF5FF',
+    footer_text_color: '#6C5874',
     config: {
       colors: {
         primary: '#7B1FA2',
@@ -313,6 +385,10 @@ export const THEME_PRESETS: ThemePreset[] = [
         textHeading: '#4A148C',
         textAccent: '#7B1FA2',
         price: '#7B1FA2',
+        headerTopBarBg: '#4A148C',
+        headerTopBarTextColor: '#FFFFFF',
+        footerBg: '#FAF5FF',
+        footerTextColor: '#6C5874',
       },
       fonts: {
         heading: 'Quicksand',
@@ -336,6 +412,10 @@ export const THEME_PRESETS: ThemePreset[] = [
     id: 'golden_luxury',
     name: 'Golden Luxury',
     feel: 'Premium luxury like Versace',
+    header_top_bar_bg: '#212121',
+    header_top_bar_text_color: '#FFD54F',
+    footer_bg: '#FFFDF0',
+    footer_text_color: '#616161',
     config: {
       colors: {
         primary: '#F57F17',
@@ -349,6 +429,10 @@ export const THEME_PRESETS: ThemePreset[] = [
         textHeading: '#E65100',
         textAccent: '#F57F17',
         price: '#F57F17',
+        headerTopBarBg: '#212121',
+        headerTopBarTextColor: '#FFD54F',
+        footerBg: '#FFFDF0',
+        footerTextColor: '#616161',
       },
       fonts: {
         heading: 'Cinzel',
@@ -372,6 +456,10 @@ export const THEME_PRESETS: ThemePreset[] = [
     id: 'pure_minimal',
     name: 'Pure Minimal',
     feel: 'Ultra clean minimal like COS',
+    header_top_bar_bg: '#212121',
+    header_top_bar_text_color: '#FFFFFF',
+    footer_bg: '#FAFAFA',
+    footer_text_color: '#757575',
     config: {
       colors: {
         primary: '#212121',
@@ -385,6 +473,10 @@ export const THEME_PRESETS: ThemePreset[] = [
         textHeading: '#212121',
         textAccent: '#616161',
         price: '#212121',
+        headerTopBarBg: '#212121',
+        headerTopBarTextColor: '#FFFFFF',
+        footerBg: '#FAFAFA',
+        footerTextColor: '#757575',
       },
       fonts: {
         heading: 'DM Sans',
@@ -408,6 +500,10 @@ export const THEME_PRESETS: ThemePreset[] = [
     id: 'candy_pop_kids',
     name: '🍭 Candy Pop (Kids)',
     feel: 'Playful cute toy store styling',
+    header_top_bar_bg: '#FF6B6B',
+    header_top_bar_text_color: '#FFFFFF',
+    footer_bg: '#FFFCEB',
+    footer_text_color: '#4A5568',
     config: {
       colors: {
         primary: '#FF6B6B',
@@ -421,6 +517,10 @@ export const THEME_PRESETS: ThemePreset[] = [
         textHeading: '#FF6B6B',
         textAccent: '#FF6B6B',
         price: '#FF6B6B',
+        headerTopBarBg: '#FF6B6B',
+        headerTopBarTextColor: '#FFFFFF',
+        footerBg: '#FFFCEB',
+        footerTextColor: '#4A5568',
       },
       fonts: {
         heading: 'Fredoka',
@@ -444,6 +544,10 @@ export const THEME_PRESETS: ThemePreset[] = [
     id: 'baby_pastel_kids',
     name: '🍼 Baby Pastel (Kids)',
     feel: 'Soft kids collection styling',
+    header_top_bar_bg: '#B39DDB',
+    header_top_bar_text_color: '#FFFFFF',
+    footer_bg: '#F3F8FB',
+    footer_text_color: '#5A6B83',
     config: {
       colors: {
         primary: '#B39DDB',
@@ -457,6 +561,10 @@ export const THEME_PRESETS: ThemePreset[] = [
         textHeading: '#B39DDB',
         textAccent: '#B39DDB',
         price: '#B39DDB',
+        headerTopBarBg: '#B39DDB',
+        headerTopBarTextColor: '#FFFFFF',
+        footerBg: '#F3F8FB',
+        footerTextColor: '#5A6B83',
       },
       fonts: {
         heading: 'Baloo 2',
@@ -480,68 +588,176 @@ export const THEME_PRESETS: ThemePreset[] = [
     id: 'noir_luxe',
     name: 'Noir Luxe',
     feel: 'High-end dark editorial',
+    header_top_bar_bg: '#17171A',
+    header_top_bar_text_color: '#C9A227',
+    footer_bg: '#17171A',
+    footer_text_color: '#A8A8A8',
     config: {
       colors: {
-        primary: '#0A0A0A', secondary: '#2A2A2A', accent: '#C9A227',
-        background: '#0E0E10', surface: '#17171A', textPrimary: '#F5F5F5',
-        textSecondary: '#A8A8A8', border: '#2A2A2E', textHeading: '#FFFFFF',
-        textAccent: '#C9A227', price: '#C9A227',
+        primary: '#0A0A0A',
+        secondary: '#2A2A2A',
+        accent: '#C9A227',
+        background: '#0E0E10',
+        surface: '#17171A',
+        textPrimary: '#F5F5F5',
+        textSecondary: '#A8A8A8',
+        border: '#2A2A2E',
+        textHeading: '#FFFFFF',
+        textAccent: '#C9A227',
+        price: '#C9A227',
+        headerTopBarBg: '#17171A',
+        headerTopBarTextColor: '#C9A227',
+        footerBg: '#17171A',
+        footerTextColor: '#A8A8A8',
       },
-      fonts: { heading: 'Cormorant Garamond', body: 'Inter' },
-      typography: { fontSizeBase: 16 },
-      buttons: { borderRadius: 2, primaryBg: '#C9A227', primaryText: '#0A0A0A', primaryHover: '#B8911F' },
-      cards: { borderRadius: 4 },
+      fonts: {
+        heading: 'Cormorant Garamond',
+        body: 'Inter',
+      },
+      typography: {
+        fontSizeBase: 16,
+      },
+      buttons: {
+        borderRadius: 2,
+        primaryBg: '#C9A227',
+        primaryText: '#0A0A0A',
+        primaryHover: '#B8911F',
+      },
+      cards: {
+        borderRadius: 4,
+      },
     },
   },
   {
     id: 'emerald_atelier',
     name: 'Emerald Atelier',
     feel: 'Boutique jewelry elegance',
+    header_top_bar_bg: '#0F3D2E',
+    header_top_bar_text_color: '#FFFFFF',
+    footer_bg: '#FBFAF7',
+    footer_text_color: '#5C6B63',
     config: {
       colors: {
-        primary: '#0F3D2E', secondary: '#1B5E43', accent: '#D4AF37',
-        background: '#FBFAF7', surface: '#FFFFFF', textPrimary: '#14231D',
-        textSecondary: '#5C6B63', border: '#E7E3D8', textHeading: '#0F3D2E',
-        textAccent: '#D4AF37', price: '#0F3D2E',
+        primary: '#0F3D2E',
+        secondary: '#1B5E43',
+        accent: '#D4AF37',
+        background: '#FBFAF7',
+        surface: '#FFFFFF',
+        textPrimary: '#14231D',
+        textSecondary: '#5C6B63',
+        border: '#E7E3D8',
+        textHeading: '#0F3D2E',
+        textAccent: '#D4AF37',
+        price: '#0F3D2E',
+        headerTopBarBg: '#0F3D2E',
+        headerTopBarTextColor: '#FFFFFF',
+        footerBg: '#FBFAF7',
+        footerTextColor: '#5C6B63',
       },
-      fonts: { heading: 'Playfair Display', body: 'Jost' },
-      typography: { fontSizeBase: 16 },
-      buttons: { borderRadius: 8, primaryBg: '#0F3D2E', primaryText: '#FFFFFF', primaryHover: '#14231D' },
-      cards: { borderRadius: 14 },
+      fonts: {
+        heading: 'Playfair Display',
+        body: 'Jost',
+      },
+      typography: {
+        fontSizeBase: 16,
+      },
+      buttons: {
+        borderRadius: 8,
+        primaryBg: '#0F3D2E',
+        primaryText: '#FFFFFF',
+        primaryHover: '#14231D',
+      },
+      cards: {
+        borderRadius: 14,
+      },
     },
   },
   {
     id: 'sunset_boutique',
     name: 'Sunset Boutique',
     feel: 'Warm modern fashion gradient',
+    header_top_bar_bg: '#E4572E',
+    header_top_bar_text_color: '#FFFFFF',
+    footer_bg: '#FFF8F3',
+    footer_text_color: '#7A6A5C',
     config: {
       colors: {
-        primary: '#E4572E', secondary: '#F3A712', accent: '#8338EC',
-        background: '#FFF8F3', surface: '#FFFFFF', textPrimary: '#2B2118',
-        textSecondary: '#7A6A5C', border: '#F1E4D8', textHeading: '#E4572E',
-        textAccent: '#8338EC', price: '#E4572E',
+        primary: '#E4572E',
+        secondary: '#F3A712',
+        accent: '#8338EC',
+        background: '#FFF8F3',
+        surface: '#FFFFFF',
+        textPrimary: '#2B2118',
+        textSecondary: '#7A6A5C',
+        border: '#F1E4D8',
+        textHeading: '#E4572E',
+        textAccent: '#8338EC',
+        price: '#E4572E',
+        headerTopBarBg: '#E4572E',
+        headerTopBarTextColor: '#FFFFFF',
+        footerBg: '#FFF8F3',
+        footerTextColor: '#7A6A5C',
       },
-      fonts: { heading: 'Poppins', body: 'Inter' },
-      typography: { fontSizeBase: 16 },
-      buttons: { borderRadius: 14, primaryBg: '#E4572E', primaryText: '#FFFFFF', primaryHover: '#C6461F' },
-      cards: { borderRadius: 20 },
+      fonts: {
+        heading: 'Poppins',
+        body: 'Inter',
+      },
+      typography: {
+        fontSizeBase: 16,
+      },
+      buttons: {
+        borderRadius: 14,
+        primaryBg: '#E4572E',
+        primaryText: '#FFFFFF',
+        primaryHover: '#C6461F',
+      },
+      cards: {
+        borderRadius: 20,
+      },
     },
   },
   {
     id: 'midnight_tech',
     name: 'Midnight Tech',
     feel: 'Sleek modern electronics',
+    header_top_bar_bg: '#131C31',
+    header_top_bar_text_color: '#22D3EE',
+    footer_bg: '#131C31',
+    footer_text_color: '#94A3B8',
     config: {
       colors: {
-        primary: '#3B82F6', secondary: '#6366F1', accent: '#22D3EE',
-        background: '#0B1120', surface: '#131C31', textPrimary: '#E8EEF9',
-        textSecondary: '#94A3B8', border: '#1E293B', textHeading: '#FFFFFF',
-        textAccent: '#22D3EE', price: '#22D3EE',
+        primary: '#3B82F6',
+        secondary: '#6366F1',
+        accent: '#22D3EE',
+        background: '#0B1120',
+        surface: '#131C31',
+        textPrimary: '#E8EEF9',
+        textSecondary: '#94A3B8',
+        border: '#1E293B',
+        textHeading: '#FFFFFF',
+        textAccent: '#22D3EE',
+        price: '#22D3EE',
+        headerTopBarBg: '#131C31',
+        headerTopBarTextColor: '#22D3EE',
+        footerBg: '#131C31',
+        footerTextColor: '#94A3B8',
       },
-      fonts: { heading: 'Space Grotesk', body: 'Inter' },
-      typography: { fontSizeBase: 16 },
-      buttons: { borderRadius: 10, primaryBg: '#3B82F6', primaryText: '#FFFFFF', primaryHover: '#2563EB' },
-      cards: { borderRadius: 16 },
+      fonts: {
+        heading: 'Space Grotesk',
+        body: 'Inter',
+      },
+      typography: {
+        fontSizeBase: 16,
+      },
+      buttons: {
+        borderRadius: 10,
+        primaryBg: '#3B82F6',
+        primaryText: '#FFFFFF',
+        primaryHover: '#2563EB',
+      },
+      cards: {
+        borderRadius: 16,
+      },
     },
   },
 ];

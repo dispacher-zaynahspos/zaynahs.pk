@@ -53,7 +53,13 @@ export function AppearanceCustomizePanel({ settings, onUpdateSettings }: Appeara
       confirmText: 'Reset'
     });
     if (confirmed) {
-      onUpdateSettings({ theme_config: defaultPreset.config });
+      onUpdateSettings({
+        theme_config: defaultPreset.config,
+        header_top_bar_bg: defaultPreset.header_top_bar_bg ?? defaultPreset.config.colors.headerTopBarBg ?? defaultPreset.config.colors.primary,
+        header_top_bar_text_color: defaultPreset.header_top_bar_text_color ?? defaultPreset.config.colors.headerTopBarTextColor ?? '#FFFFFF',
+        footer_bg: defaultPreset.footer_bg ?? defaultPreset.config.colors.footerBg ?? (defaultPreset.config.colors.background === '#0E0E10' || defaultPreset.config.colors.background === '#0B1120' || defaultPreset.config.colors.background === '#121212' ? defaultPreset.config.colors.surface : '#FFFFFF'),
+        footer_text_color: defaultPreset.footer_text_color ?? defaultPreset.config.colors.footerTextColor ?? defaultPreset.config.colors.textSecondary,
+      });
       toast.success(`Reset back to default "${defaultPreset.name}" settings.`);
     }
   };
