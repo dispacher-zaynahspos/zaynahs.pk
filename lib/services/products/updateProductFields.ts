@@ -2,6 +2,7 @@ import { Product } from '@/lib/types';
 import { SHOP_CATEGORY_ID } from '@/lib/config/singleton-ids';
 import { revalidateProduct, revalidateTagSafe, revalidateAfterResponse } from '@/lib/revalidate';
 import { supabaseAdmin } from '@/lib/supabase/admin';
+import { slugify } from '@/lib/utils/slugify';
 
 export const updateProductFields = async (
   id: string,
@@ -11,7 +12,11 @@ export const updateProductFields = async (
     const supabase = supabaseAdmin;
     const updatePayload: Record<string, any> = {};
     if (fields.name !== undefined) updatePayload.name = fields.name;
-    if (fields.slug !== undefined) updatePayload.slug = fields.slug;
+    // Write-boundary slug sanitize (SSOT) — never store spaces/caps/pipes.
+    if (fields.slug !== undefined) {
+      const clean = slugify(fields.slug || '') || slugify(fields.name || '');
+      if (clean) updatePayload.slug = clean;
+    }
     if (fields.description !== undefined) updatePayload.description = fields.description;
     if (fields.short_description !== undefined) updatePayload.short_description = fields.short_description;
     if (fields.price !== undefined) updatePayload.price = fields.price;

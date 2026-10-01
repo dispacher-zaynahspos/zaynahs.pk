@@ -889,6 +889,50 @@ CREATE TRIGGER update_settings_updated_at
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
 -- ============================================================
+-- PRODUCT SLUG NORMALIZATION (permanent, DB-level guarantee)
+-- Mirrors lib/utils/slugify.ts. Final safety net so NO write path
+-- (app, scripts, CSV import, AI rename, direct SQL) can ever store a
+-- slug containing spaces, UPPERCASE, pipes "|", or other non-URL-safe
+-- characters. Keeps clean slugs unchanged (idempotent).
+-- ============================================================
+CREATE OR REPLACE FUNCTION public.normalize_slug(input text)
+RETURNS text
+LANGUAGE sql
+IMMUTABLE
+AS $func$
+  SELECT nullif(
+    trim(both '-' FROM
+      regexp_replace(
+        lower(replace(coalesce(input, ''), '&', ' and ')),
+        '[^a-z0-9]+', '-', 'g'
+      )
+    ),
+    ''
+  );
+$func$;
+
+CREATE OR REPLACE FUNCTION public.products_normalize_slug_trigger()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $func$
+BEGIN
+  NEW.slug := public.normalize_slug(NEW.slug);
+  IF NEW.slug IS NULL OR NEW.slug = '' THEN
+    NEW.slug := public.normalize_slug(NEW.name);
+  END IF;
+  IF NEW.slug IS NULL OR NEW.slug = '' THEN
+    NEW.slug := 'product-' || replace(NEW.id::text, '-', '');
+  END IF;
+  RETURN NEW;
+END;
+$func$;
+
+DROP TRIGGER IF EXISTS trg_products_normalize_slug ON products;
+CREATE TRIGGER trg_products_normalize_slug
+  BEFORE INSERT OR UPDATE OF slug, name ON products
+  FOR EACH ROW EXECUTE FUNCTION public.products_normalize_slug_trigger();
+
+-- ============================================================
 -- RLS (Row Level Security)
 -- ============================================================
 

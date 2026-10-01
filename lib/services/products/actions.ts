@@ -5,6 +5,26 @@ import { Product, ProductImage, ProductVariant, ProductModifier } from '@/lib/ty
 import { revalidateProduct, revalidateTagSafe, revalidateAfterResponse } from '@/lib/revalidate';
 import { SHOP_CATEGORY_ID } from '@/lib/config/singleton-ids';
 import { getProductById } from './queries';
+import { slugify } from '@/lib/utils/slugify';
+
+/**
+ * RULE D13/SEO — canonical slug WRITE-BOUNDARY sanitizer (SSOT).
+ * Every product slug that reaches the DB MUST be clean, lowercase, hyphenated,
+ * URL-safe (no spaces, capitals, pipes, or special chars). No matter what a
+ * caller passes (raw product name, AI output, pasted title, legacy value), the
+ * stored slug is always run through `slugify`. If the result is empty, we derive
+ * it from the product name; the id-based fallback guarantees non-empty + unique.
+ * This is the single place slug cleaning happens — never trust the caller.
+ */
+function cleanProductSlug(rawSlug?: string | null, name?: string | null, idSeed?: string): string {
+  const fromSlug = slugify(rawSlug || '');
+  if (fromSlug) return fromSlug;
+  const fromName = slugify(name || '');
+  if (fromName) return fromName;
+  // Last-resort deterministic fallback so NOT NULL/UNIQUE never fails.
+  return `product-${(idSeed || Date.now().toString(36)).replace(/[^a-z0-9]/gi, '').toLowerCase()}`;
+}
+
 
 /**
  * RULE D15 — compensating rollback for a failed `createProductAction`.
@@ -40,7 +60,7 @@ export async function createProductAction(
       .from('products')
       .insert({
         name: product.name,
-        slug: product.slug,
+        slug: cleanProductSlug(product.slug, product.name),
         description: product.description,
         short_description: product.short_description,
         price: product.price,
@@ -216,7 +236,7 @@ export async function updateProductAction(
 
     const updatePayload: Record<string, any> = {};
     if (product.name !== undefined) updatePayload.name = product.name;
-    if (product.slug !== undefined) updatePayload.slug = product.slug;
+    if (product.slug !== undefined) updatePayload.slug = cleanProductSlug(product.slug, product.name ?? undefined, id);
     if (product.description !== undefined) updatePayload.description = product.description;
     if (product.short_description !== undefined) updatePayload.short_description = product.short_description;
     if (product.price !== undefined) updatePayload.price = product.price;
@@ -399,7 +419,7 @@ export async function updateProductFieldsAction(
     const supabase = supabaseAdmin;
     const updatePayload: Record<string, any> = {};
     if (fields.name !== undefined) updatePayload.name = fields.name;
-    if (fields.slug !== undefined) updatePayload.slug = fields.slug;
+    if (fields.slug !== undefined) updatePayload.slug = cleanProductSlug(fields.slug, fields.name ?? undefined, id);
     if (fields.description !== undefined) updatePayload.description = fields.description;
     if (fields.short_description !== undefined) updatePayload.short_description = fields.short_description;
     if (fields.price !== undefined) updatePayload.price = fields.price;

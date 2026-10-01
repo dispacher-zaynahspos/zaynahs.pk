@@ -1540,3 +1540,68 @@ Yeh 4 interconnected issues the:
 ✅ RULE: Columns jo NOT NULL hon unpar sensible DEFAULT value (e.g. DEFAULT 'custom') lagayein taake partial upsert operations fail na hon.
 ```
 
+---
+
+# ISSUE: React #418 Hydration Mismatch on Storefront (Home + Listing) — Permanent Fix
+
+## Symptom
+Production console par: `Uncaught Error: Minified React error #418; visit https://react.dev/errors/418?args[]=HTML` — storefront home/listing page par aata tha, khaas kar **back/forward navigation** ke baad. Saath hi product pages intermittently 500 bhi dikhate the (woh alag masla tha — neeche "stale deployment" note dekho).
+
+## Root Cause
+`components/store/StoreFront.tsx` mein `loadMoreLimits` ka `useState` **lazy initializer** render ke dauraan `sessionStorage` + `performance.getEntriesByType('navigation')` parh raha tha:
+- **Server** par hamesha `{}` return hota (base limit cards render).
+- **Client** par agar nav type `back_forward` hoti to `sessionStorage` se bada limit parh kar **zyada cards** first (hydration) render par bana deta.
+- Server HTML ↔ client first render diverge → **React #418**.
+
+`useState(() => ...)` initializer render phase mein chalta hai — isliye browser-only APIs (sessionStorage/localStorage/window/performance) wahan parhna hamesha hydration mismatch ka khatra hai.
+
+## Permanent Fix
+`StoreFront.tsx`: initial state ab hamesha `{}` (server + client bilkul same). sessionStorage se restore ab **post-mount `useEffect`** mein hota hai (back/forward hone par), isliye first render dono taraf identical rehta hai.
+
+## Next Time Yeh Na Aaye — Rules
+
+```
+✅ RULE (HYDRATION): useState/useMemo/useReducer ke initializer ya kisi bhi render-phase code mein kabhi bhi window, document, localStorage, sessionStorage, navigator, performance, Date.now(), new Date(), Math.random() ya locale/timezone formatting mat parho. Initial state server-safe constant rakho ({} / [] / 0 / false) aur browser-dependent value ko useEffect (post-mount) mein set karo.
+
+✅ RULE (HYDRATION): Jo bhi "mounted" ke baad hi sahi hota hai (counts, timers, random social-proof, recently-viewed, countdowns), use `const [mounted,setMounted]=useState(false); useEffect(()=>setMounted(true),[])` gate karo ya suppressHydrationWarning lagao — kabhi initial render mein branch mat karo.
+```
+
+---
+
+# NOTE: Fresh Clone pe "500 Internal Server Error" product pages par — asal wajah stale deployment hoti hai
+
+## Symptom
+Naye clone (jaise lobo.pk) mein ek **purani preview deployment URL** (e.g. `lobo-xxxxx-….vercel.app`) par product pages 500 dete hain, jabke listing/home chalta hai.
+
+## Root Cause
+Woh purana deployment tab build hua tha jab (a) Vercel env vars abhi set nahi the, ya (b) DB schema/seed complete nahi tha, ya (c) product page us waqt `●` (SSG) prerender hua tha jo bad data capture kar gaya. Baad wale deployments (env + schema ready) `ƒ` (dynamic) ban kar 200 dete hain. **Code theek hota hai — sirf purani deployment stale hoti hai.**
+
+## Rule / Checklist
+```
+✅ RULE (CLONE DEPLOY ORDER): Naye clone mein PEHLE saari Vercel env vars + Supabase schema/seed complete karo, PHIR deploy karo. Env/schema ke baghair kiya gaya pehla deploy stale/broken reh jaata hai.
+
+✅ RULE (TESTING URL): Clone test karte waqt hamesha stable alias (`<project>.vercel.app`) ya custom domain use karo — random preview deployment URL (`<project>-<hash>-….vercel.app`) nahi, kyunke woh purani build ho sakti hai. Env/schema fix ke baad `vercel --prod` se re-deploy zaroori hai taake latest build alias par aa jaye.
+```
+
+---
+
+# ISSUE: Corrupted product slugs (spaces/UPPERCASE/pipes) → ugly/broken product URLs — Permanent Fix
+
+## Symptom
+Product URLs aise ban rahe the: `/product/Girls%20Pink%20Graphic%20Print%20Fleece%20Sweatshirt`, `/product/boys-pakistan-t-shirt-greenBoys%20Brown%20Cartoon%20Print...`, aur `... | Colorful Art Crew Neck Top`. Shop page se product kholne par ugly `%20`/capital URLs; stale deployment par 500 bhi.
+
+## Root Cause
+`products.slug` DB me raw product **name** ke saath store ho raha tha (spaces, UPPERCASE, pipe `|`, special chars) — kyunke kuch write paths (AI rename / inline slug gen / legacy import) slug ko `slugify()` se nahi guzaarte the. Slug ek SSOT (`lib/utils/slugify.ts`) hone ke bawajood, write boundary par enforce nahi hota tha, isliye corrupt slugs leak ho jaate the.
+
+## Permanent Fix (2-layer)
+1. **App write-boundary slugify (SSOT):** `lib/services/products/actions.ts`, `mutations.ts`, `updateProductFields.ts` ab har slug ko store karne se pehle `slugify()` se guzaarte hain (empty par name se derive). `useProductFormAiCopywrite.ts` ki inline slug logic bhi `slugify()` se replace ki.
+2. **DB-level trigger (final safety net):** `normalize_slug(text)` function + `products` par `BEFORE INSERT OR UPDATE OF slug, name` trigger `products_normalize_slug_trigger()`. Ab chahe app ho, CSV import, AI, ya direct SQL — slug hamesha clean. `SUPER_MASTER_SCHEMA.sql` me permanent (har clone ko milta hai) + migration `20260929120000_product_slug_normalization.sql` ne existing 134 slugs ek-baar clean kiye (0 dirty bache).
+
+## Next Time Yeh Na Aaye — Rules
+```
+✅ RULE (SLUG SSOT): Product/category/collection slug sirf lib/utils/slugify.ts se bano. Kabhi raw name/title ya inline regex se slug set mat karo. (Full: agent-rules/05-database-supabase.md RULE D17.)
+
+✅ RULE (DB SAFETY NET): URL-identifier columns (slug) ke liye DB-level normalize trigger rakho taake koi bhi write path (app ke bahar bhi) kabhi dirty value na daal sake. Master schema me daalo taake har clone inherit kare.
+```
+
+

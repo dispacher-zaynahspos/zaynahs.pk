@@ -4,6 +4,22 @@
 
 ---
 
+### [2026-09-29] v7.x — Product slug normalization (permanent, DB-level + app write-boundary)
+**Migration (NEW, idempotent — safe to apply):**
+- `supabase/migrations/20260929120000_product_slug_normalization.sql` — adds `normalize_slug(text)` function + `products_normalize_slug_trigger()` + `BEFORE INSERT OR UPDATE OF slug, name` trigger `trg_products_normalize_slug` on `products`; plus a one-time `UPDATE` to clean all existing dirty slugs (spaces/UPPERCASE/pipes → lowercase-hyphenated). Collision-checked (0 collisions on lobo; 134 rows, 0 dirty after).
+
+**Schema SSOT:** `SUPER_MASTER_SCHEMA.sql` updated to include `normalize_slug()` + the products slug-normalize trigger (right after the `update_*_updated_at` triggers) so every future clone enforces clean slugs from day one.
+
+**Code (app write-boundary slugify — SSOT `lib/utils/slugify.ts`):**
+- `lib/services/products/actions.ts` (`createProductAction`, `updateProductAction`, `updateProductFieldsAction`), `lib/services/products/mutations.ts` (`createProduct`, `updateProduct`), `lib/services/products/updateProductFields.ts` — slug sanitized before write.
+- `components/admin/product-form/hooks/useProductFormAiCopywrite.ts` — inline slug regex replaced with `slugify()`.
+
+**Rule:** new `agent-rules/05-database-supabase.md` RULE D17 (clean URL-safe slugs, two-layer guarantee).
+
+**Verification:** `tsc --noEmit` = 0 errors; cleaned slugs return 200 on storefront; `next build` = success.
+
+---
+
 ### [2026-09-28] v7.x — Reviews aggregate RPCs + Checkout-B (order token, city-based shipping)
 **Migrations (NEW, additive & backward-compatible — safe to apply):**
 - `supabase/migrations/20260928140000_review_stats_rpc_and_assign.sql` — RPCs `recompute_product_review_stats(uuid)`, `recompute_all_review_stats()`, `get_product_rating_distribution(uuid)` (companions to the existing `update_product_reviews_stats` trigger; grant EXECUTE on distribution to anon/authenticated).

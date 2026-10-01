@@ -4,6 +4,11 @@ import { revalidateProduct } from '@/lib/revalidate';
 import { safeAction } from '@/lib/utils/serverAction';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { getProductById } from './queries';
+import { slugify } from '@/lib/utils/slugify';
+
+/** Write-boundary slug sanitizer (SSOT) — always clean, lowercase, URL-safe. */
+const cleanSlug = (rawSlug?: string | null, name?: string | null): string =>
+  slugify(rawSlug || '') || slugify(name || '') || `product-${Date.now().toString(36)}`;
 
 export const createProduct = async (
   product: Omit<Product, 'id' | 'images' | 'variants' | 'modifiers' | 'category' | 'created_at' | 'updated_at'>,
@@ -18,7 +23,7 @@ export const createProduct = async (
       .from('products')
       .insert({
         name: product.name,
-        slug: product.slug,
+        slug: cleanSlug(product.slug, product.name),
         description: product.description,
         short_description: product.short_description,
         price: product.price,
@@ -142,7 +147,7 @@ export const updateProduct = async (
 
     const updatePayload: Record<string, any> = {};
     if (product.name !== undefined) updatePayload.name = product.name;
-    if (product.slug !== undefined) updatePayload.slug = product.slug;
+    if (product.slug !== undefined) updatePayload.slug = cleanSlug(product.slug, product.name);
     if (product.description !== undefined) updatePayload.description = product.description;
     if (product.short_description !== undefined) updatePayload.short_description = product.short_description;
     if (product.price !== undefined) updatePayload.price = product.price;

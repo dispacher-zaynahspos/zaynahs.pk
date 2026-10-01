@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Category, Product } from '@/lib/types';
 import { toast } from 'sonner';
+import { slugify } from '@/lib/utils/slugify';
 
 interface UseProductFormAiCopywriteProps {
   name: string;
@@ -41,11 +42,7 @@ export function useProductFormAiCopywrite({
       setIsAiGenerating(true);
       toast.info('AI is drafting professional SEO product copy...');
 
-      const generatedSlug = name
-        .toLowerCase()
-        .replace(/[^a-z0-9 -]/g, '')
-        .replace(/\s+/g, '-')
-        .replace(/-+/g, '-');
+      const generatedSlug = slugify(name);
       setSlug(generatedSlug);
 
       const selectedCategory = categories.find((c) => c.id === categoryId);

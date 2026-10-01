@@ -150,3 +150,12 @@ Jab bhi aage koi **nayi table, column, domain, module, ya admin tab** add ho, wo
 
 ## Types synchronization (STRICT)
 `lib/types.ts` is the absolute source of truth for frontend TypeScript interfaces — just as `SUPER_MASTER_SCHEMA.sql` is for the DB. Whenever a feature is added, a DB column changes, or a frontend data model updates, `lib/types.ts` MUST be updated immediately. No feature merges with `any` types. If a feature/column is removed, its type definitions must also be removed (no stale code).
+
+## RULE D17 — Clean, URL-safe product slugs (STRICT — two-layer guarantee)
+Product slug kabhi bhi spaces, UPPERCASE, pipes `|`, ya kisi non-URL-safe char ke saath store NA ho (ye ugly/broken product URLs `%20`, capitals banata hai aur 404/500 confusion deta hai).
+- **SSOT slugify:** sirf `lib/utils/slugify.ts` canonical slug banata hai (lowercase, `&`→`and`, non-alnum→`-`, trim `-`). Koi inline alternate slug logic likhna banned — hamesha `slugify()` import karo.
+- **Layer 1 — app write boundary:** har product write path (`lib/services/products/actions.ts`, `mutations.ts`, `updateProductFields.ts`) slug ko store karne se pehle `slugify()` se guzaare; empty hone par `name` se derive kare.
+- **Layer 2 — DB trigger (final safety net):** `products` table pe `BEFORE INSERT OR UPDATE OF slug, name` trigger `products_normalize_slug_trigger()` + `normalize_slug(text)` function slug ko normalize karta hai — chahe writer app ho, CSV import, AI rename, script, ya direct SQL. Ye `SUPER_MASTER_SCHEMA.sql` me hai (har clone ko milta hai) + migration `20260929120000_product_slug_normalization.sql` (existing dirty slugs ek-baar clean karta hai, idempotent).
+- **Duplicate uniqueness:** duplicate product ka slug `slugify(base) + '-copy-' + Date.now()` (app/admin/products/new/page.tsx) — clean + unique.
+- Same approach categories/collections slugs ke liye bhi apply karo agar wahan dirty-slug risk mile.
+

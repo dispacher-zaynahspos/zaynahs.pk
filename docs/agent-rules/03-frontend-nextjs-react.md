@@ -35,6 +35,15 @@ Supabase relationships can be empty, and unsafe access crashes the entire Next.j
 ## RULE C1 — Never `headers()`/`cookies()` in store pages
 See [08-caching-isr-ssr.md](08-caching-isr-ssr.md) — calling these in any store Server Component (especially `generateMetadata`) kills ISR for the whole page (or app, if in root layout). Allowed ONLY in `app/robots.ts`, `app/sitemap.ts`, `app/admin/**`, `app/api/**`.
 
+## RULE H1 — Hydration-Safe Rendering (prevents React #418/#423)
+Server-rendered HTML aur client ka pehla (hydration) render **bilkul identical** hone chahiye. Mismatch → `Minified React error #418` (page toot sakta hai / "This page couldn't load").
+
+- ❌ NEVER read `window`, `document`, `localStorage`, `sessionStorage`, `navigator`, `performance`, `Date.now()`, `new Date()`, `Math.random()`, ya locale/timezone formatting **render phase** mein — isme `useState`/`useMemo`/`useReducer` ke **lazy initializer** bhi shamil hain (woh render par chalte hain).
+- ✅ Initial state hamesha server-safe constant rakho (`{}`, `[]`, `0`, `false`, fixed string). Browser-dependent value `useEffect` (post-mount) mein set karo.
+- ✅ "Mounted ke baad hi sahi" cheezein (live counts, countdowns/timers, random social-proof "X from Karachi bought…", recently-viewed from storage, viewer counts) ko `const [mounted,setMounted]=useState(false); useEffect(()=>setMounted(true),[])` se gate karo, ya `suppressHydrationWarning` lagao. Initial render mein in par branch mat karo.
+- 📝 Precedent: `components/store/StoreFront.tsx` ka `loadMoreLimits` pehle `useState` initializer mein `sessionStorage` parh raha tha → #418 on back/forward nav. Fix: initial `{}`, restore in `useEffect`. (See `docs/LESSONS_LEARNED.md`.)
+
+
 ## RULE F1 — Instant Navigation & Latency Elimination (0ms perceived load — MANDATORY)
 Applies universally across **ALL tab scopes & functional areas** (Categories, Products, Reviews, Specs, Cart, Admin Settings, Bottom Nav) and across all store surfaces (Current and Future):
 

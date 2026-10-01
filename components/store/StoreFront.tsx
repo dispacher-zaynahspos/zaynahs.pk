@@ -67,20 +67,31 @@ export default function StoreFront({
   // Per-section Load More limits — persisted in sessionStorage so back navigation
   // restores all previously loaded products (prevents card-not-found scroll failures).
   // ONLY restore on back navigation (popstate) — fresh loads start clean.
-  const [loadMoreLimits, setLoadMoreLimits] = useState<Record<string, number>>(() => {
-    if (typeof window === 'undefined') return {};
-    // Check if this is a back navigation by looking for the performance nav type
-    // or if there's active scroll restore data matching this path
+  //
+  // HYDRATION-SAFE: initial state MUST be identical on server and client ({}),
+  // otherwise the server HTML (base limit cards) and client first render
+  // (restored larger limit cards) diverge → React #418 hydration mismatch.
+  // Restoration from sessionStorage is therefore deferred to a post-mount effect.
+  const [loadMoreLimits, setLoadMoreLimits] = useState<Record<string, number>>({});
+
+  // Restore saved limits AFTER hydration (back/forward navigation only).
+  useEffect(() => {
     try {
       const navEntries = performance?.getEntriesByType?.('navigation') as PerformanceNavigationTiming[];
       const isBackForward = navEntries?.[0]?.type === 'back_forward';
       if (isBackForward) {
         const saved = sessionStorage.getItem(LOAD_MORE_KEY);
-        if (saved) return JSON.parse(saved);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 0) {
+            setLoadMoreLimits(parsed);
+          }
+        }
       }
     } catch {}
-    return {};
-  });
+    // Run once on mount only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Persist loadMoreLimits changes to sessionStorage
   useEffect(() => {
