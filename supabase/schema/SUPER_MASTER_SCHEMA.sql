@@ -1339,9 +1339,6 @@ CREATE TABLE IF NOT EXISTS media_library (
 
 ALTER TABLE public.media_library ADD COLUMN IF NOT EXISTS review_id UUID REFERENCES public.reviews(id) ON DELETE CASCADE;
 ALTER TABLE public.reviews ADD COLUMN IF NOT EXISTS images TEXT[] DEFAULT '{}'::text[];
-ALTER TABLE public.ai_settings ADD COLUMN IF NOT EXISTS collection_default_template TEXT;
-ALTER TABLE public.ai_settings ADD COLUMN IF NOT EXISTS collection_description_prompt TEXT;
-ALTER TABLE public.ai_settings ADD COLUMN IF NOT EXISTS collection_description_limit INTEGER DEFAULT 100;
 
 CREATE INDEX IF NOT EXISTS idx_media_library_url ON media_library (file_url);
 CREATE INDEX IF NOT EXISTS idx_media_library_review_id ON media_library (review_id);
@@ -1389,6 +1386,10 @@ CREATE TABLE IF NOT EXISTS ai_settings (
   collection_description_limit INTEGER DEFAULT 100,
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+ALTER TABLE public.ai_settings ADD COLUMN IF NOT EXISTS collection_default_template TEXT;
+ALTER TABLE public.ai_settings ADD COLUMN IF NOT EXISTS collection_description_prompt TEXT;
+ALTER TABLE public.ai_settings ADD COLUMN IF NOT EXISTS collection_description_limit INTEGER DEFAULT 100;
 
 -- Seed default singleton record for AI settings if not exists
 INSERT INTO ai_settings (id, ai_enabled, content_provider, content_model, content_keys, vision_provider, vision_model, vision_keys, brand_name, store_type, target_market, tone, language, custom_instructions, auto_content_seo, auto_media_ai, target_audiences, product_types, category_default_template, product_default_template, category_description_prompt, category_description_limit, product_description_prompt, product_description_limit, product_short_prompt, product_short_limit, collection_default_template, collection_description_prompt, collection_description_limit)

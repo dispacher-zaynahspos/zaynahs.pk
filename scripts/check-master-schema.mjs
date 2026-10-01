@@ -82,6 +82,8 @@ for (const file of files) {
     const match = p.match(/CREATE\s+POLICY\s+"?([^"]+)"?\s+ON/i) || p.match(/CREATE\s+POLICY\s+(\w+)\s+ON/i);
     if (match) {
       const polName = match[1].toLowerCase().replace(/\s+/g, ' ');
+      // Superseded / intentionally revoked security policies (customers table PII hardening)
+      if (polName === 'public read customers') continue;
       if (!has(`create policy "${polName}"`)) {
         errors.push(`${file}: POLICY "${polName}" NOT FOUND in master schema`);
       }
