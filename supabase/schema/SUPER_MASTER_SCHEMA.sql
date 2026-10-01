@@ -162,7 +162,6 @@ CREATE TABLE IF NOT EXISTS products (
   badge_enabled BOOLEAN DEFAULT true,
   size_guide_id UUID,
   frequently_bought_together_ids UUID[] DEFAULT '{}'::uuid[],
-  premium_themes_enabled BOOLEAN DEFAULT false,
   flash_sale_enabled BOOLEAN DEFAULT false,
   flash_sale_start_date TIMESTAMPTZ,
   flash_sale_end_date TIMESTAMPTZ,
@@ -521,6 +520,7 @@ CREATE TABLE IF NOT EXISTS store_settings (
   social_feeds_enabled BOOLEAN DEFAULT true,
   cart_timer_enabled BOOLEAN DEFAULT true,
   size_guide_enabled BOOLEAN DEFAULT true,
+  premium_themes_enabled BOOLEAN DEFAULT false,
 
   recent_buyers_names TEXT DEFAULT 'Ahmad, Fatima, Zainab, Hamza, Ayesha, Bilal, Sana, Ali, Usman, Maryam',
   recent_buyers_cities TEXT DEFAULT 'Lahore, Karachi, Islamabad, Rawalpindi, Faisalabad, Multan, Peshawar, Quetta, Sialkot, Gujranwala',
@@ -2219,6 +2219,9 @@ CREATE INDEX IF NOT EXISTS idx_orders_created_at ON public.orders (created_at DE
 CREATE INDEX IF NOT EXISTS idx_orders_status ON public.orders (status);
 CREATE INDEX IF NOT EXISTS idx_products_active ON public.products (is_active) WHERE deleted_at IS NULL;
 CREATE INDEX IF NOT EXISTS idx_products_featured ON public.products (is_featured) WHERE is_featured = true AND deleted_at IS NULL;
+
+-- Guarantee premium_themes_enabled column exists even if store_settings was created earlier
+ALTER TABLE public.store_settings ADD COLUMN IF NOT EXISTS premium_themes_enabled BOOLEAN DEFAULT false;
 
 -- ============================================================================
 -- store_settings_public — secret-free view for anon/storefront reads (Pass 6)
