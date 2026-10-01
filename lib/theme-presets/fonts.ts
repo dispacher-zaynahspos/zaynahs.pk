@@ -21,5 +21,6 @@ export const GOOGLE_FONTS = [
   'Comic Neue',
   'Baloo 2',
   'Patrick Hand',
-  'Sniglet'
+  'Sniglet',
+  'Lexend'
 ];

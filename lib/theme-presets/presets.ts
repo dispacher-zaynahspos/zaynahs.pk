@@ -442,6 +442,42 @@ export const THEME_PRESETS: ThemePreset[] = [
       },
     },
   },
+  {
+    id: 'little_explorers',
+    name: 'Little Explorers',
+    feel: 'Playful & trusted kids & family boutique',
+    config: {
+      colors: {
+        primary: '#0F2A5E',
+        secondary: '#1E4FA3',
+        accent: '#FBB91F',
+        background: '#FFFFFF',
+        surface: '#EAF4FD',
+        textPrimary: '#1A2B4A',
+        textSecondary: '#5B6B85',
+        border: '#DCE8F5',
+        textHeading: '#0B2559',
+        textAccent: '#F5A800',
+        price: '#0F2A5E',
+      },
+      fonts: {
+        heading: 'Lexend',
+        body: 'Poppins',
+      },
+      typography: {
+        fontSizeBase: 16,
+      },
+      buttons: {
+        borderRadius: 10,
+        primaryBg: '#0F2A5E',
+        primaryText: '#FFFFFF',
+        primaryHover: '#1E4FA3',
+      },
+      cards: {
+        borderRadius: 12,
+      },
+    },
+  },
 
   // ─────────────────────────────────────────────────────────────────────────
   // PREMIUM ("PRO") THEMES — gated behind the `premium_themes` feature flag
