@@ -94,7 +94,7 @@ grep "VERCEL_PROJECT_NAME" env-backups/*.env.local
 
 ## Clone / setup from scratch
 
-### ✅ Preferred — one command (POS-style, idempotent)
+### ✅ Preferred — One-Command Clone Setup (idempotent)
 1. Supabase project banao; `env-backups/<store>.env.local` me saari keys bharo (`.env.example` ki list; required: Supabase ref/tokens/url/keys, `NEXT_PUBLIC_SITE_URL`, `REVALIDATE_SECRET`, `NEXT_PUBLIC_BRAND_NAME`, `VERCEL_TOKEN`, `VERCEL_PROJECT_NAME`, `CLOUDFLARE_ZONE_ID`, `CLOUDFLARE_API_TOKEN`).
 2. `npm run clone:setup -- --store=<store> --deploy --yes`
    → preflight → db:schema (`init-db.mjs`) → db:webhooks (`setup-triggers.mjs`) → db:admin → db:brand → Vercel env push (+deploy) → Cloudflare DNS + cache rules → verify. Sab idempotent, dubara chalana safe.

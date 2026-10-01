@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * clone-setup.mjs — ONE-COMMAND clone setup (POS-style "100% first time").
+ * clone-setup.mjs — ONE-COMMAND CLONE SETUP ("100% first time" bring-up).
  * ════════════════════════════════════════════════════════════════════════
  * Runs the full new-store bring-up in the correct order, reusing the existing
  * single-purpose scripts (SSOT — no duplicated logic):

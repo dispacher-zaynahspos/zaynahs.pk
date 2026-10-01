@@ -7,7 +7,7 @@
 
 ---
 
-## 🚀 ONE-COMMAND CLONE SETUP (POS-style — do this first)
+## 🚀 ONE-COMMAND CLONE SETUP (do this first)
 
 Agar store ka `env-backups/<store>.env.local` ready hai (saari keys bhari hui), to **poora bring-up ek command se** — DB schema + webhooks + admin + brand + Vercel env + Cloudflare DNS + cache rules + verify, sahi order mein:
 

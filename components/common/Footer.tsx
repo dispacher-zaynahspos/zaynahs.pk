@@ -50,8 +50,8 @@ export default function Footer({ settings, brandName }: FooterProps) {
     gridColsClass = 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3';
   }
 
-  const footerBg = settings.footer_bg || settings.theme_config?.colors?.footerBg;
-  const footerTextColor = settings.footer_text_color || settings.theme_config?.colors?.footerTextColor;
+  const footerBg = settings.theme_config?.colors?.footerBg || settings.footer_bg;
+  const footerTextColor = settings.theme_config?.colors?.footerTextColor || settings.footer_text_color;
 
   return (
     <footer

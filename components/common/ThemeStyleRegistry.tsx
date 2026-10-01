@@ -133,9 +133,9 @@ export default function ThemeStyleRegistry({ settings }: ThemeStyleRegistryProps
     [class*="from-[#0f0f1b]"] {
       --tw-gradient-from: var(--color-background) !important;
     }
-    /* dark:text-white → follow theme text primary */
-    .dark .text-white, [class*="dark:text-white"] {
-      color: var(--color-text-primary) !important;
+    /* Explicit white text stays crisp white on dark containers and badges */
+    .text-white:not(body):not(html), [class~="text-white"]:not(body):not(html) {
+      color: #ffffff !important;
     }
 
     /* Typography Overrides */
@@ -163,9 +163,15 @@ export default function ThemeStyleRegistry({ settings }: ThemeStyleRegistryProps
     /* Backgrounds hardcoded to secondary navy */
     .bg-\\[\\#1a1a2e\\], .dark .bg-\\[\\#1a1a2e\\], 
     [class*="bg-[#1a1a2e]"]:not([class*="bg-[#1a1a2e]/"]):not([class*="hover:"]),
-    .bg-secondary, .dark .bg-secondary {
+    .bg-secondary, .dark .bg-secondary,
+    .btn-primary, [class*="btn-primary"] {
       background-color: var(--btn-primary-bg) !important;
-      color: var(--btn-primary-text) !important;
+      color: var(--btn-primary-text, #ffffff) !important;
+    }
+    .bg-\\[\\#1a1a2e\\] *, [class*="bg-[#1a1a2e]"] *:not(.badge):not([class*="bg-"]),
+    .bg-secondary *, .dark .bg-secondary *,
+    .btn-primary *, [class*="btn-primary"] * {
+      color: var(--btn-primary-text, #ffffff) !important;
     }
     
     /* Transparent / opacity classes mapped to theme colors using color-mix */

@@ -249,11 +249,11 @@ export default function CartContainer({ settings, initialCustomer }: CartContain
               <button
                 type="button"
                 onClick={() => setView('checkout')}
-                className="flex w-full items-center justify-center gap-2.5 rounded-2xl bg-[#1a1a2e] dark:bg-white text-white dark:text-[#1a1a2e] hover:bg-[#e94560] dark:hover:bg-[#e94560] dark:hover:text-white active:scale-98 px-5 py-4.5 text-base font-black transition-all duration-200 shadow-xl shadow-gray-900/10 dark:shadow-white/5 cursor-pointer group"
+                className="flex w-full items-center justify-center gap-2.5 rounded-2xl bg-[#1a1a2e] text-white hover:bg-[#e94560] active:scale-98 px-5 py-4.5 text-base font-black transition-all duration-200 shadow-xl shadow-gray-900/10 cursor-pointer group"
               >
-                <Lock className="h-5 w-5 shrink-0 opacity-80 group-hover:opacity-100 transition-opacity" />
-                <span>Secure Checkout</span>
-                <ArrowRight className="h-5 w-5 shrink-0 group-hover:translate-x-1 transition-transform" />
+                <Lock className="h-5 w-5 shrink-0 opacity-80 group-hover:opacity-100 transition-opacity text-white" />
+                <span className="text-white">Secure Checkout</span>
+                <ArrowRight className="h-5 w-5 shrink-0 group-hover:translate-x-1 transition-transform text-white" />
               </button>
 
               <p className="text-center text-xs text-gray-400 font-semibold">

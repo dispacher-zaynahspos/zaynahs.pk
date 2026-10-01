@@ -65,8 +65,13 @@ export default function Navbar({
   const showNewsletter = settings?.header_show_newsletter ?? true;
   const newsletterText = settings?.header_newsletter_text ?? 'Summer sale discount off 50%. Shop Sale';
 
-  const topBarBg = settings?.header_top_bar_bg || settings?.theme_config?.colors?.headerTopBarBg || settings?.theme_config?.colors?.primary || '#0F2A5E';
-  const topBarTextColor = settings?.header_top_bar_text_color || settings?.theme_config?.colors?.headerTopBarTextColor || '#ffffff';
+  const isLegacyCyanOrAmber = settings?.header_top_bar_bg === '#0694db' || settings?.header_top_bar_bg === '#d97706';
+  const topBarBg = (!isLegacyCyanOrAmber && settings?.header_top_bar_bg)
+    ? settings.header_top_bar_bg
+    : (settings?.theme_config?.colors?.headerTopBarBg || settings?.theme_config?.colors?.primary || '#0F2A5E');
+  const topBarTextColor = (!isLegacyCyanOrAmber && settings?.header_top_bar_text_color)
+    ? settings.header_top_bar_text_color
+    : (settings?.theme_config?.colors?.headerTopBarTextColor || '#ffffff');
   const headerBg = settings?.header_bg || settings?.theme_config?.colors?.surface || '#ffffff';
   const headerTextColor = settings?.header_text_color || settings?.theme_config?.colors?.textPrimary || '#1a1a2e';
   const headerBorderColor = settings?.header_border_color || settings?.theme_config?.colors?.border || '#e5e7eb';
