@@ -4,8 +4,6 @@ export interface ThemePreset {
   id: string;
   name: string;
   feel: string;
-  /** Premium ("PRO") theme — gated behind the `premium_themes` feature flag. */
-  premium?: boolean;
   config: ThemeConfig;
 }
 
@@ -43,6 +41,42 @@ export const THEME_PRESETS: ThemePreset[] = [
       },
       cards: {
         borderRadius: 0,
+      },
+    },
+  },
+  {
+    id: 'little_explorers',
+    name: 'Little Explorers',
+    feel: 'Playful & trusted kids & family boutique',
+    config: {
+      colors: {
+        primary: '#0F2A5E',
+        secondary: '#1E4FA3',
+        accent: '#FBB91F',
+        background: '#FFFFFF',
+        surface: '#EAF4FD',
+        textPrimary: '#1A2B4A',
+        textSecondary: '#5B6B85',
+        border: '#DCE8F5',
+        textHeading: '#0B2559',
+        textAccent: '#F5A800',
+        price: '#0F2A5E',
+      },
+      fonts: {
+        heading: 'Lexend',
+        body: 'Poppins',
+      },
+      typography: {
+        fontSizeBase: 16,
+      },
+      buttons: {
+        borderRadius: 10,
+        primaryBg: '#0F2A5E',
+        primaryText: '#FFFFFF',
+        primaryHover: '#1E4FA3',
+      },
+      cards: {
+        borderRadius: 12,
       },
     },
   },
@@ -443,51 +477,9 @@ export const THEME_PRESETS: ThemePreset[] = [
     },
   },
   {
-    id: 'little_explorers',
-    name: 'Little Explorers',
-    feel: 'Playful & trusted kids & family boutique',
-    config: {
-      colors: {
-        primary: '#0F2A5E',
-        secondary: '#1E4FA3',
-        accent: '#FBB91F',
-        background: '#FFFFFF',
-        surface: '#EAF4FD',
-        textPrimary: '#1A2B4A',
-        textSecondary: '#5B6B85',
-        border: '#DCE8F5',
-        textHeading: '#0B2559',
-        textAccent: '#F5A800',
-        price: '#0F2A5E',
-      },
-      fonts: {
-        heading: 'Lexend',
-        body: 'Poppins',
-      },
-      typography: {
-        fontSizeBase: 16,
-      },
-      buttons: {
-        borderRadius: 10,
-        primaryBg: '#0F2A5E',
-        primaryText: '#FFFFFF',
-        primaryHover: '#1E4FA3',
-      },
-      cards: {
-        borderRadius: 12,
-      },
-    },
-  },
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // PREMIUM ("PRO") THEMES — gated behind the `premium_themes` feature flag
-  // (Settings ▸ Premium). Like Shopify's paid themes: curated, higher-end looks.
-  // ─────────────────────────────────────────────────────────────────────────
-  {
     id: 'noir_luxe',
-    name: '✦ Noir Luxe',
-    feel: 'High-end dark editorial (PRO)',
-    premium: true,
+    name: 'Noir Luxe',
+    feel: 'High-end dark editorial',
     config: {
       colors: {
         primary: '#0A0A0A', secondary: '#2A2A2A', accent: '#C9A227',
@@ -503,9 +495,8 @@ export const THEME_PRESETS: ThemePreset[] = [
   },
   {
     id: 'emerald_atelier',
-    name: '✦ Emerald Atelier',
-    feel: 'Boutique jewelry elegance (PRO)',
-    premium: true,
+    name: 'Emerald Atelier',
+    feel: 'Boutique jewelry elegance',
     config: {
       colors: {
         primary: '#0F3D2E', secondary: '#1B5E43', accent: '#D4AF37',
@@ -521,9 +512,8 @@ export const THEME_PRESETS: ThemePreset[] = [
   },
   {
     id: 'sunset_boutique',
-    name: '✦ Sunset Boutique',
-    feel: 'Warm modern fashion gradient (PRO)',
-    premium: true,
+    name: 'Sunset Boutique',
+    feel: 'Warm modern fashion gradient',
     config: {
       colors: {
         primary: '#E4572E', secondary: '#F3A712', accent: '#8338EC',
@@ -539,9 +529,8 @@ export const THEME_PRESETS: ThemePreset[] = [
   },
   {
     id: 'midnight_tech',
-    name: '✦ Midnight Tech',
-    feel: 'Sleek modern electronics (PRO)',
-    premium: true,
+    name: 'Midnight Tech',
+    feel: 'Sleek modern electronics',
     config: {
       colors: {
         primary: '#3B82F6', secondary: '#6366F1', accent: '#22D3EE',
