@@ -1,6 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 import { HomepageSection } from '@/lib/types';
 import { revalidateBanner } from '@/lib/revalidate';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
@@ -85,7 +86,7 @@ export const updateHomepageSection = async (
   updates: Partial<HomepageSection>
 ): Promise<HomepageSection> => {
   try {
-    const supabase = await createClient();
+    const supabase = supabaseAdmin;
     const { data, error } = await supabase
       .from('homepage_sections')
       .update(updates)
@@ -106,7 +107,7 @@ export const reorderHomepageSections = async (
   sections: { id: string; sort_order: number }[]
 ): Promise<void> => {
   try {
-    const supabase = await createClient();
+    const supabase = supabaseAdmin;
     const promises = sections.map((sec) =>
       supabase
         .from('homepage_sections')
@@ -126,7 +127,7 @@ export const addHomepageSection = async (
   title: string
 ): Promise<HomepageSection> => {
   try {
-    const supabase = await createClient();
+    const supabase = supabaseAdmin;
     const { data: maxSec } = await supabase
       .from('homepage_sections')
       .select('sort_order')
@@ -176,7 +177,7 @@ export const addHomepageSection = async (
 
 export const deleteHomepageSection = async (id: string): Promise<void> => {
   try {
-    const supabase = await createClient();
+    const supabase = supabaseAdmin;
     const { error } = await supabase
       .from('homepage_sections')
       .delete()
