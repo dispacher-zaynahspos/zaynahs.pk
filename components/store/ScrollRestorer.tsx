@@ -155,14 +155,31 @@ export default function ScrollRestorer() {
     };
     activeRestoreRef.current = state;
 
-    // User interaction aborts restoration
+    // ── VISUAL CLOAK: hide page while searching to prevent banner/footer flash ──
+    const root = document.documentElement;
+    root.style.opacity = '0';
+    root.style.transition = 'none';
+
+    const revealPage = () => {
+      root.style.transition = 'opacity 120ms ease-out';
+      root.style.opacity = '1';
+      // Clean up inline styles after transition
+      setTimeout(() => {
+        root.style.removeProperty('opacity');
+        root.style.removeProperty('transition');
+      }, 150);
+    };
+
+    // User interaction aborts restoration & reveals page
     const onUserInterrupt = () => {
       if (state.cancelled) return;
       state.cancelled = true;
+      revealPage();
       cleanup(true);
     };
     window.addEventListener('wheel', onUserInterrupt, { passive: true, once: true });
     window.addEventListener('touchmove', onUserInterrupt, { passive: true, once: true });
+    window.addEventListener('touchstart', onUserInterrupt, { passive: true, once: true });
 
     const cleanup = (removeFromStorage: boolean) => {
       state.cancelled = true;
@@ -171,6 +188,7 @@ export default function ScrollRestorer() {
       if (state.timeoutId) clearTimeout(state.timeoutId);
       window.removeEventListener('wheel', onUserInterrupt);
       window.removeEventListener('touchmove', onUserInterrupt);
+      window.removeEventListener('touchstart', onUserInterrupt);
       if (removeFromStorage) {
         try { sessionStorage.removeItem(SCROLL_KEY); } catch {}
       }
@@ -180,9 +198,12 @@ export default function ScrollRestorer() {
     };
 
     const applyCardFocus = (card: HTMLElement) => {
-      // Instantly center the card
+      // Instantly center the card (page is still hidden)
       card.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' as ScrollBehavior });
       card.focus?.({ preventScroll: true });
+
+      // Now reveal the page — user sees the card centered, never the banner/footer
+      revealPage();
 
       // Visual highlight
       card.classList.add('scroll-restore-highlight');
@@ -236,31 +257,32 @@ export default function ScrollRestorer() {
       if (tryFindCard()) return;
 
       // When we have a productId, do NOT fall back to scrollY early!
-      // The card might not be in the DOM yet (e.g., "Load More" products restoring).
-      // Only use scrollY as an absolute final fallback at the end.
-      if (tries < 300) { // ~5 seconds max — wait for lazy grids to render
+      // Keep looking for the card — the page stays hidden so no banner/footer flash.
+      if (tries < 300) { // ~5 seconds max
         state.rafId = requestAnimationFrame(tick);
       } else {
-        // Final fallback: card was never found, try scrollY as last resort
+        // Final fallback: card was never found, scroll to saved Y and reveal
         if (data.scrollY > 0) {
           const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
           window.scrollTo({ top: Math.min(data.scrollY, Math.max(0, maxScroll)), behavior: 'instant' });
         }
+        revealPage();
         cleanup(true);
       }
     };
     state.rafId = requestAnimationFrame(tick);
 
-    // Hard timeout safety net: if nothing worked in 6s, stop trying
+    // Hard timeout safety net: if nothing worked in 6s, reveal and stop
     state.timeoutId = setTimeout(() => {
       if (!state.cancelled) {
         // One final attempt to find the card
         if (tryFindCard()) return;
-        // If still not found, scroll to saved Y as last resort
+        // If still not found, scroll to saved Y and reveal anyway
         if (data.scrollY > 0) {
           const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
           window.scrollTo({ top: Math.min(data.scrollY, Math.max(0, maxScroll)), behavior: 'instant' });
         }
+        revealPage();
         cleanup(true);
       }
     }, 6000);
@@ -276,18 +298,39 @@ export default function ScrollRestorer() {
     };
     activeRestoreRef.current = state;
 
-    const onUserInterrupt = () => {
-      if (state.cancelled) return;
+    // ── VISUAL CLOAK: hide page while restoring scroll position ──
+    const root = document.documentElement;
+    root.style.opacity = '0';
+    root.style.transition = 'none';
+
+    const revealPage = () => {
+      root.style.transition = 'opacity 120ms ease-out';
+      root.style.opacity = '1';
+      setTimeout(() => {
+        root.style.removeProperty('opacity');
+        root.style.removeProperty('transition');
+      }, 150);
+    };
+
+    const fullCleanup = () => {
       state.cancelled = true;
       if (state.rafId) cancelAnimationFrame(state.rafId);
       if (state.observer) state.observer.disconnect();
       if (state.timeoutId) clearTimeout(state.timeoutId);
       window.removeEventListener('wheel', onUserInterrupt);
       window.removeEventListener('touchmove', onUserInterrupt);
+      window.removeEventListener('touchstart', onUserInterrupt);
       if (activeRestoreRef.current === state) activeRestoreRef.current = null;
+    };
+
+    const onUserInterrupt = () => {
+      if (state.cancelled) return;
+      revealPage();
+      fullCleanup();
     };
     window.addEventListener('wheel', onUserInterrupt, { passive: true, once: true });
     window.addEventListener('touchmove', onUserInterrupt, { passive: true, once: true });
+    window.addEventListener('touchstart', onUserInterrupt, { passive: true, once: true });
 
     let tries = 0;
     const attemptScroll = () => {
@@ -296,7 +339,8 @@ export default function ScrollRestorer() {
 
       if (maxScroll >= target - 10) {
         window.scrollTo({ top: target, behavior: 'instant' });
-        onUserInterrupt(); // cleanup
+        revealPage();
+        fullCleanup();
         return;
       }
 
@@ -305,7 +349,8 @@ export default function ScrollRestorer() {
         state.rafId = requestAnimationFrame(attemptScroll);
       } else {
         window.scrollTo({ top: Math.min(target, Math.max(0, maxScroll)), behavior: 'instant' });
-        onUserInterrupt(); // cleanup
+        revealPage();
+        fullCleanup();
       }
     };
 
@@ -327,7 +372,8 @@ export default function ScrollRestorer() {
       if (!state.cancelled) {
         const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
         window.scrollTo({ top: Math.min(target, Math.max(0, maxScroll)), behavior: 'instant' });
-        onUserInterrupt();
+        revealPage();
+        fullCleanup();
       }
     }, 4000);
   }
