@@ -44,11 +44,19 @@ export const ProductCardShowcaseContent: React.FC<ProductCardShowcaseContentProp
     styleClass === 'sc8' ? '#000' :
     styleClass === 'sc9' ? '#6750a4' :
     styleClass === 'sc10' ? '#8e44ad' :
+    styleClass === 'sc11' ? '#c9a44c' :
+    styleClass === 'sc12' ? '#1a1a1a' :
+    styleClass === 'sc13' ? '#e94560' :
+    styleClass === 'sc14' ? '#111' :
+    styleClass === 'sc15' ? '#0a84ff' :
+    styleClass === 'sc16' ? '#c0603a' :
     '#f59e0b';
 
   const countColor =
     styleClass === 'sc8' ? '#666' :
     styleClass === 'sc9' ? '#666' :
+    styleClass === 'sc11' ? '#8a8470' :
+    styleClass === 'sc16' ? '#b7a68f' :
     '#888';
 
 
@@ -58,14 +66,14 @@ export const ProductCardShowcaseContent: React.FC<ProductCardShowcaseContentProp
     'text-gray-500';
 
   // Backward compat: treat any removed styleClass as sc1
-  const validSc = ['sc1', 'sc8', 'sc9', 'sc10'];
+  const validSc = ['sc1', 'sc8', 'sc9', 'sc10', 'sc11', 'sc12', 'sc13', 'sc14', 'sc15', 'sc16'];
   const safeStyleClass = validSc.includes(styleClass) ? styleClass : 'sc1';
 
   const contentClass = safeStyleClass === 'sc8'
     ? 'z-card-content-geo flex-grow flex flex-col justify-end'
     : 'card-content';
 
-  const needsCbWrapper = ['sc8', 'sc9', 'sc10'].includes(safeStyleClass);
+  const needsCbWrapper = ['sc8', 'sc9', 'sc10', 'sc11', 'sc12', 'sc13', 'sc14', 'sc15', 'sc16'].includes(safeStyleClass);
 
   const inner = (
     <>

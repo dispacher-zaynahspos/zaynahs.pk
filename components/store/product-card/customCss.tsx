@@ -610,6 +610,419 @@ export const customCss = `
       border-color: transparent;
     }
 
+    /* ──────────────────────────────────────────────────────────────────────────
+       Showcase 11 — Luxe Noir
+       Ultra-premium black & gold luxury (Gucci / Saint Laurent vibe)
+    ────────────────────────────────────────────────────────────────────────── */
+    .z-card-container .sc11 {
+      background: #0c0c0c;
+      border: 1px solid #26241d;
+      border-radius: 6px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      position: relative;
+      transition: var(--trans);
+    }
+    .z-card-container .sc11:hover {
+      border-color: #c9a44c;
+      box-shadow: 0 14px 40px rgba(0,0,0,0.55), 0 0 0 1px rgba(201,164,76,0.25);
+      transform: translateY(-3px);
+    }
+    .z-card-container .sc11 .img-box {
+      position: relative;
+      width: 100%;
+      overflow: hidden;
+      background: linear-gradient(145deg, #1a1a1a 0%, #050505 100%);
+    }
+    .z-card-container .sc11 .img-box img {
+      width: 100%; height: 100%; object-fit: cover;
+      transition: transform 0.6s cubic-bezier(0.16,1,0.3,1);
+    }
+    .z-card-container .sc11:hover .img-box img { transform: scale(1.06); }
+    .z-card-container .sc11 .cb {
+      padding: 12px 14px 14px;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+      border-top: 1px solid rgba(201,164,76,0.18);
+    }
+    .z-card-container .sc11 .card-title,
+    .z-card-container .sc11 .product-card-title {
+      color: #f3ecd9 !important;
+      letter-spacing: 0.4px !important;
+    }
+    .z-card-container .sc11 .card-price,
+    .z-card-container .sc11 .prc {
+      color: #c9a44c;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+    .z-card-container .sc11 .pold { color: #7a7568 !important; }
+    .z-card-container .sc11 .rc { color: #8a8470 !important; }
+    .z-card-container .sc11 .action-btn,
+    .z-card-container .sc11 .ai {
+      background: rgba(12,12,12,0.75);
+      color: #c9a44c;
+      border: 1px solid rgba(201,164,76,0.5);
+      border-radius: 50%;
+      backdrop-filter: blur(6px);
+      box-shadow: none;
+    }
+    .z-card-container .sc11 .action-btn:hover,
+    .z-card-container .sc11 .ai:hover {
+      background: #c9a44c;
+      color: #0c0c0c;
+      border-color: #c9a44c;
+    }
+
+    /* ──────────────────────────────────────────────────────────────────────────
+       Showcase 12 — Pure Editorial
+       Scandinavian minimal, airy whitespace, sharp edges (COS / Arket vibe)
+    ────────────────────────────────────────────────────────────────────────── */
+    .z-card-container .sc12 {
+      background: #ffffff;
+      border: none;
+      border-radius: 0;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      transition: var(--trans);
+    }
+    .z-card-container .sc12:hover { transform: translateY(-2px); }
+    .z-card-container .sc12 .img-box {
+      position: relative;
+      width: 100%;
+      overflow: hidden;
+      background: #f4f3f1;
+    }
+    .z-card-container .sc12 .img-box img {
+      width: 100%; height: 100%; object-fit: cover;
+      transition: transform 0.7s cubic-bezier(0.16,1,0.3,1);
+    }
+    .z-card-container .sc12:hover .img-box img { transform: scale(1.04); }
+    .z-card-container .sc12 .cb {
+      padding: 14px 2px 6px;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+      gap: 2px;
+    }
+    .z-card-container .sc12 .card-title,
+    .z-card-container .sc12 .product-card-title {
+      color: #1a1a1a !important;
+      font-weight: 400 !important;
+    }
+    .z-card-container .sc12 .card-price,
+    .z-card-container .sc12 .prc {
+      color: #1a1a1a;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+    .z-card-container .sc12 .pold { color: #b0b0b0 !important; }
+    .z-card-container .sc12 .action-btn,
+    .z-card-container .sc12 .ai {
+      background: #ffffff;
+      color: #1a1a1a;
+      border: 1px solid #e4e2de;
+      border-radius: 50%;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    }
+    .z-card-container .sc12 .action-btn:hover,
+    .z-card-container .sc12 .ai:hover {
+      background: #1a1a1a;
+      color: #fff;
+      border-color: #1a1a1a;
+    }
+
+    /* ──────────────────────────────────────────────────────────────────────────
+       Showcase 13 — Soft Pastel Glow
+       Beauty-brand softness, rounded, pill price tag (Glossier vibe)
+    ────────────────────────────────────────────────────────────────────────── */
+    .z-card-container .sc13 {
+      background: #fdf2f4;
+      border: none;
+      border-radius: 22px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      box-shadow: 0 4px 18px rgba(236,153,172,0.18);
+      transition: var(--trans);
+    }
+    .z-card-container .sc13:hover {
+      box-shadow: 0 10px 32px rgba(236,153,172,0.30);
+      transform: translateY(-3px);
+    }
+    .z-card-container .sc13 .img-box {
+      position: relative;
+      width: 100%;
+      overflow: hidden;
+      background: #fce4ea;
+      border-radius: 22px 22px 0 0;
+    }
+    .z-card-container .sc13 .img-box img {
+      width: 100%; height: 100%; object-fit: cover;
+      transition: transform 0.5s cubic-bezier(0.4,0,0.2,1);
+    }
+    .z-card-container .sc13:hover .img-box img { transform: scale(1.05); }
+    .z-card-container .sc13 .cb {
+      padding: 12px 14px 14px;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+      gap: 4px;
+    }
+    .z-card-container .sc13 .card-title,
+    .z-card-container .sc13 .product-card-title {
+      color: #5a3a44 !important;
+    }
+    .z-card-container .sc13 .card-price,
+    .z-card-container .sc13 .prc {
+      display: inline-block;
+      width: fit-content;
+      background: var(--color-primary, #e94560);
+      color: #fff;
+      padding: 3px 12px;
+      border-radius: 50px;
+      font-weight: 800;
+      font-size: 0.78rem;
+      margin-top: 2px;
+    }
+    .z-card-container .sc13 .prow { align-items: center; }
+    .z-card-container .sc13 .pold { color: #c99aa6 !important; }
+    .z-card-container .sc13 .action-btn,
+    .z-card-container .sc13 .ai {
+      background: rgba(255,255,255,0.9);
+      color: #c0506a;
+      border: none;
+      border-radius: 50%;
+      box-shadow: 0 2px 10px rgba(236,153,172,0.3);
+    }
+    .z-card-container .sc13 .action-btn:hover,
+    .z-card-container .sc13 .ai:hover {
+      background: var(--color-primary, #e94560);
+      color: #fff;
+    }
+
+    /* ──────────────────────────────────────────────────────────────────────────
+       Showcase 14 — Street Bold
+       Heavy streetwear energy, condensed caps, bold price block (Nike / Supreme vibe)
+    ────────────────────────────────────────────────────────────────────────── */
+    .z-card-container .sc14 {
+      background: #ffffff;
+      border: 2px solid #111;
+      border-radius: 2px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      position: relative;
+      transition: var(--trans);
+    }
+    .z-card-container .sc14:hover { transform: translateY(-3px); box-shadow: 0 10px 0 -2px #111, 0 16px 30px rgba(0,0,0,0.18); }
+    .z-card-container .sc14 .img-box {
+      position: relative;
+      width: 100%;
+      overflow: hidden;
+      background: #f0f0f0;
+      border-bottom: 2px solid #111;
+    }
+    .z-card-container .sc14 .img-box img {
+      width: 100%; height: 100%; object-fit: cover;
+      transition: transform 0.4s ease;
+    }
+    .z-card-container .sc14:hover .img-box img { transform: scale(1.07); }
+    .z-card-container .sc14 .cb {
+      padding: 10px 12px 12px;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+      gap: 5px;
+    }
+    .z-card-container .sc14 .card-title,
+    .z-card-container .sc14 .product-card-title {
+      color: #111 !important;
+      font-weight: 900 !important;
+      text-transform: uppercase !important;
+      letter-spacing: -0.2px !important;
+      line-height: 1.1 !important;
+    }
+    .z-card-container .sc14 .card-price,
+    .z-card-container .sc14 .prc {
+      display: inline-block;
+      width: fit-content;
+      background: var(--color-primary, #e94560);
+      color: #fff;
+      padding: 2px 8px;
+      font-weight: 900;
+      font-size: 0.82rem;
+      transform: skewX(-6deg);
+    }
+    .z-card-container .sc14 .prow { margin-top: auto; }
+    .z-card-container .sc14 .pold { color: #999 !important; }
+    .z-card-container .sc14 .action-btn,
+    .z-card-container .sc14 .ai {
+      background: #111;
+      color: #fff;
+      border: none;
+      border-radius: 2px;
+      box-shadow: none;
+    }
+    .z-card-container .sc14 .action-btn:hover,
+    .z-card-container .sc14 .ai:hover {
+      background: var(--color-primary, #e94560);
+      color: #fff;
+    }
+
+    /* ──────────────────────────────────────────────────────────────────────────
+       Showcase 15 — Frosted Glass
+       Apple-grade premium, frosted content strip overlapping image (tech vibe)
+    ────────────────────────────────────────────────────────────────────────── */
+    .z-card-container .sc15 {
+      background: #eef1f5;
+      border: 1px solid rgba(255,255,255,0.6);
+      border-radius: 20px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      position: relative;
+      box-shadow: 0 6px 24px rgba(30,40,60,0.10);
+      transition: var(--trans);
+    }
+    .z-card-container .sc15:hover {
+      box-shadow: 0 14px 40px rgba(30,40,60,0.18);
+      transform: translateY(-3px);
+    }
+    .z-card-container .sc15 .img-box {
+      position: relative;
+      width: 100%;
+      overflow: hidden;
+      background: linear-gradient(160deg, #dfe6ef 0%, #c9d4e2 100%);
+      border-radius: 20px 20px 0 0;
+    }
+    .z-card-container .sc15 .img-box img {
+      width: 100%; height: 100%; object-fit: cover;
+      transition: transform 0.6s cubic-bezier(0.16,1,0.3,1);
+    }
+    .z-card-container .sc15:hover .img-box img { transform: scale(1.05); }
+    .z-card-container .sc15 .cb {
+      position: relative;
+      margin-top: -22px;
+      margin-left: 10px;
+      margin-right: 10px;
+      padding: 10px 12px 12px;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+      gap: 3px;
+      background: rgba(255,255,255,0.65);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,255,255,0.7);
+      border-radius: 16px;
+      z-index: 4;
+      box-shadow: 0 4px 16px rgba(30,40,60,0.08);
+    }
+    .z-card-container .sc15 .card-title,
+    .z-card-container .sc15 .product-card-title {
+      color: #1d2733 !important;
+      font-weight: 600 !important;
+    }
+    .z-card-container .sc15 .card-price,
+    .z-card-container .sc15 .prc {
+      color: #0a84ff;
+      font-weight: 800;
+    }
+    .z-card-container .sc15 .pold { color: #9aa3af !important; }
+    .z-card-container .sc15 .action-btn,
+    .z-card-container .sc15 .ai {
+      background: rgba(255,255,255,0.7);
+      color: #1d2733;
+      border: 1px solid rgba(255,255,255,0.8);
+      border-radius: 50%;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 2px 10px rgba(30,40,60,0.12);
+    }
+    .z-card-container .sc15 .action-btn:hover,
+    .z-card-container .sc15 .ai:hover {
+      background: #0a84ff;
+      color: #fff;
+      border-color: #0a84ff;
+    }
+
+    /* ──────────────────────────────────────────────────────────────────────────
+       Showcase 16 — Terracotta Boutique
+       Artisan warmth, elegant italic serif title, earthy tones (Anthropologie vibe)
+    ────────────────────────────────────────────────────────────────────────── */
+    .z-card-container .sc16 {
+      background: #f7f1e8;
+      border: 1px solid #e3d6c2;
+      border-radius: 14px 14px 4px 4px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      box-shadow: 0 3px 12px rgba(150,100,60,0.08);
+      transition: var(--trans);
+    }
+    .z-card-container .sc16:hover {
+      box-shadow: 0 10px 30px rgba(150,100,60,0.16);
+      transform: translateY(-3px);
+      border-color: #c08457;
+    }
+    .z-card-container .sc16 .img-box {
+      position: relative;
+      width: 100%;
+      overflow: hidden;
+      background: linear-gradient(160deg, #efe4d3 0%, #e3d1b8 100%);
+      border-radius: 14px 14px 0 0;
+    }
+    .z-card-container .sc16 .img-box img {
+      width: 100%; height: 100%; object-fit: cover;
+      transition: transform 0.6s cubic-bezier(0.4,0,0.2,1);
+    }
+    .z-card-container .sc16:hover .img-box img { transform: scale(1.05); }
+    .z-card-container .sc16 .cb {
+      padding: 12px 14px 14px;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+      gap: 3px;
+    }
+    .z-card-container .sc16 .card-title,
+    .z-card-container .sc16 .product-card-title {
+      color: #4a3324 !important;
+      font-family: Georgia, 'Times New Roman', serif !important;
+      font-style: italic !important;
+      font-weight: 500 !important;
+    }
+    .z-card-container .sc16 .card-price,
+    .z-card-container .sc16 .prc {
+      color: #c0603a;
+      font-weight: 800;
+      letter-spacing: 0.3px;
+      margin-top: auto;
+    }
+    .z-card-container .sc16 .pold { color: #b7a68f !important; }
+    .z-card-container .sc16 .action-btn,
+    .z-card-container .sc16 .ai {
+      background: rgba(247,241,232,0.95);
+      color: #4a3324;
+      border: 1px solid #e3d6c2;
+      border-radius: 50%;
+      box-shadow: 0 2px 8px rgba(150,100,60,0.12);
+    }
+    .z-card-container .sc16 .action-btn:hover,
+    .z-card-container .sc16 .ai:hover {
+      background: #c0603a;
+      color: #fff;
+      border-color: transparent;
+    }
+
     @media (max-width: 640px) {
         .grid-cols-2 .z-card-container .aic,
         .grid-cols-2 .z-card-container .card-actions {
@@ -645,7 +1058,13 @@ export const customCss = `
 
         .grid-cols-2 .z-card-container .sc1,
         .grid-cols-2 .z-card-container .sc8,
-        .grid-cols-2 .z-card-container .sc10 {
+        .grid-cols-2 .z-card-container .sc10,
+        .grid-cols-2 .z-card-container .sc11,
+        .grid-cols-2 .z-card-container .sc12,
+        .grid-cols-2 .z-card-container .sc13,
+        .grid-cols-2 .z-card-container .sc14,
+        .grid-cols-2 .z-card-container .sc15,
+        .grid-cols-2 .z-card-container .sc16 {
             padding: 0 !important;
         }
     }

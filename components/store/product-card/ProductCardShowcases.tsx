@@ -81,15 +81,26 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
 
   const styleClassMap: Record<string, string> = {
     showcase_1: 'sc1', showcase_8: 'sc8', showcase_10: 'sc10',
+    showcase_11: 'sc11', showcase_12: 'sc12', showcase_13: 'sc13',
+    showcase_14: 'sc14', showcase_15: 'sc15', showcase_16: 'sc16',
   };
 
   // Backward compat: if activeStyle is a removed template ID, fall back to 'style1' (sc1)
-  const validStyles = new Set(['showcase_1', 'showcase_8', 'showcase_10']);
+  const validStyles = new Set([
+    'showcase_1', 'showcase_8', 'showcase_10',
+    'showcase_11', 'showcase_12', 'showcase_13', 'showcase_14', 'showcase_15', 'showcase_16',
+  ]);
   const safeStyle = validStyles.has(activeStyle) ? activeStyle : 'showcase_1';
   const scClass = styleClassMap[safeStyle] || 'sc1';
   const imgBgClass =
     scClass === 'sc8' ? 'bg-[#fef9e7]' :
     scClass === 'sc10' ? 'bg-gradient-to-br from-[#fdf6ec] to-[#f5e6d0] rounded-t-[24px]' :
+    scClass === 'sc11' ? 'bg-gradient-to-br from-[#1a1a1a] to-[#050505]' :
+    scClass === 'sc12' ? 'bg-[#f4f3f1]' :
+    scClass === 'sc13' ? 'bg-[#fce4ea] rounded-t-[22px]' :
+    scClass === 'sc14' ? 'bg-[#f0f0f0]' :
+    scClass === 'sc15' ? 'bg-gradient-to-br from-[#dfe6ef] to-[#c9d4e2] rounded-t-[20px]' :
+    scClass === 'sc16' ? 'bg-gradient-to-br from-[#efe4d3] to-[#e3d1b8] rounded-t-[14px]' :
     '';
 
   const productUrl = `/product/${encodeURIComponent(product.slug || '')}`;

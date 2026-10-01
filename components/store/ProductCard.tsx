@@ -246,7 +246,7 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
   const activeStyle = settings?.card_style || 'style1';
 
   // Backward compatibility: fall back to 'style1' if saved setting holds a removed template ID
-  const validStyles = new Set(['style1', 'showcase_1', 'showcase_8', 'showcase_10']);
+  const validStyles = new Set(['style1', 'showcase_1', 'showcase_8', 'showcase_10', 'showcase_11', 'showcase_12', 'showcase_13', 'showcase_14', 'showcase_15', 'showcase_16']);
   const safeStyle = validStyles.has(activeStyle) ? activeStyle : 'style1';
 
   const finalRenderedGroups = (

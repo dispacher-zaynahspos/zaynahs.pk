@@ -71,6 +71,15 @@ export default function ProductCardSettings({ settings, onUpdateSettings }: Prod
               <option value="showcase_8">Showcase 8 — Geometric Mondrian</option>
               <option value="showcase_10">Showcase 10 — Organic & Wavy</option>
             </optgroup>
+
+            <optgroup label="Premium Brand Themes">
+              <option value="showcase_11">Showcase 11 — Luxe Noir (Black & Gold)</option>
+              <option value="showcase_12">Showcase 12 — Pure Editorial (Scandi Minimal)</option>
+              <option value="showcase_13">Showcase 13 — Soft Pastel Glow (Beauty)</option>
+              <option value="showcase_14">Showcase 14 — Street Bold (Streetwear)</option>
+              <option value="showcase_15">Showcase 15 — Frosted Glass (Apple-style)</option>
+              <option value="showcase_16">Showcase 16 — Terracotta Boutique (Artisan)</option>
+            </optgroup>
           </select>
         </div>
 
