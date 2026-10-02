@@ -187,7 +187,7 @@ input[type="number"],
 input[type="email"],
 input[type="password"],
 input[type="tel"],
-select,
+select:not(.customizer-page-select),
 textarea {
   color: #111827 !important;
   /* Force high contrast dark text in light mode */
@@ -199,7 +199,7 @@ textarea {
 
 /* Focus styles */
 input:focus,
-select:focus,
+select:not(.customizer-page-select):focus,
 textarea:focus {
   border-color: var(--primary) !important;
   background-color: #ffffff !important;
@@ -212,6 +212,31 @@ textarea::placeholder {
   color: #6b7280 !important;
   /* gray-500 */
   opacity: 1 !important;
+}
+
+/* Customizer TopBar Page Selector - Always high-contrast dark-on-brand */
+select.customizer-page-select,
+.customizer-page-select {
+  background-color: rgba(0, 0, 0, 0.35) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  font-weight: 700 !important;
+}
+
+select.customizer-page-select:focus,
+.customizer-page-select:focus {
+  background-color: rgba(0, 0, 0, 0.55) !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2) !important;
+  outline: none !important;
+}
+
+select.customizer-page-select option {
+  background-color: #1a1a2e !important;
+  color: #ffffff !important;
 }
 
 /* ============================================================
@@ -229,7 +254,7 @@ textarea::placeholder {
 .dark input[type="email"],
 .dark input[type="password"],
 .dark input[type="tel"],
-.dark select,
+.dark select:not(.customizer-page-select),
 .dark textarea {
   color: var(--color-text-primary, #ffffff) !important;
   border-color: var(--color-border, #27272a) !important;
@@ -237,7 +262,7 @@ textarea::placeholder {
 }
 
 .dark input:focus,
-.dark select:focus,
+.dark select:not(.customizer-page-select):focus,
 .dark textarea:focus {
   border-color: var(--color-primary, var(--primary)) !important;
   background-color: var(--color-surface, #16162a) !important;
