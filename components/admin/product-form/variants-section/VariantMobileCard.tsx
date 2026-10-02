@@ -39,9 +39,12 @@ export const VariantMobileCard: React.FC<VariantMobileCardProps> = ({
           onChange={(e) => onToggleSelect(idx, e.target.checked)}
           className="rounded border-gray-300 text-[#e94560] focus:ring-[#e94560] h-4 w-4 cursor-pointer shrink-0"
         />
-        {variant.color_hex && (
+        {variant.show_image_swatch && variant.image_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={variant.image_url} alt="" className="h-4 w-4 rounded-full object-cover border border-gray-300 flex-shrink-0" />
+        ) : variant.color_hex ? (
           <span className="h-3.5 w-3.5 rounded-full flex-shrink-0 border border-gray-300" style={getSwatchStyle(variant.color_hex)} />
-        )}
+        ) : null}
         <span className="flex-1 truncate text-sm font-bold text-gray-900 dark:text-white">{label}</span>
         <label className="relative inline-flex items-center cursor-pointer shrink-0">
           <input

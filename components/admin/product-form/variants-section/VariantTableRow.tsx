@@ -42,9 +42,12 @@ export const VariantTableRow: React.FC<VariantTableRowProps> = ({
       </td>
       <td className="py-2.5 px-3 font-semibold text-gray-900 dark:text-white">
         <div className="flex items-center gap-1.5 min-h-[28px]">
-          {variant.color_hex && (
+          {variant.show_image_swatch && variant.image_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={variant.image_url} alt="" className="h-3.5 w-3.5 rounded-full object-cover border border-gray-300 flex-shrink-0" />
+          ) : variant.color_hex ? (
             <span className="h-3 w-3 rounded-full flex-shrink-0 border border-gray-300" style={getSwatchStyle(variant.color_hex)} />
-          )}
+          ) : null}
           <span className="truncate">{label}</span>
         </div>
       </td>
