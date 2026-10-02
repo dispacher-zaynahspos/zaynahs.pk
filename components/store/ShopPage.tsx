@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useRef, useEffect } from 'react';
-import { SlidersHorizontal, X } from '@/components/common/Icons';
+import React, { useRef, useEffect, useState } from 'react';
+import { SlidersHorizontal, X, ChevronDown } from '@/components/common/Icons';
 import { Product, Category, Collection, StoreSettings } from '@/lib/types';
 import ProductCard from './ProductCard';
 import EmptyState from '../common/EmptyState';
@@ -85,6 +85,25 @@ export default function ShopPage({
 
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
+  const CATEGORY_LIMIT = 8;
+  const [moreCategoriesOpen, setMoreCategoriesOpen] = useState(false);
+
+  // Auto-expand if the currently active/selected category is beyond the initial limit
+  useEffect(() => {
+    if (selectedCategoryId) {
+      const activeIdx = displayCategories.findIndex(
+        (c) => c.id === selectedCategoryId || c.slug === selectedCategoryId
+      );
+      if (activeIdx >= CATEGORY_LIMIT) {
+        setMoreCategoriesOpen(true);
+      }
+    }
+  }, [selectedCategoryId, displayCategories]);
+
+  const visibleCategories = moreCategoriesOpen
+    ? displayCategories
+    : displayCategories.slice(0, CATEGORY_LIMIT);
+
   useEffect(() => {
     if (!activeSettings?.shop_infinite_scroll || !hasMore) return;
     const sentinel = sentinelRef.current;
@@ -132,28 +151,44 @@ export default function ShopPage({
         <div className="flex-1 space-y-4">
           {/* Quick Category Chips Bar */}
           {activeSettings?.shop_category_chips_enabled !== false && displayCategories.length > 0 && (
-            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 scrollbar-none touch-pan-x -mx-1 px-1">
+            <div className="flex flex-wrap items-center gap-2 py-1">
               <button
                 type="button"
                 onClick={() => handleCategorySelect(undefined)}
-                className={`shrink-0 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all duration-200 cursor-pointer select-none ${
+                style={
                   !selectedCategoryId
-                    ? 'bg-[#e94560] text-white shadow-xs'
+                    ? {
+                        backgroundColor: 'var(--btn-primary-bg, var(--color-primary, #C2185B))',
+                        color: 'var(--btn-primary-text, #ffffff)',
+                      }
+                    : undefined
+                }
+                className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all duration-200 cursor-pointer select-none ${
+                  !selectedCategoryId
+                    ? 'text-white shadow-xs'
                     : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
                 }`}
               >
                 All Products
               </button>
-              {displayCategories.map((cat) => {
+              {visibleCategories.map((cat) => {
                 const isSelected = selectedCategoryId === cat.id || selectedCategoryId === cat.slug;
                 return (
                   <button
                     key={cat.id}
                     type="button"
                     onClick={() => handleCategorySelect(isSelected ? undefined : cat.id)}
-                    className={`shrink-0 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all duration-200 cursor-pointer select-none ${
+                    style={
                       isSelected
-                        ? 'bg-[#e94560] text-white shadow-xs'
+                        ? {
+                            backgroundColor: 'var(--btn-primary-bg, var(--color-primary, #C2185B))',
+                            color: 'var(--btn-primary-text, #ffffff)',
+                          }
+                        : undefined
+                    }
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all duration-200 cursor-pointer select-none ${
+                      isSelected
+                        ? 'text-white shadow-xs'
                         : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
                     }`}
                   >
@@ -161,6 +196,26 @@ export default function ShopPage({
                   </button>
                 );
               })}
+
+              {displayCategories.length > CATEGORY_LIMIT && (
+                <button
+                  type="button"
+                  onClick={() => setMoreCategoriesOpen((prev) => !prev)}
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all duration-200 cursor-pointer select-none ${
+                    moreCategoriesOpen
+                      ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white shadow-xs'
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                  }`}
+                  aria-expanded={moreCategoriesOpen}
+                >
+                  <span>{moreCategoriesOpen ? 'Show Less' : `+ More (${displayCategories.length - CATEGORY_LIMIT})`}</span>
+                  <ChevronDown
+                    className={`h-3 w-3 transition-transform duration-200 ${
+                      moreCategoriesOpen ? 'rotate-180' : ''
+                    }`}
+                  />
+                </button>
+              )}
             </div>
           )}
 
@@ -203,7 +258,12 @@ export default function ShopPage({
               <EmptyState />
               <button
                 onClick={handleClearFilters}
-                className="mt-4 inline-flex items-center gap-2 rounded-xl bg-[#e94560] text-white px-5 py-2.5 text-xs font-bold transition-transform active:scale-95 shadow-md cursor-pointer"
+                style={{
+                  backgroundColor: 'var(--btn-primary-bg, var(--color-primary, #C2185B))',
+                  color: 'var(--btn-primary-text, #ffffff)',
+                  borderRadius: 'var(--border-radius-btn, 12px)',
+                }}
+                className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 text-xs font-bold transition-transform active:scale-95 shadow-md cursor-pointer"
               >
                 Reset Filters
               </button>
@@ -303,7 +363,12 @@ export default function ShopPage({
               <button
                 type="button"
                 onClick={() => setMobileFilterOpen(false)}
-                className="w-full text-center bg-[#1a1a2e] dark:bg-[#e94560] text-white py-3.5 rounded-xl text-xs font-black uppercase tracking-wider transition-transform active:scale-95 shadow-md cursor-pointer"
+                style={{
+                  backgroundColor: 'var(--btn-primary-bg, var(--color-primary, #C2185B))',
+                  color: 'var(--btn-primary-text, #ffffff)',
+                  borderRadius: 'var(--border-radius-btn, 12px)',
+                }}
+                className="w-full text-center py-3.5 text-xs font-black uppercase tracking-wider transition-transform active:scale-95 shadow-md cursor-pointer"
               >
                 Apply Filters
               </button>
