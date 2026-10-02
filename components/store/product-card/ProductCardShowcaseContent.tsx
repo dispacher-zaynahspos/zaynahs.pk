@@ -23,6 +23,9 @@ interface ProductCardShowcaseContentProps {
   // Shopify pattern: title is a Link, not just a div
   productUrl: string;
   onCardClick: (() => void) | ((e: React.MouseEvent) => void);
+  // Optional appearance overrides from customizer (fall back to per-style defaults)
+  saleColor?: string;
+  compareColor?: string;
 }
 
 export const ProductCardShowcaseContent: React.FC<ProductCardShowcaseContentProps> = ({
@@ -39,6 +42,8 @@ export const ProductCardShowcaseContent: React.FC<ProductCardShowcaseContentProp
   finalRenderedGroups,
   productUrl,
   onCardClick,
+  saleColor,
+  compareColor,
 }) => {
   const starsColor =
     styleClass === 'sc8' ? '#000' :
@@ -108,14 +113,14 @@ export const ProductCardShowcaseContent: React.FC<ProductCardShowcaseContentProp
               <div key="price" className="prow">
                 {/* Sale price FIRST (prominent), strikethrough original SECOND —
                     fixed app-wide order (docs/UI_RULES.md). */}
-                <span className="card-price">{formatPrice(currentPrice, currencySymbol)}</span>
+                <span className="card-price" style={saleColor ? { color: saleColor } : undefined}>{formatPrice(currentPrice, currencySymbol)}</span>
                 {currentComparePrice && currentComparePrice > currentPrice && (
                   <span
                     className="pold ml-1.5 line-through decoration-red-500 decoration-[1.5px]"
                     style={{
                       textDecoration: 'line-through',
-                      textDecorationColor: '#ef4444',
-                      WebkitTextDecorationColor: '#ef4444',
+                      textDecorationColor: compareColor || '#ef4444',
+                      WebkitTextDecorationColor: compareColor || '#ef4444',
                       textDecorationThickness: '1.5px',
                       color: '#888',
                     }}

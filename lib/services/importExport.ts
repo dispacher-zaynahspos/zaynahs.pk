@@ -24,8 +24,105 @@ export const exportProducts = async (productIds: string[]): Promise<ExportBundle
 /**
  * Client-driven sequential product import.
  * Completely immune to Vercel/serverless timeouts because each product
- * runs in its own fast ~1-2s atomic request. Never hangs or sleeps.
+ * runs in its own fast ~1-2s atomic request.
+ *
+ * Hardened against the "stops after ~26-29 products" bug:
+ *  - Each /item request has its own AbortController timeout, so a single
+ *    hung connection (gateway idle-timeout, stalled image fetch) can NEVER
+ *    freeze the whole loop — it fails fast and moves on.
+ *  - Transient failures (network error, timeout, HTTP 429/5xx) are retried
+ *    with exponential backoff before being marked as failed.
+ *  - categoryCache is threaded forward sequentially so category creation
+ *    stays de-duplicated across the run.
  */
+
+/** Per-product request ceiling. Set above the server's maxDuration (60s) so a
+ *  server-side timeout surfaces as an HTTP error (retryable) rather than the
+ *  client aborting first; the abort is the last-resort safety net for a truly
+ *  hung TCP connection that never settles. */
+const ITEM_REQUEST_TIMEOUT_MS = 90_000;
+/** Extra attempts after the first try (so 3 attempts total per product). */
+const ITEM_MAX_RETRIES = 2;
+/** Base backoff between retries (doubles each attempt). */
+const ITEM_RETRY_BASE_DELAY_MS = 1_000;
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/** HTTP statuses that are worth retrying (transient / timeout / rate-limit). */
+const isRetryableStatus = (status: number) =>
+  status === 408 || status === 425 || status === 429 || status === 500 || status === 502 || status === 503 || status === 504;
+
+interface ImportItemOutcome {
+  ok: boolean;
+  result?: any;
+  error?: string;
+}
+
+/** Fires a single /item request with a hard timeout. */
+const importOneItemRequest = async (
+  product: any,
+  strategy: string,
+  categoryCache: Record<string, string>,
+): Promise<{ res: Response | null; aborted: boolean; networkError?: string }> => {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ITEM_REQUEST_TIMEOUT_MS);
+  try {
+    const res = await fetch('/api/products/import/item', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ product, strategy, categoryCache }),
+      signal: controller.signal,
+    });
+    return { res, aborted: false };
+  } catch (err: any) {
+    if (err?.name === 'AbortError') return { res: null, aborted: true };
+    return { res: null, aborted: false, networkError: err?.message || 'Network error during import' };
+  } finally {
+    clearTimeout(timer);
+  }
+};
+
+/** Imports a single product with timeout + retry/backoff resilience. */
+const importOneItemResilient = async (
+  product: any,
+  strategy: string,
+  categoryCache: Record<string, string>,
+): Promise<ImportItemOutcome> => {
+  let lastError = 'Import failed';
+
+  for (let attempt = 0; attempt <= ITEM_MAX_RETRIES; attempt++) {
+    const { res, aborted, networkError } = await importOneItemRequest(product, strategy, categoryCache);
+
+    // Timed-out / network-level failure → retryable
+    if (!res) {
+      lastError = aborted
+        ? `Request timed out after ${ITEM_REQUEST_TIMEOUT_MS / 1000}s`
+        : networkError || 'Network error during import';
+      if (attempt < ITEM_MAX_RETRIES) {
+        await sleep(ITEM_RETRY_BASE_DELAY_MS * Math.pow(2, attempt));
+        continue;
+      }
+      return { ok: false, error: lastError };
+    }
+
+    if (res.ok) {
+      const result = await res.json().catch(() => ({}));
+      return { ok: true, result };
+    }
+
+    // Non-OK HTTP: retry transient statuses, fail fast on deterministic 4xx
+    const errBody = await res.json().catch(() => ({}));
+    lastError = errBody.error || `HTTP ${res.status}: Failed to import`;
+    if (isRetryableStatus(res.status) && attempt < ITEM_MAX_RETRIES) {
+      await sleep(ITEM_RETRY_BASE_DELAY_MS * Math.pow(2, attempt));
+      continue;
+    }
+    return { ok: false, error: lastError };
+  }
+
+  return { ok: false, error: lastError };
+};
+
 export const importProductsBatchClient = async (
   products: any[],
   strategy: 'skip' | 'overwrite' | 'rename',
@@ -37,42 +134,21 @@ export const importProductsBatchClient = async (
 
   for (let i = 0; i < products.length; i++) {
     const p = products[i];
-    try {
-      const res = await fetch('/api/products/import/item', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          product: p,
-          strategy,
-          categoryCache,
-        }),
-      });
+    const outcome = await importOneItemResilient(p, strategy, categoryCache);
 
-      if (!res.ok) {
-        const errBody = await res.json().catch(() => ({}));
-        onProgress({
-          success: false,
-          productName: p.name || `Product #${i + 1}`,
-          status: 'error',
-          error: errBody.error || `HTTP ${res.status}: Failed to import`,
-        });
-        continue;
-      }
-
-      const result = await res.json();
+    if (outcome.ok) {
+      const result = outcome.result || {};
       if (result.categoryCache) {
         categoryCache = { ...categoryCache, ...result.categoryCache };
       }
       onProgress(result);
-    } catch (err: any) {
-      console.error(`[Import Service] Failed for product ${p.name}:`, err);
+    } else {
+      console.error(`[Import Service] Failed for product ${p?.name} after retries:`, outcome.error);
       onProgress({
         success: false,
-        productName: p.name || `Product #${i + 1}`,
+        productName: p?.name || `Product #${i + 1}`,
         status: 'error',
-        error: err.message || 'Network error during import',
+        error: outcome.error || 'Import failed',
       });
     }
   }

@@ -141,11 +141,28 @@ export default async function StoreShopPage({ searchParams }: PageProps) {
     }))
   };
 
+  // BreadcrumbList for the shop / category listing (helps Google & answer engines)
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": `${siteUrl}/` },
+      { "@type": "ListItem", "position": 2, "name": "Shop", "item": `${siteUrl}/shop` },
+      ...(activeCat
+        ? [{ "@type": "ListItem", "position": 3, "name": activeCat.name, "item": `${siteUrl}/shop?category=${activeCat.slug}` }]
+        : []),
+    ],
+  };
+
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
       {faqSchema && (
         <script

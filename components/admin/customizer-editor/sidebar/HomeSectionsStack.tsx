@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { HomepageSection, StoreSettings } from '@/lib/types';
 import { isSectionEnabled, sectionPremiumFeature, PREMIUM_FEATURE_LABEL } from '@/lib/features/premium';
+import { SECTION_PALETTE } from '@/lib/theme-schema/sections';
 import { toast } from 'sonner';
 import SectionStackRow from './SectionStackRow';
 
@@ -50,25 +51,13 @@ export default function HomeSectionsStack({
           + Add Layout Section
         </label>
         <div className="grid grid-cols-2 gap-1.5">
-          {[
-            { type: 'hero_banner', label: 'Promo Slider' },
-            { type: 'product_grid', label: 'Product Grid' },
-            { type: 'category_list', label: 'Category Filter' },
-            { type: 'category_grid', label: 'Category Grid' },
-            { type: 'collections_grid', label: 'Collections Grid' },
-            { type: 'promo_banner', label: 'Promo Banner' },
-            { type: 'trust_badges', label: 'Trust Badges' },
-            { type: 'recent_reviews', label: 'Reviews Feed' },
-            { type: 'brands_logos', label: 'Brands Slider' },
-            { type: 'social_feed', label: 'Social Feed' },
-            { type: 'ticker', label: 'Scrolling Ticker' },
-            { type: 'flash_sale', label: 'Flash Sale Grid' },
-          ].map((item) => {
+          {SECTION_PALETTE.map((item) => {
             const isFeatureDisabled = !isSectionEnabled(storeSettings, item.type);
 
             return (
               <button
                 key={item.type}
+                title={item.description}
                 onClick={() => {
                   if (isFeatureDisabled) {
                     const feature = sectionPremiumFeature(item.type);

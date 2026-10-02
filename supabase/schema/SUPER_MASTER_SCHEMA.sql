@@ -58,6 +58,8 @@ CREATE TABLE IF NOT EXISTS categories (
   parent_id UUID REFERENCES categories(id) ON DELETE SET NULL,
   active BOOLEAN DEFAULT true,
   active_sort_preference TEXT DEFAULT 'manual',
+  meta_title TEXT,
+  meta_description TEXT,
   deleted_at TIMESTAMPTZ DEFAULT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -1356,6 +1358,9 @@ CREATE TABLE IF NOT EXISTS seo_meta (
   long_description TEXT,
   faq_schema JSONB DEFAULT '[]'::jsonb,
   pinterest_description TEXT,
+  canonical_url TEXT,
+  og_image TEXT,
+  og_image_alt TEXT,
   is_optimized BOOLEAN DEFAULT false,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()

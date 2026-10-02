@@ -281,7 +281,34 @@ export default async function RootLayout({
                     "logo": {
                       "@type": "ImageObject",
                       "url": settings.logo_url ? (settings.logo_url.startsWith('http') ? settings.logo_url : `${siteUrl}${settings.logo_url}`) : `${siteUrl}/icon.png`
-                    }
+                    },
+                    ...(() => {
+                      const sameAs = [
+                        settings.social_facebook,
+                        settings.social_instagram,
+                        settings.social_youtube,
+                        settings.social_tiktok,
+                        settings.social_twitter,
+                        settings.social_snapchat,
+                      ].filter((u): u is string => typeof u === 'string' && /^https?:\/\//.test(u));
+                      const telephone = settings.header_top_bar_phone || settings.whatsapp_number || settings.floating_whatsapp_number;
+                      const org: Record<string, unknown> = {};
+                      if (sameAs.length) org.sameAs = sameAs;
+                      if (telephone || settings.header_top_bar_email) {
+                        org.contactPoint = {
+                          "@type": "ContactPoint",
+                          "contactType": "customer service",
+                          ...(telephone ? { telephone } : {}),
+                          ...(settings.header_top_bar_email ? { email: settings.header_top_bar_email } : {}),
+                          "areaServed": "PK",
+                          "availableLanguage": ["en", "ur"],
+                        };
+                      }
+                      if (settings.address) {
+                        org.address = { "@type": "PostalAddress", "streetAddress": settings.address, "addressCountry": "PK" };
+                      }
+                      return org;
+                    })()
                   }
                 ]
               })

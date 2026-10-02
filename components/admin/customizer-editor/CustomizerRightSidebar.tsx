@@ -14,6 +14,7 @@ import RecentReviewsSettings from '../customizer/sections/RecentReviewsSettings'
 import BrandsLogosSettings from '../customizer/sections/BrandsLogosSettings';
 import SocialFeedSettings from '../customizer/sections/SocialFeedSettings';
 import FlashSaleSettings from '../customizer/sections/FlashSaleSettings';
+import ValuePropsSettings from '../customizer/sections/ValuePropsSettings';
 
 import ShopPageSettings from '../customizer/pages/ShopPageSettings';
 import ProductDetailPageSettings from '../customizer/pages/ProductDetailPageSettings';
@@ -200,6 +201,13 @@ export function CustomizerRightSidebar({
 
               {activeSection.section_type === 'brands_logos' && (
                 <BrandsLogosSettings
+                  section={activeSection}
+                  onUpdateSection={(updates) => handleUpdateSection(activeSection.id, updates)}
+                />
+              )}
+
+              {activeSection.section_type === 'value_props' && (
+                <ValuePropsSettings
                   section={activeSection}
                   onUpdateSection={(updates) => handleUpdateSection(activeSection.id, updates)}
                 />

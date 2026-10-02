@@ -52,6 +52,7 @@ export default function Footer({ settings, brandName }: FooterProps) {
 
   const footerBg = settings.theme_config?.colors?.footerBg || settings.footer_bg;
   const footerTextColor = settings.theme_config?.colors?.footerTextColor || settings.footer_text_color;
+  const footerBorderColor = settings.footer_border_color || undefined;
 
   return (
     <footer
@@ -68,6 +69,7 @@ export default function Footer({ settings, brandName }: FooterProps) {
       style={{
         backgroundColor: footerBg,
         color: footerTextColor,
+        ...(footerBorderColor ? { borderTopColor: footerBorderColor } : {}),
       }}
     >
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">

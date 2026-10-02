@@ -23,6 +23,7 @@ export type SectionType =
   | 'brands_logos'
   | 'social_feed'
   | 'ticker'
+  | 'value_props'
   | 'flash_sale';
 
 export interface SectionDef {
@@ -120,6 +121,21 @@ export const SECTION_REGISTRY: Record<SectionType, SectionDef> = {
     paletteLabel: 'Scrolling Ticker',
     defaultTitle: 'Announcement Ticker',
     description: 'Scrolling marquee of messages.',
+  },
+  value_props: {
+    type: 'value_props',
+    paletteLabel: 'Value Props',
+    defaultTitle: 'Why Shop With Us',
+    description: 'Premium icon + title + subtitle USP columns (delivery, COD, quality, returns).',
+    defaultContent: {
+      items: [
+        { icon: '🚚', title: 'Fast Delivery', subtitle: '2–4 days nationwide' },
+        { icon: '💵', title: 'Cash on Delivery', subtitle: 'Pay when it arrives' },
+        { icon: '✨', title: 'Premium Quality', subtitle: 'Handpicked products' },
+        { icon: '🔄', title: 'Easy Returns', subtitle: '7-day return policy' },
+      ],
+    },
+    defaultSettings: { columns_desktop: 4, columns_mobile: 2, style: 'card' },
   },
   flash_sale: {
     type: 'flash_sale',

@@ -151,7 +151,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
           hoveredImage={hoveredImage}
           productName={product.name}
           settings={settings}
-          fitClass="object-contain"
+          fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'}
         />
         <ProductCardActions
           showWishlist={showWishlist}
@@ -185,6 +185,8 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
           finalRenderedGroups={finalRenderedGroups}
           productUrl={productUrl}
           onCardClick={handleClick}
+          saleColor={settings?.card_sale_price_color || undefined}
+          compareColor={settings?.card_compare_color || undefined}
         />
       </div>
     </div>

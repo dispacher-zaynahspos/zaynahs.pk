@@ -186,6 +186,16 @@ export const addHomepageSection = async (
     } else if (sectionType === 'flash_sale') {
       settings = { startTime: '', endTime: '', viewAllText: 'View All', viewAllUrl: '/shop' };
       content_data = { products: [] };
+    } else if (sectionType === 'value_props') {
+      settings = { columns_desktop: 4, columns_mobile: 2, style: 'card' };
+      content_data = {
+        items: [
+          { icon: '🚚', title: 'Fast Delivery', subtitle: '2–4 days nationwide' },
+          { icon: '💵', title: 'Cash on Delivery', subtitle: 'Pay when it arrives' },
+          { icon: '✨', title: 'Premium Quality', subtitle: 'Handpicked products' },
+          { icon: '🔄', title: 'Easy Returns', subtitle: '7-day return policy' },
+        ],
+      };
     }
 
     const { data, error } = await supabase

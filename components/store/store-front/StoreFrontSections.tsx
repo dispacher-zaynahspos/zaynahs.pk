@@ -273,3 +273,71 @@ export function TickerSection({ section, activeSettings }: TickerSectionProps) {
     </div>
   );
 }
+
+interface ValuePropItem {
+  icon?: string;
+  title?: string;
+  subtitle?: string;
+}
+
+interface ValuePropsSectionProps {
+  section: HomepageSection;
+}
+
+/**
+ * Premium "Value Props / USP" strip — icon + title + subtitle columns.
+ * Mobile-first responsive grid; reads content_data.items + settings.columns_*.
+ * Self-contained (no product/network data) → safe, fast, works on every clone.
+ */
+export function ValuePropsSection({ section }: ValuePropsSectionProps) {
+  const items: ValuePropItem[] = section.content_data?.items?.length
+    ? section.content_data.items
+    : [
+        { icon: '🚚', title: 'Fast Delivery', subtitle: '2–4 days nationwide' },
+        { icon: '💵', title: 'Cash on Delivery', subtitle: 'Pay when it arrives' },
+        { icon: '✨', title: 'Premium Quality', subtitle: 'Handpicked products' },
+        { icon: '🔄', title: 'Easy Returns', subtitle: '7-day return policy' },
+      ];
+
+  const cols = getResponsiveGridClasses({
+    mobile: section.settings?.columns_mobile || 2,
+    tablet: section.settings?.columns_tablet || Math.min(items.length, 4),
+    desktop: section.settings?.columns_desktop || Math.min(items.length, 4),
+  });
+  const carded = (section.settings?.style ?? 'card') !== 'plain';
+
+  return (
+    <div key={section.id} id={section.id} className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
+      {section.title && section.settings?.show_title !== false && (
+        <h3 className="text-center md:text-left text-sm font-extrabold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-4">
+          {section.title}
+        </h3>
+      )}
+      <div className={`grid gap-3 sm:gap-4 ${cols}`}>
+        {items.map((it, idx) => (
+          <div
+            key={idx}
+            className={`flex flex-col items-center text-center gap-1.5 p-4 sm:p-5 transition-all duration-200 ${
+              carded
+                ? 'rounded-2xl bg-white dark:bg-[#16162a] border border-gray-150 dark:border-gray-800/80 shadow-xs hover:shadow-md hover:-translate-y-0.5'
+                : ''
+            }`}
+          >
+            <span className="text-2xl sm:text-3xl leading-none" aria-hidden>
+              {it.icon || '✦'}
+            </span>
+            <span className="text-xs sm:text-sm font-extrabold text-gray-900 dark:text-white leading-tight">
+              {it.title}
+            </span>
+            {it.subtitle && (
+              <span className="text-[10px] sm:text-xs font-medium text-gray-500 dark:text-gray-400 leading-snug">
+                {it.subtitle}
+              </span>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+

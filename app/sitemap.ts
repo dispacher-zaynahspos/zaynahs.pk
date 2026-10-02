@@ -12,10 +12,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.warn('Failed to load settings in sitemap:', e);
   }
 
-  // 1. Fetch products and categories
+  // 1. Fetch products and categories (incl. primary image for image sitemap)
   const { data: products } = await supabaseAdmin
     .from('products')
-    .select('slug, updated_at, name')
+    .select('slug, updated_at, name, product_images(url, is_primary, sort_order)')
     .is('deleted_at', null)
     .eq('is_active', true);
 
@@ -50,11 +50,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // 3. Add products
   if (products) {
     products.forEach((p) => {
+      const imgs = Array.isArray((p as any).product_images) ? (p as any).product_images : [];
+      const sorted = [...imgs].sort((a: any, b: any) => (b.is_primary ? 1 : 0) - (a.is_primary ? 1 : 0) || (a.sort_order ?? 0) - (b.sort_order ?? 0));
+      const imageUrls = sorted
+        .map((i: any) => i.url)
+        .filter((u: any): u is string => typeof u === 'string' && u.length > 0)
+        .slice(0, 5);
       routes.push({
         url: `${siteUrl}/product/${p.slug}`,
         lastModified: p.updated_at ? new Date(p.updated_at) : new Date(),
         changeFrequency: 'daily',
         priority: 0.7,
+        ...(imageUrls.length ? { images: imageUrls } : {}),
       });
     });
   }

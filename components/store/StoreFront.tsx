@@ -17,6 +17,7 @@ import {
   BrandsLogosSection,
   TrustBadgesSection,
   RecentReviewsSection,
+  ValuePropsSection,
 } from './store-front';
 import { StoreFrontProductGridSection } from './store-front/StoreFrontProductGridSection';
 
@@ -233,6 +234,9 @@ export default function StoreFront({
             break;
           case 'ticker':
             content = <TickerSection section={section} activeSettings={activeSettings} />;
+            break;
+          case 'value_props':
+            content = <ValuePropsSection section={section} />;
             break;
           case 'flash_sale':
             content = (
