@@ -97,7 +97,7 @@ export async function POST(
     
     // Get custom template fields from body (if we want to preview unsaved editor changes) or fetch from DB
     let subject = body.subject;
-    let customHtml = body.customHtml;
+    let customHtml = body.custom_html !== undefined ? body.custom_html : body.customHtml;
     let isDefaultMode = body.isDefaultMode;
 
     const template = await getEmailTemplate(type);

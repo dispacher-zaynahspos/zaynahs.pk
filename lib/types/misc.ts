@@ -18,13 +18,16 @@ export interface EmailSubscriber {
 export interface EmailTemplate {
   id: string;
   email_type: string;
+  emailType?: string;
   category: 'customer' | 'admin';
   label: string;
   description?: string;
   enabled: boolean;
   subject: string;
   custom_html?: string;
+  customHtml?: string;
   updated_at: string;
+  updatedAt?: string;
 }
 
 export interface Review {

@@ -5,13 +5,16 @@ import { revalidateTagSafe } from '@/lib/revalidate';
 const mapTemplate = (row: any): EmailTemplate => ({
   id: row.id,
   email_type: row.email_type,
+  emailType: row.email_type,
   category: row.category,
   label: row.label,
   description: row.description || undefined,
   enabled: row.enabled ?? true,
   subject: row.subject,
   custom_html: row.custom_html || undefined,
-  updated_at: row.updated_at
+  customHtml: row.custom_html || undefined,
+  updated_at: row.updated_at,
+  updatedAt: row.updated_at
 });
 
 export const getEmailTemplates = async (): Promise<EmailTemplate[]> => {
@@ -53,7 +56,11 @@ export const updateEmailTemplate = async (
   try {
     const payload: any = {};
     if (updates.subject !== undefined) payload.subject = updates.subject;
-    if (updates.custom_html !== undefined) payload.custom_html = updates.custom_html;
+    if (updates.custom_html !== undefined) {
+      payload.custom_html = updates.custom_html;
+    } else if (updates.customHtml !== undefined) {
+      payload.custom_html = updates.customHtml;
+    }
     if (updates.enabled !== undefined) payload.enabled = updates.enabled;
     payload.updated_at = new Date().toISOString();
 

@@ -34,11 +34,11 @@ export async function PATCH(
     const { type } = await params;
     const body = await request.json();
     
-    const { subject, customHtml, enabled } = body;
+    const { subject, customHtml, custom_html, enabled } = body;
     
     const updated = await updateEmailTemplate(type, {
       subject,
-      custom_html: customHtml,
+      custom_html: custom_html !== undefined ? custom_html : customHtml,
       enabled
     });
 

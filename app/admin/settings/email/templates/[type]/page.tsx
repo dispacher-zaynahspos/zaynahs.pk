@@ -47,11 +47,12 @@ export default function TemplateEditorPage() {
       const data = await res.json();
       if (data.success && data.template) {
         const t = data.template;
+        const html = t.custom_html || t.customHtml || '';
         setTemplate(t);
-        setEnabled(t.enabled);
-        setSubject(t.subject);
-        setCustomHtml(t.customHtml || '');
-        setMode(t.customHtml ? 'custom' : 'default');
+        setEnabled(t.enabled ?? true);
+        setSubject(t.subject || '');
+        setCustomHtml(html);
+        setMode(html ? 'custom' : 'default');
       } else {
         toast.error('Failed to load template details');
       }
@@ -82,10 +83,12 @@ export default function TemplateEditorPage() {
   const handleSave = async () => {
     try {
       setSaving(true);
+      const htmlPayload = mode === 'custom' ? customHtml : null;
       const payload = {
         subject,
         enabled,
-        customHtml: mode === 'custom' ? customHtml : null
+        customHtml: htmlPayload,
+        custom_html: htmlPayload
       };
 
       const res = await fetch(`/api/email-templates/${emailType}`, {
@@ -143,12 +146,14 @@ export default function TemplateEditorPage() {
     setPreviewContent(null);
     setPreviewLoading(true);
     try {
+      const htmlPayload = mode === 'custom' ? customHtml : null;
       const res = await fetch(`/api/email-templates/${emailType}/preview`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           subject,
-          customHtml: mode === 'custom' ? customHtml : null,
+          customHtml: htmlPayload,
+          custom_html: htmlPayload,
           isDefaultMode: mode === 'default'
         })
       });
@@ -170,12 +175,14 @@ export default function TemplateEditorPage() {
   const handleSendTest = async () => {
     try {
       setSendingTest(true);
+      const htmlPayload = mode === 'custom' ? customHtml : null;
       const res = await fetch(`/api/email-templates/${emailType}/send-test`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           subject,
-          customHtml: mode === 'custom' ? customHtml : null,
+          customHtml: htmlPayload,
+          custom_html: htmlPayload,
           isDefaultMode: mode === 'default'
         })
       });

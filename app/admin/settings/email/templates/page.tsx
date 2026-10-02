@@ -6,14 +6,17 @@ import { toast } from 'sonner';
 
 interface EmailTemplate {
   id: string;
-  emailType: string;
+  email_type?: string;
+  emailType?: string;
   category: 'customer' | 'admin';
   label: string;
   description?: string;
   enabled: boolean;
   subject: string;
+  custom_html?: string;
   customHtml?: string;
-  updatedAt: string;
+  updated_at?: string;
+  updatedAt?: string;
 }
 
 export default function EmailTemplatesPage() {
@@ -54,7 +57,7 @@ export default function EmailTemplatesPage() {
     const updated = { ...templates };
     for (const cat in updated) {
       updated[cat] = updated[cat].map(t => 
-        t.emailType === type ? { ...t, enabled: !currentStatus } : t
+        (t.email_type === type || t.emailType === type) ? { ...t, enabled: !currentStatus } : t
       );
     }
     setTemplates(updated);
@@ -80,14 +83,20 @@ export default function EmailTemplatesPage() {
   };
 
   const handleOpenPreview = async (template: EmailTemplate) => {
+    const type = template.email_type || template.emailType || '';
+    if (!type) {
+      toast.error('Invalid template type');
+      return;
+    }
     setPreviewTemplate(template);
     setPreviewContent(null);
     setPreviewLoading(true);
     try {
-      const res = await fetch(`/api/email-templates/${template.emailType}/preview`, {
+      const isCustom = Boolean(template.custom_html || template.customHtml);
+      const res = await fetch(`/api/email-templates/${type}/preview`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isDefaultMode: !template.customHtml })
+        body: JSON.stringify({ isDefaultMode: !isCustom })
       });
       const data = await res.json();
       if (data.success) {
@@ -106,9 +115,14 @@ export default function EmailTemplatesPage() {
 
   const handleSendTest = async () => {
     if (!previewTemplate) return;
+    const type = previewTemplate.email_type || previewTemplate.emailType || '';
+    if (!type) {
+      toast.error('Invalid template type');
+      return;
+    }
     try {
       setSendingTest(true);
-      const res = await fetch(`/api/email-templates/${previewTemplate.emailType}/send-test`, {
+      const res = await fetch(`/api/email-templates/${type}/send-test`, {
         method: 'POST',
       });
       const data = await res.json();
@@ -198,54 +212,57 @@ export default function EmailTemplatesPage() {
               {category === 'customer' ? 'Customer Emails' : 'Admin Alerts'}
             </h2>
             <div className="divide-y divide-gray-150 dark:divide-gray-800">
-              {list.map((template) => (
-                <div key={template.emailType} className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-4 first:pt-0 last:pb-0 gap-4">
-                  <div className="space-y-1 max-w-xl">
-                    <div className="flex items-center gap-2.5">
-                      <span className="text-sm font-bold text-gray-900 dark:text-white">{template.label}</span>
-                      <span className="text-[10px] bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full text-gray-500 dark:text-gray-400 font-bold font-mono uppercase">
-                        {template.emailType}
-                      </span>
+              {list.map((template) => {
+                const type = template.email_type || template.emailType || '';
+                return (
+                  <div key={type || template.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-4 first:pt-0 last:pb-0 gap-4">
+                    <div className="space-y-1 max-w-xl">
+                      <div className="flex items-center gap-2.5">
+                        <span className="text-sm font-bold text-gray-900 dark:text-white">{template.label}</span>
+                        <span className="text-[10px] bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full text-gray-500 dark:text-gray-400 font-bold font-mono uppercase">
+                          {type}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                        {template.description || 'No description provided'}
+                      </p>
                     </div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
-                      {template.description || 'No description provided'}
-                    </p>
-                  </div>
 
-                  <div className="flex items-center gap-4 self-end sm:self-center">
-                    {/* Toggle Switch */}
-                    <button
-                      onClick={() => handleToggleEnable(template.emailType, template.enabled)}
-                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                        template.enabled ? 'bg-[#10b981]' : 'bg-gray-200 dark:bg-gray-800'
-                      }`}
-                    >
-                      <span
-                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                          template.enabled ? 'translate-x-5' : 'translate-x-0'
-                        }`}
-                      />
-                    </button>
-
-                    <div className="flex gap-2">
+                    <div className="flex items-center gap-4 self-end sm:self-center">
+                      {/* Toggle Switch */}
                       <button
-                        onClick={() => handleOpenPreview(template)}
-                        className="flex items-center justify-center p-2 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 transition-all cursor-pointer"
-                        title="Preview template"
+                        onClick={() => handleToggleEnable(type, template.enabled)}
+                        className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                          template.enabled ? 'bg-[#10b981]' : 'bg-gray-200 dark:bg-gray-800'
+                        }`}
                       >
-                        <Eye className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                        <span
+                          className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                            template.enabled ? 'translate-x-5' : 'translate-x-0'
+                          }`}
+                        />
                       </button>
-                      <a
-                        href={`/admin/settings/email/templates/${template.emailType}`}
-                        className="flex items-center justify-center p-2 rounded-xl bg-[#1a1a2e] dark:bg-[#e94560] text-white hover:opacity-90 transition-all cursor-pointer"
-                        title="Edit template"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </a>
+
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleOpenPreview(template)}
+                          className="flex items-center justify-center p-2 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 transition-all cursor-pointer"
+                          title="Preview template"
+                        >
+                          <Eye className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                        </button>
+                        <a
+                          href={`/admin/settings/email/templates/${type}`}
+                          className="flex items-center justify-center p-2 rounded-xl bg-[#1a1a2e] dark:bg-[#e94560] text-white hover:opacity-90 transition-all cursor-pointer"
+                          title="Edit template"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </a>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         );

@@ -111,7 +111,7 @@ export default function TemplateEditorForm({
               <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                 Custom HTML Body
               </label>
-              {template.customHtml && (
+              {(template.custom_html || template.customHtml) && (
                 <button
                   type="button"
                   onClick={handleReset}
