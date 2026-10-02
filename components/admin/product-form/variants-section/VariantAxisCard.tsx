@@ -265,29 +265,102 @@ export const VariantAxisCard: React.FC<VariantAxisCardProps> = ({
                       key={valIdx}
                       className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 sm:gap-3 bg-white dark:bg-[#16162a] border border-gray-200 dark:border-gray-800 rounded-xl p-2.5 shadow-xs"
                     >
-                      {/* Premium Color Picker Swatch Container */}
-                      <div className="relative h-8 w-8 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 shrink-0">
-                        <input
-                          type="color"
-                          value={val.hex || '#888888'}
-                          onChange={(e) => {
-                            const newHex = e.target.value;
-                            setVariantAxes(prev => prev.map((a, i) =>
-                              i === axisIdx ? {
-                                ...a,
-                                values: a.values.map((v, vi) =>
-                                  vi === valIdx ? { ...v, hex: newHex } : v
-                                )
-                              } : a
-                            ));
-                            // SYNC TO VARIANTS
-                            setVariants(prev => prev.map(v =>
-                              v.color === val.label ? { ...v, color_hex: newHex } : v
-                            ));
-                          }}
-                          className="absolute inset-0 w-full h-full p-0 border-0 cursor-pointer scale-150"
-                          title="Pick color"
+                      {/* Swatch Circle Preview & Split Color Pickers */}
+                      <div className="flex items-center gap-2 shrink-0">
+                        {/* Live Swatch Circle (Split / Conic / Solid) */}
+                        <div
+                          className="h-8 w-8 rounded-full border border-gray-300 dark:border-gray-600 shadow-xs shrink-0 overflow-hidden"
+                          style={getSwatchStyle(val.hex || '#888888')}
+                          title="Color Swatch Preview"
                         />
+
+                        {/* Individual Color Pickers for Single or Split Colors */}
+                        <div className="flex items-center gap-1">
+                          {(val.hex || '#888888').split(',').map((hexVal, hexIdx, hexArr) => {
+                            const clean = hexVal.trim();
+                            const formatted = clean.startsWith('#') ? clean : `#${clean}`;
+                            const validHex = /^#[0-9A-Fa-f]{6}$/.test(formatted) ? formatted : '#888888';
+                            return (
+                              <div
+                                key={hexIdx}
+                                className="relative group h-6 w-6 rounded-md border border-gray-200 dark:border-gray-700 overflow-hidden shrink-0 shadow-2xs"
+                                title={`Edit Color ${hexIdx + 1}: ${validHex}`}
+                              >
+                                <input
+                                  type="color"
+                                  value={validHex}
+                                  onChange={(e) => {
+                                    const newArr = [...hexArr];
+                                    newArr[hexIdx] = e.target.value;
+                                    const combinedHex = newArr.join(',');
+                                    setVariantAxes(prev => prev.map((a, i) =>
+                                      i === axisIdx ? {
+                                        ...a,
+                                        values: a.values.map((v, vi) =>
+                                          vi === valIdx ? { ...v, hex: combinedHex } : v
+                                        )
+                                      } : a
+                                    ));
+                                    // SYNC TO VARIANTS
+                                    setVariants(prev => prev.map(v =>
+                                      v.color === val.label ? { ...v, color_hex: combinedHex } : v
+                                    ));
+                                  }}
+                                  className="absolute -top-[50%] -left-[50%] w-[200%] h-[200%] p-0 border-0 cursor-pointer scale-150 bg-transparent"
+                                />
+                                {hexArr.length > 1 && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const newArr = hexArr.filter((_, i) => i !== hexIdx);
+                                      const combinedHex = newArr.join(',');
+                                      setVariantAxes(prev => prev.map((a, i) =>
+                                        i === axisIdx ? {
+                                          ...a,
+                                          values: a.values.map((v, vi) =>
+                                            vi === valIdx ? { ...v, hex: combinedHex } : v
+                                          )
+                                        } : a
+                                      ));
+                                      setVariants(prev => prev.map(v =>
+                                        v.color === val.label ? { ...v, color_hex: combinedHex } : v
+                                      ));
+                                    }}
+                                    className="absolute -top-1 -right-1 hidden group-hover:flex h-3 w-3 items-center justify-center bg-red-500 text-white rounded-full text-[8px] z-10 cursor-pointer"
+                                    title="Remove this split color"
+                                  >
+                                    ×
+                                  </button>
+                                )}
+                              </div>
+                            );
+                          })}
+
+                          {(val.hex || '#888888').split(',').length < 4 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const currentHex = val.hex || '#888888';
+                                const combinedHex = `${currentHex},#ffffff`;
+                                setVariantAxes(prev => prev.map((a, i) =>
+                                  i === axisIdx ? {
+                                    ...a,
+                                    values: a.values.map((v, vi) =>
+                                      vi === valIdx ? { ...v, hex: combinedHex } : v
+                                    )
+                                  } : a
+                                ));
+                                setVariants(prev => prev.map(v =>
+                                  v.color === val.label ? { ...v, color_hex: combinedHex } : v
+                                ));
+                              }}
+                              className="h-5 w-5 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 flex items-center justify-center text-xs font-bold cursor-pointer transition-colors"
+                              title="Add split color"
+                            >
+                              +
+                            </button>
+                          )}
+                        </div>
                       </div>
 
                       {/* Color Label */}
