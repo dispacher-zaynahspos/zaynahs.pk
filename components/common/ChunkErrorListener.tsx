@@ -46,6 +46,15 @@ export default function ChunkErrorListener() {
     window.addEventListener('error', onError);
     window.addEventListener('unhandledrejection', onUnhandledRejection);
 
+    // Unregister legacy/stale service workers to prevent stale cache & WebView bugs
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then((registrations) => {
+        for (const registration of registrations) {
+          registration.unregister();
+        }
+      }).catch(() => {});
+    }
+
     return () => {
       window.removeEventListener('error', onError);
       window.removeEventListener('unhandledrejection', onUnhandledRejection);

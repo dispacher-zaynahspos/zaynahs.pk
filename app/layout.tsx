@@ -72,6 +72,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
     return {
       metadataBase: new URL(siteUrl),
+      manifest: '/manifest.json',
       title: {
         default: title,
         template: `%s - ${brandName}`
@@ -133,6 +134,7 @@ export async function generateMetadata(): Promise<Metadata> {
       title: brandName,
       description: tagline,
       metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
+      manifest: '/manifest.json',
       appleWebApp: {
         capable: true,
         statusBarStyle: "default",
@@ -194,8 +196,10 @@ export default async function RootLayout({
       suppressHydrationWarning
       className={`${jakarta.variable} ${outfit.variable} h-full antialiased overflow-x-clip`}
     >
-      <body suppressHydrationWarning className={`${jakarta.variable} ${outfit.variable} font-body min-h-full flex flex-col bg-gray-50 dark:bg-[#0f0f1b] text-gray-900 dark:text-gray-100 overflow-x-clip`}>
+      <head>
         <ThemeStyleRegistry settings={settings} />
+      </head>
+      <body suppressHydrationWarning className={`${jakarta.variable} ${outfit.variable} font-body min-h-full flex flex-col bg-gray-50 dark:bg-[#0f0f1b] text-gray-900 dark:text-gray-100 overflow-x-clip`}>
         {/* Conditional Script Injection for Tracking Pixels */}
         <Pixels />
         <ThemeProvider
@@ -224,32 +228,6 @@ export default async function RootLayout({
           />
         </ThemeProvider>
 
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function(){
-                var p = window.location.pathname;
-                var m = p.startsWith('/admin') ? '/admin-manifest.json' : '/manifest.json';
-                var el = document.createElement('link');
-                el.rel = 'manifest';
-                el.href = m;
-                // Send credentials so a protected deployment (Vercel Auth/SSO) serves the
-                // manifest with the auth cookie instead of redirecting to the SSO login
-                // (which triggers the cross-origin CORS block on manifest.json).
-                el.crossOrigin = 'use-credentials';
-                document.head.appendChild(el);
-              })();
-              if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                  for (var i = 0; i < registrations.length; i++) {
-                    registrations[i].unregister();
-                    console.log('Service Worker unregistered to prevent stale cache & WebView bugs.');
-                  }
-                });
-              }
-            `,
-          }}
-        />
         {/* JSON-LD Schema — WebSite + Organization */}
         {settings && (
           <script
