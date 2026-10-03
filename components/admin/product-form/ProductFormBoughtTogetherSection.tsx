@@ -25,10 +25,10 @@ export const ProductFormBoughtTogetherSection: React.FC<ProductFormBoughtTogethe
   setVisibleProductCount,
 }) => {
   return (
-    <div className="bg-white dark:bg-[#16162a] p-4 sm:p-5 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xs space-y-3 text-gray-900 dark:text-white transition-colors">
+    <div className="bg-white dark:bg-[#16162a] p-4 sm:p-5 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xs space-y-3 text-gray-900 dark:text-white">
       <div>
-        <h3 className="text-sm font-bold text-gray-900 dark:text-white tracking-tight">Bought Together Recommendations</h3>
-        <p className="text-[11px] text-gray-400 mt-0.5">Select up to 2 items to bundle and offer discounts at storefront.</p>
+        <h3 className="text-xs font-bold text-gray-900 dark:text-white tracking-tight">Bought Together Recommendations</h3>
+        <p className="text-[10px] text-gray-400 mt-0.5">Select up to 2 items to bundle and offer discounts at storefront.</p>
       </div>
 
       {/* Selected Items List */}
@@ -47,7 +47,9 @@ export const ProductFormBoughtTogetherSection: React.FC<ProductFormBoughtTogethe
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold text-gray-800 dark:text-gray-200 truncate">{product.name}</p>
+                  <p className="text-[11px] sm:text-xs font-bold text-gray-800 dark:text-gray-200 line-clamp-2 leading-snug break-words" title={product.name}>
+                    {(product.name || '').replace(/^[\s*#-]+/, '').replace(/[*_~`]/g, '').trim()}
+                  </p>
                   <div className="flex items-center justify-between gap-1 text-[9.5px] text-gray-400 mt-0.5">
                     <span className="truncate">{product.sku ? `SKU: ${product.sku}` : 'No SKU'}</span>
                     <span className="font-bold text-gray-700 dark:text-gray-300 shrink-0">Rs. {product.price}</span>
@@ -139,7 +141,9 @@ export const ProductFormBoughtTogetherSection: React.FC<ProductFormBoughtTogethe
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <p className="text-[11px] font-semibold text-gray-800 dark:text-gray-200 truncate leading-tight">{product.name}</p>
+                      <p className="text-[10.5px] sm:text-[11px] font-semibold text-gray-800 dark:text-gray-200 line-clamp-2 leading-tight break-words" title={product.name}>
+                        {(product.name || '').replace(/^[\s*#-]+/, '').replace(/[*_~`]/g, '').trim()}
+                      </p>
                       <div className="flex items-center justify-between gap-1 text-[9px] text-gray-400 mt-0.5">
                         <span className="truncate">{product.sku ? `SKU: ${product.sku}` : 'No SKU'}</span>
                         <span className="font-bold text-gray-700 dark:text-gray-300 shrink-0">Rs. {product.price}</span>

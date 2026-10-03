@@ -19,7 +19,7 @@ export function AdminHeader({
   pendingOrdersCount = 0,
 }: AdminHeaderProps) {
   return (
-    <header className="fixed md:relative top-0 left-0 right-0 z-30 md:z-auto h-[calc(3.5rem+env(safe-area-inset-top,0px))] md:h-14 flex-shrink-0 bg-white/90 dark:bg-[#0c0c16]/90 backdrop-blur-xl border-b border-gray-200/80 dark:border-white/10 flex items-center justify-between px-3 sm:px-4 md:px-6 pt-[env(safe-area-inset-top,0px)] md:pt-0 transition-colors shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+    <header className="fixed md:relative top-0 left-0 right-0 z-30 md:z-auto h-[calc(3.5rem+env(safe-area-inset-top,0px))] md:h-14 flex-shrink-0 bg-white dark:bg-[#0c0c16] border-b border-gray-200 dark:border-white/10 flex items-center justify-between px-3 sm:px-4 md:px-6 pt-[env(safe-area-inset-top,0px)] md:pt-0 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
       {/* Left: Mobile Menu Toggle + Title */}
       <div className="flex items-center gap-2.5 min-w-0 max-w-[55%] sm:max-w-none">
         {/* Hamburger Menu Toggle (Mobile & Tablet) */}

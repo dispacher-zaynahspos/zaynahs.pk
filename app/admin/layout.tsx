@@ -302,7 +302,7 @@ function AdminLayoutContent({
   }
 
   return (
-    <div className="admin-shell light flex h-[100dvh] w-full max-w-full flex-col md:flex-row bg-slate-50 overflow-hidden text-[13px] font-sans antialiased text-gray-900">
+    <div className="admin-shell light flex h-[100dvh] w-full max-w-full flex-col md:flex-row bg-slate-50 overflow-hidden text-[13px] font-sans antialiased text-gray-900" style={{ isolation: 'isolate' }}>
       {/* 📱 Mobile & Tablet Off-Canvas Navigation Drawer */}
       <AdminMobileDrawer
         isMobileMenuOpen={isMobileMenuOpen}
@@ -346,7 +346,8 @@ function AdminLayoutContent({
 
         <main
           id="admin-main-content"
-          className="flex-1 w-full max-w-full px-3 sm:px-4 md:px-5 pt-[calc(3.5rem+env(safe-area-inset-top,0px))] md:pt-4 pb-[calc(4rem+env(safe-area-inset-bottom,0px))] md:pb-6 overflow-y-auto overflow-x-hidden bg-slate-50 text-gray-900 transition-colors duration-200"
+          className="flex-1 w-full max-w-full px-3 sm:px-4 md:px-5 pt-[calc(3.5rem+env(safe-area-inset-top,0px))] md:pt-4 pb-[calc(3.5rem+env(safe-area-inset-bottom,0px))] md:pb-6 overflow-y-auto overflow-x-hidden overscroll-y-none bg-slate-50 text-gray-900 transition-colors duration-200"
+          style={{ WebkitOverflowScrolling: 'touch' }}
         >
           {children}
         </main>

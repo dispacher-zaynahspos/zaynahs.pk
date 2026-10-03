@@ -23,8 +23,8 @@ export const createCategory = async (category: Omit<Category, 'id' | 'created_at
       .insert({
         name: category.name,
         slug: category.slug,
-        description: category.description,
-        image_url: category.image_url,
+        description: category.description ? category.description.trim() : null,
+        image_url: category.image_url ? category.image_url.trim() : null,
         sort_order: category.sort_order,
         active: category.active
       })
@@ -51,8 +51,8 @@ export const updateCategory = async (id: string, category: Partial<Category>): P
     const updatePayload: Record<string, string | number | boolean | null | undefined> = {};
     if (category.name !== undefined) updatePayload.name = category.name;
     if (category.slug !== undefined) updatePayload.slug = category.slug;
-    if (category.description !== undefined) updatePayload.description = category.description;
-    if (category.image_url !== undefined) updatePayload.image_url = category.image_url;
+    if (category.description !== undefined) updatePayload.description = category.description ? category.description.trim() : null;
+    if (category.image_url !== undefined) updatePayload.image_url = category.image_url ? category.image_url.trim() : null;
     if (category.sort_order !== undefined) updatePayload.sort_order = category.sort_order;
     if (category.active !== undefined) updatePayload.active = category.active;
     if (category.active_sort_preference !== undefined) updatePayload.active_sort_preference = category.active_sort_preference;

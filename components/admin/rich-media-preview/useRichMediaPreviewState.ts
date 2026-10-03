@@ -38,9 +38,10 @@ export function useRichMediaPreviewState({ url, item: initialItem }: Pick<RichMe
     setMounted(true);
     document.body.style.overflow = 'hidden';
     return () => {
-      document.body.style.overflow = 'auto';
+      document.body.style.overflow = '';
     };
   }, []);
+
 
 
 

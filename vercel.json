@@ -19,7 +19,7 @@
   ],
   "rewrites": [
     {
-      "source": "/(.*)\\.txt",
+      "source": "/:key([a-zA-Z0-9_-]{16,64})\\.txt",
       "destination": "/api/indexnow/key?key=$1"
     }
   ]

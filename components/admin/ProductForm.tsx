@@ -29,12 +29,13 @@ export default function ProductForm({ categories, initialProduct, aiEnabled }: P
 
   return (
     <>
-      <form onSubmit={p.handleSubmit} className="space-y-4 w-full max-w-full pb-28 sm:pb-20">
+      <form onSubmit={p.handleSubmit} className="space-y-4 w-full max-w-full pb-1 sm:pb-2">
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5">
 
           {/* Left: Core Fields */}
           <div className="lg:col-span-2 space-y-4">
-            <div className="bg-white dark:bg-[#16162a] p-4 sm:p-5 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xs space-y-3 text-gray-900 dark:text-white transition-colors">
+            <div className="bg-white dark:bg-[#16162a] p-4 sm:p-5 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xs space-y-3 text-gray-900 dark:text-white">
               <ProductFormHeader
                 name={p.name}
                 aiConfigured={p.aiConfigured}
@@ -144,7 +145,7 @@ export default function ProductForm({ categories, initialProduct, aiEnabled }: P
             />
 
             {/* Custom Modifiers (Add-ons) */}
-            <div className="bg-white dark:bg-[#16162a] p-4 sm:p-5 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xs space-y-3 text-gray-900 dark:text-white transition-colors">
+            <div className="bg-white dark:bg-[#16162a] p-4 sm:p-5 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xs space-y-3 text-gray-900 dark:text-white">
               <h3 className="text-sm font-bold text-gray-900 dark:text-white tracking-tight">Custom Modifiers (Add-ons)</h3>
               <div className="flex items-center gap-2">
                 <input
@@ -205,7 +206,7 @@ export default function ProductForm({ categories, initialProduct, aiEnabled }: P
             />
 
             {/* Status Settings */}
-            <div className="bg-white dark:bg-[#16162a] p-4 sm:p-5 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xs space-y-3.5 text-gray-900 dark:text-white transition-colors">
+            <div className="bg-white dark:bg-[#16162a] p-4 sm:p-5 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xs space-y-3.5 text-gray-900 dark:text-white">
               <h3 className="text-sm font-bold text-gray-900 dark:text-white tracking-tight">Status & Options</h3>
               <div className="space-y-2.5">
                 <div>

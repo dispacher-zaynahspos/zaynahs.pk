@@ -158,7 +158,8 @@ export default function ShopPage({
         <div className="flex-1 space-y-4">
           {/* Quick Category Chips Bar */}
           {activeSettings?.shop_category_chips_enabled !== false && displayCategories.length > 0 && (
-            <div className="flex flex-wrap items-center gap-2 py-1">
+            <div className="flex items-center gap-2 py-1 overflow-x-auto md:flex-wrap scrollbar-none [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+
               <button
                 type="button"
                 onClick={() => handleCategorySelect(undefined)}
@@ -170,7 +171,7 @@ export default function ShopPage({
                       }
                     : undefined
                 }
-                className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all duration-200 cursor-pointer select-none ${
+                className={`shrink-0 whitespace-nowrap px-3.5 py-1.5 rounded-full text-xs font-bold transition-all duration-200 cursor-pointer select-none ${
                   !selectedCategoryId
                     ? 'text-white shadow-xs'
                     : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
@@ -193,7 +194,7 @@ export default function ShopPage({
                           }
                         : undefined
                     }
-                    className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all duration-200 cursor-pointer select-none ${
+                    className={`shrink-0 whitespace-nowrap px-3.5 py-1.5 rounded-full text-xs font-bold transition-all duration-200 cursor-pointer select-none ${
                       isSelected
                         ? 'text-white shadow-xs'
                         : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
@@ -208,7 +209,7 @@ export default function ShopPage({
                 <button
                   type="button"
                   onClick={() => setMoreCategoriesOpen((prev) => !prev)}
-                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all duration-200 cursor-pointer select-none ${
+                  className={`shrink-0 whitespace-nowrap flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all duration-200 cursor-pointer select-none ${
                     moreCategoriesOpen
                       ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white shadow-xs'
                       : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'

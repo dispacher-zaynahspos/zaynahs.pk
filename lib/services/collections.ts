@@ -94,15 +94,15 @@ export const fetchCollectionBySlug = async (slug: string): Promise<Collection | 
 };
 
 // CRUD Operations
-export const createCollection = async (collection: { name: string; slug: string; description?: string; imageUrl?: string; sortOrder?: number; active?: boolean }): Promise<Collection> => {
+export const createCollection = async (collection: { name: string; slug: string; description?: string | null; imageUrl?: string | null; sortOrder?: number; active?: boolean }): Promise<Collection> => {
   const supabase = staticSupabase;
   const { data, error } = await supabase
     .from('collections')
     .insert({
       name: collection.name,
       slug: collection.slug,
-      description: collection.description,
-      image_url: collection.imageUrl,
+      description: collection.description ? collection.description.trim() : null,
+      image_url: collection.imageUrl ? collection.imageUrl.trim() : null,
       sort_order: collection.sortOrder ?? 0,
       active: collection.active ?? true
     })
@@ -114,14 +114,14 @@ export const createCollection = async (collection: { name: string; slug: string;
   return data;
 };
 
-export const updateCollection = async (id: string, collection: { name?: string; slug?: string; description?: string; imageUrl?: string; sortOrder?: number; active?: boolean }): Promise<Collection> => {
+export const updateCollection = async (id: string, collection: { name?: string; slug?: string; description?: string | null; imageUrl?: string | null; sortOrder?: number; active?: boolean }): Promise<Collection> => {
   const supabase = staticSupabase;
   
   const updatePayload: any = {};
   if (collection.name !== undefined) updatePayload.name = collection.name;
   if (collection.slug !== undefined) updatePayload.slug = collection.slug;
-  if (collection.description !== undefined) updatePayload.description = collection.description;
-  if (collection.imageUrl !== undefined) updatePayload.image_url = collection.imageUrl;
+  if (collection.description !== undefined) updatePayload.description = collection.description ? collection.description.trim() : null;
+  if (collection.imageUrl !== undefined) updatePayload.image_url = collection.imageUrl ? collection.imageUrl.trim() : null;
   if (collection.sortOrder !== undefined) updatePayload.sort_order = collection.sortOrder;
   if (collection.active !== undefined) updatePayload.active = collection.active;
 

@@ -2,11 +2,11 @@ export interface Category {
   id: string;
   name: string;
   slug: string;
-  description?: string;
-  image_url?: string;
+  description?: string | null;
+  image_url?: string | null;
   sort_order: number;
   active: boolean;
-  active_sort_preference?: string;
+  active_sort_preference?: string | null;
   deleted_at?: string | null;
   created_at: string;
   updated_at: string;
@@ -16,8 +16,8 @@ export interface Collection {
   id: string;
   name: string;
   slug: string;
-  description?: string;
-  image_url?: string;
+  description?: string | null;
+  image_url?: string | null;
   sort_order: number;
   active: boolean;
   deleted_at?: string | null;

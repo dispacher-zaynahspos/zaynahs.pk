@@ -305,8 +305,10 @@ export default function ProductListTable({
                 />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2">
-                    <h3 className="text-sm font-black text-gray-900 dark:text-white truncate flex-1 line-clamp-1">{product.name}</h3>
-                    <span className="text-sm font-black text-gray-900 dark:text-white flex-shrink-0">{formatPrice(product.price, settings.currency_symbol)}</span>
+                    <h3 className="text-[11px] sm:text-xs font-bold text-gray-900 dark:text-white line-clamp-2 leading-snug flex-1 break-words" title={product.name}>
+                      {(product.name || '').replace(/^[\s*#-]+/, '').replace(/[*_~`]/g, '').trim()}
+                    </h3>
+                    <span className="text-[11px] sm:text-xs font-bold text-gray-900 dark:text-white flex-shrink-0">{formatPrice(product.price, settings.currency_symbol)}</span>
                   </div>
                   {product.product_categories && product.product_categories.length > 0 ? (
                     <div className="flex flex-wrap gap-1 mt-1">

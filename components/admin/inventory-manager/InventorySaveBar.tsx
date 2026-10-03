@@ -20,7 +20,7 @@ export function InventorySaveBar({
 }: InventorySaveBarProps) {
   return (
     <div
-      className={`sticky bottom-[calc(4rem+env(safe-area-inset-bottom,0px))] md:bottom-0 left-0 right-0 z-30 bg-white/95 dark:bg-[#16162a]/95 backdrop-blur-md border-t border-gray-200 dark:border-gray-800 px-4 sm:px-6 py-3.5 shadow-2xl rounded-t-2xl transition-all duration-300 ${
+      className={`sticky bottom-[calc(3.5rem+env(safe-area-inset-bottom,0px))] md:bottom-0 left-0 right-0 z-30 bg-white/98 dark:bg-[#16162a]/98 border-t border-gray-200/90 dark:border-gray-800 px-3 sm:px-6 py-2 sm:py-2.5 shadow-[0_-2px_10px_rgba(0,0,0,0.06)] rounded-t-xl transition-all duration-300 ${
         !hasUnsavedChanges
           ? 'opacity-0 pointer-events-none translate-y-6'
           : 'opacity-100 translate-y-0 pointer-events-auto'

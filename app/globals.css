@@ -493,6 +493,12 @@ main#admin-main-content:has(.fixed.z-50) {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
 }
 
+/* Prevent scroll snap-back / rubber-band bounce on the admin main content scroll container */
+#admin-main-content {
+  overscroll-behavior-y: none;
+}
+
+
 .admin-shell :is(h1, h2, h3, h4, h5, h6, .font-heading, [class*="font-heading"]) {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
   font-weight: 800 !important;

@@ -19,7 +19,8 @@
     "db:brand": "node scripts/seed-brand.mjs",
     "vercel:setup": "node scripts/vercel-setup.mjs",
     "cf:dns": "node scripts/cloudflare-dns.mjs",
-    "cf:rules": "node --env-file=.env.local scripts/deploy-cloudflare-rules.js"
+    "cf:rules": "node --env-file=.env.local scripts/deploy-cloudflare-rules.js",
+    "vercel:cleanup": "node scripts/cleanup-all-old-deployments.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

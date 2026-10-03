@@ -166,8 +166,8 @@ export function useCategoryManagerState({
     const payload = {
       name: name.trim(),
       slug: slug.trim(),
-      description: description.trim() || undefined,
-      image_url: imageUrl.trim() || undefined,
+      description: description.trim() ? description.trim() : null,
+      image_url: imageUrl.trim() ? imageUrl.trim() : null,
       sort_order: parseInt(sortOrder) || 0,
       active,
     };

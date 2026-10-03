@@ -65,13 +65,12 @@ export default function ReviewDetailSheet({ review, onClose, onApprove, onHide, 
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     document.addEventListener('keydown', handler);
     document.body.style.overflow = 'hidden';
-    document.documentElement.style.overscrollBehaviorY = 'contain';
     return () => {
       document.removeEventListener('keydown', handler);
       document.body.style.overflow = '';
-      document.documentElement.style.overscrollBehaviorY = '';
     };
   }, [onClose]);
+
 
   const formatDate = (dateStr: string) => {
     try { return formatDistanceToNow(parseISO(dateStr), { addSuffix: true }); }
