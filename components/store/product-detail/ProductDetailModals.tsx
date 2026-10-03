@@ -155,66 +155,66 @@ export default function ProductDetailModals({
       {/* Sizing Guide Modal — Branded & Mobile-First High Converting Layout (Sample 2 Standard) */}
       {showSizeGuide && isFeatureEnabled(settings, 'size_guide') && sizeGuide && createPortal(
         <div
-          className="fixed inset-0 z-[150] flex items-center justify-center bg-black/65 backdrop-blur-xs p-2 sm:p-6 overscroll-contain animate-fade-in"
+          className="fixed inset-0 z-[150] overflow-y-auto bg-black/70 backdrop-blur-xs p-2 sm:p-4 md:p-6 overscroll-contain animate-fade-in flex flex-col items-center justify-start sm:justify-center py-3 sm:py-8"
           onClick={() => setShowSizeGuide(false)}
         >
           <div
-            className="relative w-full max-w-lg sm:max-w-2xl md:max-w-3xl lg:max-w-4xl bg-[#FFFCF6] dark:bg-[#121220] border-2 border-amber-300/80 dark:border-amber-500/30 rounded-3xl p-3 sm:p-6 shadow-2xl text-gray-900 dark:text-white max-h-[92vh] overflow-y-auto overscroll-contain scale-up duration-200 select-none transition-all"
+            className="relative w-full max-w-lg md:max-w-3xl lg:max-w-4xl my-auto bg-[#FFFCF6] dark:bg-[#121220] border-2 border-amber-300/80 dark:border-amber-500/30 rounded-2xl sm:rounded-3xl p-3 sm:p-5 md:p-6 shadow-2xl text-gray-900 dark:text-white select-none transition-all"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Top Close Button */}
             <button
               onClick={() => setShowSizeGuide(false)}
-              className="absolute top-3.5 right-3.5 p-2 rounded-full text-gray-400 hover:text-gray-700 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer z-30"
+              className="absolute top-2.5 right-2.5 sm:top-3.5 sm:right-3.5 p-1.5 sm:p-2 rounded-full text-gray-400 hover:text-gray-700 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer z-30"
               aria-label="Close size guide"
             >
               <X className="w-5 h-5" strokeWidth={2.2} />
             </button>
 
             {/* 1. Brand Header — Store Logo + Store Name + Tagline (Matching Mobile Drawer & Image 2) */}
-            <div className="flex flex-col items-center justify-center text-center pt-1 pb-1">
-              <div className="flex items-center justify-center gap-2.5 mb-1 max-w-[85%]">
+            <div className="flex flex-col items-center justify-center text-center pt-0.5 pb-1">
+              <div className="flex items-center justify-center gap-2 mb-0.5 max-w-[85%]">
                 {logoUrl ? (
-                  <div className="relative h-9 w-9 sm:h-10 sm:w-10 shrink-0">
+                  <div className="relative h-7 w-7 sm:h-9 sm:w-9 shrink-0">
                     <Image
                       src={logoUrl}
                       alt={storeName}
                       fill
-                      sizes="40px"
+                      sizes="36px"
                       className="object-contain"
                     />
                   </div>
                 ) : (
-                  <span className="text-2xl">👑</span>
+                  <span className="text-xl">👑</span>
                 )}
-                <span className="font-[family-name:var(--font-heading)] text-xl sm:text-2xl font-black tracking-tight text-gray-950 dark:text-white truncate">
+                <span className="font-[family-name:var(--font-heading)] text-base sm:text-xl md:text-2xl font-black tracking-tight text-gray-950 dark:text-white truncate">
                   {storeName}
                 </span>
               </div>
-              <p className="text-[11px] sm:text-xs font-semibold text-amber-700 dark:text-amber-400/90 tracking-wide flex items-center justify-center gap-1.5">
-                <span className="text-amber-500 text-[10px]">♡</span>
-                <span>{storeTagline}</span>
-                <span className="text-amber-500 text-[10px]">♡</span>
+              <p className="text-[10px] sm:text-xs font-semibold text-amber-700 dark:text-amber-400/90 tracking-wide flex items-center justify-center gap-1">
+                <span className="text-amber-500 text-[9px]">♡</span>
+                <span className="line-clamp-1">{storeTagline}</span>
+                <span className="text-amber-500 text-[9px]">♡</span>
               </p>
             </div>
 
             {/* 2. Banner Header — "SIZE CHART" / Guide Name + "MEASUREMENTS IN {UNIT}" */}
-            <div className="my-2.5 sm:my-3 flex flex-col items-center text-center">
-              <div className="relative inline-flex items-center justify-center px-6 sm:px-8 py-2 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 dark:from-amber-500 dark:to-amber-600 shadow-sm border border-amber-400/80">
-                <h3 className="text-base sm:text-xl font-black uppercase tracking-wider text-slate-900 drop-shadow-xs">
+            <div className="my-1.5 sm:my-2.5 flex flex-col md:flex-row items-center justify-center gap-1.5 sm:gap-2.5 text-center">
+              <div className="relative inline-flex items-center justify-center px-4 sm:px-6 py-1 sm:py-1.5 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 dark:from-amber-500 dark:to-amber-600 shadow-xs border border-amber-400/80">
+                <h3 className="text-xs sm:text-sm md:text-base font-black uppercase tracking-wider text-slate-900 drop-shadow-xs">
                   {sizeGuide.name?.toUpperCase().includes('SIZE')
                     ? sizeGuide.name
                     : `${sizeGuide.name || 'PRODUCT'} - SIZE CHART`}
                 </h3>
               </div>
-              <div className="mt-1.5 inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[#1b2a47] dark:bg-slate-800 text-white text-[10px] sm:text-[11px] font-extrabold uppercase tracking-widest shadow-xs">
+              <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#1b2a47] dark:bg-slate-800 text-white text-[9px] sm:text-[10px] font-extrabold uppercase tracking-widest shadow-xs">
                 <span>📏</span> MEASUREMENTS IN {measurementUnit}
               </div>
             </div>
 
             {/* Visual Reference Image (if provided) */}
             {sizeGuide.image_url && (
-              <div className="relative w-full h-40 sm:h-52 rounded-2xl overflow-hidden bg-white dark:bg-white/5 mb-4 border border-amber-200/80 dark:border-gray-800 flex items-center justify-center">
+              <div className="relative w-full h-36 sm:h-48 rounded-xl overflow-hidden bg-white dark:bg-white/5 mb-3 border border-amber-200/80 dark:border-gray-800 flex items-center justify-center">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={sizeGuide.image_url}
@@ -224,7 +224,7 @@ export default function ProductDetailModals({
               </div>
             )}
 
-            {/* 3. The Size Chart Table — 1 Screen Perfectly Aligned (No Left/Right Scroll Required) */}
+            {/* 3. The Size Chart Table — Strictly 1 Screen Fit (Zero Horizontal Scroll on ALL Phones & Desktops) */}
             {sizeGuide.chart_data && sizeGuide.chart_data.length > 0 && (() => {
               const columns = Object.keys(sizeGuide.chart_data[0]);
               // Place the size/age column first, then all measurement columns
@@ -232,105 +232,95 @@ export default function ProductDetailModals({
               const otherCols = columns.filter((c) => c !== sizeCol);
               const orderedCols = [sizeCol, ...otherCols];
               const totalCols = orderedCols.length;
-              // On desktop/big screens the modal expands up to 4xl, so up to 10 columns fit in 1 single view
-              const isFitScreen = totalCols <= 10;
+
+              // Size column percentage based on column count
+              const sizeColPct = totalCols >= 7 ? 18 : totalCols >= 5 ? 22 : 26;
+              const otherColPct = ((100 - sizeColPct) / (totalCols - 1)).toFixed(2);
 
               return (
-                <div className="rounded-2xl border-2 border-amber-300 dark:border-amber-500/40 overflow-hidden bg-white dark:bg-[#16162a] shadow-sm">
-                  <div className={`w-full ${isFitScreen ? 'overflow-hidden' : 'overflow-x-auto scrollbar-thin'}`}>
-                    <table className={`w-full text-center border-collapse ${isFitScreen ? 'table-fixed' : 'min-w-[540px]'}`}>
-                      <thead>
-                        <tr className="bg-amber-400 dark:bg-amber-500 text-slate-900 border-b-2 border-amber-300 dark:border-amber-500/40">
-                          {orderedCols.map((colName, cIdx) => {
-                            const isFirst = cIdx === 0;
-                            const colWidthStyle = isFitScreen && isFirst
-                              ? { width: totalCols >= 7 ? '18%' : totalCols >= 5 ? '22%' : '26%' }
-                              : undefined;
-
-                            return (
-                              <th
-                                key={colName}
-                                style={colWidthStyle}
-                                className={`py-2 sm:py-3 px-0.5 sm:px-2 font-black uppercase text-[9px] sm:text-xs leading-[1.15] tracking-tight border-r border-amber-300/80 dark:border-amber-600/40 last:border-r-0 break-words hyphens-auto text-center ${
-                                  !isFitScreen && isFirst
-                                    ? 'sticky left-0 bg-amber-400 dark:bg-amber-500 z-20 shadow-[2px_0_4px_-1px_rgba(0,0,0,0.06)]'
-                                    : ''
-                                }`}
-                              >
-                                {colName}
-                              </th>
-                            );
-                          })}
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-amber-200/70 dark:divide-amber-500/20">
-                        {sizeGuide.chart_data.map((row, idx) => {
-                          const isEven = idx % 2 === 0;
-                          const rowBgClass = isEven
-                            ? 'bg-[#fffdf7] dark:bg-[#181828]'
-                            : 'bg-[#fff8e7]/80 dark:bg-[#141424]';
-
+                <div className="rounded-xl sm:rounded-2xl border-2 border-amber-300 dark:border-amber-500/40 overflow-hidden bg-white dark:bg-[#16162a] shadow-xs">
+                  <table className="w-full table-fixed text-center border-collapse">
+                    <thead>
+                      <tr className="bg-amber-400 dark:bg-amber-500 text-slate-900 border-b-2 border-amber-300 dark:border-amber-500/40">
+                        {orderedCols.map((colName, cIdx) => {
+                          const isFirst = cIdx === 0;
                           return (
-                            <tr
-                              key={idx}
-                              className={`${rowBgClass} hover:bg-amber-100/50 dark:hover:bg-white/5 transition-colors`}
+                            <th
+                              key={colName}
+                              style={{ width: `${isFirst ? sizeColPct : otherColPct}%` }}
+                              className="py-1.5 sm:py-2.5 px-0.5 font-black uppercase text-[8px] sm:text-[10px] md:text-xs leading-[1.05] sm:leading-[1.15] tracking-tighter border-r border-amber-300/80 dark:border-amber-600/40 last:border-r-0 break-words hyphens-auto text-center"
                             >
-                              {orderedCols.map((colName, cIdx) => {
-                                const val = row[colName] || '-';
-                                const isFirstCol = cIdx === 0;
-                                return (
-                                  <td
-                                    key={colName}
-                                    className={`py-2 sm:py-2.5 px-0.5 sm:px-1.5 text-[11px] sm:text-xs border-r border-dashed border-amber-200/80 dark:border-amber-500/20 last:border-r-0 ${
-                                      isFirstCol
-                                        ? `font-extrabold text-slate-900 dark:text-white text-center break-words ${
-                                            !isFitScreen ? `sticky left-0 ${rowBgClass} z-10 border-r-2 border-amber-300 shadow-[2px_0_4px_-1px_rgba(0,0,0,0.06)]` : ''
-                                          }`
-                                        : 'font-semibold text-slate-700 dark:text-slate-200 text-center break-words'
-                                    }`}
-                                  >
-                                    {val}
-                                  </td>
-                                );
-                              })}
-                            </tr>
+                              {colName}
+                            </th>
                           );
                         })}
-                      </tbody>
-                    </table>
-                  </div>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-amber-200/70 dark:divide-amber-500/20">
+                      {sizeGuide.chart_data.map((row, idx) => {
+                        const isEven = idx % 2 === 0;
+                        const rowBgClass = isEven
+                          ? 'bg-[#fffdf7] dark:bg-[#181828]'
+                          : 'bg-[#fff8e7]/80 dark:bg-[#141424]';
+
+                        return (
+                          <tr
+                            key={idx}
+                            className={`${rowBgClass} hover:bg-amber-100/50 dark:hover:bg-white/5 transition-colors`}
+                          >
+                            {orderedCols.map((colName, cIdx) => {
+                              const val = row[colName] || '-';
+                              const isFirstCol = cIdx === 0;
+                              return (
+                                <td
+                                  key={colName}
+                                  className={`py-1.5 sm:py-2 px-0.5 text-[9.5px] sm:text-xs border-r border-dashed border-amber-200/80 dark:border-amber-500/20 last:border-r-0 ${
+                                    isFirstCol
+                                      ? 'font-extrabold text-slate-900 dark:text-white text-center break-words'
+                                      : 'font-semibold text-slate-700 dark:text-slate-200 text-center break-words'
+                                  }`}
+                                >
+                                  {val}
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 </div>
               );
             })()}
 
             {/* 4. Bottom Trust Badges (Sample 2 format) */}
-            <div className="mt-3.5 pt-3 border-t border-amber-200/70 dark:border-gray-800 grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
-              <div className="flex items-center gap-2 p-2 rounded-xl bg-amber-50/80 dark:bg-white/5 border border-amber-200/60 dark:border-gray-800">
-                <span className="text-amber-600 dark:text-amber-400 text-base">🛡️</span>
+            <div className="mt-2.5 pt-2 border-t border-amber-200/70 dark:border-gray-800 grid grid-cols-2 md:grid-cols-4 gap-1.5 sm:gap-2 text-center">
+              <div className="flex items-center gap-1.5 p-1.5 sm:p-2 rounded-xl bg-amber-50/80 dark:bg-white/5 border border-amber-200/60 dark:border-gray-800">
+                <span className="text-amber-600 dark:text-amber-400 text-sm sm:text-base">🛡️</span>
                 <div className="text-left leading-tight">
-                  <p className="text-[10px] font-bold text-slate-900 dark:text-white">Premium Quality</p>
-                  <p className="text-[9px] text-gray-500 dark:text-gray-400">Guaranteed</p>
+                  <p className="text-[9px] sm:text-[10px] font-bold text-slate-900 dark:text-white">Premium Quality</p>
+                  <p className="text-[8px] sm:text-[9px] text-gray-500 dark:text-gray-400">Guaranteed</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2 p-2 rounded-xl bg-amber-50/80 dark:bg-white/5 border border-amber-200/60 dark:border-gray-800">
-                <span className="text-amber-600 dark:text-amber-400 text-base">🚚</span>
+              <div className="flex items-center gap-1.5 p-1.5 sm:p-2 rounded-xl bg-amber-50/80 dark:bg-white/5 border border-amber-200/60 dark:border-gray-800">
+                <span className="text-amber-600 dark:text-amber-400 text-sm sm:text-base">🚚</span>
                 <div className="text-left leading-tight">
-                  <p className="text-[10px] font-bold text-slate-900 dark:text-white">Fast Delivery</p>
-                  <p className="text-[9px] text-gray-500 dark:text-gray-400">Reliable Shipping</p>
+                  <p className="text-[9px] sm:text-[10px] font-bold text-slate-900 dark:text-white">Fast Delivery</p>
+                  <p className="text-[8px] sm:text-[9px] text-gray-500 dark:text-gray-400">Reliable Shipping</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2 p-2 rounded-xl bg-amber-50/80 dark:bg-white/5 border border-amber-200/60 dark:border-gray-800">
-                <span className="text-amber-600 dark:text-amber-400 text-base">🤍</span>
+              <div className="flex items-center gap-1.5 p-1.5 sm:p-2 rounded-xl bg-amber-50/80 dark:bg-white/5 border border-amber-200/60 dark:border-gray-800">
+                <span className="text-amber-600 dark:text-amber-400 text-sm sm:text-base">🤍</span>
                 <div className="text-left leading-tight">
-                  <p className="text-[10px] font-bold text-slate-900 dark:text-white">Comfort First</p>
-                  <p className="text-[9px] text-gray-500 dark:text-gray-400">For Every Move</p>
+                  <p className="text-[9px] sm:text-[10px] font-bold text-slate-900 dark:text-white">Comfort First</p>
+                  <p className="text-[8px] sm:text-[9px] text-gray-500 dark:text-gray-400">For Every Move</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2 p-2 rounded-xl bg-amber-50/80 dark:bg-white/5 border border-amber-200/60 dark:border-gray-800">
-                <span className="text-amber-600 dark:text-amber-400 text-base">😊</span>
+              <div className="flex items-center gap-1.5 p-1.5 sm:p-2 rounded-xl bg-amber-50/80 dark:bg-white/5 border border-amber-200/60 dark:border-gray-800">
+                <span className="text-amber-600 dark:text-amber-400 text-sm sm:text-base">😊</span>
                 <div className="text-left leading-tight">
-                  <p className="text-[10px] font-bold text-slate-900 dark:text-white">Best Fitting</p>
-                  <p className="text-[9px] text-gray-500 dark:text-gray-400">100% Satisfaction</p>
+                  <p className="text-[9px] sm:text-[10px] font-bold text-slate-900 dark:text-white">Best Fitting</p>
+                  <p className="text-[8px] sm:text-[9px] text-gray-500 dark:text-gray-400">100% Satisfaction</p>
                 </div>
               </div>
             </div>
