@@ -16,6 +16,7 @@ interface SavedPresetsCardProps {
   fileInputRef: React.RefObject<HTMLInputElement | null>;
   setEditingGuide: (g: SizeGuide) => void;
   setNewName: (v: string) => void;
+  setNewUnit: (v: string) => void;
   setNewColumns: (v: string) => void;
   setNewRows: (v: Record<string, string>[]) => void;
   handleDelete: (id: string) => void;
@@ -33,6 +34,7 @@ export default function SavedPresetsCard({
   fileInputRef,
   setEditingGuide,
   setNewName,
+  setNewUnit,
   setNewColumns,
   setNewRows,
   handleDelete,
@@ -128,7 +130,12 @@ export default function SavedPresetsCard({
                     <Ruler className="h-4 w-4 text-white" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-gray-900 dark:text-white">{guide.name}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{guide.name}</p>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 uppercase tracking-wider shrink-0">
+                        {guide.unit || 'INCHES'}
+                      </span>
+                    </div>
                     <p className="text-xs text-gray-400">
                       {guide.chart_data.length} rows &middot; {cols.length} columns
                     </p>
@@ -140,6 +147,7 @@ export default function SavedPresetsCard({
                         e.stopPropagation();
                         setEditingGuide(guide);
                         setNewName(guide.name);
+                        setNewUnit(guide.unit || 'INCHES');
                         const colHeaders =
                           guide.chart_data.length > 0
                             ? Object.keys(guide.chart_data[0])

@@ -146,7 +146,7 @@ export const getDeletedSocialProofs = async (): Promise<SocialProof[]> => {
       .not('deleted_at', 'is', null)
       .order('deleted_at', { ascending: false });
     if (error) throw error;
-    return (data ?? []).map(mapSocialProof);
+    return ((data as any) ?? []).map(mapSocialProof);
   } catch (error) {
     console.error('[socialProof] getDeletedSocialProofs failed:', error);
     throw error;

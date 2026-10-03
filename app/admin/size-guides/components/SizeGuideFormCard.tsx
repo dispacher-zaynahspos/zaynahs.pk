@@ -8,6 +8,8 @@ interface SizeGuideFormCardProps {
   editingGuide: SizeGuide | null;
   newName: string;
   setNewName: (v: string) => void;
+  newUnit: string;
+  setNewUnit: (v: string) => void;
   newColumns: string;
   setNewColumns: React.Dispatch<React.SetStateAction<string>>;
   newRows: Record<string, string>[];
@@ -22,6 +24,8 @@ export default function SizeGuideFormCard({
   editingGuide,
   newName,
   setNewName,
+  newUnit,
+  setNewUnit,
   newColumns,
   setNewColumns,
   newRows,
@@ -37,15 +41,52 @@ export default function SizeGuideFormCard({
         {editingGuide ? `Edit Guide: ${editingGuide.name}` : 'Create Size Guide Preset'}
       </h2>
 
-      <div>
-        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Preset Name</label>
-        <input
-          type="text"
-          value={newName}
-          onChange={(e) => setNewName(e.target.value)}
-          placeholder="e.g. Women's Kurtas Sizing"
-          className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f0f1b] px-4 py-2.5 text-sm focus:outline-none focus:border-[#e94560]"
-        />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Preset Name</label>
+          <input
+            type="text"
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            placeholder="e.g. Kids Fleece Tracksuit"
+            className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f0f1b] px-4 py-2.5 text-sm font-semibold focus:outline-none focus:border-[#e94560]"
+          />
+        </div>
+
+        <div>
+          <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
+            Measurement Type / Unit
+          </label>
+          <div className="flex gap-2">
+            <select
+              value={['INCHES', 'CM', 'MM', 'ML', 'KG', 'GRAMS'].includes(newUnit.toUpperCase()) ? newUnit.toUpperCase() : 'CUSTOM'}
+              onChange={(e) => {
+                if (e.target.value !== 'CUSTOM') {
+                  setNewUnit(e.target.value);
+                }
+              }}
+              className="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f0f1b] px-3 py-2.5 text-xs font-bold focus:outline-none focus:border-[#e94560] cursor-pointer"
+            >
+              <option value="INCHES">Inches (in)</option>
+              <option value="CM">Centimeters (cm)</option>
+              <option value="MM">Millimeters (mm)</option>
+              <option value="ML">Milliliters (ml)</option>
+              <option value="KG">Kilograms (kg)</option>
+              <option value="GRAMS">Grams (g)</option>
+              <option value="CUSTOM">Custom Unit...</option>
+            </select>
+            <input
+              type="text"
+              value={newUnit}
+              onChange={(e) => setNewUnit(e.target.value.toUpperCase())}
+              placeholder="e.g. INCHES, CM, ML"
+              className="flex-1 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f0f1b] px-3 py-2.5 text-xs font-black uppercase focus:outline-none focus:border-[#e94560]"
+            />
+          </div>
+          <span className="text-[10px] text-gray-400 mt-1 block">
+            Will display on store as: &ldquo;MEASUREMENTS IN {newUnit || 'INCHES'}&rdquo;
+          </span>
+        </div>
       </div>
 
       <div className="hidden">

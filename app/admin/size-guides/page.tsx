@@ -21,6 +21,7 @@ export default function SizeGuidesPage() {
   // Edit / Create Form states
   const [editingGuide, setEditingGuide] = useState<SizeGuide | null>(null);
   const [newName, setNewName] = useState('');
+  const [newUnit, setNewUnit] = useState('INCHES');
   const [newColumns, setNewColumns] = useState('Size, Chest, Length, Shoulder');
   const [newRows, setNewRows] = useState<Record<string, string>[]>([
     { 'Size': 'S', 'Chest': '38', 'Length': '26', 'Shoulder': '17' },
@@ -62,6 +63,7 @@ export default function SizeGuidesPage() {
       if (editingGuide) {
         const updated = await updateSizeGuide(editingGuide.id, {
           name: newName.trim(),
+          unit: newUnit.trim().toUpperCase(),
           chart_data: sanitizedRows
         });
         setGuides(prev => prev.map(g => g.id === editingGuide.id ? updated : g));
@@ -70,12 +72,14 @@ export default function SizeGuidesPage() {
       } else {
         const created = await createSizeGuide({
           name: newName.trim(),
+          unit: newUnit.trim().toUpperCase(),
           chart_data: sanitizedRows
         });
         setGuides(prev => [...prev, created]);
         toast.success('Size guide saved!');
       }
       setNewName('');
+      setNewUnit('INCHES');
       setNewColumns('Size, Chest, Length, Shoulder');
       setNewRows([
         { 'Size': 'S', 'Chest': '38', 'Length': '26', 'Shoulder': '17' },
@@ -205,6 +209,8 @@ export default function SizeGuidesPage() {
             editingGuide={editingGuide}
             newName={newName}
             setNewName={setNewName}
+            newUnit={newUnit}
+            setNewUnit={setNewUnit}
             newColumns={newColumns}
             setNewColumns={setNewColumns}
             newRows={newRows}
@@ -229,6 +235,7 @@ export default function SizeGuidesPage() {
             fileInputRef={fileInputRef}
             setEditingGuide={setEditingGuide}
             setNewName={setNewName}
+            setNewUnit={setNewUnit}
             setNewColumns={setNewColumns}
             setNewRows={setNewRows}
             handleDelete={handleDelete}

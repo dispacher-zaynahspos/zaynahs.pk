@@ -64,7 +64,7 @@ export const getDeletedOrders = async (): Promise<Order[]> => {
       .order('deleted_at', { ascending: false });
 
     if (error) throw error;
-    return (data ?? []).map(mapOrder);
+    return ((data as any) ?? []).map(mapOrder);
   } catch (error) {
     console.error('[orders] getDeletedOrders failed:', error);
     throw error;

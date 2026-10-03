@@ -54,6 +54,7 @@ export interface SizeGuide {
   id: string;
   name: string;
   chart_data: Array<Record<string, string>>;
+  unit?: string;
   image_url?: string;
   created_at?: string;
   updated_at?: string;

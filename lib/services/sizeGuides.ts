@@ -14,21 +14,40 @@ interface SizeGuideRow {
   id: string;
   name: string;
   chart_data: any;
+  unit?: string | null;
   image_url?: string | null;
   created_at: string;
   updated_at: string;
   deleted_at?: string | null;
 }
 
-const mapSizeGuide = (row: SizeGuideRow): SizeGuide => ({
-  id: row.id,
-  name: row.name,
-  chart_data: Array.isArray(row.chart_data) ? row.chart_data : [],
-  image_url: row.image_url || undefined,
-  created_at: row.created_at,
-  updated_at: row.updated_at,
-  deleted_at: row.deleted_at || null
-});
+export function parseSizeGuideChartData(chartData: any): { rows: Array<Record<string, string>>; unit: string } {
+  if (!chartData) return { rows: [], unit: 'INCHES' };
+  if (Array.isArray(chartData)) {
+    return { rows: chartData, unit: 'INCHES' };
+  }
+  if (typeof chartData === 'object') {
+    const rows = Array.isArray(chartData.rows) ? chartData.rows : [];
+    const unit = typeof chartData.unit === 'string' && chartData.unit.trim() ? chartData.unit.trim().toUpperCase() : 'INCHES';
+    return { rows, unit };
+  }
+  return { rows: [], unit: 'INCHES' };
+}
+
+const mapSizeGuide = (row: SizeGuideRow): SizeGuide => {
+  const parsed = parseSizeGuideChartData(row.chart_data);
+  const finalUnit = row.unit || parsed.unit || 'INCHES';
+  return {
+    id: row.id,
+    name: row.name,
+    chart_data: parsed.rows,
+    unit: finalUnit,
+    image_url: row.image_url || undefined,
+    created_at: row.created_at,
+    updated_at: row.updated_at,
+    deleted_at: row.deleted_at || null
+  };
+};
 
 const fetchSizeGuides = async (): Promise<SizeGuide[]> => {
   const { data, error } = await staticSupabase
@@ -60,15 +79,20 @@ export const getSizeGuides = async (): Promise<SizeGuide[]> => {
 export const createSizeGuide = async (guide: {
   name: string;
   chart_data: Array<Record<string, string>>;
+  unit?: string;
   imageUrl?: string;
 }): Promise<SizeGuide> => {
   try {
     const supabase = await createClient();
+    const unit = (guide.unit || 'INCHES').trim().toUpperCase();
     const { data, error } = await supabase
       .from('size_guides')
       .insert({
         name: guide.name,
-        chart_data: guide.chart_data,
+        chart_data: {
+          unit,
+          rows: guide.chart_data
+        },
         image_url: guide.imageUrl
       })
       .select('*')
@@ -91,8 +115,15 @@ export const updateSizeGuide = async (
     const supabase = await createClient();
     const updatePayload: Record<string, any> = {};
     if (guide.name !== undefined) updatePayload.name = guide.name;
-    if (guide.chart_data !== undefined) updatePayload.chart_data = guide.chart_data;
     if (guide.image_url !== undefined) updatePayload.image_url = guide.image_url;
+
+    if (guide.chart_data !== undefined || guide.unit !== undefined) {
+      const unit = (guide.unit || 'INCHES').trim().toUpperCase();
+      updatePayload.chart_data = {
+        unit,
+        rows: guide.chart_data || []
+      };
+    }
 
     const { data, error } = await supabase
       .from('size_guides')

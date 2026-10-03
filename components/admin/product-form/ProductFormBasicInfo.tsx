@@ -181,7 +181,17 @@ export const ProductFormBasicInfo: React.FC<ProductFormBasicInfoProps> = ({
         </div>
 
         <div>
-          <label className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-1">Size Guide Preset</label>
+          <div className="flex items-center justify-between mb-1">
+            <label className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">Size Guide Preset</label>
+            <a
+              href="/admin/size-guides"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[10px] font-bold text-[#e94560] hover:underline"
+            >
+              Manage / New Preset →
+            </a>
+          </div>
           <select
             value={sizeGuideId}
             onChange={(e) => setSizeGuideId(e.target.value)}
@@ -189,7 +199,9 @@ export const ProductFormBasicInfo: React.FC<ProductFormBasicInfoProps> = ({
           >
             <option value="">No Size Guide</option>
             {sizeGuidesList.map(sg => (
-              <option key={sg.id} value={sg.id}>{sg.name}</option>
+              <option key={sg.id} value={sg.id}>
+                {sg.name} ({sg.unit || 'INCHES'})
+              </option>
             ))}
           </select>
         </div>

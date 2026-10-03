@@ -103,7 +103,10 @@ export const mapProduct = (row: DBProductRow): Product => {
     size_guide: row.size_guides ? {
       id: row.size_guides.id,
       name: row.size_guides.name,
-      chart_data: Array.isArray(row.size_guides.chart_data) ? row.size_guides.chart_data : [],
+      chart_data: Array.isArray(row.size_guides.chart_data)
+        ? row.size_guides.chart_data
+        : (Array.isArray((row.size_guides.chart_data as any)?.rows) ? (row.size_guides.chart_data as any).rows : []),
+      unit: (row.size_guides as any).unit || (row.size_guides.chart_data as any)?.unit || 'INCHES',
       image_url: row.size_guides.image_url || undefined
     } : undefined,
     frequently_bought_together_ids: row.frequently_bought_together_ids || [],

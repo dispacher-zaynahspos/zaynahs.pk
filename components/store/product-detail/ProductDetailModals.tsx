@@ -2,9 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import Image from 'next/image';
 import { X, Copy, Check } from '@/components/common/Icons';
 import { StoreSettings, Product } from '@/lib/types';
 import { isFeatureEnabled } from '@/lib/features/premium';
+import { useBodyScrollLock } from '@/lib/hooks/useBodyScrollLock';
 import { toast } from 'sonner';
 
 interface ProductDetailModalsProps {
@@ -33,11 +35,18 @@ export default function ProductDetailModals({
   const [mounted, setMounted] = useState(false);
   const sizeGuide = product.size_guide;
 
+  useBodyScrollLock(showSizeGuide || isShareOpen);
+
   useEffect(() => {
     setMounted(true);
   }, []);
 
   if (!mounted) return null;
+
+  const storeName = settings?.store_name || 'TotVogue.pk';
+  const logoUrl = settings?.logo_url;
+  const storeTagline = settings?.tagline || 'Little Styles, Big Smiles';
+  const measurementUnit = (sizeGuide?.unit || 'INCHES').toUpperCase();
 
   return (
     <>
@@ -143,69 +152,175 @@ export default function ProductDetailModals({
         document.body
       )}
 
-      {/* Sizing Guide Modal */}
+      {/* Sizing Guide Modal — Branded & Mobile-First High Converting Layout (Sample 2 Standard) */}
       {showSizeGuide && isFeatureEnabled(settings, 'size_guide') && sizeGuide && createPortal(
         <div
-          className="fixed inset-0 z-[150] flex items-center justify-center bg-black/60 p-4 overscroll-contain animate-fade-in"
+          className="fixed inset-0 z-[150] flex items-center justify-center bg-black/65 backdrop-blur-xs p-3 sm:p-6 overscroll-contain animate-fade-in"
           onClick={() => setShowSizeGuide(false)}
         >
           <div
-            className="relative w-full max-w-lg bg-white dark:bg-[#16162a] border border-gray-200 dark:border-gray-800 rounded-3xl p-6 shadow-2xl text-gray-900 dark:text-white max-h-[90vh] overflow-y-auto overscroll-contain scale-up duration-200"
+            className="relative w-full max-w-lg bg-[#FFFCF6] dark:bg-[#121220] border-2 border-amber-300/80 dark:border-amber-500/30 rounded-3xl p-4 sm:p-6 shadow-2xl text-gray-900 dark:text-white max-h-[92vh] overflow-y-auto overscroll-contain scale-up duration-200 select-none"
             onClick={(e) => e.stopPropagation()}
           >
+            {/* Top Close Button */}
             <button
               onClick={() => setShowSizeGuide(false)}
-              className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 cursor-pointer"
+              className="absolute top-3.5 right-3.5 p-2 rounded-full text-gray-400 hover:text-gray-700 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer z-30"
+              aria-label="Close size guide"
             >
-              <X className="w-5 h-5" />
+              <X className="w-5 h-5" strokeWidth={2.2} />
             </button>
-            <h3 className="text-lg font-black text-gray-900 dark:text-white uppercase tracking-wider mb-4">
-              📏 {sizeGuide.name}
-            </h3>
 
+            {/* 1. Brand Header — Store Logo + Store Name + Tagline (Matching Mobile Drawer & Image 2) */}
+            <div className="flex flex-col items-center justify-center text-center pt-1 pb-1">
+              <div className="flex items-center justify-center gap-2.5 mb-1 max-w-[85%]">
+                {logoUrl ? (
+                  <div className="relative h-9 w-9 sm:h-10 sm:w-10 shrink-0">
+                    <Image
+                      src={logoUrl}
+                      alt={storeName}
+                      fill
+                      sizes="40px"
+                      className="object-contain"
+                    />
+                  </div>
+                ) : (
+                  <span className="text-2xl">👑</span>
+                )}
+                <span className="font-[family-name:var(--font-heading)] text-xl sm:text-2xl font-black tracking-tight text-gray-950 dark:text-white truncate">
+                  {storeName}
+                </span>
+              </div>
+              <p className="text-[11px] sm:text-xs font-semibold text-amber-700 dark:text-amber-400/90 tracking-wide flex items-center justify-center gap-1.5">
+                <span className="text-amber-500 text-[10px]">♡</span>
+                <span>{storeTagline}</span>
+                <span className="text-amber-500 text-[10px]">♡</span>
+              </p>
+            </div>
+
+            {/* 2. Banner Header — "SIZE CHART" / Guide Name + "MEASUREMENTS IN {UNIT}" */}
+            <div className="my-2.5 sm:my-3 flex flex-col items-center text-center">
+              <div className="relative inline-flex items-center justify-center px-6 sm:px-8 py-2 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 dark:from-amber-500 dark:to-amber-600 shadow-sm border border-amber-400/80">
+                <h3 className="text-base sm:text-xl font-black uppercase tracking-wider text-slate-900 drop-shadow-xs">
+                  {sizeGuide.name?.toUpperCase().includes('SIZE')
+                    ? sizeGuide.name
+                    : `${sizeGuide.name || 'PRODUCT'} - SIZE CHART`}
+                </h3>
+              </div>
+              <div className="mt-1.5 inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[#1b2a47] dark:bg-slate-800 text-white text-[10px] sm:text-[11px] font-extrabold uppercase tracking-widest shadow-xs">
+                <span>📏</span> MEASUREMENTS IN {measurementUnit}
+              </div>
+            </div>
+
+            {/* Visual Reference Image (if provided) */}
             {sizeGuide.image_url && (
-              <div className="relative w-full h-48 sm:h-64 rounded-2xl overflow-hidden bg-gray-50 dark:bg-white/5 mb-6 border border-gray-100 dark:border-gray-800 flex items-center justify-center">
+              <div className="relative w-full h-40 sm:h-52 rounded-2xl overflow-hidden bg-white dark:bg-white/5 mb-4 border border-amber-200/80 dark:border-gray-800 flex items-center justify-center">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={sizeGuide.image_url}
-                  alt={`${sizeGuide.name} visual reference`}
+                  alt={`${sizeGuide.name} reference`}
                   className="w-full h-full object-contain"
                 />
               </div>
             )}
 
-            {sizeGuide.chart_data && sizeGuide.chart_data.length > 0 && (
-              <div className="border border-gray-200 dark:border-gray-800 rounded-2xl overflow-hidden bg-white dark:bg-[#0f0f1b]/50">
-                <div className="overflow-x-auto scrollbar-thin">
-                  <table className="w-full text-xs text-left border-collapse min-w-[320px]">
-                    <thead>
-                      <tr className="bg-gray-50 dark:bg-white/5 border-b border-gray-200 dark:border-gray-800">
-                        {Object.keys(sizeGuide.chart_data[0]).map((colName) => (
-                          <th key={colName} className="p-3 font-extrabold uppercase text-gray-500 dark:text-gray-400">
-                            {colName}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                      {sizeGuide.chart_data.map((row, idx) => (
-                        <tr key={idx} className="hover:bg-gray-50/20">
-                          {Object.keys(sizeGuide.chart_data[0]).map((colName) => (
-                            <td key={colName} className="p-3 font-semibold text-gray-700 dark:text-gray-300">
-                              {row[colName] || '-'}
-                            </td>
+            {/* 3. The Size Chart Table — 1-by-1 Perfectly Aligned on ALL Mobiles & Desktops */}
+            {sizeGuide.chart_data && sizeGuide.chart_data.length > 0 && (() => {
+              const columns = Object.keys(sizeGuide.chart_data[0]);
+              // Place the size/age column first, then all measurement columns
+              const sizeCol = columns.find((c) => /^(size|age|years|year|tag)$/i.test(c.trim())) || columns[0];
+              const otherCols = columns.filter((c) => c !== sizeCol);
+              const orderedCols = [sizeCol, ...otherCols];
+
+              return (
+                <div className="rounded-2xl border-2 border-amber-300 dark:border-amber-500/40 overflow-hidden bg-white dark:bg-[#16162a] shadow-sm">
+                  <div className="overflow-x-auto scrollbar-thin">
+                    <table className="w-full text-center border-collapse text-xs sm:text-sm min-w-full">
+                      <thead>
+                        <tr className="bg-amber-400 dark:bg-amber-500 text-slate-900 border-b-2 border-amber-300 dark:border-amber-500/40">
+                          {orderedCols.map((colName, cIdx) => (
+                            <th
+                              key={colName}
+                              className={`py-2.5 sm:py-3 px-2.5 sm:px-4 font-black uppercase text-[11px] sm:text-xs tracking-wider whitespace-nowrap border-r border-amber-300/80 dark:border-amber-600/40 last:border-r-0 ${
+                                cIdx === 0
+                                  ? 'sticky left-0 bg-amber-400 dark:bg-amber-500 z-20 text-left sm:text-center shadow-[2px_0_4px_-1px_rgba(0,0,0,0.06)]'
+                                  : ''
+                              }`}
+                            >
+                              {colName}
+                            </th>
                           ))}
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody className="divide-y divide-amber-200/70 dark:divide-amber-500/20">
+                        {sizeGuide.chart_data.map((row, idx) => {
+                          const isEven = idx % 2 === 0;
+                          const rowBgClass = isEven
+                            ? 'bg-[#fffdf7] dark:bg-[#181828]'
+                            : 'bg-[#fff8e7]/80 dark:bg-[#141424]';
+
+                          return (
+                            <tr
+                              key={idx}
+                              className={`${rowBgClass} hover:bg-amber-100/50 dark:hover:bg-white/5 transition-colors`}
+                            >
+                              {orderedCols.map((colName, cIdx) => {
+                                const val = row[colName] || '-';
+                                const isFirstCol = cIdx === 0;
+                                return (
+                                  <td
+                                    key={colName}
+                                    className={`py-2.5 sm:py-3 px-2 sm:px-3 text-xs sm:text-sm whitespace-nowrap border-r border-dashed border-amber-200/80 dark:border-amber-500/20 last:border-r-0 ${
+                                      isFirstCol
+                                        ? `sticky left-0 ${rowBgClass} z-10 font-bold text-slate-900 dark:text-white text-left sm:text-center px-3 border-r-2 border-amber-300 dark:border-amber-500/40 shadow-[2px_0_4px_-1px_rgba(0,0,0,0.06)]`
+                                        : 'font-semibold text-slate-700 dark:text-slate-200 text-center'
+                                    }`}
+                                  >
+                                    {val}
+                                  </td>
+                                );
+                              })}
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* 4. Bottom Trust Badges (Sample 2 format) */}
+            <div className="mt-3.5 pt-3 border-t border-amber-200/70 dark:border-gray-800 grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+              <div className="flex items-center gap-2 p-2 rounded-xl bg-amber-50/80 dark:bg-white/5 border border-amber-200/60 dark:border-gray-800">
+                <span className="text-amber-600 dark:text-amber-400 text-base">🛡️</span>
+                <div className="text-left leading-tight">
+                  <p className="text-[10px] font-bold text-slate-900 dark:text-white">Premium Quality</p>
+                  <p className="text-[9px] text-gray-500 dark:text-gray-400">Guaranteed</p>
                 </div>
               </div>
-            )}
-
-            <p className="mt-4 text-[10px] text-gray-400 text-center leading-normal">
-              Sizes may vary slightly. For questions or custom sizing, contact support via WhatsApp.
-            </p>
+              <div className="flex items-center gap-2 p-2 rounded-xl bg-amber-50/80 dark:bg-white/5 border border-amber-200/60 dark:border-gray-800">
+                <span className="text-amber-600 dark:text-amber-400 text-base">🚚</span>
+                <div className="text-left leading-tight">
+                  <p className="text-[10px] font-bold text-slate-900 dark:text-white">Fast Delivery</p>
+                  <p className="text-[9px] text-gray-500 dark:text-gray-400">Reliable Shipping</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 p-2 rounded-xl bg-amber-50/80 dark:bg-white/5 border border-amber-200/60 dark:border-gray-800">
+                <span className="text-amber-600 dark:text-amber-400 text-base">🤍</span>
+                <div className="text-left leading-tight">
+                  <p className="text-[10px] font-bold text-slate-900 dark:text-white">Comfort First</p>
+                  <p className="text-[9px] text-gray-500 dark:text-gray-400">For Every Move</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 p-2 rounded-xl bg-amber-50/80 dark:bg-white/5 border border-amber-200/60 dark:border-gray-800">
+                <span className="text-amber-600 dark:text-amber-400 text-base">😊</span>
+                <div className="text-left leading-tight">
+                  <p className="text-[10px] font-bold text-slate-900 dark:text-white">Best Fitting</p>
+                  <p className="text-[9px] text-gray-500 dark:text-gray-400">100% Satisfaction</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>,
         document.body

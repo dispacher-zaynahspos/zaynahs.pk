@@ -106,7 +106,7 @@ export const getDeletedWhatsAppSubscribers = async (): Promise<WhatsAppSubscribe
       .order('deleted_at', { ascending: false });
 
     if (error) throw error;
-    return data || [];
+    return (data as unknown as WhatsAppSubscriber[]) || [];
   } catch (error) {
     console.error('[sections] getDeletedWhatsAppSubscribers failed:', error);
     throw error;
@@ -168,7 +168,7 @@ export const getDeletedEmailSubscribers = async (): Promise<EmailSubscriber[]> =
       .order('deleted_at', { ascending: false });
 
     if (error) throw error;
-    return data || [];
+    return (data as unknown as EmailSubscriber[]) || [];
   } catch (error) {
     console.error('[sections] getDeletedEmailSubscribers failed:', error);
     throw error;

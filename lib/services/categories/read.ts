@@ -118,7 +118,7 @@ export const getDeletedCategories = async (): Promise<Category[]> => {
       .order('deleted_at', { ascending: false });
 
     if (error) throw error;
-    return (data ?? []).map(mapCategory);
+    return ((data as any) ?? []).map(mapCategory);
   } catch (error) {
     console.error('[categories] getDeletedCategories failed:', error);
     throw error;
