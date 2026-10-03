@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Plus, X, Image as ImageIcon, Loader2, Zap } from '@/components/common/Icons';
 import { Category, Collection } from '@/lib/types';
 import { toast } from 'sonner';
@@ -119,10 +120,15 @@ export default function CollectionFormModal({
     }
   };
 
-  return (
-    <>
-      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-        <div className="bg-white dark:bg-[#16162a] w-full max-w-3xl max-h-[90vh] rounded-2xl border border-gray-250 dark:border-gray-800 shadow-2xl overflow-hidden flex flex-col animate-scale-in text-gray-900 dark:text-white overscroll-contain">
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const modalContent = (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60">
+      <div className="bg-white dark:bg-[#16162a] w-full max-w-3xl max-h-[90vh] rounded-2xl border border-gray-250 dark:border-gray-800 shadow-2xl overflow-hidden flex flex-col animate-scale-in text-gray-900 dark:text-white overscroll-contain">
           
           {/* Sticky Header */}
           <div className="flex justify-between items-center px-6 py-4 border-b border-gray-150 dark:border-gray-800 shrink-0 bg-white dark:bg-[#16162a] sticky top-0 z-20">
@@ -340,6 +346,13 @@ export default function CollectionFormModal({
           </form>
         </div>
       </div>
+  );
+
+  if (!mounted) return null;
+
+  return (
+    <>
+      {createPortal(modalContent, document.body)}
 
       {isMediaModalOpen && (
         <MediaSelectorModal

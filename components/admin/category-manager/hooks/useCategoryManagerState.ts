@@ -129,7 +129,7 @@ export function useCategoryManagerState({
     setSlug(cat.slug);
     setDescription(cat.description || '');
     setImageUrl(cat.image_url || '');
-    setSortOrder(cat.sort_order.toString());
+    setSortOrder(cat.sort_order != null ? cat.sort_order.toString() : '0');
     setActive(cat.active);
     setIsOpen(true);
   };

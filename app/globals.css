@@ -326,67 +326,37 @@ select.customizer-page-select option {
 }
 
 /* ============================================================
-   PERFORMANCE: GPU-accelerated compositing hints
+   PERFORMANCE & SMOOTH SCROLLING
    ============================================================ */
 
-/* Smooth momentum scrolling on iOS and Touch Devices */
-.overflow-y-auto,
-.overflow-y-scroll,
-.overflow-x-auto,
-.overflow-x-scroll,
-.overflow-auto {
-  -webkit-overflow-scrolling: touch !important;
-}
-
-/* Touch action optimizations */
-.overflow-y-auto,
-.overflow-y-scroll,
-.overflow-auto {
-  touch-action: pan-y !important;
-}
-.overflow-x-auto,
-.overflow-x-scroll {
-  touch-action: pan-x !important;
-}
-
-/* Hardware GPU Acceleration for scrollable layers & modals (Jitter Prevention) */
+/* Momentum scrolling for iOS & touch devices */
 .overflow-y-auto,
 .overflow-y-scroll,
 .overflow-x-auto,
 .overflow-x-scroll,
 .overflow-auto,
-.fixed.z-50,
-.fixed.inset-0,
+.touch-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* Modals and dialog overlays: hardware paint hint without trapping fixed descendants */
 [role="dialog"],
-[role="menu"] {
-  will-change: transform;
-  transform: translateZ(0);
+[role="menu"],
+.modal-overlay {
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
 }
 
-/* Store product grid: skip rendering for off-screen items */
-.product-grid-item {
-  content-visibility: auto;
-  contain-intrinsic-size: 0 300px;
-}
-
 /* Animate-heavy elements use GPU layer */
-[data-gpu] {
-  will-change: transform;
+[data-gpu],
+.transform-gpu {
   transform: translateZ(0);
 }
 
 /* Prevent layout shift on image cards */
 .product-card-img {
-  contain: strict;
-}
-
-/* Touch scroll improvements */
-.touch-scroll {
-  overscroll-behavior: contain;
-  touch-action: pan-y !important;
-  -webkit-overflow-scrolling: touch !important;
+  contain: paint;
 }
 
 /* ============================================================

@@ -104,6 +104,12 @@ export default function ShopPage({
     ? displayCategories
     : displayCategories.slice(0, CATEGORY_LIMIT);
 
+  const isShopLoadingRef = useRef(false);
+
+  useEffect(() => {
+    isShopLoadingRef.current = false;
+  }, [displayProducts.length]);
+
   useEffect(() => {
     if (!activeSettings?.shop_infinite_scroll || !hasMore) return;
     const sentinel = sentinelRef.current;
@@ -111,11 +117,12 @@ export default function ShopPage({
 
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting) {
+        if (entries[0].isIntersecting && !isShopLoadingRef.current) {
+          isShopLoadingRef.current = true;
           handleLoadMore();
         }
       },
-      { rootMargin: '300px' }
+      { rootMargin: '250px' }
     );
 
     observer.observe(sentinel);

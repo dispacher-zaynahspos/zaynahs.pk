@@ -75,13 +75,18 @@ export default function CategoryCard({
       <div className="flex gap-2.5 pt-3 border-t border-gray-150 dark:border-gray-800 justify-end items-center">
         <Link
           href={`/admin/categories/${cat.id}`}
+          onClick={(e) => e.stopPropagation()}
           className="flex items-center gap-1 text-xs font-bold text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/20 px-3 py-2 rounded-lg cursor-pointer"
         >
           <FolderOpen className="h-3.5 w-3.5" />
           <span>Products</span>
         </Link>
         <button
-          onClick={() => onEdit(cat)}
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onEdit(cat);
+          }}
           className="flex items-center gap-1 text-xs font-semibold text-gray-600 dark:text-gray-300 hover:text-[#1a1a2e] dark:hover:text-white bg-gray-50 dark:bg-white/5 px-3 py-2 rounded-lg cursor-pointer"
         >
           <Edit className="h-3.5 w-3.5" />
@@ -89,7 +94,11 @@ export default function CategoryCard({
         </button>
         {cat.id !== SHOP_CATEGORY_ID && (
           <button
-            onClick={() => onDelete(cat.id)}
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(cat.id);
+            }}
             className="flex items-center gap-1 text-xs font-semibold text-red-500 hover:bg-red-50 dark:hover:bg-red-950/10 px-3 py-2 rounded-lg cursor-pointer"
           >
             <Trash2 className="h-3.5 w-3.5" />

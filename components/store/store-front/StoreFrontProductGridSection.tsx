@@ -36,7 +36,7 @@ export function StoreFrontProductGridSection({
   const bottomEnableInfiniteScroll = section.settings?.bottomEnableInfiniteScroll === true;
 
 
-  const displayProducts = (() => {
+  const sectionProducts = React.useMemo(() => {
     let prodList = filteredProducts;
 
     if (sortMethod === 'manual' && manualProductIds.length > 0) {
@@ -90,27 +90,29 @@ export function StoreFrontProductGridSection({
       prodList = [...prodList].sort((a, b) => (b.name || '').localeCompare(a.name || ''));
     }
 
+    return prodList;
+  }, [filteredProducts, sortMethod, manualProductIds, source, selectedCategoryId, getValidCategoryIds]);
+
+  const displayProducts = React.useMemo(() => {
+    if (effectiveLimit >= sectionProducts.length) {
+      return sectionProducts;
+    }
     const cols = Number(section.settings?.columns_desktop) || 4;
     let targetCount = effectiveLimit;
-    if (cols > 1 && prodList.length >= cols) {
+    if (cols > 1 && sectionProducts.length > effectiveLimit) {
       const remainder = effectiveLimit % cols;
       if (remainder !== 0) {
         const nextMultiple = effectiveLimit + (cols - remainder);
-        if (prodList.length >= nextMultiple) {
+        if (sectionProducts.length >= nextMultiple) {
           targetCount = nextMultiple;
         } else {
           targetCount = Math.floor(effectiveLimit / cols) * cols;
         }
-      } else {
-        if (prodList.length < targetCount) {
-          targetCount = Math.floor(prodList.length / cols) * cols;
-        }
       }
     }
-    if (targetCount === 0) targetCount = prodList.length;
-
-    return prodList.slice(0, targetCount);
-  })();
+    if (targetCount <= 0) targetCount = effectiveLimit;
+    return sectionProducts.slice(0, targetCount);
+  }, [sectionProducts, effectiveLimit, section.settings?.columns_desktop]);
 
   const viewAllLink = (() => {
     if (section.settings?.viewAllUrl) {
@@ -126,33 +128,14 @@ export function StoreFrontProductGridSection({
     return '/shop';
   })();
 
-  const allProductsCount = (() => {
-    if (sortMethod === 'manual') return manualProductIds.length;
-    let count = filteredProducts;
-    if (sortMethod === 'featured' || source === 'featured') count = count.filter((p) => p.is_featured);
-    else if (sortMethod === 'category' && source !== 'all' && source !== 'featured') {
-      const validSourceIds = getValidCategoryIds(source);
-      count = count.filter(
-        (p) =>
-          validSourceIds.includes(p.category_id || '') ||
-          p.category?.slug === source ||
-          p.product_categories?.some((pc) => validSourceIds.includes(pc.category_id))
-      );
-    } else if (source !== 'all' && source !== 'featured') {
-      const validSourceIds = getValidCategoryIds(source);
-      count = count.filter(
-        (p) =>
-          validSourceIds.includes(p.category_id || '') ||
-          p.category?.slug === source ||
-          p.product_categories?.some((pc) => validSourceIds.includes(pc.category_id))
-      );
-    }
-    return count.length;
-  })();
-
-  const hasMore = displayProducts.length < allProductsCount && displayProducts.length >= effectiveLimit;
+  const hasMore = displayProducts.length < sectionProducts.length;
 
   const sentinelRef = React.useRef<HTMLDivElement | null>(null);
+  const isTriggeringRef = React.useRef(false);
+
+  React.useEffect(() => {
+    isTriggeringRef.current = false;
+  }, [effectiveLimit]);
 
   React.useEffect(() => {
     if (!bottomEnableInfiniteScroll || !hasMore) return;
@@ -162,11 +145,12 @@ export function StoreFrontProductGridSection({
 
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && typeof onLoadMore === 'function' && section?.id) {
+        if (entries[0].isIntersecting && !isTriggeringRef.current && typeof onLoadMore === 'function' && section?.id) {
+          isTriggeringRef.current = true;
           onLoadMore(section.id, baseLimit);
         }
       },
-      { rootMargin: '300px' }
+      { rootMargin: '250px' }
     );
 
     observer.observe(sentinel);
