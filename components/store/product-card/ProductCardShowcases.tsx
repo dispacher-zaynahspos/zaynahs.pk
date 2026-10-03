@@ -132,7 +132,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
       <Link
         href={productUrl}
         onClick={handleClick}
-        prefetch={true}
+        prefetch={false}
         className="absolute inset-0 z-[1]"
         aria-label={`View ${product.name}`}
         tabIndex={-1}

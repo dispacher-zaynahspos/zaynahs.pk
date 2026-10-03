@@ -159,7 +159,7 @@ export default function ProductDetailModals({
           onClick={() => setShowSizeGuide(false)}
         >
           <div
-            className="relative w-full max-w-lg bg-[#FFFCF6] dark:bg-[#121220] border-2 border-amber-300/80 dark:border-amber-500/30 rounded-3xl p-3 sm:p-6 shadow-2xl text-gray-900 dark:text-white max-h-[92vh] overflow-y-auto overscroll-contain scale-up duration-200 select-none"
+            className="relative w-full max-w-lg sm:max-w-2xl md:max-w-3xl lg:max-w-4xl bg-[#FFFCF6] dark:bg-[#121220] border-2 border-amber-300/80 dark:border-amber-500/30 rounded-3xl p-3 sm:p-6 shadow-2xl text-gray-900 dark:text-white max-h-[92vh] overflow-y-auto overscroll-contain scale-up duration-200 select-none transition-all"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Top Close Button */}
@@ -232,26 +232,26 @@ export default function ProductDetailModals({
               const otherCols = columns.filter((c) => c !== sizeCol);
               const orderedCols = [sizeCol, ...otherCols];
               const totalCols = orderedCols.length;
-              // If columns <= 6, strictly fit to 1 single screen without scrolling
-              const isFitScreen = totalCols <= 6;
+              // On desktop/big screens the modal expands up to 4xl, so up to 10 columns fit in 1 single view
+              const isFitScreen = totalCols <= 10;
 
               return (
                 <div className="rounded-2xl border-2 border-amber-300 dark:border-amber-500/40 overflow-hidden bg-white dark:bg-[#16162a] shadow-sm">
                   <div className={`w-full ${isFitScreen ? 'overflow-hidden' : 'overflow-x-auto scrollbar-thin'}`}>
-                    <table className={`w-full text-center border-collapse ${isFitScreen ? 'table-fixed' : 'min-w-[480px]'}`}>
+                    <table className={`w-full text-center border-collapse ${isFitScreen ? 'table-fixed' : 'min-w-[540px]'}`}>
                       <thead>
                         <tr className="bg-amber-400 dark:bg-amber-500 text-slate-900 border-b-2 border-amber-300 dark:border-amber-500/40">
                           {orderedCols.map((colName, cIdx) => {
                             const isFirst = cIdx === 0;
                             const colWidthStyle = isFitScreen && isFirst
-                              ? { width: totalCols >= 5 ? '26%' : '28%' }
+                              ? { width: totalCols >= 7 ? '18%' : totalCols >= 5 ? '22%' : '26%' }
                               : undefined;
 
                             return (
                               <th
                                 key={colName}
                                 style={colWidthStyle}
-                                className={`py-2 sm:py-2.5 px-0.5 sm:px-2 font-black uppercase text-[9.5px] sm:text-xs leading-[1.15] tracking-tight border-r border-amber-300/80 dark:border-amber-600/40 last:border-r-0 break-words hyphens-auto text-center ${
+                                className={`py-2 sm:py-3 px-0.5 sm:px-2 font-black uppercase text-[9px] sm:text-xs leading-[1.15] tracking-tight border-r border-amber-300/80 dark:border-amber-600/40 last:border-r-0 break-words hyphens-auto text-center ${
                                   !isFitScreen && isFirst
                                     ? 'sticky left-0 bg-amber-400 dark:bg-amber-500 z-20 shadow-[2px_0_4px_-1px_rgba(0,0,0,0.06)]'
                                     : ''
