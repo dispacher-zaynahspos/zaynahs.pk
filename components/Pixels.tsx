@@ -21,11 +21,16 @@ export default async function Pixels() {
               s.parentNode.insertBefore(t,s)}(window, document,'script',
               'https://connect.facebook.net/en_US/fbevents.js');
               window._metaPixelInitializedIds = window._metaPixelInitializedIds || {};
-              if (!window._metaPixelInitializedIds['${settings.meta_pixel_id}']) {
-                window._metaPixelInitializedIds['${settings.meta_pixel_id}'] = true;
+              var pid = '${settings.meta_pixel_id}';
+              if (!window._metaPixelInitializedIds[pid]) {
+                window._metaPixelInitializedIds[pid] = true;
                 try {
-                  if (!window.fbq?.instance?.pixelsByID?.['${settings.meta_pixel_id}']) {
-                    fbq('init', '${settings.meta_pixel_id}');
+                  var isQueued = Array.isArray(window.fbq?.queue) && window.fbq.queue.some(function(q) {
+                    return q && q[0] === 'init' && q[1] === pid;
+                  });
+                  var isLoaded = Boolean(window.fbq?.instance?.pixelsByID?.[pid]);
+                  if (!isQueued && !isLoaded) {
+                    fbq('init', pid);
                     fbq('track', 'PageView');
                   }
                 } catch (e) {
@@ -34,15 +39,11 @@ export default async function Pixels() {
               }
             `}
           </Script>
-          <noscript>
-            <img
-              height="1"
-              width="1"
-              style={{ display: 'none' }}
-              src={`https://www.facebook.com/tr?id=${settings.meta_pixel_id}&ev=PageView&noscript=1`}
-              alt=""
-            />
-          </noscript>
+          <noscript
+            dangerouslySetInnerHTML={{
+              __html: `<img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=${settings.meta_pixel_id}&ev=PageView&noscript=1" alt="" />`,
+            }}
+          />
         </>
       )}
 

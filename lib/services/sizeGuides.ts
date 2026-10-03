@@ -21,7 +21,7 @@ interface SizeGuideRow {
   deleted_at?: string | null;
 }
 
-export function parseSizeGuideChartData(chartData: any): { rows: Array<Record<string, string>>; unit: string } {
+function parseSizeGuideChartData(chartData: any): { rows: Array<Record<string, string>>; unit: string } {
   if (!chartData) return { rows: [], unit: 'INCHES' };
   if (Array.isArray(chartData)) {
     return { rows: chartData, unit: 'INCHES' };
