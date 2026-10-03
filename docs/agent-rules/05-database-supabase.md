@@ -173,4 +173,9 @@ Jab bhi migration create ho, feature add/remove ho, ya env/trigger change ho —
 
 **Guard commands:** `npm run check:setup` (sab sync-checks), `npm run check:schema` (sirf migrations↔master). CI/agent: in dono me se koi red = kaam adhoora. `clone-setup.mjs` fresh clone par master schema hi apply karta hai, isliye master ka 100% complete + in-sync hona hi "1-time 100% clone" ki guarantee hai.
 
+**One-Command Clone Parity (Universal Guarantee):**
+- Har nayi UI capability, settings option, modal enhancement, ya unit customization (e.g. Size Charts with unit selection, pixel integrations, mobile alignment) **hamesha dynamic & multi-brand compliant** honi chahiye.
+- Koi bhi feature kisi ek store ke liye hardcode NA ho; brand logo, name, tagline, aur units dynamic context (`getSettings`, `getDomainBrand`) se aayein.
+- Jab bhi naya clone `npm run clone:setup -- --store=<store> --deploy --yes` se bane, usko tamam latest features, table alignments, custom measurement units, aur bugfixes **day-1 out-of-the-box (0 manual effort)** milenge.
+
 
