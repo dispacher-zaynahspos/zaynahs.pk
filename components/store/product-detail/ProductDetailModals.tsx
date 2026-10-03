@@ -198,16 +198,16 @@ export default function ProductDetailModals({
               </p>
             </div>
 
-            {/* 2. Banner Header — "SIZE CHART" / Guide Name + "MEASUREMENTS IN {UNIT}" */}
-            <div className="my-1.5 sm:my-2.5 flex flex-col md:flex-row items-center justify-center gap-1.5 sm:gap-2.5 text-center">
-              <div className="relative inline-flex items-center justify-center px-4 sm:px-6 py-1 sm:py-1.5 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 dark:from-amber-500 dark:to-amber-600 shadow-xs border border-amber-400/80">
-                <h3 className="text-xs sm:text-sm md:text-base font-black uppercase tracking-wider text-slate-900 drop-shadow-xs">
+            {/* 2. Banner Header — "SIZE CHART" / Guide Name + "MEASUREMENTS IN {UNIT}" Centered Directly Underneath Like Image 2 */}
+            <div className="my-2 sm:my-3 flex flex-col items-center justify-center text-center">
+              <div className="relative inline-flex items-center justify-center px-5 sm:px-8 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 dark:from-amber-500 dark:to-amber-600 shadow-sm border border-amber-400/80">
+                <h3 className="text-xs sm:text-base md:text-lg font-black uppercase tracking-wider text-slate-900 drop-shadow-xs">
                   {sizeGuide.name?.toUpperCase().includes('SIZE')
                     ? sizeGuide.name
                     : `${sizeGuide.name || 'PRODUCT'} - SIZE CHART`}
                 </h3>
               </div>
-              <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#1b2a47] dark:bg-slate-800 text-white text-[9px] sm:text-[10px] font-extrabold uppercase tracking-widest shadow-xs">
+              <div className="mt-1.5 inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[#1b2a47] dark:bg-slate-800 text-white text-[9.5px] sm:text-[11px] font-extrabold uppercase tracking-widest shadow-xs">
                 <span>📏</span> MEASUREMENTS IN {measurementUnit}
               </div>
             </div>
@@ -248,7 +248,7 @@ export default function ProductDetailModals({
                             <th
                               key={colName}
                               style={{ width: `${isFirst ? sizeColPct : otherColPct}%` }}
-                              className="py-1.5 sm:py-2.5 px-0.5 font-black uppercase text-[8px] sm:text-[10px] md:text-xs leading-[1.05] sm:leading-[1.15] tracking-tighter border-r border-amber-300/80 dark:border-amber-600/40 last:border-r-0 break-words hyphens-auto text-center"
+                              className="py-1.5 sm:py-2.5 px-0.5 font-black uppercase text-[8.5px] sm:text-[10px] md:text-xs leading-[1.05] sm:leading-[1.15] tracking-tighter border-r border-amber-300/80 dark:border-amber-600/40 last:border-r-0 break-words hyphens-auto text-center"
                             >
                               {colName}
                             </th>
