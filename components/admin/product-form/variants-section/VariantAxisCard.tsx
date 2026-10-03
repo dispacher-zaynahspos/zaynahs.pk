@@ -382,14 +382,23 @@ export const VariantAxisCard: React.FC<VariantAxisCardProps> = ({
                           <div className="flex items-center gap-2 truncate min-w-0 flex-1">
                             {val.imageUrl ? (
                               <>
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img
-                                  src={val.imageUrl}
-                                  alt={val.label}
-                                  className="h-6 w-6 rounded object-cover border border-gray-200 dark:border-gray-700 flex-shrink-0"
-                                />
-                                <span className="truncate text-gray-800 dark:text-gray-200">
-                                  {images?.find(img => img.url === val.imageUrl)?.alt || val.imageUrl.split('/').pop() || 'Linked Image'}
+                                <div className="relative h-6 w-6 rounded overflow-hidden border border-gray-200 dark:border-gray-700 flex-shrink-0">
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img
+                                    src={val.imageUrl}
+                                    alt={val.label}
+                                    className="h-full w-full object-cover"
+                                  />
+                                  {images && images.findIndex(img => img.url === val.imageUrl) !== -1 && (
+                                    <span className="absolute bottom-0 right-0 bg-black/80 text-white text-[8px] font-black px-0.5 rounded-tl leading-none">
+                                      {images.findIndex(img => img.url === val.imageUrl) + 1}
+                                    </span>
+                                  )}
+                                </div>
+                                <span className="truncate text-gray-800 dark:text-gray-200 font-bold">
+                                  {images && images.findIndex(img => img.url === val.imageUrl) !== -1
+                                    ? `Image ${images.findIndex(img => img.url === val.imageUrl) + 1}`
+                                    : (val.imageUrl.split('/').pop() || 'Linked Image')}
                                 </span>
                               </>
                             ) : (
@@ -441,7 +450,6 @@ export const VariantAxisCard: React.FC<VariantAxisCardProps> = ({
 
                               {images?.map((img, imgIdx) => {
                                 const isSelected = val.imageUrl === img.url;
-                                const filename = img.alt || img.url.split('/').pop() || `Image ${imgIdx + 1}`;
                                 return (
                                   <button
                                     key={imgIdx}
@@ -467,13 +475,21 @@ export const VariantAxisCard: React.FC<VariantAxisCardProps> = ({
                                         : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#0f0f1b]'
                                       }`}
                                   >
-                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img
-                                      src={img.url}
-                                      alt={filename}
-                                      className="h-8 w-8 rounded object-cover border border-gray-200 dark:border-gray-800 flex-shrink-0"
-                                    />
-                                    <span className="truncate flex-1">{filename}</span>
+                                    <div className="relative h-8 w-8 rounded overflow-hidden border border-gray-200 dark:border-gray-800 flex-shrink-0">
+                                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                                      <img
+                                        src={img.url}
+                                        alt={`Image ${imgIdx + 1}`}
+                                        className="h-full w-full object-cover"
+                                      />
+                                      <span className="absolute bottom-0 right-0 bg-black/80 text-white text-[8px] font-black px-1 rounded-tl leading-tight">
+                                        {imgIdx + 1}
+                                      </span>
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <span className="block font-bold text-gray-900 dark:text-white truncate">Image {imgIdx + 1}</span>
+                                      <span className="block text-[10px] text-gray-400 font-normal truncate">{img.alt || img.url.split('/').pop()}</span>
+                                    </div>
                                   </button>
                                 );
                               })}
