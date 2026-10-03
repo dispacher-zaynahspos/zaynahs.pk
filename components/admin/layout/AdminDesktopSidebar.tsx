@@ -177,7 +177,7 @@ export function AdminDesktopSidebar({
         <nav
           ref={navRef}
           aria-label="Admin Navigation Links"
-          className={`h-full overflow-y-auto overscroll-contain scrollbar-none [&::-webkit-scrollbar]:hidden [scrollbar-width:none] [-ms-overflow-style:none] ${
+          className={`h-full overflow-y-auto scrollbar-none [&::-webkit-scrollbar]:hidden [scrollbar-width:none] [-ms-overflow-style:none] ${
             isCollapsed ? 'px-2 py-2 space-y-2' : 'px-3 py-2 space-y-4'
           }`}
         >

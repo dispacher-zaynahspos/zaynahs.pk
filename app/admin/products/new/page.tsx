@@ -32,20 +32,27 @@ export default async function NewProductPage({ searchParams }: PageProps) {
     const original = await getProductById(duplicate);
     if (original) {
       const { id, created_at, updated_at, meta_sync_status, meta_sync_error, meta_last_synced_at, ...rest } = original;
-      const baseSlug = slugify(original.slug || original.name);
+      const cleanSlug = (original.slug || original.name)
+        .replace(/(-copy(-\d+)?)+$/gi, '')
+        .trim();
+      const baseSlug = slugify(cleanSlug);
+      const cleanName = original.name
+        .replace(/(\s*\(Copy\))+$/gi, '')
+        .trim();
+      const shortSuffix = Date.now().toString().slice(-4);
       initialProduct = {
         ...rest,
         id: '',
-        slug: `${baseSlug}-copy-${Date.now()}`,
-        sku: original.sku ? `${original.sku}-copy` : '',
-        name: `${original.name} (Copy)`,
+        slug: `${baseSlug}-copy-${shortSuffix}`,
+        sku: original.sku ? `${original.sku.replace(/(-copy)+$/gi, '')}-copy` : '',
+        name: `${cleanName} (Copy)`,
         created_at: '',
         updated_at: '',
         meta_sync_status: 'pending' as const,
         meta_sync_error: undefined,
         meta_last_synced_at: undefined,
       } as Product;
-      pageTitle = `Duplicate: ${original.name}`;
+      pageTitle = `Duplicate: ${cleanName}`;
       pageDesc = 'Review and save the duplicated product';
     }
   }

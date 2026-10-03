@@ -83,78 +83,75 @@ export default function ThemeStyleRegistry({ settings }: ThemeStyleRegistryProps
       font-size: ${typography.fontSizeBase || 16}px !important;
     }
 
-    body {
+    body:not(.admin-shell) {
       font-family: var(--font-body) !important;
       background-color: var(--color-background) !important;
       color: var(--color-text-primary) !important;
     }
 
-    /* Class-based page backgrounds & text overrides */
-    html, body, 
-    .bg-gray-50, .dark .bg-gray-50, 
-    .bg-gray-50\\/50, .dark .bg-gray-50\\/50, 
-    [class*="bg-gray-50"] {
+    /* Class-based page backgrounds & text overrides (Storefront only) */
+    body:not(.admin-shell) .bg-gray-50, body:not(.admin-shell).dark .bg-gray-50, 
+    body:not(.admin-shell) .bg-gray-50\/50, body:not(.admin-shell).dark .bg-gray-50\/50, 
+    body:not(.admin-shell) [class*="bg-gray-50"] {
       background-color: var(--color-background) !important;
       color: var(--color-text-primary) !important;
     }
 
-    /* Surface, white backgrounds & card overrides */
-    .bg-white, .dark .bg-white, 
-    .bg-surface, .bg-surface-2, .bg-surface-3, 
-    [class*="bg-surface"] {
+    /* Surface, white backgrounds & card overrides (Storefront only) */
+    body:not(.admin-shell) .bg-white, body:not(.admin-shell).dark .bg-white, 
+    body:not(.admin-shell) .bg-surface, body:not(.admin-shell) .bg-surface-2, body:not(.admin-shell) .bg-surface-3, 
+    body:not(.admin-shell) [class*="bg-surface"] {
       background-color: var(--color-surface) !important;
       color: var(--color-text-primary) !important;
     }
 
-    /* Remap hardcoded dark-theme hex colors to active theme variables */
-    /* These classes appear across all components as dark mode fallbacks */
-    [class*="bg-[#16162a]"],
-    .dark [class*="bg-[#16162a]"] {
+    /* Remap hardcoded dark-theme hex colors to active theme variables (Storefront only) */
+    body:not(.admin-shell) [class*="bg-[#16162a]"],
+    body:not(.admin-shell).dark [class*="bg-[#16162a]"] {
       background-color: var(--color-surface) !important;
     }
-    [class*="bg-[#0f0f1b]"],
-    .dark [class*="bg-[#0f0f1b]"] {
+    body:not(.admin-shell) [class*="bg-[#0f0f1b]"],
+    body:not(.admin-shell).dark [class*="bg-[#0f0f1b]"] {
       background-color: var(--color-background) !important;
     }
     /* bg-white/80 opacity variants → use surface with opacity */
-    [class^="bg-white/"]:not([class*="hover:"]), [class*=" bg-white/"]:not([class*="hover:"]) {
+    body:not(.admin-shell) [class^="bg-white/"]:not([class*="hover:"]), body:not(.admin-shell) [class*=" bg-white/"]:not([class*="hover:"]) {
       background-color: color-mix(in srgb, var(--color-surface) 80%, transparent) !important;
     }
     /* Navbar sticky bar: bg-white/80 dark:bg-[#0f0f1b]/85 */
-    [class^="bg-[#0f0f1b]/"]:not([class*="hover:"]), [class*=" bg-[#0f0f1b]/"]:not([class*="hover:"]) {
+    body:not(.admin-shell) [class^="bg-[#0f0f1b]/"]:not([class*="hover:"]), body:not(.admin-shell) [class*=" bg-[#0f0f1b]/"]:not([class*="hover:"]) {
       background-color: color-mix(in srgb, var(--color-background) 85%, transparent) !important;
     }
-    [class^="bg-[#16162a]/"]:not([class*="hover:"]), [class*=" bg-[#16162a]/"]:not([class*="hover:"]) {
+    body:not(.admin-shell) [class^="bg-[#16162a]/"]:not([class*="hover:"]), body:not(.admin-shell) [class*=" bg-[#16162a]/"]:not([class*="hover:"]) {
       background-color: color-mix(in srgb, var(--color-surface) 80%, transparent) !important;
     }
-    [class*="from-[#16162a]"] {
+    body:not(.admin-shell) [class*="from-[#16162a]"] {
       --tw-gradient-from: var(--color-surface) !important;
     }
-    [class*="from-[#0f0f1b]"] {
+    body:not(.admin-shell) [class*="from-[#0f0f1b]"] {
       --tw-gradient-from: var(--color-background) !important;
     }
     /* Explicit white text stays crisp white on dark containers and badges */
-    .text-white:not(body):not(html), [class~="text-white"]:not(body):not(html) {
+    body:not(.admin-shell) .text-white:not(body):not(html), body:not(.admin-shell) [class~="text-white"]:not(body):not(html) {
       color: #ffffff !important;
     }
 
-    /* Typography Overrides */
-    body, p, span, a, input, select, textarea, button, td, th, li, div, .font-body {
+    /* Typography Overrides (Storefront only) */
+    body:not(.admin-shell) :is(p, span, a, input, select, textarea, button, td, th, li, div, .font-body) {
       font-family: var(--font-body) !important;
     }
-    h1, h2, h3, h4, h5, h6, .font-heading, [class*="font-heading"] {
+    body:not(.admin-shell) :is(h1, h2, h3, h4, h5, h6, .font-heading, [class*="font-heading"]) {
       font-family: var(--font-heading) !important;
       color: var(--color-text-heading) !important;
     }
 
-    /* Elements corner-radius overrides */
-    button:not(.rounded-full):not(.swatch-btn), .btn, input, select, textarea, [role="button"]:not(.rounded-full):not(.swatch-btn), 
-    .rounded-xl, .rounded-lg, .rounded-2xl, .rounded-3xl, .rounded-md {
+    /* Elements corner-radius overrides (Storefront only - Admin is protected) */
+    body:not(.admin-shell) :is(button:not(.rounded-full):not(.swatch-btn), .btn, input:not([type="checkbox"]):not([type="radio"]), select, textarea, [role="button"]:not(.rounded-full):not(.swatch-btn), .rounded-xl, .rounded-lg, .rounded-2xl, .rounded-3xl, .rounded-md) {
       border-radius: var(--border-radius-btn) !important;
     }
 
-    /* Grid cards corner-radius overrides */
-    .card, [class*="rounded-2xl"], [class*="rounded-3xl"], [class*="rounded-xl"] {
+    /* Grid cards corner-radius overrides (Storefront only - Admin is protected) */
+    body:not(.admin-shell) :is(.card, [class*="rounded-2xl"], [class*="rounded-3xl"], [class*="rounded-xl"]) {
       border-radius: var(--border-radius-card) !important;
     }
 

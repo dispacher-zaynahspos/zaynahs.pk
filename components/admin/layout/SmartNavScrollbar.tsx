@@ -29,25 +29,30 @@ export function SmartNavScrollbar({
   const dragStartYRef = useRef(0);
   const dragStartScrollTopRef = useRef(0);
   const trackRef = useRef<HTMLDivElement>(null);
+  const rafRef = useRef<number | null>(null);
 
   const updateScroll = useCallback(() => {
-    const el = containerRef.current;
-    if (!el) return;
+    if (rafRef.current !== null) return;
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null;
+      const el = containerRef.current;
+      if (!el) return;
 
-    const scrollableDistance = el.scrollHeight - el.clientHeight;
-    if (scrollableDistance > 6) {
-      setCanScroll(true);
-      const progress = Math.max(0, Math.min(1, el.scrollTop / scrollableDistance));
-      setScrollProgress(progress);
-    } else {
-      setCanScroll(false);
-    }
+      const scrollableDistance = el.scrollHeight - el.clientHeight;
+      if (scrollableDistance > 6) {
+        setCanScroll(true);
+        const progress = Math.max(0, Math.min(1, el.scrollTop / scrollableDistance));
+        setScrollProgress(progress);
+      } else {
+        setCanScroll(false);
+      }
 
-    setIsScrolling(true);
-    if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
-    hideTimerRef.current = setTimeout(() => {
-      setIsScrolling(false);
-    }, 1400);
+      setIsScrolling(true);
+      if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+      hideTimerRef.current = setTimeout(() => {
+        setIsScrolling(false);
+      }, 1400);
+    });
   }, [containerRef]);
 
   useEffect(() => {
@@ -70,6 +75,7 @@ export function SmartNavScrollbar({
       window.removeEventListener('resize', updateScroll);
       if (resizeObserver) resizeObserver.disconnect();
       if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
     };
   }, [containerRef, updateScroll]);
 

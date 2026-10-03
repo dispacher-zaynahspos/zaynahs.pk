@@ -337,7 +337,6 @@ select.customizer-page-select option {
 .overflow-auto,
 .touch-scroll {
   -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
 }
 
 /* Modals and dialog overlays: hardware paint hint without trapping fixed descendants */
