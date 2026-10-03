@@ -155,11 +155,11 @@ export default function ProductDetailModals({
       {/* Sizing Guide Modal — Branded & Mobile-First High Converting Layout (Sample 2 Standard) */}
       {showSizeGuide && isFeatureEnabled(settings, 'size_guide') && sizeGuide && createPortal(
         <div
-          className="fixed inset-0 z-[150] flex items-center justify-center bg-black/65 backdrop-blur-xs p-3 sm:p-6 overscroll-contain animate-fade-in"
+          className="fixed inset-0 z-[150] flex items-center justify-center bg-black/65 backdrop-blur-xs p-2 sm:p-6 overscroll-contain animate-fade-in"
           onClick={() => setShowSizeGuide(false)}
         >
           <div
-            className="relative w-full max-w-lg bg-[#FFFCF6] dark:bg-[#121220] border-2 border-amber-300/80 dark:border-amber-500/30 rounded-3xl p-4 sm:p-6 shadow-2xl text-gray-900 dark:text-white max-h-[92vh] overflow-y-auto overscroll-contain scale-up duration-200 select-none"
+            className="relative w-full max-w-lg bg-[#FFFCF6] dark:bg-[#121220] border-2 border-amber-300/80 dark:border-amber-500/30 rounded-3xl p-3 sm:p-6 shadow-2xl text-gray-900 dark:text-white max-h-[92vh] overflow-y-auto overscroll-contain scale-up duration-200 select-none"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Top Close Button */}
@@ -224,32 +224,43 @@ export default function ProductDetailModals({
               </div>
             )}
 
-            {/* 3. The Size Chart Table — 1-by-1 Perfectly Aligned on ALL Mobiles & Desktops */}
+            {/* 3. The Size Chart Table — 1 Screen Perfectly Aligned (No Left/Right Scroll Required) */}
             {sizeGuide.chart_data && sizeGuide.chart_data.length > 0 && (() => {
               const columns = Object.keys(sizeGuide.chart_data[0]);
               // Place the size/age column first, then all measurement columns
               const sizeCol = columns.find((c) => /^(size|age|years|year|tag)$/i.test(c.trim())) || columns[0];
               const otherCols = columns.filter((c) => c !== sizeCol);
               const orderedCols = [sizeCol, ...otherCols];
+              const totalCols = orderedCols.length;
+              // If columns <= 6, strictly fit to 1 single screen without scrolling
+              const isFitScreen = totalCols <= 6;
 
               return (
                 <div className="rounded-2xl border-2 border-amber-300 dark:border-amber-500/40 overflow-hidden bg-white dark:bg-[#16162a] shadow-sm">
-                  <div className="overflow-x-auto scrollbar-thin">
-                    <table className="w-full text-center border-collapse text-xs sm:text-sm min-w-full">
+                  <div className={`w-full ${isFitScreen ? 'overflow-hidden' : 'overflow-x-auto scrollbar-thin'}`}>
+                    <table className={`w-full text-center border-collapse ${isFitScreen ? 'table-fixed' : 'min-w-[480px]'}`}>
                       <thead>
                         <tr className="bg-amber-400 dark:bg-amber-500 text-slate-900 border-b-2 border-amber-300 dark:border-amber-500/40">
-                          {orderedCols.map((colName, cIdx) => (
-                            <th
-                              key={colName}
-                              className={`py-2.5 sm:py-3 px-2.5 sm:px-4 font-black uppercase text-[11px] sm:text-xs tracking-wider whitespace-nowrap border-r border-amber-300/80 dark:border-amber-600/40 last:border-r-0 ${
-                                cIdx === 0
-                                  ? 'sticky left-0 bg-amber-400 dark:bg-amber-500 z-20 text-left sm:text-center shadow-[2px_0_4px_-1px_rgba(0,0,0,0.06)]'
-                                  : ''
-                              }`}
-                            >
-                              {colName}
-                            </th>
-                          ))}
+                          {orderedCols.map((colName, cIdx) => {
+                            const isFirst = cIdx === 0;
+                            const colWidthStyle = isFitScreen && isFirst
+                              ? { width: totalCols >= 5 ? '26%' : '28%' }
+                              : undefined;
+
+                            return (
+                              <th
+                                key={colName}
+                                style={colWidthStyle}
+                                className={`py-2 sm:py-2.5 px-0.5 sm:px-2 font-black uppercase text-[9.5px] sm:text-xs leading-[1.15] tracking-tight border-r border-amber-300/80 dark:border-amber-600/40 last:border-r-0 break-words hyphens-auto text-center ${
+                                  !isFitScreen && isFirst
+                                    ? 'sticky left-0 bg-amber-400 dark:bg-amber-500 z-20 shadow-[2px_0_4px_-1px_rgba(0,0,0,0.06)]'
+                                    : ''
+                                }`}
+                              >
+                                {colName}
+                              </th>
+                            );
+                          })}
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-amber-200/70 dark:divide-amber-500/20">
@@ -270,10 +281,12 @@ export default function ProductDetailModals({
                                 return (
                                   <td
                                     key={colName}
-                                    className={`py-2.5 sm:py-3 px-2 sm:px-3 text-xs sm:text-sm whitespace-nowrap border-r border-dashed border-amber-200/80 dark:border-amber-500/20 last:border-r-0 ${
+                                    className={`py-2 sm:py-2.5 px-0.5 sm:px-1.5 text-[11px] sm:text-xs border-r border-dashed border-amber-200/80 dark:border-amber-500/20 last:border-r-0 ${
                                       isFirstCol
-                                        ? `sticky left-0 ${rowBgClass} z-10 font-bold text-slate-900 dark:text-white text-left sm:text-center px-3 border-r-2 border-amber-300 dark:border-amber-500/40 shadow-[2px_0_4px_-1px_rgba(0,0,0,0.06)]`
-                                        : 'font-semibold text-slate-700 dark:text-slate-200 text-center'
+                                        ? `font-extrabold text-slate-900 dark:text-white text-center break-words ${
+                                            !isFitScreen ? `sticky left-0 ${rowBgClass} z-10 border-r-2 border-amber-300 shadow-[2px_0_4px_-1px_rgba(0,0,0,0.06)]` : ''
+                                          }`
+                                        : 'font-semibold text-slate-700 dark:text-slate-200 text-center break-words'
                                     }`}
                                   >
                                     {val}
