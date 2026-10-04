@@ -6,6 +6,7 @@ import { Check, Play, Eye, Copy, Edit, Trash2, CheckCircle2, Loader2, Zap, X, Sp
 
 interface MediaCardProps {
   item: MediaItem;
+  index?: number;
   isSelected: boolean;
   onToggle: () => void;
   mode: 'library' | 'selector';
@@ -26,6 +27,7 @@ interface MediaCardProps {
 
 export function MediaCard({
   item,
+  index,
   isSelected,
   onToggle,
   mode,
@@ -43,6 +45,7 @@ export function MediaCard({
   showBadge = true,
   showActions = true,
 }: MediaCardProps) {
+  const [imageLoaded, setImageLoaded] = React.useState(false);
   const isGenerating = generatingId === item.id;
   const isVideo = item.mime_type?.startsWith('video/') || item.file_url.match(/\.(mp4|mov|webm)$/i);
   const isBulkDone = bulkCompletedIds.includes(item.id);
@@ -58,7 +61,7 @@ export function MediaCard({
           onToggle();
         }
       }}
-      className={`group relative aspect-square rounded-2xl overflow-hidden border-2 cursor-pointer flex flex-col justify-end transition-all ${
+      className={`group relative aspect-square rounded-2xl overflow-hidden border-2 bg-gray-50 dark:bg-gray-800/50 cursor-pointer flex flex-col justify-end transition-all ${
         isSelected
           ? 'border-blue-600 shadow-md ring-2 ring-blue-500/20'
           : 'border-gray-100 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700'
@@ -103,8 +106,23 @@ export function MediaCard({
           </div>
         </>
       ) : (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={item.file_url} alt={item.alt_text} className="absolute inset-0 w-full h-full object-cover z-0" />
+        <>
+          {!imageLoaded && (
+            <div className="absolute inset-0 bg-gray-100 dark:bg-gray-800/60 animate-pulse pointer-events-none" />
+          )}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={item.file_url}
+            alt={item.alt_text || item.title || item.original_filename || 'Media'}
+            loading={index !== undefined && index < 8 ? 'eager' : 'lazy'}
+            fetchPriority={index !== undefined && index < 4 ? 'high' : 'auto'}
+            decoding="async"
+            onLoad={() => setImageLoaded(true)}
+            className={`absolute inset-0 w-full h-full object-cover z-0 transition-opacity duration-200 ${
+              imageLoaded ? 'opacity-100' : 'opacity-0'
+            }`}
+          />
+        </>
       )}
 
       {/* Tagged / Pending Status Badge */}

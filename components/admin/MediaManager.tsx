@@ -249,10 +249,11 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-              {paginatedMedia.map((item: MediaItem) => (
+              {paginatedMedia.map((item: MediaItem, idx: number) => (
                 <MediaCard
                   key={item.id}
                   item={item}
+                  index={idx}
                   isSelected={mode === 'selector' ? selectedLibraryUrls.has(item.file_url) : selectedIds.includes(item.id)}
                   onToggle={() => toggleSelect(item)}
                   mode={mode}

@@ -116,12 +116,14 @@ export function useMediaManagerData({ mode, multiple, onSelect, onClose }: UseMe
       if (error) throw error;
       setMedia(data || []);
 
-      const { data: deletedData } = await supabase
-        .from('media_library')
-        .select('file_size')
-        .not('deleted_at', 'is', null);
-      const totalDeletedBytes = (deletedData || []).reduce((sum, item) => sum + (item.file_size || 0), 0);
-      setDeletedBytes(totalDeletedBytes);
+      if (mode === 'library') {
+        const { data: deletedData } = await supabase
+          .from('media_library')
+          .select('file_size')
+          .not('deleted_at', 'is', null);
+        const totalDeletedBytes = (deletedData || []).reduce((sum, item) => sum + (item.file_size || 0), 0);
+        setDeletedBytes(totalDeletedBytes);
+      }
     } catch (err: any) {
       console.error('[Media Manager] Load error:', err);
       toast.error('Failed to load media files');
@@ -134,8 +136,8 @@ export function useMediaManagerData({ mode, multiple, onSelect, onClose }: UseMe
 
   useEffect(() => {
     fetchMedia();
-    mediaUsage.loadUsageCrossReferences();
     if (mode === 'library') {
+      mediaUsage.loadUsageCrossReferences();
       mediaAi.fetchAiSettings();
     }
   }, [search, aiFilter, sortBy, typeFilter]);

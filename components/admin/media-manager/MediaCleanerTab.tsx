@@ -179,10 +179,11 @@ export function MediaCleanerTab({
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-              {cleanerUnused.map(item => (
+              {cleanerUnused.map((item, idx) => (
                 <MediaCard
                   key={item.id}
                   item={item}
+                  index={idx}
                   isSelected={cleanerUnusedSelected.has(item.id)}
                   onToggle={() => toggleCleanerUnused(item)}
                   mode="library"
@@ -248,10 +249,11 @@ export function MediaCleanerTab({
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-              {cleanerUsed.map(item => (
+              {cleanerUsed.map((item, idx) => (
                 <MediaCard
                   key={item.id}
                   item={item}
+                  index={idx}
                   isSelected={cleanerUsedSelected.has(item.id)}
                   onToggle={() => toggleCleanerUsed(item)}
                   mode="library"
