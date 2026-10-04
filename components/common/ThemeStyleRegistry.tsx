@@ -58,7 +58,7 @@ export default function ThemeStyleRegistry({ settings }: ThemeStyleRegistryProps
       --font-size-base: ${typography.fontSizeBase || 16}px !important;
 
       --border-radius-btn: ${buttons.borderRadius ?? 12}px !important;
-      --border-radius-card: ${cards.borderRadius ?? 16}px !important;
+      --border-radius-card: ${Math.min(cards.borderRadius ?? 16, 28)}px !important;
 
       --btn-primary-bg: ${buttons.primaryBg || colors.primary} !important;
       --btn-primary-text: ${buttons.primaryText || '#ffffff'} !important;
@@ -74,8 +74,8 @@ export default function ThemeStyleRegistry({ settings }: ThemeStyleRegistryProps
       --text-muted: ${colors.textSecondary} !important;
       --border: ${colors.border} !important;
       --radius-btn: ${buttons.borderRadius ?? 12}px !important;
-      --radius-card: ${cards.borderRadius ?? 16}px !important;
-      --radius-modal: ${cards.borderRadius ?? 16}px !important;
+      --radius-card: ${Math.min(cards.borderRadius ?? 16, 28)}px !important;
+      --radius-modal: ${Math.min(cards.borderRadius ?? 16, 24)}px !important;
     }
 
     /* Apply base font size & body text styles */
@@ -145,13 +145,13 @@ export default function ThemeStyleRegistry({ settings }: ThemeStyleRegistryProps
       color: var(--color-text-heading) !important;
     }
 
-    /* Elements corner-radius overrides (Storefront only - Admin is protected) */
-    body:not(.admin-shell) :is(button:not(.rounded-full):not(.swatch-btn), .btn, input:not([type="checkbox"]):not([type="radio"]), select, textarea, [role="button"]:not(.rounded-full):not(.swatch-btn), .rounded-xl, .rounded-lg, .rounded-2xl, .rounded-3xl, .rounded-md) {
+    /* Button and CTA corner-radius overrides (Storefront only - Admin is protected) */
+    body:not(.admin-shell) :is(button:not(.rounded-full):not(.swatch-btn):not([class*="rounded-full"]), .btn, [role="button"]:not(.rounded-full):not(.swatch-btn):not([class*="rounded-full"]), .btn-primary, [class*="btn-primary"], [data-theme-btn]) {
       border-radius: var(--border-radius-btn) !important;
     }
 
-    /* Grid cards corner-radius overrides (Storefront only - Admin is protected) */
-    body:not(.admin-shell) :is(.card, [class*="rounded-2xl"], [class*="rounded-3xl"], [class*="rounded-xl"]) {
+    /* Product cards & explicit theme card corner-radius overrides (Storefront only - Admin is protected) */
+    body:not(.admin-shell) :is(.product-card, [data-product-card], article.product-card, .theme-card) {
       border-radius: var(--border-radius-card) !important;
     }
 
