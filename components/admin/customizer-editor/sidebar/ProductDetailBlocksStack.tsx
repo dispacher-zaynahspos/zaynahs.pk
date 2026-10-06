@@ -3,7 +3,7 @@
 import React from 'react';
 import { StoreSettings } from '@/lib/types';
 import { isFeatureEnabled } from '@/lib/features/premium';
-import { GripVertical, Eye, EyeOff, ChevronUp, ChevronDown } from '@/components/common/Icons';
+import { Eye, EyeOff, ChevronUp, ChevronDown } from '@/components/common/Icons';
 import { toast } from 'sonner';
 
 interface ProductDetailBlocksStackProps {
@@ -118,7 +118,6 @@ export default function ProductDetailBlocksStack({
                 }`}
               >
                 <div className="flex items-center gap-2 min-w-0 flex-1">
-                  <GripVertical className="h-4 w-4 text-gray-400 flex-shrink-0" />
                   {(() => {
                     const isFeatureDisabled =
                       blockId === 'social_feed' && !isFeatureEnabled(storeSettings, 'social_feeds');

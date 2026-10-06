@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  GripVertical, Eye, EyeOff, ChevronUp, ChevronDown,
+  Eye, EyeOff, ChevronUp, ChevronDown,
   Trash2, Edit2, Check, MoreVertical,
 } from '@/components/common/Icons';
 
@@ -75,9 +75,6 @@ export default function SectionStackRow({
           : 'border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] hover:border-gray-300 dark:hover:border-gray-700'
       }`}
     >
-      {/* Drag handle (primary reorder affordance) */}
-      <GripVertical className="h-4 w-4 shrink-0 text-gray-400 cursor-grab" />
-
       {/* Title block */}
       <div className="min-w-0 flex-1">
         {renaming ? (
@@ -125,6 +122,22 @@ export default function SectionStackRow({
         ) : (
           <>
             <button
+              onClick={onMoveUp}
+              disabled={isFirst}
+              className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+              title="Move up"
+            >
+              <ChevronUp className="h-4 w-4" />
+            </button>
+            <button
+              onClick={onMoveDown}
+              disabled={isLast}
+              className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+              title="Move down"
+            >
+              <ChevronDown className="h-4 w-4" />
+            </button>
+            <button
               onClick={onToggleVisible}
               className={`flex h-7 w-7 items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 cursor-pointer ${
                 isVisible ? 'text-[#e94560]' : 'text-gray-400'
@@ -153,8 +166,6 @@ export default function SectionStackRow({
                   className="absolute right-0 top-full mt-1 z-50 w-40 py-1 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1a1a30] shadow-xl overflow-hidden"
                 >
                   {menuItem('Rename', <Edit2 className="h-3.5 w-3.5" />, onStartRename)}
-                  {menuItem('Move up', <ChevronUp className="h-3.5 w-3.5" />, onMoveUp, { disabled: isFirst })}
-                  {menuItem('Move down', <ChevronDown className="h-3.5 w-3.5" />, onMoveDown, { disabled: isLast })}
                   <div className="my-1 border-t border-gray-100 dark:border-white/10" />
                   {menuItem('Delete', <Trash2 className="h-3.5 w-3.5" />, onDelete, { danger: true })}
                 </div>

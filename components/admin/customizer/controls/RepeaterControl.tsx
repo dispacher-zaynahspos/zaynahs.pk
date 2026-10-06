@@ -5,7 +5,7 @@
  * Generic over item shape; parent supplies renderItem + a factory for new items.
  */
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp, Copy, Trash2, Plus, GripVertical } from '@/components/common/Icons';
+import { ChevronDown, ChevronUp, Copy, Trash2, Plus } from '@/components/common/Icons';
 import { moveItemInArray } from '@/lib/utils/arrayMove';
 
 export interface RepeaterControlProps<T> {
@@ -65,7 +65,6 @@ export function RepeaterControl<T>({
           return (
             <div key={i} className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
               <div className="flex items-center gap-1 px-2 py-1.5 bg-gray-50 dark:bg-gray-800/40">
-                <GripVertical className="w-3.5 h-3.5 text-gray-300 shrink-0" />
                 <button
                   type="button"
                   onClick={() => setOpenIndex(open ? null : i)}

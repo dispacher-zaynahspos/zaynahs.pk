@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { HomepageSection, Review } from '@/lib/types';
-import { ChevronUp, ChevronDown, GripVertical, Trash2, Search, X } from '@/components/common/Icons';
+import { ChevronUp, ChevronDown, Trash2, Search, X } from '@/components/common/Icons';
 import { AccordionGroup } from '@/components/admin/customizer/controls';
 
 interface RecentReviewsSettingsProps {
@@ -197,7 +197,6 @@ export default function RecentReviewsSettings({
                   onDragEnd={handleDragEnd}
                 >
                   <div className="text-xs font-semibold text-slate-400 w-5 text-center shrink-0">#{idx + 1}</div>
-                  <GripVertical className="h-3.5 w-3.5 text-gray-400 cursor-grab shrink-0" />
                   <div className="flex-1 min-w-0">
                     <div className="text-[11px] font-bold text-gray-900 dark:text-white truncate">
                       {r.customer_name}

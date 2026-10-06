@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { Product } from '@/lib/types';
-import { ChevronUp, ChevronDown, GripVertical, Trash2, Search, X } from '@/components/common/Icons';
+import { ChevronUp, ChevronDown, Trash2, Search, X } from '@/components/common/Icons';
 import Image from 'next/image';
 
 interface ManualProductPickerProps {
@@ -212,7 +212,6 @@ export default function ManualProductPicker({
                   <ChevronUp className="h-2.5 w-2.5" />
                 </button>
                 <span className="p-0.5 text-gray-400 cursor-grab active:cursor-grabbing touch-none select-none">
-                  <GripVertical className="h-3 w-3" />
                 </span>
                 <button
                   type="button"
