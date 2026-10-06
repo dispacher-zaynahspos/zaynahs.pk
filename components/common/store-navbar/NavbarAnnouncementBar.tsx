@@ -92,7 +92,7 @@ export default function NavbarAnnouncementBar({
               {announcementLines.map((line, idx) => (
                 <div
                   key={idx}
-                  className="flex-[0_0_100%] min-w-0 text-center font-black tracking-wider truncate px-1 text-[10px] sm:text-[11px] uppercase min-h-[16px] flex items-center justify-center"
+                  className="flex-[0_0_100%] min-w-0 text-center font-black tracking-wider px-1 text-[10px] sm:text-[11px] uppercase min-h-[16px] flex items-center justify-center leading-tight break-words whitespace-normal line-clamp-2 sm:line-clamp-1 sm:truncate"
                 >
                   {line}
                 </div>

@@ -36,6 +36,7 @@ const server = http.createServer(async (req, res) => {
         "content-type": "application/json",
         "x-api-key": KEY,
         "anthropic-version": "2023-06-01",
+        ...(req.headers["anthropic-beta"] ? { "anthropic-beta": req.headers["anthropic-beta"] } : {}),
       },
       body: upstreamBody,
     });

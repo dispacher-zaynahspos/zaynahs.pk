@@ -205,6 +205,37 @@ export default function GlobalSettings({
                 />
               </div>
             </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 block uppercase tracking-wider">Header Border Color</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  value={settings.header_border_color || '#e5e7eb'}
+                  onChange={(e) => onUpdateSettings({ header_border_color: e.target.value })}
+                  className="w-8 h-8 rounded-lg border border-gray-200 cursor-pointer overflow-hidden p-0 bg-transparent shrink-0"
+                />
+                <input
+                  type="text"
+                  value={settings.header_border_color || ''}
+                  onChange={(e) => onUpdateSettings({ header_border_color: e.target.value })}
+                  placeholder="#e5e7eb"
+                  className="w-full px-2.5 py-1.5 bg-white dark:bg-[#0f0f1b] border border-gray-200 dark:border-gray-800 rounded-lg text-xs font-mono font-semibold"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5 sm:col-span-2">
+              <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 block uppercase tracking-wider">Popular Searches (comma-separated)</label>
+              <input
+                type="text"
+                value={settings.popular_searches || ''}
+                onChange={(e) => onUpdateSettings({ popular_searches: e.target.value })}
+                placeholder="e.g. Co-ord Sets, Graphic Tee, Kids"
+                className="w-full px-2.5 py-1.5 bg-white dark:bg-[#0f0f1b] border border-gray-200 dark:border-gray-800 rounded-lg text-xs font-semibold"
+              />
+              <p className="text-[10px] text-gray-400">Shown in the storefront search popup under "Popular Searches".</p>
+            </div>
           </div>
 
           <div className="space-y-2 pt-1 border-t border-gray-200/80 dark:border-gray-800">
