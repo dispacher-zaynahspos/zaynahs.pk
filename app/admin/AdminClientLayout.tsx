@@ -3,6 +3,7 @@
 import React, { useState, useEffect, Suspense, useCallback } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { pktStartISO } from '@/lib/utils/dateFilters';
 import { toast } from 'sonner';
 import { useOrderNotification } from '@/lib/hooks/useOrderNotification';
 import { useSettings } from '@/lib/hooks/useSettings';
@@ -139,9 +140,8 @@ function AdminLayoutContent({
   const [aiEnabled, setAiEnabled] = useState(false);
 
   useEffect(() => {
-    const startOfDay = new Date();
-    startOfDay.setHours(0, 0, 0, 0);
-    const startISO = startOfDay.toISOString();
+    // PKT (UTC+5) start-of-day so the header badge matches the Orders list/stats.
+    const startISO = pktStartISO();
 
     async function fetchTodayCounts() {
       try {

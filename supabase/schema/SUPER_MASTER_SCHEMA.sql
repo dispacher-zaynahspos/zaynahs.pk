@@ -2261,6 +2261,64 @@ GRANT INSERT ON public.contact_messages TO anon, authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.contact_messages TO service_role;
 
 -- ============================================================================
+-- PAGE VIEWS — first-party traffic analytics (real data, self-cleaning)
+-- Logged via /api/track; aggregated by get_traffic_stats; 90-day pg_cron purge.
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS page_views (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  path       TEXT NOT NULL,
+  country    TEXT,
+  city       TEXT,
+  visitor_id TEXT,
+  referrer   TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_page_views_created_at ON page_views (created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_page_views_country    ON page_views (country);
+CREATE INDEX IF NOT EXISTS idx_page_views_visitor_id ON page_views (visitor_id);
+ALTER TABLE page_views ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public insert page_views" ON page_views;
+CREATE POLICY "Public insert page_views" ON page_views FOR INSERT WITH CHECK (true);
+DROP POLICY IF EXISTS "Admin all page_views" ON page_views;
+CREATE POLICY "Admin all page_views" ON page_views FOR ALL USING (auth.role() = 'authenticated');
+GRANT INSERT ON page_views TO anon, authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON page_views TO service_role;
+
+CREATE OR REPLACE FUNCTION get_traffic_stats(p_start TIMESTAMPTZ, p_end TIMESTAMPTZ)
+RETURNS JSONB
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT jsonb_build_object(
+    'totalPageviews', (SELECT count(*) FROM page_views WHERE created_at >= p_start AND created_at <= p_end),
+    'totalVisitors', (SELECT count(DISTINCT visitor_id) FROM page_views WHERE created_at >= p_start AND created_at <= p_end),
+    'countries', COALESCE((
+      SELECT jsonb_agg(row_to_json(c)) FROM (
+        SELECT country AS code, count(DISTINCT visitor_id) AS visitors, count(*) AS pageviews
+        FROM page_views
+        WHERE created_at >= p_start AND created_at <= p_end AND country IS NOT NULL AND country <> ''
+        GROUP BY country ORDER BY visitors DESC LIMIT 100
+      ) c
+    ), '[]'::jsonb),
+    'cities', COALESCE((
+      SELECT jsonb_agg(row_to_json(c)) FROM (
+        SELECT city, country, count(DISTINCT visitor_id) AS visitors
+        FROM page_views
+        WHERE created_at >= p_start AND created_at <= p_end AND city IS NOT NULL AND city <> ''
+        GROUP BY city, country ORDER BY visitors DESC LIMIT 100
+      ) c
+    ), '[]'::jsonb)
+  );
+$$;
+GRANT EXECUTE ON FUNCTION get_traffic_stats(TIMESTAMPTZ, TIMESTAMPTZ) TO service_role;
+
+CREATE EXTENSION IF NOT EXISTS pg_cron;
+SELECT cron.unschedule('purge-page-views-90-days') FROM cron.job WHERE jobname = 'purge-page-views-90-days';
+SELECT cron.schedule('purge-page-views-90-days', '0 3 * * *',
+  $$ DELETE FROM public.page_views WHERE created_at < NOW() - INTERVAL '90 days' $$);
+
+-- ============================================================================
 -- PERFORMANCE INDEXES (hot query paths) — added Pass 8
 -- ============================================================================
 CREATE INDEX IF NOT EXISTS idx_product_categories_category ON public.product_categories (category_id);

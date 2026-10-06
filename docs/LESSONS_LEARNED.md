@@ -1605,3 +1605,7 @@ Product URLs aise ban rahe the: `/product/Girls%20Pink%20Graphic%20Print%20Fleec
 ```
 
 
+
+
+### 2026-10-06 — opencode + justwoker blank response
+`/v1/messages` stream:true se text deltas nahi aate (broken SSE); AI SDK `POST /messages` bhejta hai jo upstream 404 deta hai. Fix: `scripts/justworker-proxy.mjs` (path map + non-stream→SSE) + `opencode.json` baseURL `http://localhost:8787`. Guide: `docs/JUSTWORKER_PROXY_GUIDE.md`

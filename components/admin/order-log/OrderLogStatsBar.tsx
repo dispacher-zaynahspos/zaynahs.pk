@@ -4,6 +4,7 @@ import React from 'react';
 import AdminDateFilter from '@/components/admin/shared/AdminDateFilter';
 import { Order, StoreSettings } from '@/lib/types';
 import { formatPrice } from '@/lib/utils/whatsapp';
+import { pktStartMs, pktEndMs, pktStartMsFromYMD, pktEndMsFromYMD } from '@/lib/utils/dateFilters';
 
 interface OrderLogStatsBarProps {
   orders: Order[];
@@ -11,6 +12,8 @@ interface OrderLogStatsBarProps {
   setDateFilter: (val: string) => void;
   customStartDate: string;
   customEndDate: string;
+  setCustomStartDate?: (val: string) => void;
+  setCustomEndDate?: (val: string) => void;
   settings: StoreSettings;
 }
 
@@ -20,46 +23,30 @@ export function OrderLogStatsBar({
   setDateFilter,
   customStartDate,
   customEndDate,
+  setCustomStartDate,
+  setCustomEndDate,
   settings,
 }: OrderLogStatsBarProps) {
   const getStatsOrders = () => {
-    const now = new Date();
-    const getStartOfDay = (d: Date) => {
-      const copy = new Date(d);
-      copy.setHours(0, 0, 0, 0);
-      return copy.getTime();
-    };
-    const getEndOfDay = (d: Date) => {
-      const copy = new Date(d);
-      copy.setHours(23, 59, 59, 999);
-      return copy.getTime();
-    };
+    const now = Date.now();
+    const DAY = 86400000;
 
+    // PKT (UTC+5) day boundaries — identical to the list fetch + header badge.
     return orders.filter(o => {
       if (o.deleted_at) return false;
       const orderTime = new Date(o.created_at).getTime();
 
       if (dateFilter === 'today') {
-        const start = getStartOfDay(now);
-        const end = getEndOfDay(now);
-        return orderTime >= start && orderTime <= end;
+        return orderTime >= pktStartMs(now) && orderTime <= pktEndMs(now);
       } else if (dateFilter === 'yesterday') {
-        const yesterday = new Date(now);
-        yesterday.setDate(yesterday.getDate() - 1);
-        const start = getStartOfDay(yesterday);
-        const end = getEndOfDay(yesterday);
-        return orderTime >= start && orderTime <= end;
+        return orderTime >= pktStartMs(now - DAY) && orderTime <= pktEndMs(now - DAY);
       } else if (dateFilter === 'last7') {
-        const sevenDaysAgo = new Date(now);
-        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-        return orderTime >= getStartOfDay(sevenDaysAgo) && orderTime <= getEndOfDay(now);
+        return orderTime >= pktStartMs(now - 7 * DAY) && orderTime <= pktEndMs(now);
       } else if (dateFilter === 'last30') {
-        const thirtyDaysAgo = new Date(now);
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-        return orderTime >= getStartOfDay(thirtyDaysAgo) && orderTime <= getEndOfDay(now);
+        return orderTime >= pktStartMs(now - 30 * DAY) && orderTime <= pktEndMs(now);
       } else if (dateFilter === 'custom') {
-        const start = customStartDate ? getStartOfDay(new Date(customStartDate)) : 0;
-        const end = customEndDate ? getEndOfDay(new Date(customEndDate)) : Infinity;
+        const start = customStartDate ? pktStartMsFromYMD(customStartDate) : 0;
+        const end = customEndDate ? pktEndMsFromYMD(customEndDate) : Infinity;
         return orderTime >= start && orderTime <= end;
       }
       return true;
@@ -124,6 +111,27 @@ export function OrderLogStatsBar({
             ]}
           />
         </div>
+
+        {dateFilter === 'custom' && setCustomStartDate && setCustomEndDate && (
+          <div className="col-span-2 sm:col-span-3 lg:col-span-7 flex flex-wrap items-center gap-2 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] px-3 py-2 shadow-xs">
+            <span className="text-[10px] font-bold text-gray-400 uppercase shrink-0">Range</span>
+            <input
+              type="date"
+              value={customStartDate}
+              max={customEndDate || undefined}
+              onChange={(e) => setCustomStartDate(e.target.value)}
+              className="min-w-0 flex-1 sm:flex-initial box-border bg-transparent border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1 text-xs font-bold text-gray-900 dark:text-white focus:outline-none"
+            />
+            <span className="text-gray-400 shrink-0">—</span>
+            <input
+              type="date"
+              value={customEndDate}
+              min={customStartDate || undefined}
+              onChange={(e) => setCustomEndDate(e.target.value)}
+              className="min-w-0 flex-1 sm:flex-initial box-border bg-transparent border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1 text-xs font-bold text-gray-900 dark:text-white focus:outline-none"
+            />
+          </div>
+        )}
 
         {statCards.map((s) => (
           <div

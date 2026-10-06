@@ -59,6 +59,8 @@ export default function OrderLog({ initialOrders, settings }: OrderLogProps) {
         setDateFilter={o.setDateFilter}
         customStartDate={o.customStartDate}
         customEndDate={o.customEndDate}
+        setCustomStartDate={o.setCustomStartDate}
+        setCustomEndDate={o.setCustomEndDate}
         settings={settings}
       />
 

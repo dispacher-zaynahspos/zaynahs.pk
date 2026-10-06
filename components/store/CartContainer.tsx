@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import {
   ChevronLeft, Trash2, ShoppingCart, Truck, Lock, ArrowRight, Clock
@@ -13,10 +14,20 @@ import {
   CartItemCard,
   CartSummaryPanel,
   CartEmptyView,
-  CartSuccessView,
-  CartCheckoutView,
   useCartContainerState,
 } from './cart-container';
+
+// Lazy-load step-specific views so their CSS/JS only loads when that step is
+// actually rendered. This removes the "preloaded but not used" console warnings
+// (checkout & success CSS chunks) and keeps the initial cart view lighter.
+const CartCheckoutView = dynamic(
+  () => import('./cart-container/CartCheckoutView'),
+  { ssr: false }
+);
+const CartSuccessView = dynamic(
+  () => import('./cart-container/CartSuccessView'),
+  { ssr: false }
+);
 
 interface CartContainerProps {
   settings: StoreSettings;

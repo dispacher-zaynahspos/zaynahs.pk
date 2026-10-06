@@ -2,7 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getStartISO, getEndISO } from '@/lib/utils/dateFilters';
+import {
+  pktStartISO, pktEndISO, pktStartISOFromYMD, pktEndISOFromYMD,
+  pktStartMs, pktEndMs, pktStartMsFromYMD, pktEndMsFromYMD,
+} from '@/lib/utils/dateFilters';
 import { Order, StoreSettings } from '@/lib/types';
 import { toast } from 'sonner';
 import { createClient } from '@/lib/supabase/client';
@@ -150,28 +153,23 @@ export function useOrderLogState({ initialOrders, settings }: UseOrderLogStatePr
         .order('created_at', { ascending: false })
         .range(from, to);
 
-      const now = new Date();
+      const now = Date.now();
+      const DAY = 86400000;
 
       if (filter === 'today') {
-        query = query.gte('created_at', getStartISO(now)).lte('created_at', getEndISO(now));
+        query = query.gte('created_at', pktStartISO(now)).lte('created_at', pktEndISO(now));
       } else if (filter === 'yesterday') {
-        const yesterday = new Date(now);
-        yesterday.setDate(yesterday.getDate() - 1);
-        query = query.gte('created_at', getStartISO(yesterday)).lte('created_at', getEndISO(yesterday));
+        query = query.gte('created_at', pktStartISO(now - DAY)).lte('created_at', pktEndISO(now - DAY));
       } else if (filter === 'tomorrow') {
-        const tomorrow = new Date(now);
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        query = query.gte('created_at', getStartISO(tomorrow)).lte('created_at', getEndISO(tomorrow));
+        query = query.gte('created_at', pktStartISO(now + DAY)).lte('created_at', pktEndISO(now + DAY));
       } else if (filter === 'last7') {
-        const seven = new Date(now);
-        seven.setDate(seven.getDate() - 7);
-        query = query.gte('created_at', getStartISO(seven)).lte('created_at', getEndISO(now));
+        query = query.gte('created_at', pktStartISO(now - 7 * DAY)).lte('created_at', pktEndISO(now));
       } else if (filter === 'last30') {
-        const thirty = new Date(now);
-        thirty.setDate(thirty.getDate() - 30);
-        query = query.gte('created_at', getStartISO(thirty)).lte('created_at', getEndISO(now));
-      } else if (filter === 'custom' && startDate && endDate) {
-        query = query.gte('created_at', getStartISO(new Date(startDate))).lte('created_at', getEndISO(new Date(endDate)));
+        query = query.gte('created_at', pktStartISO(now - 30 * DAY)).lte('created_at', pktEndISO(now));
+      } else if (filter === 'custom') {
+        // Apply whichever bound(s) the admin has chosen (end date is inclusive).
+        if (startDate) query = query.gte('created_at', pktStartISOFromYMD(startDate));
+        if (endDate) query = query.lte('created_at', pktEndISOFromYMD(endDate));
       }
 
       const { data, error, count } = await query;
@@ -258,9 +256,9 @@ export function useOrderLogState({ initialOrders, settings }: UseOrderLogStatePr
       (o.customer_phone && o.customer_phone.toLowerCase().includes(searchQuery.toLowerCase()));
     if (!matchesSearch) return false;
 
-    const orderDate = new Date(o.created_at);
-    const orderTime = orderDate.getTime();
-    const now = new Date();
+    const orderTime = new Date(o.created_at).getTime();
+    const now = Date.now();
+    const DAY = 86400000;
 
     // When a search query is active we search across ALL dates (results are fetched
     // globally), so skip the date-window filter to avoid hiding valid matches.
@@ -268,45 +266,20 @@ export function useOrderLogState({ initialOrders, settings }: UseOrderLogStatePr
       return true;
     }
 
-    const getStartOfDay = (d: Date) => {
-      const copy = new Date(d);
-      copy.setHours(0, 0, 0, 0);
-      return copy.getTime();
-    };
-
-    const getEndOfDay = (d: Date) => {
-      const copy = new Date(d);
-      copy.setHours(23, 59, 59, 999);
-      return copy.getTime();
-    };
-
+    // All boundaries use PKT (UTC+5) days — matches the server fetch + badge count.
     if (dateFilter === 'today') {
-      const start = getStartOfDay(now);
-      const end = getEndOfDay(now);
-      if (orderTime < start || orderTime > end) return false;
+      if (orderTime < pktStartMs(now) || orderTime > pktEndMs(now)) return false;
     } else if (dateFilter === 'yesterday') {
-      const yesterday = new Date(now);
-      yesterday.setDate(yesterday.getDate() - 1);
-      const start = getStartOfDay(yesterday);
-      const end = getEndOfDay(yesterday);
-      if (orderTime < start || orderTime > end) return false;
+      if (orderTime < pktStartMs(now - DAY) || orderTime > pktEndMs(now - DAY)) return false;
     } else if (dateFilter === 'tomorrow') {
-      const tomorrow = new Date(now);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      const start = getStartOfDay(tomorrow);
-      const end = getEndOfDay(tomorrow);
-      if (orderTime < start || orderTime > end) return false;
+      if (orderTime < pktStartMs(now + DAY) || orderTime > pktEndMs(now + DAY)) return false;
     } else if (dateFilter === 'last7') {
-      const sevenDaysAgo = new Date(now);
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-      if (orderTime < getStartOfDay(sevenDaysAgo) || orderTime > getEndOfDay(now)) return false;
+      if (orderTime < pktStartMs(now - 7 * DAY) || orderTime > pktEndMs(now)) return false;
     } else if (dateFilter === 'last30') {
-      const thirtyDaysAgo = new Date(now);
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-      if (orderTime < getStartOfDay(thirtyDaysAgo) || orderTime > getEndOfDay(now)) return false;
+      if (orderTime < pktStartMs(now - 30 * DAY) || orderTime > pktEndMs(now)) return false;
     } else if (dateFilter === 'custom') {
-      const start = customStartDate ? getStartOfDay(new Date(customStartDate)) : 0;
-      const end = customEndDate ? getEndOfDay(new Date(customEndDate)) : Infinity;
+      const start = customStartDate ? pktStartMsFromYMD(customStartDate) : 0;
+      const end = customEndDate ? pktEndMsFromYMD(customEndDate) : Infinity;
       if (orderTime < start || orderTime > end) return false;
     }
 

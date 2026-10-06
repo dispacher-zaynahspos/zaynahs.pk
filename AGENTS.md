@@ -62,6 +62,7 @@ Full-system audit + permanent fixes are documented in `docs/AUDIT_PASS{0..10}_*.
 | 25 | [25-ai-seo-copywriting-engine.md](docs/agent-rules/25-ai-seo-copywriting-engine.md) | AI1 — vision + copywriting models |
 | 26 | [26-project-reference-table.md](docs/agent-rules/26-project-reference-table.md) | All store refs, zone IDs, secrets, URLs |
 | 27 | [27-single-source-of-truth.md](docs/agent-rules/27-single-source-of-truth.md) | SSOT1 — zero duplicate implementations, one shared source per feature |
+| 28 | [28-traffic-analytics.md](docs/agent-rules/28-traffic-analytics.md) | TA1–TA5 — first-party page_views traffic, custom ranges, 90-day auto-purge |
 
 ## 🔗 External Docs (unchanged locations)
 - `docs/UI_RULES.md` — design-system UI reference. **§9 popup/modal/bottom-sheet scroll standard** (shared `lib/hooks/useBodyScrollLock.ts`, `flex-1 min-h-0 overflow-y-auto overscroll-contain`) and **§10 product-card interaction trigger** (Shopify-style: touch = single scroll-focused card plays hover image + spawns icons via shared `lib/hooks/useMobileCardFocus.ts`; hover devices use CSS `@media (hover:hover)`; full-card overlay `Link` = single-tap opens product, icons win at `z-[25]`) live here.

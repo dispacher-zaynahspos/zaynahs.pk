@@ -4,6 +4,29 @@
 
 ---
 
+### [2026-10-01] v7.x — First-party Traffic Analytics (page_views) — replaces Cloudflare estimates
+**Migration (NEW, additive & self-cleaning — safe to apply):**
+- `supabase/migrations/20261001120000_add_page_views_traffic.sql` — adds `page_views` table (UUID PK, snake_case, RLS: public INSERT / admin+service-role read), indexes on `created_at`/`country`/`visitor_id`, the `get_traffic_stats(p_start, p_end)` aggregation RPC (totals + per-country + per-city, all grouped in Postgres), and a daily `pg_cron` job `purge-page-views-90-days` (deletes rows older than 90 days at 03:00 so the table never grows).
+
+**Schema SSOT:** `SUPER_MASTER_SCHEMA.sql` updated with the same `page_views` table + `get_traffic_stats` RPC + 90-day purge cron (right after `contact_messages`), so every future clone gets accurate first-party traffic from day one.
+
+**Code (SSOT — one tracking source, one aggregation source):**
+- NEW `app/api/track/route.ts` — public page-view beacon. Reads geo from edge headers (`cf-ipcountry`/`cf-ipcity`, Vercel fallback), stores NO IP, skips `/admin`,`/api`,`/_next`, writes one `page_views` row. Always 204 (fire-and-forget).
+- NEW `components/store/TrafficBeacon.tsx` — client component mounted in `app/(store)/layout.tsx`; fires one keepalive POST per storefront navigation with a cookie-less localStorage `visitor_id` (accurate unique-visitor counting, no PII).
+- REWROTE `app/api/admin/traffic/route.ts` — now reads real data via `get_traffic_stats` RPC; supports ranges `1h/24h/7d/30d/90d` AND custom `?start=&end=` (clamped to 90-day retention); live count = unique visitors in last 30 min; order cities unchanged. Removed all Cloudflare-estimate + synthesized-city logic.
+- UPDATED `app/admin/traffic/page.tsx` — added `3M` (90d) range button + custom date-to-date pickers.
+- DELETED dead code `lib/traffic/store.ts` + `lib/traffic/pusher-server.ts` (in-memory/estimate paths no longer used; SSOT/anti-bloat).
+
+**Why:** Cloudflare free plan gave only estimates, max 90-day lookback, no custom range, 1000 req/day limit, and violated RULE #4 (data integrity via synthesized cities). First-party `page_views` gives real accuracy, custom date ranges, and is free (<10 MB with auto-purge).
+
+**Auto-cleanup:** `pg_cron` deletes rows >90 days daily — DB storage stays flat, zero manual work, no Vercel cron needed. 90 days = the "last 3 months" ceiling.
+
+**Clone setup:** fully automatic — `npm run clone:setup -- --store=<name>` runs `init-db.mjs` which applies `SUPER_MASTER_SCHEMA.sql`, so `page_views` + RPC + purge cron are created on every clone with no extra steps. No new env vars required.
+
+**Verification:** `check-setup-sync.mjs` ✓ (142 migrations in sync), `tsc --noEmit` = 0 errors.
+
+---
+
 ### [2026-09-29] v7.x — Product slug normalization (permanent, DB-level + app write-boundary)
 **Migration (NEW, idempotent — safe to apply):**
 - `supabase/migrations/20260929120000_product_slug_normalization.sql` — adds `normalize_slug(text)` function + `products_normalize_slug_trigger()` + `BEFORE INSERT OR UPDATE OF slug, name` trigger `trg_products_normalize_slug` on `products`; plus a one-time `UPDATE` to clean all existing dirty slugs (spaces/UPPERCASE/pipes → lowercase-hyphenated). Collision-checked (0 collisions on lobo; 134 rows, 0 dirty after).

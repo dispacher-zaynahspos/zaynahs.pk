@@ -5,6 +5,7 @@ import { Globe, TrendingUp, ShoppingBag, MapPin, Download } from '@/components/c
 import { formatPrice } from '@/lib/utils/whatsapp';
 import { KNOWN_CITIES } from '@/lib/traffic/cities';
 import dynamic from 'next/dynamic';
+import { createClient } from '@/lib/supabase/client';
 
 const TrafficMap = dynamic(() => import('./MapView'), { ssr: false });
 
@@ -51,12 +52,18 @@ export default function TrafficPage() {
   const [data, setData] = useState<TrafficData | null>(null);
   const [loading, setLoading] = useState(true);
   const [range, setRange] = useState('24h');
+  const [customStart, setCustomStart] = useState('');
+  const [customEnd, setCustomEnd] = useState('');
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
-      const res = await fetch(`/api/admin/traffic?range=${range}`);
+      const isCustom = range === 'custom' && customStart && customEnd;
+      const qs = isCustom
+        ? `start=${customStart}&end=${customEnd}`
+        : `range=${range}`;
+      const res = await fetch(`/api/admin/traffic?${qs}`);
       const json = await res.json();
       setData(json);
       setLastUpdated(new Date());
@@ -65,7 +72,7 @@ export default function TrafficPage() {
     } finally {
       setLoading(false);
     }
-  }, [range]);
+  }, [range, customStart, customEnd]);
 
   useEffect(() => {
     fetchData();
@@ -78,9 +85,23 @@ export default function TrafficPage() {
       }
     };
     document.addEventListener('visibilitychange', onVisibilityChange);
+
+    // Realtime: refresh the moment a new order lands so it appears on the
+    // Orders-by-City table + map markers immediately (no 30s poll wait).
+    const supabase = createClient();
+    const channel = supabase
+      .channel('traffic-orders-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'orders' },
+        () => { fetchData(); }
+      )
+      .subscribe();
+
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
       document.removeEventListener('visibilitychange', onVisibilityChange);
+      supabase.removeChannel(channel);
     };
   }, [fetchData]);
 
@@ -115,6 +136,7 @@ export default function TrafficPage() {
     { key: '24h', label: '24h' },
     { key: '7d', label: '7d' },
     { key: '30d', label: '30d' },
+    { key: '90d', label: '3M' },
   ];
 
   return (
@@ -153,6 +175,23 @@ export default function TrafficPage() {
               {r.label}
             </button>
           ))}
+          <div className="flex items-center gap-1.5 pl-1.5 ml-0.5 border-l border-gray-200 dark:border-gray-800">
+            <input
+              type="date"
+              value={customStart}
+              max={customEnd || undefined}
+              onChange={(e) => { setCustomStart(e.target.value); if (customEnd) { setRange('custom'); setLoading(true); } }}
+              className="px-2 py-1.5 rounded-lg text-xs font-bold bg-white dark:bg-[#16162a] text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-800"
+            />
+            <span className="text-xs text-gray-400">—</span>
+            <input
+              type="date"
+              value={customEnd}
+              min={customStart || undefined}
+              onChange={(e) => { setCustomEnd(e.target.value); if (customStart) { setRange('custom'); setLoading(true); } }}
+              className="px-2 py-1.5 rounded-lg text-xs font-bold bg-white dark:bg-[#16162a] text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-800"
+            />
+          </div>
         </div>
       </div>
 
