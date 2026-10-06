@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { HomepageSection, Review } from '@/lib/types';
 import StarRating from '../StarRating';
 import { sanitizeReviewText } from '@/lib/utils/sanitizeReview';
+import { SectionWrapper } from './SectionWrapper';
 
 interface RecentReviewsSectionProps {
   section: HomepageSection;
@@ -100,7 +101,7 @@ export function RecentReviewsSection({
   const displayReviews = sortedReviews.slice(0, limit);
 
   return (
-    <div key={section.id} className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 border-t border-gray-100 dark:border-gray-800">
+    <SectionWrapper section={section} className="border-t border-gray-100 dark:border-gray-800">
       <div className="text-center space-y-2.5 mb-10">
         <h2 className="text-xl font-black uppercase tracking-wider text-gray-900 dark:text-white">
           {section.title || 'CUSTOMER REVIEWS'}
@@ -199,6 +200,6 @@ export function RecentReviewsSection({
           </Link>
         </div>
       )}
-    </div>
+    </SectionWrapper>
   );
 }

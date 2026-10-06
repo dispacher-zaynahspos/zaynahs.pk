@@ -110,7 +110,7 @@ export function CategoryGridSection({ section }: CategoryGridSectionProps) {
   const aspectClass = getSharedAspectClass(aspectRatio);
 
   return (
-    <div key={section.id} className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-5">
+    <SectionWrapper section={section}>
       {((section.title && section.settings?.show_title !== false) || section.settings?.show_upper_view_all !== false) && (
         <div className="border-b border-gray-100 dark:border-gray-800 pb-3 mb-4 flex items-center justify-between">
           {section.title && section.settings?.show_title !== false ? (
@@ -176,7 +176,7 @@ export function CategoryGridSection({ section }: CategoryGridSectionProps) {
           </Link>
         </div>
       )}
-    </div>
+    </SectionWrapper>
   );
 }
 
@@ -311,7 +311,7 @@ export function ValuePropsSection({ section }: ValuePropsSectionProps) {
   const carded = (section.settings?.style ?? 'card') !== 'plain';
 
   return (
-    <div key={section.id} id={section.id} className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
+    <SectionWrapper section={section}>
       {section.title && section.settings?.show_title !== false && (
         <h3 className="text-center md:text-left text-sm font-extrabold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-4">
           {section.title}
@@ -341,7 +341,7 @@ export function ValuePropsSection({ section }: ValuePropsSectionProps) {
           </div>
         ))}
       </div>
-    </div>
+    </SectionWrapper>
   );
 }
 

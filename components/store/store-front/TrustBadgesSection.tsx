@@ -5,6 +5,7 @@ import { HomepageSection, StoreSettings } from '@/lib/types';
 import {
   Truck, Shield, RefreshCw, Phone, HelpCircle, Award, Star, Lock, Clock, Gift, Headphones
 } from '@/components/common/Icons';
+import { SectionWrapper } from './SectionWrapper';
 
 interface TrustBadgesSectionProps {
   section: HomepageSection;
@@ -52,7 +53,7 @@ export function TrustBadgesSection({ section, settings }: TrustBadgesSectionProp
   }
 
   return (
-    <div key={section.id} className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 border-t border-gray-100 dark:border-gray-800">
+    <SectionWrapper section={section} className="border-t border-gray-100 dark:border-gray-800">
       <div className={`grid gap-6 ${gridColsClass} ${maxContainerClass}`}>
         {badge1Active && (
           <div className="flex items-start gap-4 p-5 rounded-2xl bg-white dark:bg-[#16162a] border border-gray-200 dark:border-gray-800 shadow-sm">
@@ -99,6 +100,6 @@ export function TrustBadgesSection({ section, settings }: TrustBadgesSectionProp
           </div>
         )}
       </div>
-    </div>
+    </SectionWrapper>
   );
 }

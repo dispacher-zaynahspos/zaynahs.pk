@@ -3,6 +3,8 @@
 import React from 'react';
 import { HomepageSection } from '@/lib/types';
 
+import SectionSpacingControls from '../shared/SectionSpacingControls';
+
 interface CategoryListSettingsProps {
   section: HomepageSection;
   onUpdateSection: (updates: Partial<HomepageSection>) => void;
@@ -56,6 +58,8 @@ export default function CategoryListSettings({
         multi-column grid of category cards, use the <span className="font-bold">Category Grid</span> section instead.
         The filter bar visibility is controlled globally by <span className="font-bold">Settings → General → Enable Category Filter</span>.
       </p>
+
+      <SectionSpacingControls section={section} onUpdateSection={onUpdateSection} />
     </div>
   );
 }
