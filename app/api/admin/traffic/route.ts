@@ -72,6 +72,7 @@ async function fetchOrderCities(sinceIso: string) {
     let { data, error } = await supabaseAdmin
       .from('orders')
       .select('total, created_at, notes')
+      .is('deleted_at', null)
       .not('status', 'in', '("cancelled","refunded")')
       .gte('created_at', sinceIso)
       .order('created_at', { ascending: false });
@@ -82,6 +83,7 @@ async function fetchOrderCities(sinceIso: string) {
       const fallback = await supabaseAdmin
         .from('orders')
         .select('total, created_at, notes')
+        .is('deleted_at', null)
         .not('status', 'in', '("cancelled","refunded")')
         .order('created_at', { ascending: false })
         .limit(100);
