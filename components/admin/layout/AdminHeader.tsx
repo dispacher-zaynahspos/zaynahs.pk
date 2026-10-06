@@ -1,8 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Menu, Search, ClipboardList, ExternalLink } from '@/components/common/Icons';
+import { Menu, Search, ClipboardList, ExternalLink, Download } from '@/components/common/Icons';
 import PurgeCacheButton from '@/components/admin/shared/PurgeCacheButton';
 
 interface AdminHeaderProps {
@@ -18,6 +18,47 @@ export function AdminHeader({
   onOpenCommandPalette,
   pendingOrdersCount = 0,
 }: AdminHeaderProps) {
+  const [installPrompt, setInstallPrompt] = useState<any>(null);
+  const [isInstalled, setIsInstalled] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone) {
+      setIsInstalled(true);
+      return;
+    }
+
+    const handleBeforeInstall = (e: Event) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+    };
+
+    const handleAppInstalled = () => {
+      setIsInstalled(true);
+      setInstallPrompt(null);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstall);
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!installPrompt) return;
+    try {
+      installPrompt.prompt();
+      const choice = await installPrompt.userChoice;
+      if (choice?.outcome === 'accepted') {
+        setInstallPrompt(null);
+      }
+    } catch {
+      // ignore
+    }
+  };
   return (
     <header className="fixed md:relative top-0 left-0 right-0 z-30 md:z-auto h-[calc(3.5rem+env(safe-area-inset-top,0px))] md:h-14 flex-shrink-0 bg-white dark:bg-[#0c0c16] border-b border-gray-200 dark:border-white/10 flex items-center justify-between px-3 sm:px-4 md:px-6 pt-[env(safe-area-inset-top,0px)] md:pt-0 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
       {/* Left: Mobile Menu Toggle + Title */}
@@ -71,6 +112,19 @@ export function AdminHeader({
             <span>{pendingOrdersCount > 99 ? '99+' : pendingOrdersCount}</span>
             <span className="hidden sm:inline text-[11px] font-medium text-amber-600 dark:text-amber-400/80">Orders</span>
           </Link>
+        )}
+
+        {/* PWA Install App Button */}
+        {installPrompt && !isInstalled && (
+          <button
+            type="button"
+            onClick={handleInstallClick}
+            className="h-9 px-2.5 sm:px-3 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 border border-blue-200 dark:border-blue-800/60 flex items-center gap-1.5 transition-all text-xs font-bold shrink-0 shadow-2xs active:scale-95 cursor-pointer"
+            title="Install Admin App (PWA)"
+          >
+            <Download className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Install App</span>
+          </button>
         )}
 
         {/* Purge Cache Button */}

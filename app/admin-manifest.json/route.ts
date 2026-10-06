@@ -24,11 +24,12 @@ export async function GET() {
     const logoUrl = settings.logo_url || settings.favicon_url || '/favicon.ico';
 
     const manifestData = {
+      id: '/admin',
       name: `${brandName} Admin`,
-      short_name: 'Admin',
+      short_name: `${brandName} Admin`,
       description: `${brandName} Admin Dashboard`,
-      start_url: '/admin/dashboard',
-      scope: '/admin/',
+      start_url: '/admin',
+      scope: '/admin',
       display: 'standalone',
       background_color: '#0f0f1b',
       theme_color: '#1a1a2e',
@@ -38,13 +39,25 @@ export async function GET() {
           src: faviconUrl,
           sizes: '192x192',
           type: getIconType(faviconUrl),
-          purpose: 'any maskable'
+          purpose: 'any'
+        },
+        {
+          src: faviconUrl,
+          sizes: '192x192',
+          type: getIconType(faviconUrl),
+          purpose: 'maskable'
         },
         {
           src: logoUrl,
           sizes: '512x512',
           type: getIconType(logoUrl),
-          purpose: 'any maskable'
+          purpose: 'any'
+        },
+        {
+          src: logoUrl,
+          sizes: '512x512',
+          type: getIconType(logoUrl),
+          purpose: 'maskable'
         }
       ]
     };

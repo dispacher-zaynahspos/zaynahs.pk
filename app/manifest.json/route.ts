@@ -27,10 +27,12 @@ export async function GET() {
     const logoUrl = settings.logo_url || settings.favicon_url || '/favicon.ico';
 
     const manifestData = {
+      id: '/',
       name: `${brandName} - Online Store`,
       short_name: brandName,
       description: description,
       start_url: '/',
+      scope: '/',
       display: 'standalone',
       background_color: '#1a1a2e',
       theme_color: '#1a1a2e',
@@ -40,13 +42,25 @@ export async function GET() {
           src: faviconUrl,
           sizes: '192x192',
           type: getIconType(faviconUrl),
-          purpose: 'any maskable'
+          purpose: 'any'
+        },
+        {
+          src: faviconUrl,
+          sizes: '192x192',
+          type: getIconType(faviconUrl),
+          purpose: 'maskable'
         },
         {
           src: logoUrl,
           sizes: '512x512',
           type: getIconType(logoUrl),
-          purpose: 'any maskable'
+          purpose: 'any'
+        },
+        {
+          src: logoUrl,
+          sizes: '512x512',
+          type: getIconType(logoUrl),
+          purpose: 'maskable'
         }
       ]
     };

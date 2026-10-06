@@ -11,10 +11,11 @@ Is project mein do alag alag **dynamic manifests** hain — ek storefront ke liy
 | Feature | Storefront (`/manifest.json`) | Admin (`/admin-manifest.json`) |
 |---|---|---|
 | **File** | `app/manifest.json/route.ts` | `app/admin-manifest.json/route.ts` |
+| **App ID** | `/` | `/admin` |
 | **App Name** | `{brandName} - Online Store` | `{brandName} Admin` |
-| **Short Name** | `{brandName}` | `Admin` |
-| **Start URL** | `/` | `/admin/dashboard` |
-| **Scope** | `/` (default — full site) | `/admin/` (sirf admin pages) |
+| **Short Name** | `{brandName}` | `{brandName} Admin` |
+| **Start URL** | `/` | `/admin` |
+| **Scope** | `/` (full site) | `/admin` (admin pages without trailing slash restriction) |
 | **Display** | `standalone` | `standalone` |
 | **BG Color** | `#1a1a2e` | `#0f0f1b` (darker) |
 | **Theme Color** | `#1a1a2e` | `#1a1a2e` |
@@ -23,44 +24,36 @@ Dono manifests **fully dynamic** hain — icons, name, description settings tabl
 
 ---
 
-## 2. Manifest Injection Kaise Hota Hai (Dual-Layer)
+## 2. Manifest Injection Kaise Hota Hai (Server Metadata + Client Fallback)
 
-### Layer 1 — Root Layout (`app/layout.tsx:222-231`)
+### Layer 1 — Server Metadata (`app/admin/layout.tsx`)
 
-Har page load par ek **inline `<script>`** chalta hai jo path check karta hai:
+`app/admin/layout.tsx` Server Component hai jo Next.js metadata export karta hai:
 
-```js
-var p = window.location.pathname;
-var m = p.startsWith('/admin') ? '/admin-manifest.json' : '/manifest.json';
-var el = document.createElement('link');
-el.rel = 'manifest';
-el.href = m;
-document.head.appendChild(el);
+```ts
+export const metadata: Metadata = {
+  manifest: '/admin-manifest.json',
+  title: {
+    template: '%s | Admin Console',
+    default: 'Admin Console',
+  },
+};
 ```
 
-- Agar URL `/admin` se start hota hai → `/admin-manifest.json` inject hota hai
-- Warna → `/manifest.json` inject hota hai
+- Next.js initial server HTML `<head>` mein directly `<link rel="manifest" href="/admin-manifest.json">` render karta hai.
+- Is se browser PWA install scanner pehli hi request par `/admin-manifest.json` read karta hai aur Admin PWA install karta hai (storefront install nahi hoti).
 
-### Layer 2 — Admin Layout (`app/admin/layout.tsx:82-98`)
+### Layer 2 — Client-Side Fallback (`app/admin/AdminClientLayout.tsx`)
 
-Admin layout ek **React `useEffect`** bhi chalatā hai jo manifest ko dobara swap karta hai:
+Client layout soft navigation ke waqt bhi ensure karta hai ke manifest link active rahe:
 
 ```ts
 useEffect(() => {
-  const storeLink = document.querySelector('link[rel="manifest"]');
-  if (storeLink) storeLink.remove();
-
-  const adminLink = document.createElement('link');
-  adminLink.rel = 'manifest';
-  adminLink.href = '/admin-manifest.json';
-  adminLink.id = 'admin-manifest';
-  document.head.appendChild(adminLink);
-
-  return () => {
-    const el = document.getElementById('admin-manifest');
-    if (el) el.remove();
-    if (storeLink) document.head.appendChild(storeLink.cloneNode());
-  };
+  const existing = document.querySelector('link[rel="manifest"]');
+  if (existing && existing.getAttribute('href') !== '/admin-manifest.json') {
+    existing.setAttribute('href', '/admin-manifest.json');
+    existing.id = 'admin-manifest';
+  }
 }, []);
 ```
 
