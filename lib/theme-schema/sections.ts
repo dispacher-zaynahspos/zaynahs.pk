@@ -24,7 +24,12 @@ export type SectionType =
   | 'social_feed'
   | 'ticker'
   | 'value_props'
-  | 'flash_sale';
+  | 'flash_sale'
+  | 'image_with_text'
+  | 'tabbed_product_grid'
+  | 'circular_categories'
+  | 'faq_accordion'
+  | 'rich_text';
 
 export interface SectionDef {
   type: SectionType;
@@ -146,6 +151,76 @@ export const SECTION_REGISTRY: Record<SectionType, SectionDef> = {
     defaultSettings: { startTime: '', endTime: '', viewAllText: 'View All', viewAllUrl: '/shop' },
     defaultContent: { products: [] },
     description: 'Countdown flash-sale product grid (premium).',
+  },
+  image_with_text: {
+    type: 'image_with_text',
+    paletteLabel: 'Image + Text',
+    defaultTitle: 'Our Brand Story',
+    description: 'Left/right split: image on one side, heading + body + CTA on the other.',
+    defaultSettings: { layout: 'image_left', image_width: 50, aspect_ratio: '4/3', text_align: 'left' },
+    defaultContent: {
+      heading: 'Our Story',
+      body: 'Tell your brand story here...',
+      button_text: 'Learn More',
+      button_link: '/shop',
+      image_url: '',
+    },
+  },
+  tabbed_product_grid: {
+    type: 'tabbed_product_grid',
+    paletteLabel: 'Tabbed Products',
+    defaultTitle: 'Explore Collection',
+    deviceAware: true,
+    description: 'New Arrivals / Best Sellers / Sale tabs in one section.',
+    defaultSettings: {
+      columns_desktop: 4,
+      columns_tablet: 3,
+      columns_mobile: 2,
+      limit_per_tab: 8,
+    },
+    defaultContent: {
+      tabs: [
+        { id: 'new', label: 'New Arrivals', source: 'recent' },
+        { id: 'best', label: 'Best Sellers', source: 'featured' },
+        { id: 'sale', label: 'On Sale', source: 'sale' },
+      ],
+    },
+  },
+  circular_categories: {
+    type: 'circular_categories',
+    paletteLabel: 'Round Categories',
+    defaultTitle: 'Shop By Style',
+    deviceAware: true,
+    description: 'Circular image chips in a horizontal scroll row.',
+    defaultSettings: { item_size: 80, show_labels: true },
+    defaultContent: { items: [] },
+  },
+  faq_accordion: {
+    type: 'faq_accordion',
+    paletteLabel: 'FAQ Accordion',
+    defaultTitle: 'Frequently Asked Questions',
+    description: 'Expandable Q&A accordion.',
+    defaultSettings: {},
+    defaultContent: {
+      items: [
+        { q: 'What are your delivery timelines?', a: '2–4 business days nationwide.' },
+        { q: 'Do you offer Cash on Delivery?', a: 'Yes! COD is available on all orders.' },
+        { q: 'How do I return an item?', a: 'Contact us on WhatsApp within 7 days.' },
+      ],
+    },
+  },
+  rich_text: {
+    type: 'rich_text',
+    paletteLabel: 'Rich Text',
+    defaultTitle: 'About Our Brand',
+    description: 'Simple text block — heading, paragraph, optional CTA button.',
+    defaultSettings: { text_align: 'center', max_width: 'narrow' },
+    defaultContent: {
+      heading: 'Welcome to Our Store',
+      body: 'We bring you the finest quality kids clothing and jewelry from Pakistan.',
+      button_text: '',
+      button_link: '',
+    },
   },
 };
 

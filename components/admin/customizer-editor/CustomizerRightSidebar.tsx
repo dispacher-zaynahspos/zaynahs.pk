@@ -15,6 +15,11 @@ import BrandsLogosSettings from '../customizer/sections/BrandsLogosSettings';
 import SocialFeedSettings from '../customizer/sections/SocialFeedSettings';
 import FlashSaleSettings from '../customizer/sections/FlashSaleSettings';
 import ValuePropsSettings from '../customizer/sections/ValuePropsSettings';
+import ImageWithTextSettings from '../customizer/sections/ImageWithTextSettings';
+import TabbedProductGridSettings from '../customizer/sections/TabbedProductGridSettings';
+import CircularCategoriesSettings from '../customizer/sections/CircularCategoriesSettings';
+import FaqAccordionSettings from '../customizer/sections/FaqAccordionSettings';
+import RichTextSettings from '../customizer/sections/RichTextSettings';
 
 import ShopPageSettings from '../customizer/pages/ShopPageSettings';
 import ProductDetailPageSettings from '../customizer/pages/ProductDetailPageSettings';
@@ -264,6 +269,52 @@ export function CustomizerRightSidebar({
                     onUpdateSection={(updates) => handleUpdateSection(activeSection.id, updates)}
                   />
                 )
+              )}
+
+              {activeSection.section_type === 'image_with_text' && (
+                <ImageWithTextSettings
+                  section={activeSection}
+                  onUpdateSection={(updates: Partial<HomepageSection>) => handleUpdateSection(activeSection.id, updates)}
+                  onSelectMedia={(fieldPath: 'settings' | 'content_data', fieldKey: string) => {
+                    setMediaUploadTarget({ sectionId: activeSection.id, fieldPath, fieldKey });
+                    setIsMediaModalOpen(true);
+                  }}
+                />
+              )}
+
+              {activeSection.section_type === 'tabbed_product_grid' && (
+                <TabbedProductGridSettings
+                  section={activeSection}
+                  categories={categories}
+                  viewportMode={viewportMode}
+                  onUpdateSection={(updates: Partial<HomepageSection>) => handleUpdateSection(activeSection.id, updates)}
+                />
+              )}
+
+              {activeSection.section_type === 'circular_categories' && (
+                <CircularCategoriesSettings
+                  section={activeSection}
+                  categories={categories}
+                  onUpdateSection={(updates: Partial<HomepageSection>) => handleUpdateSection(activeSection.id, updates)}
+                  onSelectMedia={(fieldPath: 'settings' | 'content_data', fieldKey: string, isGridItem?: boolean, gridIndex?: number) => {
+                    setMediaUploadTarget({ sectionId: activeSection.id, fieldPath, fieldKey, isGridItem, gridIndex });
+                    setIsMediaModalOpen(true);
+                  }}
+                />
+              )}
+
+              {activeSection.section_type === 'faq_accordion' && (
+                <FaqAccordionSettings
+                  section={activeSection}
+                  onUpdateSection={(updates: Partial<HomepageSection>) => handleUpdateSection(activeSection.id, updates)}
+                />
+              )}
+
+              {activeSection.section_type === 'rich_text' && (
+                <RichTextSettings
+                  section={activeSection}
+                  onUpdateSection={(updates: Partial<HomepageSection>) => handleUpdateSection(activeSection.id, updates)}
+                />
               )}
             </div>
           ) : (

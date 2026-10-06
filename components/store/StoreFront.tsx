@@ -18,6 +18,11 @@ import {
   TrustBadgesSection,
   RecentReviewsSection,
   ValuePropsSection,
+  ImageWithTextSection,
+  TabbedProductGridSection,
+  CircularCategoriesSection,
+  FaqAccordionSection,
+  RichTextSection,
 } from './store-front';
 import { StoreFrontProductGridSection } from './store-front/StoreFrontProductGridSection';
 
@@ -250,6 +255,27 @@ export default function StoreFront({
                 onLoadMore={handleLoadMore}
               />
             );
+            break;
+          case 'image_with_text':
+            content = <ImageWithTextSection section={section} />;
+            break;
+          case 'tabbed_product_grid':
+            content = (
+              <TabbedProductGridSection
+                section={section}
+                allProducts={initialProducts}
+                activeSettings={activeSettings}
+              />
+            );
+            break;
+          case 'circular_categories':
+            content = <CircularCategoriesSection section={section} />;
+            break;
+          case 'faq_accordion':
+            content = <FaqAccordionSection section={section} />;
+            break;
+          case 'rich_text':
+            content = <RichTextSection section={section} />;
             break;
           default:
             content = null;

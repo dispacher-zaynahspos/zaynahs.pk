@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { HomepageSection } from '@/lib/types';
 import { revalidateBanner } from '@/lib/revalidate';
+import { getSectionDef } from '@/lib/theme-schema/sections';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
@@ -172,22 +173,23 @@ export const addHomepageSection = async (
 
     const newSortOrder = (maxSec?.sort_order ?? 0) + 1;
 
-    let settings: Record<string, any> = {};
-    let content_data: Record<string, any> = {};
+    const def = getSectionDef(sectionType);
+    let settings: Record<string, any> = def?.defaultSettings ? { ...def.defaultSettings } : {};
+    let content_data: Record<string, any> = def?.defaultContent ? { ...def.defaultContent } : {};
 
     if (sectionType === 'product_grid') {
-      settings = { limit: 8, columns_desktop: 4, columns_mobile: 2, source: 'all' };
+      settings = { limit: 8, columns_desktop: 4, columns_mobile: 2, source: 'all', ...settings };
     } else if (sectionType === 'category_list') {
-      settings = { columns_desktop: 6, columns_mobile: 3 };
+      settings = { columns_desktop: 6, columns_mobile: 3, ...settings };
     } else if (sectionType === 'hero_banner') {
-      settings = { height_desktop: '450px', height_mobile: '220px', overlay_opacity: 0.3 };
+      settings = { height_desktop: '450px', height_mobile: '220px', overlay_opacity: 0.3, ...settings };
     } else if (sectionType === 'recent_reviews') {
-      settings = { limit: 3 };
+      settings = { limit: 3, ...settings };
     } else if (sectionType === 'flash_sale') {
-      settings = { startTime: '', endTime: '', viewAllText: 'View All', viewAllUrl: '/shop' };
-      content_data = { products: [] };
+      settings = { startTime: '', endTime: '', viewAllText: 'View All', viewAllUrl: '/shop', ...settings };
+      content_data = { products: [], ...content_data };
     } else if (sectionType === 'value_props') {
-      settings = { columns_desktop: 4, columns_mobile: 2, style: 'card' };
+      settings = { columns_desktop: 4, columns_mobile: 2, style: 'card', ...settings };
       content_data = {
         items: [
           { icon: '🚚', title: 'Fast Delivery', subtitle: '2–4 days nationwide' },
@@ -195,6 +197,7 @@ export const addHomepageSection = async (
           { icon: '✨', title: 'Premium Quality', subtitle: 'Handpicked products' },
           { icon: '🔄', title: 'Easy Returns', subtitle: '7-day return policy' },
         ],
+        ...content_data,
       };
     }
 

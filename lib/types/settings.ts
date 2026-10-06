@@ -56,7 +56,7 @@ export interface ThemeConfig {
 
 export interface HomepageSection {
   id: string;
-  section_type: 'hero_banner' | 'product_grid' | 'category_list' | 'promo_banner' | 'trust_badges' | 'recent_reviews' | 'brands_logos' | 'category_grid' | 'collections_grid' | 'social_feed' | 'ticker' | 'flash_sale' | string;
+  section_type: 'hero_banner' | 'product_grid' | 'category_list' | 'promo_banner' | 'trust_badges' | 'recent_reviews' | 'brands_logos' | 'category_grid' | 'collections_grid' | 'social_feed' | 'ticker' | 'flash_sale' | 'image_with_text' | 'tabbed_product_grid' | 'circular_categories' | 'faq_accordion' | 'rich_text' | string;
   title?: string;
   settings: Record<string, any>;
   content_data: Record<string, any>;
