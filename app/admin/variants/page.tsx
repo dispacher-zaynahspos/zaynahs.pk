@@ -229,8 +229,8 @@ export default function VariantPresetsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        <div className="lg:col-span-5 lg:sticky lg:top-4">
+      <div className="flex flex-col gap-6">
+        <div className="w-full">
           <VariantPresetFormCard
             editingPreset={editingPreset}
             newName={newName}
@@ -248,7 +248,7 @@ export default function VariantPresetsPage() {
           />
         </div>
 
-        <div className="lg:col-span-7">
+        <div className="w-full">
           <SavedPresetsCard
             presets={presets}
             loading={loading}
