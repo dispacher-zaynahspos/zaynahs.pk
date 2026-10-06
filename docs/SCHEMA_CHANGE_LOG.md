@@ -2021,3 +2021,45 @@ Changes:
 -- Then:
 ALTER TABLE public.products ENABLE TRIGGER ALL;
 ```
+
+---
+
+## 2026-10-06 — Storefront Sections & Customizer Upgrade (5 New Sections + SectionWrapper Spacing Engine)
+
+**Overview**:
+- Upgraded storefront sections system to 5★ standards.
+- Created `SectionWrapper.tsx` and `SectionSpacingControls.tsx` for per-section top/bottom padding and custom background color across all 16 section types in the Customizer.
+- Upgraded `BrandsLogosSettings.tsx` & `BrandsLogosSection` with media library picker, image preview thumbnails, up/down reordering, grayscale toggle, and custom height slider.
+- Upgraded `ProductGridSettings.tsx` & `StoreFrontProductGridSection.tsx` with instant `display_mode: 'grid' | 'slider'` toggle (swipeable horizontal track on mobile).
+- Added 5 brand new section types:
+  1. `image_with_text` (Image + Story split with aspect ratio, width slider, CTA)
+  2. `tabbed_product_grid` (Dynamic tabs: New Arrivals, Best Sellers, On Sale)
+  3. `circular_categories` (Horizontal swipeable round category icons + 1-click bulk import)
+  4. `faq_accordion` (Expandable Q&A accordion with full dark mode support)
+  5. `rich_text` (Editorial text block with alignment, width, and CTA button)
+- Registered all 5 section types in `lib/theme-schema/sections.ts` (`SECTION_REGISTRY` + `SECTION_PALETTE`), `lib/types/settings.ts`, and `lib/services/sections/homepage-sections.ts`.
+- Integrated all 5 sections into `components/store/StoreFront.tsx` and `components/admin/customizer-editor/CustomizerRightSidebar.tsx`.
+- Updated `useCustomizerState.ts` to support media library selection into arrays (`logos`).
+- Pushed in sync across all 5 store repositories (`origin`, `zaynahspk`, `minimahal`, `littlemister`, `lobo`).
+
+**Files created/modified**:
+- `components/store/store-front/SectionWrapper.tsx`
+- `components/admin/customizer/shared/SectionSpacingControls.tsx`
+- `components/store/store-front/ImageWithTextSection.tsx`
+- `components/admin/customizer/sections/ImageWithTextSettings.tsx`
+- `components/store/store-front/TabbedProductGridSection.tsx`
+- `components/admin/customizer/sections/TabbedProductGridSettings.tsx`
+- `components/store/store-front/CircularCategoriesSection.tsx`
+- `components/admin/customizer/sections/CircularCategoriesSettings.tsx`
+- `components/store/store-front/FaqAccordionSection.tsx`
+- `components/admin/customizer/sections/FaqAccordionSettings.tsx`
+- `components/store/store-front/RichTextSection.tsx`
+- `components/admin/customizer/sections/RichTextSettings.tsx`
+- `lib/theme-schema/sections.ts`
+- `lib/types/settings.ts`
+- `lib/services/sections/homepage-sections.ts`
+- `components/store/StoreFront.tsx`
+- `components/admin/customizer-editor/CustomizerRightSidebar.tsx`
+- `components/admin/customizer-editor/hooks/useCustomizerState.ts`
+- `docs/STOREFRONT_SECTIONS_MASTERPLAN.md`
+

@@ -82,39 +82,27 @@ CREATE TABLE homepage_sections (
 );
 ```
 
-### 2. Available Customizer Section Types
-* **`hero_banner`**
-  * Settings: Image aspect ratio, desktop/mobile height, overlay opacity, text alignment, button link.
-* **`product_grid`**
-  * Settings: Grid columns (2, 3, 4), layout mode (grid vs slider), spacing scale, product limit.
-  * Content: Source selection (`all`, `featured`, `sale`, or manual selected IDs).
-* **`category_list`**
-  * Settings: Circle vs square thumbnails, slider enabled, badge counts.
-  * Content: Selected categories.
-* **`promo_banner`**
-  * Settings: Auto-scroll ticker speed, background color picker, text size.
+### 2. Available Customizer Section Types (All 18 Registered Types)
+* **`hero_banner`** (Promo Slider): Slides, video, responsive heights, overlay opacity, text & CTA buttons.
+* **`product_grid`** (Product Grid): Desktop/tablet/mobile columns, display mode (`grid` vs `slider` snap-scroll), product source (`all`, `featured`, `sale`), limit, `SectionSpacingControls`.
+* **`category_list`** (Category Filter): Horizontal filter bar pills, heading toggle, `SectionSpacingControls`.
+* **`category_grid` / `collections_grid`** (Category / Collections Grid): Multi-column card layout, aspect ratio, custom labels, `SectionWrapper`.
+* **`promo_banner`** (Promo Banner): Background color, text color, title, copy, CTA link.
+* **`trust_badges`** (Trust Badges): 4 configurable trust pillars, icons, title, description, `SectionWrapper`.
+* **`recent_reviews`** (Reviews Feed): Star rating stats, customer reviews cards, sorting, customer images, `SectionWrapper`.
+* **`brands_logos`** (Brands & Partner Logos): Media selector, thumbnail previews, up/down reordering, grayscale toggle, logo height slider, `SectionWrapper`.
+* **`social_feed`** (Social Media Ribbon): Instagram / TikTok reel ribbons, links, responsive columns.
+* **`ticker`** (Scrolling Marquee Ticker): Hardware-accelerated infinite marquee, custom speeds, background and text colors.
+* **`value_props`** (Value Props / USP): 4 USP cards (Delivery, COD, Quality, Returns), icon, title, subtitle, `SectionWrapper`.
+* **`flash_sale`** (Flash Sale Grid): Countdown timer, start/end dates, sale products grid.
+* **`image_with_text`** (Image + Brand Story): Image left/right split, width percentage slider (30%–70%), aspect ratio (4:3, 1:1, 3:4, 16:9), text align, CTA, `SectionWrapper`.
+* **`tabbed_product_grid`** (Tabbed Products): Dynamic tabs (New Arrivals, Best Sellers, On Sale), pill selector, responsive columns, `SectionWrapper`.
+* **`circular_categories`** (Round Category Chips): Horizontal swipeable round icons, circle size slider (56px–120px), labels toggle, 1-click bulk import from categories, `SectionWrapper`.
+* **`faq_accordion`** (FAQ Accordion): Expandable Q&A accordion, reorderable items, dark mode support, `SectionWrapper`.
+* **`rich_text`** (Editorial Text Block): Heading, formatted body text, text alignment (left, center, right), container width (narrow, wide, full), optional CTA button, `SectionWrapper`.
 
 ### 3. Rendering Pipeline (`components/store/StoreFront.tsx`)
-Instead of rendering static components, `StoreFront` loops through sections sorted by `sort_order`:
-```tsx
-export default function StoreFront({ sections, products, categories, settings }) {
-  return (
-    <div className="space-y-8">
-      {sections.map(section => {
-        switch (section.sectionType) {
-          case 'hero_banner':
-            return <HeroBannerSection key={section.id} config={section.settings} />;
-          case 'product_grid':
-            return <ProductGridSection key={section.id} config={section.settings} data={section.contentData} products={products} />;
-          case 'category_list':
-            return <CategoryListSection key={section.id} config={section.settings} categories={categories} />;
-          // ... rest of dynamic layouts
-        }
-      })}
-    </div>
-  );
-}
-```
+`StoreFront` loops through sections sorted by `sort_order` and renders them with `SectionWrapper` for universal top/bottom padding and background color controls.
 
 ### 4. Admin Control Panel (`app/admin/settings/customizer/page.tsx`)
 A drag-and-drop dashboard showing:
