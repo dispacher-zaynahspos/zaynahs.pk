@@ -53,8 +53,16 @@ export function PremiumFeaturesChecklist({
 }: PremiumFeaturesChecklistProps) {
   return (
     <div className="bg-white dark:bg-[#16162a] border border-gray-200/80 dark:border-gray-800/80 rounded-xl p-5 sm:p-6 shadow-xs space-y-3.5">
-      <h3 className="text-xs font-black text-[var(--color-primary,#C2185B)] uppercase tracking-wider">Enable / Disable Premium Storefront Features</h3>
-      <p className="text-xs text-gray-500 dark:text-gray-400">Toggle individual storefront enhancements. Disabled features will be completely hidden from customers.</p>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h3 className="text-xs font-black text-[var(--color-primary,#C2185B)] uppercase tracking-wider">Enable / Disable Premium Storefront Features</h3>
+        <a
+          href="/admin/settings/customizer"
+          className="text-[11px] font-bold text-[var(--color-primary,#C2185B)] hover:underline shrink-0"
+        >
+          Edit visuals in Customizer &rarr;
+        </a>
+      </div>
+      <p className="text-xs text-gray-500 dark:text-gray-400">Toggle individual storefront enhancements. Disabled features are completely hidden from customers. Visual features (colors, text, timing) are styled with live preview in the Theme Customizer.</p>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 pt-1">
         <label className="flex items-center gap-2.5 p-2.5 rounded-lg border border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-white/5 hover:border-[var(--color-primary,#C2185B)]/40 transition cursor-pointer select-none">
           <input
