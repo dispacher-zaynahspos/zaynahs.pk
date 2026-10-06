@@ -5,6 +5,7 @@ import AdminDateFilter from '@/components/admin/shared/AdminDateFilter';
 import { Order, StoreSettings } from '@/lib/types';
 import { formatPrice } from '@/lib/utils/whatsapp';
 import { pktStartMs, pktEndMs, pktStartMsFromYMD, pktEndMsFromYMD } from '@/lib/utils/dateFilters';
+import { getOrderPaymentMethod } from './orderLogUtils';
 
 interface OrderLogStatsBarProps {
   orders: Order[];
@@ -59,6 +60,19 @@ export function OrderLogStatsBar({
   const statsReturnsCount = statsOrders.filter(o => o.status === 'refunded' || o.status === 'cancelled').reduce((sum, o) => sum + o.total, 0);
   const statsFulfilledCount = statsOrders.filter(o => !['pending', 'placed', 'confirmed'].includes(o.status)).length;
   const statsDeliveredCount = statsOrders.filter(o => o.status === 'delivered').length;
+  const statsTotalSales = statsOrders
+    .filter(o => o.status !== 'cancelled' && o.status !== 'refunded')
+    .reduce((sum, o) => sum + (o.total || 0), 0);
+  const statsAov = statsOrdersCount > 0 ? Math.round(statsTotalSales / statsOrdersCount) : 0;
+  const statsCancelledCount = statsOrders.filter(o => o.status === 'cancelled').length;
+  const statsCodPendingCount = statsOrders.filter(
+    o => o.payment_status !== 'paid'
+      && o.status !== 'cancelled' && o.status !== 'refunded'
+      && /cash on delivery|cod/i.test(getOrderPaymentMethod(o))
+  ).length;
+  const statsDeliveredRate = statsOrdersCount > 0
+    ? `${Math.round((statsDeliveredCount / statsOrdersCount) * 100)}%`
+    : '0%';
 
   const averageFulfillmentTimeStr = (() => {
     let totalMs = 0;
@@ -86,10 +100,15 @@ export function OrderLogStatsBar({
 
   const statCards: { label: string; value: React.ReactNode }[] = [
     { label: 'Orders', value: statsOrdersCount },
+    { label: 'Total sales', value: formatPrice(statsTotalSales, settings.currency_symbol) },
+    { label: 'Avg order value', value: formatPrice(statsAov, settings.currency_symbol) },
     { label: 'Items ordered', value: statsItemsCount },
-    { label: 'Returns', value: formatPrice(statsReturnsCount, settings.currency_symbol) },
     { label: 'Orders fulfilled', value: statsFulfilledCount },
     { label: 'Orders delivered', value: statsDeliveredCount },
+    { label: 'Delivered rate', value: statsDeliveredRate },
+    { label: 'COD pending', value: statsCodPendingCount },
+    { label: 'Cancelled', value: statsCancelledCount },
+    { label: 'Returns amount', value: formatPrice(statsReturnsCount, settings.currency_symbol) },
     { label: 'Order to fulfillment time', value: averageFulfillmentTimeStr },
   ];
 
@@ -138,7 +157,7 @@ export function OrderLogStatsBar({
             key={s.label}
             className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] px-3 py-2.5 shadow-xs flex flex-col gap-1 min-w-0"
           >
-            <div className="stat-item-header text-gray-500 font-medium truncate">{s.label}</div>
+            <div className="stat-item-header text-gray-500 font-medium truncate" title={s.label}>{s.label}</div>
             <div className="stat-value font-bold text-gray-900 dark:text-white truncate">
               {s.value}
             </div>
