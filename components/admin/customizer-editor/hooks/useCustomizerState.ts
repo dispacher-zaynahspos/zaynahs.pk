@@ -275,10 +275,26 @@ export function useCustomizerState({
         }
       });
     } else if (isGridItem && gridIndex !== undefined) {
-      const items = section.content_data?.items || [];
-      const updatedItems = [...items];
-      updatedItems[gridIndex] = { ...updatedItems[gridIndex], [fieldKey]: url };
-      handleUpdateSection(sectionId, { content_data: { items: updatedItems } });
+      if (fieldKey === 'logos') {
+        const logos = [...(section.content_data?.logos || [])];
+        logos[gridIndex] = url;
+        handleUpdateSection(sectionId, {
+          content_data: {
+            ...section.content_data,
+            logos,
+          },
+        });
+      } else {
+        const items = section.content_data?.items || [];
+        const updatedItems = [...items];
+        updatedItems[gridIndex] = { ...updatedItems[gridIndex], [fieldKey]: url };
+        handleUpdateSection(sectionId, {
+          content_data: {
+            ...section.content_data,
+            items: updatedItems,
+          },
+        });
+      }
     } else {
       const updates: Partial<HomepageSection> = {};
       if (fieldPath === 'settings') {
