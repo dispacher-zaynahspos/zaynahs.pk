@@ -57,7 +57,7 @@ export default function SizeGuideFormCard({
           <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
             Measurement Type / Unit
           </label>
-          <div className="flex gap-2">
+          <div className="flex gap-2 min-w-0">
             <select
               value={['INCHES', 'CM', 'MM', 'ML', 'KG', 'GRAMS'].includes(newUnit.toUpperCase()) ? newUnit.toUpperCase() : 'CUSTOM'}
               onChange={(e) => {
@@ -65,7 +65,7 @@ export default function SizeGuideFormCard({
                   setNewUnit(e.target.value);
                 }
               }}
-              className="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f0f1b] px-3 py-2.5 text-xs font-bold focus:outline-none focus:border-[#e94560] cursor-pointer"
+              className="shrink-0 max-w-[48%] rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f0f1b] px-3 py-2.5 text-xs font-bold focus:outline-none focus:border-[#e94560] cursor-pointer appearance-none"
             >
               <option value="INCHES">Inches (in)</option>
               <option value="CM">Centimeters (cm)</option>
@@ -80,7 +80,7 @@ export default function SizeGuideFormCard({
               value={newUnit}
               onChange={(e) => setNewUnit(e.target.value.toUpperCase())}
               placeholder="e.g. INCHES, CM, ML"
-              className="flex-1 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f0f1b] px-3 py-2.5 text-xs font-black uppercase focus:outline-none focus:border-[#e94560]"
+              className="flex-1 min-w-0 w-full box-border rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f0f1b] px-3 py-2.5 text-xs font-black uppercase focus:outline-none focus:border-[#e94560]"
             />
           </div>
           <span className="text-[10px] text-gray-400 mt-1 block">
