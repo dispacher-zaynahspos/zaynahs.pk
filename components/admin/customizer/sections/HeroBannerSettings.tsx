@@ -13,6 +13,7 @@ import {
   HeroActiveSlideForm,
   HeroGlobalSettings
 } from './hero-banner';
+import SectionSpacingControls from '../shared/SectionSpacingControls';
 
 interface HeroBannerSettingsProps {
   section: HomepageSection;
@@ -180,6 +181,8 @@ export default function HeroBannerSettings({
           />
         </div>
       </AccordionGroup>
+
+      <SectionSpacingControls section={section} onUpdateSection={onUpdateSection} />
     </div>
   );
 }

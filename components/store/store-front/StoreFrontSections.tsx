@@ -8,6 +8,8 @@ import { isFeatureEnabled } from '@/lib/features/premium';
 import { getSharedAspectClass } from '@/lib/utils/styles';
 import { getResponsiveGridClasses } from '@/lib/utils/responsiveGrid';
 import SocialFeedRibbon from '../SocialFeedRibbon';
+import { SectionWrapper } from './SectionWrapper';
+import { getOptimizedImageUrl } from '@/lib/utils/imageUrl';
 
 interface PromoBannerSectionProps {
   section: HomepageSection;
@@ -53,19 +55,21 @@ export function BrandsLogosSection({ section }: BrandsLogosSectionProps) {
     'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=120&auto=format&fit=crop&q=60',
     'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=120&auto=format&fit=crop&q=60'
   ];
+  const logoHeight = Number(section.settings?.logo_height) || 48;
+  const grayscale = section.settings?.grayscale !== false;
 
   return (
-    <div key={section.id} className="w-full py-8 bg-gray-50 dark:bg-white/5 border-y border-gray-150 dark:border-gray-800/80 overflow-hidden">
-      <div className="mx-auto max-w-7xl px-4 text-center mb-4">
+    <SectionWrapper section={section} className="border-y border-gray-150 dark:border-gray-800/80 overflow-hidden">
+      <div className="text-center mb-4">
         <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
           {section.title || 'Our Premium Partners'}
         </span>
       </div>
-      <div className="flex items-center justify-center gap-12 flex-wrap opacity-65 grayscale hover:opacity-100 transition-opacity">
+      <div className={`flex items-center justify-center gap-12 flex-wrap transition-opacity ${grayscale ? 'opacity-65 grayscale hover:opacity-100' : 'opacity-100'}`}>
         {logos.map((logoUrl: string, idx: number) => (
-          <div key={idx} className="relative w-24 h-12">
+          <div key={idx} className="relative" style={{ width: logoHeight * 2, height: logoHeight }}>
             <Image
-              src={logoUrl}
+              src={getOptimizedImageUrl(logoUrl, 160)}
               alt="Brand logo Partner"
               fill
               sizes="96px"
@@ -74,7 +78,7 @@ export function BrandsLogosSection({ section }: BrandsLogosSectionProps) {
           </div>
         ))}
       </div>
-    </div>
+    </SectionWrapper>
   );
 }
 

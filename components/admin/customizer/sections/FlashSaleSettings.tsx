@@ -8,6 +8,7 @@ import {
   FlashSaleProductManager,
   FlashSaleGeneralConfig,
 } from './flash-sale';
+import SectionSpacingControls from '../shared/SectionSpacingControls';
 
 interface FlashSaleSettingsProps {
   section: HomepageSection;
@@ -52,6 +53,8 @@ export default function FlashSaleSettings({
           />
         </div>
       </AccordionGroup>
+
+      <SectionSpacingControls section={section} onUpdateSection={onUpdateSection} />
     </div>
   );
 }

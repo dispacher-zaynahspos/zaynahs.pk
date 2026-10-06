@@ -4,6 +4,7 @@ import React from 'react';
 import { HomepageSection } from '@/lib/types';
 import ResponsiveGridColumnsControl from '@/components/admin/customizer/shared/ResponsiveGridColumnsControl';
 import SocialFeedItemsEditor from './SocialFeedItemsEditor';
+import SectionSpacingControls from '@/components/admin/customizer/shared/SectionSpacingControls';
 import { AccordionGroup } from '@/components/admin/customizer/controls';
 
 interface SocialFeedSettingsProps {
@@ -105,6 +106,8 @@ export default function SocialFeedSettings({
       </div>
       </div>
       </AccordionGroup>
+
+      <SectionSpacingControls section={section} onUpdateSection={onUpdateSection} />
     </div>
   );
 }

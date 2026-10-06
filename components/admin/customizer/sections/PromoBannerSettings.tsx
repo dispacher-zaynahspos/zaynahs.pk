@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { HomepageSection } from '@/lib/types';
+import SectionSpacingControls from '../shared/SectionSpacingControls';
 
 interface PromoBannerSettingsProps {
   section: HomepageSection;
@@ -123,6 +124,8 @@ export default function PromoBannerSettings({
         />
       </div>
       )}
+
+      <SectionSpacingControls section={section} onUpdateSection={onUpdateSection} />
     </div>
   );
 }

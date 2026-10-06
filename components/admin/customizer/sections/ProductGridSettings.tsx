@@ -6,6 +6,7 @@ import { HomepageSection, Category, Product } from '@/lib/types';
 import ManualProductPicker from './product-grid/ManualProductPicker';
 import BottomGridActions from './product-grid/BottomGridActions';
 import ResponsiveGridColumnsControl from '../shared/ResponsiveGridColumnsControl';
+import SectionSpacingControls from '../shared/SectionSpacingControls';
 import { AccordionGroup } from '@/components/admin/customizer/controls';
 
 interface ProductGridSettingsProps {
@@ -141,6 +142,32 @@ export default function ProductGridSettings({
         onChangeTablet={(cols) => handleSettingsChange('columns_tablet', cols)}
         onChangeMobile={(cols) => handleSettingsChange('columns_mobile', cols)}
       />
+
+      {/* Display Mode: Grid vs Carousel/Slider */}
+      <div className="space-y-1.5 pt-2 border-t border-gray-200 dark:border-gray-800">
+        <label className="text-[11px] font-bold text-gray-500 dark:text-gray-400">Display Mode</label>
+        <div className="grid grid-cols-2 gap-2">
+          {(['grid', 'slider'] as const).map((mode) => (
+            <button
+              key={mode}
+              type="button"
+              onClick={() => handleSettingsChange('display_mode', mode)}
+              className={`px-3 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer capitalize ${
+                (settings.display_mode || 'grid') === mode
+                  ? 'bg-[#e94560] text-white border-[#e94560]'
+                  : 'bg-gray-50 dark:bg-white/5 border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300'
+              }`}
+            >
+              {mode === 'grid' ? '⊞ Grid' : '▷ Slider'}
+            </button>
+          ))}
+        </div>
+        {settings.display_mode === 'slider' && (
+          <p className="text-[10px] text-gray-400 leading-normal pt-1">
+            Slider mode: swipeable horizontal scroll on mobile, arrows on desktop.
+          </p>
+        )}
+      </div>
       </div>
       </AccordionGroup>
 
@@ -199,6 +226,8 @@ export default function ProductGridSettings({
       />
       </div>
       </AccordionGroup>
+
+      <SectionSpacingControls section={section} onUpdateSection={onUpdateSection} />
     </div>
   );
 }

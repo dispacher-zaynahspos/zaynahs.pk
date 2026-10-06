@@ -4,6 +4,8 @@ import React from 'react';
 import Link from 'next/link';
 import { Product, Category, StoreSettings, HomepageSection } from '@/lib/types';
 import ProductGrid from '../ProductGrid';
+import ProductCard from '../ProductCard';
+import { SectionWrapper } from './SectionWrapper';
 
 interface StoreFrontProductGridSectionProps {
   section: HomepageSection;
@@ -34,6 +36,7 @@ export function StoreFrontProductGridSection({
   const bottomEnableViewAll = section.settings?.bottomEnableViewAll === true;
   const bottomEnableLoadMore = section.settings?.bottomEnableLoadMore === true;
   const bottomEnableInfiniteScroll = section.settings?.bottomEnableInfiniteScroll === true;
+  const displayMode = section.settings?.display_mode || 'grid';
 
 
   const sectionProducts = React.useMemo(() => {
@@ -158,7 +161,7 @@ export function StoreFrontProductGridSection({
   }, [bottomEnableInfiniteScroll, hasMore, onLoadMore, section?.id, baseLimit]);
 
   return (
-    <div key={section.id} className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
+    <SectionWrapper section={section}>
       {((section.title && section.settings?.show_title !== false) || section.settings?.show_upper_view_all !== false) && !selectedCategoryId && (
         <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-3 mb-5">
           {section.title && section.settings?.show_title !== false ? (
@@ -177,14 +180,37 @@ export function StoreFrontProductGridSection({
           )}
         </div>
       )}
-      <ProductGrid
-        products={displayProducts}
-        currencySymbol={activeSettings.currency_symbol}
-        settings={activeSettings}
-        columnsDesktop={Number(section.settings?.columns_desktop) || 4}
-        columnsTablet={Number(section.settings?.columns_tablet) || 3}
-        columnsMobile={Number(section.settings?.columns_mobile) || 2}
-      />
+      {displayMode === 'slider' ? (
+        <div className="relative">
+          <div
+            className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-2 scrollbar-hide"
+            style={{ WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
+          >
+            {displayProducts.map((product) => (
+              <div
+                key={product.id}
+                className="flex-shrink-0 snap-start"
+                style={{ width: `calc(${100 / (Number(section.settings?.columns_mobile) || 2)}% - 8px)` }}
+              >
+                <ProductCard
+                  product={product}
+                  currencySymbol={activeSettings.currency_symbol}
+                  settings={activeSettings}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <ProductGrid
+          products={displayProducts}
+          currencySymbol={activeSettings.currency_symbol}
+          settings={activeSettings}
+          columnsDesktop={Number(section.settings?.columns_desktop) || 4}
+          columnsTablet={Number(section.settings?.columns_tablet) || 3}
+          columnsMobile={Number(section.settings?.columns_mobile) || 2}
+        />
+      )}
       {bottomEnableInfiniteScroll && hasMore && (
         <div ref={sentinelRef} className="w-full flex items-center justify-center py-6">
           <div className="flex items-center gap-2.5 text-xs font-bold text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-white/5 px-4 py-2 rounded-full border border-gray-200 dark:border-gray-800 shadow-2xs">
@@ -229,6 +255,6 @@ export function StoreFrontProductGridSection({
           )}
         </div>
       )}
-    </div>
+    </SectionWrapper>
   );
 }

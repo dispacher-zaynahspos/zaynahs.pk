@@ -4,6 +4,7 @@ import React from 'react';
 import { HomepageSection } from '@/lib/types';
 import { ChevronUp, ChevronDown, Trash2, Plus } from '@/components/common/Icons';
 import { AccordionGroup } from '@/components/admin/customizer/controls';
+import SectionSpacingControls from '../shared/SectionSpacingControls';
 
 interface ValuePropItem {
   icon?: string;
@@ -123,6 +124,8 @@ export default function ValuePropsSettings({ section, onUpdateSection }: ValuePr
           </button>
         </div>
       </AccordionGroup>
+
+      <SectionSpacingControls section={section} onUpdateSection={onUpdateSection} />
     </div>
   );
 }

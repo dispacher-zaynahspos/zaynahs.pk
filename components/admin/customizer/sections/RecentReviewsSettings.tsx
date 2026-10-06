@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 import { HomepageSection, Review } from '@/lib/types';
 import { ChevronUp, ChevronDown, Trash2, Search, X } from '@/components/common/Icons';
 import { AccordionGroup } from '@/components/admin/customizer/controls';
+import SectionSpacingControls from '../shared/SectionSpacingControls';
 
 interface RecentReviewsSettingsProps {
   section: HomepageSection;
@@ -283,6 +284,8 @@ export default function RecentReviewsSettings({
       </div>
       </div>
       </AccordionGroup>
+
+      <SectionSpacingControls section={section} onUpdateSection={onUpdateSection} />
     </div>
   );
 }

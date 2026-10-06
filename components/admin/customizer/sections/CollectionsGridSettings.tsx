@@ -5,6 +5,7 @@ import { HomepageSection, Category, Collection } from '@/lib/types';
 import { Trash2, ChevronUp, ChevronDown } from '@/components/common/Icons';
 import { moveItemInArray } from '@/lib/utils/arrayMove';
 import ResponsiveGridColumnsControl from '../shared/ResponsiveGridColumnsControl';
+import SectionSpacingControls from '../shared/SectionSpacingControls';
 import { AccordionGroup } from '@/components/admin/customizer/controls';
 
 interface CollectionsGridSettingsProps {
@@ -488,6 +489,8 @@ export default function CollectionsGridSettings({
         </div>
       </div>
       </AccordionGroup>
+
+      <SectionSpacingControls section={section} onUpdateSection={onUpdateSection} />
     </div>
   );
 }
