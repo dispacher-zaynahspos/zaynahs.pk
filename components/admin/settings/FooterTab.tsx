@@ -3,6 +3,7 @@
 import React from 'react';
 import {
   FooterColumnsConfig,
+  FooterColorsConfig,
   FooterVisibilityConfig,
   SocialMediaLinksConfig,
   FloatingContactsConfig,
@@ -26,6 +27,19 @@ interface FooterTabProps {
   footerBottomText: string;
   setFooterBottomText: (val: string) => void;
   storeName: string;
+
+  footerBg: string;
+  setFooterBg: (val: string) => void;
+  footerTextColor: string;
+  setFooterTextColor: (val: string) => void;
+  footerHeadingColor: string;
+  setFooterHeadingColor: (val: string) => void;
+  footerLinkColor: string;
+  setFooterLinkColor: (val: string) => void;
+  footerBorderColor: string;
+  setFooterBorderColor: (val: string) => void;
+  footerCopyrightColor: string;
+  setFooterCopyrightColor: (val: string) => void;
 
   footerShowPayments: boolean;
   setFooterShowPayments: (val: boolean) => void;
@@ -103,6 +117,21 @@ export default function FooterTab(props: FooterTabProps) {
         footerBottomText={props.footerBottomText}
         setFooterBottomText={props.setFooterBottomText}
         storeName={props.storeName}
+      />
+
+      <FooterColorsConfig
+        footerBg={props.footerBg}
+        setFooterBg={props.setFooterBg}
+        footerTextColor={props.footerTextColor}
+        setFooterTextColor={props.setFooterTextColor}
+        footerHeadingColor={props.footerHeadingColor}
+        setFooterHeadingColor={props.setFooterHeadingColor}
+        footerLinkColor={props.footerLinkColor}
+        setFooterLinkColor={props.setFooterLinkColor}
+        footerBorderColor={props.footerBorderColor}
+        setFooterBorderColor={props.setFooterBorderColor}
+        footerCopyrightColor={props.footerCopyrightColor}
+        setFooterCopyrightColor={props.setFooterCopyrightColor}
       />
 
       <FooterVisibilityConfig

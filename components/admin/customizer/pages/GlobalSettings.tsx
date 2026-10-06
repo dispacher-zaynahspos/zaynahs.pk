@@ -324,6 +324,78 @@ export default function GlobalSettings({
               />
             </div>
           </div>
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 block uppercase tracking-wider">Footer Headings</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={settings.footer_heading_color || '#111827'}
+                onChange={(e) => onUpdateSettings({ footer_heading_color: e.target.value })}
+                className="w-7 h-7 rounded border border-gray-200 cursor-pointer overflow-hidden p-0 bg-transparent shrink-0"
+              />
+              <input
+                type="text"
+                value={settings.footer_heading_color || ''}
+                onChange={(e) => onUpdateSettings({ footer_heading_color: e.target.value })}
+                placeholder="#111827"
+                className="w-full px-2 py-1 bg-white dark:bg-[#0f0f1b] border border-gray-200 dark:border-gray-800 rounded-lg text-xs font-mono"
+              />
+            </div>
+          </div>
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 block uppercase tracking-wider">Footer Links</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={settings.footer_link_color || '#5B6B85'}
+                onChange={(e) => onUpdateSettings({ footer_link_color: e.target.value })}
+                className="w-7 h-7 rounded border border-gray-200 cursor-pointer overflow-hidden p-0 bg-transparent shrink-0"
+              />
+              <input
+                type="text"
+                value={settings.footer_link_color || ''}
+                onChange={(e) => onUpdateSettings({ footer_link_color: e.target.value })}
+                placeholder="#5B6B85"
+                className="w-full px-2 py-1 bg-white dark:bg-[#0f0f1b] border border-gray-200 dark:border-gray-800 rounded-lg text-xs font-mono"
+              />
+            </div>
+          </div>
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 block uppercase tracking-wider">Footer Divider</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={settings.footer_border_color || '#e5e7eb'}
+                onChange={(e) => onUpdateSettings({ footer_border_color: e.target.value })}
+                className="w-7 h-7 rounded border border-gray-200 cursor-pointer overflow-hidden p-0 bg-transparent shrink-0"
+              />
+              <input
+                type="text"
+                value={settings.footer_border_color || ''}
+                onChange={(e) => onUpdateSettings({ footer_border_color: e.target.value })}
+                placeholder="#e5e7eb"
+                className="w-full px-2 py-1 bg-white dark:bg-[#0f0f1b] border border-gray-200 dark:border-gray-800 rounded-lg text-xs font-mono"
+              />
+            </div>
+          </div>
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 block uppercase tracking-wider">Copyright Text</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={settings.footer_copyright_color || '#5B6B85'}
+                onChange={(e) => onUpdateSettings({ footer_copyright_color: e.target.value })}
+                className="w-7 h-7 rounded border border-gray-200 cursor-pointer overflow-hidden p-0 bg-transparent shrink-0"
+              />
+              <input
+                type="text"
+                value={settings.footer_copyright_color || ''}
+                onChange={(e) => onUpdateSettings({ footer_copyright_color: e.target.value })}
+                placeholder="#5B6B85"
+                className="w-full px-2 py-1 bg-white dark:bg-[#0f0f1b] border border-gray-200 dark:border-gray-800 rounded-lg text-xs font-mono"
+              />
+            </div>
+          </div>
         </div>
       </div>
 

@@ -79,6 +79,7 @@ export default function Footer({ settings, brandName }: FooterProps) {
     ...(footerHeadingColor ? { ['--footer-heading']: footerHeadingColor } : {}),
     ...(footerLinkColor ? { ['--footer-link']: footerLinkColor } : {}),
     ...(footerBorderColor ? { ['--footer-divider']: footerBorderColor } : {}),
+    ...(settings.footer_copyright_color ? { ['--footer-copyright']: settings.footer_copyright_color } : {}),
   };
 
   return (

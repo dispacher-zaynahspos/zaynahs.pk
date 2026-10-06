@@ -27,6 +27,10 @@ export function useSettingsHeaderFooter({ initialSettings }: UseSettingsHeaderFo
   const [footerBottomText, setFooterBottomText] = useState(initialSettings.footer_bottom_text || '');
   const [footerBg, setFooterBg] = useState(initialSettings.footer_bg || '');
   const [footerTextColor, setFooterTextColor] = useState(initialSettings.footer_text_color || '');
+  const [footerBorderColor, setFooterBorderColor] = useState(initialSettings.footer_border_color || '');
+  const [footerHeadingColor, setFooterHeadingColor] = useState(initialSettings.footer_heading_color || '');
+  const [footerLinkColor, setFooterLinkColor] = useState(initialSettings.footer_link_color || '');
+  const [footerCopyrightColor, setFooterCopyrightColor] = useState(initialSettings.footer_copyright_color || '');
   const [footerShowPayments, setFooterShowPayments] = useState(initialSettings.footer_show_payments ?? true);
   const [footerShowMenu, setFooterShowMenu] = useState(initialSettings.footer_show_menu ?? true);
   const [footerShowNewsletter, setFooterShowNewsletter] = useState(initialSettings.footer_show_newsletter ?? true);
@@ -145,6 +149,14 @@ export function useSettingsHeaderFooter({ initialSettings }: UseSettingsHeaderFo
     setFooterBg,
     footerTextColor,
     setFooterTextColor,
+    footerBorderColor,
+    setFooterBorderColor,
+    footerHeadingColor,
+    setFooterHeadingColor,
+    footerLinkColor,
+    setFooterLinkColor,
+    footerCopyrightColor,
+    setFooterCopyrightColor,
     footerShowPayments,
     setFooterShowPayments,
     footerShowMenu,
