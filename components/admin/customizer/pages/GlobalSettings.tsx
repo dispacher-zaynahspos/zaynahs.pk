@@ -440,6 +440,44 @@ export default function GlobalSettings({
         />
       </div>
 
+      {/* Footer Typography & Layout (shared keys with Settings -> Footer tab) */}
+      <div className="grid grid-cols-2 gap-2">
+        <div className="space-y-1">
+          <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 block uppercase tracking-wider">Heading Font</label>
+          <input type="text" value={settings.footer_heading_font || ''} placeholder="theme default" onChange={(e) => onUpdateSettings({ footer_heading_font: e.target.value })} className="w-full rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#0f0f1b] px-2 py-1.5 text-xs font-semibold" />
+        </div>
+        <div className="space-y-1">
+          <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 block uppercase tracking-wider">Body Font</label>
+          <input type="text" value={settings.footer_body_font || ''} placeholder="theme default" onChange={(e) => onUpdateSettings({ footer_body_font: e.target.value })} className="w-full rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#0f0f1b] px-2 py-1.5 text-xs font-semibold" />
+        </div>
+        <div className="space-y-1">
+          <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 block uppercase tracking-wider">Body Size</label>
+          <input type="text" value={settings.footer_body_size || ''} placeholder="e.g. 0.875rem" onChange={(e) => onUpdateSettings({ footer_body_size: e.target.value })} className="w-full rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#0f0f1b] px-2 py-1.5 text-xs font-semibold" />
+        </div>
+        <div className="space-y-1">
+          <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 block uppercase tracking-wider">Alignment</label>
+          <select value={settings.footer_align || 'left'} onChange={(e) => onUpdateSettings({ footer_align: e.target.value as 'left' | 'center' })} className="w-full rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#0f0f1b] px-2 py-1.5 text-xs font-semibold">
+            <option value="left">Left</option>
+            <option value="center">Center</option>
+          </select>
+        </div>
+        <div className="space-y-1">
+          <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 block uppercase tracking-wider">Heading Weight</label>
+          <select value={settings.footer_heading_weight || ''} onChange={(e) => onUpdateSettings({ footer_heading_weight: e.target.value })} className="w-full rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#0f0f1b] px-2 py-1.5 text-xs font-semibold">
+            <option value="">Default</option>
+            <option value="400">400</option>
+            <option value="500">500</option>
+            <option value="600">600</option>
+            <option value="700">700</option>
+            <option value="800">800</option>
+          </select>
+        </div>
+        <div className="space-y-1">
+          <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 block uppercase tracking-wider">Vertical Padding</label>
+          <input type="text" value={settings.footer_padding || ''} placeholder="e.g. 3rem" onChange={(e) => onUpdateSettings({ footer_padding: e.target.value })} className="w-full rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#0f0f1b] px-2 py-1.5 text-xs font-semibold" />
+        </div>
+      </div>
+
       <div className="space-y-3 p-3 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-gray-800">
         <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#e94560] block mb-1">Social Accounts</span>
         

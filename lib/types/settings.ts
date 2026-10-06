@@ -209,6 +209,14 @@ export interface StoreSettings {
   footer_heading_color?: string;
   footer_link_color?: string;
   footer_copyright_color?: string;
+  footer_heading_font?: string;
+  footer_body_font?: string;
+  footer_heading_size?: string;
+  footer_body_size?: string;
+  footer_heading_weight?: string;
+  footer_body_weight?: string;
+  footer_align?: 'left' | 'center';
+  footer_padding?: string;
   footer_show_payments?: boolean;
   footer_show_menu?: boolean;
   footer_show_newsletter?: boolean;

@@ -139,6 +139,14 @@ export interface SettingsRow {
   footer_heading_color?: string | null;
   footer_link_color?: string | null;
   footer_copyright_color?: string | null;
+  footer_heading_font?: string | null;
+  footer_body_font?: string | null;
+  footer_heading_size?: string | null;
+  footer_body_size?: string | null;
+  footer_heading_weight?: string | null;
+  footer_body_weight?: string | null;
+  footer_align?: string | null;
+  footer_padding?: string | null;
   footer_show_payments?: boolean | null;
   footer_show_menu?: boolean | null;
   footer_show_newsletter?: boolean | null;

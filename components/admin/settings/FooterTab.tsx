@@ -4,6 +4,7 @@ import React from 'react';
 import {
   FooterColumnsConfig,
   FooterColorsConfig,
+  FooterTypographyLayoutConfig,
   FooterVisibilityConfig,
   SocialMediaLinksConfig,
   FloatingContactsConfig,
@@ -40,6 +41,23 @@ interface FooterTabProps {
   setFooterBorderColor: (val: string) => void;
   footerCopyrightColor: string;
   setFooterCopyrightColor: (val: string) => void;
+
+  footerHeadingFont: string;
+  setFooterHeadingFont: (val: string) => void;
+  footerBodyFont: string;
+  setFooterBodyFont: (val: string) => void;
+  footerHeadingSize: string;
+  setFooterHeadingSize: (val: string) => void;
+  footerBodySize: string;
+  setFooterBodySize: (val: string) => void;
+  footerHeadingWeight: string;
+  setFooterHeadingWeight: (val: string) => void;
+  footerBodyWeight: string;
+  setFooterBodyWeight: (val: string) => void;
+  footerAlign: 'left' | 'center';
+  setFooterAlign: (val: 'left' | 'center') => void;
+  footerPadding: string;
+  setFooterPadding: (val: string) => void;
 
   footerShowPayments: boolean;
   setFooterShowPayments: (val: boolean) => void;
@@ -132,6 +150,25 @@ export default function FooterTab(props: FooterTabProps) {
         setFooterBorderColor={props.setFooterBorderColor}
         footerCopyrightColor={props.footerCopyrightColor}
         setFooterCopyrightColor={props.setFooterCopyrightColor}
+      />
+
+      <FooterTypographyLayoutConfig
+        footerHeadingFont={props.footerHeadingFont}
+        setFooterHeadingFont={props.setFooterHeadingFont}
+        footerBodyFont={props.footerBodyFont}
+        setFooterBodyFont={props.setFooterBodyFont}
+        footerHeadingSize={props.footerHeadingSize}
+        setFooterHeadingSize={props.setFooterHeadingSize}
+        footerBodySize={props.footerBodySize}
+        setFooterBodySize={props.setFooterBodySize}
+        footerHeadingWeight={props.footerHeadingWeight}
+        setFooterHeadingWeight={props.setFooterHeadingWeight}
+        footerBodyWeight={props.footerBodyWeight}
+        setFooterBodyWeight={props.setFooterBodyWeight}
+        footerAlign={props.footerAlign}
+        setFooterAlign={props.setFooterAlign}
+        footerPadding={props.footerPadding}
+        setFooterPadding={props.setFooterPadding}
       />
 
       <FooterVisibilityConfig

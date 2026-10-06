@@ -80,6 +80,10 @@ export default function Footer({ settings, brandName }: FooterProps) {
     ...(footerLinkColor ? { ['--footer-link']: footerLinkColor } : {}),
     ...(footerBorderColor ? { ['--footer-divider']: footerBorderColor } : {}),
     ...(settings.footer_copyright_color ? { ['--footer-copyright']: settings.footer_copyright_color } : {}),
+    ...(settings.footer_heading_font ? { ['--footer-heading-font']: settings.footer_heading_font } : {}),
+    ...(settings.footer_body_font ? { ['--footer-body-font']: settings.footer_body_font } : {}),
+    ...(settings.footer_body_size ? { fontSize: settings.footer_body_size } : {}),
+    ...(settings.footer_body_font ? { fontFamily: settings.footer_body_font } : {}),
   };
 
   return (
@@ -96,12 +100,18 @@ export default function Footer({ settings, brandName }: FooterProps) {
       }`}
       style={footerStyle}
     >
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+      <div
+        className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8"
+        style={{
+          ...(settings.footer_align === 'center' ? { textAlign: 'center' } : {}),
+          ...(settings.footer_padding ? { paddingTop: settings.footer_padding, paddingBottom: settings.footer_padding } : {}),
+        }}
+      >
         {/* Footer Top - Shopify Dynamic Responsive Grid */}
         <div className={`grid gap-8 pb-10 ${gridColsClass}`}>
           {/* Column 1: Brand & About */}
           <div className="space-y-4">
-            <h3 className="text-sm font-extrabold uppercase tracking-wider text-gray-900 dark:text-white" style={{ color: 'var(--footer-heading)' }}>
+            <h3 className="text-sm font-extrabold uppercase tracking-wider text-gray-900 dark:text-white" style={{ color: 'var(--footer-heading)', fontFamily: 'var(--footer-heading-font)', fontSize: settings.footer_heading_size || undefined, fontWeight: (settings.footer_heading_weight as any) || undefined }}>
               {settings.footer_col1_title || 'About Our Store'}
             </h3>
             <div className="space-y-3">
@@ -126,7 +136,7 @@ export default function Footer({ settings, brandName }: FooterProps) {
 
           {/* Column 2: Customer Support Details */}
           <div className="space-y-4">
-            <h3 className="text-sm font-extrabold uppercase tracking-wider text-gray-900 dark:text-white" style={{ color: 'var(--footer-heading)' }}>
+            <h3 className="text-sm font-extrabold uppercase tracking-wider text-gray-900 dark:text-white" style={{ color: 'var(--footer-heading)', fontFamily: 'var(--footer-heading-font)', fontSize: settings.footer_heading_size || undefined, fontWeight: (settings.footer_heading_weight as any) || undefined }}>
               {settings.footer_col2_title || 'Customer Support'}
             </h3>
             <p className="text-sm font-semibold leading-relaxed whitespace-pre-line text-gray-500 dark:text-gray-400" style={{ color: 'var(--footer-text)' }}>
@@ -137,7 +147,7 @@ export default function Footer({ settings, brandName }: FooterProps) {
           {/* Column 3: Quick Links navigation */}
           {showCol3 && (
             <div className="space-y-4">
-              <h3 className="text-sm font-extrabold uppercase tracking-wider text-gray-900 dark:text-white" style={{ color: 'var(--footer-heading)' }}>
+              <h3 className="text-sm font-extrabold uppercase tracking-wider text-gray-900 dark:text-white" style={{ color: 'var(--footer-heading)', fontFamily: 'var(--footer-heading-font)', fontSize: settings.footer_heading_size || undefined, fontWeight: (settings.footer_heading_weight as any) || undefined }}>
                 {settings.footer_col3_title || 'Quick Links'}
               </h3>
               <FooterQuickLinks settings={settings} navigationMenu={navigationMenu} />
@@ -149,7 +159,7 @@ export default function Footer({ settings, brandName }: FooterProps) {
             <div className="space-y-4">
               {showNewsletter && (
                 <>
-                  <h3 className="text-sm font-extrabold uppercase tracking-wider text-gray-900 dark:text-white" style={{ color: 'var(--footer-heading)' }}>
+                  <h3 className="text-sm font-extrabold uppercase tracking-wider text-gray-900 dark:text-white" style={{ color: 'var(--footer-heading)', fontFamily: 'var(--footer-heading-font)', fontSize: settings.footer_heading_size || undefined, fontWeight: (settings.footer_heading_weight as any) || undefined }}>
                     {settings.footer_col4_title || 'Newsletter'}
                   </h3>
                   <p className="text-sm font-semibold leading-relaxed text-gray-500 dark:text-gray-400" style={{ color: 'var(--footer-text)' }}>

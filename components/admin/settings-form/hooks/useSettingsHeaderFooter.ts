@@ -31,6 +31,14 @@ export function useSettingsHeaderFooter({ initialSettings }: UseSettingsHeaderFo
   const [footerHeadingColor, setFooterHeadingColor] = useState(initialSettings.footer_heading_color || '');
   const [footerLinkColor, setFooterLinkColor] = useState(initialSettings.footer_link_color || '');
   const [footerCopyrightColor, setFooterCopyrightColor] = useState(initialSettings.footer_copyright_color || '');
+  const [footerHeadingFont, setFooterHeadingFont] = useState(initialSettings.footer_heading_font || '');
+  const [footerBodyFont, setFooterBodyFont] = useState(initialSettings.footer_body_font || '');
+  const [footerHeadingSize, setFooterHeadingSize] = useState(initialSettings.footer_heading_size || '');
+  const [footerBodySize, setFooterBodySize] = useState(initialSettings.footer_body_size || '');
+  const [footerHeadingWeight, setFooterHeadingWeight] = useState(initialSettings.footer_heading_weight || '');
+  const [footerBodyWeight, setFooterBodyWeight] = useState(initialSettings.footer_body_weight || '');
+  const [footerAlign, setFooterAlign] = useState<'left' | 'center'>(initialSettings.footer_align || 'left');
+  const [footerPadding, setFooterPadding] = useState(initialSettings.footer_padding || '');
   const [footerShowPayments, setFooterShowPayments] = useState(initialSettings.footer_show_payments ?? true);
   const [footerShowMenu, setFooterShowMenu] = useState(initialSettings.footer_show_menu ?? true);
   const [footerShowNewsletter, setFooterShowNewsletter] = useState(initialSettings.footer_show_newsletter ?? true);
@@ -157,6 +165,22 @@ export function useSettingsHeaderFooter({ initialSettings }: UseSettingsHeaderFo
     setFooterLinkColor,
     footerCopyrightColor,
     setFooterCopyrightColor,
+    footerHeadingFont,
+    setFooterHeadingFont,
+    footerBodyFont,
+    setFooterBodyFont,
+    footerHeadingSize,
+    setFooterHeadingSize,
+    footerBodySize,
+    setFooterBodySize,
+    footerHeadingWeight,
+    setFooterHeadingWeight,
+    footerBodyWeight,
+    setFooterBodyWeight,
+    footerAlign,
+    setFooterAlign,
+    footerPadding,
+    setFooterPadding,
     footerShowPayments,
     setFooterShowPayments,
     footerShowMenu,

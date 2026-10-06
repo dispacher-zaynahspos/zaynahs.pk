@@ -144,6 +144,14 @@ export const updateSettings = async (settings: Partial<StoreSettings>): Promise<
     if (settings.footer_heading_color !== undefined) updatePayload.footer_heading_color = settings.footer_heading_color;
     if (settings.footer_link_color !== undefined) updatePayload.footer_link_color = settings.footer_link_color;
     if (settings.footer_copyright_color !== undefined) updatePayload.footer_copyright_color = settings.footer_copyright_color;
+    if (settings.footer_heading_font !== undefined) updatePayload.footer_heading_font = settings.footer_heading_font;
+    if (settings.footer_body_font !== undefined) updatePayload.footer_body_font = settings.footer_body_font;
+    if (settings.footer_heading_size !== undefined) updatePayload.footer_heading_size = settings.footer_heading_size;
+    if (settings.footer_body_size !== undefined) updatePayload.footer_body_size = settings.footer_body_size;
+    if (settings.footer_heading_weight !== undefined) updatePayload.footer_heading_weight = settings.footer_heading_weight;
+    if (settings.footer_body_weight !== undefined) updatePayload.footer_body_weight = settings.footer_body_weight;
+    if (settings.footer_align !== undefined) updatePayload.footer_align = settings.footer_align;
+    if (settings.footer_padding !== undefined) updatePayload.footer_padding = settings.footer_padding;
     if (settings.footer_show_payments !== undefined) updatePayload.footer_show_payments = settings.footer_show_payments;
     if (settings.footer_show_menu !== undefined) updatePayload.footer_show_menu = settings.footer_show_menu;
     if (settings.footer_show_newsletter !== undefined) updatePayload.footer_show_newsletter = settings.footer_show_newsletter;
