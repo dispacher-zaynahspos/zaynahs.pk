@@ -7,8 +7,6 @@ import { HomepageSection, StoreSettings } from '@/lib/types';
 import { isFeatureEnabled } from '@/lib/features/premium';
 import { getSharedAspectClass } from '@/lib/utils/styles';
 import { getResponsiveGridClasses } from '@/lib/utils/responsiveGrid';
-import { SectionWrapper } from './SectionWrapper';
-import { getOptimizedImageUrl } from '@/lib/utils/imageUrl';
 import SocialFeedRibbon from '../SocialFeedRibbon';
 
 interface PromoBannerSectionProps {
@@ -49,47 +47,34 @@ interface BrandsLogosSectionProps {
 }
 
 export function BrandsLogosSection({ section }: BrandsLogosSectionProps) {
-  const logos: string[] = section.content_data?.logos || [
+  const logos = section.content_data?.logos || [
     'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=120&auto=format&fit=crop&q=60',
     'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=120&auto=format&fit=crop&q=60',
     'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=120&auto=format&fit=crop&q=60',
     'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=120&auto=format&fit=crop&q=60'
   ];
 
-  const s = section.settings || {};
-  const isGrayscale = s.grayscale !== false;
-  const logoHeight = Number(s.logo_height ?? 40);
-
   return (
-    <SectionWrapper section={section} className="border-y border-gray-150 dark:border-gray-800/80">
-      {section.title && (
-        <div className="text-center mb-6">
-          <span className="text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">
-            {section.title}
-          </span>
-        </div>
-      )}
-      <div className="flex items-center justify-center gap-8 sm:gap-12 flex-wrap">
+    <div key={section.id} className="w-full py-8 bg-gray-50 dark:bg-white/5 border-y border-gray-150 dark:border-gray-800/80 overflow-hidden">
+      <div className="mx-auto max-w-7xl px-4 text-center mb-4">
+        <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
+          {section.title || 'Our Premium Partners'}
+        </span>
+      </div>
+      <div className="flex items-center justify-center gap-12 flex-wrap opacity-65 grayscale hover:opacity-100 transition-opacity">
         {logos.map((logoUrl: string, idx: number) => (
-          <div
-            key={idx}
-            className={`relative flex items-center justify-center transition-all duration-300 ${
-              isGrayscale
-                ? 'grayscale opacity-60 hover:grayscale-0 hover:opacity-100 hover:scale-105'
-                : 'opacity-90 hover:opacity-100 hover:scale-105'
-            }`}
-            style={{ height: `${logoHeight}px`, minWidth: `${Math.round(logoHeight * 2)}px` }}
-          >
-            <img
-              src={getOptimizedImageUrl(logoUrl, 250)}
-              alt={`Brand partner ${idx + 1}`}
-              className="max-h-full max-w-full object-contain pointer-events-none select-none"
-              loading="lazy"
+          <div key={idx} className="relative w-24 h-12">
+            <Image
+              src={logoUrl}
+              alt="Brand logo Partner"
+              fill
+              sizes="96px"
+              className="object-contain animate-fade-in"
             />
           </div>
         ))}
       </div>
-    </SectionWrapper>
+    </div>
   );
 }
 
