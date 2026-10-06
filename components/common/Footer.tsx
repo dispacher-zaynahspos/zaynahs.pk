@@ -111,7 +111,7 @@ export default function Footer({ settings, brandName }: FooterProps) {
         <div className={`grid gap-8 pb-10 ${gridColsClass}`}>
           {/* Column 1: Brand & About */}
           <div className="space-y-4">
-            <h3 className="text-sm font-extrabold uppercase tracking-wider text-gray-900 dark:text-white" style={{ color: 'var(--footer-heading)', fontFamily: 'var(--footer-heading-font)', fontSize: settings.footer_heading_size || undefined, fontWeight: (settings.footer_heading_weight as any) || undefined }}>
+            <h3 className="text-sm font-extrabold uppercase tracking-wider text-gray-900 dark:text-white" style={{ color: 'var(--footer-heading)', fontFamily: 'var(--footer-heading-font)', fontSize: settings.footer_heading_size || undefined, fontWeight: (settings.footer_heading_weight as React.CSSProperties['fontWeight']) || undefined }}>
               {settings.footer_col1_title || 'About Our Store'}
             </h3>
             <div className="space-y-3">
@@ -136,7 +136,7 @@ export default function Footer({ settings, brandName }: FooterProps) {
 
           {/* Column 2: Customer Support Details */}
           <div className="space-y-4">
-            <h3 className="text-sm font-extrabold uppercase tracking-wider text-gray-900 dark:text-white" style={{ color: 'var(--footer-heading)', fontFamily: 'var(--footer-heading-font)', fontSize: settings.footer_heading_size || undefined, fontWeight: (settings.footer_heading_weight as any) || undefined }}>
+            <h3 className="text-sm font-extrabold uppercase tracking-wider text-gray-900 dark:text-white" style={{ color: 'var(--footer-heading)', fontFamily: 'var(--footer-heading-font)', fontSize: settings.footer_heading_size || undefined, fontWeight: (settings.footer_heading_weight as React.CSSProperties['fontWeight']) || undefined }}>
               {settings.footer_col2_title || 'Customer Support'}
             </h3>
             <p className="text-sm font-semibold leading-relaxed whitespace-pre-line text-gray-500 dark:text-gray-400" style={{ color: 'var(--footer-text)' }}>
@@ -147,7 +147,7 @@ export default function Footer({ settings, brandName }: FooterProps) {
           {/* Column 3: Quick Links navigation */}
           {showCol3 && (
             <div className="space-y-4">
-              <h3 className="text-sm font-extrabold uppercase tracking-wider text-gray-900 dark:text-white" style={{ color: 'var(--footer-heading)', fontFamily: 'var(--footer-heading-font)', fontSize: settings.footer_heading_size || undefined, fontWeight: (settings.footer_heading_weight as any) || undefined }}>
+              <h3 className="text-sm font-extrabold uppercase tracking-wider text-gray-900 dark:text-white" style={{ color: 'var(--footer-heading)', fontFamily: 'var(--footer-heading-font)', fontSize: settings.footer_heading_size || undefined, fontWeight: (settings.footer_heading_weight as React.CSSProperties['fontWeight']) || undefined }}>
                 {settings.footer_col3_title || 'Quick Links'}
               </h3>
               <FooterQuickLinks settings={settings} navigationMenu={navigationMenu} />
@@ -159,7 +159,7 @@ export default function Footer({ settings, brandName }: FooterProps) {
             <div className="space-y-4">
               {showNewsletter && (
                 <>
-                  <h3 className="text-sm font-extrabold uppercase tracking-wider text-gray-900 dark:text-white" style={{ color: 'var(--footer-heading)', fontFamily: 'var(--footer-heading-font)', fontSize: settings.footer_heading_size || undefined, fontWeight: (settings.footer_heading_weight as any) || undefined }}>
+                  <h3 className="text-sm font-extrabold uppercase tracking-wider text-gray-900 dark:text-white" style={{ color: 'var(--footer-heading)', fontFamily: 'var(--footer-heading-font)', fontSize: settings.footer_heading_size || undefined, fontWeight: (settings.footer_heading_weight as React.CSSProperties['fontWeight']) || undefined }}>
                     {settings.footer_col4_title || 'Newsletter'}
                   </h3>
                   <p className="text-sm font-semibold leading-relaxed text-gray-500 dark:text-gray-400" style={{ color: 'var(--footer-text)' }}>
