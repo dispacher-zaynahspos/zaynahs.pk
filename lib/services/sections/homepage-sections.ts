@@ -199,6 +199,46 @@ export const addHomepageSection = async (
         ],
         ...content_data,
       };
+    } else if (sectionType === 'image_with_text') {
+      settings = { layout: 'image_left', image_width: 50, ...settings };
+      content_data = {
+        heading: 'Our Story',
+        body: 'Tell your brand story here...',
+        button_text: 'Learn More',
+        button_link: '/shop',
+        ...content_data,
+      };
+    } else if (sectionType === 'tabbed_product_grid') {
+      settings = { columns_desktop: 4, columns_tablet: 3, columns_mobile: 2, limit_per_tab: 8, ...settings };
+      content_data = {
+        tabs: [
+          { id: 'new', label: 'New Arrivals', source: 'recent' },
+          { id: 'best', label: 'Best Sellers', source: 'featured' },
+          { id: 'sale', label: 'On Sale', source: 'sale' },
+        ],
+        ...content_data,
+      };
+    } else if (sectionType === 'circular_categories') {
+      settings = { item_size: 80, show_labels: true, ...settings };
+      content_data = { items: [], ...content_data };
+    } else if (sectionType === 'faq_accordion') {
+      content_data = {
+        items: [
+          { q: 'What are your delivery timelines?', a: '2–4 business days nationwide.' },
+          { q: 'Do you offer Cash on Delivery?', a: 'Yes! COD is available on all orders.' },
+          { q: 'How do I return an item?', a: 'Contact us on WhatsApp within 7 days.' },
+        ],
+        ...content_data,
+      };
+    } else if (sectionType === 'rich_text') {
+      settings = { text_align: 'center', max_width: 'narrow', ...settings };
+      content_data = {
+        heading: 'Welcome to Our Store',
+        body: 'We bring you the finest quality kids clothing and jewelry.',
+        button_text: '',
+        button_link: '',
+        ...content_data,
+      };
     }
 
     const { data, error } = await supabase

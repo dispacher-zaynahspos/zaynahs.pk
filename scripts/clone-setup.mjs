@@ -156,6 +156,16 @@ async function main() {
     console.error(`❌ Missing required env keys in ${sourceEnvFile}:\n   ${missing.join(', ')}`);
     process.exit(1);
   }
+  // no-redirect site URL guard (intake doc: "koi redirect nahi")
+  const siteUrl = ENV.NEXT_PUBLIC_SITE_URL || '';
+  if (!/^https:\/\//.test(siteUrl)) {
+    console.error(`❌ NEXT_PUBLIC_SITE_URL must start with https:// (got "${siteUrl}")`);
+    process.exit(1);
+  }
+  if (/\/$/.test(siteUrl)) {
+    console.error(`❌ NEXT_PUBLIC_SITE_URL must NOT end with a trailing slash (got "${siteUrl}"). Canonical URL must be redirect-free.`);
+    process.exit(1);
+  }
   console.log(`✓ preflight: all ${REQUIRED.length} required keys present.`);
   console.log(`  Store   : ${ENV.NEXT_PUBLIC_BRAND_NAME}`);
   console.log(`  Site    : ${ENV.NEXT_PUBLIC_SITE_URL}`);
