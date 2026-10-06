@@ -55,7 +55,7 @@ export function NavbarDesktopNav({
       <div
         className={`absolute ${
           level === 1 ? 'top-full left-0 mt-2.5' : 'top-0 left-full ml-2'
-        } min-w-[248px] rounded-2xl border border-gray-200/70 dark:border-white/10 bg-white/98 dark:bg-[#121222]/98 p-2 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.25)] backdrop-blur-xl z-[120] animate-in fade-in zoom-in-95 slide-in-from-top-1 duration-150`}
+        } min-w-[248px] rounded-2xl border border-gray-200/70 dark:border-white/10 bg-white/98 dark:bg-[#121222]/98 p-2 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.25)] z-[120] animate-in fade-in zoom-in-95 slide-in-from-top-1 duration-150`}
         onMouseEnter={() => {
           if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
         }}

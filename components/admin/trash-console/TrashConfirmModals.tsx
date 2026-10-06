@@ -51,7 +51,7 @@ export const TrashConfirmModals: React.FC<TrashConfirmModalsProps> = ({
     <>
       {/* 1. Single Item Hard Delete Confirmation */}
       {confirmDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 animate-fade-in">
           <div className="bg-white dark:bg-[#16162a] rounded-2xl p-6 max-w-sm w-full border border-gray-100 dark:border-gray-800 shadow-2xl space-y-4">
             <h3 className="text-base font-bold text-gray-900 dark:text-white">Delete Permanently?</h3>
             <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -78,7 +78,7 @@ export const TrashConfirmModals: React.FC<TrashConfirmModalsProps> = ({
 
       {/* 2. Bulk Delete Confirmation */}
       {confirmBulkDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 animate-fade-in">
           <div className="bg-white dark:bg-[#16162a] rounded-2xl p-6 max-w-sm w-full border border-gray-100 dark:border-gray-800 shadow-2xl space-y-4">
             <h3 className="text-base font-bold text-gray-900 dark:text-white">Delete Selected Items?</h3>
             <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -105,7 +105,7 @@ export const TrashConfirmModals: React.FC<TrashConfirmModalsProps> = ({
 
       {/* 3. Empty Current Tab Trash Confirmation */}
       {confirmEmptyTab && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 animate-fade-in">
           <div className="bg-white dark:bg-[#16162a] rounded-2xl p-6 max-w-sm w-full border border-gray-100 dark:border-gray-800 shadow-2xl space-y-4">
             <h3 className="text-base font-bold text-gray-900 dark:text-white">Empty {activeTab.replace('_', ' ')} Trash?</h3>
             <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -132,7 +132,7 @@ export const TrashConfirmModals: React.FC<TrashConfirmModalsProps> = ({
 
       {/* 4. Empty Complete Trash Confirmation */}
       {confirmEmptyCompleteTrash && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 animate-fade-in">
           <div className="bg-white dark:bg-[#16162a] rounded-2xl p-6 max-w-sm w-full border border-gray-100 dark:border-gray-800 shadow-2xl space-y-4">
             <h3 className="text-base font-bold text-red-600 dark:text-red-400">Empty Entire Trash Bin?</h3>
             <p className="text-xs text-gray-500 dark:text-gray-400">

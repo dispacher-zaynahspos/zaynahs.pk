@@ -194,7 +194,7 @@ export default function ProductDetailGallery({
 
         {/* Mobile image counter pill */}
         {images.length > 1 && (
-          <div className="absolute bottom-2.5 right-2.5 z-10 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-xs text-[10px] font-bold text-white tracking-widest pointer-events-none md:hidden select-none">
+          <div className="absolute bottom-2.5 right-2.5 z-10 px-2 py-0.5 rounded-full bg-black/60 text-[10px] font-bold text-white tracking-widest pointer-events-none md:hidden select-none">
             {activeImageIndex + 1} / {images.length}
           </div>
         )}

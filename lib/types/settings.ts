@@ -206,6 +206,9 @@ export interface StoreSettings {
   footer_bg?: string;
   footer_text_color?: string;
   footer_border_color?: string;
+  footer_heading_color?: string;
+  footer_link_color?: string;
+  footer_copyright_color?: string;
   footer_show_payments?: boolean;
   footer_show_menu?: boolean;
   footer_show_newsletter?: boolean;

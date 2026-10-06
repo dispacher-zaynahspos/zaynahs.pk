@@ -49,7 +49,7 @@ export function ProductDetailStickyBar({
 
   return (
     <div
-      className="fixed left-3 right-3 max-w-md mx-auto z-[var(--z-sticky-cta)] md:hidden bg-white/95 dark:bg-[#16162a]/95 backdrop-blur-xl border border-gray-200/90 dark:border-white/10 px-3 py-2 rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.12)] transition-all duration-300 animate-in fade-in slide-in-from-bottom-3"
+      className="fixed left-3 right-3 max-w-md mx-auto z-[var(--z-sticky-cta)] md:hidden bg-white/95 dark:bg-[#16162a]/95 border border-gray-200/90 dark:border-white/10 px-3 py-2 rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.12)] transition-all duration-300 animate-in fade-in slide-in-from-bottom-3"
       style={{ bottom: 'var(--offset-cart-bar)' }}
     >
       <div className="flex items-center justify-between gap-3">

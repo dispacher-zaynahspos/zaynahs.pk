@@ -82,7 +82,7 @@ export function NavbarMobileDrawer({
     <div className="fixed inset-0 z-[999] flex md:hidden">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-300 animate-in fade-in"
+        className="fixed inset-0 bg-black/50 transition-opacity duration-300 animate-in fade-in"
         onClick={() => setMobileMenuOpen(false)}
       />
 

@@ -164,7 +164,7 @@ export default function FloatingContacts({ settings }: FloatingContactsProps) {
           aria-label="Chat with us on WhatsApp"
         >
           <WhatsAppIcon className="h-5 w-5 text-white fill-current drop-shadow-2xs" />
-          <span className={`absolute ${position === 'right' ? 'right-full mr-2.5' : 'left-full ml-2.5'} hidden sm:group-hover:inline-flex items-center px-2 py-1 text-[10px] font-bold text-white bg-gray-900/90 backdrop-blur-xs rounded-lg shadow-md whitespace-nowrap pointer-events-none transition-opacity`}>
+          <span className={`absolute ${position === 'right' ? 'right-full mr-2.5' : 'left-full ml-2.5'} hidden sm:group-hover:inline-flex items-center px-2 py-1 text-[10px] font-bold text-white bg-gray-900/90 rounded-lg shadow-md whitespace-nowrap pointer-events-none transition-opacity`}>
             Chat with us
           </span>
         </a>

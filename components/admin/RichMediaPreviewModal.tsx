@@ -97,7 +97,7 @@ export default function RichMediaPreviewModal({ url, item: initialItem, onClose,
 
           {/* Zoom controls — desktop wheel/double-click + these buttons; mobile pinch/double-tap */}
           {!state.loading && zoomActive && (
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1.5 bg-black/55 backdrop-blur-sm rounded-full px-2 py-1.5 shadow-lg">
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1.5 bg-black/55 rounded-full px-2 py-1.5 shadow-lg">
               <button
                 type="button"
                 onClick={zoom.zoomOut}

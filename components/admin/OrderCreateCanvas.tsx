@@ -26,7 +26,7 @@ export default function OrderCreateCanvas({ isOpen, onClose, onOrderCreated, set
     <div className="fixed inset-0 z-50 overflow-hidden font-sans">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-xs transition-opacity animate-fade-in"
+        className="absolute inset-0 bg-black/40 transition-opacity animate-fade-in"
         onClick={onClose}
       />
 

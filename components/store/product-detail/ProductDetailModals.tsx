@@ -155,7 +155,7 @@ export default function ProductDetailModals({
       {/* Sizing Guide Modal — Branded & Mobile-First High Converting Layout (Sample 2 Standard) */}
       {showSizeGuide && isFeatureEnabled(settings, 'size_guide') && sizeGuide && createPortal(
         <div
-          className="fixed inset-0 z-[150] overflow-y-auto bg-black/70 backdrop-blur-xs p-2 sm:p-4 md:p-6 overscroll-contain animate-fade-in flex flex-col items-center justify-start sm:justify-center py-3 sm:py-8"
+          className="fixed inset-0 z-[150] overflow-y-auto bg-black/70 p-2 sm:p-4 md:p-6 overscroll-contain animate-fade-in flex flex-col items-center justify-start sm:justify-center py-3 sm:py-8"
           onClick={() => setShowSizeGuide(false)}
         >
           <div

@@ -129,12 +129,12 @@ export function MediaCard({
       {showBadge && mode === 'library' && !bulkGenerating && (
         <div className="absolute top-2.5 right-2.5 z-10 pointer-events-none">
           {item.ai_generated ? (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-bold bg-black/70 backdrop-blur-xs text-emerald-400 border border-emerald-500/30 shadow-xs">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-bold bg-black/70 text-emerald-400 border border-emerald-500/30 shadow-xs">
               <CheckCircle2 className="w-2.5 h-2.5 text-emerald-400" />
               Tagged
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-bold bg-black/70 backdrop-blur-xs text-amber-300 border border-amber-500/30 shadow-xs">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-bold bg-black/70 text-amber-300 border border-amber-500/30 shadow-xs">
               <Clock className="w-2.5 h-2.5 text-amber-400" />
               Pending
             </span>

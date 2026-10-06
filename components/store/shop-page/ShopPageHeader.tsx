@@ -118,7 +118,7 @@ export default function ShopPageHeader({
                 <div className="relative group/scroll">
                   <button 
                     onClick={(e) => e.currentTarget.parentElement?.querySelector('.cat-scroll-container')?.scrollBy({ left: -300, behavior: 'smooth' })}
-                    className="flex absolute left-0 md:-left-4 top-1/2 -translate-y-1/2 z-10 w-8 h-8 items-center justify-center bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-full shadow-md text-gray-500 hover:text-[#e94560] opacity-70 md:opacity-0 group-hover/scroll:opacity-100 hover:opacity-100 active:opacity-100 transition-all duration-300 focus:outline-none"
+                    className="flex absolute left-0 md:-left-4 top-1/2 -translate-y-1/2 z-10 w-8 h-8 items-center justify-center bg-white/95 dark:bg-gray-800/95 border border-gray-200 dark:border-gray-700 rounded-full shadow-md text-gray-500 hover:text-[#e94560] opacity-70 md:opacity-0 group-hover/scroll:opacity-100 hover:opacity-100 active:opacity-100 transition-all duration-300 focus:outline-none"
                     aria-label="Scroll left"
                   >
                     <ChevronLeft className="w-4 h-4" />
@@ -161,7 +161,7 @@ export default function ShopPageHeader({
 
                   <button 
                     onClick={(e) => e.currentTarget.parentElement?.querySelector('.cat-scroll-container')?.scrollBy({ left: 300, behavior: 'smooth' })}
-                    className="flex absolute right-0 md:-right-4 top-1/2 -translate-y-1/2 z-10 w-8 h-8 items-center justify-center bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-full shadow-md text-gray-500 hover:text-[#e94560] opacity-70 md:opacity-0 group-hover/scroll:opacity-100 hover:opacity-100 active:opacity-100 transition-all duration-300 focus:outline-none"
+                    className="flex absolute right-0 md:-right-4 top-1/2 -translate-y-1/2 z-10 w-8 h-8 items-center justify-center bg-white/95 dark:bg-gray-800/95 border border-gray-200 dark:border-gray-700 rounded-full shadow-md text-gray-500 hover:text-[#e94560] opacity-70 md:opacity-0 group-hover/scroll:opacity-100 hover:opacity-100 active:opacity-100 transition-all duration-300 focus:outline-none"
                     aria-label="Scroll right"
                   >
                     <ChevronRight className="w-4 h-4" />

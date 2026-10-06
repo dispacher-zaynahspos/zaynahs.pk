@@ -449,6 +449,12 @@ CREATE TABLE IF NOT EXISTS store_settings (
   footer_show_menu BOOLEAN DEFAULT true,
   footer_show_newsletter BOOLEAN DEFAULT true,
   footer_show_social BOOLEAN DEFAULT true,
+  footer_bg TEXT,
+  footer_text_color TEXT,
+  footer_border_color TEXT,
+  footer_heading_color TEXT,
+  footer_link_color TEXT,
+  footer_copyright_color TEXT,
 
   -- Floating Contact Buttons config
   floating_contacts_enabled BOOLEAN DEFAULT true,

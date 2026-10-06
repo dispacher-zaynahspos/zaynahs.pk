@@ -151,7 +151,7 @@ export function ProductCardPreviewStudio({ settings, onUpdateSettings }: Product
                       e.stopPropagation();
                       setIsWishlisted(prev => !prev);
                     }}
-                    className="action-btn pointer-events-auto flex h-7 w-7 items-center justify-center rounded-full bg-white/95 dark:bg-[#16162a]/95 backdrop-blur-xs shadow-md border border-gray-200/80 dark:border-gray-800 text-gray-600 dark:text-gray-300 hover:text-[#e94560] transition-transform duration-200 cursor-pointer"
+                    className="action-btn pointer-events-auto flex h-7 w-7 items-center justify-center rounded-full bg-white/95 dark:bg-[#16162a]/95 shadow-md border border-gray-200/80 dark:border-gray-800 text-gray-600 dark:text-gray-300 hover:text-[#e94560] transition-transform duration-200 cursor-pointer"
                     title="Add to Wishlist"
                   >
                     <Heart className={`h-3.5 w-3.5 ${isWishlisted ? 'fill-red-500 text-red-500' : ''}`} />
@@ -161,7 +161,7 @@ export function ProductCardPreviewStudio({ settings, onUpdateSettings }: Product
                   <button
                     type="button"
                     onClick={(e) => e.stopPropagation()}
-                    className="action-btn pointer-events-auto flex h-7 w-7 items-center justify-center rounded-full bg-white/95 dark:bg-[#16162a]/95 backdrop-blur-xs shadow-md border border-gray-200/80 dark:border-gray-800 text-gray-600 dark:text-gray-300 hover:text-[#e94560] transition-transform duration-200 cursor-pointer"
+                    className="action-btn pointer-events-auto flex h-7 w-7 items-center justify-center rounded-full bg-white/95 dark:bg-[#16162a]/95 shadow-md border border-gray-200/80 dark:border-gray-800 text-gray-600 dark:text-gray-300 hover:text-[#e94560] transition-transform duration-200 cursor-pointer"
                     title="Quick View"
                   >
                     <Eye className="h-3.5 w-3.5" />
@@ -171,7 +171,7 @@ export function ProductCardPreviewStudio({ settings, onUpdateSettings }: Product
                   <button
                     type="button"
                     onClick={(e) => e.stopPropagation()}
-                    className="action-btn pointer-events-auto flex h-7 w-7 items-center justify-center rounded-full bg-white/95 dark:bg-[#16162a]/95 backdrop-blur-xs shadow-md border border-gray-200/80 dark:border-gray-800 text-gray-600 dark:text-gray-300 hover:text-[#e94560] transition-transform duration-200 cursor-pointer"
+                    className="action-btn pointer-events-auto flex h-7 w-7 items-center justify-center rounded-full bg-white/95 dark:bg-[#16162a]/95 shadow-md border border-gray-200/80 dark:border-gray-800 text-gray-600 dark:text-gray-300 hover:text-[#e94560] transition-transform duration-200 cursor-pointer"
                     title="Add to Cart"
                   >
                     <ShoppingCart className="h-3.5 w-3.5" />

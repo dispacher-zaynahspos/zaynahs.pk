@@ -73,7 +73,7 @@ export default function ReviewMediaTab({
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               />
               {/* Size Badge */}
-              <div className="absolute top-2 right-2 z-10 bg-black/60 backdrop-blur-xs text-white text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-md shadow-xs">
+              <div className="absolute top-2 right-2 z-10 bg-black/60 text-white text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-md shadow-xs">
                 18.4 KB &bull; WEBP
               </div>
 

@@ -69,7 +69,7 @@ export function AdminDesktopSidebar({
     >
       {/* 🏷️ Top Brand Block */}
       <div
-        className={`flex items-center border-b border-white/15 bg-black/10 backdrop-blur-xs flex-shrink-0 transition-all ${
+        className={`flex items-center border-b border-white/15 bg-black/10 flex-shrink-0 transition-all ${
           isCollapsed ? 'h-16 px-2 justify-center flex-col gap-1' : 'h-16 px-3.5 justify-between'
         }`}
       >

@@ -52,7 +52,7 @@ export function AdminConfirmProvider({ children }: { children: ReactNode }) {
     <ConfirmContext.Provider value={{ confirm }}>
       {children}
       {isOpen && options && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4">
           <div 
             className="w-full max-w-sm bg-white dark:bg-[#16162a] rounded-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200"
             role="dialog"

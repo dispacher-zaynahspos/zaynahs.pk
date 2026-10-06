@@ -23,6 +23,18 @@ export default function Footer({ settings, brandName }: FooterProps) {
 
   const currentYear = new Date().getFullYear();
 
+  // Customer Support auto-fill: use header contact phone/email + WhatsApp with admin
+  // override (footer_col2_text). Empty values produce NO empty rows (bug fix).
+  const supportFallback = (() => {
+    const phone = settings.header_top_bar_phone || settings.whatsapp_number || '';
+    const email = settings.header_top_bar_email || '';
+    const lines: string[] = [];
+    if (phone) lines.push(`Call/WhatsApp: ${phone}`);
+    if (email) lines.push(`Email: ${email}`);
+    lines.push('Timings: 10 AM - 10 PM');
+    return lines.join('\n');
+  })();
+
   const hasSocialLinks =
     settings.social_facebook ||
     settings.social_instagram ||
@@ -53,6 +65,21 @@ export default function Footer({ settings, brandName }: FooterProps) {
   const footerBg = settings.theme_config?.colors?.footerBg || settings.footer_bg;
   const footerTextColor = settings.theme_config?.colors?.footerTextColor || settings.footer_text_color;
   const footerBorderColor = settings.footer_border_color || undefined;
+  // Derive heading / link colors from the chosen body text color so every footer
+  // control actually applies on the storefront (was overridden by hardcoded classes).
+  const footerHeadingColor = settings.footer_heading_color || footerTextColor || undefined;
+  const footerLinkColor = settings.footer_link_color || footerTextColor || undefined;
+  // CSS vars consumed by footer children (fallbacks keep the old gray look when unset).
+  const footerStyle: React.CSSProperties & Record<string, string> = {
+    backgroundColor: footerBg || '',
+    color: footerTextColor || '',
+    ...(footerBorderColor ? { borderTopColor: footerBorderColor } : {}),
+    ...(footerBg ? { ['--footer-bg']: footerBg } : {}),
+    ...(footerTextColor ? { ['--footer-text']: footerTextColor } : {}),
+    ...(footerHeadingColor ? { ['--footer-heading']: footerHeadingColor } : {}),
+    ...(footerLinkColor ? { ['--footer-link']: footerLinkColor } : {}),
+    ...(footerBorderColor ? { ['--footer-divider']: footerBorderColor } : {}),
+  };
 
   return (
     <footer
@@ -66,18 +93,14 @@ export default function Footer({ settings, brandName }: FooterProps) {
       className={`w-full overflow-hidden bg-white dark:bg-[#0f0f1b] border-t border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400 select-none transition-colors duration-200 ${
         isPreview ? 'cursor-pointer hover:ring-2 hover:ring-[#e94560] hover:ring-offset-2' : ''
       }`}
-      style={{
-        backgroundColor: footerBg,
-        color: footerTextColor,
-        ...(footerBorderColor ? { borderTopColor: footerBorderColor } : {}),
-      }}
+      style={footerStyle}
     >
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         {/* Footer Top - Shopify Dynamic Responsive Grid */}
         <div className={`grid gap-8 pb-10 ${gridColsClass}`}>
           {/* Column 1: Brand & About */}
           <div className="space-y-4">
-            <h3 className="text-sm font-extrabold text-gray-900 dark:text-white uppercase tracking-wider">
+            <h3 className="text-sm font-extrabold uppercase tracking-wider text-gray-900 dark:text-white" style={{ color: 'var(--footer-heading)' }}>
               {settings.footer_col1_title || 'About Our Store'}
             </h3>
             <div className="space-y-3">
@@ -86,7 +109,7 @@ export default function Footer({ settings, brandName }: FooterProps) {
                   {settings.tagline}
                 </p>
               )}
-              <p className="text-sm font-semibold leading-relaxed max-w-md text-gray-500 dark:text-gray-400">
+              <p className="text-sm font-semibold leading-relaxed max-w-md text-gray-500 dark:text-gray-400" style={{ color: 'var(--footer-text)' }}>
                 {settings.footer_text ||
                   `Welcome to ${
                     brandName || settings.store_name || 'our store'
@@ -102,18 +125,18 @@ export default function Footer({ settings, brandName }: FooterProps) {
 
           {/* Column 2: Customer Support Details */}
           <div className="space-y-4">
-            <h3 className="text-sm font-extrabold text-gray-900 dark:text-white uppercase tracking-wider">
+            <h3 className="text-sm font-extrabold uppercase tracking-wider text-gray-900 dark:text-white" style={{ color: 'var(--footer-heading)' }}>
               {settings.footer_col2_title || 'Customer Support'}
             </h3>
-            <p className="text-sm font-semibold leading-relaxed whitespace-pre-line text-gray-500 dark:text-gray-400">
-              {settings.footer_col2_text || 'Call/WhatsApp: \nEmail: \nTimings: 10 AM - 10 PM'}
+            <p className="text-sm font-semibold leading-relaxed whitespace-pre-line text-gray-500 dark:text-gray-400" style={{ color: 'var(--footer-text)' }}>
+              {settings.footer_col2_text || supportFallback}
             </p>
           </div>
 
           {/* Column 3: Quick Links navigation */}
           {showCol3 && (
             <div className="space-y-4">
-              <h3 className="text-sm font-extrabold text-gray-900 dark:text-white uppercase tracking-wider">
+              <h3 className="text-sm font-extrabold uppercase tracking-wider text-gray-900 dark:text-white" style={{ color: 'var(--footer-heading)' }}>
                 {settings.footer_col3_title || 'Quick Links'}
               </h3>
               <FooterQuickLinks settings={settings} navigationMenu={navigationMenu} />
@@ -125,10 +148,10 @@ export default function Footer({ settings, brandName }: FooterProps) {
             <div className="space-y-4">
               {showNewsletter && (
                 <>
-                  <h3 className="text-sm font-extrabold text-gray-900 dark:text-white uppercase tracking-wider">
+                  <h3 className="text-sm font-extrabold uppercase tracking-wider text-gray-900 dark:text-white" style={{ color: 'var(--footer-heading)' }}>
                     {settings.footer_col4_title || 'Newsletter'}
                   </h3>
-                  <p className="text-sm font-semibold leading-relaxed text-gray-500 dark:text-gray-400">
+                  <p className="text-sm font-semibold leading-relaxed text-gray-500 dark:text-gray-400" style={{ color: 'var(--footer-text)' }}>
                     {settings.footer_col4_text ||
                       'Subscribe to get special offers, free giveaways, and once-in-a-lifetime deals.'}
                   </p>
@@ -143,7 +166,7 @@ export default function Footer({ settings, brandName }: FooterProps) {
 
         {/* Footer Bottom (Divider & Copyright) */}
         <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-xs font-semibold text-gray-500 dark:text-gray-400">
+          <p className="text-xs font-semibold text-gray-500 dark:text-gray-400" style={{ color: 'var(--footer-copyright, var(--footer-text))' }}>
             {settings.footer_bottom_text
               ? settings.footer_bottom_text
               : `© ${currentYear} ${brandName || settings.store_name || 'Our Store'}. All rights reserved.`}

@@ -177,3 +177,25 @@ document.documentElement.style.overscrollBehaviorY = 'contain';
 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[1000]">
 ```
 
+
+---
+
+## RULE M10b — Zero backdrop-blur, app-wide (ENFORCED 2026-10)
+RULE M10 extended to the WHOLE project (admin + storefront), not just AdminHeader/save bars. **No `backdrop-blur-*` class may exist anywhere** — it was removed from all 24 files / 36 occurrences (modals, overlays, sticky bars, nav dropdowns, mobile bottom nav, cart bar, product-card action chips, traffic map chrome, recent-buyer ticker, etc.) because the GPU repaints the whole page on every scroll frame → the "janky scroll + blur flicker" bug. All those elements already carry a solid/opacity background (`bg-black/60`, `bg-white/95`, `bg-[#1a1a2e]`), so the blur added cost with no visual necessity.
+- Verify before finishing any UI task: `grep -rn "backdrop-blur" app components` MUST return **0**.
+- Use solid/opacity backgrounds instead. Never re-introduce `backdrop-blur` even on full-screen overlays — the opacity background already provides the contrast.
+
+## RULE AUIX1 — Admin UI/UX + Responsive checklist (MANDATORY on every new/edited admin page)
+Breakpoints to test: 320 · 360 · 390 · 768 · 1024 · 1280 · 1440 · 1920+.
+- No horizontal page overflow at any width; wide screens use a sensible max-width (no stretched/empty layouts).
+- No fixed pixel widths on inputs; use `min-w-0` on flex/grid children; grids collapse 4 → 2 → 1.
+- Tables: horizontal scroll with sticky first column on tablet; card-list layout on mobile.
+- Sticky bars (save bars, tab bars) never cover content: add bottom padding / safe-area insets (`pb-36 sm:pb-20`, `env(safe-area-inset-*)`).
+- Modals/drawers: bottom-sheet on mobile, centered on desktop, scrollable body with `flex-1 min-h-0 overflow-y-auto overscroll-contain`, fixed header/footer, no cut content (RULE UI-POPUP-SCROLL + shared `useBodyScrollLock`).
+- Touch targets ≥ 44px; inputs 16px to avoid iOS zoom; safe-area support; use `dvh` not `vh`.
+- Loading skeletons (no blank/zero flashes); clear empty + error states with retry.
+- ONE design system: same spacing scale, radius, shadows, font sizes, button/input heights, badge colors, card style, icon size. Extract shared components; remove one-off styles (RULE SSOT1 / rule 15).
+- No `backdrop-blur` (RULE M10b); no `transition-all` on scroll-adjacent card wrappers; no `animate-*` inside scroll containers.
+- Accessibility: WCAG AA contrast, keyboard nav, aria-labels on icon-only buttons.
+- Cache/revalidate after saves via `lib/revalidate.ts`; Purge Cache reflects on live store.
+- Every new/edited admin page MUST pass this checklist before the task is considered done.

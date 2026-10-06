@@ -95,7 +95,7 @@ export function AdminMobileDrawer({
       <div
         onClick={() => setIsMobileMenuOpen(false)}
         aria-hidden="true"
-        className={`fixed inset-0 bg-black/65 backdrop-blur-xs z-40 lg:hidden transition-opacity duration-300 ${
+        className={`fixed inset-0 bg-black/65 z-40 lg:hidden transition-opacity duration-300 ${
           isMobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         }`}
       />

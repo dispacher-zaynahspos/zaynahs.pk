@@ -201,7 +201,7 @@ export default function ReviewsPageClient({
           </div>
 
           {/* ── GLOBAL SEARCH & FILTERS (aligned, sticky toolbar) ── */}
-          <div className="sticky top-2 z-20 bg-white/95 dark:bg-[#16162a]/95 backdrop-blur rounded-2xl border border-gray-200 dark:border-gray-800 p-4 sm:p-5 mb-6 space-y-4 shadow-sm">
+          <div className="sticky top-2 z-20 bg-white/95 dark:bg-[#16162a]/95 rounded-2xl border border-gray-200 dark:border-gray-800 p-4 sm:p-5 mb-6 space-y-4 shadow-sm">
             <div className="flex gap-2">
               <div className="relative flex-1">
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />

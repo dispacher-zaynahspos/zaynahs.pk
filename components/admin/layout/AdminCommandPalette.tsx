@@ -158,7 +158,7 @@ export function AdminCommandPalette({
       {/* Backdrop */}
       <div
         onClick={onClose}
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity animate-in fade-in duration-200"
+        className="fixed inset-0 bg-black/60 transition-opacity animate-in fade-in duration-200"
       />
 
       {/* Palette Modal Box */}

@@ -296,7 +296,7 @@ export default function TrafficWorldMap({
       style={{ height }}
     >
       {/* Live status badge */}
-      <div className="absolute top-3 left-3 z-10 flex items-center gap-2 bg-white/90 dark:bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full border border-gray-200/80 dark:border-gray-800 shadow-xs">
+      <div className="absolute top-3 left-3 z-10 flex items-center gap-2 bg-white/90 dark:bg-black/60 px-3 py-1.5 rounded-full border border-gray-200/80 dark:border-gray-800 shadow-xs">
         <span className="relative flex h-2.5 w-2.5">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
           <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
@@ -461,7 +461,7 @@ export default function TrafficWorldMap({
       {/* Hover tooltip */}
       {tooltip && (
         <div
-          className="absolute z-30 pointer-events-none bg-gray-900/95 text-white backdrop-blur-md border border-white/10 rounded-xl shadow-2xl px-3.5 py-2 text-xs whitespace-nowrap animate-in fade-in duration-100"
+          className="absolute z-30 pointer-events-none bg-gray-900/95 text-white border border-white/10 rounded-xl shadow-2xl px-3.5 py-2 text-xs whitespace-nowrap animate-in fade-in duration-100"
           style={{ left: tooltip.x + 14, top: tooltip.y - 12 }}
         >
           <div className="font-extrabold text-[13px]">{tooltip.title}</div>
@@ -476,7 +476,7 @@ export default function TrafficWorldMap({
       )}
 
       {/* Legend & hint */}
-      <div className="absolute bottom-3 left-3 z-10 flex items-center gap-3 bg-white/90 dark:bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-xl border border-gray-200/80 dark:border-gray-800 shadow-xs text-[10px] font-bold text-gray-600 dark:text-gray-300">
+      <div className="absolute bottom-3 left-3 z-10 flex items-center gap-3 bg-white/90 dark:bg-black/60 px-3 py-1.5 rounded-xl border border-gray-200/80 dark:border-gray-800 shadow-xs text-[10px] font-bold text-gray-600 dark:text-gray-300">
         <span className="flex items-center gap-1.5">
           <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-xs" /> Visitors
         </span>

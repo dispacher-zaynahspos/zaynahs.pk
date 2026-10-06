@@ -246,7 +246,7 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
           {showWishlist && (
             <button type="button"
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleWishlist(e); }}
-              className="action-btn pointer-events-auto flex h-7 w-7 items-center justify-center rounded-full bg-white/95 dark:bg-[#16162a]/95 backdrop-blur-xs shadow-md border border-gray-200/80 dark:border-gray-800 text-gray-600 dark:text-gray-300 hover:text-[var(--color-primary,#C2185B)] transition-transform duration-200 cursor-pointer"
+              className="action-btn pointer-events-auto flex h-7 w-7 items-center justify-center rounded-full bg-white/95 dark:bg-[#16162a]/95 shadow-md border border-gray-200/80 dark:border-gray-800 text-gray-600 dark:text-gray-300 hover:text-[var(--color-primary,#C2185B)] transition-transform duration-200 cursor-pointer"
               title={isInWishlist ? 'Remove from Wishlist' : 'Add to Wishlist'}
               aria-label={isInWishlist ? 'Remove from Wishlist' : 'Add to Wishlist'}
             >
@@ -256,7 +256,7 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
           {showQuickview && (
             <button type="button"
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); onOpenQuickView(e); }}
-              className="action-btn pointer-events-auto flex h-7 w-7 items-center justify-center rounded-full bg-white/95 dark:bg-[#16162a]/95 backdrop-blur-xs shadow-md border border-gray-200/80 dark:border-gray-800 text-gray-600 dark:text-gray-300 hover:text-[var(--color-primary,#C2185B)] transition-transform duration-200 cursor-pointer"
+              className="action-btn pointer-events-auto flex h-7 w-7 items-center justify-center rounded-full bg-white/95 dark:bg-[#16162a]/95 shadow-md border border-gray-200/80 dark:border-gray-800 text-gray-600 dark:text-gray-300 hover:text-[var(--color-primary,#C2185B)] transition-transform duration-200 cursor-pointer"
               title="Quick View" aria-label="Quick View"
             >
               <Eye className="h-3.5 w-3.5" />
@@ -265,7 +265,7 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
           {showQuickcart && (
             <button type="button"
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAddToCart(e); }}
-              className="action-btn pointer-events-auto flex h-7 w-7 items-center justify-center rounded-full bg-white/95 dark:bg-[#16162a]/95 backdrop-blur-xs shadow-md border border-gray-200/80 dark:border-gray-800 text-gray-600 dark:text-gray-300 hover:text-[var(--color-primary,#C2185B)] transition-transform duration-200 cursor-pointer"
+              className="action-btn pointer-events-auto flex h-7 w-7 items-center justify-center rounded-full bg-white/95 dark:bg-[#16162a]/95 shadow-md border border-gray-200/80 dark:border-gray-800 text-gray-600 dark:text-gray-300 hover:text-[var(--color-primary,#C2185B)] transition-transform duration-200 cursor-pointer"
               title={product.has_variants ? 'Choose Options' : 'Add to Cart'}
               aria-label={product.has_variants ? 'Choose Options' : 'Add to Cart'}
             >

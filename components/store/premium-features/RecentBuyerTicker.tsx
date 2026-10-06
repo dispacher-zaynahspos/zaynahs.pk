@@ -37,7 +37,7 @@ export default function RecentBuyerTicker({
   return (
     <aside
       aria-label="Recent purchase notification"
-      className="fixed left-3 sm:left-6 z-[var(--z-toast)] w-[calc(100vw-1.5rem)] max-w-[316px] sm:max-w-[340px] bg-white/95 dark:bg-[#0c0c16]/95 backdrop-blur-xl border border-black/[0.08] dark:border-white/[0.12] rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.12),0_2px_8px_rgba(0,0,0,0.06)] dark:shadow-[0_16px_40px_rgba(0,0,0,0.6)] transition-all duration-300 animate-in fade-in slide-in-from-bottom-3 group overflow-hidden"
+      className="fixed left-3 sm:left-6 z-[var(--z-toast)] w-[calc(100vw-1.5rem)] max-w-[316px] sm:max-w-[340px] bg-white/95 dark:bg-[#0c0c16]/95 border border-black/[0.08] dark:border-white/[0.12] rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.12),0_2px_8px_rgba(0,0,0,0.06)] dark:shadow-[0_16px_40px_rgba(0,0,0,0.6)] transition-all duration-300 animate-in fade-in slide-in-from-bottom-3 group overflow-hidden"
       style={{
         bottom: isCartBarVisible ? 'var(--offset-above-cart)' : 'var(--offset-above-nav)',
       }}

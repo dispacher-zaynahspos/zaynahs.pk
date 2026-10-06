@@ -10,6 +10,25 @@
 ## Root-cause pattern to hunt (verified in this repo)
 Settings form aur Homepage Customizer dono **same `store_settings` columns** likhte hain do **alag React state trees + alag save triggers** se (Settings = manual Save bar; Customizer = 1s debounced autosave) → **last-writer-wins drift**. Ye har duplicated column ka bug-source hai. Confirmed duplicate groups: product-card/swatch (triple), header/top-bar/newsletter (quad), footer/social, trust/safe-checkout/fake-views, ticker, dashboard-vs-reporting widgets. (Details + canonical decisions: `docs/DEEP_AUDIT_PLAN.md` §3.)
 
+## RULE SYNC-SC — Settings ↔ Customizer Sync (MANDATORY)
+If a Customizer section has a matching Shop Settings tab (Header, Footer, Products, Navigation, Trust & Badges, WhatsApp, Premium, etc.), both MUST read and write the SAME data — **same key, same default, same save path**. Never keep two copies.
+- **Customizer** = the controls WITH live preview (desktop / tablet / mobile).
+- **Settings tab** = the same controls, NO preview, same labels, same order, same validation.
+- A new control added in the Customizer for a section that also has a Settings tab → MUST also appear in that tab, and the reverse.
+- Controls with no visual effect on the storefront stay **Settings-only**.
+- A visual Premium feature → controls live in the Customizer WITH preview (same key as the Settings toggle); add an "Edit in Customizer" link in the Settings tab and a "Manage in Settings" link in the Customizer where useful.
+- Applies to header, footer, products, premium, and all future sections.
+
+**Checklist before finishing any Settings/Customizer task:** same key? · same default? · same save path? · applied on storefront? · cache purge works? · both brands (Zaynahs.pk + TotVogue.pk) load their own values without breaking saved data?
+
+## RULE TABS-ALIGN — Settings Tabs Alignment (MANDATORY)
+The Shop Settings tab bar (`components/admin/settings-form/SettingsTabBar.tsx` → `TABS`) is ordered storefront-appearance first, operations after:
+- Appearance: General · Header · Footer & Social · Navigation · Products · Trust & Badges · Customizer
+- Operations: WhatsApp · Shipping & Pay · Courier Manager · Coupons · Policies & FAQ · Profile & Account · Premium Features · Pixels & SEO · AI Settings · Email & SMTP (· Meta Sync when enabled)
+- Related tabs stay grouped; Header and Footer stay adjacent. Equal tab height/spacing, one consistent active state, no stray hover highlight.
+- `?tab=...` deep-links MUST keep working; each tab saves only its own fields; warn on unsaved changes when switching tabs.
+- Forms keep `pb-36 sm:pb-20` so the sticky bottom save bar never covers the last field (RULE DS6).
+
 ## Before writing ANY new code (mandatory pre-check)
 1. Search `components/`, `lib/`, `app/` for an existing component/hook/util/column that already does this or something close.
 2. Exist karta hai → **use/import/extend** the shared one. Duplicate/rewrite/copy-paste-tweak mat karo.

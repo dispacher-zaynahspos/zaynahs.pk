@@ -39,7 +39,7 @@ export default function CartBar({ currencySymbol = 'Rs.', enabled = true }: Cart
           color: 'var(--btn-primary-text, #ffffff)',
           borderRadius: '9999px',
         }}
-        className="pointer-events-auto w-full max-w-[340px] flex items-center justify-between px-3.5 py-2 border border-white/15 shadow-[0_10px_30px_rgba(0,0,0,0.35)] active:scale-[0.98] transition-all duration-150 cursor-pointer group backdrop-blur-xl"
+        className="pointer-events-auto w-full max-w-[340px] flex items-center justify-between px-3.5 py-2 border border-white/15 shadow-[0_10px_30px_rgba(0,0,0,0.35)] active:scale-[0.98] transition-all duration-150 cursor-pointer group"
       >
         {/* Left: Bag emblem + live count */}
         <div className="flex items-center gap-2.5 min-w-0">

@@ -11,7 +11,7 @@ export default function AdminBulkActionBar({ selectedCount, actions, onClearSele
 
   return (
     <div className="fixed bottom-20 md:bottom-6 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-5 w-[92%] max-w-lg select-none">
-      <div className="bg-[#1a1a2e] text-white rounded-2xl shadow-2xl p-3 sm:p-3.5 flex items-center justify-between border border-white/10 backdrop-blur-md">
+      <div className="bg-[#1a1a2e] text-white rounded-2xl shadow-2xl p-3 sm:p-3.5 flex items-center justify-between border border-white/10">
         <div className="flex items-center gap-2.5">
           <div className="bg-[#e94560] text-white rounded-full h-7 w-7 flex items-center justify-center text-xs font-black shadow-xs">
             {selectedCount}

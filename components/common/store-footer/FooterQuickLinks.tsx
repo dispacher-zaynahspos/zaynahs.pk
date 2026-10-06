@@ -133,7 +133,7 @@ export function FooterQuickLinks({ settings, navigationMenu }: FooterQuickLinksP
   const hasMore = allItems.length > 6;
 
   return (
-    <ul className="space-y-2.5 text-sm font-semibold">
+    <ul className="space-y-2.5 text-sm font-semibold" style={{ color: 'var(--footer-link)' }}>
       {visibleItems}
       {hasMore && (
         <li key="toggle-more">

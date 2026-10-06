@@ -18,25 +18,29 @@ import {
   Truck
 } from '@/components/common/Icons';
 
+// Tab order groups storefront-appearance tabs first, then operations tabs
+// (see AGENTS.md "Settings Tabs Alignment"). ?tab=... URLs are unchanged.
 export const TABS = [
+  // --- Storefront appearance ---
   { id: 'general', label: 'General', icon: Settings, href: '/admin/settings?tab=general' },
-  { id: 'profile', label: 'Profile & Account', icon: User, href: '/admin/settings/profile' },
   { id: 'header', label: 'Header', icon: Layout, href: '/admin/settings?tab=header' },
+  { id: 'footer', label: 'Footer & Social', icon: Globe, href: '/admin/settings?tab=footer' },
   { id: 'navigation', label: 'Navigation', icon: Navigation, href: '/admin/settings?tab=navigation' },
   { id: 'products', label: 'Products', icon: Package, href: '/admin/settings?tab=products' },
   { id: 'trust', label: 'Trust & Badges', icon: Zap, href: '/admin/settings?tab=trust' },
+  { id: 'customizer', label: 'Customizer', icon: Layout, href: '/admin/settings/customizer' },
+  // --- Operations ---
   { id: 'whatsapp', label: 'WhatsApp', icon: MessageCircle, href: '/admin/settings?tab=whatsapp' },
-  { id: 'policies', label: 'Policies & FAQ', icon: HelpCircle, href: '/admin/settings?tab=policies' },
-  { id: 'footer', label: 'Footer & Social', icon: Globe, href: '/admin/settings?tab=footer' },
   { id: 'shipping', label: 'Shipping & Pay', icon: ShoppingBag, href: '/admin/settings?tab=shipping' },
-  { id: 'premium', label: 'Premium Features', icon: Zap, href: '/admin/settings?tab=premium' },
   { id: 'courier', label: 'Courier Manager', icon: Truck, href: '/admin/settings/courier' },
   { id: 'coupons', label: 'Coupons', icon: CreditCard, href: '/admin/settings?tab=coupons' },
+  { id: 'policies', label: 'Policies & FAQ', icon: HelpCircle, href: '/admin/settings?tab=policies' },
+  { id: 'profile', label: 'Profile & Account', icon: User, href: '/admin/settings/profile' },
+  { id: 'premium', label: 'Premium Features', icon: Zap, href: '/admin/settings?tab=premium' },
   { id: 'pixels', label: 'Pixels & SEO', icon: Globe, href: '/admin/settings?tab=pixels' },
   { id: 'ai_settings', label: 'AI Settings', icon: Zap, href: '/admin/settings?tab=ai_settings' },
   { id: 'email', label: 'Email & SMTP', icon: Mail, href: '/admin/settings?tab=email' },
   { id: 'meta_sync', label: 'Meta Sync', icon: Globe, href: '/admin/settings?tab=meta_sync' },
-  { id: 'customizer', label: 'Customizer', icon: Layout, href: '/admin/settings/customizer' },
 ] as const;
 
 export type TabId = typeof TABS[number]['id'];
