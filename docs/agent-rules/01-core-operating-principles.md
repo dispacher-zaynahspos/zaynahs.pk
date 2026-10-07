@@ -23,6 +23,20 @@
 - Har touched write-path: (a) atomic hai (all-or-nothing, [05-database-supabase.md](05-database-supabase.md) RULE D15), (b) full cache invalidation trigger karta hai (RULE C10), (c) `snake_case` + UUID compliant hai.
 - Proof-of-fix checklist mandatory: [12-testing-verification.md](12-testing-verification.md) RULE V1.
 
+## RULE OP4 — Har fix ke saath clone + schema + guides always update (cross-ref SYNC2)
+> Full rule: [05-database-supabase.md](05-database-supabase.md) **RULE SYNC2** — ye file tabhi kholna.
+
+**One-line summary:** Koi bhi fix/feature/UI change jab bhi karo, **usi same task me** update karo:
+- DB fix → migration + `SUPER_MASTER_SCHEMA.sql` + `SCHEMA_CHANGE_LOG.md` + apply to ALL live DBs
+- Clone/setup change → `scripts/clone-setup.mjs` + `NEW_PROJECT_SETUP_GUIDE.md` + `CLONE_SETUP_INTAKE.md`
+- UI/UX change → matching `docs/agent-rules/NN-*.md` atomic rule + `UI_RULES.md` / `UI_PERFORMANCE_GUIDE.md`
+- Any permanent pattern → rule added to the matching atomic `docs/agent-rules/` file (RULE IDX1)
+- Bug fix → `docs/LESSONS_LEARNED.md` entry
+- Then: `npm run check:setup` green + `npx tsc --noEmit` = 0 + pushed to ALL repos
+
+**Stale docs/schema/clone = task incomplete. No exceptions.**
+
+
 ## Senior Developer Backend Engineering Habits
 1. **Think before you code** — understand the problem before touching the keyboard. ("What problem am I solving?" not "I'll figure it out while coding.")
 2. **Read existing code first** — understand the current system before rewriting anything.

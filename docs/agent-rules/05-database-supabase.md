@@ -177,5 +177,37 @@ Jab bhi migration create ho, feature add/remove ho, ya env/trigger change ho —
 - Har nayi UI capability, settings option, modal enhancement, ya unit customization (e.g. Size Charts with unit selection, pixel integrations, mobile alignment) **hamesha dynamic & multi-brand compliant** honi chahiye.
 - Koi bhi feature kisi ek store ke liye hardcode NA ho; brand logo, name, tagline, aur units dynamic context (`getSettings`, `getDomainBrand`) se aayein.
 - Jab bhi naya clone `npm run clone:setup -- --store=<store> --deploy --yes` se bane, usko tamam latest features, table alignments, custom measurement units, aur bugfixes **day-1 out-of-the-box (0 manual effort)** milenge.
+## RULE SYNC2 — Har fix ke saath clone + guides + schema + UI/UX docs always update (STRICT — zero exceptions)
+
+> **Ye rule ek permanent architectural law hai.** Jab bhi koi fix, feature, refactor, migration, ya UI/UX change ho — **usi same task me** neeche listed saari files update honi chahiye. "Baad mein update karoonga" = task incomplete = rule violation.
+
+### Every fix must update ALL of the following that are affected:
+
+| Affected area | What to update — in the same task |
+|---|---|
+| **DB/Schema fix** | `supabase/migrations/YYYYMMDDHHMMSS_<name>.sql` (new migration) + `supabase/schema/SUPER_MASTER_SCHEMA.sql` (RULE D6) + `docs/SCHEMA_CHANGE_LOG.md` (RULE D5) |
+| **Clone setup** | `scripts/clone-setup.mjs` (if new env/trigger/table needed) + `docs/NEW_PROJECT_SETUP_GUIDE.md` + `docs/CLONE_SETUP_INTAKE.md` (if new required credentials) |
+| **Clone scripts** | `scripts/setup-triggers.mjs`, `scripts/init-db.mjs`, `scripts/check-setup-sync.mjs` — update any list/table/constant that references the changed feature |
+| **UI/UX guides** | `docs/UI_RULES.md` (new pattern, scroll rule, interaction rule) + `docs/agent-rules/14-design-system.md` (new DS rule) + `docs/UI_PERFORMANCE_GUIDE.md` (perf note if relevant) |
+| **Agent rules** | If the fix establishes a permanent coding pattern → add a rule to the matching atomic `docs/agent-rules/NN-*.md` file (RULE IDX1 in `AGENTS.md`) |
+| **Types** | `lib/types/` — add/update interface if DB column or data shape changed (Types synchronization in this file) |
+| **Env docs** | `.env.example` — if new env var introduced |
+| **Lessons learned** | `docs/LESSONS_LEARNED.md` — if a real bug was found and fixed (so it's never repeated) |
+
+### Verification checklist (run before closing any task):
+```bash
+npm run check:setup    # migrations ↔ master schema ↔ triggers in sync → must be green
+npx tsc --noEmit       # zero TypeScript errors
+```
+
+### Why this rule exists (root cause of repeat failures):
+Without this rule, agents fix code but leave clone scripts, guides, and schema out of date. The next clone fails silently. A new developer/agent reads stale docs and re-introduces the same bug. UI patterns are lost. This rule closes that loop permanently: **one fix = one complete update across every layer.**
+
+### Cross-references:
+- RULE SYNC1 (above) — setup-sync enforcement via `check:setup`
+- RULE D5 — schema change log mandatory
+- RULE D6 — master schema always in sync
+- RULE IDX1 (`AGENTS.md`) — where to add new agent rules
+- RULE OP3 (`01-core-operating-principles.md`) — fool-proof: verify before "done"
 
 
