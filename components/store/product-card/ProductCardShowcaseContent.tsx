@@ -151,8 +151,8 @@ export const ProductCardShowcaseContent: React.FC<ProductCardShowcaseContentProp
   );
 
   return needsCbWrapper ? (
-    <div className={`cb ${alignClass}`}>{inner}</div>
+    <div className={`cb flex flex-col flex-grow justify-between ${alignClass}`}>{inner}</div>
   ) : (
-    <div className={`${contentClass} ${alignClass}`}>{inner}</div>
+    <div className={`${contentClass} flex flex-col flex-grow justify-between ${alignClass}`}>{inner}</div>
   );
 };

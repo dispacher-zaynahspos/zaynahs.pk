@@ -23,16 +23,19 @@ export const customCss = `
     
     /* Shared components scoped inside z-card-container */
     .z-card-container .bdg-container {
-      position: absolute; top: 12px; left: 12px;
+      position: absolute !important; top: 8px !important; left: 8px !important;
       display: flex; flex-direction: column; gap: 4px;
-      z-index: 10; align-items: flex-start;
+      z-index: 10 !important; align-items: flex-start;
+      max-width: calc(100% - 46px) !important;
+      pointer-events: none !important;
     }
     .z-card-container .bdg {
       display: inline-block;
-      padding: 3px 9px; border-radius: 20px;
-      font-size: .6rem; font-weight: 800;
-      letter-spacing: 1px; text-transform: uppercase;
-      line-height: 1;
+      padding: 3px 8px; border-radius: 20px;
+      font-size: .58rem; font-weight: 800;
+      letter-spacing: 0.8px; text-transform: uppercase;
+      line-height: 1; pointer-events: none;
+      max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
     .z-card-container .bdg-new { background: #d97706; color: #fff; }
     .z-card-container .bdg-hot { background: #ea580c; color: #fff; }
@@ -42,9 +45,9 @@ export const customCss = `
     /* Universal Quick Action Controls Overlay */
     .z-card-container .card-actions,
     .z-card-container .aic {
-      position: absolute; right: 8px; top: 8px;
+      position: absolute !important; right: 8px !important; top: 8px !important;
       display: flex; flex-direction: column; gap: 5px;
-      z-index: 25;
+      z-index: 25 !important;
       opacity: 0;
       transform: translateX(8px);
       pointer-events: none;
@@ -325,13 +328,81 @@ export const customCss = `
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
       cursor: pointer; display: flex; align-items: center; justify-content: center;
       font-size: 0.8rem; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
     }
     .dark .z-card-container .action-btn,
     .dark .z-card-container .ai {
       background: #16162a; color: #f3f4f6;
       border-color: rgba(255, 255, 255, 0.12);
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+    }
+
+    /* ── 5 DISTINCT ICON STYLE PRESETS ── */
+    /* 1. Minimal Line: Thin strokes, borderless floating elegance */
+    .icon-preset-minimal .action-btn,
+    .icon-preset-minimal .ai {
+      background: rgba(255, 255, 255, 0.92);
+      border: none;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+      color: #374151;
+    }
+    .dark .icon-preset-minimal .action-btn,
+    .dark .icon-preset-minimal .ai {
+      background: rgba(20, 20, 35, 0.92);
+      color: #e5e7eb;
+    }
+
+    /* 2. Modern Pill: Solid high contrast filled badges */
+    .icon-preset-pill .action-btn,
+    .icon-preset-pill .ai {
+      border-radius: 9999px;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+    }
+
+    /* 3. Luxury Metallic: Champagne & Gold fine micro-accents */
+    .icon-preset-luxe .action-btn,
+    .icon-preset-luxe .ai {
+      background: #1c1917;
+      color: #fef3c7;
+      border: 1.5px solid rgba(217, 119, 6, 0.45);
+      box-shadow: 0 2px 8px rgba(217, 119, 6, 0.2);
+    }
+    .icon-preset-luxe .action-btn:hover,
+    .icon-preset-luxe .ai:hover {
+      background: #d97706 !important;
+      color: #000000 !important;
+      border-color: #d97706 !important;
+    }
+
+    /* 4. Neo-Brutalist: Crisp 2px black geometric squircle with hard shadow */
+    .icon-preset-brutalist .action-btn,
+    .icon-preset-brutalist .ai {
+      border-radius: 6px;
+      border: 2px solid #000000;
+      background: #ffffff;
+      color: #000000;
+      box-shadow: 2px 2px 0px #000000;
+    }
+    .dark .icon-preset-brutalist .action-btn,
+    .dark .icon-preset-brutalist .ai {
+      border-color: #ffffff;
+      background: #09090b;
+      color: #ffffff;
+      box-shadow: 2px 2px 0px #ffffff;
+    }
+
+    /* 5. Floating Glass: Tactile translucent frosted bubble */
+    .icon-preset-glass .action-btn,
+    .icon-preset-glass .ai {
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      color: #111827;
+    }
+    .dark .icon-preset-glass .action-btn,
+    .dark .icon-preset-glass .ai {
+      background: rgba(25, 25, 45, 0.85);
+      border-color: rgba(255, 255, 255, 0.15);
+      color: #f9fafb;
     }
     .z-card-container .action-btn:hover,
     .z-card-container .ai:hover {
@@ -479,7 +550,7 @@ export const customCss = `
       display: flex; flex-direction: column; height: 100%;
     }
     .z-card-container .sc1:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,0,0,.08); border-color: transparent; }
-    .z-card-container .sc1 .ib { position: relative; width: 100%; aspect-ratio: 1; overflow: hidden; background: #f8f8f8; }
+    .z-card-container .sc1 .ib { position: relative; width: 100%; overflow: hidden; background: #f8f8f8; }
     .z-card-container .sc1 .ib img { width: 100%; height: 100%; object-fit: cover; transition: var(--trans); }
     .z-card-container .sc1:hover .ib img { transform: scale(1.06); }
     .z-card-container .sc1 .cb { padding: 12px; display: flex; flex-direction: column; flex-grow: 1; }
@@ -1255,6 +1326,8 @@ export const customCss = `
             top: 6px !important;
             left: 6px !important;
             gap: 2px !important;
+            max-width: calc(100% - 36px) !important;
+            pointer-events: none !important;
         }
         .grid-cols-2 .z-card-container .bdg {
             padding: 2px 6px !important;

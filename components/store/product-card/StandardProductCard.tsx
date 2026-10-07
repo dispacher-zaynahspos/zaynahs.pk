@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Product, StoreSettings } from '@/lib/types';
 import { ProductCardActions } from './ProductCardActions';
+import { ProductCardBadges } from './ProductCardBadges';
 import { formatPrice } from '@/lib/utils/whatsapp';
 import { saveScrollPosition } from '@/lib/hooks/useScrollRestoration';
 import { useMobileCardFocus } from '@/lib/hooks/useMobileCardFocus';
@@ -212,29 +213,12 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
             loading="lazy"
           />        )}
 
-        {/* Badges — z-[2], pointer-events:none so they don't block overlay link */}
-        <div className="absolute top-2 left-2 flex flex-col gap-1 z-[2] items-start pointer-events-none">
-          {currentComparePrice && currentComparePrice > currentPrice && (
-            <span style={{ backgroundColor: '#10b981' }} className="rounded-full px-2.5 py-0.5 text-[9px] font-black text-white shadow-xs uppercase tracking-wide">
-              -{Math.round(((currentComparePrice - currentPrice) / currentComparePrice) * 100)}%
-            </span>
-          )}
-          {product.is_featured && (
-            <span className="rounded-full px-2.5 py-0.5 text-[9px] font-black shadow-xs uppercase tracking-wide"
-              style={{ backgroundColor: product.custom_badge?.name?.toLowerCase() === 'featured' ? product.custom_badge.bg_color : '#e94560', color: product.custom_badge?.name?.toLowerCase() === 'featured' ? product.custom_badge.text_color : '#ffffff' }}>
-              {product.custom_badge?.name?.toLowerCase() === 'featured' ? product.custom_badge.name : 'FEATURED'}
-            </span>
-          )}
-          {product.badge_enabled && product.custom_badge && (!product.is_featured || product.custom_badge.name.toLowerCase() !== 'featured') && (
-            <span className="rounded-full px-2.5 py-0.5 text-[9px] font-black text-white shadow-sm uppercase tracking-wide"
-              style={{ backgroundColor: product.custom_badge.bg_color, color: product.custom_badge.text_color }}>
-              {product.custom_badge.name}
-            </span>
-          )}
-          {!product.is_service && product.stock > 0 && product.stock <= 8 && (
-            <span className="rounded-full bg-amber-600 px-2.5 py-0.5 text-[9px] font-black text-white shadow-sm uppercase tracking-wide">LIMITED</span>
-          )}
-        </div>
+        {/* Badges — SSOT ProductCardBadges with collision-free top-left clearance */}
+        <ProductCardBadges
+          product={product}
+          currentPrice={currentPrice}
+          currentComparePrice={currentComparePrice}
+        />
 
         {/* Action icons — OUTSIDE image overflow-hidden box so they never get clipped */}
         {/* Positioned absolute on z-card-container (relative). z-[25] wins over overlay link (z-[1]). */}
@@ -250,6 +234,7 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
         onToggleWishlist={onToggleWishlist}
         onOpenQuickView={onOpenQuickView}
         onAddToCart={onAddToCart}
+        iconStyle={settings?.card_icon_style || 'pill'}
         variant="action-btn"
       />
 

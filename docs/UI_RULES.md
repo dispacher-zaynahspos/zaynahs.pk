@@ -137,7 +137,16 @@ All save/cancel action bars across the Admin Console must be sticky at the botto
 ## 12. Product Card Multi-Archetype Standard (RULE DS12 & RULE CARD-DIVERSITY)
 - **Strict Ban on Reskinning**: Changing only colors/borders while keeping the DOM layout and element placements identical is strictly forbidden.
 - **Mandatory Spatial & Visual Diversity**: Placements of icons, buttons, title, price, variations, badges, and ratings must genuinely differ across archetypes (Zara slide-drawer, Daraz price-first urgency + direct button, Nike corner FAB + kicker, Amazon split 50/50 footer, Sephora center-hover pill).
-- Every card must support all image aspect ratios (3:4, 1:1, auto) and both `cover` & `contain` modes.
+- Every card must support all image aspect ratios (3:4, 1:1, 4:3, 16:9, auto) and both `cover` & `contain` modes.
 - Zero CPU blur (`backdrop-blur` banned), hardware-accelerated CSS transforms for 60fps scrolling.
 - See full specification in `docs/UI_CARDS.md` and `docs/agent-rules/14-design-system.md` RULE DS12.
+
+## 13. Card Collision Prevention, Grid Baseline & Icon Presets (RULE DS13)
+- **Collision-Free Geometry**: Badges strictly anchored top-left (`top: 8px; left: 8px; z-10; max-w-[calc(100%-46px)]`), action buttons strictly anchored top-right (`top: 8px; right: 8px; z-25;`) or bottom. No CSS position overrides (`position: relative` banned on action buttons).
+- **Grid Baseline Alignment**: Card body flex layout must use `flex flex-col flex-1 justify-between` and button wrappers must have `mt-auto w-full` so adjacent cards always align horizontally across the grid row.
+- **Single-Line Button Typography**: Buttons must use `whitespace-nowrap truncate` to prevent word-splitting onto two lines on mobile.
+- **5 Icon Style Presets**: Support 5 visual presets (`pill`, `minimal`, `luxe`, `brutalist`, `glass`) with distinct matching SVG glyphs.
+- **Multi-Aspect Ratio Standard**: Universal support for `3:4` portrait, `1:1` square, `4:3` landscape, `16:9` wide, and `auto` natural height without hardcoded height or aspect overrides.
+- See full rule: `docs/agent-rules/14-design-system.md` RULE DS13 and `docs/UI_CARDS.md`.
+
 

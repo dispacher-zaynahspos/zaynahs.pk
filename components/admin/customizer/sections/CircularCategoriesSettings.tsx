@@ -12,6 +12,9 @@ interface CircularItem {
   title: string;
   link: string;
   imageUrl: string;
+  ref_type?: 'category' | 'collection';
+  ref_id?: string;
+  image_mode?: 'auto' | 'custom';
 }
 
 interface CircularCategoriesSettingsProps {
@@ -49,6 +52,9 @@ export default function CircularCategoriesSettings({
         title: cat.name,
         link: `/shop?category=${cat.slug}`,
         imageUrl: cat.image_url || '',
+        ref_type: 'category' as const,
+        ref_id: cat.id,
+        image_mode: 'auto' as const,
       }));
     setItems([...items, ...newItems]);
   };
@@ -126,7 +132,7 @@ export default function CircularCategoriesSettings({
               <MediaField
                 label="Circle Image"
                 value={item.imageUrl}
-                onChange={(val) => updateItem(idx, 'imageUrl', val)}
+                onChange={(val) => { const next = items.map((it, i) => (i === idx ? { ...it, imageUrl: val, image_mode: 'custom' as const } : it)); setItems(next); }}
                 onSelect={() => onSelectMedia('content_data', 'items', true, idx)}
               />
             </div>

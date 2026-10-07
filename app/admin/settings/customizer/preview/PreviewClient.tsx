@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { HomepageSection, StoreSettings, Product, Category, Review } from '@/lib/types';
+import { HomepageSection, StoreSettings, Product, Category, Review, Collection } from '@/lib/types';
 import StoreFront from '@/components/store/StoreFront';
 import Navbar from '@/components/common/Navbar';
 import Footer from '@/components/common/Footer';
@@ -21,6 +21,7 @@ interface PreviewClientProps {
   initialSections: HomepageSection[];
   products: Product[];
   categories: Category[];
+  collections?: Collection[];
   initialSettings: StoreSettings;
   reviews: Review[];
 }
@@ -29,6 +30,7 @@ export default function PreviewClient({
   initialSections,
   products,
   categories,
+  collections = [],
   initialSettings,
   reviews
 }: PreviewClientProps) {
@@ -189,6 +191,7 @@ export default function PreviewClient({
           <StoreFront
             initialProducts={liveProducts}
             categories={categories}
+            collections={collections}
             settings={settings}
             reviews={reviews}
             sections={sections}

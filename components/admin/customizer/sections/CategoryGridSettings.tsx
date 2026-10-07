@@ -52,7 +52,10 @@ export default function CategoryGridSettings({
       .map(cat => ({
         title: cat.name,
         link: `/shop?category=${cat.slug}`,
-        imageUrl: cat.image_url || ''
+        imageUrl: cat.image_url || '',
+        ref_type: 'category' as const,
+        ref_id: cat.id,
+        image_mode: 'auto' as const,
       }));
     handleItemsChange([...newCards, ...items]);
     setSelectedBulkIds([]);
@@ -222,8 +225,20 @@ export default function CategoryGridSettings({
             };
 
             const openMediaSelectorForGrid = () => {
+              // Selecting an image manually switches this card to CUSTOM.
+              updateGridItem({ image_mode: 'custom' });
               onSelectMedia('content_data', 'imageUrl', true, idx);
             };
+
+            const linkedCat = item.ref_type === 'category' && item.ref_id
+              ? (categories || []).find(c => c.id === item.ref_id)
+              : undefined;
+            const isAuto = item.image_mode === 'auto' && !!item.ref_id;
+            const resetToAuto = () => {
+              if (!linkedCat) return;
+              updateGridItem({ image_mode: 'auto', imageUrl: linkedCat.image_url || '' });
+            };
+            const effectiveImage = isAuto ? (linkedCat?.image_url || item.imageUrl || '') : (item.imageUrl || '');
 
             return (
               <div key={idx} className="border border-gray-200 dark:border-gray-800 p-3 rounded-xl bg-gray-50/55 dark:bg-[#0f0f1b]/55 space-y-3 relative group">
@@ -269,15 +284,24 @@ export default function CategoryGridSettings({
                   <label className="text-[10px] text-gray-400">Quick Select Category</label>
                   <select
                     className="w-full px-2 py-1 text-xs rounded border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] text-gray-900 dark:text-gray-100 focus:outline-none"
+                    value={item.ref_type === 'category' ? (item.ref_id || '') : ''}
                     onChange={(e) => {
                       const catId = e.target.value;
-
-                      if (catId) {
-                        const cat = (categories || []).find(c => c.id === catId);
-                        if (cat) {
-                          updateGridItem({ title: cat.name, link: `/shop?category=${cat.slug}` });
-                        }
-                      }
+                      if (!catId) return;
+                      const cat = (categories || []).find(c => c.id === catId);
+                      if (!cat) return;
+                      const autoLabel = `/shop?category=${cat.slug}`;
+                      // Fill label/link only if empty or previously auto-derived.
+                      const labelIsAuto = !item.title || (categories || []).some(c => c.name === item.title);
+                      const linkIsAuto = !item.link || /^\/shop\?(category|collection)=/.test(item.link);
+                      updateGridItem({
+                        ...(labelIsAuto ? { title: cat.name } : {}),
+                        ...(linkIsAuto ? { link: autoLabel } : {}),
+                        ref_type: 'category',
+                        ref_id: cat.id,
+                        image_mode: 'auto',
+                        imageUrl: cat.image_url || item.imageUrl || '',
+                      });
                     }}
                   >
                     <option value="">-- Select Category --</option>
@@ -311,15 +335,51 @@ export default function CategoryGridSettings({
                   </div>
                 </div>
 
-                <div className="space-y-1">
+                <div className="space-y-1.5">
                   <label className="text-[10px] text-gray-400 block">Card Image</label>
-                  <button
-                    type="button"
-                    onClick={openMediaSelectorForGrid}
-                    className="w-full px-2 py-1.5 text-[10px] font-bold bg-gray-100 dark:bg-white/10 hover:bg-gray-200 text-gray-700 dark:text-gray-300 rounded-lg cursor-pointer transition-colors"
-                  >
-                    Select Image
-                  </button>
+                  <div className="flex items-start gap-2.5">
+                    <div className="relative w-14 h-14 shrink-0 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                      {effectiveImage ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={effectiveImage} alt="Card" className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="absolute inset-0 flex items-center justify-center text-[8px] text-gray-400 text-center px-1">No image</span>
+                      )}
+                      {item.ref_id && (
+                        <span className={`absolute top-0.5 left-0.5 px-1 py-px rounded text-[7px] font-black tracking-wider ${isAuto ? 'bg-emerald-500 text-white' : 'bg-gray-700 text-white'}`}>
+                          {isAuto ? 'AUTO' : 'CUSTOM'}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex-1 space-y-1.5">
+                      <button
+                        type="button"
+                        onClick={openMediaSelectorForGrid}
+                        className="w-full px-2 py-1.5 text-[10px] font-bold bg-gray-100 dark:bg-white/10 hover:bg-gray-200 text-gray-700 dark:text-gray-300 rounded-lg cursor-pointer transition-colors"
+                      >
+                        Select Image
+                      </button>
+                      {linkedCat && !isAuto && (
+                        <button
+                          type="button"
+                          onClick={resetToAuto}
+                          className="w-full px-2 py-1.5 text-[10px] font-bold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 rounded-lg cursor-pointer transition-colors"
+                        >
+                          Use category image
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  {isAuto && linkedCat && (
+                    <p className="text-[9px] text-emerald-600 dark:text-emerald-400 font-semibold">
+                      {linkedCat.image_url ? `Synced with ${linkedCat.name} category image` : `${linkedCat.name} has no image. Upload one or select manually.`}
+                    </p>
+                  )}
+                  {item.ref_id && !linkedCat && (
+                    <p className="text-[9px] text-amber-600 dark:text-amber-400 font-semibold">
+                      Linked category was removed — showing last saved image.
+                    </p>
+                  )}
                 </div>
               </div>
             );

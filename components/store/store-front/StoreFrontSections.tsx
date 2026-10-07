@@ -10,6 +10,7 @@ import { getResponsiveGridClasses } from '@/lib/utils/responsiveGrid';
 import SocialFeedRibbon from '../SocialFeedRibbon';
 import { SectionWrapper } from './SectionWrapper';
 import { getOptimizedImageUrl } from '@/lib/utils/imageUrl';
+import { resolveCardImage, buildRefLookup, type RefEntity } from '@/lib/utils/resolveCardImage';
 import { SectionIcon } from '@/components/common/SectionIcon';
 import { Lock, Eye, Sparkles } from '@/components/common/Icons';
 
@@ -86,10 +87,13 @@ export function BrandsLogosSection({ section }: BrandsLogosSectionProps) {
 
 interface CategoryGridSectionProps {
   section: HomepageSection;
+  /** categories + collections for AUTO image resolution (optional) */
+  refEntities?: RefEntity[];
 }
 
-export function CategoryGridSection({ section }: CategoryGridSectionProps) {
+export function CategoryGridSection({ section, refEntities = [] }: CategoryGridSectionProps) {
   const items = section.content_data?.items || [];
+  const refLookup = buildRefLookup(refEntities);
   
   const defaultItems = [
     { title: 'New Arrivals', link: '/shop', imageUrl: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=800&auto=format&fit=crop&q=80' },
@@ -99,7 +103,9 @@ export function CategoryGridSection({ section }: CategoryGridSectionProps) {
   ];
 
   const displayItems = items.length > 0 
-    ? items.filter((item: any) => item && item.imageUrl) 
+    ? items
+        .map((item: any) => ({ ...item, imageUrl: resolveCardImage(item, refLookup) }))
+        .filter((item: any) => item && item.imageUrl)
     : defaultItems;
 
   const responsiveCols = getResponsiveGridClasses({

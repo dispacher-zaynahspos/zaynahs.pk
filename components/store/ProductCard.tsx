@@ -259,7 +259,7 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
     />
   );
 
-  const isShowcase = safeStyle !== 'card_01' && safeStyle !== 'style1';
+  const isShowcase = safeStyle !== 'card_11' && safeStyle !== 'style1';
 
   return (
     <>

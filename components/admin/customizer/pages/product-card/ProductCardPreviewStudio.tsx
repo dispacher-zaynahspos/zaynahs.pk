@@ -6,6 +6,7 @@ import { StoreSettings } from '@/lib/types';
 import { Heart, Eye, ShoppingCart, Smartphone, Play, RefreshCw } from '@/components/common/Icons';
 import { getSharedAspectClass, getSharedTitleClampClass } from '@/lib/utils/styles';
 import { ProductCardStyleInjector } from '@/components/store/product-card/ProductCardStyles';
+import { CardWishlistIcon, CardQuickviewIcon, CardCartIcon } from '@/components/store/product-card/ProductCardActions';
 
 interface ProductCardPreviewStudioProps {
   settings: StoreSettings;
@@ -141,7 +142,7 @@ export function ProductCardPreviewStudio({ settings, onUpdateSettings }: Product
 
               {/* Action Icons on top-right (Staggered smooth entry) */}
               <div
-                className="card-actions absolute right-2 top-2 flex flex-col gap-1.5 z-[25] transition-all duration-200 ease-out"
+                className={`card-actions absolute right-2 top-2 flex flex-col gap-1.5 z-[25] transition-all duration-200 ease-out icon-preset-${settings.card_icon_style || 'pill'}`}
                 style={{ pointerEvents: 'none' }}
               >
                 {settings.card_show_wishlist !== false && (
@@ -154,7 +155,7 @@ export function ProductCardPreviewStudio({ settings, onUpdateSettings }: Product
                     className="action-btn pointer-events-auto flex h-7 w-7 items-center justify-center rounded-full bg-white/95 dark:bg-[#16162a]/95 shadow-md border border-gray-200/80 dark:border-gray-800 text-gray-600 dark:text-gray-300 hover:text-[#e94560] transition-transform duration-200 cursor-pointer"
                     title="Add to Wishlist"
                   >
-                    <Heart className={`h-3.5 w-3.5 ${isWishlisted ? 'fill-red-500 text-red-500' : ''}`} />
+                    <CardWishlistIcon isInWishlist={isWishlisted} iconStyle={settings.card_icon_style} className="h-3.5 w-3.5" />
                   </button>
                 )}
                 {settings.card_show_quickview !== false && (
@@ -164,7 +165,7 @@ export function ProductCardPreviewStudio({ settings, onUpdateSettings }: Product
                     className="action-btn pointer-events-auto flex h-7 w-7 items-center justify-center rounded-full bg-white/95 dark:bg-[#16162a]/95 shadow-md border border-gray-200/80 dark:border-gray-800 text-gray-600 dark:text-gray-300 hover:text-[#e94560] transition-transform duration-200 cursor-pointer"
                     title="Quick View"
                   >
-                    <Eye className="h-3.5 w-3.5" />
+                    <CardQuickviewIcon iconStyle={settings.card_icon_style} className="h-3.5 w-3.5" />
                   </button>
                 )}
                 {settings.card_show_quickcart !== false && (
@@ -174,7 +175,7 @@ export function ProductCardPreviewStudio({ settings, onUpdateSettings }: Product
                     className="action-btn pointer-events-auto flex h-7 w-7 items-center justify-center rounded-full bg-white/95 dark:bg-[#16162a]/95 shadow-md border border-gray-200/80 dark:border-gray-800 text-gray-600 dark:text-gray-300 hover:text-[#e94560] transition-transform duration-200 cursor-pointer"
                     title="Add to Cart"
                   >
-                    <ShoppingCart className="h-3.5 w-3.5" />
+                    <CardCartIcon iconStyle={settings.card_icon_style} className="h-3.5 w-3.5" />
                   </button>
                 )}
               </div>

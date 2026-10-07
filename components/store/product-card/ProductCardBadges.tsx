@@ -66,7 +66,7 @@ export const ProductCardBadges: React.FC<ProductCardBadgesProps> = ({
   if (badges.length === 0) return null;
 
   return (
-    <div className="bdg-container pointer-events-none">
+    <div className="bdg-container absolute top-2 left-2 flex flex-col gap-1 z-10 items-start pointer-events-none max-w-[calc(100%-48px)]">
       {badges}
     </div>
   );

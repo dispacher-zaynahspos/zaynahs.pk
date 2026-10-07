@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { Product, Category, StoreSettings, Review, HomepageSection } from '@/lib/types';
+import { Product, Category, StoreSettings, Review, HomepageSection, Collection } from '@/lib/types';
 import CategoryFilter from './CategoryFilter';
 import ProductGrid from './ProductGrid';
 import { useSearchStore } from '@/store/searchStore';
@@ -31,6 +31,7 @@ const LOAD_MORE_KEY = 'storefront_load_more_limits';
 interface StoreFrontProps {
   initialProducts: Product[];
   categories: Category[];
+  collections?: Collection[];
   settings: StoreSettings;
   reviews?: (Review & { productName?: string; productSlug?: string })[];
   sections?: HomepageSection[];
@@ -42,6 +43,7 @@ interface StoreFrontProps {
 export default function StoreFront({
   initialProducts,
   categories,
+  collections = [],
   settings,
   reviews = [],
   sections = [],
@@ -220,7 +222,7 @@ export default function StoreFront({
             break;
           case 'category_grid':
           case 'collections_grid':
-            content = <CategoryGridSection section={section} />;
+            content = <CategoryGridSection section={section} refEntities={[...categories, ...collections]} />;
             break;
           case 'trust_badges':
             content = <TrustBadgesSection section={section} settings={activeSettings} />;
@@ -269,7 +271,7 @@ export default function StoreFront({
             );
             break;
           case 'circular_categories':
-            content = <CircularCategoriesSection section={section} />;
+            content = <CircularCategoriesSection section={section} refEntities={[...categories, ...collections]} />;
             break;
           case 'faq_accordion':
             content = <FaqAccordionSection section={section} />;

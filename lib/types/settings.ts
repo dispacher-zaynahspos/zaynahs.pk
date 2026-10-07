@@ -307,6 +307,8 @@ export interface StoreSettings {
     | 'showcase_16' | 'showcase_20' | 'showcase_21' | 'showcase_22'
     | 'showcase_23' | 'showcase_24';
   card_variant?: 'v1';
+  /** Action icons visual preset: minimal thin line, modern filled pill, luxury metallic, neo-brutalist sharp, or floating glass. */
+  card_icon_style?: 'minimal' | 'pill' | 'luxe' | 'brutalist' | 'glass';
   /** How a card reveals hover image + action icons on touch devices. */
   card_mobile_activation?: 'scroll' | 'touch' | 'off';
   /** Standard card appearance controls. */

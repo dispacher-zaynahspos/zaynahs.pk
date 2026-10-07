@@ -166,6 +166,67 @@ Smartphones render product feeds in 2-column grids (~160px–180px per card).
 
 ---
 
+## 4. Element Placement, Collision Prevention & Icon Presets Standard
+
+### 🛡️ CARD-COLLISION-1: Absolute Badges vs Action Icons Separation
+1. **Badges Zone (Strictly Top-Left)**:
+   - Sits at `position: absolute !important; top: 8px !important; left: 8px !important; z-index: 10 !important;`.
+   - Must have `pointer-events: none !important;` so badges never block overlay links.
+   - Must have `max-width: calc(100% - 46px) !important;` (mobile: `calc(100% - 36px)`). Long badges truncate or stack; they NEVER extend into the top-right action icon area.
+2. **Action Icons Zone (Strictly Top-Right or Bottom)**:
+   - Floating action stack sits at `position: absolute !important; right: 8px !important; top: 8px !important; z-index: 25 !important;`.
+   - NEVER place floating action buttons on top-left where badges reside.
+   - **No Position Overrides**: CSS rules for `.action-btn` or `.ai` must NEVER declare `position: relative` without specificity clearance, as this broke Tailwind's `.absolute` and caused buttons to flow statically to the top-left over badges.
+   - When using corner-fab, the FAB bubble sits at bottom-right (`right: 10px; -bottom: 16px;`), while Wishlist and Eye remain anchored to top-right.
+
+### 📐 CARD-ALIGN-1: Grid Baseline Button Alignment (`mt-auto`)
+1. In 2-column mobile feeds and desktop catalog grids, adjacent cards frequently have uneven title lengths (1 vs 2 lines) or differing swatch presence (some have swatches, others do not).
+2. To prevent jagged, uneven button heights across the grid:
+   - Outer card container must have `flex flex-col h-full`.
+   - Content container must have `flex flex-col flex-1 justify-between`.
+   - Every bottom action button wrapper (`direct-btn-wrap`, `split-action-bar`, `marketplace-bottom-wrap`) must have `mt-auto w-full`.
+   - This ensures all buttons align horizontally on the exact same baseline across every card in the row.
+
+### 🔤 CARD-TYPO-1: Single-Line Button Typography & No-Wrap Standard
+1. On narrow 2-column mobile cards (~160px width), action button text must **NEVER** wrap onto multiple lines (e.g. `SELECT` on line 1, `SHADE` on line 2).
+2. Every card action button must include `whitespace-nowrap truncate`.
+3. Typography scale: `text-[10px]` to `text-[11px] font-bold`, compact padding `py-1.5 px-2.5`, icon scale `h-3.5 w-3.5 shrink-0`.
+4. Buttons with long text use compact phrases: `Options` / `Select` instead of long strings, `Quick Add` instead of verbose descriptions.
+
+### 🎨 CARD-ICONS-1: 5 Distinct Action Icon Style Presets
+Merchants can customize the aesthetic of Cart, Wishlist, and Quick View icons via `StoreSettings.card_icon_style`:
+1. **Preset 1 — Modern Filled Pill (`pill`)**: Solid high-contrast circular badges (`bg-white dark:bg-[#16162a] shadow-md`), classic crisp icons.
+2. **Preset 2 — Minimal Line (`minimal`)**: Thin featherweight strokes (`strokeWidth: 1.6`), borderless floating elegance, sleek minimal shopping bag and slender heart.
+3. **Preset 3 — Luxury Metallic (`luxe`)**: Champagne gold fine micro-borders (`border-[#c9a44c]/40`), dark warm background, diamond charm wishlist and designer tote bag cart.
+4. **Preset 4 — Neo-Brutalist Sharp (`brutalist`)**: Crisp 2px black geometric squircle border, hard offset shadow (`shadow-[2px_2px_0px_#000]`), bold high-contrast impact.
+5. **Preset 5 — Floating Frost Glass (`glass`)**: Translucent tactile bubble (`bg-white/85 dark:bg-black/60`), delicate white hairline border, gentle shadow depth.
+
+---
+
+## 3.3 RULE CARD-RATIO-1: Multi-Aspect Ratio Standard (`3:4`, `1:1`, `4:3`, `16:9`, `auto`)
+
+> 📐 **SSOT Image Aspect Ratio Rule**: Every card archetype, catalog grid, and shop list item MUST dynamically adapt to the admin's chosen aspect ratio without any CSS distortion or clipping.
+
+1. **Canonical Supported Options (`IMAGE_ASPECT_RATIO_OPTIONS` in `lib/constants/productCardOptions.ts`)**:
+   - `3:4` (Portrait — Fashion & Apparel) ──► `aspect-[3/4]`
+   - `1:1` (Square — Jewelry & Accessories) ──► `aspect-square`
+   - `4:3` (Landscape) ──► `aspect-[4/3]`
+   - `16:9` (Wide — Tech, Lifestyle & Wide Banners) ──► `aspect-[16/9] aspect-video`
+   - `auto` (Natural height) ──► `aspect-auto min-h-[220px] sm:min-h-[280px]`
+
+2. **Single Source of Truth (`getSharedAspectClass` in `lib/utils/styles.ts`)**:
+   - Sizing logic MUST ONLY be fetched from `getSharedAspectClass(settings?.image_aspect_ratio)`.
+   - Normalizer cleanses `/`, `_`, spaces, and `by` (e.g., `16/9`, `16:9`, `wide`, `widescreen`, `video` all map cleanly to `aspect-[16/9] aspect-video`).
+
+3. **No Hardcoded Heights or Aspect Ratios in CSS**:
+   - ❌ *STRICTLY BANNED*: Hardcoding `aspect-ratio: 1`, `height: 320px`, or `padding-bottom: 125%` in `.img-box`, `.ib`, or `.z-card-container`.
+   - ✅ *MANDATORY*: All image containers use `<div className={"img-box relative " + aspectClass + " w-full ..."}>` and Next.js `<Image fill ... />` with `fitClass` (`object-contain` or `object-cover`).
+
+4. **Tailwind JIT Content Coverage**:
+   - `tailwind.config.ts` content array MUST include `./lib/**/*.{js,ts,jsx,tsx}` so that dynamic aspect classes generated by `getSharedAspectClass` (`aspect-[16/9]`, `aspect-video`, `aspect-[3/4]`, `aspect-[4/3]`) are guaranteed to compile in production.
+
+---
+
 ## 4. Multi-Archetype Reference Index (Sequential Cards 01–15)
 
 | Canonical Key | Legacy Key | Class | Card Name & Archetype | Silhouette & Element Order | Action Format |

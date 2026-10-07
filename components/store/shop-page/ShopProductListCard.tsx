@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Heart, ShoppingCart } from '@/components/common/Icons';
+import { CardWishlistIcon, CardCartIcon } from '@/components/store/product-card/ProductCardActions';
 import { Product, StoreSettings } from '@/lib/types';
 import { formatPrice } from '@/lib/utils/whatsapp';
 import { toast } from 'sonner';
@@ -143,14 +144,14 @@ export default function ShopProductListCard({ product, settings, addItem }: Shop
         </div>
 
         {/* Action Row */}
-        <div className="flex items-center justify-between gap-3 pt-2 relative z-20">
+        <div className={`flex items-center justify-between gap-3 pt-2 relative z-20 icon-preset-${settings.card_icon_style || 'pill'}`}>
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={handleWishClick}
               className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:text-[#e94560] transition-all cursor-pointer"
             >
-              <Heart className={`h-4.5 w-4.5 ${inWish ? 'fill-red-500 text-red-500' : ''}`} />
+              <CardWishlistIcon isInWishlist={inWish} iconStyle={settings.card_icon_style} className="h-4 w-4" />
             </button>
 
             <button
@@ -169,10 +170,10 @@ export default function ShopProductListCard({ product, settings, addItem }: Shop
                 const targetId = isMobile ? 'header-cart-icon-mobile' : 'header-cart-icon-desktop';
                 animateFlyTo(e.currentTarget as HTMLElement, targetId, primaryImage);
               }}
-              className="flex h-9 items-center gap-1.5 px-4 rounded-xl bg-[#1a1a2e] dark:bg-[#e94560] text-white hover:opacity-90 active:scale-95 text-xs font-bold transition-all cursor-pointer"
+              className="flex h-9 items-center gap-1.5 px-3.5 rounded-xl bg-[#1a1a2e] dark:bg-[#e94560] text-white hover:opacity-90 active:scale-95 text-xs font-bold transition-all cursor-pointer whitespace-nowrap truncate"
             >
-              <ShoppingCart className="h-4 w-4" />
-              <span>{product.has_variants ? 'Choose Options' : 'Add to Cart'}</span>
+              <CardCartIcon iconStyle={settings.card_icon_style} className="h-3.5 w-3.5 shrink-0" />
+              <span className="truncate">{product.has_variants ? 'Choose Options' : 'Add to Cart'}</span>
             </button>
           </div>
         </div>

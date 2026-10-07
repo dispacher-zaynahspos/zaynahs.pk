@@ -1,26 +1,25 @@
 export function getSharedAspectClass(ratio?: string): string {
   if (!ratio) return 'aspect-[3/4]';
   
-  const normalized = ratio.toLowerCase().replace('by', ':');
+  const normalized = ratio.toLowerCase().trim().replace(/[\s_/]/g, ':').replace('by', ':');
   
   switch (normalized) {
     case '3:4': 
-    case '3/4':
-    case 'recommended':
     case 'portrait':
+    case 'recommended':
       return 'aspect-[3/4]';
     case '4:3': 
-    case '4/3':
     case 'landscape':
       return 'aspect-[4/3]';
     case '16:9': 
-    case '16/9':
-      return 'aspect-[16/9]';
+    case 'wide':
+    case 'widescreen':
+    case 'video':
+      return 'aspect-[16/9] aspect-video';
     case 'auto': 
+    case 'natural':
       return 'aspect-auto min-h-[220px] sm:min-h-[280px]';
     case '1:1':
-    case '1/1':
-    case '1by1':
     case 'square':
       return 'aspect-square';
     default:

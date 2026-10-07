@@ -7,21 +7,28 @@ import { HomepageSection } from '@/lib/types';
 import { SectionWrapper } from './SectionWrapper';
 import { getOptimizedImageUrl } from '@/lib/utils/imageUrl';
 import { FolderOpen } from '@/components/common/Icons';
+import { resolveCardImage, buildRefLookup, type RefEntity } from '@/lib/utils/resolveCardImage';
 
 interface CircularItem {
   title: string;
   link: string;
   imageUrl: string;
+  ref_type?: 'category' | 'collection';
+  ref_id?: string;
+  image_mode?: 'auto' | 'custom';
 }
 
 interface CircularCategoriesSectionProps {
   section: HomepageSection;
+  refEntities?: RefEntity[];
 }
 
-export function CircularCategoriesSection({ section }: CircularCategoriesSectionProps) {
+export function CircularCategoriesSection({ section, refEntities = [] }: CircularCategoriesSectionProps) {
   const s = section.settings || {};
   const c = section.content_data || {};
-  const items: CircularItem[] = c.items || [];
+  const rawItems = c.items || [];
+  const refLookup = buildRefLookup(refEntities);
+  const items: CircularItem[] = rawItems.map((it: CircularItem) => ({ ...it, imageUrl: resolveCardImage(it, refLookup) }));
   const itemSize = Number(s.item_size) || 80;
   const showLabels = s.show_labels !== false;
 

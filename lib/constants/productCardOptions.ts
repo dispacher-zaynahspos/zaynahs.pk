@@ -58,3 +58,14 @@ export const DEFAULT_SWATCH_SHAPE: SwatchShape = 'circle';
 export const SWATCH_ALIGN_SCALE = ['left', 'center', 'right'] as const;
 export type SwatchAlign = typeof SWATCH_ALIGN_SCALE[number];
 export const DEFAULT_SWATCH_ALIGN: SwatchAlign = 'left';
+
+/** Action icon style preset options (5 presets). */
+export const CARD_ICON_STYLE_OPTIONS: SelectOption[] = [
+  { value: 'pill', label: 'Preset 1 — Modern Filled Pill (Solid High-Contrast Circles)' },
+  { value: 'minimal', label: 'Preset 2 — Minimal Line (Thin Strokes, Borderless Floating)' },
+  { value: 'luxe', label: 'Preset 3 — Luxury Metallic (Champagne Gold Accents)' },
+  { value: 'brutalist', label: 'Preset 4 — Neo-Brutalist Sharp (Crisp 2px Border & Shadow)' },
+  { value: 'glass', label: 'Preset 5 — Floating Frost Glass (Translucent Tactile Bubble)' },
+];
+export const DEFAULT_CARD_ICON_STYLE = 'pill';
+

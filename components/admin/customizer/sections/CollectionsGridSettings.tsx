@@ -57,7 +57,10 @@ export default function CollectionsGridSettings({
       .map(col => ({
         title: col.name,
         link: `/shop?collection=${col.slug}`,
-        imageUrl: col.image_url || ''
+        imageUrl: col.image_url || '',
+        ref_type: 'collection' as const,
+        ref_id: col.id,
+        image_mode: 'auto' as const,
       }));
     handleItemsChange([...newCards, ...items]);
     setSelectedBulkIds([]);
@@ -404,7 +407,19 @@ export default function CollectionsGridSettings({
         )}
 
         <div className="space-y-3">
-          {items.map((item: any, index: number) => (
+          {items.map((item: any, index: number) => {
+            const updateItem = (patch: any) => {
+              const newItems = [...items];
+              newItems[index] = { ...item, ...patch };
+              handleItemsChange(newItems);
+            };
+            const linkedCol = item.ref_type === 'collection' && item.ref_id
+              ? collections.find(c => c.id === item.ref_id)
+              : undefined;
+            const isAuto = item.image_mode === 'auto' && !!item.ref_id;
+            const effectiveImage = isAuto ? (linkedCol?.image_url || item.imageUrl || '') : (item.imageUrl || '');
+            const openPicker = () => { updateItem({ image_mode: 'custom' }); onSelectMedia('content_data', 'imageUrl', true, index); };
+            return (
             <div key={index} className="bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-800 rounded-xl p-3 relative group">
               <div className="absolute right-2 top-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
@@ -436,18 +451,32 @@ export default function CollectionsGridSettings({
               <div className="grid grid-cols-12 gap-3 pr-10">
                 <div className="col-span-12 sm:col-span-3">
                   <div className="aspect-square bg-gray-100 dark:bg-gray-900 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-800 relative group/img cursor-pointer"
-                       onClick={() => onSelectMedia('content_data', 'imageUrl', true, index)}
+                       onClick={openPicker}
                   >
-                    {item.imageUrl ? (
+                    {effectiveImage ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={item.imageUrl} alt={item.title || 'Image'} className="w-full h-full object-cover" />
+                      <img src={effectiveImage} alt={item.title || 'Image'} className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 gap-1 p-2 text-center">
                         <span className="text-xl">+</span>
                         <span className="text-[9px] font-bold uppercase tracking-wider">Add Image</span>
                       </div>
                     )}
+                    {item.ref_id && (
+                      <span className={`absolute top-1 left-1 px-1 py-px rounded text-[7px] font-black tracking-wider ${isAuto ? 'bg-emerald-500 text-white' : 'bg-gray-700 text-white'}`}>
+                        {isAuto ? 'AUTO' : 'CUSTOM'}
+                      </span>
+                    )}
                   </div>
+                  {linkedCol && !isAuto && (
+                    <button type="button" onClick={() => updateItem({ image_mode: 'auto', imageUrl: linkedCol.image_url || '' })}
+                      className="mt-1 w-full px-1 py-1 text-[9px] font-bold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 rounded cursor-pointer">
+                      Use collection image
+                    </button>
+                  )}
+                  {isAuto && linkedCol && !linkedCol.image_url && (
+                    <p className="mt-1 text-[8px] text-amber-600 dark:text-amber-400 font-semibold text-center">No image on collection</p>
+                  )}
                 </div>
                 
                 <div className="col-span-12 sm:col-span-9 space-y-2">
@@ -480,7 +509,8 @@ export default function CollectionsGridSettings({
                 </div>
               </div>
             </div>
-          ))}
+            );
+          })}
           {items.length === 0 && (
             <div className="text-center py-6 text-xs text-gray-500 border border-dashed border-gray-300 dark:border-gray-700 rounded-xl">
               No grid cards added yet.<br/>Use Bulk Add or Add Empty.

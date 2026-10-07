@@ -216,6 +216,33 @@ Verified 2026-10. All product card designs across storefront and admin must adhe
    - Every card archetype must feature genuinely different element placements (icons, buttons, title, price, variations, badges, ratings in different physical locations) AND different visual looks/formats (drawers, FABs, split-bars, pill buttons, kicker tags, price-first arrangements).
    - See full architectural breakdown in `docs/UI_CARDS.md` RULE CARD-DIVERSITY.
 
+## RULE DS13 — Collision-Free Card Geometry, Grid Baseline & Icon Presets Standard (MANDATORY)
+1. **Absolute Badges vs Action Icons Separation (Zero Overlap)**:
+   - Badges Zone: strictly pinned to `position: absolute !important; top: 8px !important; left: 8px !important; z-index: 10 !important; max-width: calc(100% - 46px) !important; pointer-events: none !important;`. Long badges truncate/stack and NEVER encroach onto the right action buttons.
+   - Action Icons Zone: strictly pinned to `position: absolute !important; right: 8px !important; top: 8px !important; z-index: 25 !important;`. Action buttons must NEVER float to the top-left over badges.
+   - **No Position Overrides**: `.action-btn` and `.ai` CSS rules must NEVER declare `position: relative` without specificity clearance, as this broke Tailwind's `.absolute` positioning.
+2. **Grid Baseline Action Button Alignment (`mt-auto`)**:
+   - In 2-column mobile feeds and desktop catalog grids, card contents must expand with `flex flex-col flex-1 justify-between`.
+   - All bottom action button wrappers (`direct-btn-wrap`, `split-action-bar`, `marketplace-bottom-wrap`) must have `mt-auto w-full`.
+   - Adjacent cards with varying title line counts (1 line vs 2 lines) or presence/absence of variant swatches must ALWAYS align their action buttons along the exact same horizontal baseline across the catalog row.
+3. **Single-Line Button Typography & No-Wrap Standard**:
+   - Card buttons must include `whitespace-nowrap truncate` to prevent word-splitting onto two lines (e.g. `SELECT` \n `SHADE`) in narrow 2-column mobile cards (~160px width).
+   - Typography scale: `text-[10px]`–`text-[11px] font-bold`, compact padding `py-1.5 px-2.5`, scaled icons `h-3.5 w-3.5 shrink-0`.
+4. **5 Action Icon Style Presets (`StoreSettings.card_icon_style`)**:
+   - Merchants can configure action icon aesthetics across all cards via 5 distinct presets:
+     - `pill`: Modern Filled Pill (solid high-contrast circular badges, classic icons)
+     - `minimal`: Minimal Line (featherweight strokes, borderless floating elegance)
+     - `luxe`: Luxury Metallic (champagne gold fine micro-accents, designer tote & star charm)
+     - `brutalist`: Neo-Brutalist Sharp (crisp 2px black geometric squircle border, hard offset shadow)
+     - `glass`: Floating Frost Glass (translucent tactile bubble, subtle depth)
+   - Every card action trigger must support these presets and render matching SVG glyph variants.
+5. **Multi-Aspect Ratio Standard across all Cards (`3:4`, `1:1`, `4:3`, `16:9`, `auto`)**:
+   - All card archetypes and catalog feeds must dynamically respect the chosen admin aspect ratio (`StoreSettings.image_aspect_ratio`).
+   - Sizing logic MUST ONLY be fetched from `getSharedAspectClass(settings?.image_aspect_ratio)` in `lib/utils/styles.ts`.
+   - Supported canonical options: `3:4` (`aspect-[3/4]`), `1:1` (`aspect-square`), `4:3` (`aspect-[4/3]`), `16:9` (`aspect-[16/9] aspect-video`), and `auto` (`aspect-auto min-h-[220px] sm:min-h-[280px]`).
+   - No card archetype or custom CSS may hardcode `aspect-ratio: 1`, `height: ...px`, or `padding-bottom: ...%` on `.ib` or `.img-box`. All sizing must be dynamically derived via the single source of truth `getSharedAspectClass`.
+   - `tailwind.config.ts` content array MUST include `./lib/**/*.{js,ts,jsx,tsx}` so dynamic aspect classes compile reliably in production builds.
+
 
 
 
