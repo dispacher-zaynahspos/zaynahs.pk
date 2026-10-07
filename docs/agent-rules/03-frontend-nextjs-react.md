@@ -94,3 +94,42 @@ Verified 2026-10. List/table views must fetch only what they render.
 - Do NOT `select('*')` + every nested relation for a list that only needs a few fields. Example: admin Inventory (`lib/services/products/queries.ts` `getAllProductsAdmin`) selects `product_images, product_variants, categories, product_categories` only — it dropped `product_modifiers, badges, size_guides` because `InventoryManager.tsx` / `inventory-manager/InventoryTable.tsx` never read them.
 - `mapProduct` (`lib/services/products/mappers/dbToProductMapper.ts`) tolerates missing relations (`?? []` / `? :`), so trimming a list query is safe — detail pages still fetch the full relation set.
 - Pair every list filter/sort with an index (see RULE C11 + migration `20261007130000_add_product_listing_indexes.sql`). Reuse the singleton `staticSupabase`/`supabaseAdmin` client — never create a client per request.
+
+## RULE F5 — Instant tab switching (`useAdminTab`: local state + `history.replaceState`, NEVER `router.replace`)
+Verified 2026-10. Admin tab bars (Settings: General/Header/Footer/Navigation/Products/Trust/Customizer/WhatsApp/Shipping/Courier/Coupons/Policies/Profile/Premium/Pixels/AI/Email/Meta Sync; Media; Customers; Leads; Reviews) MUST switch **instantly** (0ms, pure client render) — no server round-trip, no "stuck"/frozen feeling.
+
+### Root cause of the old lag (do not reintroduce)
+`useAdminTab` previously called `router.replace(`${pathname}?tab=...`)` on every tab click. On admin pages that are dynamic (`export const revalidate = 0` / `force-dynamic`), `router.replace()` triggers a **full RSC refetch of the route** → the server re-runs the page's data fetch (e.g. Inventory = whole catalog) before the tab visually changes → multi-second "stuck" switch with no feedback.
+
+### The required mechanism (SSOT: `lib/hooks/useAdminTab.ts`)
+- Tab lives in **local React state**, seeded once from the URL `?tab=` param.
+- Switching updates state **instantly** (synchronous client render) and writes the URL via **`window.history.replaceState(...)`** — this changes the address bar for refresh/back persistence (RULE NAV1) WITHOUT any Next.js navigation or server refetch.
+- A `useEffect` keeps local state in sync if the URL changes externally (back/forward, deep link).
+
+```ts
+// lib/hooks/useAdminTab.ts  (the ONE shared hook — every admin tab bar uses it)
+const [activeTab, setActiveTab] = useState<T>(
+  () => (searchParams.get(paramName) as T) || defaultTab
+);
+useEffect(() => {               // external URL change (back/forward/deep link) → sync
+  const urlTab = (searchParams.get(paramName) as T) || defaultTab;
+  setActiveTab((prev) => (prev !== urlTab ? urlTab : prev));
+}, [searchParams, paramName, defaultTab]);
+
+const setTab = useCallback((tab: T) => {
+  setActiveTab(tab);            // ✅ instant client switch
+  const params = new URLSearchParams(window.location.search);
+  tab === defaultTab ? params.delete(paramName) : params.set(paramName, tab);
+  const query = params.toString();
+  window.history.replaceState(window.history.state, '', `${pathname}${query ? `?${query}` : ''}`); // ✅ URL only, no RSC refetch
+}, [pathname, paramName, defaultTab]);
+```
+
+### Rules
+- ❌ NEVER use `router.replace()`/`router.push()` purely to change a tab query param on a dynamic admin page.
+- ✅ Tab content panels render conditionally from already-loaded client state (`useSettingsFormState`, etc.) — switching tabs must not fetch.
+- ✅ Combine with RULE F3 (`loading.tsx` skeleton) for the initial route load, and RULE F4 (lean queries) so the first data arrival is fast too.
+- Callers (reuse, do not re-implement): `components/admin/SettingsForm.tsx`, `components/admin/MediaManager.tsx`, `app/admin/customers/page.tsx`, `app/admin/leads/page.tsx`, `app/admin/reviews/page.tsx`.
+
+### Verify
+Click between Settings tabs → each switch is instant (no spinner, no blank); URL `?tab=` updates; refresh keeps the tab; browser Back restores the previous tab.
