@@ -134,10 +134,10 @@ export const SECTION_REGISTRY: Record<SectionType, SectionDef> = {
     description: 'Premium icon + title + subtitle USP columns (delivery, COD, quality, returns).',
     defaultContent: {
       items: [
-        { icon: '🚚', title: 'Fast Delivery', subtitle: '2–4 days nationwide' },
-        { icon: '💵', title: 'Cash on Delivery', subtitle: 'Pay when it arrives' },
-        { icon: '✨', title: 'Premium Quality', subtitle: 'Handpicked products' },
-        { icon: '🔄', title: 'Easy Returns', subtitle: '7-day return policy' },
+        { icon: 'truck', title: 'Fast Delivery', subtitle: '2–4 days nationwide' },
+        { icon: 'cash', title: 'Cash on Delivery', subtitle: 'Pay when it arrives' },
+        { icon: 'sparkles', title: 'Premium Quality', subtitle: 'Handpicked products' },
+        { icon: 'returns', title: 'Easy Returns', subtitle: '7-day return policy' },
       ],
     },
     defaultSettings: { columns_desktop: 4, columns_mobile: 2, style: 'card' },

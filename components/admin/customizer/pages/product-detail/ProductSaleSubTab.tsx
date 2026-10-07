@@ -1,5 +1,7 @@
 'use client';
 
+import { Lock } from '@/components/common/Icons';
+
 import React from 'react';
 import { StoreSettings, Product } from '@/lib/types';
 import { isFeatureEnabled } from '@/lib/features/premium';
@@ -18,7 +20,7 @@ export default function ProductSaleSubTab({
   if (!isFeatureEnabled(settings, 'flash_sale')) {
     return (
       <div className="flex flex-col items-center justify-center p-6 text-center space-y-3 border border-dashed border-gray-200 dark:border-gray-800 rounded-2xl bg-gray-50/50 dark:bg-white/2 py-10">
-        <span className="text-2xl">🔒</span>
+        <Lock className="h-6 w-6 text-gray-400" />
         <h4 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">
           Flash Sale Locked
         </h4>

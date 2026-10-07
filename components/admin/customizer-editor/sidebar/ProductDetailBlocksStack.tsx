@@ -1,5 +1,7 @@
 'use client';
 
+import { Tag } from '@/components/common/Icons';
+
 import React from 'react';
 import { StoreSettings } from '@/lib/types';
 import { isFeatureEnabled } from '@/lib/features/premium';
@@ -69,7 +71,7 @@ export default function ProductDetailBlocksStack({
         }`}
       >
         <div className="flex items-center gap-2">
-          <span className="text-sm">🏷️</span>
+          <Tag className="h-4 w-4 text-[#e94560]" />
           <div className="min-w-0 flex-grow">
             <div
               className={`text-xs font-bold ${

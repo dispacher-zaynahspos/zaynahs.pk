@@ -1,5 +1,7 @@
 'use client';
 
+import { Trash2 } from '@/components/common/Icons';
+
 import React from 'react';
 import { HeroSlide } from './HeroBannerControls';
 
@@ -80,7 +82,7 @@ export function HeroSlideManager({
                     onClick={() => handleDeleteSlide(slide.id)}
                     className="text-[10px] text-gray-450 hover:text-red-500 cursor-pointer"
                   >
-                    🗑️
+                    <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
               </div>

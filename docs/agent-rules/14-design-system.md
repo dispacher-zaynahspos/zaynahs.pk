@@ -136,3 +136,10 @@ Whenever creating, modifying, or refactoring ANY form, editor, modal, or managem
 - **Per-device controls**: every section exposes columns/visibility/spacing per device via `ResponsiveGridColumnsControl` + `SectionSpacingControls` (padding top/bottom + background). `SectionSpacingControls` must appear in EVERY section editor.
 - **Reorder**: up/down arrow buttons only (`moveItemInArray`). `GripVertical` is decorative — never wire real HTML drag-drop for section/list reorder.
 - **No UI emojis**: all chrome/labels/placeholders/fallback glyphs use SVG from `@/components/common/Icons` (never a literal emoji in JSX for UI). Exception: user-editable free-text data fields (e.g. `value_props.icon`) may hold emoji the merchant typed — do not force-migrate those without an icon-key picker.
+
+## RULE DS8 — Icon-key system for data-driven icons (NO emoji, ever)
+Verified 2026-10. UI/UX hard rule: the storefront and admin UI NEVER render raw emoji.
+- Any user-selectable "icon" field (e.g. `value_props` items) stores an **icon KEY** (string like `truck`, `cash`, `sparkles`) — never an emoji glyph.
+- Render via the shared `components/common/SectionIcon.tsx` (`<SectionIcon icon={key} />`), which maps keys → SVG from `@/components/common/Icons`. Editors pick keys from `SECTION_ICON_KEYS` with a live `<SectionIcon>` preview.
+- Legacy emoji values auto-migrate at render via `resolveIconKey()` (emoji → closest key) so old saved data keeps working — no destructive migration needed.
+- All chrome glyphs (lock badges, section-type icons, empty-state icons, delete/announcement/tag markers) use SVG icons from the shared set — no inline emoji in JSX.

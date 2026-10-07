@@ -1,5 +1,7 @@
 'use client';
 
+import { MessageSquare } from '@/components/common/Icons';
+
 import React, { useState } from 'react';
 import { HomepageSection, StoreSettings } from '@/lib/types';
 import { isSectionEnabled, sectionPremiumFeature, PREMIUM_FEATURE_LABEL } from '@/lib/features/premium';
@@ -95,7 +97,7 @@ export default function HomeSectionsStack({
         }`}
       >
         <div className="flex items-center gap-2">
-          <span className="text-sm">📢</span>
+          <MessageSquare className="h-4 w-4 text-[#e94560]" />
           <div className="min-w-0 flex-grow">
             <div className="text-xs font-bold text-gray-900 dark:text-white">
               Announcement News Bar

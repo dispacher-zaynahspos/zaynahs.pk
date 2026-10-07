@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Product, StoreSettings, HomepageSection } from '@/lib/types';
 import { isFeatureEnabled } from '@/lib/features/premium';
 import ProductGrid from '../ProductGrid';
+import { Tag } from '@/components/common/Icons';
 
 interface FlashSaleSectionProps {
   section: HomepageSection;
@@ -165,7 +166,7 @@ export function FlashSaleSection({ section, products, currencySymbol, settings, 
     if (isPreview) {
       return (
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 mb-6 border border-dashed border-[#e94560]/50 rounded-3xl bg-[#e94560]/5 flex flex-col items-center justify-center text-center space-y-2 min-h-[150px]">
-          <span className="text-2xl">🏷️</span>
+          <Tag className="h-6 w-6 text-[#e94560]" />
           <p className="text-xs font-bold text-[#e94560] uppercase tracking-wider">Empty Flash Sale Section</p>
           <p className="text-[10px] text-gray-500 font-semibold max-w-xs">Please select this section and add products or category discounts to make it visible.</p>
         </div>

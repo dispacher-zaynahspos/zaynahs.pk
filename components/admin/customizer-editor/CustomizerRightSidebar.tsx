@@ -225,7 +225,7 @@ export function CustomizerRightSidebar({
               {activeSection.section_type === 'social_feed' && (
                 !isFeatureEnabled(storeSettings, 'social_feeds') ? (
                   <div className="flex flex-col items-center justify-center p-6 text-center space-y-3 border border-dashed border-gray-200 dark:border-gray-800 rounded-2xl bg-gray-50/50 dark:bg-white/2 py-12">
-                    <span className="text-3xl">🔒</span>
+                    <Lock className="h-7 w-7 text-gray-400" />
                     <h4 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">Social Feed Locked</h4>
                     <p className="text-[11px] text-gray-500 leading-normal max-w-[200px]">
                       This feature is disabled in your store settings. Please enable &quot;Social Feeds Embeds&quot; in Settings &gt; Premium Tab first.
@@ -255,7 +255,7 @@ export function CustomizerRightSidebar({
               {activeSection.section_type === 'flash_sale' && (
                 !isFeatureEnabled(storeSettings, 'flash_sale') ? (
                   <div className="flex flex-col items-center justify-center p-6 text-center space-y-3 border border-dashed border-gray-200 dark:border-gray-800 rounded-2xl bg-gray-50/50 dark:bg-white/2 py-12">
-                    <span className="text-3xl">🔒</span>
+                    <Lock className="h-7 w-7 text-gray-400" />
                     <h4 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">Flash Sale Locked</h4>
                     <p className="text-[11px] text-gray-500 leading-normal max-w-[200px]">
                       This feature is disabled in your store settings. Please enable &quot;Flash Sale Timers&quot; in Settings &gt; Premium Tab first.

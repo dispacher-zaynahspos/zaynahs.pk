@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { StoreSettings } from '@/lib/types';
 import ResponsiveGridColumnsControl from '@/components/admin/customizer/shared/ResponsiveGridColumnsControl';
-import { Monitor, Tablet, Smartphone } from '@/components/common/Icons';
+import { Monitor, Tablet, Smartphone, Palette } from '@/components/common/Icons';
 import { AccordionGroup } from '@/components/admin/customizer/controls';
 import { SegmentedControl, ToggleControl } from '@/components/admin/customizer/controls';
 
@@ -32,7 +32,7 @@ export default function ShopPageSettings({
     return (
       <div className="space-y-4">
         <div className="rounded-2xl border border-dashed border-gray-200 dark:border-gray-800 bg-gray-50/60 dark:bg-white/[0.02] p-5 text-center space-y-2">
-          <span className="text-2xl">🎨</span>
+          <Palette className="h-6 w-6 text-[#e94560]" />
           <h4 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">Swatches moved to Product Cards</h4>
           <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-normal max-w-[240px] mx-auto">
             Variant swatch shape, size, limit and alignment are now configured once on the

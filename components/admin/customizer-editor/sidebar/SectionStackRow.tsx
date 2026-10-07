@@ -2,8 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  Eye, EyeOff, ChevronUp, ChevronDown,
-  Trash2, Edit2, Check, MoreVertical, Copy,
+  Eye, EyeOff, ChevronUp, ChevronDown, Trash2, Edit2, Check, MoreVertical, Copy, Lock,
 } from '@/components/common/Icons';
 
 /**
@@ -107,7 +106,10 @@ export default function SectionStackRow({
                   ? 'text-gray-400 dark:text-gray-500'
                   : 'text-gray-900 dark:text-white'
             }`}>
-              {isDisabled ? '🔒 ' : ''}{title}
+              <span className="inline-flex items-center gap-1">
+                {isDisabled && <Lock className="h-3 w-3 shrink-0" />}
+                <span className="truncate">{title}</span>
+              </span>
             </div>
             <span className="block truncate text-[9px] text-gray-455 dark:text-gray-500 font-bold uppercase tracking-wider">
               {subtitle}{isDisabled && ' (Disabled)'}{!isVisible && !isDisabled && ' (Hidden)'}

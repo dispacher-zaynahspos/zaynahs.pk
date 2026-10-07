@@ -10,6 +10,8 @@ import { getResponsiveGridClasses } from '@/lib/utils/responsiveGrid';
 import SocialFeedRibbon from '../SocialFeedRibbon';
 import { SectionWrapper } from './SectionWrapper';
 import { getOptimizedImageUrl } from '@/lib/utils/imageUrl';
+import { SectionIcon } from '@/components/common/SectionIcon';
+import { Lock, Eye, Sparkles } from '@/components/common/Icons';
 
 interface PromoBannerSectionProps {
   section: HomepageSection;
@@ -191,7 +193,7 @@ export function SocialFeedSection({ section, activeSettings, isPreview }: Social
     if (isPreview) {
       return (
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 mb-6 border border-dashed border-gray-300 dark:border-gray-700 rounded-3xl bg-gray-50 dark:bg-white/5 flex flex-col items-center justify-center text-center space-y-2 min-h-[150px]">
-          <span className="text-2xl">🔒</span>
+          <Lock className="h-6 w-6 text-gray-400" />
           <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Social Feed Disabled</p>
           <p className="text-[10px] text-gray-400 font-semibold max-w-xs">Enable Social Feeds Embeds in General Settings &gt; Premium Tab to display this section.</p>
         </div>
@@ -203,7 +205,7 @@ export function SocialFeedSection({ section, activeSettings, isPreview }: Social
     if (isPreview) {
       return (
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 mb-6 border border-dashed border-gray-300 dark:border-gray-700 rounded-3xl bg-gray-50 dark:bg-white/5 flex flex-col items-center justify-center text-center space-y-2 min-h-[150px]">
-          <span className="text-2xl">👁️‍🗨️</span>
+          <Eye className="h-6 w-6 text-gray-400" />
           <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Social Feed Hidden on Homepage</p>
           <p className="text-[10px] text-gray-400 font-semibold max-w-xs">Enable "Show on Homepage" in Social Feed settings.</p>
         </div>
@@ -268,7 +270,7 @@ export function TickerSection({ section, activeSettings }: TickerSectionProps) {
                 style={tickerTextColor ? { color: tickerTextColor } : undefined}
               >
                 <span>{item}</span>
-                <span className="opacity-60 font-normal">✦</span>
+                <Sparkles className="h-3 w-3 opacity-60" aria-hidden />
               </div>
             ))}
           </div>
@@ -297,10 +299,10 @@ export function ValuePropsSection({ section }: ValuePropsSectionProps) {
   const items: ValuePropItem[] = section.content_data?.items?.length
     ? section.content_data.items
     : [
-        { icon: '🚚', title: 'Fast Delivery', subtitle: '2–4 days nationwide' },
-        { icon: '💵', title: 'Cash on Delivery', subtitle: 'Pay when it arrives' },
-        { icon: '✨', title: 'Premium Quality', subtitle: 'Handpicked products' },
-        { icon: '🔄', title: 'Easy Returns', subtitle: '7-day return policy' },
+        { icon: 'truck', title: 'Fast Delivery', subtitle: '2–4 days nationwide' },
+        { icon: 'cash', title: 'Cash on Delivery', subtitle: 'Pay when it arrives' },
+        { icon: 'sparkles', title: 'Premium Quality', subtitle: 'Handpicked products' },
+        { icon: 'returns', title: 'Easy Returns', subtitle: '7-day return policy' },
       ];
 
   const cols = getResponsiveGridClasses({
@@ -327,8 +329,8 @@ export function ValuePropsSection({ section }: ValuePropsSectionProps) {
                 : ''
             }`}
           >
-            <span className="text-2xl sm:text-3xl leading-none" aria-hidden>
-              {it.icon || '✦'}
+            <span className="text-[#e94560]" aria-hidden>
+              <SectionIcon icon={it.icon} className="h-7 w-7 sm:h-8 sm:w-8" />
             </span>
             <span className="text-xs sm:text-sm font-extrabold text-gray-900 dark:text-white leading-tight">
               {it.title}

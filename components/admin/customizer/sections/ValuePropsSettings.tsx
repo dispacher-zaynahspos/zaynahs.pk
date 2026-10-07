@@ -5,6 +5,7 @@ import { HomepageSection } from '@/lib/types';
 import { ChevronUp, ChevronDown, Trash2, Plus } from '@/components/common/Icons';
 import { AccordionGroup } from '@/components/admin/customizer/controls';
 import SectionSpacingControls from '../shared/SectionSpacingControls';
+import { SectionIcon, SECTION_ICON_KEYS, resolveIconKey } from '@/components/common/SectionIcon';
 
 interface ValuePropItem {
   icon?: string;
@@ -32,7 +33,7 @@ export default function ValuePropsSettings({ section, onUpdateSection }: ValuePr
     setItems(next);
   };
 
-  const addItem = () => setItems([...items, { icon: '✦', title: 'New Benefit', subtitle: '' }]);
+  const addItem = () => setItems([...items, { icon: 'sparkles', title: 'New Benefit', subtitle: '' }]);
   const removeItem = (idx: number) => setItems(items.filter((_, i) => i !== idx));
   const move = (idx: number, dir: 'up' | 'down') => {
     const j = dir === 'up' ? idx - 1 : idx + 1;
@@ -87,13 +88,21 @@ export default function ValuePropsSettings({ section, onUpdateSection }: ValuePr
           {items.map((it, idx) => (
             <div key={idx} className="p-3 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-200 dark:border-gray-800 space-y-2">
               <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  value={it.icon || ''}
-                  onChange={(e) => updateItem(idx, 'icon', e.target.value)}
-                  placeholder="🚚"
-                  className="w-14 px-2 py-2 text-center bg-white dark:bg-[#0f0f1b] border border-gray-200 dark:border-gray-700 rounded-lg text-base focus:outline-none focus:border-[#e94560]"
-                />
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-white dark:bg-[#0f0f1b] border border-gray-200 dark:border-gray-700 text-[#e94560]">
+                    <SectionIcon icon={it.icon} className="h-5 w-5" />
+                  </span>
+                  <select
+                    value={resolveIconKey(it.icon)}
+                    onChange={(e) => updateItem(idx, 'icon', e.target.value)}
+                    className="w-24 px-2 py-2 bg-white dark:bg-[#0f0f1b] border border-gray-200 dark:border-gray-700 rounded-lg text-xs font-semibold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white capitalize"
+                    title="Icon"
+                  >
+                    {SECTION_ICON_KEYS.map((k) => (
+                      <option key={k} value={k} className="capitalize">{k}</option>
+                    ))}
+                  </select>
+                </div>
                 <input
                   type="text"
                   value={it.title || ''}
