@@ -108,7 +108,16 @@ export const ProductFormVariantsSection: React.FC<ProductFormVariantsSectionProp
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => setVariantsSectionCollapsed(prev => !prev)}
+            onClick={() => {
+              setVariantsSectionCollapsed(prev => {
+                const willBeCollapsed = !prev;
+                // If expanding and master toggle was OFF, automatically turn toggle ON
+                if (!willBeCollapsed && !hasVariants) {
+                  setHasVariants(true);
+                }
+                return willBeCollapsed;
+              });
+            }}
             className="flex items-center gap-1.5 text-sm font-bold text-gray-700 dark:text-gray-300 hover:text-[#e94560] dark:hover:text-[#e94560] transition-all cursor-pointer bg-gray-100 dark:bg-[#1a1a30] px-3 py-1.5 rounded-lg"
           >
             {variantsSectionCollapsed ? (
@@ -124,7 +133,12 @@ export const ProductFormVariantsSection: React.FC<ProductFormVariantsSectionProp
           <input
             type="checkbox"
             checked={hasVariants}
-            onChange={(e) => setHasVariants(e.target.checked)}
+            onChange={(e) => {
+              const enabled = e.target.checked;
+              setHasVariants(enabled);
+              // Auto-expand when toggled ON, auto-collapse when toggled OFF
+              setVariantsSectionCollapsed(!enabled);
+            }}
             className="sr-only peer"
           />
           <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#e94560]" />

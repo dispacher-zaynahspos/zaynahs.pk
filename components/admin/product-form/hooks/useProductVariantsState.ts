@@ -131,7 +131,9 @@ export function useProductVariantsState({
   const [axisInputs, setAxisInputs] = useState<string[]>(() => initAxes().map(() => ''));
   const [presets, setPresets] = useState<VariantPreset[]>([]);
   const [collapsedAxes, setCollapsedAxes] = useState<boolean[]>(() => initAxes().map(() => false));
-  const [variantsSectionCollapsed, setVariantsSectionCollapsed] = useState(true);
+  const [variantsSectionCollapsed, setVariantsSectionCollapsed] = useState(
+    initialProduct?.has_variants ? false : true
+  );
   const [axisOrderChanged, setAxisOrderChanged] = useState(false);
 
   useEffect(() => {

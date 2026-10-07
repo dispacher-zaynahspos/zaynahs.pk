@@ -155,3 +155,16 @@ Admin DB change → Supabase webhook → /api/revalidate
 2. **Cache tags**: new data queries use appropriate tags (e.g. `['new_feature']`) via `unstable_cache`.
 3. **Revalidation logic**: update `app/api/revalidate/route.ts` / `lib/revalidate.ts` to handle the new table — call `revalidateTag` and trigger a Cloudflare purge.
 4. **Multi-project sync**: apply schema changes + webhooks across ALL active project databases (TotVogue, Zaynahspk, MiniMahal, LittleMister) simultaneously.
+
+## RULE C11 — Data Loading & Caching (lists, pagination, cache layers)
+Verified 2026-10 (see `docs/AUDIT_DATA_LOADING_2026-10.md`). Applies to every list/grid on storefront + admin, both brands, all devices.
+- **Cache layer order (storefront):** browser → Cloudflare/Vercel edge (`s-maxage` + `stale-while-revalidate`, set in `next.config.ts`) → Next.js ISR + `unstable_cache` with tags → DB only on miss or after Save/Purge. Public pages MUST keep an `export const revalidate` (never `force-dynamic`) unless truly per-request. Brand/domain detection must NOT force-dynamic the page (each brand is its own deployment + Supabase project — no `store_id`; no cross-brand cache leak).
+- **Invalidation:** tag-based `revalidateTag`/`revalidatePath` + Cloudflare purge ONLY on Save/Purge or when products/stock/orders change (webhooks). No time-based DB hammering.
+- **Pagination (mandatory):** any list MUST be server-side paginated (cursor preferred; `.range()`/`.limit()` acceptable) with per-device page size (~8–12 mobile, 12–20 desktop). First load fetches ONLY page 1. NEVER `getProducts()`-all + client `.slice()` for the visible list. "Load More" / infinite scroll MUST fetch the NEXT PAGE from the server (IntersectionObserver sentinel + fallback button, skeletons, stable keys, no dupes, correct end state). "View All" → paginated shop page.
+- **Columns:** `select` only the columns a list needs; never `select('*')` with every nested relation for grid/inventory rows. Lists use thumbnails only; defer heavy fields (long description, JSON blobs, full image arrays) to the detail view.
+- **N+1:** batch related data in one PostgREST nested select or a single `.in()` query; never per-row fetches.
+- **Indexes:** every filter/sort column combo used by a list needs an index (e.g. `idx_products_active_sort` for `is_active, deleted_at, sort_order, created_at`). Ship as a numbered migration + master schema + apply to all DBs.
+- **Connections:** reuse the module-level `staticSupabase`/`supabaseAdmin` singleton; no new client per request; no window-focus refetch loops.
+- **Checklist for every new list/page:** (1) page 1 only on first load, (2) server pagination, (3) needed columns only, (4) index for its filter/sort, (5) thumbnails + lazy images, (6) cached (storefront) or no-store (admin), (7) brand-scoped, (8) sentinel + fallback + skeleton + end state.
+
+> NOTE (known debt, tracked in audit): home/shop/inventory currently load the full catalog then client-slice. Convert to true server pagination per this rule as the next milestone.

@@ -181,6 +181,10 @@ CREATE TABLE IF NOT EXISTS products (
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_products_slug ON products (LOWER(slug));
 CREATE INDEX IF NOT EXISTS idx_products_category ON products (category_id);
+CREATE INDEX IF NOT EXISTS idx_products_active_sort ON products (is_active, deleted_at, sort_order, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_products_deleted_created ON products (deleted_at, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_products_category_active ON products (category_id, is_active, deleted_at);
+CREATE INDEX IF NOT EXISTS idx_products_featured ON products (is_featured) WHERE is_featured = true;
 
 -- ============================================================
 -- PRODUCT IMAGES
