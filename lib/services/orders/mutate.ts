@@ -8,9 +8,11 @@ import { safeAction } from '@/lib/utils/serverAction';
 import {
   restoreStockOnCancel,
   adjustStockOnOrderEdit,
+} from '@/lib/services/inventory/stock-sync';
+import {
   shouldRestoreStock,
   shouldDeductStock,
-} from '@/lib/services/inventory/stock-sync';
+} from '@/lib/services/inventory/stock-sync-helpers';
 
 export const updateOrderStatus = async (id: string, status: Order['status']): Promise<Order> => {
   try {

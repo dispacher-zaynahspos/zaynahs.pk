@@ -23,7 +23,6 @@
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { CartItem } from '@/lib/types';
 
-const CANCELLATION_STATUSES = new Set<string>(['cancelled', 'refunded']);
 
 /**
  * Restore stock for every item in an order when it is cancelled or refunded.
@@ -99,19 +98,3 @@ export async function adjustStockOnOrderEdit(
   return (data as number) ?? 0;
 }
 
-/**
- * Guard: returns true if the status transition means stock should be restored.
- * Cancel from any non-cancelled state → restore.
- * Re-cancelling already-cancelled → no-op.
- */
-export function shouldRestoreStock(old_status: string, new_status: string): boolean {
-  return CANCELLATION_STATUSES.has(new_status) && !CANCELLATION_STATUSES.has(old_status);
-}
-
-/**
- * Guard: returns true if the status transition means stock should be re-deducted.
- * Un-cancelling (cancelled → pending/confirmed/etc) → deduct again.
- */
-export function shouldDeductStock(old_status: string, new_status: string): boolean {
-  return CANCELLATION_STATUSES.has(old_status) && !CANCELLATION_STATUSES.has(new_status);
-}

@@ -133,6 +133,15 @@ export default function ReportingDashboard({ orders, settings, products = [] }: 
         return s;
       }, 0);
 
+    const refundedTotal = filteredOrders.filter(o => o.status === 'refunded').reduce((s, o) => s + o.total, 0);
+    const isPaid = (o: typeof filteredOrders[number]) => o.payment_status === 'paid';
+    const paidTotal = revenueOrders.filter(isPaid).reduce((s, o) => s + o.total, 0);
+    const unpaidTotal = revenueOrders.filter(o => !isPaid(o)).reduce((s, o) => s + o.total, 0);
+    const countBy = (st: string) => filteredOrders.filter(o => o.status === st).length;
+    const discountGiven = filteredOrders.reduce((s, o) => s + (o.discount_amount || 0), 0);
+    const serviceItemRevenue = revenueOrders.reduce((s, o) =>
+      s + o.items.filter(it => it.product?.is_service).reduce((a, it) => a + (it.unit_price || 0) * it.quantity, 0), 0);
+
     return {
       sales: totalSales,
       cogs: totalCOGS,
@@ -146,7 +155,18 @@ export default function ReportingDashboard({ orders, settings, products = [] }: 
       cancelledTotal: totalCancelled,
       fulfilledSales,
       fulfilledCOGS,
-      projectedCOGS
+      projectedCOGS,
+      refundedTotal,
+      paidTotal,
+      unpaidTotal,
+      pendingCount: countBy('pending'),
+      confirmedCount: countBy('confirmed'),
+      shippedCount: countBy('shipped'),
+      deliveredCount: countBy('delivered'),
+      cancelledCount: countBy('cancelled'),
+      refundedCount: countBy('refunded'),
+      serviceItemRevenue,
+      discountGiven,
     };
   }, [filteredOrders]);
 
@@ -236,6 +256,7 @@ export default function ReportingDashboard({ orders, settings, products = [] }: 
         const saleVal = p.variants && p.variants.length > 0
           ? p.variants.reduce((s, v) => s + (v.stock || 0) * (v.price || p.price), 0)
           : (p.stock || 0) * p.price;
+        const threshold = p.inventory_threshold || 0;
         return {
           id: p.id,
           name: p.name,
@@ -243,10 +264,12 @@ export default function ReportingDashboard({ orders, settings, products = [] }: 
           stockUnits,
           costValue: costVal,
           saleValue: saleVal,
-          potentialProfit: saleVal - costVal
+          potentialProfit: saleVal - costVal,
+          isService: p.is_service ?? false,
+          lowStock: stockUnits > 0 && threshold > 0 && stockUnits <= threshold,
+          sku: p.sku,
         };
       })
-      .filter(i => i.stockUnits > 0)
       .sort((a, b) => b.saleValue - a.saleValue);
   }, [products]);
 
