@@ -1,6 +1,6 @@
 'use client';
 
-import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
 /**
@@ -24,27 +24,40 @@ export function useAdminTab<T extends string>(
   defaultTab: T,
   paramName: string = 'tab'
 ): [T, (tab: T) => void] {
-  const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const currentTab = (searchParams.get(paramName) as T) || defaultTab;
+  // Seed from URL once, then keep tab in LOCAL state so switching is INSTANT
+  // (no router navigation → no RSC refetch on dynamic `revalidate = 0` pages,
+  // which was the source of the laggy "stuck" tab switch). URL still updates
+  // via history.replaceState so refresh/back-button persistence (RULE NAV1)
+  // keeps working.
+  const [activeTab, setActiveTab] = useState<T>(
+    () => (searchParams.get(paramName) as T) || defaultTab
+  );
+
+  // If the URL changes externally (back/forward, deep link), sync local state.
+  useEffect(() => {
+    const urlTab = (searchParams.get(paramName) as T) || defaultTab;
+    setActiveTab((prev) => (prev !== urlTab ? urlTab : prev));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, paramName, defaultTab]);
 
   const setTab = useCallback(
     (tab: T) => {
-      const params = new URLSearchParams(searchParams.toString());
-      if (tab === defaultTab) {
-        params.delete(paramName);
-      } else {
-        params.set(paramName, tab);
-      }
+      setActiveTab(tab); // instant UI switch
+      if (typeof window === 'undefined') return;
+      const params = new URLSearchParams(window.location.search);
+      if (tab === defaultTab) params.delete(paramName);
+      else params.set(paramName, tab);
       const query = params.toString();
-      router.replace(`${pathname}${query ? `?${query}` : ''}`, { scroll: false });
+      // Update the address bar WITHOUT a Next.js navigation (no server round-trip).
+      window.history.replaceState(window.history.state, '', `${pathname}${query ? `?${query}` : ''}`);
     },
-    [router, pathname, searchParams, paramName, defaultTab]
+    [pathname, paramName, defaultTab]
   );
 
-  return [currentTab, setTab];
+  return [activeTab, setTab];
 }
 
 /**

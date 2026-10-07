@@ -143,3 +143,11 @@ Verified 2026-10. UI/UX hard rule: the storefront and admin UI NEVER render raw 
 - Render via the shared `components/common/SectionIcon.tsx` (`<SectionIcon icon={key} />`), which maps keys → SVG from `@/components/common/Icons`. Editors pick keys from `SECTION_ICON_KEYS` with a live `<SectionIcon>` preview.
 - Legacy emoji values auto-migrate at render via `resolveIconKey()` (emoji → closest key) so old saved data keeps working — no destructive migration needed.
 - All chrome glyphs (lock badges, section-type icons, empty-state icons, delete/announcement/tag markers) use SVG icons from the shared set — no inline emoji in JSX.
+
+## RULE DS9 — Interactive States (content must never disappear)
+Verified 2026-10. Applies to EVERY clickable element (icons, buttons, links, cards, chips) on storefront + admin, both brands, all devices.
+- Define all four states explicitly: **default · hover · focus-visible · active/pressed** — each with guaranteed icon/text contrast vs its background (WCAG AA). No state may hide content (never white-on-white, never `currentColor` collapsing into the background).
+- SVG icons use `currentColor` for stroke/fill; the element sets `color` per state. Give icons an **explicit size** (e.g. `h-5 w-5`) — never rely on undefined Tailwind sizes like `h-4.5` (not in the scale → icon can collapse).
+- Hover styling ONLY under `@media (hover: hover)` so touch devices don't get stuck-hover; always provide `:active` pressed feedback for touch; `-webkit-tap-highlight-color: transparent`; min 44px touch target; `focus-visible` outline for keyboard.
+- Hover icon color and hover background are **separate editable, shared keys** between Settings and Customizer (e.g. footer social: `footer_social_icon_color`, `footer_social_icon_bg`, `footer_social_hover_color`, `footer_social_hover_bg`) with contrast-safe defaults.
+- Hide controls whose target is empty (e.g. social icon with no link). Keep `aria-label`/`title` on every icon-only control.

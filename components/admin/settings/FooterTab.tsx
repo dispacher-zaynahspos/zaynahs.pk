@@ -41,6 +41,14 @@ interface FooterTabProps {
   setFooterBorderColor: (val: string) => void;
   footerCopyrightColor: string;
   setFooterCopyrightColor: (val: string) => void;
+  footerSocialIconColor: string;
+  setFooterSocialIconColor: (val: string) => void;
+  footerSocialIconBg: string;
+  setFooterSocialIconBg: (val: string) => void;
+  footerSocialHoverColor: string;
+  setFooterSocialHoverColor: (val: string) => void;
+  footerSocialHoverBg: string;
+  setFooterSocialHoverBg: (val: string) => void;
 
   footerHeadingFont: string;
   setFooterHeadingFont: (val: string) => void;
@@ -150,6 +158,14 @@ export default function FooterTab(props: FooterTabProps) {
         setFooterBorderColor={props.setFooterBorderColor}
         footerCopyrightColor={props.footerCopyrightColor}
         setFooterCopyrightColor={props.setFooterCopyrightColor}
+        footerSocialIconColor={props.footerSocialIconColor}
+        setFooterSocialIconColor={props.setFooterSocialIconColor}
+        footerSocialIconBg={props.footerSocialIconBg}
+        setFooterSocialIconBg={props.setFooterSocialIconBg}
+        footerSocialHoverColor={props.footerSocialHoverColor}
+        setFooterSocialHoverColor={props.setFooterSocialHoverColor}
+        footerSocialHoverBg={props.footerSocialHoverBg}
+        setFooterSocialHoverBg={props.setFooterSocialHoverBg}
       />
 
       <FooterTypographyLayoutConfig

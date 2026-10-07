@@ -427,6 +427,78 @@ export default function GlobalSettings({
               />
             </div>
           </div>
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 block uppercase tracking-wider">Social Icon</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={settings.footer_social_icon_color || '#5B6B85'}
+                onChange={(e) => onUpdateSettings({ footer_social_icon_color: e.target.value })}
+                className="w-7 h-7 rounded border border-gray-200 cursor-pointer overflow-hidden p-0 bg-transparent shrink-0"
+              />
+              <input
+                type="text"
+                value={settings.footer_social_icon_color || ''}
+                onChange={(e) => onUpdateSettings({ footer_social_icon_color: e.target.value })}
+                placeholder="#5B6B85"
+                className="w-full px-2 py-1 bg-white dark:bg-[#0f0f1b] border border-gray-200 dark:border-gray-800 rounded-lg text-xs font-mono"
+              />
+            </div>
+          </div>
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 block uppercase tracking-wider">Social Icon Bg</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={settings.footer_social_icon_bg || '#f1f1f1'}
+                onChange={(e) => onUpdateSettings({ footer_social_icon_bg: e.target.value })}
+                className="w-7 h-7 rounded border border-gray-200 cursor-pointer overflow-hidden p-0 bg-transparent shrink-0"
+              />
+              <input
+                type="text"
+                value={settings.footer_social_icon_bg || ''}
+                onChange={(e) => onUpdateSettings({ footer_social_icon_bg: e.target.value })}
+                placeholder="#f1f1f1"
+                className="w-full px-2 py-1 bg-white dark:bg-[#0f0f1b] border border-gray-200 dark:border-gray-800 rounded-lg text-xs font-mono"
+              />
+            </div>
+          </div>
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 block uppercase tracking-wider">Social Hover Icon</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={settings.footer_social_hover_color || '#ffffff'}
+                onChange={(e) => onUpdateSettings({ footer_social_hover_color: e.target.value })}
+                className="w-7 h-7 rounded border border-gray-200 cursor-pointer overflow-hidden p-0 bg-transparent shrink-0"
+              />
+              <input
+                type="text"
+                value={settings.footer_social_hover_color || ''}
+                onChange={(e) => onUpdateSettings({ footer_social_hover_color: e.target.value })}
+                placeholder="#ffffff"
+                className="w-full px-2 py-1 bg-white dark:bg-[#0f0f1b] border border-gray-200 dark:border-gray-800 rounded-lg text-xs font-mono"
+              />
+            </div>
+          </div>
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 block uppercase tracking-wider">Social Hover Bg</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={settings.footer_social_hover_bg || '#e94560'}
+                onChange={(e) => onUpdateSettings({ footer_social_hover_bg: e.target.value })}
+                className="w-7 h-7 rounded border border-gray-200 cursor-pointer overflow-hidden p-0 bg-transparent shrink-0"
+              />
+              <input
+                type="text"
+                value={settings.footer_social_hover_bg || ''}
+                onChange={(e) => onUpdateSettings({ footer_social_hover_bg: e.target.value })}
+                placeholder="#e94560"
+                className="w-full px-2 py-1 bg-white dark:bg-[#0f0f1b] border border-gray-200 dark:border-gray-800 rounded-lg text-xs font-mono"
+              />
+            </div>
+          </div>
         </div>
       </div>
 

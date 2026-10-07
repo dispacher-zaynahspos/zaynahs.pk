@@ -144,6 +144,10 @@ export const updateSettings = async (settings: Partial<StoreSettings>): Promise<
     if (settings.footer_heading_color !== undefined) updatePayload.footer_heading_color = settings.footer_heading_color;
     if (settings.footer_link_color !== undefined) updatePayload.footer_link_color = settings.footer_link_color;
     if (settings.footer_copyright_color !== undefined) updatePayload.footer_copyright_color = settings.footer_copyright_color;
+    if (settings.footer_social_icon_color !== undefined) updatePayload.footer_social_icon_color = settings.footer_social_icon_color;
+    if (settings.footer_social_icon_bg !== undefined) updatePayload.footer_social_icon_bg = settings.footer_social_icon_bg;
+    if (settings.footer_social_hover_color !== undefined) updatePayload.footer_social_hover_color = settings.footer_social_hover_color;
+    if (settings.footer_social_hover_bg !== undefined) updatePayload.footer_social_hover_bg = settings.footer_social_hover_bg;
     if (settings.footer_heading_font !== undefined) updatePayload.footer_heading_font = settings.footer_heading_font;
     if (settings.footer_body_font !== undefined) updatePayload.footer_body_font = settings.footer_body_font;
     if (settings.footer_heading_size !== undefined) updatePayload.footer_heading_size = settings.footer_heading_size;

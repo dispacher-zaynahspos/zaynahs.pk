@@ -221,6 +221,11 @@ export interface StoreSettings {
   footer_show_menu?: boolean;
   footer_show_newsletter?: boolean;
   footer_show_social?: boolean;
+  // Footer social icon colors (shared: Settings Footer & Social <-> Customizer)
+  footer_social_icon_color?: string;
+  footer_social_icon_bg?: string;
+  footer_social_hover_color?: string;
+  footer_social_hover_bg?: string;
 
   floating_contacts_enabled: boolean;
   floating_contacts_position: 'left' | 'right';

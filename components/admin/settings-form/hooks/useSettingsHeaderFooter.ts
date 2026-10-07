@@ -31,6 +31,10 @@ export function useSettingsHeaderFooter({ initialSettings }: UseSettingsHeaderFo
   const [footerHeadingColor, setFooterHeadingColor] = useState(initialSettings.footer_heading_color || '');
   const [footerLinkColor, setFooterLinkColor] = useState(initialSettings.footer_link_color || '');
   const [footerCopyrightColor, setFooterCopyrightColor] = useState(initialSettings.footer_copyright_color || '');
+  const [footerSocialIconColor, setFooterSocialIconColor] = useState(initialSettings.footer_social_icon_color || '');
+  const [footerSocialIconBg, setFooterSocialIconBg] = useState(initialSettings.footer_social_icon_bg || '');
+  const [footerSocialHoverColor, setFooterSocialHoverColor] = useState(initialSettings.footer_social_hover_color || '');
+  const [footerSocialHoverBg, setFooterSocialHoverBg] = useState(initialSettings.footer_social_hover_bg || '');
   const [footerHeadingFont, setFooterHeadingFont] = useState(initialSettings.footer_heading_font || '');
   const [footerBodyFont, setFooterBodyFont] = useState(initialSettings.footer_body_font || '');
   const [footerHeadingSize, setFooterHeadingSize] = useState(initialSettings.footer_heading_size || '');
@@ -165,6 +169,14 @@ export function useSettingsHeaderFooter({ initialSettings }: UseSettingsHeaderFo
     setFooterLinkColor,
     footerCopyrightColor,
     setFooterCopyrightColor,
+    footerSocialIconColor,
+    setFooterSocialIconColor,
+    footerSocialIconBg,
+    setFooterSocialIconBg,
+    footerSocialHoverColor,
+    setFooterSocialHoverColor,
+    footerSocialHoverBg,
+    setFooterSocialHoverBg,
     footerHeadingFont,
     setFooterHeadingFont,
     footerBodyFont,

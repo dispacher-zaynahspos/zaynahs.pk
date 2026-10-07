@@ -46,6 +46,14 @@ interface FooterColorsConfigProps {
   setFooterBorderColor: (val: string) => void;
   footerCopyrightColor: string;
   setFooterCopyrightColor: (val: string) => void;
+  footerSocialIconColor: string;
+  setFooterSocialIconColor: (val: string) => void;
+  footerSocialIconBg: string;
+  setFooterSocialIconBg: (val: string) => void;
+  footerSocialHoverColor: string;
+  setFooterSocialHoverColor: (val: string) => void;
+  footerSocialHoverBg: string;
+  setFooterSocialHoverBg: (val: string) => void;
 }
 
 export default function FooterColorsConfig(props: FooterColorsConfigProps) {
@@ -64,6 +72,10 @@ export default function FooterColorsConfig(props: FooterColorsConfigProps) {
         <ColorRow label="Links" value={props.footerLinkColor} onChange={props.setFooterLinkColor} fallback="#5B6B85" />
         <ColorRow label="Divider / Border" value={props.footerBorderColor} onChange={props.setFooterBorderColor} fallback="#e5e7eb" />
         <ColorRow label="Copyright Text" value={props.footerCopyrightColor} onChange={props.setFooterCopyrightColor} fallback="#5B6B85" />
+        <ColorRow label="Social Icon" hint="Icon color (default state)" value={props.footerSocialIconColor} onChange={props.setFooterSocialIconColor} fallback="#5B6B85" />
+        <ColorRow label="Social Icon Background" hint="Chip background (default state)" value={props.footerSocialIconBg} onChange={props.setFooterSocialIconBg} fallback="#f1f1f1" />
+        <ColorRow label="Social Hover Icon" hint="Icon color on hover/press" value={props.footerSocialHoverColor} onChange={props.setFooterSocialHoverColor} fallback="#ffffff" />
+        <ColorRow label="Social Hover Background" hint="Chip background on hover/press" value={props.footerSocialHoverBg} onChange={props.setFooterSocialHoverBg} fallback="#e94560" />
       </div>
     </div>
   );

@@ -313,6 +313,14 @@ export function SettingsTabRendererCore({ activeTab, s }: SettingsTabRendererCor
           setFooterBorderColor={s.setFooterBorderColor}
           footerCopyrightColor={s.footerCopyrightColor}
           setFooterCopyrightColor={s.setFooterCopyrightColor}
+          footerSocialIconColor={s.footerSocialIconColor}
+          setFooterSocialIconColor={s.setFooterSocialIconColor}
+          footerSocialIconBg={s.footerSocialIconBg}
+          setFooterSocialIconBg={s.setFooterSocialIconBg}
+          footerSocialHoverColor={s.footerSocialHoverColor}
+          setFooterSocialHoverColor={s.setFooterSocialHoverColor}
+          footerSocialHoverBg={s.footerSocialHoverBg}
+          setFooterSocialHoverBg={s.setFooterSocialHoverBg}
           footerHeadingFont={s.footerHeadingFont}
           setFooterHeadingFont={s.setFooterHeadingFont}
           footerBodyFont={s.footerBodyFont}
