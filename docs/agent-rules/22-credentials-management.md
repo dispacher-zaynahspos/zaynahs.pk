@@ -40,8 +40,10 @@ env-backups/
   zaynahs.env.local       ← Zaynahs ONLY credentials
   minimahal.env.local     ← MiniMahal ONLY credentials
   littlemister.env.local  ← LittleMister ONLY credentials
+  lobo.env.local          ← Lobo ONLY credentials
 .env.local                ← Current working store credentials
 ```
+> **RULE CRED-ENVBACKUP:** `env-backups/*.env.local` is the canonical, always-current store registry. Before ANY multi-store operation, agents MUST `ls env-backups/*.env.local` to discover ALL active stores — never hardcode a fixed list. Full rule: [26-project-reference-table.md](26-project-reference-table.md).
 
 ### Agent rules (STRICT)
 1. Never copy credentials from one store's `env-backups/` file to another.
@@ -80,6 +82,8 @@ VERCEL_PROJECT_NAME=<name>    ← Exact project name from vercel.com dashboard
 | Zaynahs | `zaynahsestore-tv-main` |
 | MiniMahal | `mini-mahal-e-store` |
 | LittleMister | `eestore` |
+| Lobo | `lobo-pk` |
+> Always verify with `grep "VERCEL_PROJECT_NAME" env-backups/*.env.local` — the file is the source of truth.
 
 ### Verify before every deploy
 ```bash
