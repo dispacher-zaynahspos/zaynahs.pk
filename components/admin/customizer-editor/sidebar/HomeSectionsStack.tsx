@@ -17,6 +17,7 @@ interface HomeSectionsStackProps {
   handleUpdateSection: (id: string, updates: Partial<HomepageSection>) => void;
   handleMoveSection: (idx: number, dir: 'up' | 'down') => void;
   handleDeleteSection: (id: string) => void;
+  handleDuplicateSection?: (id: string) => void;
 }
 
 export default function HomeSectionsStack({
@@ -29,6 +30,7 @@ export default function HomeSectionsStack({
   handleUpdateSection,
   handleMoveSection,
   handleDeleteSection,
+  handleDuplicateSection,
 }: HomeSectionsStackProps) {
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
@@ -140,6 +142,7 @@ export default function HomeSectionsStack({
                   onMoveUp={() => handleMoveSection(idx, 'up')}
                   onMoveDown={() => handleMoveSection(idx, 'down')}
                   onDelete={() => handleDeleteSection(section.id)}
+                  onDuplicate={handleDuplicateSection ? () => handleDuplicateSection(section.id) : undefined}
                 />
               );
             })}

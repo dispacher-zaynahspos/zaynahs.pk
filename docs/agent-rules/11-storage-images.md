@@ -111,3 +111,11 @@ Compress stored images (WebP ≤100KB, URL-preserving): run `scripts/convert-ima
 
 ## Global compress-on-image UI rule (RULE 7, from Golden UI checklist)
 Whenever admin table/list shows a product/image thumbnail, MUST follow `docs/UI_PERFORMANCE_GUIDE.md` (TableThumbnail click → Modal pattern, `getOptimizedImageUrl()`, URL-driven sort/filter, page-load performance standards).
+
+## RULE S7 — Image + Load Performance (verified 2026-10)
+- **Upload pipeline (SSOT)**: every image goes through `app/api/upload-image/route.ts` — Sharp → WebP, ≤50KB, max 1200px, auto EXIF-rotate + metadata strip, favicons → PNG ≤128px. Videos bypass Sharp, uploaded raw. Never add a second upload path.
+- **Stored files are already optimized**, therefore `next.config.ts` keeps `images.unoptimized: true` (no paid image CDN). Do NOT flip this on without provisioning a loader — it would 404/double-serve.
+- **Display**: wrap storefront image URLs with `getOptimizedImageUrl(url, width)` / `getPresetImageUrl(url, preset)` from `@/lib/utils/imageUrl` (appends width/quality params — graceful no-op on hosts without transform). Presets: `micro/admin_thumb/card/banner/zoom/hero/logo`.
+- **Lists use thumbnails only** (`card`/`admin_thumb` preset), never full-size. Fixed width/height on every `<Image>` to avoid CLS. `priority` only on hero/LCP; everything below the fold lazy.
+- **Canonical URL format**: `https://<ref>.supabase.co/storage/v1/object/public/product-images/<path>` — one format everywhere (storefront, admin, customizer preview, OG). Migrate legacy values in place (path-preserving) via `scripts/convert-images-webp.mjs`; never rewrite stored URLs ad-hoc.
+- **Performance budgets** (storefront): LCP < 2.5s (mobile 4G), CLS < 0.1, no long tasks during scroll. Lazy-render below-the-fold sections, code-split heavy components, defer pixels/chat/tickers.

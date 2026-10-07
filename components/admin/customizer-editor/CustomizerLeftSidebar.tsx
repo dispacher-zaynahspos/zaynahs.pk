@@ -23,6 +23,7 @@ interface CustomizerLeftSidebarProps {
   handleUpdateSection: (id: string, updates: Partial<HomepageSection>) => void;
   handleMoveSection: (idx: number, dir: 'up' | 'down') => void;
   handleDeleteSection: (id: string) => void;
+  handleDuplicateSection?: (id: string) => void;
   currentProduct?: { name: string } | null;
 }
 
@@ -42,6 +43,7 @@ export function CustomizerLeftSidebar({
   handleUpdateSection,
   handleMoveSection,
   handleDeleteSection,
+  handleDuplicateSection,
   currentProduct
 }: CustomizerLeftSidebarProps) {
   return (
@@ -71,6 +73,7 @@ export function CustomizerLeftSidebar({
             handleUpdateSection={handleUpdateSection}
             handleMoveSection={handleMoveSection}
             handleDeleteSection={handleDeleteSection}
+            handleDuplicateSection={handleDuplicateSection}
           />
         ) : activePage === 'shop' ? (
           <div className="space-y-2">

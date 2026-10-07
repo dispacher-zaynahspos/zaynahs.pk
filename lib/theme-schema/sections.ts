@@ -255,3 +255,35 @@ export function resolveDefaultTitle(
   while (existingTitles.includes(`${base} ${n}`)) n++;
   return `${base} ${n}`;
 }
+
+/**
+ * SSOT — pure builder for a section's default `settings` + `content_data`.
+ * Used by BOTH the server insert action and the client-side (draft) "Add Section".
+ * Mirrors the registry defaults plus the few historical per-type merges so
+ * local-add and server-insert produce identical shapes.
+ */
+export function buildSectionDefaults(sectionType: string): {
+  settings: Record<string, any>;
+  content_data: Record<string, any>;
+} {
+  const def = getSectionDef(sectionType);
+  let settings: Record<string, any> = def?.defaultSettings ? { ...def.defaultSettings } : {};
+  let content_data: Record<string, any> = def?.defaultContent ? { ...def.defaultContent } : {};
+
+  if (sectionType === 'product_grid') {
+    settings = { limit: 8, columns_desktop: 4, columns_mobile: 2, source: 'all', ...settings };
+  } else if (sectionType === 'category_list') {
+    settings = { columns_desktop: 6, columns_mobile: 3, ...settings };
+  } else if (sectionType === 'hero_banner') {
+    settings = { height_desktop: '450px', height_mobile: '220px', overlay_opacity: 0.3, ...settings };
+  } else if (sectionType === 'recent_reviews') {
+    settings = { limit: 3, ...settings };
+  } else if (sectionType === 'flash_sale') {
+    settings = { startTime: '', endTime: '', viewAllText: 'View All', viewAllUrl: '/shop', ...settings };
+    content_data = { products: [], ...content_data };
+  } else if (sectionType === 'value_props') {
+    settings = { columns_desktop: 4, columns_mobile: 2, style: 'card', ...settings };
+  }
+
+  return { settings, content_data };
+}

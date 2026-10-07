@@ -4,16 +4,11 @@ import React, { useState, useTransition, useMemo, useEffect, useRef } from 'reac
 import { useRouter } from 'next/navigation';
 import { Product, Category, StoreSettings, Review, HomepageSection, Collection } from '@/lib/types';
 import { useConfirm } from '@/components/admin/shared/AdminConfirmProvider';
-import { 
-  updateHomepageSection, 
-  reorderHomepageSections, 
-  addHomepageSection, 
-  deleteHomepageSection 
-} from '@/lib/services/sections';
+import { saveHomepageSections } from '@/lib/services/sections';
 import { updateSettings } from '@/lib/services/settings';
 import { updateProductFieldsAction as updateProductFields } from '@/lib/services/products/actions';
 import { toast } from 'sonner';
-import { resolveDefaultTitle } from '@/lib/theme-schema';
+import { resolveDefaultTitle, buildSectionDefaults } from '@/lib/theme-schema';
 import { useCustomizerIframeSync } from './useCustomizerIframeSync';
 
 interface UseCustomizerStateProps {
@@ -47,11 +42,16 @@ export function useCustomizerState({
   const [activePage, setActivePage] = useState<'home' | 'shop' | 'product_detail' | 'product_card' | 'global' | 'appearance'>('home');
   const [activeSubTab, setActiveSubTab] = useState<string>('');
   const [storeSettings, setStoreSettings] = useState<StoreSettings>(settings!);
-  const isFirstRender = useRef(true);
 
   const [localProducts, setLocalProducts] = useState<Product[]>(products);
   const [editedProducts, setEditedProducts] = useState<Record<string, Partial<Product>>>({});
   const [activeProductSlug, setActiveProductSlug] = useState<string | null>(null);
+
+  // DRAFT dirty-tracking: last-saved baseline in state (not a ref, so reads are
+  // render-safe); compare to detect unsaved changes.
+  const [savedSnapshot, setSavedSnapshot] = useState<string>(
+    () => JSON.stringify({ sections: initialSections, settings: settings })
+  );
 
   const currentProduct = useMemo(() => {
     const defaultProduct = localProducts[0];
@@ -89,53 +89,12 @@ export function useCustomizerState({
   const [containerHeight, setContainerHeight] = useState<number>(700);
   const previewContainerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      return;
-    }
-    const timer = setTimeout(async () => {
-      try {
-        await updateSettings(storeSettings);
-      } catch {
-        // Silently fail
-      }
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, [storeSettings]);
+  // DRAFT MODE (RULE): all customizer changes stay LOCAL. Nothing persists until
+  // the user presses "Save Layout" (handleSaveLayout). The previous autosave
+  // timers for store_settings and sections were removed so adding/editing is
+  // instant and never writes to the DB on its own.
 
-  // CU6 fix: autopersist section order + fields (title, active/visibility, settings,
-  // content_data) on change — matching the store_settings autosave above — so that
-  // reorder / eye-toggle / title edits are never lost when navigating away before
-  // the explicit "Save Layout" button (which remains for save + edge-cache purge).
-  const isFirstSectionsRender = useRef(true);
-  useEffect(() => {
-    if (isFirstSectionsRender.current) {
-      isFirstSectionsRender.current = false;
-      return;
-    }
-    if (sections.length === 0) return;
-    const snapshot = sections;
-    const timer = setTimeout(async () => {
-      try {
-        const orderPayload = snapshot.map((s, idx) => ({ id: s.id, sort_order: idx + 1 }));
-        await reorderHomepageSections(orderPayload);
-        await Promise.all(
-          snapshot.map(sec =>
-            updateHomepageSection(sec.id, {
-              title: sec.title,
-              active: sec.active,
-              settings: sec.settings,
-              content_data: sec.content_data,
-            })
-          )
-        );
-      } catch {
-        // Silently fail — explicit "Save Layout" surfaces errors + purges cache
-      }
-    }, 1200);
-    return () => clearTimeout(timer);
-  }, [sections]);
+
 
   useEffect(() => {
     if (!previewContainerRef.current) return;
@@ -148,6 +107,22 @@ export function useCustomizerState({
     observer.observe(previewContainerRef.current);
     return () => observer.disconnect();
   }, []);
+
+  const isDirty = useMemo(() => {
+    const current = JSON.stringify({ sections, settings: storeSettings });
+    return current !== savedSnapshot || Object.keys(editedProducts).length > 0;
+  }, [sections, storeSettings, editedProducts, savedSnapshot]);
+
+  // Unsaved-changes guard: warn before closing/reloading the tab while dirty.
+  useEffect(() => {
+    const beforeUnload = (e: BeforeUnloadEvent) => {
+      if (!isDirty) return;
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', beforeUnload);
+    return () => window.removeEventListener('beforeunload', beforeUnload);
+  }, [isDirty]);
 
   const activeSection = useMemo(() => {
     return sections.find(s => s.id === activeSectionId) || null;
@@ -189,42 +164,71 @@ export function useCustomizerState({
   const handleDeleteSection = async (id: string) => {
     const confirmed = await confirm({
       title: 'Delete Section',
-      message: 'Are you sure you want to delete this section?',
+      message: 'Are you sure you want to delete this section? It is removed on Save.',
       variant: 'danger',
       confirmText: 'Delete'
     });
     if (!confirmed) return;
 
-    startTransition(async () => {
-      try {
-        await deleteHomepageSection(id);
-        setSections(prev => prev.filter(s => s.id !== id));
-        if (activeSectionId === id) {
-          setActiveSectionId(sections.length > 1 ? sections.find(s => s.id !== id)?.id || null : null);
-        }
-        toast.success('Section deleted successfully');
-      } catch (err) {
-        toast.error('Failed to delete section');
+    // DRAFT: remove locally only. Persisted when the user presses "Save Layout".
+    setSections(prev => {
+      const next = prev.filter(s => s.id !== id);
+      if (activeSectionId === id) {
+        setActiveSectionId(next[0]?.id || null);
       }
+      return next;
     });
   };
 
-  const handleAddSection = async (type: string) => {
-    // Registry-driven title + de-duplication (RULE SSOT1) — never a generic
-    // "New Section", and two same-type sections get "Name" / "Name 2".
+  const handleAddSection = (type: string) => {
+    // DRAFT: build the section LOCALLY with a client-generated UUID. Nothing is
+    // written to the DB here — every click adds exactly one new instance and it
+    // persists only when the user presses "Save Layout". Registry-driven title +
+    // de-duplication (RULE SSOT1); same type can be added many times.
     const existingTitles = sections.map((s) => s.title || '').filter(Boolean);
     const title = resolveDefaultTitle(type, existingTitles);
+    const { settings, content_data } = buildSectionDefaults(type);
 
-    startTransition(async () => {
-      try {
-        const newSec = await addHomepageSection(type, title);
-        setSections(prev => [...prev, newSec]);
-        setActiveSectionId(newSec.id);
-        toast.success('Section added successfully');
-      } catch (err) {
-        toast.error('Failed to add section');
-      }
+    const newSec: HomepageSection = {
+      id: (globalThis.crypto?.randomUUID?.() ?? `local-${Date.now()}-${Math.random().toString(36).slice(2)}`),
+      section_type: type,
+      title,
+      settings,
+      content_data,
+      sort_order: sections.length + 1,
+      active: true,
+    };
+
+    setSections(prev => [...prev, newSec]);
+    setActiveSectionId(newSec.id);
+    toast.success('Section added — press Save Layout to publish');
+  };
+
+  const handleDuplicateSection = (id: string) => {
+    // DRAFT: clone a section locally (new UUID), insert right after the original.
+    const idx = sections.findIndex((s) => s.id === id);
+    if (idx === -1) return;
+    const orig = sections[idx];
+    const existingTitles = sections.map((s) => s.title || '').filter(Boolean);
+    const baseTitle = (orig.title || orig.section_type) + ' Copy';
+    let title = baseTitle;
+    let n = 2;
+    while (existingTitles.includes(title)) { title = `${baseTitle} ${n}`; n++; }
+
+    const clone: HomepageSection = {
+      ...orig,
+      id: (globalThis.crypto?.randomUUID?.() ?? `local-${Date.now()}-${Math.random().toString(36).slice(2)}`),
+      title,
+      settings: { ...orig.settings },
+      content_data: { ...orig.content_data },
+    };
+    setSections((prev) => {
+      const next = [...prev];
+      next.splice(idx + 1, 0, clone);
+      return next.map((s, i) => ({ ...s, sort_order: i + 1 }));
     });
+    setActiveSectionId(clone.id);
+    toast.success('Section duplicated — press Save Layout to publish');
   };
 
   const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
@@ -322,24 +326,26 @@ export function useCustomizerState({
     }));
   };
 
+  const handleDiscard = () => {
+    // Reset the entire draft back to the last-saved baseline.
+    try {
+      const base = JSON.parse(savedSnapshot) as { sections: HomepageSection[]; settings: StoreSettings };
+      setSections(base.sections || []);
+      setStoreSettings(base.settings);
+      setEditedProducts({});
+      setActiveSectionId(base.sections?.[0]?.id || null);
+      toast.success('Changes discarded — reverted to last saved version');
+    } catch {
+      toast.error('Could not discard changes');
+    }
+  };
+
   const handleSaveLayout = () => {
     startTransition(async () => {
       try {
-        const orderPayload = sections.map((s, idx) => ({ id: s.id, sort_order: idx + 1 }));
-        await reorderHomepageSections(orderPayload);
-
-        const updatePromises = sections.map((sec, idx) => 
-          updateHomepageSection(sec.id, {
-            section_type: sec.section_type,
-            title: sec.title,
-            active: sec.active,
-            settings: sec.settings,
-            content_data: sec.content_data,
-            sort_order: sec.sort_order ?? idx + 1
-          })
-        );
-
-        await Promise.all(updatePromises);
+        // Persist the FULL draft layout in one reconcile call (insert new,
+        // update changed, delete removed, write sort_order) — then settings.
+        await saveHomepageSections(sections);
         await updateSettings(storeSettings);
 
         const productUpdates = Object.entries(editedProducts).map(([id, updates]) =>
@@ -348,6 +354,8 @@ export function useCustomizerState({
         await Promise.all(productUpdates);
 
         setEditedProducts({});
+        // New saved baseline — clears the dirty indicator.
+        setSavedSnapshot(JSON.stringify({ sections, settings: storeSettings }));
 
         try {
           const res = await fetch('/api/revalidate-customizer', { method: 'POST' });
@@ -390,11 +398,14 @@ export function useCustomizerState({
     handleMoveSection,
     handleDeleteSection,
     handleAddSection,
+    handleDuplicateSection,
     isMediaModalOpen, setIsMediaModalOpen,
     mediaSelectCallback, setMediaSelectCallback,
     mediaUploadTarget, setMediaUploadTarget,
     handleMediaSelected,
     handleUpdateProductSale,
-    handleSaveLayout
+    handleSaveLayout,
+    isDirty,
+    handleDiscard
   };
 }

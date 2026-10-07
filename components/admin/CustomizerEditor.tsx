@@ -38,6 +38,8 @@ export default function CustomizerEditor(props: CustomizerEditorProps) {
         setViewportMode={state.setViewportMode}
         isPending={state.isPending}
         onSaveLayout={state.handleSaveLayout}
+        isDirty={state.isDirty}
+        onDiscard={state.handleDiscard}
         sectionsFirstId={state.sections[0]?.id || null}
       />
 
@@ -61,6 +63,7 @@ export default function CustomizerEditor(props: CustomizerEditorProps) {
           handleUpdateSection={state.handleUpdateSection}
           handleMoveSection={state.handleMoveSection}
           handleDeleteSection={state.handleDeleteSection}
+          handleDuplicateSection={state.handleDuplicateSection}
           currentProduct={state.currentProduct}
         />
 

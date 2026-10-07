@@ -3,8 +3,8 @@
 import React from 'react';
 import { StoreSettings } from '@/lib/types';
 import { isFeatureEnabled } from '@/lib/features/premium';
-import { Eye, EyeOff, ChevronUp, ChevronDown } from '@/components/common/Icons';
 import { toast } from 'sonner';
+import SectionStackRow from './SectionStackRow';
 
 interface ProductDetailBlocksStackProps {
   storeSettings: StoreSettings;
@@ -92,101 +92,61 @@ export default function ProductDetailBlocksStack({
           Product Detail Blocks Stack
         </label>
 
-        {/* Blocks List */}
+        {/* Blocks List — shared SectionStackRow (locked core blocks: move + hide only) */}
         <div className="space-y-2">
           {currentLayout.map((blockId, idx, arr) => {
-            const isActive = activeSectionId === blockId;
+            const isFeatureDisabled =
+              blockId === 'social_feed' && !isFeatureEnabled(storeSettings, 'social_feeds');
+            const isHidden = hiddenBlocks.includes(blockId);
+            const tabMap: Record<string, string> = {
+              details: 'swatches',
+              ticker: 'ticker',
+              reviews: 'urgency',
+              related: 'related',
+              recently_viewed: 'recently_viewed',
+              social_feed: 'social_feed',
+            };
+            const move = (dir: 'up' | 'down') => {
+              const t = dir === 'up' ? idx - 1 : idx + 1;
+              if (t < 0 || t > arr.length - 1) return;
+              const newLayout = [...arr];
+              const tmp = newLayout[idx];
+              newLayout[idx] = newLayout[t];
+              newLayout[t] = tmp;
+              setStoreSettings((prev) => ({ ...prev, product_page_layout: newLayout }));
+            };
             return (
-              <div
+              <SectionStackRow
                 key={blockId}
-                onClick={() => {
+                title={blockLabels[blockId] || blockId}
+                subtitle={blockId.replace(/_/g, ' ')}
+                isActive={activeSectionId === blockId}
+                isDisabled={isFeatureDisabled}
+                isVisible={!isHidden}
+                isFirst={idx === 0}
+                isLast={idx === arr.length - 1}
+                renaming={false}
+                renameValue=""
+                onSelect={() => {
                   setActiveSectionId(blockId);
-                  const tabMap: Record<string, string> = {
-                    details: 'swatches',
-                    ticker: 'ticker',
-                    reviews: 'urgency',
-                    related: 'related',
-                    recently_viewed: 'recently_viewed',
-                    social_feed: 'social_feed',
-                  };
                   setActiveSubTab(tabMap[blockId] || 'swatches');
                 }}
-                className={`flex items-center justify-between p-3 border rounded-xl transition-all cursor-pointer ${
-                  isActive
-                    ? 'border-[#e94560] bg-[#e94560]/5 dark:bg-[#e94560]/10 shadow-sm'
-                    : 'border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] hover:border-gray-300 dark:hover:border-gray-700'
-                }`}
-              >
-                <div className="flex items-center gap-2 min-w-0 flex-1">
-                  {(() => {
-                    const isFeatureDisabled =
-                      blockId === 'social_feed' && !isFeatureEnabled(storeSettings, 'social_feeds');
-
-                    return (
-                      <div className="min-w-0 flex-1">
-                        <div
-                          className={`text-xs font-bold truncate ${
-                            isFeatureDisabled
-                              ? 'text-gray-450 dark:text-gray-500 line-through'
-                              : 'text-gray-900 dark:text-white'
-                          }`}
-                        >
-                          {isFeatureDisabled ? '🔒 ' : ''}
-                          {blockLabels[blockId] || blockId}
-                        </div>
-                        <span className="text-[9px] text-gray-455 dark:text-gray-500 font-bold uppercase tracking-wider">
-                          {blockId} {isFeatureDisabled && '(Disabled)'}
-                        </span>
-                      </div>
-                    );
-                  })()}
-                </div>
-                <div className="flex items-center gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-                  {(() => {
-                    const isHidden = hiddenBlocks.includes(blockId);
-                    return (
-                      <button
-                        onClick={() => {
-                          const nextHidden = isHidden
-                            ? hiddenBlocks.filter((b) => b !== blockId)
-                            : [...hiddenBlocks, blockId];
-                          setStoreSettings((prev) => ({ ...prev, product_page_hidden_blocks: nextHidden }));
-                        }}
-                        className={`p-1 cursor-pointer animate-none ${isHidden ? 'text-gray-400 hover:text-[#e94560]' : 'text-[#e94560] hover:text-gray-500'}`}
-                        title={isHidden ? 'Show block' : 'Hide block'}
-                      >
-                        {isHidden ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-                      </button>
-                    );
-                  })()}
-                  <button
-                    disabled={idx === 0}
-                    onClick={() => {
-                      const newLayout = [...arr];
-                      const temp = newLayout[idx];
-                      newLayout[idx] = newLayout[idx - 1];
-                      newLayout[idx - 1] = temp;
-                      setStoreSettings((prev) => ({ ...prev, product_page_layout: newLayout }));
-                    }}
-                    className="p-1 text-gray-400 hover:text-gray-650 dark:hover:text-white disabled:opacity-30 cursor-pointer animate-none"
-                  >
-                    <ChevronUp className="h-3.5 w-3.5" />
-                  </button>
-                  <button
-                    disabled={idx === arr.length - 1}
-                    onClick={() => {
-                      const newLayout = [...arr];
-                      const temp = newLayout[idx];
-                      newLayout[idx] = newLayout[idx + 1];
-                      newLayout[idx + 1] = temp;
-                      setStoreSettings((prev) => ({ ...prev, product_page_layout: newLayout }));
-                    }}
-                    className="p-1 text-gray-400 hover:text-gray-650 dark:hover:text-white disabled:opacity-30 cursor-pointer animate-none"
-                  >
-                    <ChevronDown className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-              </div>
+                onToggleVisible={() => {
+                  const nextHidden = isHidden
+                    ? hiddenBlocks.filter((b) => b !== blockId)
+                    : [...hiddenBlocks, blockId];
+                  setStoreSettings((prev) => ({ ...prev, product_page_hidden_blocks: nextHidden }));
+                }}
+                onStartRename={() => {}}
+                onRenameChange={() => {}}
+                onCommitRename={() => {}}
+                onCancelRename={() => {}}
+                onMoveUp={() => move('up')}
+                onMoveDown={() => move('down')}
+                onDelete={() => {}}
+                lockActions
+                hideMenu
+              />
             );
           })}
         </div>

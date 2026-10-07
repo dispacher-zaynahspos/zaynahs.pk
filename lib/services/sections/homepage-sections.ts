@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { HomepageSection } from '@/lib/types';
 import { revalidateBanner } from '@/lib/revalidate';
-import { getSectionDef } from '@/lib/theme-schema/sections';
+import { buildSectionDefaults } from '@/lib/theme-schema/sections';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
@@ -173,73 +173,7 @@ export const addHomepageSection = async (
 
     const newSortOrder = (maxSec?.sort_order ?? 0) + 1;
 
-    const def = getSectionDef(sectionType);
-    let settings: Record<string, any> = def?.defaultSettings ? { ...def.defaultSettings } : {};
-    let content_data: Record<string, any> = def?.defaultContent ? { ...def.defaultContent } : {};
-
-    if (sectionType === 'product_grid') {
-      settings = { limit: 8, columns_desktop: 4, columns_mobile: 2, source: 'all', ...settings };
-    } else if (sectionType === 'category_list') {
-      settings = { columns_desktop: 6, columns_mobile: 3, ...settings };
-    } else if (sectionType === 'hero_banner') {
-      settings = { height_desktop: '450px', height_mobile: '220px', overlay_opacity: 0.3, ...settings };
-    } else if (sectionType === 'recent_reviews') {
-      settings = { limit: 3, ...settings };
-    } else if (sectionType === 'flash_sale') {
-      settings = { startTime: '', endTime: '', viewAllText: 'View All', viewAllUrl: '/shop', ...settings };
-      content_data = { products: [], ...content_data };
-    } else if (sectionType === 'value_props') {
-      settings = { columns_desktop: 4, columns_mobile: 2, style: 'card', ...settings };
-      content_data = {
-        items: [
-          { icon: '🚚', title: 'Fast Delivery', subtitle: '2–4 days nationwide' },
-          { icon: '💵', title: 'Cash on Delivery', subtitle: 'Pay when it arrives' },
-          { icon: '✨', title: 'Premium Quality', subtitle: 'Handpicked products' },
-          { icon: '🔄', title: 'Easy Returns', subtitle: '7-day return policy' },
-        ],
-        ...content_data,
-      };
-    } else if (sectionType === 'image_with_text') {
-      settings = { layout: 'image_left', image_width: 50, ...settings };
-      content_data = {
-        heading: 'Our Story',
-        body: 'Tell your brand story here...',
-        button_text: 'Learn More',
-        button_link: '/shop',
-        ...content_data,
-      };
-    } else if (sectionType === 'tabbed_product_grid') {
-      settings = { columns_desktop: 4, columns_tablet: 3, columns_mobile: 2, limit_per_tab: 8, ...settings };
-      content_data = {
-        tabs: [
-          { id: 'new', label: 'New Arrivals', source: 'recent' },
-          { id: 'best', label: 'Best Sellers', source: 'featured' },
-          { id: 'sale', label: 'On Sale', source: 'sale' },
-        ],
-        ...content_data,
-      };
-    } else if (sectionType === 'circular_categories') {
-      settings = { item_size: 80, show_labels: true, ...settings };
-      content_data = { items: [], ...content_data };
-    } else if (sectionType === 'faq_accordion') {
-      content_data = {
-        items: [
-          { q: 'What are your delivery timelines?', a: '2–4 business days nationwide.' },
-          { q: 'Do you offer Cash on Delivery?', a: 'Yes! COD is available on all orders.' },
-          { q: 'How do I return an item?', a: 'Contact us on WhatsApp within 7 days.' },
-        ],
-        ...content_data,
-      };
-    } else if (sectionType === 'rich_text') {
-      settings = { text_align: 'center', max_width: 'narrow', ...settings };
-      content_data = {
-        heading: 'Welcome to Our Store',
-        body: 'We bring you the finest quality kids clothing and jewelry.',
-        button_text: '',
-        button_link: '',
-        ...content_data,
-      };
-    }
+    const { settings, content_data } = buildSectionDefaults(sectionType);
 
     const { data, error } = await supabase
       .from('homepage_sections')
@@ -275,6 +209,66 @@ export const deleteHomepageSection = async (id: string): Promise<void> => {
     await revalidateBanner();
   } catch (error) {
     console.error('[sections] deleteHomepageSection failed:', error);
+    throw error;
+  }
+};
+
+
+/**
+ * SSOT — persist the FULL draft layout in one shot (Customizer "Save Layout").
+ * Reconciles the DB to exactly match `draft`:
+ *   • rows missing from draft are deleted,
+ *   • every draft row is upserted (new client-generated IDs are inserted),
+ *   • sort_order is written from array position.
+ * Purges cache ONCE at the end (not per-section) so adding/editing stays instant
+ * and nothing persists until the user explicitly saves.
+ */
+export const saveHomepageSections = async (
+  draft: HomepageSection[]
+): Promise<void> => {
+  try {
+    const supabase = supabaseAdmin;
+
+    const { data: existing, error: fetchErr } = await supabase
+      .from('homepage_sections')
+      .select('id');
+    if (fetchErr) throw fetchErr;
+
+    const draftIds = new Set(draft.map((d) => d.id));
+    const toDelete = (existing || [])
+      .map((r: { id: string }) => r.id)
+      .filter((id: string) => !draftIds.has(id));
+
+    if (toDelete.length > 0) {
+      const { error: delErr } = await supabase
+        .from('homepage_sections')
+        .delete()
+        .in('id', toDelete);
+      if (delErr) throw delErr;
+    }
+
+    const now = new Date().toISOString();
+    const rows = draft.map((sec, idx) => ({
+      id: sec.id,
+      section_type: sec.section_type,
+      title: sec.title ?? '',
+      settings: sec.settings ?? {},
+      content_data: sec.content_data ?? {},
+      sort_order: idx + 1,
+      active: sec.active ?? true,
+      updated_at: now,
+    }));
+
+    if (rows.length > 0) {
+      const { error: upsertErr } = await supabase
+        .from('homepage_sections')
+        .upsert(rows, { onConflict: 'id' });
+      if (upsertErr) throw upsertErr;
+    }
+
+    await revalidateBanner();
+  } catch (error) {
+    console.error('[sections] saveHomepageSections failed:', error);
     throw error;
   }
 };

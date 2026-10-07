@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { HomepageSection } from '@/lib/types';
 import { SectionWrapper } from './SectionWrapper';
 import { getOptimizedImageUrl } from '@/lib/utils/imageUrl';
+import { FolderOpen } from '@/components/common/Icons';
 
 interface CircularItem {
   title: string;
@@ -61,8 +62,8 @@ export function CircularCategoriesSection({ section }: CircularCategoriesSection
                   className="object-cover transition-transform duration-300 group-hover:scale-110"
                 />
               ) : (
-                <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-xl">
-                  📂
+                <div className="absolute inset-0 flex items-center justify-center text-gray-400">
+                  <FolderOpen className="h-5 w-5" />
                 </div>
               )}
             </div>

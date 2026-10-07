@@ -2063,3 +2063,22 @@ ALTER TABLE public.products ENABLE TRIGGER ALL;
 - `components/admin/customizer-editor/hooks/useCustomizerState.ts`
 - `docs/STOREFRONT_SECTIONS_MASTERPLAN.md`
 
+
+---
+
+## 2026-10-06 — Full-system verify pass + storefront icon-rule cleanup
+
+**Verification (no schema change):**
+- `npx tsc --noEmit` = 0 errors · `next build` = success (294 pages) · `npm run check:setup` = PASSED (144 migrations ↔ SUPER_MASTER_SCHEMA, 21 revalidate triggers, 12 required clone env keys all documented).
+- Confirmed all 18 homepage section types (13 upgraded + 5 new) are wired end-to-end: `SECTION_PALETTE` → `handleAddSection` → `addHomepageSection` (UUID PK insert, no unique constraint → same type can be added repeatedly, auto-selected) → `CustomizerRightSidebar` editor → `StoreFront` render switch → save + `revalidateBanner`.
+- `SectionSpacingControls` present in all 16 section editors; `ResponsiveGridColumnsControl` drives per-device columns.
+- Image pipeline confirmed correct: `app/api/upload-image/route.ts` uses Sharp → WebP, ≤50KB, max 1200px, EXIF stripped, in-place path preserved. `next.config.ts images.unoptimized:true` is intentional (no paid image-CDN; files pre-optimized at upload). `getOptimizedImageUrl` appends width/quality params as graceful enhancement.
+- env-backups: all 5 stores (zaynahs, totvogue, minimahal, littlemister, lobo) carry all 12 clone-required keys; secrets gitignored (`env-backups/`, `.env*`).
+
+**Code changes (icon rule #9 — SVG, no UI emojis):**
+- `components/store/store-front/CircularCategoriesSection.tsx` — folder emoji fallback → `<FolderOpen>` SVG.
+- `components/admin/customizer/sections/ProductGridSettings.tsx` — grid/slider mode glyphs → `<Grid2X2>` / `<Play>` SVG.
+- `components/admin/customizer/sections/TabbedProductGridSettings.tsx` — removed emoji prefixes from source-select options.
+- Removed stray root duplicate `storefront_sections_masterplan.md` (SSOT; canonical copy stays in `docs/`).
+
+**Not changed (deliberate):** user-data emoji seed values in `value_props` icon field (editable free-text; changing would require an icon-key picker + data migration — left to avoid breaking saved data).

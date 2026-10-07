@@ -8,6 +8,7 @@ import BottomGridActions from './product-grid/BottomGridActions';
 import ResponsiveGridColumnsControl from '../shared/ResponsiveGridColumnsControl';
 import SectionSpacingControls from '../shared/SectionSpacingControls';
 import { AccordionGroup } from '@/components/admin/customizer/controls';
+import { Grid2X2, Play } from '@/components/common/Icons';
 
 interface ProductGridSettingsProps {
   section: HomepageSection;
@@ -158,7 +159,7 @@ export default function ProductGridSettings({
                   : 'bg-gray-50 dark:bg-white/5 border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300'
               }`}
             >
-              {mode === 'grid' ? '⊞ Grid' : '▷ Slider'}
+              <span className="inline-flex items-center justify-center gap-1.5">{mode === 'grid' ? <Grid2X2 className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5" />}<span className="capitalize">{mode}</span></span>
             </button>
           ))}
         </div>

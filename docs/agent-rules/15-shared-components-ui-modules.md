@@ -85,3 +85,12 @@ Colors, spacing, radius, shadow, font-size — defined ONLY in `tailwind.config`
 
 ## Modularity — one file per modal/tab (RULE O1)
 Full detail: [23-code-architecture-modularity.md](23-code-architecture-modularity.md).
+
+## RULE UI-ROW1 — One shared Customizer section-row (fixed controls)
+Verified 2026-10. The single shared row is `components/admin/customizer-editor/sidebar/SectionStackRow.tsx`.
+- **Every** customizer list (Home sections, Shop sections, Product Details blocks, Product Cards blocks, and any future list) MUST use `SectionStackRow`. No bespoke row markup per tab.
+- **Fixed control order & layout:** `[Title + type label (flex-1 truncate)] … [Up ▲] [Down ▼] [Eye hide/show] [⋮ menu]`. Same icon set (`@/components/common/Icons`), same `h-7 w-7` buttons, same hover/active/disabled styles, aria-labels, 44px touch targets on mobile.
+- **Hide = Eye icon** (`Eye`/`EyeOff`), toggles draft visibility; hidden rows dim + show "(Hidden)". **No drag grips** — reorder is up/down arrows only (`moveItemInArray`); first-row Up disabled, last-row Down disabled with identical disabled style.
+- **⋮ menu:** Rename, Duplicate, Delete. Core/locked blocks (e.g. Product-Detail blocks) pass `lockActions` + `hideMenu` to keep move + hide while hiding rename/delete.
+- Moving/hiding updates the preview immediately from the draft and selects the moved row. Works at 320–1920px with no clipped icons.
+- Every new or edited customizer list MUST reuse this component.

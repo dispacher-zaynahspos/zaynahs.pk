@@ -72,3 +72,13 @@ Full guide with Before/After code snippets: see `docs/UI_PERFORMANCE_GUIDE.md` S
 - Mobile/native-app card & touch rules → [17-mobile-native-app-style.md](17-mobile-native-app-style.md)
 - Navigation & state restoration → [19-navigation-state-restoration.md](19-navigation-state-restoration.md)
 
+
+## RULE F2 — Draft-until-Save (NO auto-save in Settings or Customizer)
+Verified 2026-10. Applies to EVERY Shop Settings tab and EVERY Customizer page (Home, Shop, Product Details, Product Cards, Global, Appearance/Presets), both brands, all devices.
+- **No auto-save anywhere.** Edits (add / duplicate / delete / reorder / hide / rename / per-device override / any field change) update LOCAL draft state only.
+- **Only the Save button** (`Save Layout` / `Save Settings`) writes to the DB, triggers cache revalidate/purge, and updates the live store. Forbidden: `useEffect`/debounce timers that persist on change, server-action DB writes inside add/duplicate/delete/reorder/toggle handlers, `onBlur`/`onChange` saves, edit-triggered `revalidate`/purge.
+- **Preview** renders from the draft instantly (Customizer iframe is fed local state via postMessage); the live store changes only after Save.
+- **Dirty UX (required):** Save shows an unsaved indicator when draft ≠ saved baseline, is disabled when clean, shows a loading spinner on save, and a success/error toast. Provide a **Discard** action that resets to the last-saved baseline, and a **beforeunload guard** that warns while dirty.
+- **Shared state hook:** customizer draft lives in `components/admin/customizer-editor/hooks/useCustomizerState.ts` (`isDirty`, `handleDiscard`, `handleSaveLayout`, snapshot baseline via `savedSnapshotRef`). Settings form draft lives in `useSettingsFormState` (explicit `handleSubmit`). New tabs/pages MUST reuse these — no per-page save copies.
+- **Section persistence model:** `handleAddSection`/`handleDuplicateSection`/`handleDeleteSection` are LOCAL only (client `crypto.randomUUID()`); `saveHomepageSections(draft)` reconciles the DB on Save (insert new, update changed, delete removed, write sort_order) and purges cache ONCE. `buildSectionDefaults(type)` is the SSOT for new-section defaults (used by both local-add and the server insert).
+- **Verify:** add section → nothing saved; reload without Save → change gone; press Save → persists + live store updates + cache purged.

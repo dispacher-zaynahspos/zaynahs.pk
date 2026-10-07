@@ -70,11 +70,11 @@ export default function TabbedProductGridSettings({
                 onChange={(e) => updateTab(idx, 'source', e.target.value)}
                 className="w-full px-3 py-2 bg-white dark:bg-[#0f0f1b] border border-gray-200 dark:border-gray-700 rounded-lg text-xs font-semibold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
               >
-                <option value="featured">⭐ Best Sellers (Featured)</option>
-                <option value="recent">🆕 New Arrivals (Recent)</option>
-                <option value="sale">🏷️ On Sale</option>
+                <option value="featured">Best Sellers (Featured)</option>
+                <option value="recent">New Arrivals (Recent)</option>
+                <option value="sale">On Sale</option>
                 {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>📂 {cat.name}</option>
+                  <option key={cat.id} value={cat.id}>{cat.name}</option>
                 ))}
               </select>
             </div>

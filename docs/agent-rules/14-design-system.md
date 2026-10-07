@@ -130,3 +130,9 @@ Whenever creating, modifying, or refactoring ANY form, editor, modal, or managem
    - Category Reordering: `components/admin/category-detail/CategoryBulkActionFooter.tsx`
    - Admin Modals: `components/admin/category-manager/CategoryFormModal.tsx` & `CollectionFormModal.tsx`
 
+
+## RULE DS7 — Storefront section + icon standards (verified 2026-10)
+- **Add-instance behavior**: clicking a type in "Add Layout Section" MUST insert exactly one new DB row every click (same type allowed many times — no unique constraint on `section_type`), given a unique UUID + de-duplicated title (`resolveDefaultTitle`), auto-selected and scrolled into view, present in preview + saved layout.
+- **Per-device controls**: every section exposes columns/visibility/spacing per device via `ResponsiveGridColumnsControl` + `SectionSpacingControls` (padding top/bottom + background). `SectionSpacingControls` must appear in EVERY section editor.
+- **Reorder**: up/down arrow buttons only (`moveItemInArray`). `GripVertical` is decorative — never wire real HTML drag-drop for section/list reorder.
+- **No UI emojis**: all chrome/labels/placeholders/fallback glyphs use SVG from `@/components/common/Icons` (never a literal emoji in JSX for UI). Exception: user-editable free-text data fields (e.g. `value_props.icon`) may hold emoji the merchant typed — do not force-migrate those without an icon-key picker.
