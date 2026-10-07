@@ -13,6 +13,7 @@ interface ProductCardActionsProps {
   onOpenQuickView: (e: React.MouseEvent) => void;
   onAddToCart: (e: React.MouseEvent) => void;
   variant?: 'floating' | 'action-btn';
+  className?: string;
 }
 
 export const ProductCardActions: React.FC<ProductCardActionsProps> = ({
@@ -25,17 +26,18 @@ export const ProductCardActions: React.FC<ProductCardActionsProps> = ({
   onOpenQuickView,
   onAddToCart,
   variant = 'action-btn',
+  className = '',
 }) => {
   const containerClass = variant === 'action-btn' ? 'card-actions' : 'aic';
   const btnClass = variant === 'action-btn' ? 'action-btn' : 'ai';
 
   // Visibility is driven ENTIRELY by customCss (RULE UI-CARD-INTERACTION):
-  //  • touch devices → always visible
+  //  • touch devices → revealed on focus / always visible
   //  • hover-capable pointer devices → reveal on real :hover
   // Never toggle visibility from JS/scroll state here.
   return (
     <div
-      className={`${containerClass} transition-all duration-200 ease-out`}
+      className={`${containerClass} ${className} transition-all duration-200 ease-out`}
       style={{ pointerEvents: 'none' }}
     >
       {showWishlist && (

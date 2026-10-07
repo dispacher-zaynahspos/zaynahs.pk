@@ -327,17 +327,33 @@ export const customCss = `
       font-size: 0.8rem; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       position: relative;
     }
+    .dark .z-card-container .action-btn,
+    .dark .z-card-container .ai {
+      background: #16162a; color: #f3f4f6;
+      border-color: rgba(255, 255, 255, 0.12);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+    }
     .z-card-container .action-btn:hover,
     .z-card-container .ai:hover {
-      transform: scale(1.1);
-      background: var(--color-primary, #e94560);
-      color: #ffffff;
-      border-color: transparent;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      transform: scale(1.14) !important;
+      background: var(--color-primary, #e94560) !important;
+      color: #ffffff !important;
+      border-color: transparent !important;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25) !important;
+    }
+    .z-card-container .action-btn:hover svg,
+    .z-card-container .ai:hover svg {
+      color: #ffffff !important;
+      stroke: #ffffff !important;
+    }
+    .z-card-container .action-btn:hover svg.text-red-500,
+    .z-card-container .ai:hover svg.text-red-500 {
+      color: #ffffff !important;
+      fill: #ffffff !important;
     }
     .z-card-container .action-btn:active,
     .z-card-container .ai:active {
-      transform: scale(0.92);
+      transform: scale(0.92) !important;
     }
 
     .z-card-container .ai .tt,
@@ -362,14 +378,24 @@ export const customCss = `
       /* Base: action icons hidden until the card becomes scroll-focused */
       .z-card-container .card-actions,
       .z-card-container .aic {
-        opacity: 0 !important;
-        transform: translate3d(10px, 0, 0) !important;
+        opacity: 0;
+        transform: translate3d(10px, 0, 0);
         will-change: transform, opacity;
-        pointer-events: none !important;
-        right: 6px !important;
-        top: 6px !important;
-        gap: 5px !important;
-        transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1), transform 0.28s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        pointer-events: none;
+        right: 6px;
+        top: 6px;
+        gap: 5px;
+        transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1), transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      /* Cursor hover reveal for pointer devices in mobile widths (e.g. customizer mobile preview) */
+      .z-card-container:hover .card-actions,
+      .z-card-container:hover .aic,
+      .group:hover .card-actions,
+      .group:hover .aic {
+        opacity: 1 !important;
+        transform: translate3d(0, 0, 0) !important;
+        pointer-events: auto !important;
       }
 
       .z-card-container .action-btn,
@@ -378,12 +404,19 @@ export const customCss = `
         height: 28px !important;
         min-width: 28px !important;
         min-height: 28px !important;
-        background: rgba(255, 255, 255, 0.92) !important;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.14) !important;
+        background: rgba(255, 255, 255, 0.95);
+        color: #1f2937;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.14);
         will-change: transform, opacity;
         backface-visibility: hidden;
         -webkit-backface-visibility: hidden;
-        transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease !important;
+        transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), background 0.2s ease, color 0.2s ease;
+      }
+
+      .dark .z-card-container .action-btn,
+      .dark .z-card-container .ai {
+        background: rgba(22, 22, 42, 0.95);
+        color: #f3f4f6;
       }
 
       /* Base: Images normal state when not in focus */
@@ -1038,7 +1071,11 @@ export const customCss = `
         .grid-cols-2 .z-card-container.is-in-focus .aic,
         .grid-cols-2 .z-card-container.is-in-focus .card-actions,
         .grid-cols-2 .z-card-container.active-card .aic,
-        .grid-cols-2 .z-card-container.active-card .card-actions {
+        .grid-cols-2 .z-card-container.active-card .card-actions,
+        .grid-cols-2 .z-card-container:hover .aic,
+        .grid-cols-2 .z-card-container:hover .card-actions,
+        .grid-cols-2 .group:hover .aic,
+        .grid-cols-2 .group:hover .card-actions {
             opacity: 1 !important;
             transform: translateX(0) !important;
             pointer-events: auto !important;

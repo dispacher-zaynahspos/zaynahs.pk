@@ -4,7 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Product, StoreSettings } from '@/lib/types';
-import { ShoppingCart, Heart, Eye } from '@/components/common/Icons';
+import { ProductCardActions } from './ProductCardActions';
 import { formatPrice } from '@/lib/utils/whatsapp';
 import { saveScrollPosition } from '@/lib/hooks/useScrollRestoration';
 import { useMobileCardFocus } from '@/lib/hooks/useMobileCardFocus';
@@ -240,41 +240,18 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
         {/* Positioned absolute on z-card-container (relative). z-[25] wins over overlay link (z-[1]). */}
       </div>
 
-      {/* ── Action icons — always outside the overflow-hidden image box ── */}
-      <div
-        className="card-actions absolute right-1.5 sm:right-2 top-1.5 sm:top-2 flex flex-col gap-1.5 z-[25] transition-all duration-200 ease-out"
-        style={{ pointerEvents: 'none' }}
-      >
-        {showWishlist && (
-          <button type="button"
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleWishlist(e); }}
-            className="action-btn pointer-events-auto flex h-7 w-7 items-center justify-center rounded-full bg-white/95 dark:bg-[#16162a]/95 shadow-md border border-gray-200/80 dark:border-gray-800 text-gray-600 dark:text-gray-300 hover:text-[var(--color-primary,#C2185B)] transition-transform duration-200 cursor-pointer"
-            title={isInWishlist ? 'Remove from Wishlist' : 'Add to Wishlist'}
-            aria-label={isInWishlist ? 'Remove from Wishlist' : 'Add to Wishlist'}
-          >
-            <Heart className={`h-3.5 w-3.5 ${isInWishlist ? 'fill-red-500 text-red-500' : ''}`} />
-          </button>
-        )}
-        {showQuickview && (
-          <button type="button"
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onOpenQuickView(e); }}
-            className="action-btn pointer-events-auto flex h-7 w-7 items-center justify-center rounded-full bg-white/95 dark:bg-[#16162a]/95 shadow-md border border-gray-200/80 dark:border-gray-800 text-gray-600 dark:text-gray-300 hover:text-[var(--color-primary,#C2185B)] transition-transform duration-200 cursor-pointer"
-            title="Quick View" aria-label="Quick View"
-          >
-            <Eye className="h-3.5 w-3.5" />
-          </button>
-        )}
-        {showQuickcart && (
-          <button type="button"
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAddToCart(e); }}
-            className="action-btn pointer-events-auto flex h-7 w-7 items-center justify-center rounded-full bg-white/95 dark:bg-[#16162a]/95 shadow-md border border-gray-200/80 dark:border-gray-800 text-gray-600 dark:text-gray-300 hover:text-[var(--color-primary,#C2185B)] transition-transform duration-200 cursor-pointer"
-            title={product.has_variants ? 'Choose Options' : 'Add to Cart'}
-            aria-label={product.has_variants ? 'Choose Options' : 'Add to Cart'}
-          >
-            <ShoppingCart className="h-3.5 w-3.5" />
-          </button>
-        )}
-      </div>
+      {/* ── Action icons — always outside the overflow-hidden image box (SSOT) ── */}
+      <ProductCardActions
+        showWishlist={showWishlist}
+        showQuickview={showQuickview}
+        showQuickcart={showQuickcart}
+        isInWishlist={isInWishlist}
+        hasVariants={Boolean(product.has_variants)}
+        onToggleWishlist={onToggleWishlist}
+        onOpenQuickView={onOpenQuickView}
+        onAddToCart={onAddToCart}
+        variant="action-btn"
+      />
 
       {/* ── Card content (above overlay link at z-[2]) ── */}
       <div className={`relative z-[2] flex flex-grow flex-col ${alignClass}`}>
