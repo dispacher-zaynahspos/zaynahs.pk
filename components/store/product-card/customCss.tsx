@@ -1364,12 +1364,13 @@ export const customCss = `
         .grid-cols-2 .z-card-container .sc22 .corner-fab-btn {
             width: 32px !important;
             height: 32px !important;
-            bottom: -8px !important;
+            bottom: -16px !important;
             right: 8px !important;
+            z-index: 30 !important;
         }
         .grid-cols-2 .z-card-container .sc22 .corner-fab-btn svg {
-            width: 13px !important;
-            height: 13px !important;
+            width: 14px !important;
+            height: 14px !important;
         }
         .grid-cols-2 .z-card-container .sc23 .split-action-bar button {
             padding: 4px 4px !important;

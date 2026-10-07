@@ -10,7 +10,7 @@ import { normalizeCardStyle, getCardStyleClass } from '@/lib/utils/cardStyles';
 import { ProductCardStyleInjector } from './ProductCardStyles';
 import { ProductCardBadges } from './ProductCardBadges';
 import { ProductCardMedia } from './ProductCardMedia';
-import { ProductCardActions, CardCartIcon } from './ProductCardActions';
+import { ProductCardActions, CardCartIcon, CardWishlistIcon, CardQuickviewIcon } from './ProductCardActions';
 import { ProductCardShowcaseContent } from './ProductCardShowcaseContent';
 
 interface ProductCardShowcaseProps {
@@ -197,14 +197,17 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
     // ── ARCHETYPE 03: NIKE STREETWEAR / ATHLETIC ─────────────────────────────
     if (scClass === 'sc22' || scClass === 'sc_athletic') {
       return (
-        <div className="flex flex-col h-full justify-between">
-          <div className={`img-box relative ${aspectClass} w-full ${imgBgClass} rounded-t-xl overflow-hidden`}>
-            <ProductCardBadges product={product} currentPrice={currentPrice} currentComparePrice={currentComparePrice} />
-            <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} />
+        <div className="flex flex-col h-full justify-between relative">
+          <div className={`relative ${aspectClass} w-full ${imgBgClass} rounded-t-xl z-[10]`}>
+            <div className="img-box relative w-full h-full rounded-t-xl overflow-hidden">
+              <ProductCardBadges product={product} currentPrice={currentPrice} currentComparePrice={currentComparePrice} />
+              <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} />
+            </div>
+            {/* Actions are placed outside the inner overflow-hidden box so the corner FAB seamlessly overlaps the bottom seam without clipping */}
             <ProductCardActions variant="corner-fab" iconStyle={iconStyle} showWishlist={showWishlist} showQuickview={showQuickview} showQuickcart={showQuickcart} isInWishlist={isInWishlist} hasVariants={product.has_variants} onToggleWishlist={onToggleWishlist} onOpenQuickView={onOpenQuickView} onAddToCart={onAddToCart} />
           </div>
           <div className="cb flex flex-col flex-grow justify-between p-2.5 sm:p-3 w-full relative z-[2] bg-white dark:bg-[#16162a] rounded-b-xl">
-            <div>
+            <div className="pr-8 sm:pr-9">
               <span className="text-[9px] font-extrabold uppercase tracking-widest text-gray-400 mb-0.5 block">
                 Collection • {product.has_variants ? 'Multiple Sizes' : 'In Stock'}
               </span>
@@ -333,7 +336,345 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
       );
     }
 
-    // ── DEFAULT / CLASSIC SHOWCASES (sc1, sc8, sc10, sc11–sc16) ───────────────
+    // ── ARCHETYPE 05: TITLE-FIRST MAGAZINE (SCANDI / KINFOLK) ─────────────────
+    if (scClass === 'sc12' || scClass === 'sc_magazine') {
+      return (
+        <div className="flex flex-col h-full justify-between p-2.5 sm:p-3 bg-[#faf9f6] dark:bg-[#14141e] border border-gray-200 dark:border-gray-800 rounded-xl">
+          {/* Header row: Title on TOP above image */}
+          <div className="flex items-start justify-between gap-2 mb-2">
+            <div className="flex-1 min-w-0">
+              <span className="text-[8.5px] font-bold uppercase tracking-widest text-gray-400 block mb-0.5">
+                Vol. 05 • Kinfolk
+              </span>
+              <Link href={productUrl} onClick={handleClick} prefetch={false} className={`card-title text-xs sm:text-sm font-serif font-bold text-gray-900 dark:text-white leading-tight ${titleClampClass}`}>
+                {product.name}
+              </Link>
+            </div>
+            {showWishlist && (
+              <button
+                type="button"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleWishlist(e); }}
+                onPointerDown={(e) => e.stopPropagation()}
+                className="shrink-0 h-6 w-6 flex items-center justify-center text-gray-500 hover:text-[#e94560] cursor-pointer z-[25]"
+                aria-label="Wishlist"
+              >
+                <CardWishlistIcon isInWishlist={isInWishlist} iconStyle={iconStyle} className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
+
+          {/* Middle: Framed image */}
+          <div className={`img-box relative ${aspectClass} w-full ${imgBgClass} rounded-lg overflow-hidden border border-gray-100 dark:border-gray-800 my-1`}>
+            <ProductCardBadges product={product} currentPrice={currentPrice} currentComparePrice={currentComparePrice} />
+            <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} />
+          </div>
+
+          {/* Bottom body: Price & swatches */}
+          <div className="cb flex flex-col flex-grow justify-between pt-2 w-full">
+            <div>
+              <div className="flex items-baseline gap-2">
+                <span className="card-price font-serif text-xs sm:text-sm font-black text-gray-900 dark:text-white">
+                  {formatPrice(currentPrice, currencySymbol)}
+                </span>
+                {currentComparePrice && currentComparePrice > currentPrice && (
+                  <span className="pold font-serif text-[10px] text-gray-400 line-through">
+                    {formatPrice(currentComparePrice, currencySymbol)}
+                  </span>
+                )}
+              </div>
+              {finalRenderedGroups && (
+                <div className="my-1.5" onClick={(e) => e.stopPropagation()}>
+                  {finalRenderedGroups}
+                </div>
+              )}
+            </div>
+
+            {/* Editorial 50/50 Dual Action Footer */}
+            <div className="mt-auto pt-2 grid grid-cols-2 gap-1.5 w-full">
+              {showQuickview && (
+                <button
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onOpenQuickView(e); }}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  className="py-1 px-1.5 rounded border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 text-[9.5px] font-bold uppercase tracking-wider text-center hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors z-[25] cursor-pointer truncate"
+                >
+                  Quick View
+                </button>
+              )}
+              {showQuickcart && (
+                <button
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAddToCart(e); }}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  className={`${showQuickview ? '' : 'col-span-2'} py-1 px-1.5 rounded bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-[9.5px] font-bold uppercase tracking-wider text-center hover:opacity-90 transition-opacity z-[25] cursor-pointer truncate flex items-center justify-center gap-1`}
+                >
+                  <CardCartIcon iconStyle={iconStyle} className="h-3 w-3 shrink-0" />
+                  <span className="truncate">{product.has_variants ? 'Options' : '+ Bag'}</span>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ── ARCHETYPE 06: POLAROID FRAME (ETSY / DEPOP) ───────────────────────────
+    if (scClass === 'sc14' || scClass === 'sc_polaroid') {
+      return (
+        <div className="flex flex-col h-full justify-between p-2 pb-3 bg-white dark:bg-[#1a1a26] border border-gray-200/90 dark:border-gray-800 rounded-sm shadow-md">
+          {/* Polaroid Photo Window */}
+          <div className={`img-box relative ${aspectClass} w-full ${imgBgClass} overflow-hidden border border-gray-200/60 dark:border-gray-700`}>
+            <ProductCardBadges product={product} currentPrice={currentPrice} currentComparePrice={currentComparePrice} />
+            <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} />
+            {showWishlist && (
+              <button
+                type="button"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleWishlist(e); }}
+                onPointerDown={(e) => e.stopPropagation()}
+                className="action-btn pointer-events-auto !absolute !right-1.5 !top-1.5 z-[25] flex h-6 w-6 items-center justify-center rounded-full bg-white/90 dark:bg-black/80 text-gray-700 dark:text-gray-300 shadow-sm cursor-pointer"
+                aria-label="Wishlist"
+              >
+                <CardWishlistIcon isInWishlist={isInWishlist} iconStyle={iconStyle} className="h-3 w-3" />
+              </button>
+            )}
+          </div>
+
+          {/* Polaroid Chin (Bottom thick photo margin) */}
+          <div className="cb flex flex-col flex-grow justify-between pt-2 px-1 w-full relative z-[2]">
+            <div>
+              <div className="flex items-baseline justify-between gap-1">
+                <Link href={productUrl} onClick={handleClick} prefetch={false} className={`card-title font-medium text-[11px] sm:text-xs text-gray-800 dark:text-gray-100 truncate flex-1 ${titleClampClass}`}>
+                  {product.name}
+                </Link>
+                <span className="card-price font-bold text-xs text-gray-900 dark:text-white shrink-0">
+                  {formatPrice(currentPrice, currencySymbol)}
+                </span>
+              </div>
+              {finalRenderedGroups && (
+                <div className="my-1" onClick={(e) => e.stopPropagation()}>
+                  {finalRenderedGroups}
+                </div>
+              )}
+            </div>
+
+            {/* Dashed Polaroid Stamp Add Button */}
+            {showQuickcart && (
+              <div className="mt-auto pt-2">
+                <button
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAddToCart(e); }}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  className="w-full py-1 px-2 border border-dashed border-gray-400 dark:border-gray-600 rounded text-[9.5px] font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 hover:border-black dark:hover:border-white hover:text-black dark:hover:text-white transition-colors cursor-pointer flex items-center justify-center gap-1 z-[25] whitespace-nowrap truncate"
+                >
+                  <CardCartIcon iconStyle={iconStyle} className="h-2.5 w-2.5 shrink-0" />
+                  <span className="truncate">{product.has_variants ? 'Choose Options' : 'Collect +'}</span>
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // ── ARCHETYPE 08: BOTTOM SHEET (NATIVE APP / NIKE APP) ────────────────────
+    if (scClass === 'sc10' || scClass === 'sc_bottomsheet') {
+      return (
+        <div className="flex flex-col h-full justify-between relative bg-gray-100 dark:bg-[#12121f] rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-800">
+          {/* Top: Tall Image */}
+          <div className={`img-box relative ${aspectClass} w-full ${imgBgClass} overflow-hidden`}>
+            <ProductCardBadges product={product} currentPrice={currentPrice} currentComparePrice={currentComparePrice} />
+            <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} />
+            {showWishlist && (
+              <button
+                type="button"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleWishlist(e); }}
+                onPointerDown={(e) => e.stopPropagation()}
+                className="action-btn pointer-events-auto !absolute !right-2 !top-2 z-[25] flex h-7 w-7 items-center justify-center rounded-full bg-white/90 dark:bg-[#16162a]/90 text-gray-700 dark:text-gray-300 shadow-sm cursor-pointer"
+                aria-label="Wishlist"
+              >
+                <CardWishlistIcon isInWishlist={isInWishlist} iconStyle={iconStyle} className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
+
+          {/* Bottom Sheet Overlap Panel */}
+          <div className="cb flex flex-col flex-grow justify-between -mt-5 relative z-[10] bg-white dark:bg-[#16162a] rounded-t-[20px] p-2.5 sm:p-3 shadow-[0_-6px_20px_rgba(0,0,0,0.08)] border-t border-gray-100 dark:border-gray-800">
+            {/* iOS Drag Handle */}
+            <div className="w-8 h-1 rounded-full bg-gray-300 dark:bg-gray-600 mx-auto mb-1.5 shrink-0" />
+
+            <div>
+              <div className="flex items-baseline justify-between gap-1">
+                <Link href={productUrl} onClick={handleClick} prefetch={false} className={`card-title text-xs sm:text-[13px] font-bold text-gray-900 dark:text-white leading-tight truncate flex-1 ${titleClampClass}`}>
+                  {product.name}
+                </Link>
+                <span className="card-price text-xs sm:text-sm font-black text-gray-900 dark:text-white shrink-0">
+                  {formatPrice(currentPrice, currencySymbol)}
+                </span>
+              </div>
+              {showStars && (
+                <div className="flex items-center gap-1 my-1">
+                  <span className="text-amber-500 text-[10px]">★</span>
+                  <span className="text-[10px] text-gray-400 font-semibold">{(product.rating || 5).toFixed(1)}</span>
+                </div>
+              )}
+              {finalRenderedGroups && (
+                <div className="my-1.5" onClick={(e) => e.stopPropagation()}>
+                  {finalRenderedGroups}
+                </div>
+              )}
+            </div>
+
+            {/* Native App Slide Action Button */}
+            {showQuickcart && (
+              <div className="mt-auto pt-2">
+                <button
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAddToCart(e); }}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  className="w-full py-2 px-3 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-[10.5px] sm:text-xs font-bold flex items-center justify-between cursor-pointer hover:opacity-90 active:scale-[0.98] transition-all z-[25] whitespace-nowrap truncate"
+                >
+                  <span className="truncate">{product.has_variants ? 'Select Size' : 'Quick Add'}</span>
+                  <CardCartIcon iconStyle={iconStyle} className="h-3.5 w-3.5 shrink-0" />
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // ── ARCHETYPE 09: HANG TAG (BOUTIQUE / MADEWELL) ──────────────────────────
+    if (scClass === 'sc16' || scClass === 'sc_hangtag') {
+      return (
+        <div className="flex flex-col h-full justify-between bg-[#fdfbf7] dark:bg-[#1c1815] border border-[#e8dfd1] dark:border-[#382f27] rounded-xl overflow-hidden shadow-xs">
+          {/* Image Container with Boutique Hang Tag Overlap */}
+          <div className={`img-box relative ${aspectClass} w-full ${imgBgClass} overflow-hidden`}>
+            <ProductCardBadges product={product} currentPrice={currentPrice} currentComparePrice={currentComparePrice} />
+            <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} />
+
+            {/* Kraft Paper Hang Tag pinned to top-right */}
+            <div className="absolute top-2 right-2 z-[15] bg-[#ebdcc4] dark:bg-[#342a20] text-[#4a3a28] dark:text-[#eedec8] px-2 py-0.5 rounded shadow-sm border border-[#cfbe9f] dark:border-[#4d3e30] flex items-center gap-1 transform rotate-1 pointer-events-none">
+              <div className="w-1.5 h-1.5 rounded-full bg-[#fdfbf7] dark:bg-[#1c1815] border border-[#cfbe9f] shrink-0" />
+              <span className="text-[10px] sm:text-[11px] font-black tracking-tight">{formatPrice(currentPrice, currencySymbol)}</span>
+            </div>
+          </div>
+
+          {/* Boutique Body */}
+          <div className="cb flex flex-col flex-grow justify-between p-2.5 sm:p-3 w-full relative z-[2]">
+            <div>
+              <Link href={productUrl} onClick={handleClick} prefetch={false} className={`card-title font-serif italic text-xs sm:text-sm text-[#2c2217] dark:text-[#eae1d5] font-semibold leading-snug ${titleClampClass}`}>
+                {product.name}
+              </Link>
+              {currentComparePrice && currentComparePrice > currentPrice && (
+                <span className="pold text-[10px] text-gray-400 line-through block mt-0.5">
+                  Regular: {formatPrice(currentComparePrice, currencySymbol)}
+                </span>
+              )}
+              {finalRenderedGroups && (
+                <div className="my-1.5" onClick={(e) => e.stopPropagation()}>
+                  {finalRenderedGroups}
+                </div>
+              )}
+            </div>
+
+            {/* Bottom Row: Heart on left, Underlined text button on right */}
+            <div className="mt-auto pt-2 flex items-center justify-between gap-2 border-t border-[#ede4d4] dark:border-[#2e261f]">
+              {showWishlist && (
+                <button
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleWishlist(e); }}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  className="h-6 w-6 flex items-center justify-center rounded-full border border-[#d5c7b3] dark:border-[#44382c] text-[#5c4938] dark:text-[#d3c0ad] hover:text-[#e94560] cursor-pointer z-[25] shrink-0"
+                  aria-label="Wishlist"
+                >
+                  <CardWishlistIcon isInWishlist={isInWishlist} iconStyle={iconStyle} className="h-3 w-3" />
+                </button>
+              )}
+              {showQuickcart && (
+                <button
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAddToCart(e); }}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  className="text-[10px] sm:text-[10.5px] font-bold tracking-wider uppercase text-[#4a3a28] dark:text-[#eedec8] underline underline-offset-4 hover:text-black dark:hover:text-white transition-colors cursor-pointer z-[25] ml-auto whitespace-nowrap truncate"
+                >
+                  {product.has_variants ? 'View Options →' : 'Quick Add +'}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ── ARCHETYPE 10: STORY SWIPE (INSTAGRAM STORIES / REELS) ─────────────────
+    if (scClass === 'sc15' || scClass === 'sc_storyswipe') {
+      return (
+        <div className={`img-box relative ${aspectClass} w-full rounded-2xl overflow-hidden bg-black border border-gray-800 flex flex-col justify-between shadow-lg`}>
+          {/* Segmented Story Progress Bars at Top */}
+          <div className="absolute top-2 inset-x-2 z-[20] grid grid-cols-3 gap-1 pointer-events-none">
+            <div className="h-0.5 rounded-full bg-white" />
+            <div className="h-0.5 rounded-full bg-white/50" />
+            <div className="h-0.5 rounded-full bg-white/30" />
+          </div>
+
+          {/* Badges pinned under story bar */}
+          <div className="absolute top-4 left-2 z-[15]">
+            <ProductCardBadges product={product} currentPrice={currentPrice} currentComparePrice={currentComparePrice} />
+          </div>
+
+          {/* Wishlist in dark translucent bubble */}
+          {showWishlist && (
+            <button
+              type="button"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleWishlist(e); }}
+              onPointerDown={(e) => e.stopPropagation()}
+              className="action-btn pointer-events-auto !absolute !right-2 !top-4 z-[25] flex h-7 w-7 items-center justify-center rounded-full bg-black/60 text-white border border-white/20 shadow-md cursor-pointer"
+              aria-label="Wishlist"
+            >
+              <CardWishlistIcon isInWishlist={isInWishlist} iconStyle={iconStyle} className="h-3.5 w-3.5" />
+            </button>
+          )}
+
+          {/* Background image */}
+          <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} />
+
+          {/* Dark Scrim Gradient Overlay at Bottom */}
+          <div className="mt-auto relative z-[15] bg-gradient-to-t from-black via-black/85 to-transparent pt-14 pb-3 px-3 flex flex-col justify-end w-full">
+            <Link href={productUrl} onClick={handleClick} prefetch={false} className={`card-title text-white font-bold text-xs sm:text-sm drop-shadow-md leading-tight truncate ${titleClampClass}`}>
+              {product.name}
+            </Link>
+            <div className="flex items-baseline gap-1.5 my-1">
+              <span className="card-price text-white font-black text-xs sm:text-sm drop-shadow-sm">
+                {formatPrice(currentPrice, currencySymbol)}
+              </span>
+              {currentComparePrice && currentComparePrice > currentPrice && (
+                <span className="pold text-[10px] text-gray-300 line-through">
+                  {formatPrice(currentComparePrice, currencySymbol)}
+                </span>
+              )}
+            </div>
+            {finalRenderedGroups && (
+              <div className="my-1" onClick={(e) => e.stopPropagation()}>
+                {finalRenderedGroups}
+              </div>
+            )}
+
+            {/* Story Reels Pill Button */}
+            {showQuickcart && (
+              <button
+                type="button"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAddToCart(e); }}
+                onPointerDown={(e) => e.stopPropagation()}
+                className="mt-1.5 w-full py-1.5 px-3 rounded-full bg-white text-black text-[10.5px] font-extrabold flex items-center justify-center gap-1.5 shadow-xl hover:bg-gray-100 active:scale-95 transition-all cursor-pointer z-[25] whitespace-nowrap truncate"
+              >
+                <CardCartIcon iconStyle={iconStyle} className="h-3 w-3 shrink-0" />
+                <span className="truncate">{product.has_variants ? 'Tap for Sizes' : 'Swipe to Bag'}</span>
+              </button>
+            )}
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="flex flex-col h-full justify-between">
         <div className={`img-box relative ${aspectClass} w-full ${imgBgClass}`}>

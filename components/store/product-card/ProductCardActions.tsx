@@ -260,7 +260,7 @@ export const ProductCardActions: React.FC<ProductCardActionsProps> = ({
               onAddToCart(e);
             }}
             onPointerDown={(e) => e.stopPropagation()}
-            className="corner-fab-btn pointer-events-auto !absolute !right-2.5 !-bottom-4 z-[25] h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-[var(--color-primary,#f85606)] text-white flex items-center justify-center shadow-lg hover:scale-110 active:scale-95 transition-transform duration-200 cursor-pointer"
+            className="corner-fab-btn pointer-events-auto !absolute !right-2.5 !-bottom-4 sm:!-bottom-[18px] z-[30] h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-[var(--color-primary,#f85606)] text-white flex items-center justify-center shadow-lg hover:scale-110 active:scale-95 transition-transform duration-200 cursor-pointer"
             aria-label={hasVariants ? "Choose Options" : "Add to Cart"}
             title={hasVariants ? "Choose Options" : "Add to Cart"}
           >
