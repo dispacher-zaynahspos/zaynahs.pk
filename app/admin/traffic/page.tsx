@@ -118,17 +118,30 @@ export default function TrafficPage() {
     return { city, lat: coords.lat, lng: coords.lng, count };
   });
 
-  const orderDotMap = new Map<string, number>();
+  const orderDotMap = new Map<string, { count: number; revenue: number }>();
   if (data) {
     for (const oc of data.orderCities) {
       const coords = KNOWN_CITIES[oc.city];
-      if (coords) orderDotMap.set(oc.city, (orderDotMap.get(oc.city) || 0) + oc.orders);
+      if (coords) {
+        const prev = orderDotMap.get(oc.city) || { count: 0, revenue: 0 };
+        orderDotMap.set(oc.city, {
+          count: prev.count + oc.orders,
+          revenue: prev.revenue + (oc.revenue || 0),
+        });
+      }
     }
   }
 
-  const orderDots = Array.from(orderDotMap.entries()).map(([city, count]) => {
+  const orderDots = Array.from(orderDotMap.entries()).map(([city, info]) => {
     const coords = KNOWN_CITIES[city];
-    return { city, lat: coords.lat, lng: coords.lng, count };
+    return {
+      city,
+      lat: coords.lat,
+      lng: coords.lng,
+      count: info.count,
+      revenue: info.revenue,
+      type: 'order' as const,
+    };
   });
 
   const ranges = [
@@ -138,6 +151,9 @@ export default function TrafficPage() {
     { key: '30d', label: '30d' },
     { key: '90d', label: '3M' },
   ];
+
+  const todayIso = new Date().toISOString().split('T')[0];
+  const floorIso = new Date(Date.now() - 90 * 86400000).toISOString().split('T')[0];
 
   return (
     <div className="space-y-6">
@@ -152,11 +168,11 @@ export default function TrafficPage() {
             <p className="text-xs text-gray-500 font-semibold">Real-time visitor locations and order cities</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => exportCSV(data)}
             disabled={!data}
-            className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-white dark:bg-[#16162a] text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-40 flex items-center gap-1.5"
+            className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-white dark:bg-[#16162a] text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-40 flex items-center gap-1.5 cursor-pointer"
             title="Export CSV"
           >
             <Download className="h-3.5 w-3.5" />
@@ -166,7 +182,7 @@ export default function TrafficPage() {
             <button
               key={r.key}
               onClick={() => { setRange(r.key); setLoading(true); }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                 range === r.key
                   ? 'bg-indigo-600 text-white shadow-sm'
                   : 'bg-white dark:bg-[#16162a] text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800'
@@ -175,21 +191,31 @@ export default function TrafficPage() {
               {r.label}
             </button>
           ))}
-          <div className="flex items-center gap-1.5 pl-1.5 ml-0.5 border-l border-gray-200 dark:border-gray-800">
+          <div className="flex items-center gap-1.5 pl-1.5 border-l border-gray-200 dark:border-gray-800">
             <input
               type="date"
               value={customStart}
-              max={customEnd || undefined}
-              onChange={(e) => { setCustomStart(e.target.value); if (customEnd) { setRange('custom'); setLoading(true); } }}
-              className="px-2 py-1.5 rounded-lg text-xs font-bold bg-white dark:bg-[#16162a] text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-800"
+              min={floorIso}
+              max={customEnd || todayIso}
+              onChange={(e) => {
+                setCustomStart(e.target.value);
+                if (customEnd) { setRange('custom'); setLoading(true); }
+              }}
+              style={{ borderWidth: 0 }}
+              className="px-2 py-1.5 rounded-lg text-xs font-bold bg-white dark:bg-[#16162a] text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-800 focus:outline-none focus:ring-1 focus:ring-indigo-500"
             />
             <span className="text-xs text-gray-400">—</span>
             <input
               type="date"
               value={customEnd}
-              min={customStart || undefined}
-              onChange={(e) => { setCustomEnd(e.target.value); if (customStart) { setRange('custom'); setLoading(true); } }}
-              className="px-2 py-1.5 rounded-lg text-xs font-bold bg-white dark:bg-[#16162a] text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-800"
+              min={customStart || floorIso}
+              max={todayIso}
+              onChange={(e) => {
+                setCustomEnd(e.target.value);
+                if (customStart) { setRange('custom'); setLoading(true); }
+              }}
+              style={{ borderWidth: 0 }}
+              className="px-2 py-1.5 rounded-lg text-xs font-bold bg-white dark:bg-[#16162a] text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-800 focus:outline-none focus:ring-1 focus:ring-indigo-500"
             />
           </div>
         </div>
@@ -208,7 +234,14 @@ export default function TrafficPage() {
           {/* Map + Stats */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xs overflow-hidden" style={{ minHeight: 500 }}>
-              <TrafficMap visitorDots={visitorDots} orderDots={orderDots} countries={data?.countries || []} height={500} />
+              <TrafficMap
+                visitorDots={visitorDots}
+                orderDots={orderDots}
+                countries={data?.countries || []}
+                height={500}
+                liveCount={data?.liveCount ?? 0}
+                rangeLabel={range === 'custom' ? 'Custom' : range}
+              />
             </div>
 
             <div className="space-y-4">
@@ -219,14 +252,20 @@ export default function TrafficPage() {
                 </h3>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-800">
-                    <span className="text-xs font-semibold text-gray-500">Live Now</span>
+                    <div className="flex flex-col">
+                      <span className="text-xs font-semibold text-gray-500">Live Now</span>
+                      <span className="text-[10px] text-gray-400 font-medium">Past 30 mins</span>
+                    </div>
                     <span className="text-sm font-black text-emerald-500 flex items-center gap-1.5">
                       <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                       ~{Math.max(0, data?.liveCount ?? 0)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-800">
-                    <span className="text-xs font-semibold text-gray-500">Total Visitors</span>
+                    <div className="flex flex-col">
+                      <span className="text-xs font-semibold text-gray-500">Total Visitors</span>
+                      <span className="text-[10px] text-gray-400 font-medium">{range === 'custom' ? 'Custom period' : range}</span>
+                    </div>
                     <span className="text-sm font-black text-gray-900 dark:text-white">{data?.totalVisitors ?? 0}</span>
                   </div>
                   <div className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-800">

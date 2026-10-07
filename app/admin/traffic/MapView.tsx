@@ -8,6 +8,8 @@ interface MapViewProps {
   orderDots: Dot[];
   countries?: CountryData[];
   height?: number | string;
+  liveCount?: number;
+  rangeLabel?: string;
 }
 
 export default function MapView({
@@ -15,6 +17,8 @@ export default function MapView({
   orderDots = [],
   countries = [],
   height = 500,
+  liveCount,
+  rangeLabel,
 }: MapViewProps) {
   return (
     <TrafficWorldMap
@@ -25,6 +29,8 @@ export default function MapView({
       showControls={true}
       initialZoom={4.5}
       initialCenter={[69.3, 30.4]}
+      liveCount={liveCount}
+      rangeLabel={rangeLabel}
     />
   );
 }

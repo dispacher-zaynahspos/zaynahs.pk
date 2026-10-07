@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useRef, useEffect, useLayoutEffect } from 'react';
 import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from 'react-simple-maps';
 
 const GEO_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json';
@@ -98,6 +98,10 @@ export interface TrafficWorldMapProps {
   initialCenter?: [number, number];
   /** Zoom at/above which individual CITY markers replace COUNTRY markers (default 2.6). */
   cityZoomThreshold?: number;
+  /** Real-time active count (last 30m) from /api/admin/traffic */
+  liveCount?: number;
+  /** Current timeframe label (e.g. '24h', '7d', 'Custom') */
+  rangeLabel?: string;
 }
 
 const MIN_ZOOM = 0.8;
@@ -110,9 +114,6 @@ function resolveCountryName(apiName: string): string {
 }
 
 function getCountryColor(countryName: string, visitors: number, maxVisitors: number): string {
-  if (countryName === 'Pakistan' || countryName === 'Türkiye') {
-    // keep Pakistan as the home accent
-  }
   if (countryName === 'Pakistan') return visitors === 0 ? '#ffedd5' : '#fb923c';
   if (visitors === 0) return '#eef2f7';
   const ratio = maxVisitors > 0 ? visitors / maxVisitors : 0;
@@ -131,10 +132,19 @@ interface MapPoint {
   type: 'visitor' | 'order' | 'country';
   bx: number; // base-projected x (relative units)
   by: number; // base-projected y
+  revenue?: number;
+}
+
+export interface ClusterItem {
+  city: string;
+  count: number;
+  type?: 'visitor' | 'order' | 'country';
+  revenue?: number;
 }
 
 interface RenderedMarker extends MapPoint {
   members: number; // how many points this bubble represents (>1 = cluster)
+  clusterItems?: ClusterItem[];
 }
 
 /** Greedy screen-space clustering: group points whose on-screen distance < CLUSTER_PX. */
@@ -146,7 +156,11 @@ function clusterPoints(points: MapPoint[], zoom: number): RenderedMarker[] {
     if (used.has(seed.id)) continue;
     used.add(seed.id);
     let count = seed.count;
+    let revenue = seed.revenue || 0;
     let members = 1;
+    const clusterItems: ClusterItem[] = [
+      { city: seed.city, count: seed.count, type: seed.type, revenue: seed.revenue },
+    ];
     for (const other of sorted) {
       if (used.has(other.id)) continue;
       const dx = (seed.bx - other.bx) * zoom;
@@ -154,10 +168,19 @@ function clusterPoints(points: MapPoint[], zoom: number): RenderedMarker[] {
       if (Math.hypot(dx, dy) < CLUSTER_PX) {
         used.add(other.id);
         count += other.count;
+        if (other.revenue) revenue += other.revenue;
         members += 1;
+        clusterItems.push({ city: other.city, count: other.count, type: other.type, revenue: other.revenue });
       }
     }
-    clusters.push({ ...seed, count, members });
+    clusterItems.sort((a, b) => b.count - a.count);
+    clusters.push({
+      ...seed,
+      count,
+      revenue: revenue > 0 ? revenue : undefined,
+      members,
+      clusterItems,
+    });
   }
   return clusters;
 }
@@ -165,6 +188,20 @@ function clusterPoints(points: MapPoint[], zoom: number): RenderedMarker[] {
 function markerRadius(count: number): number {
   // sqrt scaling → area roughly proportional to count; clamped to a readable range
   return Math.max(6, Math.min(20, 6 + Math.sqrt(count) * 1.6));
+}
+
+interface TooltipState {
+  title: string;
+  subtitle?: string;
+  visitors?: number;
+  orders?: number;
+  revenue?: number;
+  percent?: number;
+  type?: 'visitor' | 'order' | 'country';
+  clusterItems?: ClusterItem[];
+  anchorX: number; // in container coords
+  anchorY: number; // in container coords
+  pinned?: boolean;
 }
 
 export default function TrafficWorldMap({
@@ -177,20 +214,83 @@ export default function TrafficWorldMap({
   initialZoom = 1.5,
   initialCenter = [69, 28],
   cityZoomThreshold = 2.6,
+  liveCount,
+  rangeLabel,
 }: TrafficWorldMapProps) {
-  const [tooltip, setTooltip] = useState<{
-    title: string;
-    subtitle?: string;
-    visitors?: number;
-    orders?: number;
-    percent?: number;
-    x: number;
-    y: number;
-  } | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const tooltipRef = useRef<HTMLDivElement>(null);
+  const dismissTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const [containerSize, setContainerSize] = useState<{ width: number; height: number }>({
+    width: 800,
+    height: 500,
+  });
+  const [cardSize, setCardSize] = useState<{ width: number; height: number }>({
+    width: 230,
+    height: 110,
+  });
+  const [tooltip, setTooltip] = useState<TooltipState | null>(null);
   const [position, setPosition] = useState<{ coordinates: [number, number]; zoom: number }>({
     coordinates: initialCenter,
     zoom: initialZoom,
   });
+
+  // Track container dimensions via ResizeObserver
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const updateSize = () => {
+      if (containerRef.current) {
+        setContainerSize({
+          width: containerRef.current.clientWidth,
+          height: containerRef.current.clientHeight,
+        });
+      }
+    };
+    updateSize();
+    const ro = new ResizeObserver(updateSize);
+    ro.observe(containerRef.current);
+    return () => ro.disconnect();
+  }, []);
+
+  // Measure tooltip dimensions whenever it appears or changes
+  useLayoutEffect(() => {
+    if (tooltipRef.current) {
+      const w = tooltipRef.current.offsetWidth;
+      const h = tooltipRef.current.offsetHeight;
+      if (w > 0 && h > 0 && (w !== cardSize.width || h !== cardSize.height)) {
+        setCardSize({ width: w, height: h });
+      }
+    }
+  }, [tooltip, cardSize.width, cardSize.height]);
+
+  const clearDismissTimeout = useCallback(() => {
+    if (dismissTimeoutRef.current) {
+      clearTimeout(dismissTimeoutRef.current);
+      dismissTimeoutRef.current = null;
+    }
+  }, []);
+
+  // Dismiss listeners: ESC key or click outside
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        clearDismissTimeout();
+        setTooltip(null);
+      }
+    };
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        clearDismissTimeout();
+        setTooltip(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [clearDismissTimeout]);
 
   const countryMap = useMemo(() => {
     const map = new Map<string, CountryData>();
@@ -236,7 +336,7 @@ export default function TrafficWorldMap({
     });
     const orderPts: MapPoint[] = orderDots.map((d, i) => {
       const p = projectMercator(d.lng, d.lat);
-      return { id: `o-${d.city}-${i}`, city: d.city, lng: d.lng, lat: d.lat, count: d.count, type: 'order', bx: p.x, by: p.y };
+      return { id: `o-${d.city}-${i}`, city: d.city, lng: d.lng, lat: d.lat, count: d.count, revenue: d.revenue, type: 'order', bx: p.x, by: p.y };
     });
     return [...clusterPoints(visitorPts, position.zoom), ...clusterPoints(orderPts, position.zoom)];
   }, [showCities, countries, visitorDots, orderDots, position.zoom]);
@@ -269,45 +369,198 @@ export default function TrafficWorldMap({
 
   const hasData = countries.some((c) => c.visitors > 0) || visitorDots.length > 0 || orderDots.length > 0;
 
-  const handleZoomIn = () =>
+  const handleZoomIn = () => {
+    setTooltip(null);
     setPosition((p) => ({ ...p, zoom: Math.min(Number((p.zoom * 1.6).toFixed(2)), MAX_ZOOM) }));
-  const handleZoomOut = () =>
+  };
+  const handleZoomOut = () => {
+    setTooltip(null);
     setPosition((p) => ({ ...p, zoom: Math.max(Number((p.zoom / 1.6).toFixed(2)), MIN_ZOOM) }));
-  const handleReset = () => setPosition({ coordinates: initialCenter, zoom: initialZoom });
+  };
+  const handleReset = () => {
+    setTooltip(null);
+    setPosition({ coordinates: initialCenter, zoom: initialZoom });
+  };
+
+  const handleMarkerHover = (m: RenderedMarker, e: React.MouseEvent) => {
+    clearDismissTimeout();
+    if (tooltip?.pinned) return;
+    if (!containerRef.current) return;
+    const containerRect = containerRef.current.getBoundingClientRect();
+    const markerRect = (e.currentTarget as SVGElement).getBoundingClientRect();
+    const anchorX = markerRect.left + markerRect.width / 2 - containerRect.left;
+    const anchorY = markerRect.top + markerRect.height / 2 - containerRect.top;
+
+    setTooltip({
+      title: m.city,
+      subtitle: m.members > 1 ? `${m.members} nearby locations clustered` : undefined,
+      type: m.type,
+      visitors: m.type === 'visitor' ? m.count : undefined,
+      orders: m.type === 'order' ? m.count : undefined,
+      revenue: m.revenue,
+      clusterItems: m.clusterItems,
+      anchorX,
+      anchorY,
+      pinned: false,
+    });
+  };
+
+  const handleMarkerLeave = () => {
+    if (tooltip?.pinned) return;
+    clearDismissTimeout();
+    dismissTimeoutRef.current = setTimeout(() => {
+      setTooltip(null);
+    }, 150);
+  };
+
+  const handleMarkerClick = (m: RenderedMarker, e: React.MouseEvent) => {
+    e.stopPropagation();
+    clearDismissTimeout();
+    if (!containerRef.current) return;
+    const containerRect = containerRef.current.getBoundingClientRect();
+    const markerRect = (e.currentTarget as SVGElement).getBoundingClientRect();
+    const anchorX = markerRect.left + markerRect.width / 2 - containerRect.left;
+    const anchorY = markerRect.top + markerRect.height / 2 - containerRect.top;
+
+    setTooltip((prev) => {
+      if (prev?.pinned && prev.title === m.city) {
+        return null;
+      }
+      return {
+        title: m.city,
+        subtitle: m.members > 1 ? `${m.members} nearby locations clustered` : undefined,
+        type: m.type,
+        visitors: m.type === 'visitor' ? m.count : undefined,
+        orders: m.type === 'order' ? m.count : undefined,
+        revenue: m.revenue,
+        clusterItems: m.clusterItems,
+        anchorX,
+        anchorY,
+        pinned: true,
+      };
+    });
+  };
 
   const handleCountryHover = useCallback(
     (geo: { properties: Record<string, unknown> }, evt: React.MouseEvent) => {
+      clearDismissTimeout();
+      if (tooltip?.pinned) return;
+      if (!containerRef.current) return;
+      const containerRect = containerRef.current.getBoundingClientRect();
       const name = geo.properties.name as string;
       const data = countryMap.get(name);
-      if (data && data.visitors > 0) {
-        setTooltip({ title: data.name, visitors: data.visitors, percent: data.percent, x: evt.clientX, y: evt.clientY });
-      } else if (name === 'Pakistan') {
-        setTooltip({ title: 'Pakistan (Home)', visitors: data?.visitors || 0, percent: data?.percent, x: evt.clientX, y: evt.clientY });
-      }
+      if (!data && name !== 'Pakistan') return;
+
+      const anchorX = evt.clientX - containerRect.left;
+      const anchorY = evt.clientY - containerRect.top;
+
+      setTooltip({
+        title: data?.name || 'Pakistan (Home)',
+        subtitle: data?.code ? `Country code: ${data.code}` : undefined,
+        visitors: data?.visitors ?? 0,
+        percent: data?.percent,
+        type: 'country',
+        anchorX,
+        anchorY,
+        pinned: false,
+      });
     },
-    [countryMap]
+    [countryMap, clearDismissTimeout, tooltip?.pinned]
   );
 
   const activeTotal = countries.reduce((s, c) => s + c.visitors, 0);
 
+  // Responsive boundary & collision calculation
+  const isMobileSheet = containerSize.width < 520;
+
+  const tooltipPlacement = useMemo(() => {
+    if (!tooltip || isMobileSheet) return null;
+    const SAFE_PAD = 12;
+    const GAP = 14;
+
+    const { anchorX, anchorY } = tooltip;
+    const cardW = cardSize.width;
+    const cardH = cardSize.height;
+    const containerW = containerSize.width;
+    const containerH = containerSize.height;
+
+    const spaceRight = containerW - (anchorX + GAP + SAFE_PAD);
+    const spaceLeft = anchorX - GAP - SAFE_PAD;
+    const spaceTop = anchorY - GAP - SAFE_PAD;
+
+    let targetX: number;
+    let targetY: number;
+    let arrowSide: 'left' | 'right' | 'top' | 'bottom';
+
+    if (spaceRight >= cardW) {
+      targetX = anchorX + GAP;
+      targetY = anchorY - cardH / 2;
+      arrowSide = 'left';
+    } else if (spaceLeft >= cardW) {
+      targetX = anchorX - GAP - cardW;
+      targetY = anchorY - cardH / 2;
+      arrowSide = 'right';
+    } else if (spaceTop >= cardH) {
+      targetX = anchorX - cardW / 2;
+      targetY = anchorY - GAP - cardH;
+      arrowSide = 'bottom';
+    } else {
+      targetX = anchorX - cardW / 2;
+      targetY = anchorY + GAP;
+      arrowSide = 'top';
+    }
+
+    const clampedX = Math.max(SAFE_PAD, Math.min(containerW - cardW - SAFE_PAD, targetX));
+    const clampedY = Math.max(SAFE_PAD, Math.min(containerH - cardH - SAFE_PAD, targetY));
+
+    let arrowOffset: number;
+    if (arrowSide === 'left' || arrowSide === 'right') {
+      arrowOffset = Math.max(14, Math.min(cardH - 14, anchorY - clampedY));
+    } else {
+      arrowOffset = Math.max(14, Math.min(cardW - 14, anchorX - clampedX));
+    }
+
+    return {
+      left: clampedX,
+      top: clampedY,
+      arrowSide,
+      arrowOffset,
+    };
+  }, [tooltip, isMobileSheet, cardSize.width, cardSize.height, containerSize.width, containerSize.height]);
+
   return (
     <div
+      ref={containerRef}
+      onClick={() => {
+        clearDismissTimeout();
+        setTooltip(null);
+      }}
       className={`relative w-full overflow-hidden select-none bg-gradient-to-b from-[#eef4fb] to-[#dce9f7] dark:from-[#0b1020] dark:to-[#0f1629] ${className}`}
       style={{ height }}
     >
       {/* Live status badge */}
-      <div className="absolute top-3 left-3 z-10 flex items-center gap-2 bg-white/90 dark:bg-black/60 px-3 py-1.5 rounded-full border border-gray-200/80 dark:border-gray-800 shadow-xs">
+      <div
+        className="absolute top-3 left-3 z-10 flex items-center gap-2 bg-white/95 dark:bg-[#16162a]/95 px-3 py-1.5 rounded-full border border-gray-200/80 dark:border-gray-800 shadow-xs"
+        onClick={(e) => e.stopPropagation()}
+      >
         <span className="relative flex h-2.5 w-2.5">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
           <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
         </span>
-        <span className="text-[11px] font-black text-gray-800 dark:text-gray-200 tracking-tight">Live Traffic Map</span>
-        {countries.length > 0 && (
-          <span className="text-[10px] font-bold text-gray-400 border-l border-gray-200 dark:border-gray-700 pl-2">
-            {activeTotal} Active Visitors
+        <span className="text-[11px] font-black text-gray-800 dark:text-gray-200 tracking-tight">
+          Live Traffic Map
+        </span>
+        {typeof liveCount === 'number' && (
+          <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 border-l border-gray-200 dark:border-gray-700 pl-2">
+            ~{liveCount} Live
           </span>
         )}
-        <span className="text-[9px] font-bold text-gray-400 border-l border-gray-200 dark:border-gray-700 pl-2 uppercase tracking-wide">
+        {countries.length > 0 && (
+          <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 border-l border-gray-200 dark:border-gray-700 pl-2">
+            {activeTotal} Visitors ({rangeLabel || 'Period'})
+          </span>
+        )}
+        <span className="hidden sm:inline-block text-[9px] font-bold text-gray-400 border-l border-gray-200 dark:border-gray-700 pl-2 uppercase tracking-wide">
           {showCities ? 'City view' : 'Country view'}
         </span>
       </div>
@@ -318,7 +571,10 @@ export default function TrafficWorldMap({
           zoom={position.zoom}
           minZoom={MIN_ZOOM}
           maxZoom={MAX_ZOOM}
-          onMoveEnd={({ coordinates, zoom }) => setPosition({ coordinates, zoom })}
+          onMoveEnd={({ coordinates, zoom }) => {
+            setPosition({ coordinates, zoom });
+            setTooltip(null);
+          }}
         >
           {/* Country choropleth */}
           <Geographies geography={GEO_URL}>
@@ -345,7 +601,9 @@ export default function TrafficWorldMap({
                       pressed: { outline: 'none' },
                     }}
                     onMouseEnter={(e: React.MouseEvent) => handleCountryHover(geo, e)}
-                    onMouseLeave={() => setTooltip(null)}
+                    onMouseLeave={() => {
+                      if (!tooltip?.pinned) handleMarkerLeave();
+                    }}
                   />
                 );
               })
@@ -372,17 +630,18 @@ export default function TrafficWorldMap({
                   transform={`scale(${1 / position.zoom})`}
                   style={{ transformOrigin: '0 0' }}
                   className="cursor-pointer"
-                  onMouseEnter={(e: React.MouseEvent) =>
-                    setTooltip({
-                      title: m.city,
-                      subtitle: isCluster ? `${m.members} locations` : undefined,
-                      ...(isOrder ? { orders: m.count } : { visitors: m.count }),
-                      x: e.clientX,
-                      y: e.clientY,
-                    })
-                  }
-                  onMouseLeave={() => setTooltip(null)}
+                  onMouseEnter={(e: React.MouseEvent) => handleMarkerHover(m, e)}
+                  onMouseLeave={handleMarkerLeave}
+                  onClick={(e: React.MouseEvent) => handleMarkerClick(m, e)}
                 >
+                  {/* Generous touch hit area (minimum 44px tap target) */}
+                  <circle
+                    r={Math.max(22, r * 1.8)}
+                    fill="transparent"
+                    className="cursor-pointer"
+                    pointerEvents="all"
+                  />
+
                   {/* soft radar pulse (single markers only, keeps clusters calm) */}
                   {!isCluster && <circle r={r * 1.9} fill={ring} opacity={0.22} className="animate-ping" />}
                   <circle r={r * 1.25} fill={ring} opacity={0.28} />
@@ -418,7 +677,10 @@ export default function TrafficWorldMap({
 
       {/* Zoom & pan controls */}
       {showControls && (
-        <div className="absolute top-3 right-3 flex flex-col gap-1.5 z-10">
+        <div
+          className="absolute top-3 right-3 flex flex-col gap-1.5 z-10"
+          onClick={(e) => e.stopPropagation()}
+        >
           <button
             type="button"
             onClick={handleZoomIn}
@@ -458,25 +720,225 @@ export default function TrafficWorldMap({
         </div>
       )}
 
-      {/* Hover tooltip */}
+      {/* Tooltip Presentation */}
       {tooltip && (
-        <div
-          className="absolute z-30 pointer-events-none bg-gray-900/95 text-white border border-white/10 rounded-xl shadow-2xl px-3.5 py-2 text-xs whitespace-nowrap animate-in fade-in duration-100"
-          style={{ left: tooltip.x + 14, top: tooltip.y - 12 }}
-        >
-          <div className="font-extrabold text-[13px]">{tooltip.title}</div>
-          {tooltip.subtitle && <div className="text-gray-400 text-[10px] font-semibold">{tooltip.subtitle}</div>}
-          {tooltip.visitors !== undefined && (
-            <div className="text-emerald-400 font-bold mt-0.5">
-              {tooltip.visitors} visitors {tooltip.percent ? `(${tooltip.percent}%)` : ''}
+        isMobileSheet ? (
+          /* Mobile Bottom Sheet (Screen width < 520px) */
+          <div
+            ref={tooltipRef}
+            className="absolute bottom-3 left-3 right-3 z-30 pointer-events-auto bg-gray-900/98 text-white border border-white/15 rounded-2xl p-3.5 shadow-2xl animate-in slide-in-from-bottom-2 duration-150"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <div className="font-extrabold text-sm text-white flex items-center gap-1.5">
+                  <span>{tooltip.title}</span>
+                  {tooltip.type === 'order' && (
+                    <span className="text-[9px] font-black uppercase tracking-wider bg-orange-500/20 text-orange-400 border border-orange-500/30 px-1.5 py-0.5 rounded-md">
+                      Orders
+                    </span>
+                  )}
+                  {tooltip.type === 'visitor' && (
+                    <span className="text-[9px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1.5 py-0.5 rounded-md">
+                      Visitors
+                    </span>
+                  )}
+                </div>
+                {tooltip.subtitle && (
+                  <div className="text-gray-400 text-[10px] font-semibold mt-0.5">
+                    {tooltip.subtitle}
+                  </div>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => setTooltip(null)}
+                className="text-gray-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors"
+                title="Close"
+              >
+                <span className="text-xs font-black">✕</span>
+              </button>
             </div>
-          )}
-          {tooltip.orders !== undefined && <div className="text-amber-400 font-bold mt-0.5">{tooltip.orders} orders</div>}
-        </div>
+
+            <div className="mt-2.5 flex flex-wrap items-center gap-2">
+              {tooltip.visitors !== undefined && (
+                <div className="inline-flex items-center gap-1 text-emerald-400 font-bold text-xs bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-lg">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                  <span>{tooltip.visitors} visitors</span>
+                  {tooltip.percent !== undefined && (
+                    <span className="text-emerald-300/80 text-[10px]">({tooltip.percent}%)</span>
+                  )}
+                </div>
+              )}
+              {tooltip.orders !== undefined && (
+                <div className="inline-flex items-center gap-1 text-orange-400 font-bold text-xs bg-orange-500/10 border border-orange-500/20 px-2 py-0.5 rounded-lg">
+                  <span className="w-1.5 h-1.5 rounded-full bg-orange-400" />
+                  <span>{tooltip.orders} orders</span>
+                </div>
+              )}
+              {tooltip.revenue !== undefined && tooltip.revenue > 0 && (
+                <div className="inline-flex items-center gap-1 text-amber-300 font-bold text-xs bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-lg">
+                  <span>Rs. {Math.round(tooltip.revenue).toLocaleString()}</span>
+                </div>
+              )}
+            </div>
+
+            {tooltip.clusterItems && tooltip.clusterItems.length > 1 && (
+              <div className="mt-2.5 pt-2 border-t border-white/10 max-h-32 overflow-y-auto space-y-1 pr-1 overscroll-contain">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1 flex items-center justify-between">
+                  <span>Clustered Cities ({tooltip.clusterItems.length})</span>
+                  <span className="text-[9px] text-gray-400">proximity grouped</span>
+                </div>
+                {tooltip.clusterItems.map((item, idx) => (
+                  <div
+                    key={`${item.city}-${idx}`}
+                    className="flex items-center justify-between text-[11px] py-0.5 px-1.5 rounded hover:bg-white/5 transition-colors"
+                  >
+                    <span className="font-semibold text-gray-200 truncate pr-2">{item.city}</span>
+                    <span className="font-bold shrink-0 text-gray-300">
+                      {item.count} {item.type === 'order' ? 'orders' : 'visitors'}
+                      {item.revenue ? ` · Rs. ${Math.round(item.revenue).toLocaleString()}` : ''}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : (
+          /* Desktop / Tablet Collision-Aware Floating Card */
+          tooltipPlacement && (
+            <div
+              ref={tooltipRef}
+              className="absolute z-30 pointer-events-auto bg-gray-900/98 text-white border border-white/15 rounded-2xl shadow-2xl p-3 text-xs min-w-[190px] max-w-[280px] animate-in fade-in duration-100 select-text"
+              style={{
+                left: tooltipPlacement.left,
+                top: tooltipPlacement.top,
+              }}
+              onMouseEnter={clearDismissTimeout}
+              onMouseLeave={() => {
+                if (!tooltip.pinned) {
+                  dismissTimeoutRef.current = setTimeout(() => {
+                    setTooltip(null);
+                  }, 150);
+                }
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Pointer Arrow */}
+              {tooltipPlacement.arrowSide === 'left' && (
+                <div
+                  className="absolute -left-1.5 w-3 h-3 bg-gray-900 border-b border-l border-white/15 rotate-45 pointer-events-none"
+                  style={{ top: tooltipPlacement.arrowOffset - 6 }}
+                />
+              )}
+              {tooltipPlacement.arrowSide === 'right' && (
+                <div
+                  className="absolute -right-1.5 w-3 h-3 bg-gray-900 border-t border-r border-white/15 rotate-45 pointer-events-none"
+                  style={{ top: tooltipPlacement.arrowOffset - 6 }}
+                />
+              )}
+              {tooltipPlacement.arrowSide === 'top' && (
+                <div
+                  className="absolute -top-1.5 w-3 h-3 bg-gray-900 border-t border-l border-white/15 rotate-45 pointer-events-none"
+                  style={{ left: tooltipPlacement.arrowOffset - 6 }}
+                />
+              )}
+              {tooltipPlacement.arrowSide === 'bottom' && (
+                <div
+                  className="absolute -bottom-1.5 w-3 h-3 bg-gray-900 border-b border-r border-white/15 rotate-45 pointer-events-none"
+                  style={{ left: tooltipPlacement.arrowOffset - 6 }}
+                />
+              )}
+
+              {/* Header */}
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <div className="font-extrabold text-[13px] text-white flex items-center gap-1.5">
+                    <span>{tooltip.title}</span>
+                    {tooltip.type === 'order' && (
+                      <span className="text-[9px] font-black uppercase tracking-wider bg-orange-500/20 text-orange-400 border border-orange-500/30 px-1 py-0.5 rounded">
+                        Orders
+                      </span>
+                    )}
+                    {tooltip.type === 'visitor' && (
+                      <span className="text-[9px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1 py-0.5 rounded">
+                        Visitors
+                      </span>
+                    )}
+                  </div>
+                  {tooltip.subtitle && (
+                    <div className="text-gray-400 text-[10px] font-semibold mt-0.5">
+                      {tooltip.subtitle}
+                    </div>
+                  )}
+                </div>
+                {tooltip.pinned && (
+                  <button
+                    type="button"
+                    onClick={() => setTooltip(null)}
+                    className="text-gray-400 hover:text-white p-0.5 -mr-1 -mt-1 rounded hover:bg-white/10 transition-colors"
+                    title="Close"
+                  >
+                    <span className="text-xs font-black">✕</span>
+                  </button>
+                )}
+              </div>
+
+              {/* Stats pills */}
+              <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                {tooltip.visitors !== undefined && (
+                  <div className="inline-flex items-center gap-1 text-emerald-400 font-bold text-[11px] bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-md">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                    <span>{tooltip.visitors} visitors</span>
+                    {tooltip.percent !== undefined && (
+                      <span className="text-emerald-300/80 text-[10px]">({tooltip.percent}%)</span>
+                    )}
+                  </div>
+                )}
+                {tooltip.orders !== undefined && (
+                  <div className="inline-flex items-center gap-1 text-orange-400 font-bold text-[11px] bg-orange-500/10 border border-orange-500/20 px-2 py-0.5 rounded-md">
+                    <span className="w-1.5 h-1.5 rounded-full bg-orange-400" />
+                    <span>{tooltip.orders} orders</span>
+                  </div>
+                )}
+                {tooltip.revenue !== undefined && tooltip.revenue > 0 && (
+                  <div className="inline-flex items-center gap-1 text-amber-300 font-bold text-[11px] bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-md">
+                    <span>Rs. {Math.round(tooltip.revenue).toLocaleString()}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Cluster breakdown */}
+              {tooltip.clusterItems && tooltip.clusterItems.length > 1 && (
+                <div className="mt-2.5 pt-2 border-t border-white/10 max-h-36 overflow-y-auto space-y-1 pr-1 overscroll-contain">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1 flex items-center justify-between">
+                    <span>Cluster ({tooltip.clusterItems.length})</span>
+                    <span className="text-[9px] text-gray-400 font-normal">grouped</span>
+                  </div>
+                  {tooltip.clusterItems.map((item, idx) => (
+                    <div
+                      key={`${item.city}-${idx}`}
+                      className="flex items-center justify-between text-[11px] py-0.5 px-1 rounded hover:bg-white/5 transition-colors"
+                    >
+                      <span className="font-semibold text-gray-200 truncate pr-2">{item.city}</span>
+                      <span className="font-bold shrink-0 text-gray-300">
+                        {item.count} {item.type === 'order' ? 'orders' : 'visitors'}
+                        {item.revenue ? ` · Rs. ${Math.round(item.revenue).toLocaleString()}` : ''}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )
+        )
       )}
 
       {/* Legend & hint */}
-      <div className="absolute bottom-3 left-3 z-10 flex items-center gap-3 bg-white/90 dark:bg-black/60 px-3 py-1.5 rounded-xl border border-gray-200/80 dark:border-gray-800 shadow-xs text-[10px] font-bold text-gray-600 dark:text-gray-300">
+      <div
+        className="absolute bottom-3 left-3 z-10 flex items-center gap-3 bg-white/90 dark:bg-black/60 px-3 py-1.5 rounded-xl border border-gray-200/80 dark:border-gray-800 shadow-xs text-[10px] font-bold text-gray-600 dark:text-gray-300"
+        onClick={(e) => e.stopPropagation()}
+      >
         <span className="flex items-center gap-1.5">
           <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-xs" /> Visitors
         </span>

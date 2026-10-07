@@ -8,13 +8,21 @@ interface TrafficGlobeProps {
   orderDots: Dot[];
   countries?: CountryData[];
   height?: number | string;
+  liveCount?: number;
+  rangeLabel?: string;
+  initialZoom?: number;
+  initialCenter?: [number, number];
 }
 
 export default function TrafficGlobe({
   visitorDots = [],
   orderDots = [],
   countries = [],
-  height = 300,
+  height = 320,
+  liveCount,
+  rangeLabel,
+  initialZoom = 2.8,
+  initialCenter = [69.3, 30.4],
 }: TrafficGlobeProps) {
   return (
     <TrafficWorldMap
@@ -23,8 +31,10 @@ export default function TrafficGlobe({
       countries={countries}
       height={height}
       showControls={true}
-      initialZoom={1.1}
-      initialCenter={[20, 25]}
+      initialZoom={initialZoom}
+      initialCenter={initialCenter}
+      liveCount={liveCount}
+      rangeLabel={rangeLabel}
     />
   );
 }

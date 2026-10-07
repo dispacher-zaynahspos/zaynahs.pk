@@ -151,3 +151,27 @@ Verified 2026-10. Applies to EVERY clickable element (icons, buttons, links, car
 - Hover styling ONLY under `@media (hover: hover)` so touch devices don't get stuck-hover; always provide `:active` pressed feedback for touch; `-webkit-tap-highlight-color: transparent`; min 44px touch target; `focus-visible` outline for keyboard.
 - Hover icon color and hover background are **separate editable, shared keys** between Settings and Customizer (e.g. footer social: `footer_social_icon_color`, `footer_social_icon_bg`, `footer_social_hover_color`, `footer_social_hover_bg`) with contrast-safe defaults.
 - Hide controls whose target is empty (e.g. social icon with no link). Keep `aria-label`/`title` on every icon-only control.
+
+## RULE DS10 — Overlay, Popup & Tooltip Safe-Positioning Standard (MANDATORY)
+Verified 2026-10. Applies to all maps, charts, data-viz canvases, tables, and custom UI components across storefront + admin:
+1. **Container-Relative vs Viewport Coordinates (SSOT)**:
+   - **Banned**: NEVER use raw `e.clientX` / `e.clientY` directly as CSS `left`/`top` inside a `position: relative` or constrained container. Doing so adds the parent's viewport offset (e.g. admin sidebar width + top header + scroll), causing popups to drift far to the right/bottom and clip instantly.
+   - **Mandatory**: ALWAYS subtract the container's bounding rectangle: `anchorX = e.clientX - containerRect.left`, or anchor directly to the target element's center: `anchorX = targetRect.left + targetRect.width / 2 - containerRect.left`.
+2. **Boundary Collision & Auto-Flipping**:
+   - Inside `overflow-hidden` or dimensionally bounded containers, popups MUST dynamically test container bounds (`containerWidth`, `containerHeight` via `ResizeObserver` / measured rect):
+     * **Near right edge**: auto-flip placement to the **LEFT** of the anchor (`anchorX - gap - cardWidth`).
+     * **Near left edge**: place to the **RIGHT** of the anchor (`anchorX + gap`).
+     * **Near top edge**: auto-flip to the **BOTTOM** (`anchorY + gap`).
+     * **Near bottom edge**: auto-flip to the **TOP** (`anchorY - gap - cardHeight`).
+     * **Corner cases**: auto-flip both axes simultaneously.
+     * **Hard clamping**: strictly clamp coordinates with safe padding (minimum 8–12px from every edge): `clampedX = Math.max(SAFE_PAD, Math.min(containerWidth - cardWidth - SAFE_PAD, targetX))`.
+     * If rendered outside the container, use a portal (`createPortal(..., document.body)`) or standard popper primitive.
+3. **Pointer Arrow Continuity**:
+   - The pointer arrow must accurately indicate the anchor point regardless of flip direction, sliding along the card edge within clamped bounds (`Math.max(12, Math.min(cardDim - 12, ...))`) without breaking off card corners.
+4. **Touch Hit Targets & Mobile Bottom Sheets**:
+   - Minimum 44px touch targets on all interactive map markers/pins/nodes (using invisible transparent hit overlays: `<circle r={Math.max(22, ...)} fill="transparent" pointerEvents="all" />`) even if the visible dot is 6–12px.
+   - On narrow mobile viewports (< 520px / < 640px), map popups must render as a pinned bottom sheet/card with explicit close ('✕') and tap-outside dismiss, preventing cramped off-screen tooltips.
+5. **Interactive Grace Period & Keyboard Dismissal**:
+   - Popups containing interactive or inspectable details (cluster lists, copyable values, links) must keep `pointer-events-auto` with a 150ms hover-leave grace period so cursors can smoothly enter the card.
+   - Desktop clicks pin the card; pressing `Escape` or clicking outside dismisses immediately.
+

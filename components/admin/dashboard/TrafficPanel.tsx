@@ -102,19 +102,30 @@ export default function TrafficPanel() {
     return { city, lat: coords.lat, lng: coords.lng, count };
   });
 
-  const orderDotMap = new Map<string, number>();
+  const orderDotMap = new Map<string, { count: number; revenue: number }>();
   if (data) {
     for (const oc of data.orderCities) {
       const coords = KNOWN_CITIES[oc.city];
       if (coords) {
-        orderDotMap.set(oc.city, (orderDotMap.get(oc.city) || 0) + oc.orders);
+        const prev = orderDotMap.get(oc.city) || { count: 0, revenue: 0 };
+        orderDotMap.set(oc.city, {
+          count: prev.count + oc.orders,
+          revenue: prev.revenue + (oc.revenue || 0),
+        });
       }
     }
   }
 
-  const orderDots = Array.from(orderDotMap.entries()).map(([city, count]) => {
+  const orderDots = Array.from(orderDotMap.entries()).map(([city, info]) => {
     const coords = KNOWN_CITIES[city];
-    return { city, lat: coords.lat, lng: coords.lng, count };
+    return {
+      city,
+      lat: coords.lat,
+      lng: coords.lng,
+      count: info.count,
+      revenue: info.revenue,
+      type: 'order' as const,
+    };
   });
 
   const topCountry = data?.countries?.[0];
@@ -198,7 +209,14 @@ export default function TrafficPanel() {
       </div>
 
       {/* Globe */}
-      <TrafficGlobe visitorDots={visitorDots} orderDots={orderDots} countries={data?.countries || []} height={280} />
+      <TrafficGlobe
+        visitorDots={visitorDots}
+        orderDots={orderDots}
+        countries={data?.countries || []}
+        height={320}
+        liveCount={data?.liveCount ?? 0}
+        rangeLabel={range}
+      />
 
       {/* Country list */}
       <div className="p-5 md:p-6 pt-2 space-y-2">
