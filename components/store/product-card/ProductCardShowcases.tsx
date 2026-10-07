@@ -10,7 +10,7 @@ import { normalizeCardStyle, getCardStyleClass } from '@/lib/utils/cardStyles';
 import { ProductCardStyleInjector } from './ProductCardStyles';
 import { ProductCardBadges } from './ProductCardBadges';
 import { ProductCardMedia } from './ProductCardMedia';
-import { ProductCardActions, CardCartIcon, CardWishlistIcon, CardQuickviewIcon } from './ProductCardActions';
+import { ProductCardActions, CardCartIcon, CardWishlistIcon, CardQuickviewIcon, CardCompareIcon } from './ProductCardActions';
 import { ProductCardShowcaseContent } from './ProductCardShowcaseContent';
 
 interface ProductCardShowcaseProps {
@@ -96,11 +96,6 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
     (scClass === 'sc22' || scClass === 'sc_athletic') ? 'bg-[#f0f0f2]' :
     (scClass === 'sc23' || scClass === 'sc_marketplace') ? 'bg-[#ffffff]' :
     (scClass === 'sc24' || scClass === 'sc_roundcharm') ? 'bg-[#faf6f0] rounded-t-2xl' :
-    (scClass === 'sc_ella1' || scClass === 'sc_ella3' || scClass === 'sc_ella4') ? 'bg-[#f6f6f6]' :
-    (scClass === 'sc_ella2' || scClass === 'sc_ella6') ? 'bg-white' :
-    (scClass === 'sc_ella5') ? 'bg-[#f4efe9]' :
-    (scClass === 'sc_ella7') ? 'bg-[#f7f7f7]' :
-    (scClass === 'sc_ella8') ? 'bg-[#efefef]' :
     '';
 
   const productUrl = `/product/${encodeURIComponent(product.slug || '')}`;
@@ -112,8 +107,808 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
 
   const hoverStyle = settings?.image_hover_style ?? 'second_image';
 
+  const [selectedColor, setSelectedColor] = React.useState<string>('Police Blue');
+  const [selectedSize, setSelectedSize] = React.useState<string>('L');
+  const [quantity, setQuantity] = React.useState<number>(1);
+
+  const availableSizes = React.useMemo(() => {
+    const sizes = Array.from(new Set(product.variants?.map(v => v.size).filter(Boolean))) as string[];
+    return sizes.length > 0 ? sizes.slice(0, 4) : ['L', 'M', 'S'];
+  }, [product.variants]);
+
+  const availableColors = React.useMemo(() => {
+    const colors = product.variants?.filter(v => v.color && v.active) || [];
+    const unique = colors.reduce<{ color: string; hex?: string; img?: string }[]>((acc, v) => {
+      if (v.color && !acc.find(c => c.color === v.color)) {
+        acc.push({ color: v.color, hex: v.color_hex || undefined, img: v.image_url || undefined });
+      }
+      return acc;
+    }, []);
+    if (unique.length > 0) return unique.slice(0, 4);
+    return [
+      { color: 'Police Blue', hex: '#2b3f56' },
+      { color: 'Amber Gold', hex: '#e5ad4f' },
+      { color: 'Sand Beige', hex: '#dec7b0' },
+    ];
+  }, [product.variants]);
+
+  const renderPriceRow = (align: 'left' | 'center' = 'center', className = '') => (
+    <div className={`flex items-baseline gap-1.5 ${align === 'center' ? 'justify-center' : 'justify-start'} ${className}`}>
+      {currentComparePrice && currentComparePrice > currentPrice && (
+        <span className="pold text-[11px] sm:text-xs text-gray-400 line-through">
+          {formatPrice(currentComparePrice, currencySymbol)}
+        </span>
+      )}
+      <span className="card-price text-xs sm:text-sm font-bold text-gray-900 dark:text-white">
+        {hasPriceRange
+          ? `${formatPrice(minPrice, currencySymbol)} – ${formatPrice(maxPrice, currencySymbol)}`
+          : formatPrice(currentPrice, currencySymbol)}
+      </span>
+    </div>
+  );
+
+  const renderDots = (align: 'left' | 'center' | 'right' = 'center') => {
+    if (finalRenderedGroups) {
+      return (
+        <div className={`flex items-center ${align === 'center' ? 'justify-center' : align === 'right' ? 'justify-end' : 'justify-start'}`} onClick={(e) => e.stopPropagation()}>
+          {finalRenderedGroups}
+        </div>
+      );
+    }
+    return (
+      <div className={`flex items-center gap-1.5 ${align === 'center' ? 'justify-center' : align === 'right' ? 'justify-end' : 'justify-start'}`}>
+        {availableColors.map((c, i) => (
+          <span
+            key={i}
+            title={c.color}
+            className="w-3 h-3 rounded-full border border-black/10 dark:border-white/20 shadow-xs inline-block shrink-0 transition-transform hover:scale-110"
+            style={{ backgroundColor: c.hex || '#2b3f56' }}
+          />
+        ))}
+      </div>
+    );
+  };
+
+  const renderBoxedSizes = (align: 'left' | 'center' = 'center') => (
+    <div className={`flex items-center gap-1.5 mt-1.5 flex-wrap ${align === 'center' ? 'justify-center' : 'justify-start'}`}>
+      {availableSizes.map((s, i) => (
+        <button
+          key={i}
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onOpenQuickView(e);
+          }}
+          onPointerDown={(e) => e.stopPropagation()}
+          className="min-w-[22px] h-[22px] px-1.5 rounded-[3px] border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#1f1f2e] text-[10px] font-medium text-gray-600 dark:text-gray-300 flex items-center justify-center hover:border-black dark:hover:border-white hover:text-black dark:hover:text-white transition-colors cursor-pointer z-[25]"
+        >
+          {s}
+        </button>
+      ))}
+    </div>
+  );
+
+  const renderFlatSizes = () => (
+    <div className="flex items-center gap-2 text-[11px] font-bold tracking-widest text-gray-800 dark:text-gray-200">
+      {availableSizes.map((s, i) => (
+        <span key={i}>{s}</span>
+      ))}
+    </div>
+  );
+
+  const renderTopRightWishlist = (extraClass = '') => (
+    showWishlist ? (
+      <button
+        type="button"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onToggleWishlist(e);
+        }}
+        onPointerDown={(e) => e.stopPropagation()}
+        className={`action-btn pointer-events-auto absolute right-2.5 top-2.5 z-[25] flex h-7 w-7 items-center justify-center rounded-full bg-white/90 dark:bg-black/70 text-gray-700 dark:text-gray-300 shadow-sm border border-black/5 dark:border-white/10 hover:scale-110 active:scale-95 transition-transform cursor-pointer ${extraClass}`}
+        aria-label="Wishlist"
+      >
+        <CardWishlistIcon isInWishlist={isInWishlist} iconStyle={iconStyle} className="h-3.5 w-3.5" />
+      </button>
+    ) : null
+  );
+
   // ── SHOPIFY PATTERN: outer div + transparent overlay Link ─────────────────────
   const renderCardBody = () => {
+    // ── ELESSI STYLE 1: Corner FAB (+) & Side Rail ─────────────────────────────
+    if (scClass === 'sc_style1') {
+      return (
+        <div className="flex flex-col h-full justify-between relative bg-white dark:bg-[#16162a]">
+          <div className={`relative ${aspectClass} w-full ${imgBgClass}`}>
+            <div className="img-box relative w-full h-full overflow-hidden">
+              <ProductCardBadges product={product} currentPrice={currentPrice} currentComparePrice={currentComparePrice} />
+              <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} />
+            </div>
+
+            {renderTopRightWishlist()}
+
+            <div className="elessi-side-rail absolute right-2.5 top-11 z-[25] flex flex-col gap-2 transition-all duration-200">
+              {showQuickview && (
+                <button
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onOpenQuickView(e); }}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  className="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-[#525252] text-white flex items-center justify-center shadow-md hover:bg-black transition-colors cursor-pointer z-[25]"
+                  aria-label="Quick View"
+                >
+                  <CardQuickviewIcon iconStyle={iconStyle} className="h-3.5 w-3.5 text-white" />
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onOpenQuickView(e); }}
+                onPointerDown={(e) => e.stopPropagation()}
+                className="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-[#525252] text-white flex items-center justify-center shadow-md hover:bg-black transition-colors cursor-pointer z-[25]"
+                aria-label="Compare"
+              >
+                <CardCompareIcon className="h-3.5 w-3.5 text-white" />
+              </button>
+            </div>
+
+            <div className="elessi-flat-sizes absolute left-3 bottom-2.5 z-[20] transition-all duration-200">
+              {renderFlatSizes()}
+            </div>
+
+            {showQuickcart && (
+              <button
+                type="button"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAddToCart(e); }}
+                onPointerDown={(e) => e.stopPropagation()}
+                className="elessi-seam-fab absolute -bottom-3.5 right-3 sm:right-4 z-[30] h-9 w-9 sm:h-10 sm:w-10 rounded-full border-2 border-[#ff5a5f] bg-white dark:bg-[#1a1a26] text-gray-900 dark:text-white flex items-center justify-center shadow-md hover:bg-[#ff5a5f] hover:text-white active:scale-95 transition-all cursor-pointer"
+                aria-label="Add to cart"
+              >
+                <span className="text-xl sm:text-2xl font-light leading-none -mt-0.5">+</span>
+              </button>
+            )}
+          </div>
+
+          <div className="cb flex flex-col flex-grow justify-between px-2 pt-3 pb-2 w-full relative z-[2]">
+            <div>
+              <Link href={productUrl} onClick={handleClick} prefetch={false} className={`card-title text-xs sm:text-sm font-semibold text-gray-900 dark:text-white leading-tight ${titleClampClass}`}>
+                {product.name}
+              </Link>
+              <div className="flex items-center justify-between gap-2 mt-1.5 flex-wrap">
+                {renderPriceRow('left')}
+                {renderDots('right')}
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ── ELESSI STYLE 2: Between-Seam 4-Icon Row ────────────────────────────────
+    if (scClass === 'sc_style2') {
+      return (
+        <div className="flex flex-col h-full justify-between relative bg-white dark:bg-[#16162a]">
+          <div className={`img-box relative ${aspectClass} w-full ${imgBgClass} overflow-hidden`}>
+            <ProductCardBadges product={product} currentPrice={currentPrice} currentComparePrice={currentComparePrice} />
+            <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} />
+          </div>
+
+          <div className="elessi-between-seam-row flex items-center justify-center gap-2 sm:gap-2.5 py-2.5 border-b border-gray-100 dark:border-gray-800/80 z-[25] transition-all duration-200">
+            {showQuickcart && (
+              <button
+                type="button"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAddToCart(e); }}
+                onPointerDown={(e) => e.stopPropagation()}
+                className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#1f1f2e] text-gray-700 dark:text-gray-200 hover:border-black dark:hover:border-white hover:text-black dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                aria-label="Add to cart"
+              >
+                <CardCartIcon iconStyle={iconStyle} className="h-3.5 w-3.5" />
+              </button>
+            )}
+            {showWishlist && (
+              <button
+                type="button"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleWishlist(e); }}
+                onPointerDown={(e) => e.stopPropagation()}
+                className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#1f1f2e] text-gray-700 dark:text-gray-200 hover:border-black dark:hover:border-white hover:text-black dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                aria-label="Wishlist"
+              >
+                <CardWishlistIcon isInWishlist={isInWishlist} iconStyle={iconStyle} className="h-3.5 w-3.5" />
+              </button>
+            )}
+            {showQuickview && (
+              <button
+                type="button"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onOpenQuickView(e); }}
+                onPointerDown={(e) => e.stopPropagation()}
+                className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#1f1f2e] text-gray-700 dark:text-gray-200 hover:border-black dark:hover:border-white hover:text-black dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                aria-label="Quick View"
+              >
+                <CardQuickviewIcon iconStyle={iconStyle} className="h-3.5 w-3.5" />
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onOpenQuickView(e); }}
+              onPointerDown={(e) => e.stopPropagation()}
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#1f1f2e] text-gray-700 dark:text-gray-200 hover:border-black dark:hover:border-white hover:text-black dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+              aria-label="Compare"
+            >
+              <CardCompareIcon className="h-3.5 w-3.5" />
+            </button>
+          </div>
+
+          <div className="cb flex flex-col flex-grow justify-between items-center text-center p-2.5 w-full relative z-[2]">
+            <div className="w-full flex flex-col items-center">
+              <Link href={productUrl} onClick={handleClick} prefetch={false} className={`card-title text-xs sm:text-sm font-semibold text-gray-900 dark:text-white leading-tight ${titleClampClass}`}>
+                {product.name}
+              </Link>
+              <div className="mt-1">{renderPriceRow('center')}</div>
+              <div className="mt-2">{renderDots('center')}</div>
+              <div className="mt-1">{renderBoxedSizes('center')}</div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ── ELESSI STYLE 3: Bottom 3-Action Segmented Pill ─────────────────────────
+    if (scClass === 'sc_style3') {
+      return (
+        <div className="flex flex-col h-full justify-between relative bg-white dark:bg-[#16162a]">
+          <div className={`img-box relative ${aspectClass} w-full ${imgBgClass} overflow-hidden`}>
+            <ProductCardBadges product={product} currentPrice={currentPrice} currentComparePrice={currentComparePrice} />
+            <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} />
+            {renderTopRightWishlist()}
+
+            <div className="elessi-floating-pill absolute bottom-3 left-1/2 -translate-x-1/2 z-[25] bg-white dark:bg-[#1a1a26] rounded-md shadow-lg border border-gray-200 dark:border-gray-700 flex items-center divide-x divide-gray-200 dark:divide-gray-700 overflow-hidden transition-all duration-200">
+              {showQuickcart && (
+                <button
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAddToCart(e); }}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  className="px-3 py-2 text-gray-700 dark:text-gray-200 hover:text-black dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer flex items-center justify-center"
+                  aria-label="Add to cart"
+                >
+                  <CardCartIcon iconStyle={iconStyle} className="h-3.5 w-3.5" />
+                </button>
+              )}
+              {showQuickview && (
+                <button
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onOpenQuickView(e); }}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  className="px-3 py-2 text-gray-700 dark:text-gray-200 hover:text-black dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer flex items-center justify-center"
+                  aria-label="Quick View"
+                >
+                  <CardQuickviewIcon iconStyle={iconStyle} className="h-3.5 w-3.5" />
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onOpenQuickView(e); }}
+                onPointerDown={(e) => e.stopPropagation()}
+                className="px-3 py-2 text-gray-700 dark:text-gray-200 hover:text-black dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer flex items-center justify-center"
+                aria-label="Compare"
+              >
+                <CardCompareIcon className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          </div>
+
+          <div className="cb flex flex-col flex-grow justify-between p-2.5 w-full relative z-[2]">
+            <div>
+              <Link href={productUrl} onClick={handleClick} prefetch={false} className={`card-title text-xs sm:text-sm font-semibold text-gray-900 dark:text-white leading-tight ${titleClampClass}`}>
+                {product.name}
+              </Link>
+              <div className="mt-1">{renderPriceRow('left')}</div>
+              <div className="mt-2.5 flex items-center justify-between gap-2 flex-wrap">
+                {renderFlatSizes()}
+                {renderDots('right')}
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ── ELESSI STYLE 4: Split Options Drawer [Choose options | 👁] ─────────────
+    if (scClass === 'sc_style4') {
+      return (
+        <div className="flex flex-col h-full justify-between relative bg-white dark:bg-[#16162a]">
+          <div className={`img-box relative ${aspectClass} w-full ${imgBgClass} overflow-hidden`}>
+            <ProductCardBadges product={product} currentPrice={currentPrice} currentComparePrice={currentComparePrice} />
+            <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} />
+            {renderTopRightWishlist()}
+
+            <div className="elessi-split-drawer absolute inset-x-2 bottom-2 z-[25] flex items-stretch shadow-md rounded overflow-hidden transition-all duration-200">
+              <button
+                type="button"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAddToCart(e); }}
+                onPointerDown={(e) => e.stopPropagation()}
+                className="flex-1 py-2 px-3 bg-white dark:bg-[#1a1a26] text-gray-900 dark:text-white text-[11px] sm:text-xs font-bold border-r border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer text-center truncate"
+              >
+                {product.has_variants ? 'Choose options' : 'Add to cart'}
+              </button>
+              {showQuickview && (
+                <button
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onOpenQuickView(e); }}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  className="w-10 bg-white dark:bg-[#1a1a26] text-gray-800 dark:text-gray-200 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer shrink-0"
+                  aria-label="Quick View"
+                >
+                  <CardQuickviewIcon iconStyle={iconStyle} className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="cb flex flex-col flex-grow justify-between items-center text-center p-2.5 w-full relative z-[2]">
+            <div className="w-full flex flex-col items-center">
+              <Link href={productUrl} onClick={handleClick} prefetch={false} className={`card-title text-xs sm:text-sm font-semibold text-gray-900 dark:text-white leading-tight ${titleClampClass}`}>
+                {product.name}
+              </Link>
+              <div className="mt-1">{renderPriceRow('center')}</div>
+              <div className="mt-2">{renderDots('center')}</div>
+              <div className="mt-1">{renderBoxedSizes('center')}</div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ── ELESSI STYLE 5: 4-Icon Vertical Right Rail ─────────────────────────────
+    if (scClass === 'sc_style5') {
+      return (
+        <div className="flex flex-col h-full justify-between relative bg-white dark:bg-[#16162a]">
+          <div className={`img-box relative ${aspectClass} w-full ${imgBgClass} overflow-hidden`}>
+            <ProductCardBadges product={product} currentPrice={currentPrice} currentComparePrice={currentComparePrice} />
+            <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} />
+
+            <div className="elessi-vertical-rail absolute right-2.5 top-2.5 z-[25] flex flex-col gap-1.5 sm:gap-2 transition-all duration-200">
+              {showWishlist && (
+                <button
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleWishlist(e); }}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white dark:bg-[#1a1a26] text-gray-700 dark:text-gray-200 shadow-md border border-gray-100 dark:border-gray-800 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform cursor-pointer"
+                  aria-label="Wishlist"
+                >
+                  <CardWishlistIcon isInWishlist={isInWishlist} iconStyle={iconStyle} className="h-3.5 w-3.5" />
+                </button>
+              )}
+              {showQuickview && (
+                <button
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onOpenQuickView(e); }}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white dark:bg-[#1a1a26] text-gray-700 dark:text-gray-200 shadow-md border border-gray-100 dark:border-gray-800 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform cursor-pointer"
+                  aria-label="Quick View"
+                >
+                  <CardQuickviewIcon iconStyle={iconStyle} className="h-3.5 w-3.5" />
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onOpenQuickView(e); }}
+                onPointerDown={(e) => e.stopPropagation()}
+                className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white dark:bg-[#1a1a26] text-gray-700 dark:text-gray-200 shadow-md border border-gray-100 dark:border-gray-800 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform cursor-pointer"
+                aria-label="Compare"
+              >
+                <CardCompareIcon className="h-3.5 w-3.5" />
+              </button>
+              {showQuickcart && (
+                <button
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAddToCart(e); }}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white dark:bg-[#1a1a26] text-gray-700 dark:text-gray-200 shadow-md border border-gray-100 dark:border-gray-800 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform cursor-pointer"
+                  aria-label="Add to cart"
+                >
+                  <CardCartIcon iconStyle={iconStyle} className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="cb flex flex-col flex-grow justify-between p-2.5 w-full relative z-[2]">
+            <div>
+              <Link href={productUrl} onClick={handleClick} prefetch={false} className={`card-title text-xs sm:text-sm font-semibold text-gray-900 dark:text-white leading-tight ${titleClampClass}`}>
+                {product.name}
+              </Link>
+              <div className="mt-1">{renderPriceRow('left')}</div>
+              <div className="mt-2">{renderDots('left')}</div>
+              <div className="mt-1">{renderBoxedSizes('left')}</div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ── ELESSI STYLE 6: Seam Full-Width Black Cart Bar ─────────────────────────
+    if (scClass === 'sc_style6') {
+      return (
+        <div className="flex flex-col h-full justify-between relative bg-white dark:bg-[#16162a]">
+          <div className={`img-box relative ${aspectClass} w-full ${imgBgClass} overflow-hidden`}>
+            <ProductCardBadges product={product} currentPrice={currentPrice} currentComparePrice={currentComparePrice} />
+            <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} />
+            {renderTopRightWishlist()}
+
+            <div className="elessi-side-rail absolute right-2.5 top-11 z-[25] flex flex-col gap-1.5 sm:gap-2 transition-all duration-200">
+              {showQuickview && (
+                <button
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onOpenQuickView(e); }}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white dark:bg-[#1a1a26] text-gray-700 dark:text-gray-200 shadow-md border border-gray-100 dark:border-gray-800 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform cursor-pointer"
+                  aria-label="Quick View"
+                >
+                  <CardQuickviewIcon iconStyle={iconStyle} className="h-3.5 w-3.5" />
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onOpenQuickView(e); }}
+                onPointerDown={(e) => e.stopPropagation()}
+                className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white dark:bg-[#1a1a26] text-gray-700 dark:text-gray-200 shadow-md border border-gray-100 dark:border-gray-800 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform cursor-pointer"
+                aria-label="Compare"
+              >
+                <CardCompareIcon className="h-3.5 w-3.5" />
+              </button>
+            </div>
+
+            {showQuickcart && (
+              <button
+                type="button"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAddToCart(e); }}
+                onPointerDown={(e) => e.stopPropagation()}
+                className="elessi-black-cart-bar absolute inset-x-0 bottom-0 z-[25] py-2.5 bg-black text-white text-xs font-bold tracking-wider uppercase flex items-center justify-center hover:bg-gray-900 transition-colors cursor-pointer"
+              >
+                {product.has_variants ? 'Choose options' : 'Add to cart'}
+              </button>
+            )}
+          </div>
+
+          <div className="cb flex flex-col flex-grow justify-between items-center text-center p-2.5 w-full relative z-[2]">
+            <div className="w-full flex flex-col items-center">
+              <Link href={productUrl} onClick={handleClick} prefetch={false} className={`card-title text-xs sm:text-sm font-semibold text-gray-900 dark:text-white leading-tight ${titleClampClass}`}>
+                {product.name}
+              </Link>
+              <div className="mt-1">{renderPriceRow('center')}</div>
+              <div className="mt-2">{renderDots('center')}</div>
+              <div className="mt-1">{renderBoxedSizes('center')}</div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ── ELESSI STYLE 7: Floating 3-Bubble Center Row ───────────────────────────
+    if (scClass === 'sc_style7') {
+      return (
+        <div className="flex flex-col h-full justify-between relative bg-white dark:bg-[#16162a]">
+          <div className={`img-box relative ${aspectClass} w-full ${imgBgClass} overflow-hidden`}>
+            <ProductCardBadges product={product} currentPrice={currentPrice} currentComparePrice={currentComparePrice} />
+            <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} />
+            {renderTopRightWishlist()}
+
+            <div className="elessi-floating-bubbles absolute bottom-3 left-1/2 -translate-x-1/2 z-[25] flex items-center gap-2 sm:gap-2.5 transition-all duration-200">
+              {showQuickcart && (
+                <button
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAddToCart(e); }}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white dark:bg-[#1a1a26] text-gray-700 dark:text-gray-200 shadow-lg border border-gray-100 dark:border-gray-800 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform cursor-pointer"
+                  aria-label="Add to cart"
+                >
+                  <CardCartIcon iconStyle={iconStyle} className="h-3.5 w-3.5" />
+                </button>
+              )}
+              {showQuickview && (
+                <button
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onOpenQuickView(e); }}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white dark:bg-[#1a1a26] text-gray-700 dark:text-gray-200 shadow-lg border border-gray-100 dark:border-gray-800 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform cursor-pointer"
+                  aria-label="Quick View"
+                >
+                  <CardQuickviewIcon iconStyle={iconStyle} className="h-3.5 w-3.5" />
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onOpenQuickView(e); }}
+                onPointerDown={(e) => e.stopPropagation()}
+                className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white dark:bg-[#1a1a26] text-gray-700 dark:text-gray-200 shadow-lg border border-gray-100 dark:border-gray-800 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform cursor-pointer"
+                aria-label="Compare"
+              >
+                <CardCompareIcon className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          </div>
+
+          <div className="cb flex flex-col flex-grow justify-between items-center text-center p-2.5 w-full relative z-[2]">
+            <div className="w-full flex flex-col items-center">
+              <Link href={productUrl} onClick={handleClick} prefetch={false} className={`card-title text-xs sm:text-sm font-semibold text-gray-900 dark:text-white leading-tight ${titleClampClass}`}>
+                {product.name}
+              </Link>
+              <div className="mt-1">{renderPriceRow('center')}</div>
+              <div className="mt-2">{renderDots('center')}</div>
+              <div className="mt-1">{renderBoxedSizes('center')}</div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ── ELESSI STYLE 8: Bottom Sticky Add to Cart Bar ──────────────────────────
+    if (scClass === 'sc_style8') {
+      return (
+        <div className="flex flex-col h-full justify-between relative bg-white dark:bg-[#16162a]">
+          <div className={`img-box relative ${aspectClass} w-full ${imgBgClass} overflow-hidden`}>
+            <ProductCardBadges product={product} currentPrice={currentPrice} currentComparePrice={currentComparePrice} />
+            <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} />
+
+            <div className="elessi-vertical-rail absolute right-2.5 top-2.5 z-[25] flex flex-col gap-1.5 sm:gap-2 transition-all duration-200">
+              {showWishlist && (
+                <button
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleWishlist(e); }}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white dark:bg-[#1a1a26] text-gray-700 dark:text-gray-200 shadow-md border border-gray-100 dark:border-gray-800 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform cursor-pointer"
+                  aria-label="Wishlist"
+                >
+                  <CardWishlistIcon isInWishlist={isInWishlist} iconStyle={iconStyle} className="h-3.5 w-3.5" />
+                </button>
+              )}
+              {showQuickview && (
+                <button
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onOpenQuickView(e); }}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white dark:bg-[#1a1a26] text-gray-700 dark:text-gray-200 shadow-md border border-gray-100 dark:border-gray-800 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform cursor-pointer"
+                  aria-label="Quick View"
+                >
+                  <CardQuickviewIcon iconStyle={iconStyle} className="h-3.5 w-3.5" />
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onOpenQuickView(e); }}
+                onPointerDown={(e) => e.stopPropagation()}
+                className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white dark:bg-[#1a1a26] text-gray-700 dark:text-gray-200 shadow-md border border-gray-100 dark:border-gray-800 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform cursor-pointer"
+                aria-label="Compare"
+              >
+                <CardCompareIcon className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          </div>
+
+          <div className="cb flex flex-col flex-grow justify-between items-center text-center p-2.5 w-full relative z-[2]">
+            <div className="w-full flex flex-col items-center">
+              <Link href={productUrl} onClick={handleClick} prefetch={false} className={`card-title text-xs sm:text-sm font-semibold text-gray-900 dark:text-white leading-tight ${titleClampClass}`}>
+                {product.name}
+              </Link>
+              <div className="mt-1">{renderPriceRow('center')}</div>
+              <div className="mt-2">{renderDots('center')}</div>
+              <div className="mt-1">{renderBoxedSizes('center')}</div>
+            </div>
+
+            {showQuickcart && (
+              <div className="w-full mt-2.5 z-[25]">
+                <button
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAddToCart(e); }}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  className="w-full py-2 px-3 rounded-lg bg-[#ff5a5f] hover:bg-[#e0484d] text-white text-xs font-bold shadow-sm transition-colors flex items-center justify-center cursor-pointer"
+                >
+                  {product.has_variants ? 'Choose options' : 'Add to cart'}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // ── ELESSI STYLE 9: In-Between Seam Add to Cart Bar ─────────────────────────
+    if (scClass === 'sc_style9') {
+      return (
+        <div className="flex flex-col h-full justify-between relative bg-white dark:bg-[#16162a]">
+          <div className={`img-box relative ${aspectClass} w-full ${imgBgClass} overflow-hidden`}>
+            <ProductCardBadges product={product} currentPrice={currentPrice} currentComparePrice={currentComparePrice} />
+            <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} />
+
+            <div className="elessi-vertical-rail absolute right-2.5 top-2.5 z-[25] flex flex-col gap-1.5 sm:gap-2 transition-all duration-200">
+              {showWishlist && (
+                <button
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleWishlist(e); }}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white dark:bg-[#1a1a26] text-gray-700 dark:text-gray-200 shadow-md border border-gray-100 dark:border-gray-800 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform cursor-pointer"
+                  aria-label="Wishlist"
+                >
+                  <CardWishlistIcon isInWishlist={isInWishlist} iconStyle={iconStyle} className="h-3.5 w-3.5" />
+                </button>
+              )}
+              {showQuickview && (
+                <button
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onOpenQuickView(e); }}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white dark:bg-[#1a1a26] text-gray-700 dark:text-gray-200 shadow-md border border-gray-100 dark:border-gray-800 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform cursor-pointer"
+                  aria-label="Quick View"
+                >
+                  <CardQuickviewIcon iconStyle={iconStyle} className="h-3.5 w-3.5" />
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onOpenQuickView(e); }}
+                onPointerDown={(e) => e.stopPropagation()}
+                className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white dark:bg-[#1a1a26] text-gray-700 dark:text-gray-200 shadow-md border border-gray-100 dark:border-gray-800 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform cursor-pointer"
+                aria-label="Compare"
+              >
+                <CardCompareIcon className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          </div>
+
+          {showQuickcart && (
+            <div className="px-2.5 pt-2 z-[25]">
+              <button
+                type="button"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAddToCart(e); }}
+                onPointerDown={(e) => e.stopPropagation()}
+                className="w-full py-2 px-3 rounded-lg bg-[#ff5a5f] hover:bg-[#e0484d] text-white text-xs font-bold shadow-sm transition-colors flex items-center justify-center cursor-pointer"
+              >
+                {product.has_variants ? 'Choose options' : 'Add to cart'}
+              </button>
+            </div>
+          )}
+
+          <div className="cb flex flex-col flex-grow justify-between items-center text-center p-2.5 w-full relative z-[2]">
+            <div className="w-full flex flex-col items-center">
+              <Link href={productUrl} onClick={handleClick} prefetch={false} className={`card-title text-xs sm:text-sm font-semibold text-gray-900 dark:text-white leading-tight ${titleClampClass}`}>
+                {product.name}
+              </Link>
+              <div className="mt-1">{renderPriceRow('center')}</div>
+              <div className="mt-2">{renderDots('center')}</div>
+              <div className="mt-1">{renderBoxedSizes('center')}</div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ── ELESSI STYLE 10: In-Card Quick Shop Sheet ──────────────────────────────
+    if (scClass === 'sc_style10') {
+      return (
+        <div className="flex flex-col h-full justify-between relative bg-white dark:bg-[#16162a]">
+          <div className={`img-box relative ${aspectClass} w-full ${imgBgClass} overflow-hidden`}>
+            <ProductCardBadges product={product} currentPrice={currentPrice} currentComparePrice={currentComparePrice} />
+            <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} />
+            {renderTopRightWishlist()}
+
+            <div className="elessi-quick-shop-sheet absolute inset-x-2 bottom-2 z-[25] bg-white dark:bg-[#1a1a26] rounded-xl p-2.5 sm:p-3 shadow-xl border border-gray-100 dark:border-gray-800 flex flex-col gap-2 transition-all duration-200">
+              <div>
+                <div className="flex items-center justify-between text-[11px] font-bold text-gray-800 dark:text-gray-200">
+                  <span>Color: {selectedColor}</span>
+                  <span className="text-gray-400">▾</span>
+                </div>
+                <div className="flex items-center gap-2 mt-1.5">
+                  {availableColors.map((c, i) => {
+                    const isSelected = selectedColor === c.color;
+                    return (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setSelectedColor(c.color);
+                        }}
+                        onPointerDown={(e) => e.stopPropagation()}
+                        className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${
+                          isSelected ? 'ring-2 ring-gray-900 dark:ring-white scale-110' : 'border-gray-300 dark:border-gray-600'
+                        }`}
+                        style={{ backgroundColor: c.hex || '#2b3f56' }}
+                        title={c.color}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <div className="text-[11px] font-bold text-gray-800 dark:text-gray-200">
+                  Size: {selectedSize}
+                </div>
+                <div className="flex items-center gap-1.5 mt-1">
+                  {availableSizes.map((s, i) => {
+                    const isSelected = selectedSize === s;
+                    return (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setSelectedSize(s);
+                        }}
+                        onPointerDown={(e) => e.stopPropagation()}
+                        className={`w-6 h-6 rounded-full text-[10px] font-bold flex items-center justify-center transition-colors ${
+                          isSelected
+                            ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900'
+                            : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200'
+                        }`}
+                      >
+                        {s}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 mt-0.5">
+                <div className="flex items-center border border-gray-200 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-900 h-8 shrink-0 overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setQuantity((q) => Math.max(1, q - 1));
+                    }}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    className="w-6 h-full text-xs font-bold text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800 flex items-center justify-center"
+                  >
+                    -
+                  </button>
+                  <span className="w-6 text-center text-xs font-bold text-gray-900 dark:text-white">
+                    {quantity}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setQuantity((q) => q + 1);
+                    }}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    className="w-6 h-full text-xs font-bold text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800 flex items-center justify-center"
+                  >
+                    +
+                  </button>
+                </div>
+                {showQuickcart && (
+                  <button
+                    type="button"
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAddToCart(e); }}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    className="flex-1 h-8 rounded-md bg-[#ff5a5f] hover:bg-[#e0484d] text-white text-[11px] font-bold transition-colors flex items-center justify-center cursor-pointer"
+                  >
+                    Add to cart
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="cb flex flex-col flex-grow justify-between p-2.5 w-full relative z-[2]">
+            <div>
+              <Link href={productUrl} onClick={handleClick} prefetch={false} className={`card-title text-xs sm:text-sm font-semibold text-gray-900 dark:text-white leading-tight ${titleClampClass}`}>
+                {product.name}
+              </Link>
+              <div className="flex items-center justify-between gap-2 mt-1.5 flex-wrap">
+                {renderPriceRow('left')}
+                {renderDots('right')}
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
     // ── ARCHETYPE 01: ZARA HAUTE EDITORIAL ────────────────────────────────────
     if (scClass === 'sc20' || scClass === 'sc_editorial') {
       return (
@@ -680,54 +1475,6 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
         </div>
       );
     }
-    // ── ELLA THEME (card_16 … card_23): hover bottom ADD TO CART bar + wishlist, shared content ──
-    if (scClass && scClass.indexOf('sc_ella') === 0) {
-      // ella6/7/8 keep contained/minimal look via CSS; ella8 shows a right icon rail.
-      const useRail = scClass === 'sc_ella8';
-      return (
-        <div className="flex flex-col h-full justify-between">
-          <div className={`img-box relative ${aspectClass} w-full ${imgBgClass}`}>
-            <ProductCardBadges product={product} currentPrice={currentPrice} currentComparePrice={currentComparePrice} />
-            <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={scClass === 'sc_ella6' ? 'object-contain' : (settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-cover')} />
-            <ProductCardActions
-              variant={useRail ? 'pill-right' : 'slide-drawer'}
-              iconStyle={iconStyle}
-              showWishlist={showWishlist}
-              showQuickview={showQuickview}
-              showQuickcart={showQuickcart}
-              isInWishlist={isInWishlist}
-              hasVariants={product.has_variants}
-              onToggleWishlist={onToggleWishlist}
-              onOpenQuickView={onOpenQuickView}
-              onAddToCart={onAddToCart}
-            />
-          </div>
-          <div className="relative z-[2] flex-grow flex flex-col justify-between">
-            <ProductCardShowcaseContent
-              styleClass={scClass}
-              elementsOrder={elementsOrder}
-              alignClass={alignClass}
-              titleClampClass={titleClampClass}
-              product={product}
-              showStars={showStars}
-              currencySymbol={currencySymbol}
-              minPrice={minPrice}
-              maxPrice={maxPrice}
-              hasPriceRange={hasPriceRange}
-              currentPrice={currentPrice}
-              currentComparePrice={currentComparePrice}
-              displayDescription={displayDescription}
-              finalRenderedGroups={finalRenderedGroups}
-              productUrl={productUrl}
-              onCardClick={handleClick}
-              saleColor={settings?.card_sale_price_color || undefined}
-              compareColor={settings?.card_compare_color || undefined}
-            />
-          </div>
-        </div>
-      );
-    }
-
     return (
       <div className="flex flex-col h-full justify-between">
         <div className={`img-box relative ${aspectClass} w-full ${imgBgClass}`}>

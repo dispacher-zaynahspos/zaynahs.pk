@@ -7,7 +7,7 @@
 export interface CardStyleOption {
   value: string;
   label: string;
-  group: '10 Structural Brand Archetypes' | 'Classic Showcase Themes' | 'Ella Theme';
+  group: '10 Structural Brand Archetypes' | 'Classic Showcase Themes';
   legacyKey: string;
   cssClass: string;
   description: string;
@@ -135,71 +135,6 @@ export const CARD_STYLE_OPTIONS: CardStyleOption[] = [
     cssClass: 'sc13',
     description: 'Rose blush tone for cosmetics and beauty products.',
   },
-  // ── Ella Theme (8 Ella-inspired storefront card styles) ──
-  {
-    value: 'card_16',
-    label: 'Ella 1 — Centered Clothing (hover icons + ADD TO CART bar)',
-    group: 'Ella Theme',
-    legacyKey: 'ella_1',
-    cssClass: 'sc_ella1',
-    description: 'Portrait, centered text; square Sale/Bundle badge top-left; vertical heart+eye icons top-right on hover; full-width outlined ADD TO CART bar at image bottom; vendor + 2-line title + From/sale price + centered swatches with +N.',
-  },
-  {
-    value: 'card_17',
-    label: 'Ella 2 — Bordered Parts (left text, lifted shadow)',
-    group: 'Ella Theme',
-    legacyKey: 'ella_2',
-    cssClass: 'sc_ella2',
-    description: 'Bordered card, soft shadow on hover; Sale badge top-right, heart top-left on hover; Quick View label; left-aligned vendor/title/stars/price; always-visible outlined ADD TO CART.',
-  },
-  {
-    value: 'card_18',
-    label: 'Ella 3 — Centered Menswear (navy cart bar + quick view strip)',
-    group: 'Ella Theme',
-    legacyKey: 'ella_3',
-    cssClass: 'sc_ella3',
-    description: 'Portrait centered; Sale badge top-right; centered heart + navy full-width ADD TO CART + stars on hover; QUICK VIEW strip under image; centered swatches with ring and +N.',
-  },
-  {
-    value: 'card_19',
-    label: 'Ella 4 — Fashion Left (quick view tab + wishlist link)',
-    group: 'Ella Theme',
-    legacyKey: 'ella_4',
-    cssClass: 'sc_ella4',
-    description: 'Portrait, left text; small SALE badge top-left; Quick view tab top-right on hover; outlined ADD TO CART + heart wishlist link below image; vendor row with stars right; 1-line title; left swatches.',
-  },
-  {
-    value: 'card_20',
-    label: 'Ella 5 — Fashion Gold (tan sale, overlay cart)',
-    group: 'Ella Theme',
-    legacyKey: 'ella_5',
-    cssClass: 'sc_ella5',
-    description: 'Portrait, left text; tan/gold Sale badge top-left; white eye circle top-right + white ADD TO CART overlay at image bottom; vendor + heart row; swatches; 1-line title; From/gold sale price; stars left + MORE SIZES AVAILABLE right.',
-  },
-  {
-    value: 'card_21',
-    label: 'Ella 6 — Eyewear Minimal (contained image, airy)',
-    group: 'Ella Theme',
-    legacyKey: 'ella_6',
-    cssClass: 'sc_ella6',
-    description: 'Contained image on white with soft shadow and extra whitespace; Sale badge top-right; left vendor + 2-line title + bold sale price; left swatches with +N.',
-  },
-  {
-    value: 'card_22',
-    label: 'Ella 7 — Swimwear Carousel (percent badge, arrows)',
-    group: 'Ella Theme',
-    legacyKey: 'ella_7',
-    cssClass: 'sc_ella7',
-    description: 'Portrait; salmon -N% badge top-left; white heart circle bottom-right (pink when active); white square < > arrows on hover; single-line title; From/pink-red sale price; left swatches; MORE SIZES AVAILABLE.',
-  },
-  {
-    value: 'card_23',
-    label: 'Ella 8 — Wigs (outlined badge, image swatches, right icon rail)',
-    group: 'Ella Theme',
-    legacyKey: 'ella_8',
-    cssClass: 'sc_ella8',
-    description: 'Light-grey image bg; outlined red Sale badge top-left; heart circle bottom-right always; vertical right rail (heart/eye/compare/bag) on hover; bold vendor + 1-line title; strike + From + red price + red (-N%); round image-thumbnail swatches.',
-  },
 ];
 
 export const LEGACY_CARD_STYLE_MAP: Record<string, string> = {
@@ -215,8 +150,6 @@ export const LEGACY_CARD_STYLE_MAP: Record<string, string> = {
   showcase_16: 'card_09',
   showcase_15: 'card_10',
   // Classic themes aliases:
-  ella_1: 'card_16', ella_2: 'card_17', ella_3: 'card_18', ella_4: 'card_19',
-  ella_5: 'card_20', ella_6: 'card_21', ella_7: 'card_22', ella_8: 'card_23',
   style1: 'card_11',
   showcase_1: 'card_12',
   showcase_8: 'card_13',
@@ -240,8 +173,6 @@ export const STYLE_TO_CLASS_MAP: Record<string, string> = {
   card_13: 'sc8',
   card_14: 'sc11',
   card_15: 'sc13',
-  card_16: 'sc_ella1', card_17: 'sc_ella2', card_18: 'sc_ella3', card_19: 'sc_ella4',
-  card_20: 'sc_ella5', card_21: 'sc_ella6', card_22: 'sc_ella7', card_23: 'sc_ella8',
   // Backward compatibility direct lookups:
   sc_athletic: 'sc_style1',
   sc_marketplace: 'sc_style2',
@@ -261,6 +192,7 @@ export const STYLE_TO_CLASS_MAP: Record<string, string> = {
   showcase_14: 'sc_style6',
   showcase_24: 'sc_style7',
   showcase_10: 'sc_style8',
+  showcase_16: 'sc_style9',
   showcase_15: 'sc_style10',
 };
 

@@ -78,13 +78,6 @@ export default function ProductCardSettings({ settings, onUpdateSettings }: Prod
                 </option>
               ))}
             </optgroup>
-            <optgroup label="Ella Theme">
-              {CARD_STYLE_OPTIONS.filter(o => o.group === 'Ella Theme').map(opt => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </optgroup>
           </select>
         </div>
 
