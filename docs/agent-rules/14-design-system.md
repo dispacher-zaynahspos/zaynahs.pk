@@ -175,3 +175,16 @@ Verified 2026-10. Applies to all maps, charts, data-viz canvases, tables, and cu
    - Popups containing interactive or inspectable details (cluster lists, copyable values, links) must keep `pointer-events-auto` with a 150ms hover-leave grace period so cursors can smoothly enter the card.
    - Desktop clicks pin the card; pressing `Escape` or clicking outside dismisses immediately.
 
+## RULE DS11 — Form Feature Toggle & Accordion Auto-Expand Synchronization (MANDATORY)
+Verified 2026-10. Applies to all admin forms (Product Form, Settings, Customizer, Modifiers):
+1. **Auto-Expand on Toggle Enable**:
+   - Whenever a section/feature has both an activation toggle switch and an accordion/collapsible area (e.g. Product Variants, Flash Sale, Custom Badges):
+   - When the user turns the toggle switch ON (`checked = true`), the collapsible section MUST automatically expand (`collapsed = false`) immediately. The user must NEVER be forced to perform a redundant second click on "Expand All".
+2. **Auto-Collapse on Toggle Disable**:
+   - When the user turns the toggle switch OFF (`checked = false`), the collapsible section MUST automatically collapse (`collapsed = true`) so the form remains clean and focused.
+3. **Smart Intent on Manual Expand**:
+   - If the user clicks "Expand All" while the master toggle is OFF, the master toggle MUST automatically flip ON (`hasVariants = true`), honoring user intent directly without requiring a separate toggle click.
+4. **Edit Mode Initialization**:
+   - When editing an existing entity where the feature is already active (`initialProduct.has_variants === true`), the section MUST initialize in the EXPANDED state (`collapsed = false`) so existing variants/settings are immediately visible.
+
+

@@ -82,3 +82,15 @@ Verified 2026-10. Applies to EVERY Shop Settings tab and EVERY Customizer page (
 - **Shared state hook:** customizer draft lives in `components/admin/customizer-editor/hooks/useCustomizerState.ts` (`isDirty`, `handleDiscard`, `handleSaveLayout`, snapshot baseline via `savedSnapshotRef`). Settings form draft lives in `useSettingsFormState` (explicit `handleSubmit`). New tabs/pages MUST reuse these — no per-page save copies.
 - **Section persistence model:** `handleAddSection`/`handleDuplicateSection`/`handleDeleteSection` are LOCAL only (client `crypto.randomUUID()`); `saveHomepageSections(draft)` reconciles the DB on Save (insert new, update changed, delete removed, write sort_order) and purges cache ONCE. `buildSectionDefaults(type)` is the SSOT for new-section defaults (used by both local-add and the server insert).
 - **Verify:** add section → nothing saved; reload without Save → change gone; press Save → persists + live store updates + cache purged.
+
+## RULE F3 — Instant admin navigation + skeleton loading (every route)
+Verified 2026-10. Every admin tab click must respond INSTANTLY and show a skeleton while data streams — never a blank/frozen wait.
+- **Prefetch**: all admin nav links use `<Link href=... prefetch>` (desktop sidebar `components/admin/layout/AdminDesktopSidebar.tsx`, `AdminMobileDrawer.tsx`, `AdminMobileBottomBar.tsx`). Never navigate heavy pages with `router.push` without prefetch.
+- **Skeleton per route**: every admin route segment has a `loading.tsx` (Next.js App Router renders it instantly on navigation via the Suspense boundary). Examples: `app/admin/inventory/loading.tsx`, `app/admin/variants/loading.tsx`, `app/admin/media/loading.tsx`, `app/admin/customers/loading.tsx`, `app/admin/reviews/loading.tsx`, `app/admin/collections/loading.tsx`, `app/admin/traffic/loading.tsx`, plus the shared fallback `app/admin/loading.tsx`. Reuse shared skeleton primitives from `components/common/LoadingSkeleton.tsx` (`AdminTableSkeleton`, `AdminStatsSkeleton`, `AdminSettingsSkeleton`, `GridSkeleton`, `DetailSkeleton`).
+- **Any NEW admin route MUST ship a `loading.tsx`** matching the page shape (table vs grid vs detail).
+
+## RULE F4 — Lean list queries (no over-fetch, DB-friendly)
+Verified 2026-10. List/table views must fetch only what they render.
+- Do NOT `select('*')` + every nested relation for a list that only needs a few fields. Example: admin Inventory (`lib/services/products/queries.ts` `getAllProductsAdmin`) selects `product_images, product_variants, categories, product_categories` only — it dropped `product_modifiers, badges, size_guides` because `InventoryManager.tsx` / `inventory-manager/InventoryTable.tsx` never read them.
+- `mapProduct` (`lib/services/products/mappers/dbToProductMapper.ts`) tolerates missing relations (`?? []` / `? :`), so trimming a list query is safe — detail pages still fetch the full relation set.
+- Pair every list filter/sort with an index (see RULE C11 + migration `20261007130000_add_product_listing_indexes.sql`). Reuse the singleton `staticSupabase`/`supabaseAdmin` client — never create a client per request.

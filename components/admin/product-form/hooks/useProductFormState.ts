@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Product, Category, Badge, SizeGuide } from '@/lib/types';
 import { useConfirm } from '@/components/admin/shared/AdminConfirmProvider';
@@ -51,7 +51,7 @@ export function useProductFormState({ categories, initialProduct, aiEnabled }: U
   const [enableSwatches, setEnableSwatches] = useState<boolean>(initialProduct?.enable_swatches ?? true);
   const [showSwatchesOnArchive, setShowSwatchesOnArchive] = useState<boolean>(initialProduct?.show_swatches_on_archive ?? true);
   const [activeImageSelector, setActiveImageSelector] = useState<{ axisIdx: number; valIdx: number } | null>(null);
-  const [hasVariants, setHasVariants] = useState(initialProduct?.has_variants ?? false);
+  const [hasVariants, setHasVariantsState] = useState(initialProduct?.has_variants ?? false);
   const [isService, setIsService] = useState(initialProduct?.is_service ?? false);
   const [isFeatured, setIsFeatured] = useState(initialProduct?.is_featured ?? false);
   const [isActive, setIsActive] = useState(initialProduct?.is_active ?? true);
@@ -99,6 +99,14 @@ export function useProductFormState({ categories, initialProduct, aiEnabled }: U
     stock,
     inventoryThreshold,
   });
+
+  const setHasVariants = useCallback((value: boolean | ((prev: boolean) => boolean)) => {
+    setHasVariantsState(prev => {
+      const next = typeof value === 'function' ? value(prev) : value;
+      variantsHook.setVariantsSectionCollapsed(!next);
+      return next;
+    });
+  }, [variantsHook.setVariantsSectionCollapsed]);
 
   const { isAiGenerating, handleAICopywrite } = useProductFormAiCopywrite({
     name,

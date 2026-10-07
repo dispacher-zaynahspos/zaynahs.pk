@@ -155,6 +155,14 @@ export default function TrafficPage() {
   const todayIso = new Date().toISOString().split('T')[0];
   const floorIso = new Date(Date.now() - 90 * 86400000).toISOString().split('T')[0];
 
+  const [countriesLimit, setCountriesLimit] = useState(6);
+  const [citiesLimit, setCitiesLimit] = useState(8);
+  const [orderCitiesLimit, setOrderCitiesLimit] = useState(8);
+
+  const displayedCountries = (data?.countries || []).slice(0, countriesLimit);
+  const displayedCities = (data?.cities || []).slice(0, citiesLimit);
+  const displayedOrderCities = (data?.orderCities || []).slice(0, orderCitiesLimit);
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -291,47 +299,121 @@ export default function TrafficPage() {
           {/* Countries + Cities */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xs p-5 space-y-4">
-              <div className="flex items-center gap-2 pb-3 border-b border-gray-100 dark:border-gray-800">
-                <Globe className="h-4 w-4 text-gray-400" />
-                <h3 className="text-sm font-black text-gray-900 dark:text-white">Countries</h3>
+              <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-800">
+                <div className="flex items-center gap-2">
+                  <Globe className="h-4 w-4 text-gray-400" />
+                  <h3 className="text-sm font-black text-gray-900 dark:text-white">Countries</h3>
+                </div>
+                {data?.countries && data.countries.length > 0 && (
+                  <span className="text-[11px] font-bold text-gray-400">
+                    {data.countries.length} total
+                  </span>
+                )}
               </div>
               {data?.countries && data.countries.length > 0 ? (
-                <div className="space-y-2 max-h-[400px] overflow-y-auto">
-                  {data.countries.map(c => (
-                    <div key={c.code} className="flex items-center gap-3 py-1.5">
-                      <span className="text-lg">{getCountryFlag(c.code)}</span>
-                      <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 w-24 truncate">{c.name}</span>
-                      <div className="flex-1 h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
-                        <div className="h-full rounded-full bg-indigo-500" style={{ width: `${c.percent}%` }} />
+                <>
+                  <div className="space-y-2">
+                    {displayedCountries.map(c => (
+                      <div key={c.code} className="flex items-center gap-3 py-1.5">
+                        <span className="text-lg">{getCountryFlag(c.code)}</span>
+                        <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 w-28 truncate">{c.name}</span>
+                        <div className="flex-1 h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                          <div className="h-full rounded-full bg-indigo-500" style={{ width: `${c.percent}%` }} />
+                        </div>
+                        <span className="text-xs font-bold text-gray-900 dark:text-white w-10 text-right">{c.visitors}</span>
+                        <span className="text-[11px] text-gray-400 w-8 text-right">{c.percent}%</span>
                       </div>
-                      <span className="text-xs font-bold text-gray-900 dark:text-white w-10 text-right">{c.visitors}</span>
-                      <span className="text-[11px] text-gray-400 w-8 text-right">{c.percent}%</span>
+                    ))}
+                  </div>
+
+                  {data.countries.length > 6 && (
+                    <div className="pt-2 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between text-xs">
+                      <span className="text-gray-400 font-semibold text-[11px]">
+                        Showing {Math.min(countriesLimit, data.countries.length)} of {data.countries.length}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        {data.countries.length > countriesLimit && (
+                          <button
+                            type="button"
+                            onClick={() => setCountriesLimit(prev => prev + 10)}
+                            className="px-2.5 py-1 rounded-lg text-[11px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 transition-all cursor-pointer"
+                          >
+                            Load More (+{Math.min(10, data.countries.length - countriesLimit)})
+                          </button>
+                        )}
+                        {countriesLimit > 6 && (
+                          <button
+                            type="button"
+                            onClick={() => setCountriesLimit(6)}
+                            className="px-2 py-1 rounded-lg text-[11px] font-semibold text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-all cursor-pointer"
+                          >
+                            Show Less
+                          </button>
+                        )}
+                      </div>
                     </div>
-                  ))}
-                </div>
+                  )}
+                </>
               ) : (
                 <div className="py-8 text-center text-xs text-gray-400">No country data yet</div>
               )}
             </div>
 
             <div className="bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xs p-5 space-y-4">
-              <div className="flex items-center gap-2 pb-3 border-b border-gray-100 dark:border-gray-800">
-                <MapPin className="h-4 w-4 text-gray-400" />
-                <h3 className="text-sm font-black text-gray-900 dark:text-white">Cities</h3>
+              <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-800">
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-gray-400" />
+                  <h3 className="text-sm font-black text-gray-900 dark:text-white">Cities</h3>
+                </div>
+                {data?.cities && data.cities.length > 0 && (
+                  <span className="text-[11px] font-bold text-gray-400">
+                    {data.cities.length} total
+                  </span>
+                )}
               </div>
               {data?.cities && data.cities.length > 0 ? (
-                <div className="space-y-2 max-h-[400px] overflow-y-auto">
-                  {data.cities.map((c, i) => (
-                    <div key={i} className="flex items-center gap-3 py-1.5">
-                      <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 flex-1">{c.city}</span>
-                      <span className="text-[10px] text-gray-400 font-medium uppercase">{c.country}</span>
-                      <div className="flex-1 h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden max-w-[80px]">
-                        <div className="h-full rounded-full bg-emerald-500" style={{ width: `${Math.min(100, c.visitors * 5)}%` }} />
+                <>
+                  <div className="space-y-2">
+                    {displayedCities.map((c, i) => (
+                      <div key={i} className="flex items-center gap-3 py-1.5">
+                        <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 flex-1 truncate">{c.city}</span>
+                        <span className="text-[10px] text-gray-400 font-medium uppercase">{c.country}</span>
+                        <div className="flex-1 h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden max-w-[80px]">
+                          <div className="h-full rounded-full bg-emerald-500" style={{ width: `${Math.min(100, c.visitors * 5)}%` }} />
+                        </div>
+                        <span className="text-xs font-bold text-gray-900 dark:text-white w-8 text-right">{c.visitors}</span>
                       </div>
-                      <span className="text-xs font-bold text-gray-900 dark:text-white w-8 text-right">{c.visitors}</span>
+                    ))}
+                  </div>
+
+                  {data.cities.length > 8 && (
+                    <div className="pt-2 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between text-xs">
+                      <span className="text-gray-400 font-semibold text-[11px]">
+                        Showing {Math.min(citiesLimit, data.cities.length)} of {data.cities.length}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        {data.cities.length > citiesLimit && (
+                          <button
+                            type="button"
+                            onClick={() => setCitiesLimit(prev => prev + 10)}
+                            className="px-2.5 py-1 rounded-lg text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 transition-all cursor-pointer"
+                          >
+                            Load More (+{Math.min(10, data.cities.length - citiesLimit)})
+                          </button>
+                        )}
+                        {citiesLimit > 8 && (
+                          <button
+                            type="button"
+                            onClick={() => setCitiesLimit(8)}
+                            className="px-2 py-1 rounded-lg text-[11px] font-semibold text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-all cursor-pointer"
+                          >
+                            Show Less
+                          </button>
+                        )}
+                      </div>
                     </div>
-                  ))}
-                </div>
+                  )}
+                </>
               ) : (
                 <div className="py-8 text-center text-xs text-gray-400">No city data yet</div>
               )}
@@ -340,33 +422,70 @@ export default function TrafficPage() {
 
           {/* Orders by City */}
           <div className="bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xs p-5 space-y-4">
-            <div className="flex items-center gap-2 pb-3 border-b border-gray-100 dark:border-gray-800">
-              <ShoppingBag className="h-4 w-4 text-gray-400" />
-              <h3 className="text-sm font-black text-gray-900 dark:text-white">Orders by City</h3>
+            <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-800">
+              <div className="flex items-center gap-2">
+                <ShoppingBag className="h-4 w-4 text-gray-400" />
+                <h3 className="text-sm font-black text-gray-900 dark:text-white">Orders by City</h3>
+              </div>
+              {data?.orderCities && data.orderCities.length > 0 && (
+                <span className="text-[11px] font-bold text-gray-400">
+                  {data.orderCities.length} cities
+                </span>
+              )}
             </div>
             {data?.orderCities && data.orderCities.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead>
-                    <tr className="border-b border-gray-100 dark:border-gray-800 text-[10px] font-black uppercase tracking-wider text-gray-400">
-                      <th className="py-3">City</th>
-                      <th className="py-3 text-right">Orders</th>
-                      <th className="py-3 text-right">Revenue</th>
-                      <th className="py-3 text-right">Avg Order Value</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-50 dark:divide-gray-800/50 font-semibold text-gray-700 dark:text-gray-300">
-                    {data.orderCities.map((c, i) => (
-                      <tr key={i} className="hover:bg-gray-50/30 dark:hover:bg-white/2 transition-colors">
-                        <td className={`py-3 font-bold ${c.city === 'Unknown' ? 'text-gray-400 italic' : 'text-gray-900 dark:text-white'}`}>{c.city}</td>
-                        <td className="py-3 text-right font-bold">{c.orders}</td>
-                        <td className="py-3 text-right font-black text-gray-900 dark:text-white">{formatPrice(c.revenue, 'Rs.')}</td>
-                        <td className="py-3 text-right text-gray-500">{formatPrice(c.orders > 0 ? c.revenue / c.orders : 0, 'Rs.')}</td>
+              <>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead>
+                      <tr className="border-b border-gray-100 dark:border-gray-800 text-[10px] font-black uppercase tracking-wider text-gray-400">
+                        <th className="py-3">City</th>
+                        <th className="py-3 text-right">Orders</th>
+                        <th className="py-3 text-right">Revenue</th>
+                        <th className="py-3 text-right">Avg Order Value</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50 dark:divide-gray-800/50 font-semibold text-gray-700 dark:text-gray-300">
+                      {displayedOrderCities.map((c, i) => (
+                        <tr key={i} className="hover:bg-gray-50/30 dark:hover:bg-white/2 transition-colors">
+                          <td className={`py-3 font-bold ${c.city === 'Unknown' ? 'text-gray-400 italic' : 'text-gray-900 dark:text-white'}`}>{c.city}</td>
+                          <td className="py-3 text-right font-bold">{c.orders}</td>
+                          <td className="py-3 text-right font-black text-gray-900 dark:text-white">{formatPrice(c.revenue, 'Rs.')}</td>
+                          <td className="py-3 text-right text-gray-500">{formatPrice(c.orders > 0 ? c.revenue / c.orders : 0, 'Rs.')}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {data.orderCities.length > 8 && (
+                  <div className="pt-3 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between text-xs">
+                    <span className="text-gray-400 font-semibold text-[11px]">
+                      Showing {Math.min(orderCitiesLimit, data.orderCities.length)} of {data.orderCities.length} cities
+                    </span>
+                    <div className="flex items-center gap-2">
+                      {data.orderCities.length > orderCitiesLimit && (
+                        <button
+                          type="button"
+                          onClick={() => setOrderCitiesLimit(prev => prev + 10)}
+                          className="px-3 py-1.5 rounded-lg text-xs font-bold text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-500/10 hover:bg-orange-100 dark:hover:bg-orange-500/20 transition-all cursor-pointer"
+                        >
+                          Load More (+{Math.min(10, data.orderCities.length - orderCitiesLimit)})
+                        </button>
+                      )}
+                      {orderCitiesLimit > 8 && (
+                        <button
+                          type="button"
+                          onClick={() => setOrderCitiesLimit(8)}
+                          className="px-2.5 py-1.5 rounded-lg text-xs font-semibold text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-all cursor-pointer"
+                        >
+                          Show Less
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </>
             ) : (
               <div className="py-8 text-center text-xs text-gray-400">No orders yet</div>
             )}

@@ -191,7 +191,7 @@ export const getAllProductsAdmin = async (): Promise<Product[]> => {
     const supabase = staticSupabase;
     const { data, error } = await supabase
       .from('products')
-      .select('*, product_images(*), product_variants(*), product_modifiers(*), categories!category_id(*), product_categories(*, categories(*)), badges(*), size_guides(*)')
+      .select('*, product_images(*), product_variants(*), categories!category_id(*), product_categories(*, categories(*))')
       .is('deleted_at', null)
       .order('created_at', { ascending: false });
 
