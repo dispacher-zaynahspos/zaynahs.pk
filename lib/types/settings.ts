@@ -297,7 +297,15 @@ export interface StoreSettings {
   size_guide_enabled?: boolean;
 
   // Product Card Customizations
-  card_style?: 'style1' | 'showcase_1' | 'showcase_8' | 'showcase_10' | 'showcase_11' | 'showcase_12' | 'showcase_13' | 'showcase_14' | 'showcase_15' | 'showcase_16' | 'showcase_20' | 'showcase_21' | 'showcase_22' | 'showcase_23' | 'showcase_24';
+  card_style?:
+    | 'card_01' | 'card_02' | 'card_03' | 'card_04' | 'card_05'
+    | 'card_06' | 'card_07' | 'card_08' | 'card_09' | 'card_10'
+    | 'card_11' | 'card_12' | 'card_13' | 'card_14' | 'card_15'
+    | 'style1'
+    | 'showcase_1' | 'showcase_8' | 'showcase_10' | 'showcase_11'
+    | 'showcase_12' | 'showcase_13' | 'showcase_14' | 'showcase_15'
+    | 'showcase_16' | 'showcase_20' | 'showcase_21' | 'showcase_22'
+    | 'showcase_23' | 'showcase_24';
   card_variant?: 'v1';
   /** How a card reveals hover image + action icons on touch devices. */
   card_mobile_activation?: 'scroll' | 'touch' | 'off';

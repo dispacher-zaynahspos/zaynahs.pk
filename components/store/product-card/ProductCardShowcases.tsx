@@ -7,6 +7,7 @@ import { saveScrollPosition } from '@/lib/hooks/useScrollRestoration';
 import { useMobileCardFocus } from '@/lib/hooks/useMobileCardFocus';
 import { Heart, ShoppingCart } from '@/components/common/Icons';
 import { formatPrice } from '@/lib/utils/whatsapp';
+import { normalizeCardStyle, getCardStyleClass } from '@/lib/utils/cardStyles';
 import { ProductCardStyleInjector } from './ProductCardStyles';
 import { ProductCardBadges } from './ProductCardBadges';
 import { ProductCardMedia } from './ProductCardMedia';
@@ -81,22 +82,8 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
     if (e.pointerType === 'touch') setManualFocus();
   };
 
-  const styleClassMap: Record<string, string> = {
-    showcase_1: 'sc1', showcase_8: 'sc8', showcase_10: 'sc10',
-    showcase_11: 'sc11', showcase_12: 'sc12', showcase_13: 'sc13',
-    showcase_14: 'sc14', showcase_15: 'sc15', showcase_16: 'sc16',
-    showcase_20: 'sc20', showcase_21: 'sc21', showcase_22: 'sc22',
-    showcase_23: 'sc23', showcase_24: 'sc24',
-  };
-
-  // Backward compat: if activeStyle is a removed template ID, fall back to 'style1' (sc1)
-  const validStyles = new Set([
-    'showcase_1', 'showcase_8', 'showcase_10',
-    'showcase_11', 'showcase_12', 'showcase_13', 'showcase_14', 'showcase_15', 'showcase_16',
-    'showcase_20', 'showcase_21', 'showcase_22', 'showcase_23', 'showcase_24',
-  ]);
-  const safeStyle = validStyles.has(activeStyle) ? activeStyle : 'showcase_1';
-  const scClass = styleClassMap[safeStyle] || 'sc1';
+  const safeStyle = normalizeCardStyle(activeStyle);
+  const scClass = getCardStyleClass(safeStyle);
   const imgBgClass =
     scClass === 'sc8' ? 'bg-[#fef9e7]' :
     scClass === 'sc10' ? 'bg-gradient-to-br from-[#fdf6ec] to-[#f5e6d0] rounded-t-[24px]' :

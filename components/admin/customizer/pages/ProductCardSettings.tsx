@@ -9,6 +9,7 @@ import { SegmentedControl, ToggleControl, ColorControl } from '@/components/admi
 import { ProductCardVisibilitySection } from './product-card/ProductCardVisibilitySection';
 import { ProductCardSwatchSettingsSection } from './product-card/ProductCardSwatchSettingsSection';
 import { ProductCardPreviewStudio } from './product-card/ProductCardPreviewStudio';
+import { normalizeCardStyle } from '@/lib/utils/cardStyles';
 import {
   IMAGE_HOVER_STYLE_OPTIONS,
   IMAGE_ASPECT_RATIO_OPTIONS,
@@ -24,7 +25,7 @@ interface ProductCardSettingsProps {
 }
 
 export default function ProductCardSettings({ settings, onUpdateSettings }: ProductCardSettingsProps) {
-  const activeStyle = settings.card_style || 'style1';
+  const activeStyle = normalizeCardStyle(settings.card_style);
   const activeVariant = settings.card_variant || 'v1';
   const showStars = settings.card_show_stars !== false;
   const showQuickview = settings.card_show_quickview !== false;
@@ -62,31 +63,31 @@ export default function ProductCardSettings({ settings, onUpdateSettings }: Prod
             onChange={(e) => onUpdateSettings({ card_style: e.target.value as any })}
             className="w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-[#f8f8f8] dark:bg-[#0f0f1b] px-3 py-2 text-xs font-bold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
           >
-            <optgroup label="Default Base Template">
-              <option value="style1">00 — Classic Standard</option>
+            <optgroup label="Core Standard Template">
+              <option value="card_01">Card 01 — Classic Standard</option>
             </optgroup>
 
             <optgroup label="Modern Showcase Layouts">
-              <option value="showcase_1">Showcase 1 — Neumorphic Soft Grey</option>
-              <option value="showcase_8">Showcase 8 — Geometric Mondrian</option>
-              <option value="showcase_10">Showcase 10 — Organic & Wavy</option>
+              <option value="card_02">Card 02 — Neumorphic Soft Grey</option>
+              <option value="card_03">Card 03 — Geometric Mondrian</option>
+              <option value="card_04">Card 04 — Organic &amp; Wavy Curves</option>
             </optgroup>
 
             <optgroup label="Premium Brand Themes">
-              <option value="showcase_11">Showcase 11 — Luxe Noir (Black & Gold)</option>
-              <option value="showcase_12">Showcase 12 — Pure Editorial (Scandi Minimal)</option>
-              <option value="showcase_13">Showcase 13 — Soft Pastel Glow (Beauty)</option>
-              <option value="showcase_14">Showcase 14 — Street Bold (Streetwear)</option>
-              <option value="showcase_15">Showcase 15 — Frosted Glass (Apple-style)</option>
-              <option value="showcase_16">Showcase 16 — Terracotta Boutique (Artisan)</option>
+              <option value="card_05">Card 05 — Luxe Noir (Black &amp; Gold)</option>
+              <option value="card_06">Card 06 — Pure Editorial (Scandi Minimal)</option>
+              <option value="card_07">Card 07 — Soft Pastel Glow (Beauty)</option>
+              <option value="card_08">Card 08 — Street Bold (Urban Streetwear)</option>
+              <option value="card_09">Card 09 — Frosted Glass (Apple-Style Clean)</option>
+              <option value="card_10">Card 10 — Terracotta Boutique (Artisan Earthy)</option>
             </optgroup>
 
             <optgroup label="Iconic Global Brand Archetypes">
-              <option value="showcase_20">Showcase 20 — Zara Haute Editorial (Slide-Drawer)</option>
-              <option value="showcase_21">Showcase 21 — Daraz Deal Rush (Direct Cart & Urgency)</option>
-              <option value="showcase_22">Showcase 22 — Nike Streetwear (Floating Corner FAB)</option>
-              <option value="showcase_23">Showcase 23 — Amazon Marketplace (Split Dual-Action)</option>
-              <option value="showcase_24">Showcase 24 — Sephora Chic (Center-Hover Pill)</option>
+              <option value="card_11">Card 11 — Zara Haute Editorial (Slide-Drawer)</option>
+              <option value="card_12">Card 12 — Daraz Deal Rush (Direct Cart &amp; Urgency)</option>
+              <option value="card_13">Card 13 — Nike Streetwear (Floating Corner FAB)</option>
+              <option value="card_14">Card 14 — Amazon Marketplace (Split Dual-Action)</option>
+              <option value="card_15">Card 15 — Sephora Chic (Center-Hover Pill)</option>
             </optgroup>
           </select>
         </div>

@@ -112,25 +112,25 @@ Smartphones render product feeds in 2-column grids (~160px–180px per card).
 
 ---
 
-## 4. Multi-Archetype Reference Index
+## 4. Multi-Archetype Reference Index (Sequential Cards 01–15)
 
-| ID | Class | Archetype | Silhoutte & Element Order | Action Format |
-|---|---|---|---|---|
-| `style1` | `sc-std` | **00 — Classic Standard** | Image top → Badges → Title → Stars → Price → Swatches | 3 circular buttons top-right |
-| `showcase_1` | `sc1` | **Showcase 1 — Neumorphic** | Soft grey inner shadows, pill badges | 3 circular buttons top-right |
-| `showcase_8` | `sc8` | **Showcase 8 — Geometric Mondrian** | High-contrast black outlines, bold blocks | Square outlined buttons |
-| `showcase_10` | `sc10` | **Showcase 10 — Organic & Wavy** | Warm cream curves, soft organic shapes | Soft rounded buttons |
-| `showcase_11` | `sc11` | **Showcase 11 — Luxe Noir** | Black & gold, luxury dark mode aesthetic | Gold bordered dark buttons |
-| `showcase_12` | `sc12` | **Showcase 12 — Pure Editorial** | Scandi minimal, stone background | Subtle monochrome circles |
-| `showcase_13` | `sc13` | **Showcase 13 — Soft Pastel Glow** | Beauty & cosmetics, blush pink tone | Rose-accented circles |
-| `showcase_14` | `sc14` | **Showcase 14 — Street Bold** | High-contrast urban, chunky borders | Heavy dark buttons |
-| `showcase_15` | `sc15` | **Showcase 15 — Frosted Glass** | Clean crisp hairline borders | Clean minimal circles |
-| `showcase_16` | `sc16` | **Showcase 16 — Terracotta Boutique** | Warm clay & earthy tones, italic serif title | Bisque-accented circles |
-| **`showcase_20`** | `sc20` | **Showcase 20 — Zara Haute Editorial** | Edge-to-edge tall image → 1-line Title + Price parallel row → Swatches | **Slide-up bottom drawer (`+ QUICK ADD`)** |
-| **`showcase_21`** | `sc21` | **Showcase 21 — Daraz Deal Rush** | Price first + discount % → Rating pill → Title → Urgency bar → Swatches | **Direct full-width bottom Cart button** |
-| **`showcase_22`** | `sc22` | **Showcase 22 — Nike Streetwear** | Collection Kicker tag → Bold condensed title → Swatches → Price | **Floating corner FAB Cart bubble** |
-| **`showcase_23`** | `sc23` | **Showcase 23 — Amazon Marketplace** | Limited Time Deal banner → Star ratings first → Price → Title → Swatches | **Split dual-action footer (`[ Quick View ] [ Cart ]`)** |
-| **`showcase_24`** | `sc24` | **Showcase 24 — Sephora Chic** | Rounded-2xl → Swatches below image → Centered title & price → Star dot | **Center-hover pill (`Quick View 👁`) + Bag button** |
+| Canonical Key | Legacy Key | Class | Card Name & Archetype | Silhouette & Element Order | Action Format |
+|---|---|---|---|---|---|
+| `card_01` | `style1` | `sc-std` | **Card 01 — Classic Standard** | Image top → Badges → Title → Stars → Price → Swatches | 3 circular buttons top-right |
+| `card_02` | `showcase_1` | `sc1` | **Card 02 — Neumorphic Soft Grey** | Soft grey inner shadows, pill badges | 3 circular buttons top-right |
+| `card_03` | `showcase_8` | `sc8` | **Card 03 — Geometric Mondrian** | High-contrast black outlines, bold blocks | Square outlined buttons |
+| `card_04` | `showcase_10` | `sc10` | **Card 04 — Organic & Wavy** | Warm cream curves, soft organic shapes | Soft rounded buttons |
+| `card_05` | `showcase_11` | `sc11` | **Card 05 — Luxe Noir** | Black & gold, luxury dark mode aesthetic | Gold bordered dark buttons |
+| `card_06` | `showcase_12` | `sc12` | **Card 06 — Pure Editorial** | Scandi minimal, stone background | Subtle monochrome circles |
+| `card_07` | `showcase_13` | `sc13` | **Card 07 — Soft Pastel Glow** | Beauty & cosmetics, blush pink tone | Rose-accented circles |
+| `card_08` | `showcase_14` | `sc14` | **Card 08 — Street Bold** | High-contrast urban, chunky borders | Heavy dark buttons |
+| `card_09` | `showcase_15` | `sc15` | **Card 09 — Frosted Glass** | Clean crisp hairline borders | Clean minimal circles |
+| `card_10` | `showcase_16` | `sc16` | **Card 10 — Terracotta Boutique** | Warm clay & earthy tones, italic serif title | Bisque-accented circles |
+| `card_11` | `showcase_20` | `sc20` | **Card 11 — Zara Haute Editorial** | Edge-to-edge tall image → 1-line Title + Price parallel row → Swatches | **Slide-up bottom drawer (`+ QUICK ADD`)** |
+| `card_12` | `showcase_21` | `sc21` | **Card 12 — Daraz Deal Rush** | Price first + discount % → Rating pill → Title → Urgency bar → Swatches | **Direct full-width bottom Cart button** |
+| `card_13` | `showcase_22` | `sc22` | **Card 13 — Nike Streetwear** | Collection Kicker tag → Bold condensed title → Swatches → Price | **Floating corner FAB Cart bubble** |
+| `card_14` | `showcase_23` | `sc23` | **Card 14 — Amazon Marketplace** | Limited Time Deal banner → Star ratings first → Price → Title → Swatches | **Split dual-action footer (`[ Quick View ] [ Cart ]`)** |
+| `card_15` | `showcase_24` | `sc24` | **Card 15 — Sephora Chic** | Rounded-2xl → Swatches below image → Centered title & price → Star dot | **Center-hover pill (`Quick View 👁`) + Bag button** |
 
 ---
 
