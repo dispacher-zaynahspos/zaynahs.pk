@@ -124,6 +124,17 @@ export const CardCartIcon: React.FC<{
   return <ShoppingCart className={className} />;
 };
 
+export const CardCompareIcon: React.FC<{
+  iconStyle?: CardIconStyle;
+  className?: string;
+}> = ({ className = 'h-3.5 w-3.5' }) => {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
+    </svg>
+  );
+};
+
 interface ProductCardActionsProps {
   showWishlist: boolean;
   showQuickview: boolean;

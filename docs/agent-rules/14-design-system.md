@@ -215,6 +215,7 @@ Verified 2026-10. All product card designs across storefront and admin must adhe
    - Changing ONLY colors, background tint, or border-radius while keeping the DOM layout and element placements identical is **STRICTLY FORBIDDEN**.
    - Every card archetype must feature genuinely different element placements (icons, buttons, title, price, variations, badges, ratings in different physical locations) AND different visual looks/formats (drawers, FABs, split-bars, pill buttons, kicker tags, price-first arrangements).
    - See full architectural breakdown in `docs/UI_CARDS.md` RULE CARD-DIVERSITY.
+8. **Ella Theme group**: Ella-inspired storefront cards live as registry entries `card_16`…`card_23` (group `'Ella Theme'`) in `lib/utils/cardStyles.ts` with `sc_ella1`…`sc_ella8` classes (CSS in `components/store/product-card/customCss.tsx`, render branch in `ProductCardShowcases.tsx`). They are built FROM screenshot specs (not copied from the licensed Ella/Shopify Liquid source) and MUST reuse the shared DNA (badges, media hover swap, swatches→image, wishlist, quickview, add-to-cart, price formatting) — never a standalone card implementation (RULE SSOT1).
 
 ## RULE DS13 — Collision-Free Card Geometry, Grid Baseline & Icon Presets Standard (MANDATORY)
 1. **Absolute Badges vs Action Icons Separation (Zero Overlap)**:

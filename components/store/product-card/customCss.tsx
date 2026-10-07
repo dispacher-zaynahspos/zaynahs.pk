@@ -1434,6 +1434,69 @@ export const customCss = `
       overflow: visible !important;
       text-overflow: clip !important;
     }
+
+    /* ══════════════ ELLA THEME CARDS (card_16 … card_23) ══════════════ */
+    /* Shared base for all Ella styles */
+    .z-card-container[class*="sc_ella"] { background: transparent; }
+    .z-card-container[class*="sc_ella"] .img-box { position: relative; width: 100%; overflow: hidden; border-radius: 10px; }
+    .z-card-container[class*="sc_ella"] .img-box img { width: 100%; height: 100%; object-fit: cover; transition: var(--trans); }
+    .z-card-container[class*="sc_ella"]:hover .img-box img { transform: scale(1.04); }
+    .z-card-container[class*="sc_ella"] .ct { font-size: .62rem; text-transform: uppercase; letter-spacing: .08em; color: #9aa0a6; font-weight: 700; margin-bottom: 2px; }
+    .z-card-container[class*="sc_ella"] .ttl { font-size: .82rem; font-weight: 600; color: #1f2937; line-height: 1.3; }
+    .z-card-container[class*="sc_ella"] .prc { font-size: .9rem; font-weight: 800; color: #111; }
+    .z-card-container[class*="sc_ella"] .pold { font-size: .74rem; color: #9aa0a6; text-decoration: line-through; }
+    .z-card-container[class*="sc_ella"] .pfrom { font-size: .7rem; color: #9aa0a6; font-weight: 600; margin-right: 3px; }
+
+    /* Ella 1 — Centered clothing */
+    .z-card-container.sc_ella1 .cb { padding: 10px 8px; text-align: center; }
+    .z-card-container.sc_ella1 .ttl { -webkit-line-clamp: 2; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; }
+    .z-card-container.sc_ella1 .card-actions { top: 8px; right: 8px; flex-direction: column; gap: 6px; }
+    .z-card-container.sc_ella1 .abtn,
+    .z-card-container.sc_ella1 .card-add-bar { background: #fff; color: #111; border: 1px solid #111; text-transform: uppercase; letter-spacing: .12em; font-weight: 700; }
+
+    /* Ella 2 — Bordered parts, left */
+    .z-card-container.sc_ella2 { border: 1px solid #e5e7eb; border-radius: 12px; padding: 8px; background: #fff; transition: var(--trans); }
+    .z-card-container.sc_ella2:hover { box-shadow: 0 12px 28px rgba(0,0,0,.10); transform: translateY(-3px); }
+    .z-card-container.sc_ella2 .cb { padding: 8px 2px 2px; text-align: left; }
+    .z-card-container.sc_ella2 .ct { color: #374151; }
+
+    /* Ella 3 — Centered menswear, navy cart bar */
+    .z-card-container.sc_ella3 .cb { padding: 10px 8px; text-align: center; }
+    .z-card-container.sc_ella3 .abtn,
+    .z-card-container.sc_ella3 .card-add-bar { background: #0f1b35; color: #fff; text-transform: uppercase; letter-spacing: .1em; font-weight: 700; }
+
+    /* Ella 4 — Fashion left */
+    .z-card-container.sc_ella4 .cb { padding: 8px 2px; text-align: left; }
+    .z-card-container.sc_ella4 .ttl { -webkit-line-clamp: 1; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; }
+
+    /* Ella 5 — Fashion gold */
+    .z-card-container.sc_ella5 .cb { padding: 8px 2px; text-align: left; }
+    .z-card-container.sc_ella5 .prc { color: #b08a3e; }
+    .z-card-container.sc_ella5 .abtn,
+    .z-card-container.sc_ella5 .card-add-bar { background: #fff; color: #111; border: 1px solid #e5e7eb; text-transform: uppercase; letter-spacing: .08em; font-weight: 700; }
+
+    /* Ella 6 — Eyewear minimal */
+    .z-card-container.sc_ella6 .img-box { background: #fff; }
+    .z-card-container.sc_ella6 .img-box img { object-fit: contain; padding: 12%; filter: drop-shadow(0 10px 14px rgba(0,0,0,.12)); }
+    .z-card-container.sc_ella6 .cb { padding: 14px 2px 2px; text-align: left; }
+
+    /* Ella 7 — Swimwear carousel */
+    .z-card-container.sc_ella7 .cb { padding: 8px 2px; text-align: left; }
+    .z-card-container.sc_ella7 .ttl { -webkit-line-clamp: 1; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; }
+    .z-card-container.sc_ella7 .prc { color: #e05a6b; }
+
+    /* Ella 8 — Wigs, right icon rail, image swatches */
+    .z-card-container.sc_ella8 .cb { padding: 8px 2px; text-align: left; }
+    .z-card-container.sc_ella8 .ct { font-weight: 800; color: #374151; }
+    .z-card-container.sc_ella8 .prc { color: #ef4444; }
+    .z-card-container.sc_ella8 .ttl { -webkit-line-clamp: 1; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; }
+
+    /* Ella badge positions per spec */
+    .z-card-container.sc_ella2 .bdg-container,
+    .z-card-container.sc_ella3 .bdg-container,
+    .z-card-container.sc_ella6 .bdg-container { left: auto; right: 8px; align-items: flex-end; }
+    .z-card-container.sc_ella8 .bdg-container > span { background: #fff !important; color: #ef4444 !important; border: 1px solid #ef4444 !important; }
+
 `;
 
 export const ProductCardStyleInjector: React.FC = () => (

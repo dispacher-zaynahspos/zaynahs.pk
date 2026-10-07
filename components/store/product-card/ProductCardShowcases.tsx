@@ -96,6 +96,11 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
     (scClass === 'sc22' || scClass === 'sc_athletic') ? 'bg-[#f0f0f2]' :
     (scClass === 'sc23' || scClass === 'sc_marketplace') ? 'bg-[#ffffff]' :
     (scClass === 'sc24' || scClass === 'sc_roundcharm') ? 'bg-[#faf6f0] rounded-t-2xl' :
+    (scClass === 'sc_ella1' || scClass === 'sc_ella3' || scClass === 'sc_ella4') ? 'bg-[#f6f6f6]' :
+    (scClass === 'sc_ella2' || scClass === 'sc_ella6') ? 'bg-white' :
+    (scClass === 'sc_ella5') ? 'bg-[#f4efe9]' :
+    (scClass === 'sc_ella7') ? 'bg-[#f7f7f7]' :
+    (scClass === 'sc_ella8') ? 'bg-[#efefef]' :
     '';
 
   const productUrl = `/product/${encodeURIComponent(product.slug || '')}`;
@@ -675,6 +680,54 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
         </div>
       );
     }
+    // ── ELLA THEME (card_16 … card_23): hover bottom ADD TO CART bar + wishlist, shared content ──
+    if (scClass && scClass.indexOf('sc_ella') === 0) {
+      // ella6/7/8 keep contained/minimal look via CSS; ella8 shows a right icon rail.
+      const useRail = scClass === 'sc_ella8';
+      return (
+        <div className="flex flex-col h-full justify-between">
+          <div className={`img-box relative ${aspectClass} w-full ${imgBgClass}`}>
+            <ProductCardBadges product={product} currentPrice={currentPrice} currentComparePrice={currentComparePrice} />
+            <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={scClass === 'sc_ella6' ? 'object-contain' : (settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-cover')} />
+            <ProductCardActions
+              variant={useRail ? 'pill-right' : 'slide-drawer'}
+              iconStyle={iconStyle}
+              showWishlist={showWishlist}
+              showQuickview={showQuickview}
+              showQuickcart={showQuickcart}
+              isInWishlist={isInWishlist}
+              hasVariants={product.has_variants}
+              onToggleWishlist={onToggleWishlist}
+              onOpenQuickView={onOpenQuickView}
+              onAddToCart={onAddToCart}
+            />
+          </div>
+          <div className="relative z-[2] flex-grow flex flex-col justify-between">
+            <ProductCardShowcaseContent
+              styleClass={scClass}
+              elementsOrder={elementsOrder}
+              alignClass={alignClass}
+              titleClampClass={titleClampClass}
+              product={product}
+              showStars={showStars}
+              currencySymbol={currencySymbol}
+              minPrice={minPrice}
+              maxPrice={maxPrice}
+              hasPriceRange={hasPriceRange}
+              currentPrice={currentPrice}
+              currentComparePrice={currentComparePrice}
+              displayDescription={displayDescription}
+              finalRenderedGroups={finalRenderedGroups}
+              productUrl={productUrl}
+              onCardClick={handleClick}
+              saleColor={settings?.card_sale_price_color || undefined}
+              compareColor={settings?.card_compare_color || undefined}
+            />
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="flex flex-col h-full justify-between">
         <div className={`img-box relative ${aspectClass} w-full ${imgBgClass}`}>
