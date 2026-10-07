@@ -211,6 +211,10 @@ Verified 2026-10. All product card designs across storefront and admin must adhe
    - Wishlist toggle (`useWishlist`), Quick View modal (`onOpenQuickView`), and Quick Cart (`onAddToCart`).
    - Line clamp setting enforcement (`title-clamp-1`, `2`, `none`) via semantic Link with scroll restoration (`saveScrollPosition`).
    - No archetype may omit, mock, or fake any of these core capabilities. Full specifications in `docs/UI_CARDS.md`.
+7. **Strict Ban on Reskinning (Mandatory Spatial & Visual Look Differentiation)**:
+   - Changing ONLY colors, background tint, or border-radius while keeping the DOM layout and element placements identical is **STRICTLY FORBIDDEN**.
+   - Every card archetype must feature genuinely different element placements (icons, buttons, title, price, variations, badges, ratings in different physical locations) AND different visual looks/formats (drawers, FABs, split-bars, pill buttons, kicker tags, price-first arrangements).
+   - See full architectural breakdown in `docs/UI_CARDS.md` RULE CARD-DIVERSITY.
 
 
 

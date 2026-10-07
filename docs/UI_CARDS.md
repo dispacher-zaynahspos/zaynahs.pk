@@ -33,6 +33,60 @@ In this multi-archetype system, **each archetype has a completely distinct DOM l
 
 ---
 
+## 1.1 RULE CARD-DIVERSITY: Absolute Ban on Reskinning (Mandatory Spatial & Visual Differentiation)
+
+> ⛔ **CRITICAL PRIME DIRECTIVE**: Card styles me **sirf background colors, borders ya tint badalna aur layout/placements ko same rakhna STRICTLY BANNED hai.**
+> Har card archetype ka DOM layout, looks, aur har individual element (icons, buttons, title, price, variations, badges, ratings) ki **PLACEMENT aur VISUAL SILHOUETTE genuinely alag-alag honi chahiye.**
+
+### 1. Element Placements MUST Differ Across Card Archetypes:
+- **Action Triggers & Icons Placement**:
+  - ❌ *BANNED*: Har card par same top-right ke 3 circular buttons render karna.
+  - ✅ *MANDATORY*: Action triggers must occupy radically different physical coordinates:
+    - **Bottom Slide-Up Drawer**: Anchored to image bottom, revealing on hover/focus (Zara).
+    - **Floating Corner FAB**: Circular bubble overlapping the image/body seam (Nike).
+    - **Direct Full-Width Bottom Button**: Placed below price and urgency bar (Daraz).
+    - **Split Dual-Action Footer**: 50/50 split buttons at the very bottom (Amazon).
+    - **Center-Floating Hover Pill**: Floating over center of image + chic compact bag button below price (Sephora).
+    - **Hairline Top Ghost Icon**: Minimalist top-right heart without heavy circular backgrounds.
+- **Title Placement**:
+  - Parallel with price on a single justified line (`flex justify-between`) (Zara).
+  - Positioned beneath a category kicker tag (`BOYS FLEECE • 3 SIZES`) (Nike).
+  - Positioned beneath star ratings and sale price (Price-First marketplace hierarchy).
+  - Centered beneath shade swatches (Editorial beauty layout).
+  - Standard top of card body (Classic).
+- **Price Placement**:
+  - Lead with price FIRST above the title (Flash deal / marketplace layout).
+  - Parallel opposite the title on the same horizontal row (Haute fashion).
+  - Centered below the title with large prominent typography (Minimalist boutique).
+  - Directly above the direct action button accompanied by a live stock indicator (Urgency layout).
+- **Variations & Swatches Placement**:
+  - Positioned directly below the primary image before any text/title (Sephora shade strip).
+  - Positioned between title and price (Nike size dots).
+  - Positioned below price right above the action bar (Marketplace options strip).
+  - Integrated inside the slide-up drawer as option selector.
+- **Badges & Urgency Placement**:
+  - Flame discount chip embedded inline right next to the sale price (`-40%`).
+  - Top full-width deal banner ribbon above image (`LIMITED TIME DEAL`).
+  - Micro live stock urgency bar above the direct button (`🔥 Only 4 Left In Stock`).
+  - Standard top-left floating pill badges.
+
+### 2. Element Looks MUST Differ (Distinct Visual Formats):
+- **Typography Look**:
+  - Heavy condensed athletic uppercase (Streetwear).
+  - Elegant serif italics (Artisan boutique).
+  - Crisp geometric sans-serif (Clean modern).
+  - Technical micro text with wide letter-spacing (Luxury minimal).
+- **Buttons & Triggers Look**:
+  - Rounded pills, sharp rectangular blocks, floating round FAB bubbles, full-width slide drawers, split outline tabs.
+- **Framing & Geometry**:
+  - Zero-border edge-to-edge flush canvas vs `rounded-2xl` soft card vs heavy black framed architectural blocks.
+
+### 3. Core Store DNA Remains 100% Intact Across All Placements:
+- Different look and different placement does NOT mean missing functionality.
+- Har alag placement ke sath variations (`has_variants`), pricing (`formatPrice`), discounts, wishlist state, quick view modal, cart updates, and 60fps performance 100% live rahenge.
+
+---
+
 ## 2. Core DNA Engineering Rules (MANDATORY)
 
 ### CARD-DNA-1: Variations & Swatches Binding
