@@ -4,6 +4,36 @@
 
 ---
 
+### [2026-10-07] v7.x — Atomic Inventory Stock Sync on Order Cancel/Edit/Trash
+
+**Problem fixed:** Cancelling, editing, or trashing an order did NOT restore/adjust inventory. Stock was permanently lost on cancel. Items added/removed in order editor never touched stock. Service items (modifiers/add-ons) correctly skipped.
+
+**Migration (NEW, additive — safe to apply):**
+- `supabase/migrations/20261007140000_inventory_stock_adjustment_rpc.sql`
+  - `adjust_item_stock(product_id, variant_id, delta)` — atomic per-item stock adjust; syncs `product_variants.stock` + re-aggregates `products.stock`; clamps at 0; skips `is_service=true` products
+  - `restore_stock_on_cancel(order_id, items JSONB)` — iterates order items, calls `adjust_item_stock` for each, logs event to `orders.status_logs`; service_role only
+  - `adjust_stock_on_order_edit(order_id, old_items, new_items JSONB)` — computes delta per (product_id, variant_id): removed items restore stock, added items deduct, qty changes apply delta; service_role only
+  - All 3 functions: `GRANT` to `service_role`, `REVOKE` from `anon`/`authenticated` (server-only, never client-callable)
+
+**New service (SSOT1 — single entry point for all inventory adjustments):**
+- `lib/services/inventory/stock-sync.ts` — `restoreStockOnCancel()`, `adjustStockOnOrderEdit()`, `shouldRestoreStock()`, `shouldDeductStock()` guards
+- `lib/services/inventory/index.ts` — re-exports
+
+**Wired into order lifecycle (D15 — atomic, zero leakage):**
+- `lib/services/orders/mutate.ts` → `updateOrderStatus()`: cancel/refund → restore; un-cancel → re-deduct
+- `lib/services/orders/mutate.ts` → `updateOrderDetails()`: item edit → stock delta; status → cancel → restore
+- `lib/services/orders/mutate.ts` → `deleteOrder()`: trash active order → restore stock (skips if already cancelled)
+
+**Schema SSOT:** `SUPER_MASTER_SCHEMA.sql` updated with all 3 RPC functions + grants.
+
+**Rules:** D1 (variant stock mandatory), D15 (atomic writes), D13 (snake_case), SSOT1 (one entry point), D5 (change log), D6 (master schema in sync).
+
+**Verification:** `tsc --noEmit` = 0 errors.
+
+---
+
+---
+
 ### [2026-10-01] v7.x — First-party Traffic Analytics (page_views) — replaces Cloudflare estimates
 **Migration (NEW, additive & self-cleaning — safe to apply):**
 - `supabase/migrations/20261001120000_add_page_views_traffic.sql` — adds `page_views` table (UUID PK, snake_case, RLS: public INSERT / admin+service-role read), indexes on `created_at`/`country`/`visitor_id`, the `get_traffic_stats(p_start, p_end)` aggregation RPC (totals + per-country + per-city, all grouped in Postgres), and a daily `pg_cron` job `purge-page-views-90-days` (deletes rows older than 90 days at 03:00 so the table never grows).

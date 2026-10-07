@@ -1,9 +1,16 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 import { Order, CartItem, StatusLogItem } from '@/lib/types';
 import { mapOrder } from './types';
 import { safeAction } from '@/lib/utils/serverAction';
+import {
+  restoreStockOnCancel,
+  adjustStockOnOrderEdit,
+  shouldRestoreStock,
+  shouldDeductStock,
+} from '@/lib/services/inventory/stock-sync';
 
 export const updateOrderStatus = async (id: string, status: Order['status']): Promise<Order> => {
   try {
@@ -47,6 +54,53 @@ export const updateOrderStatus = async (id: string, status: Order['status']): Pr
 
     if (error) throw error;
     const mapped = mapOrder(data);
+
+    // ── INVENTORY SYNC (D15 — stock restore on cancel/refund) ──────────
+    // Runs AFTER the order row is committed so the RPC log lands in the
+    // same order timeline. RPC is atomic (single PG transaction).
+    if (oldStatus !== status) {
+      if (shouldRestoreStock(oldStatus, status)) {
+        try {
+          // Fetch full items from DB (mapped items may be a subset)
+          const { data: fullOrder } = await supabaseAdmin
+            .from('orders')
+            .select('items')
+            .eq('id', id)
+            .single();
+          if (fullOrder?.items?.length) {
+            await restoreStockOnCancel(id, fullOrder.items);
+          }
+        } catch (invErr) {
+          // Log but do not throw — order status is already saved.
+          // Inventory reconciliation can be run manually if this fails.
+          console.error('[inventory] restoreStockOnCancel failed after status change:', invErr);
+        }
+      } else if (shouldDeductStock(oldStatus, status)) {
+        // Un-cancelling (e.g. cancelled → confirmed) → re-deduct stock
+        try {
+          const { data: fullOrder } = await supabaseAdmin
+            .from('orders')
+            .select('items')
+            .eq('id', id)
+            .single();
+          if (fullOrder?.items?.length) {
+            // Restore with negative qty = deduct
+            await supabaseAdmin.rpc('restore_stock_on_cancel', {
+              p_order_id: id,
+              p_items: JSON.stringify(
+                fullOrder.items.map((i: any) => ({
+                  product_id:  i.product?.id ?? i.product_id ?? null,
+                  variant_id:  i.selected_variant?.id ?? i.variant_id ?? null,
+                  quantity:    -(i.quantity ?? 1), // negative = deduct
+                }))
+              ),
+            });
+          }
+        } catch (invErr) {
+          console.error('[inventory] re-deduct stock failed after un-cancel:', invErr);
+        }
+      }
+    }
 
     // Await the email dispatch so the serverless function does not exit/freeze before delivery completes
     if (oldStatus !== status) {
@@ -143,15 +197,16 @@ export const updateOrderDetails = async (
   try {
     const supabase = await createClient();
 
-    // Fetch current state before update to detect changes
-    const { data: currentOrder } = await supabase
+    // Fetch current state before update to detect changes + get old items for inventory delta
+    const { data: currentOrder } = await supabaseAdmin
       .from('orders')
-      .select('status, tracking_number')
+      .select('status, tracking_number, items')
       .eq('id', id)
       .single();
       
-    const oldStatus = currentOrder?.status;
+    const oldStatus   = currentOrder?.status;
     const oldTracking = currentOrder?.tracking_number;
+    const oldItems    = currentOrder?.items ?? [];
 
     const payload: any = {};
     if (updates.items !== undefined) payload.items = updates.items;
@@ -185,8 +240,34 @@ export const updateOrderDetails = async (
     if (error) throw error;
     const mapped = mapOrder(data);
 
-    // Call triggers if status changed OR if status is shipped/out_for_delivery and tracking details were added/updated
+    // ── INVENTORY SYNC: item edit delta (D15) ─────────────────────────
+    // If the admin edited the items list, compute stock delta atomically.
+    // Service items (is_service=true) are skipped inside the RPC.
+    if (updates.items !== undefined && oldItems.length > 0) {
+      try {
+        await adjustStockOnOrderEdit(id, oldItems, updates.items);
+      } catch (invErr) {
+        // Non-fatal: order is saved, inventory reconciliation may need manual review
+        console.error('[inventory] adjustStockOnOrderEdit failed after order edit:', invErr);
+      }
+    }
+
+    // ── INVENTORY SYNC: status → cancel/refund via updateOrderDetails ─
     const statusChanged = updates.status !== undefined && oldStatus !== updates.status;
+    if (statusChanged && updates.status) {
+      if (shouldRestoreStock(oldStatus ?? '', updates.status)) {
+        try {
+          const itemsForRestore = updates.items ?? oldItems;
+          if (itemsForRestore.length) {
+            await restoreStockOnCancel(id, itemsForRestore);
+          }
+        } catch (invErr) {
+          console.error('[inventory] restoreStockOnCancel failed in updateOrderDetails:', invErr);
+        }
+      }
+    }
+
+    // Call triggers if status changed OR tracking updated
     const trackingUpdated = ['shipped', 'out_for_delivery'].includes(mapped.status) && 
                             updates.trackingNumber !== undefined && 
                             oldTracking !== updates.trackingNumber;
@@ -210,6 +291,30 @@ export const updateOrderDetails = async (
 export const deleteOrder = async (id: string): Promise<void> => {
   try {
     const supabase = await createClient();
+
+    // ── INVENTORY SYNC: restore stock before soft-delete (D15) ────────
+    // Fetch items + current status. Only restore if NOT already cancelled
+    // (to avoid double-restoring for an order that was cancelled then trashed).
+    try {
+      const { data: orderSnap } = await supabaseAdmin
+        .from('orders')
+        .select('status, items')
+        .eq('id', id)
+        .single();
+      if (orderSnap && !shouldRestoreStock('', orderSnap.status) && orderSnap.items?.length) {
+        // Order is active (not already cancelled) → restore stock on trash
+        // We use shouldRestoreStock('active', 'cancelled') logic by calling restore directly
+        // only when the order isn't already in a cancellation state.
+        const isCancelled = ['cancelled', 'refunded'].includes(orderSnap.status);
+        if (!isCancelled) {
+          await restoreStockOnCancel(id, orderSnap.items);
+        }
+      }
+    } catch (invErr) {
+      console.error('[inventory] restoreStockOnCancel failed before deleteOrder:', invErr);
+      // Non-fatal: proceed with soft-delete
+    }
+
     const { error } = await supabase
       .from('orders')
       .update({ deleted_at: new Date().toISOString() })
