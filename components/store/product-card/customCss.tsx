@@ -14,6 +14,11 @@ export const customCss = `
       font-family: 'Segoe UI', sans-serif;
       position: relative;
       width: 100%;
+      /* DS-FIX: overflow must be visible so absolutely-positioned action icons
+         are never clipped by the card boundary. Inner image boxes keep their own
+         overflow:hidden for image zoom/swap effects. */
+      overflow: visible !important;
+      isolation: isolate;
     }
     
     /* Shared components scoped inside z-card-container */
