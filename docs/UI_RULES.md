@@ -133,3 +133,10 @@ All save/cancel action bars across the Admin Console must be sticky at the botto
 - Never place save buttons as static elements at the end of long forms/sidebars.
 - Modal forms must use sticky footers (`shrink-0 border-t bg-gray-50 dark:bg-[#11111e] p-6 pt-4`) outside the scroll body.
 - See full rule: `docs/agent-rules/14-design-system.md` RULE DS6.
+
+## 12. Product Card Multi-Archetype Standard (RULE DS12)
+- Distinct layouts across brand templates (Zara slide-drawer, Daraz deal-rush direct button, Nike corner FAB, Amazon split dual-action, Sephora center-hover pill).
+- Every card must support all image aspect ratios (3:4, 1:1, auto) and both `cover` & `contain` modes.
+- Zero CPU blur (`backdrop-blur` banned), hardware-accelerated CSS transforms for 60fps scrolling.
+- See full specification in `docs/UI_CARDS.md` and `docs/agent-rules/14-design-system.md` RULE DS12.
+

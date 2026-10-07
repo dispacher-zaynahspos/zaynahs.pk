@@ -80,6 +80,14 @@ export default function ProductCardSettings({ settings, onUpdateSettings }: Prod
               <option value="showcase_15">Showcase 15 — Frosted Glass (Apple-style)</option>
               <option value="showcase_16">Showcase 16 — Terracotta Boutique (Artisan)</option>
             </optgroup>
+
+            <optgroup label="Iconic Global Brand Archetypes">
+              <option value="showcase_20">Showcase 20 — Zara Haute Editorial (Slide-Drawer)</option>
+              <option value="showcase_21">Showcase 21 — Daraz Deal Rush (Direct Cart & Urgency)</option>
+              <option value="showcase_22">Showcase 22 — Nike Streetwear (Floating Corner FAB)</option>
+              <option value="showcase_23">Showcase 23 — Amazon Marketplace (Split Dual-Action)</option>
+              <option value="showcase_24">Showcase 24 — Sephora Chic (Center-Hover Pill)</option>
+            </optgroup>
           </select>
         </div>
 

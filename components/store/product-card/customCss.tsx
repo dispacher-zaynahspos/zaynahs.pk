@@ -1061,6 +1061,169 @@ export const customCss = `
       border-color: transparent;
     }
 
+    /* ── SC20: ZARA HAUTE EDITORIAL ── */
+    .z-card-container .sc20 {
+      background: transparent;
+      border: 1px solid rgba(0,0,0,0.06);
+      border-radius: 0;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      transition: border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+    .dark .z-card-container .sc20 {
+      border-color: rgba(255,255,255,0.08);
+    }
+    .z-card-container .sc20:hover,
+    .z-card-container.is-in-focus .sc20 {
+      border-color: rgba(0,0,0,0.2);
+    }
+    .dark .z-card-container .sc20:hover,
+    .dark .z-card-container.is-in-focus .sc20 {
+      border-color: rgba(255,255,255,0.25);
+    }
+    .z-card-container .sc20 .slide-drawer-btn {
+      transform: translate3d(0, 100%, 0);
+      opacity: 0;
+      transition: transform 0.26s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+      will-change: transform, opacity;
+    }
+    .z-card-container:hover .sc20 .slide-drawer-btn,
+    .z-card-container.is-in-focus .sc20 .slide-drawer-btn,
+    .z-card-container.active-card .sc20 .slide-drawer-btn,
+    .group:hover .sc20 .slide-drawer-btn {
+      transform: translate3d(0, 0, 0) !important;
+      opacity: 1 !important;
+    }
+
+    /* ── SC21: DARAZ DEAL RUSH ── */
+    .z-card-container .sc21 {
+      background: #ffffff;
+      border: 1px solid rgba(0,0,0,0.08);
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+    .dark .z-card-container .sc21 {
+      background: #151525;
+      border-color: rgba(255,255,255,0.08);
+    }
+    .z-card-container .sc21:hover,
+    .z-card-container.is-in-focus .sc21 {
+      transform: translate3d(0, -2px, 0);
+      box-shadow: 0 6px 20px rgba(248,86,6,0.12);
+      border-color: rgba(248,86,6,0.3);
+    }
+    .z-card-container .sc21 .direct-cart-btn {
+      background: var(--color-primary, #f85606);
+      transition: transform 0.18s ease, filter 0.18s ease;
+    }
+    .z-card-container .sc21 .direct-cart-btn:hover {
+      filter: brightness(1.06);
+      transform: scale(1.01);
+    }
+
+    /* ── SC22: NIKE STREETWEAR ── */
+    .z-card-container .sc22 {
+      background: #fafafa;
+      border: 1px solid #eaeaea;
+      border-radius: 14px;
+      overflow: visible;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+    }
+    .dark .z-card-container .sc22 {
+      background: #16162a;
+      border-color: #262640;
+    }
+    .z-card-container .sc22:hover,
+    .z-card-container.is-in-focus .sc22 {
+      transform: translate3d(0, -3px, 0);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+      border-color: #111827;
+    }
+    .dark .z-card-container .sc22:hover,
+    .dark .z-card-container.is-in-focus .sc22 {
+      border-color: #6366f1;
+    }
+    .z-card-container .sc22 .corner-fab-btn {
+      transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+      will-change: transform;
+    }
+    .z-card-container:hover .sc22 .corner-fab-btn,
+    .z-card-container.is-in-focus .sc22 .corner-fab-btn,
+    .z-card-container.active-card .sc22 .corner-fab-btn {
+      transform: scale(1.08) !important;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.24) !important;
+    }
+
+    /* ── SC23: AMAZON MARKETPLACE ── */
+    .z-card-container .sc23 {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      transition: box-shadow 0.22s ease, border-color 0.22s ease;
+    }
+    .dark .z-card-container .sc23 {
+      background: #141424;
+      border-color: #27273a;
+    }
+    .z-card-container .sc23:hover,
+    .z-card-container.is-in-focus .sc23 {
+      border-color: #f59e0b;
+      box-shadow: 0 4px 18px rgba(245,158,11,0.1);
+    }
+    .z-card-container .sc23 .split-btn-cart {
+      background: var(--color-primary, #b12704);
+    }
+
+    /* ── SC24: SEPHORA CHIC ── */
+    .z-card-container .sc24 {
+      background: #ffffff;
+      border: 1px solid rgba(0,0,0,0.07);
+      border-radius: 18px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+    .dark .z-card-container .sc24 {
+      background: #171728;
+      border-color: rgba(255,255,255,0.07);
+    }
+    .z-card-container .sc24:hover,
+    .z-card-container.is-in-focus .sc24 {
+      transform: translate3d(0, -3px, 0);
+      box-shadow: 0 8px 24px rgba(236,72,153,0.1);
+      border-color: rgba(236,72,153,0.3);
+    }
+    .z-card-container .sc24 .center-pill-btn {
+      opacity: 0;
+      transform: translate3d(0, 8px, 0);
+      transition: opacity 0.22s ease, transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+      will-change: transform, opacity;
+    }
+    .z-card-container:hover .sc24 .center-pill-btn,
+    .z-card-container.is-in-focus .sc24 .center-pill-btn,
+    .z-card-container.active-card .sc24 .center-pill-btn,
+    .group:hover .sc24 .center-pill-btn {
+      opacity: 1 !important;
+      transform: translate3d(0, 0, 0) !important;
+    }
+
     @media (max-width: 640px) {
         .grid-cols-2 .z-card-container .aic,
         .grid-cols-2 .z-card-container .card-actions {
@@ -1106,8 +1269,42 @@ export const customCss = `
         .grid-cols-2 .z-card-container .sc13,
         .grid-cols-2 .z-card-container .sc14,
         .grid-cols-2 .z-card-container .sc15,
-        .grid-cols-2 .z-card-container .sc16 {
+        .grid-cols-2 .z-card-container .sc16,
+        .grid-cols-2 .z-card-container .sc20,
+        .grid-cols-2 .z-card-container .sc21,
+        .grid-cols-2 .z-card-container .sc22,
+        .grid-cols-2 .z-card-container .sc23,
+        .grid-cols-2 .z-card-container .sc24 {
             padding: 0 !important;
+        }
+
+        .grid-cols-2 .z-card-container .sc20 .slide-drawer-btn {
+            padding: 6px 8px !important;
+            font-size: 9.5px !important;
+            letter-spacing: 0.5px !important;
+        }
+        .grid-cols-2 .z-card-container .sc21 .direct-cart-btn {
+            padding: 5px 8px !important;
+            font-size: 10.5px !important;
+            border-radius: 8px !important;
+        }
+        .grid-cols-2 .z-card-container .sc22 .corner-fab-btn {
+            width: 32px !important;
+            height: 32px !important;
+            bottom: -8px !important;
+            right: 8px !important;
+        }
+        .grid-cols-2 .z-card-container .sc22 .corner-fab-btn svg {
+            width: 13px !important;
+            height: 13px !important;
+        }
+        .grid-cols-2 .z-card-container .sc23 .split-action-bar button {
+            padding: 4px 4px !important;
+            font-size: 9.5px !important;
+        }
+        .grid-cols-2 .z-card-container .sc24 .center-pill-btn {
+            padding: 4px 8px !important;
+            font-size: 9.5px !important;
         }
     }
 

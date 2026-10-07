@@ -187,4 +187,31 @@ Verified 2026-10. Applies to all admin forms (Product Form, Settings, Customizer
 4. **Edit Mode Initialization**:
    - When editing an existing entity where the feature is already active (`initialProduct.has_variants === true`), the section MUST initialize in the EXPANDED state (`collapsed = false`) so existing variants/settings are immediately visible.
 
+## RULE DS12 — Multi-Archetype Product Card Layouts & Dynamic Action Formats (MANDATORY)
+Verified 2026-10. All product card designs across storefront and admin must adhere to the multi-archetype design framework documented in `docs/UI_CARDS.md`:
+1. **Diverse Element Placements**: Different archetypes must exhibit genuinely distinct DOM hierarchies (e.g. Zara slide-drawer 1-line title/price, Daraz rating-pill + price-first + urgency bar, Nike category kicker + corner FAB, Amazon split dual-action bar). Never restrict cards to a single uniform layout structure.
+2. **Distinct Action Formats**: Action triggers (Wishlist, Quick View, Cart) must not default to the same 3 top-right circular buttons across all styles. Supported formats include:
+   - `'action-btn'` / `'floating-stack'`: Classic 3 circular buttons
+   - `'slide-drawer'`: Full-width slide-up action bar anchored to image bottom (Zara / ASOS)
+   - `'direct-button'`: Full-width or pill action button placed below the price (Daraz / Amazon)
+   - `'corner-fab'`: Floating Action Button overlapping image/body seam (Nike / Streetwear)
+   - `'split-bar'`: Dual 50/50 action buttons (`Quick View` + `Add to Bag`)
+   - `'center-pill'`: Centered floating pill revealing on image hover (Sephora)
+3. **100% System Hook Continuity**: Every action format MUST bind to standard shared handlers:
+   - `onToggleWishlist` for live wishlist state (`isInWishlist`)
+   - `onOpenQuickView` for the quick view modal
+   - `onAddToCart` with intelligent variant detection (`has_variants` → "Choose Options" vs "Add to Cart")
+   - Full-card navigation link at `z-[1]` with `saveScrollPosition(product.id)`
+4. **Zero Blurs & GPU Performance**: Strictly avoid CPU-intensive `backdrop-filter: blur(...)`. Use solid high-contrast backgrounds with hardware-accelerated CSS `translate3d` and `scale` transitions.
+5. **Mobile 2-Column Grid Compliance**: Every archetype MUST supply scoped responsive rules under `@media (max-width: 640px) .grid-cols-2 .z-card-container .[STYLE_CLASS]` to ensure compact padding (6–8px), clamped fonts (0.72–0.78rem), and scaled action buttons.
+6. **Core DNA Binding Contract (Universal Store DNA)**: Every card archetype MUST remain 100% wired to the complete store feature set:
+   - Live variant swatches (`finalRenderedGroups`) with live price/stock reactivity and variant drawer/modal trigger.
+   - Dynamic price formatting (`formatPrice`) with compare-at strikethrough, discount percentage badge, and stock urgency.
+   - Primary & secondary hover/focus media swap supporting all aspect ratios (`3:4`, `1:1`, `auto`) and fit modes (`cover`, `contain`).
+   - Wishlist toggle (`useWishlist`), Quick View modal (`onOpenQuickView`), and Quick Cart (`onAddToCart`).
+   - Line clamp setting enforcement (`title-clamp-1`, `2`, `none`) via semantic Link with scroll restoration (`saveScrollPosition`).
+   - No archetype may omit, mock, or fake any of these core capabilities. Full specifications in `docs/UI_CARDS.md`.
+
+
+
 
