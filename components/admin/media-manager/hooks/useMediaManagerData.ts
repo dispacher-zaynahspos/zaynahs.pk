@@ -26,12 +26,21 @@ export interface MediaItem {
   mime_type?: string;
 }
 
+export type UploadStage = 'queued' | 'optimizing' | 'uploading' | 'saving' | 'tagging' | 'completed' | 'failed' | 'cancelled';
+
 export interface UploadTask {
   id: string;
   file: File;
-  progress: number;
+  progress: number;                 // real upload transfer percent (0-100)
   status: 'uploading' | 'completed' | 'failed' | 'cancelled';
+  stage?: UploadStage;              // granular stage for the tile label
   error?: string;
+  previewUrl?: string;              // local object URL for instant preview
+  sizeBefore?: number;              // original bytes
+  sizeAfter?: number;               // optimized bytes (from server response)
+  resultUrl?: string;               // final uploaded URL
+  slow?: boolean;                   // no-progress-for-8s hint
+  xhr?: XMLHttpRequest;             // handle for cancel
 }
 
 export const normalizeUrl = (url: string): string => {

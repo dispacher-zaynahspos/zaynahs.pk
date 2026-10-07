@@ -22,6 +22,8 @@ import {
 } from './media-manager';
 import { useMediaDragAndDropUpload } from './media-manager/hooks/useMediaDragAndDropUpload';
 import { MediaLibraryFilters } from './media-manager/MediaLibraryFilters';
+import UploadTileCard from './media-manager/UploadTileCard';
+import UploadProgressPanel from './media-manager/UploadProgressPanel';
 
 interface MediaManagerProps {
   mode: 'library' | 'selector';
@@ -52,7 +54,7 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
     sortBy, setSortBy,
     typeFilter, setTypeFilter,
     selectedIds, setSelectedIds,
-    selectedLibraryUrls,
+    selectedLibraryUrls, setSelectedLibraryUrls,
     currentPage, setCurrentPage,
     pageSize, setPageSize,
     handleConfirmSelection,
@@ -105,6 +107,8 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
     handleDragEnter,
     handleDragLeave,
     handleDrop,
+    retryTask,
+    cancelTask,
   } = useMediaDragAndDropUpload({
     mode,
     multiple,
@@ -112,7 +116,28 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
     setIsDragging,
     fetchMedia,
     fileInputRef,
+    onUploaded: (url: string) => {
+      // selector mode: auto-select the freshly uploaded image
+      if (mode === 'selector') {
+        if (multiple) setSelectedLibraryUrls((prev: Set<string>) => new Set(prev).add(url));
+        else { setSelectedLibraryUrls(new Set([url])); }
+      }
+    },
   });
+
+  const removeUploadTask = (task: any) =>
+    setUploadTasks((prev: any) => prev.filter((t: any) => t.id !== task.id));
+  const clearFinishedTasks = () =>
+    setUploadTasks((prev: any) => prev.filter((t: any) => t.status === 'uploading'));
+
+  // Warn before leaving while uploads run
+  React.useEffect(() => {
+    const hasActive = uploadTasks.some((t: any) => t.status === 'uploading');
+    if (!hasActive) return;
+    const handler = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = ''; };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [uploadTasks]);
 
   const handleUpdateItem = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -249,6 +274,9 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {uploadTasks.filter((t: any) => t.status === 'uploading' || t.status === 'failed').map((t: any) => (
+                <UploadTileCard key={t.id} task={t} onRetry={retryTask} onRemove={removeUploadTask} />
+              ))}
               {paginatedMedia.map((item: MediaItem, idx: number) => (
                 <MediaCard
                   key={item.id}
@@ -397,6 +425,13 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
           onSave={handleUpdateItem}
         />
       )}
+      {/* Shared sticky upload progress panel (survives modal close within admin) */}
+      <UploadProgressPanel
+        tasks={uploadTasks}
+        onRetry={retryTask}
+        onCancel={cancelTask}
+        onClear={clearFinishedTasks}
+      />
     </div>
   );
 }
