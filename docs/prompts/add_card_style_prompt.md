@@ -93,7 +93,10 @@ Follow this step-by-step workflow to implement and wire up the new template:
     ```tsx
     {renderCardBadge()}
     ```
-  - **Action Controls (Wishlist/Quickview/Cart)**: Map buttons directly or use `renderActionButtons()` with click event preventers (`e.preventDefault()`, `e.stopPropagation()`) and add-to-cart triggers:
+  - **Action Controls (Wishlist/Quickview/Cart) & Unified Spawning**:
+    - **No Compare Arrow**: `CardCompareIcon` (`🔄`) is STRICTLY PROHIBITED (no comparison feature exists in the store).
+    - **Synchronized Spawn**: The wishlist icon must NEVER be isolated sticky top-right while other buttons spawn below it. All action buttons (Wishlist, Quickview, Add to Cart) MUST be grouped in the same action container (rail/row/pill) and animate/spawn together on hover/mobile focus.
+    - Map buttons directly with click event preventers (`e.preventDefault()`, `e.stopPropagation()`):
     ```tsx
     <div className="card-actions" onClick={(e) => e.preventDefault()}>
       {showWishlist && <button onClick={handleToggleWishlist} ... />}
@@ -101,6 +104,12 @@ Follow this step-by-step workflow to implement and wire up the new template:
       {showQuickcart && <button onClick={handleAddToCart} ... />}
     </div>
     ```
+  - **Live Variations & Swatches (Single Source of Truth)**:
+    - **NEVER hardcode dummy sizes `['L', 'M', 'S']` or fake color dots.**
+    - Always render live swatches via `{finalRenderedGroups}` so they strictly obey all merchant controls (`enable_variant_swatches`, `card_show_sizes`, `card_show_swatches`, `swatch_shape`, `swatch_limit`, `archive_swatch_size`, `archive_swatch_align`).
+    - Sizes must only render if enabled in settings AND present on real active variants of the product.
+  - **Base Themes Protection**:
+    - NEVER touch or alter the 5 foundation base store themes (`style1`, `showcase_1`, `showcase_8`, `showcase_11`, `showcase_13`).
   - **Vertical Elements Order & Content Alignment**: Render all card content blocks dynamically using the unified helper `renderShowcaseContent('[STYLE_SHORT_CLASS]')` (e.g. `'sc11'`), which automatically parses the `elementsOrder` settings list and links the `alignClass` text alignment rules:
     ```tsx
     {renderShowcaseContent('sc11')}

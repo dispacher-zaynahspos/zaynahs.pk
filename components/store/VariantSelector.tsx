@@ -2,7 +2,8 @@
 
 import React from 'react';
 import { ProductVariant, StoreSettings } from '@/lib/types';
-import { getSwatchStyle } from '@/lib/utils/swatch';
+import { getSwatchStyle, extractColorsFromName } from '@/lib/utils/swatch';
+import { getPresetImageUrl } from '@/lib/utils/imageUrl';
 import { useVariantSelectorState } from './variant-selector/useVariantSelectorState';
 import { getSwatchClasses } from './variant-selector/swatchStyles';
 
@@ -87,10 +88,16 @@ export default function VariantSelector({
           {colors.map(color => {
             const matchVar = activeVariants.find(v => v.color === color);
             const isSelected = selectedColor === color;
+            const resolvedHex = matchVar?.color_hex || (color ? extractColorsFromName(color) : undefined);
 
-            if (showSwatches && matchVar && (matchVar.color_hex || matchVar.image_url)) {
-              const bg = matchVar.color_hex || undefined;
+            if (showSwatches && matchVar && (resolvedHex || matchVar.image_url)) {
               const sSizeClass = getSwatchClasses('color', productSwatchSize, '');
+              const isImageSwatch = Boolean(
+                (matchVar.show_image_swatch && matchVar.image_url) ||
+                (!resolvedHex && matchVar.image_url)
+              );
+              const swatchBg = isImageSwatch ? {} : getSwatchStyle(resolvedHex);
+
               return (
                 <button
                   key={color}
@@ -105,13 +112,18 @@ export default function VariantSelector({
                     overflow-hidden
                   `}
                   style={{
-                    ...getSwatchStyle(bg),
-                    borderColor: isSelected ? 'var(--color-accent)' : 'var(--color-border)',
-                    boxShadow: isSelected ? '0 0 0 2px var(--color-accent)' : 'none',
+                    ...swatchBg,
+                    borderColor: isSelected ? 'var(--color-accent, var(--color-primary, #ef4444))' : 'var(--color-border, #e5e7eb)',
+                    boxShadow: isSelected ? '0 0 0 2px var(--color-accent, var(--color-primary, #ef4444))' : 'none',
                   }}
                 >
-                  {matchVar.image_url && (matchVar.show_image_swatch || !matchVar.color_hex) && (
-                    <img src={matchVar.image_url} alt={color} className="w-full h-full object-cover" />
+                  {isImageSwatch && matchVar.image_url && (
+                    <img
+                      src={getPresetImageUrl(matchVar.image_url, 'card')}
+                      alt={color}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
                   )}
                   {isSelected && (
                     <span className="absolute inset-0 flex items-center justify-center bg-black/20">

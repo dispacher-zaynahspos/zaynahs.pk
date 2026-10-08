@@ -10,11 +10,13 @@ import { animateFlyTo } from '@/lib/utils/flyAnimation';
 import { useWishlist } from '@/components/store/product-card/hooks/useWishlist';
 import { getPresetImageUrl } from '@/lib/utils/imageUrl';
 import { normalizeCardStyle } from '@/lib/utils/cardStyles';
+import { extractColorsFromName } from '@/lib/utils/swatch';
 
 import { ProductCardSwatches, VariationGroup } from './product-card/ProductCardSwatches';
 import { ProductCardShowcases } from './product-card/ProductCardShowcases';
 import { StandardProductCard } from './product-card/StandardProductCard';
 import { ProductCardStyleInjector } from './product-card/ProductCardStyles';
+import { EllaProductCard, EllaProductGrid, getEllaCardVariant, toCardProduct, type CardVariant } from '@/components/product-cards';
 import { saveScrollPosition } from '@/lib/hooks/useScrollRestoration';
 
 
@@ -29,9 +31,10 @@ interface ProductCardProps {
   currencySymbol?: string;
   settings?: StoreSettings | null;
   priority?: boolean;
+  ellaCardVariant?: CardVariant;
 }
 
-export default function ProductCard({ product, currencySymbol = 'Rs.', settings, priority = false }: ProductCardProps) {
+export default function ProductCard({ product, currencySymbol = 'Rs.', settings, priority = false, ellaCardVariant }: ProductCardProps) {
   const addItem = useCartStore(state => state.addItem);
   const fallbackPlaceholder = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%23f3f4f6'/%3E%3C/svg%3E";
   const primaryImage = getPresetImageUrl(product.images?.find(img => img.is_primary)?.url || product.images?.[0]?.url || fallbackPlaceholder, 'card');
@@ -63,6 +66,7 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [selectedMaterial, setSelectedMaterial] = useState<string | null>(null);
   const [selectedCustom, setSelectedCustom] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   // Sync state when defaultVar changes
   useEffect(() => {
@@ -71,6 +75,7 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
     setSelectedMaterial(defaultVar?.material || null);
     setSelectedCustom(defaultVar?.custom_value || null);
     setUserSelectedColor(false);
+    setSelectedImage(null);
   }, [defaultVar]);
 
   // Find currently matched variant based on selections
@@ -86,7 +91,9 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
     return colorMatch && sizeMatch;
   }) || activeVariants.find(v => v.color === selectedColor) || activeVariants.find(v => v.size === selectedSize) || defaultVar;
 
-  const currentImage = (userSelectedColor && currentVariant && currentVariant.image_url) ? getPresetImageUrl(currentVariant.image_url, 'card') : primaryImage;
+  const isVariantSelected = Boolean(selectedImage || userSelectedColor);
+  const resolvedVariantImage = selectedImage || (userSelectedColor && currentVariant && currentVariant.image_url ? getPresetImageUrl(currentVariant.image_url, 'card') : null);
+  const currentImage = resolvedVariantImage || primaryImage;
   const currentPrice = (currentVariant && currentVariant.price) ? currentVariant.price : product.price;
   const currentComparePrice = (currentVariant && currentVariant.compare_price) ? currentVariant.compare_price : product.compare_price;
 
@@ -130,20 +137,31 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
   };
   const shapeClass = shapeMap[swatchShape] || shapeMap.circle;
 
-  // Group unique attribute values for display
+  // Group unique attribute values for display with richest variant data (hex, image, swatch toggle)
   const colorVariants = product.variants
     .filter(v => v.color && v.active)
     .reduce<typeof product.variants>((acc, v) => {
-      const exists = acc.find(e => e.color === v.color);
-      if (!exists) acc.push(v);
+      const existing = acc.find(e => e.color === v.color);
+      if (!existing) {
+        acc.push({ ...v });
+      } else {
+        if (!existing.color_hex && v.color_hex) existing.color_hex = v.color_hex;
+        if (!existing.image_url && v.image_url) existing.image_url = v.image_url;
+        if (!existing.show_image_swatch && v.show_image_swatch) existing.show_image_swatch = v.show_image_swatch;
+      }
       return acc;
-    }, []);
+    }, [])
+    .map(v => ({
+      ...v,
+      color_hex: v.color_hex || (v.color ? extractColorsFromName(v.color) : undefined),
+    }));
 
   const sizeVariants = product.variants
     .filter(v => v.size && v.active)
     .reduce<typeof product.variants>((acc, v) => {
       const exists = acc.find(e => e.size === v.size);
-      if (!exists) acc.push(v);
+      if (!exists) acc.push({ ...v });
+      else if (!exists.image_url && v.image_url) exists.image_url = v.image_url;
       return acc;
     }, []);
 
@@ -151,7 +169,8 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
     .filter(v => v.material && v.active)
     .reduce<typeof product.variants>((acc, v) => {
       const exists = acc.find(e => e.material === v.material);
-      if (!exists) acc.push(v);
+      if (!exists) acc.push({ ...v });
+      else if (!exists.image_url && v.image_url) exists.image_url = v.image_url;
       return acc;
     }, []);
 
@@ -159,7 +178,8 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
     .filter(v => v.custom_value && v.active)
     .reduce<typeof product.variants>((acc, v) => {
       const exists = acc.find(e => e.custom_value === v.custom_value);
-      if (!exists) acc.push(v);
+      if (!exists) acc.push({ ...v });
+      else if (!exists.image_url && v.image_url) exists.image_url = v.image_url;
       return acc;
     }, []);
 
@@ -188,7 +208,11 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
     return aIdx - bIdx;
   });
 
-  const handleSelectAttribute = (attr: 'color' | 'size' | 'material' | 'customValue', val: string) => {
+  const handleSelectAttribute = (
+    attr: 'color' | 'size' | 'material' | 'customValue',
+    val: string,
+    explicitImageUrl?: string | null
+  ) => {
     const newSelections = {
       color: attr === 'color' ? val : selectedColor,
       size: attr === 'size' ? val : selectedSize,
@@ -226,6 +250,17 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
       if (attr === 'material') setSelectedMaterial(val);
       if (attr === 'customValue') setSelectedCustom(val);
     }
+
+    const targetImageUrl =
+      explicitImageUrl ||
+      matched?.image_url ||
+      activeVariants.find(v => (v.color === (attr === 'color' ? val : (newSelections.color || selectedColor))) && v.image_url)?.image_url;
+
+    if (targetImageUrl) {
+      setSelectedImage(getPresetImageUrl(targetImageUrl, 'card'));
+    } else {
+      setSelectedImage(null);
+    }
   };
 
   const aspectClass = getSharedAspectClass(settings?.image_aspect_ratio);
@@ -260,6 +295,50 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
   );
 
   const isShowcase = safeStyle !== 'card_11' && safeStyle !== 'style1';
+  const ellaVariant = getEllaCardVariant(settings?.card_style);
+
+  if (ellaCardVariant) {
+    const ellaProduct = {
+      ...toCardProduct(product, settings),
+      price: currentPrice,
+      compareAt: currentComparePrice,
+      image: activeImage,
+      image2: isVariantSelected ? null : secondImage,
+      source: product,
+      swatchNode: finalRenderedGroups,
+    };
+    return (
+      <EllaProductCard
+        product={ellaProduct}
+        variant={ellaCardVariant}
+        limit={settings?.swatch_limit ?? 4}
+        currencySymbol={currencySymbol}
+        cardMobileActivation={settings?.card_mobile_activation ?? 'scroll'}
+        settings={settings}
+      />
+    );
+  }
+
+  if (ellaVariant) {
+    const ellaProduct = {
+      ...toCardProduct(product, settings),
+      price: currentPrice,
+      compareAt: currentComparePrice,
+      image: activeImage,
+      image2: isVariantSelected ? null : secondImage,
+      source: product,
+      swatchNode: finalRenderedGroups,
+    };
+    return (
+      <EllaProductGrid
+        variant={ellaVariant}
+        products={[ellaProduct]}
+        settings={settings}
+        currencySymbol={currencySymbol}
+        single
+      />
+    );
+  }
 
   return (
     <>
@@ -293,6 +372,9 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
           onOpenQuickView={handleOpenQuickView}
           onAddToCart={handleAddToCart}
           onCardClick={handleCardClick}
+          isVariantSelected={isVariantSelected}
+          onSelectAttribute={handleSelectAttribute}
+          onHoverImage={setHoveredImage}
         />
       ) : (
         <StandardProductCard
@@ -323,6 +405,7 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
           onOpenQuickView={handleOpenQuickView}
           onAddToCart={handleAddToCart}
           onCardClick={handleCardClick}
+          isVariantSelected={isVariantSelected}
         />
       )}
 

@@ -4,6 +4,16 @@
 
 ---
 
+### [2026-10-07] v7.x — Ella Product Card Theme Integration (no DB schema change)
+
+**Code/UI integration:**
+- Added 8 new card archetypes: `card_ella_01`–`card_ella_08`.
+- New SSOT module: `components/product-cards/` (`ProductGrid.tsx`, `ProductCard.tsx`, `product-cards.css`, `card-variants.json`, `types.ts`, `toCardProduct.ts`).
+- `lib/utils/cardStyles.ts` registers Ella options; `lib/types/settings.ts` includes `card_ella_01`–`card_ella_08` in `StoreSettings['card_style']`; Theme Customizer selector exposes the Ella group.
+- Store grids and standalone `ProductCard` route Ella styles through `components/product-cards/` and use the same real product/variant data + wishlist/quick-view/add-to-cart hooks as existing cards. No DB migration needed.
+
+---
+
 ### [2026-10-07] v7.x — Atomic Inventory Stock Sync on Order Cancel/Edit/Trash
 
 **Problem fixed:** Cancelling, editing, or trashing an order did NOT restore/adjust inventory. Stock was permanently lost on cancel. Items added/removed in order editor never touched stock. Service items (modifiers/add-ons) correctly skipped.

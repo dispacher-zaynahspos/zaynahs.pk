@@ -272,9 +272,6 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
                       >
                         {formatPrice(comparePrice, settings.currency_symbol)}
                       </span>
-                      <span className="rounded-md bg-[#10b981] px-1.5 py-0.5 text-[9px] font-black text-white tracking-wide animate-none">
-                        -{Math.round(((comparePrice - basePrice) / comparePrice) * 100)}%
-                      </span>
                     </div>
                   )}
                 </div>

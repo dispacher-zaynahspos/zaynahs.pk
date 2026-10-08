@@ -3,7 +3,7 @@
 import React from 'react';
 import { moveItemInArray } from '@/lib/utils/arrayMove';
 import { StoreSettings } from '@/lib/types';
-import { ChevronUp, ChevronDown } from '@/components/common/Icons';
+import { ChevronUp, ChevronDown, Info } from '@/components/common/Icons';
 import { AccordionGroup } from '@/components/admin/customizer/controls';
 import { SegmentedControl, ToggleControl, ColorControl } from '@/components/admin/customizer/controls';
 import { ProductCardVisibilitySection } from './product-card/ProductCardVisibilitySection';
@@ -43,6 +43,34 @@ export default function ProductCardSettings({ settings, onUpdateSettings }: Prod
     swatches: 'Color Swatches'
   };
 
+  const lockedAlignmentReason: Record<string, string> = {
+    card_01: 'Parallel Footer Layout: Price and swatches share a justified horizontal row.',
+    card_02: 'Centered Seam Silhouette: Content is centered to anchor directly under the seam action pill.',
+    card_04: 'Dual Split Button: Text is centered to harmonize with the split action drawer.',
+    card_05: 'Asymmetric Right Rail: Content is left-aligned to counterbalance the right action rail.',
+    card_06: 'Full-Bleed Action Bar: Text is centered beneath the full-width cart bar.',
+    card_07: 'Centered Bubble Geometry: Text is centered to align with the bottom action bubbles.',
+    card_08: 'Baseline Locked Button: Centered alignment aligns with the baseline action button.',
+    card_09: 'Seam Junction Button: Centered alignment aligns with the seam action button.',
+    card_ella_04: 'Dedicated vendor/rating row locks content alignment.',
+    card_ella_05: 'Dedicated horizontal swatch/title/price stack takes precedence over generic alignment.',
+  };
+
+  const lockedOrderReason: Record<string, string> = {
+    card_01: 'Footer row locks price and swatches horizontally; vertical order is partial.',
+    card_02: 'Fixed stack silhouette: title, price, swatches, sizes are centered.',
+    card_03: 'Parallel options row: price and flat swatches share a single row.',
+    card_04: 'Fixed stack silhouette matches the bottom options drawer.',
+    card_05: 'Fixed stack layout counterbalances the right action rail.',
+    card_06: 'Fixed stack layout sits directly under the black cart bar.',
+    card_07: 'Fixed stack layout aligns with floating bubbles.',
+    card_08: 'Bottom action button is permanently anchored to the card baseline.',
+    card_09: 'Action button is permanently anchored to the seam junction.',
+    card_10: 'Slide drawer houses variant selectors and quick shop stepper.',
+    card_ella_04: 'Fixed vendor/rating row structure preserves the split-panel action layout.',
+    card_ella_05: 'Swatches stay directly above title in the canonical horizontal stack.',
+  };
+
   const handleMove = (index: number, direction: 'up' | 'down') => {
     const newOrder = moveItemInArray(elementsOrder, index, direction);
     if (newOrder === elementsOrder) return;
@@ -64,15 +92,22 @@ export default function ProductCardSettings({ settings, onUpdateSettings }: Prod
             onChange={(e) => onUpdateSettings({ card_style: e.target.value as any })}
             className="w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-[#f8f8f8] dark:bg-[#0f0f1b] px-3 py-2 text-xs font-bold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
           >
-            <optgroup label="10 Structural Brand Archetypes (10 Unique Layouts)">
-              {CARD_STYLE_OPTIONS.filter(o => o.group === '10 Structural Brand Archetypes').map(opt => (
+            <optgroup label="Base Store Themes (Protected — Never Touch)">
+              {CARD_STYLE_OPTIONS.filter(o => o.group === 'Base Store Themes (Protected)').map(opt => (
                 <option key={opt.value} value={opt.value}>
                   {opt.label}
                 </option>
               ))}
             </optgroup>
-            <optgroup label="Classic Showcase Themes">
-              {CARD_STYLE_OPTIONS.filter(o => o.group === 'Classic Showcase Themes').map(opt => (
+            <optgroup label="Elessi Theme (10 Styles)">
+              {CARD_STYLE_OPTIONS.filter(o => o.group === 'Elessi Theme').map(opt => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </optgroup>
+            <optgroup label="Ella Theme (8 Styles)">
+              {CARD_STYLE_OPTIONS.filter(o => o.group === 'Ella Theme').map(opt => (
                 <option key={opt.value} value={opt.value}>
                   {opt.label}
                 </option>
@@ -295,6 +330,12 @@ export default function ProductCardSettings({ settings, onUpdateSettings }: Prod
             );
           })}
         </div>
+        {lockedAlignmentReason[activeStyle] && (
+          <div className="flex items-start gap-2 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-700 dark:text-amber-300">
+            <Info className="h-4 w-4 mt-0.5 shrink-0 text-amber-500" />
+            <span><strong>Silhouette Notice:</strong> {lockedAlignmentReason[activeStyle]} (Your preference remains saved for standard styles).</span>
+          </div>
+        )}
       </div>
 
       {/* Vertical Element Ordering */}
@@ -332,6 +373,12 @@ export default function ProductCardSettings({ settings, onUpdateSettings }: Prod
             </div>
           ))}
         </div>
+        {lockedOrderReason[activeStyle] && (
+          <div className="flex items-start gap-2 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-700 dark:text-amber-300">
+            <Info className="h-4 w-4 mt-0.5 shrink-0 text-amber-500" />
+            <span><strong>Silhouette Notice:</strong> {lockedOrderReason[activeStyle]} (Your preference remains saved for standard styles).</span>
+          </div>
+        )}
       </div>
       </div>
       </AccordionGroup>

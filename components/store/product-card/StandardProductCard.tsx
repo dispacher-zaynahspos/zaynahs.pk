@@ -38,6 +38,7 @@ interface StandardProductCardProps {
   onOpenQuickView: (e: React.MouseEvent) => void;
   onAddToCart: (e: React.MouseEvent) => void;
   onCardClick?: (e: React.MouseEvent) => void;
+  isVariantSelected?: boolean;
 }
 
 export const StandardProductCard: React.FC<StandardProductCardProps> = ({
@@ -68,6 +69,7 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
   onOpenQuickView,
   onAddToCart,
   onCardClick,
+  isVariantSelected = false,
 }) => {
   // ── Mobile scroll-focus (Shopify-style): the card nearest the reading band gets
   //    `is-in-focus active-card` → its hover image plays + action icons spawn.
@@ -82,7 +84,7 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
   const hoverStyle = settings?.image_hover_style ?? 'second_image';
   const isZoom = hoverStyle === 'zoom';
   const isSecondImage = hoverStyle !== 'none' && hoverStyle !== 'zoom';
-  const showSecond = isSecondImage && Boolean(secondImage) && !hoveredImage;
+  const showSecond = isSecondImage && Boolean(secondImage) && !hoveredImage && !isVariantSelected;
 
   // ── Appearance controls (defaults preserve current look) ──
   const shadowClassMap: Record<string, string> = { none: '', sm: 'shadow-xs', md: 'shadow-md', lg: 'shadow-lg' };

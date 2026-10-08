@@ -12,6 +12,7 @@ interface ProductCardMediaProps {
   settings?: StoreSettings | null;
   priority?: boolean;
   fitClass?: 'object-contain' | 'object-cover';
+  isVariantSelected?: boolean;
 }
 
 export const ProductCardMedia: React.FC<ProductCardMediaProps> = ({
@@ -22,11 +23,12 @@ export const ProductCardMedia: React.FC<ProductCardMediaProps> = ({
   settings,
   priority = false,
   fitClass = 'object-contain',
+  isVariantSelected = false,
 }) => {
   const hoverStyle = settings?.image_hover_style ?? 'second_image';
   const isZoom = hoverStyle === 'zoom';
   const isSecondImage = hoverStyle !== 'none' && hoverStyle !== 'zoom';
-  const showSecond = isSecondImage && Boolean(secondImage) && !hoveredImage;
+  const showSecond = isSecondImage && Boolean(secondImage) && !hoveredImage && !isVariantSelected;
 
   return (
     <>

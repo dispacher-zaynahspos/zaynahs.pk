@@ -1501,17 +1501,17 @@ export const customCss = `
     }
 
     /* Elessi Style 3: Floating 3-Action Segmented Pill */
-    .z-card-container.sc_style3 .elessi-floating-pill {
+    .z-card-container.sc_style3 .elessi-floating-pill-wrap {
       opacity: 0;
-      transform: translate(-50%, 10px);
+      transform: translateY(10px);
       pointer-events: none;
       transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .z-card-container.sc_style3:hover .elessi-floating-pill,
-    .z-card-container.sc_style3.is-in-focus .elessi-floating-pill,
-    .z-card-container.sc_style3.active-card .elessi-floating-pill {
+    .z-card-container.sc_style3:hover .elessi-floating-pill-wrap,
+    .z-card-container.sc_style3.is-in-focus .elessi-floating-pill-wrap,
+    .z-card-container.sc_style3.active-card .elessi-floating-pill-wrap {
       opacity: 1;
-      transform: translate(-50%, 0);
+      transform: translateY(0);
       pointer-events: auto;
     }
 
@@ -1574,17 +1574,17 @@ export const customCss = `
     }
 
     /* Elessi Style 7: Floating 3-Bubble Center Row */
-    .z-card-container.sc_style7 .elessi-floating-bubbles {
+    .z-card-container.sc_style7 .elessi-floating-bubbles-wrap {
       opacity: 0;
-      transform: translate(-50%, 10px);
+      transform: translateY(10px);
       pointer-events: none;
       transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .z-card-container.sc_style7:hover .elessi-floating-bubbles,
-    .z-card-container.sc_style7.is-in-focus .elessi-floating-bubbles,
-    .z-card-container.sc_style7.active-card .elessi-floating-bubbles {
+    .z-card-container.sc_style7:hover .elessi-floating-bubbles-wrap,
+    .z-card-container.sc_style7.is-in-focus .elessi-floating-bubbles-wrap,
+    .z-card-container.sc_style7.active-card .elessi-floating-bubbles-wrap {
       opacity: 1;
-      transform: translate(-50%, 0);
+      transform: translateY(0);
       pointer-events: auto;
     }
 
@@ -1618,7 +1618,20 @@ export const customCss = `
       pointer-events: auto;
     }
 
-    /* Elessi Style 10: In-Card Quick Shop Sheet */
+    /* Elessi Style 10: In-Card Quick Shop Sheet & Side Rail */
+    .z-card-container.sc_style10 .elessi-side-rail {
+      opacity: 0;
+      transform: translateX(10px);
+      pointer-events: none;
+      transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+    .z-card-container.sc_style10:hover .elessi-side-rail,
+    .z-card-container.sc_style10.is-in-focus .elessi-side-rail,
+    .z-card-container.sc_style10.active-card .elessi-side-rail {
+      opacity: 1;
+      transform: translateX(0);
+      pointer-events: auto;
+    }
     .z-card-container.sc_style10 .elessi-quick-shop-sheet {
       opacity: 0;
       transform: translateY(14px);

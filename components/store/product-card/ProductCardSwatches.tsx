@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Product, StoreSettings } from '@/lib/types';
-import { getSwatchStyle } from '@/lib/utils/swatch';
+import { getSwatchStyle, extractColorsFromName } from '@/lib/utils/swatch';
 import { getPresetImageUrl } from '@/lib/utils/imageUrl';
 import { getSwatchClasses } from './ProductCardStyles';
 
@@ -20,7 +20,7 @@ interface ProductCardSwatchesProps {
   shapeClass: string;
   archiveSwatchSize: string;
   onHoverImage: (url: string | null) => void;
-  onSelectAttribute: (attr: 'color' | 'size' | 'material' | 'customValue', val: string) => void;
+  onSelectAttribute: (attr: 'color' | 'size' | 'material' | 'customValue', val: string, imageUrl?: string | null) => void;
 }
 
 export const ProductCardSwatches: React.FC<ProductCardSwatchesProps> = ({
@@ -49,6 +49,13 @@ export const ProductCardSwatches: React.FC<ProductCardSwatchesProps> = ({
           {group.variants.slice(0, settings?.swatch_limit ?? 8).map((v, i) => {
             const isActive = currentVariant?.color === v.color;
             const sSizeClass = getSwatchClasses('color', archiveSwatchSize, '');
+            const resolvedColorHex = v.color_hex || (v.color ? extractColorsFromName(v.color) : undefined);
+            const isImageSwatch = Boolean(
+              (v.show_image_swatch && v.image_url) ||
+              (!resolvedColorHex && v.image_url)
+            );
+            const swatchBg = isImageSwatch ? {} : getSwatchStyle(resolvedColorHex);
+
             return (
               <button
                 key={i}
@@ -59,7 +66,7 @@ export const ProductCardSwatches: React.FC<ProductCardSwatchesProps> = ({
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  onSelectAttribute('color', v.color || '');
+                  onSelectAttribute('color', v.color || '', v.image_url || null);
                 }}
                 className={`
                   relative flex items-center justify-center cursor-pointer flex-shrink-0 overflow-hidden transition-all duration-150 border swatch-btn
@@ -67,16 +74,17 @@ export const ProductCardSwatches: React.FC<ProductCardSwatchesProps> = ({
                   shadow-sm ${isActive ? 'scale-110' : 'hover:scale-110'}
                 `}
                 style={{
-                  ...getSwatchStyle(v.color_hex),
-                  borderColor: isActive ? 'var(--color-accent)' : 'var(--color-border)',
-                  boxShadow: isActive ? '0 0 0 1.5px var(--color-accent)' : 'none',
+                  ...swatchBg,
+                  borderColor: isActive ? 'var(--color-accent, var(--color-primary, #ef4444))' : 'var(--color-border, #e5e7eb)',
+                  boxShadow: isActive ? '0 0 0 1.5px var(--color-accent, var(--color-primary, #ef4444))' : 'none',
                 }}
               >
-                {v.image_url && (v.show_image_swatch || !v.color_hex) && (
+                {isImageSwatch && v.image_url && (
                   <img
-                    src={v.image_url}
+                    src={getPresetImageUrl(v.image_url, 'card')}
                     alt={v.color || ''}
                     className="w-full h-full object-cover"
+                    loading="lazy"
                   />
                 )}
               </button>
@@ -106,10 +114,12 @@ export const ProductCardSwatches: React.FC<ProductCardSwatchesProps> = ({
                 key={i}
                 type="button"
                 title={val || ''}
+                onMouseEnter={() => v.image_url ? onHoverImage(getPresetImageUrl(v.image_url, 'card')) : null}
+                onMouseLeave={() => onHoverImage(null)}
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  onSelectAttribute(attrKey, val || '');
+                  onSelectAttribute(attrKey, val || '', v.image_url || null);
                 }}
                 className={`
                   relative flex items-center justify-center font-bold transition-all duration-150 cursor-pointer flex-shrink-0 overflow-hidden select-none border swatch-btn

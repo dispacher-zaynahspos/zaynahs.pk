@@ -18,7 +18,7 @@ Stores: **TotVogue · Zaynahs · MiniMahal · LittleMister** (+ future clones)
 6. **No email system** — WhatsApp-only ordering. Never suggest/implement email flows.
 7. **Agent executes** — run terminal commands autonomously; never ask user to run commands manually unless truly required.
 8. **Fast & direct** — don't waste tokens on unnecessary MCP tools/browsing/file reads; resolve via direct code analysis.
-9. **Product card changes** → MUST follow `docs/prompts/add_card_style_prompt.md` step-by-step (see [14-design-system.md](docs/agent-rules/14-design-system.md) RULE DS2).
+9. **Product card changes** → MUST follow `docs/prompts/add_card_style_prompt.md` step-by-step and `docs/UI_CARDS.md` (see [14-design-system.md](docs/agent-rules/14-design-system.md) RULE DS2 & RULE BASE-CARDS).
 10. Instant price/cache rule (RULE D12) → see [08-caching-isr-ssr.md](docs/agent-rules/08-caching-isr-ssr.md).
 11. Instant 0ms navigation & tabs across all functional tabs (Categories, Products, Reviews, Cart, Settings) (RULE F1) → see [03-frontend-nextjs-react.md](docs/agent-rules/03-frontend-nextjs-react.md) and `docs/UI_PERFORMANCE_GUIDE.md` Section 8.
 12. **Single Source of Truth (SSOT1)** — zero duplicate implementations; any feature that appears in 2+ places must reuse ONE shared component/logic/data source. Before writing new code, check if it already exists. → see [27-single-source-of-truth.md](docs/agent-rules/27-single-source-of-truth.md).
@@ -48,7 +48,7 @@ Full-system audit + permanent fixes are documented in `docs/AUDIT_PASS{0..10}_*.
 | 11 | [11-storage-images.md](docs/agent-rules/11-storage-images.md) | S1–S6, bucket, compressor, media selector |
 | 12 | [12-testing-verification.md](docs/agent-rules/12-testing-verification.md) | Happy path + edge case rules |
 | 13 | [13-autonomy-boundaries.md](docs/agent-rules/13-autonomy-boundaries.md) | Auto-allowed / confirm-first / never-auto |
-| 14 | [14-design-system.md](docs/agent-rules/14-design-system.md) | Colors, tokens, DS1–DS11 (sticky bars, safe bounds, toggle/expand sync), anti-bloat |
+| 14 | [14-design-system.md](docs/agent-rules/14-design-system.md) | Colors, tokens, DS1–DS17 (sticky bars, safe bounds, swatches, controls, linked image swap), anti-bloat |
 | 15 | [15-shared-components-ui-modules.md](docs/agent-rules/15-shared-components-ui-modules.md) | Component library + mandatory module map |
 | 16 | [16-multi-system-architecture.md](docs/agent-rules/16-multi-system-architecture.md) | /store vs /admin boundaries |
 | 17 | [17-mobile-native-app-style.md](docs/agent-rules/17-mobile-native-app-style.md) | M1–M5, cards, touch, jitter prevention |
@@ -66,6 +66,7 @@ Full-system audit + permanent fixes are documented in `docs/AUDIT_PASS{0..10}_*.
 
 ## 🔗 External Docs (unchanged locations)
 - `docs/UI_RULES.md` — design-system UI reference. **§9 popup/modal/bottom-sheet scroll standard** (shared `lib/hooks/useBodyScrollLock.ts`, `flex-1 min-h-0 overflow-y-auto overscroll-contain`) and **§10 product-card interaction trigger** (Shopify-style: touch = single scroll-focused card plays hover image + spawns icons via shared `lib/hooks/useMobileCardFocus.ts`; hover devices use CSS `@media (hover:hover)`; full-card overlay `Link` = single-tap opens product, icons win at `z-[25]`) live here.
+- `docs/UI_CARDS.md` — master product card system, controls, modules, base themes protection & Elessi archetype reference.
 - `docs/SCHEMA_CHANGE_LOG.md` — every DB change, dated
 - `docs/STORE_GUIDE.md` — GitHub & Supabase credentials
 - `docs/CLOUDFLARE_SUPABASE_SETUP.md` — cache rules, webhooks, ISR guide, 1-click setup scripts

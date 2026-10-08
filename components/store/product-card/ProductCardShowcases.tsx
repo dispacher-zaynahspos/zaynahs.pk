@@ -10,8 +10,11 @@ import { normalizeCardStyle, getCardStyleClass } from '@/lib/utils/cardStyles';
 import { ProductCardStyleInjector } from './ProductCardStyles';
 import { ProductCardBadges } from './ProductCardBadges';
 import { ProductCardMedia } from './ProductCardMedia';
-import { ProductCardActions, CardCartIcon, CardWishlistIcon, CardQuickviewIcon, CardCompareIcon } from './ProductCardActions';
+import { ProductCardActions, CardCartIcon, CardWishlistIcon, CardQuickviewIcon } from './ProductCardActions';
 import { ProductCardShowcaseContent } from './ProductCardShowcaseContent';
+import { Plus } from '@/components/common/Icons';
+import { getSwatchStyle, extractColorsFromName } from '@/lib/utils/swatch';
+import { getPresetImageUrl } from '@/lib/utils/imageUrl';
 
 interface ProductCardShowcaseProps {
   activeStyle: string;
@@ -41,6 +44,9 @@ interface ProductCardShowcaseProps {
   onOpenQuickView: (e: React.MouseEvent) => void;
   onAddToCart: (e: React.MouseEvent) => void;
   onCardClick?: (e: React.MouseEvent) => void;
+  isVariantSelected?: boolean;
+  onSelectAttribute?: (attr: 'color' | 'size' | 'material' | 'customValue', val: string, imageUrl?: string | null) => void;
+  onHoverImage?: (url: string | null) => void;
 }
 
 export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
@@ -71,6 +77,9 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
   onOpenQuickView,
   onAddToCart,
   onCardClick,
+  isVariantSelected = false,
+  onSelectAttribute,
+  onHoverImage,
 }) => {
   const { cardRef, isFocused, setManualFocus } = useMobileCardFocus(settings?.card_mobile_activation ?? 'scroll');
 
@@ -107,43 +116,68 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
 
   const hoverStyle = settings?.image_hover_style ?? 'second_image';
 
-  const [selectedColor, setSelectedColor] = React.useState<string>('Police Blue');
-  const [selectedSize, setSelectedSize] = React.useState<string>('L');
-  const [quantity, setQuantity] = React.useState<number>(1);
+  const isSwatchesEnabled = settings?.enable_variant_swatches !== false;
+  const isColorEnabled = isSwatchesEnabled && (settings?.card_show_swatches !== false) && (settings?.card_show_type_color !== false);
+  const isSizeEnabled = isSwatchesEnabled && (settings?.card_show_sizes !== false) && (settings?.card_show_type_size !== false);
 
   const availableSizes = React.useMemo(() => {
+    if (!isSizeEnabled) return [];
     const sizes = Array.from(new Set(product.variants?.map(v => v.size).filter(Boolean))) as string[];
-    return sizes.length > 0 ? sizes.slice(0, 4) : ['L', 'M', 'S'];
-  }, [product.variants]);
+    return sizes.slice(0, 4);
+  }, [product.variants, isSizeEnabled]);
 
   const availableColors = React.useMemo(() => {
+    if (!isColorEnabled) return [];
     const colors = product.variants?.filter(v => v.color && v.active) || [];
-    const unique = colors.reduce<{ color: string; hex?: string; img?: string }[]>((acc, v) => {
-      if (v.color && !acc.find(c => c.color === v.color)) {
-        acc.push({ color: v.color, hex: v.color_hex || undefined, img: v.image_url || undefined });
+    const unique = colors.reduce<{ color: string; hex?: string; img?: string; showImageSwatch?: boolean }[]>((acc, v) => {
+      const existing = acc.find(c => c.color === v.color);
+      if (!existing) {
+        acc.push({
+          color: v.color!,
+          hex: v.color_hex || (v.color ? extractColorsFromName(v.color) : undefined),
+          img: v.image_url || undefined,
+          showImageSwatch: v.show_image_swatch,
+        });
+      } else {
+        if (!existing.hex && (v.color_hex || v.color)) {
+          existing.hex = v.color_hex || (v.color ? extractColorsFromName(v.color) : undefined);
+        }
+        if (!existing.img && v.image_url) existing.img = v.image_url;
+        if (!existing.showImageSwatch && v.show_image_swatch) existing.showImageSwatch = v.show_image_swatch;
       }
       return acc;
     }, []);
-    if (unique.length > 0) return unique.slice(0, 4);
-    return [
-      { color: 'Police Blue', hex: '#2b3f56' },
-      { color: 'Amber Gold', hex: '#e5ad4f' },
-      { color: 'Sand Beige', hex: '#dec7b0' },
-    ];
-  }, [product.variants]);
+    return unique.slice(0, settings?.swatch_limit ?? 6);
+  }, [product.variants, isColorEnabled, settings?.swatch_limit]);
+
+  const [selectedColor, setSelectedColor] = React.useState<string>('');
+  const [selectedSize, setSelectedSize] = React.useState<string>('');
+  const [quantity, setQuantity] = React.useState<number>(1);
+
+  React.useEffect(() => {
+    if (availableColors.length > 0 && (!selectedColor || !availableColors.some(c => c.color === selectedColor))) {
+      setSelectedColor(availableColors[0].color);
+    }
+  }, [availableColors, selectedColor]);
+
+  React.useEffect(() => {
+    if (availableSizes.length > 0 && (!selectedSize || !availableSizes.includes(selectedSize))) {
+      setSelectedSize(availableSizes[0]);
+    }
+  }, [availableSizes, selectedSize]);
 
   const renderPriceRow = (align: 'left' | 'center' = 'center', className = '') => (
     <div className={`flex items-baseline gap-1.5 ${align === 'center' ? 'justify-center' : 'justify-start'} ${className}`}>
-      {currentComparePrice && currentComparePrice > currentPrice && (
-        <span className="pold text-[11px] sm:text-xs text-gray-400 line-through">
-          {formatPrice(currentComparePrice, currencySymbol)}
-        </span>
-      )}
       <span className="card-price text-xs sm:text-sm font-bold text-gray-900 dark:text-white">
         {hasPriceRange
           ? `${formatPrice(minPrice, currencySymbol)} – ${formatPrice(maxPrice, currencySymbol)}`
           : formatPrice(currentPrice, currencySymbol)}
       </span>
+      {currentComparePrice && currentComparePrice > currentPrice && (
+        <span className="pold text-[11px] sm:text-xs text-gray-400 line-through">
+          {formatPrice(currentComparePrice, currencySymbol)}
+        </span>
+      )}
     </div>
   );
 
@@ -155,101 +189,111 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
         </div>
       );
     }
+    if (!isColorEnabled || availableColors.length === 0) return null;
     return (
       <div className={`flex items-center gap-1.5 ${align === 'center' ? 'justify-center' : align === 'right' ? 'justify-end' : 'justify-start'}`}>
-        {availableColors.map((c, i) => (
-          <span
+        {availableColors.map((c, i) => {
+          const isImg = Boolean((c.showImageSwatch && c.img) || (!c.hex && c.img));
+          const swatchStyle = isImg ? {} : getSwatchStyle(c.hex);
+          return (
+            <button
+              key={i}
+              type="button"
+              title={c.color}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onSelectAttribute?.('color', c.color, c.img || null);
+              }}
+              onMouseEnter={() => c.img && onHoverImage ? onHoverImage(getPresetImageUrl(c.img, 'card')) : null}
+              onMouseLeave={() => onHoverImage ? onHoverImage(null) : null}
+              className="w-3.5 h-3.5 rounded-full border border-black/15 dark:border-white/20 shadow-2xs inline-flex items-center justify-center shrink-0 overflow-hidden transition-transform hover:scale-110 cursor-pointer"
+              style={swatchStyle}
+            >
+              {isImg && c.img && (
+                <img
+                  src={getPresetImageUrl(c.img, 'card')}
+                  alt={c.color}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
+              )}
+            </button>
+          );
+        })}
+      </div>
+    );
+  };
+
+  const renderBoxedSizes = (align: 'left' | 'center' = 'center') => {
+    if (!isSizeEnabled || availableSizes.length === 0) return null;
+    return (
+      <div className={`flex items-center gap-1.5 mt-1.5 flex-wrap ${align === 'center' ? 'justify-center' : 'justify-start'}`}>
+        {availableSizes.map((s, i) => (
+          <button
             key={i}
-            title={c.color}
-            className="w-3 h-3 rounded-full border border-black/10 dark:border-white/20 shadow-xs inline-block shrink-0 transition-transform hover:scale-110"
-            style={{ backgroundColor: c.hex || '#2b3f56' }}
-          />
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onOpenQuickView(e);
+            }}
+            onPointerDown={(e) => e.stopPropagation()}
+            className="min-w-[22px] h-[22px] px-1.5 rounded-[3px] border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#1f1f2e] text-[10px] font-medium text-gray-600 dark:text-gray-300 flex items-center justify-center hover:border-black dark:hover:border-white hover:text-black dark:hover:text-white transition-colors cursor-pointer z-[25]"
+          >
+            {s}
+          </button>
         ))}
       </div>
     );
   };
 
-  const renderBoxedSizes = (align: 'left' | 'center' = 'center') => (
-    <div className={`flex items-center gap-1.5 mt-1.5 flex-wrap ${align === 'center' ? 'justify-center' : 'justify-start'}`}>
-      {availableSizes.map((s, i) => (
-        <button
-          key={i}
-          type="button"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            onOpenQuickView(e);
-          }}
-          onPointerDown={(e) => e.stopPropagation()}
-          className="min-w-[22px] h-[22px] px-1.5 rounded-[3px] border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#1f1f2e] text-[10px] font-medium text-gray-600 dark:text-gray-300 flex items-center justify-center hover:border-black dark:hover:border-white hover:text-black dark:hover:text-white transition-colors cursor-pointer z-[25]"
-        >
-          {s}
-        </button>
-      ))}
-    </div>
-  );
-
-  const renderFlatSizes = () => (
-    <div className="flex items-center gap-2 text-[11px] font-bold tracking-widest text-gray-800 dark:text-gray-200">
-      {availableSizes.map((s, i) => (
-        <span key={i}>{s}</span>
-      ))}
-    </div>
-  );
-
-  const renderTopRightWishlist = (extraClass = '') => (
-    showWishlist ? (
-      <button
-        type="button"
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          onToggleWishlist(e);
-        }}
-        onPointerDown={(e) => e.stopPropagation()}
-        className={`action-btn pointer-events-auto absolute right-2.5 top-2.5 z-[25] flex h-7 w-7 items-center justify-center rounded-full bg-white/90 dark:bg-black/70 text-gray-700 dark:text-gray-300 shadow-sm border border-black/5 dark:border-white/10 hover:scale-110 active:scale-95 transition-transform cursor-pointer ${extraClass}`}
-        aria-label="Wishlist"
-      >
-        <CardWishlistIcon isInWishlist={isInWishlist} iconStyle={iconStyle} className="h-3.5 w-3.5" />
-      </button>
-    ) : null
-  );
+  const renderFlatSizes = () => {
+    if (!isSizeEnabled || availableSizes.length === 0) return null;
+    return (
+      <div className="flex items-center gap-2 text-[11px] font-bold tracking-widest text-gray-800 dark:text-gray-200">
+        {availableSizes.map((s, i) => (
+          <span key={i}>{s}</span>
+        ))}
+      </div>
+    );
+  };
 
   // ── SHOPIFY PATTERN: outer div + transparent overlay Link ─────────────────────
   const renderCardBody = () => {
-    // ── ELESSI STYLE 1: Corner FAB (+) & Side Rail ─────────────────────────────
+    // ── ELESSI STYLE 1: Corner FAB (+) & Synchronized Side Rail ───────────────
     if (scClass === 'sc_style1') {
       return (
         <div className="flex flex-col h-full justify-between relative bg-white dark:bg-[#16162a]">
           <div className={`relative ${aspectClass} w-full ${imgBgClass}`}>
             <div className="img-box relative w-full h-full overflow-hidden">
               <ProductCardBadges product={product} currentPrice={currentPrice} currentComparePrice={currentComparePrice} />
-              <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} />
+              <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} isVariantSelected={isVariantSelected} />
             </div>
 
-            {renderTopRightWishlist()}
-
-            <div className="elessi-side-rail absolute right-2.5 top-11 z-[25] flex flex-col gap-2 transition-all duration-200">
+            <div className="elessi-side-rail absolute right-2.5 top-2.5 z-[25] flex flex-col gap-2 transition-all duration-200">
+              {showWishlist && (
+                <button
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleWishlist(e); }}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  className="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-white dark:bg-[#1a1a26] text-gray-700 dark:text-gray-200 shadow-md border border-gray-100 dark:border-gray-800 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform cursor-pointer z-[25]"
+                  aria-label="Wishlist"
+                >
+                  <CardWishlistIcon isInWishlist={isInWishlist} iconStyle={iconStyle} className="h-3.5 w-3.5" />
+                </button>
+              )}
               {showQuickview && (
                 <button
                   type="button"
                   onClick={(e) => { e.preventDefault(); e.stopPropagation(); onOpenQuickView(e); }}
                   onPointerDown={(e) => e.stopPropagation()}
-                  className="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-[#525252] text-white flex items-center justify-center shadow-md hover:bg-black transition-colors cursor-pointer z-[25]"
+                  className="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-white dark:bg-[#1a1a26] text-gray-700 dark:text-gray-200 shadow-md border border-gray-100 dark:border-gray-800 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform cursor-pointer z-[25]"
                   aria-label="Quick View"
                 >
-                  <CardQuickviewIcon iconStyle={iconStyle} className="h-3.5 w-3.5 text-white" />
+                  <CardQuickviewIcon iconStyle={iconStyle} className="h-3.5 w-3.5" />
                 </button>
               )}
-              <button
-                type="button"
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onOpenQuickView(e); }}
-                onPointerDown={(e) => e.stopPropagation()}
-                className="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-[#525252] text-white flex items-center justify-center shadow-md hover:bg-black transition-colors cursor-pointer z-[25]"
-                aria-label="Compare"
-              >
-                <CardCompareIcon className="h-3.5 w-3.5 text-white" />
-              </button>
             </div>
 
             <div className="elessi-flat-sizes absolute left-3 bottom-2.5 z-[20] transition-all duration-200">
@@ -261,10 +305,11 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
                 type="button"
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAddToCart(e); }}
                 onPointerDown={(e) => e.stopPropagation()}
-                className="elessi-seam-fab absolute -bottom-3.5 right-3 sm:right-4 z-[30] h-9 w-9 sm:h-10 sm:w-10 rounded-full border-2 border-[#ff5a5f] bg-white dark:bg-[#1a1a26] text-gray-900 dark:text-white flex items-center justify-center shadow-md hover:bg-[#ff5a5f] hover:text-white active:scale-95 transition-all cursor-pointer"
+                style={{ borderColor: 'var(--color-primary, #ff5a5f)' }}
+                className="elessi-seam-fab absolute -bottom-3.5 right-3 sm:right-4 z-[30] h-9 w-9 sm:h-10 sm:w-10 rounded-full border-2 bg-white dark:bg-[#1a1a26] text-gray-900 dark:text-white flex items-center justify-center shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer"
                 aria-label="Add to cart"
               >
-                <span className="text-xl sm:text-2xl font-light leading-none -mt-0.5">+</span>
+                <span className="text-xl sm:text-2xl font-light leading-none -mt-0.5" style={{ color: 'var(--color-primary, #ff5a5f)' }}>+</span>
               </button>
             )}
           </div>
@@ -284,13 +329,13 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
       );
     }
 
-    // ── ELESSI STYLE 2: Between-Seam 4-Icon Row ────────────────────────────────
+    // ── ELESSI STYLE 2: Between-Seam 3-Icon Row ────────────────────────────────
     if (scClass === 'sc_style2') {
       return (
         <div className="flex flex-col h-full justify-between relative bg-white dark:bg-[#16162a]">
           <div className={`img-box relative ${aspectClass} w-full ${imgBgClass} overflow-hidden`}>
             <ProductCardBadges product={product} currentPrice={currentPrice} currentComparePrice={currentComparePrice} />
-            <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} />
+            <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} isVariantSelected={isVariantSelected} />
           </div>
 
           <div className="elessi-between-seam-row flex items-center justify-center gap-2 sm:gap-2.5 py-2.5 border-b border-gray-100 dark:border-gray-800/80 z-[25] transition-all duration-200">
@@ -327,15 +372,6 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
                 <CardQuickviewIcon iconStyle={iconStyle} className="h-3.5 w-3.5" />
               </button>
             )}
-            <button
-              type="button"
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onOpenQuickView(e); }}
-              onPointerDown={(e) => e.stopPropagation()}
-              className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#1f1f2e] text-gray-700 dark:text-gray-200 hover:border-black dark:hover:border-white hover:text-black dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer"
-              aria-label="Compare"
-            >
-              <CardCompareIcon className="h-3.5 w-3.5" />
-            </button>
           </div>
 
           <div className="cb flex flex-col flex-grow justify-between items-center text-center p-2.5 w-full relative z-[2]">
@@ -345,7 +381,6 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
               </Link>
               <div className="mt-1">{renderPriceRow('center')}</div>
               <div className="mt-2">{renderDots('center')}</div>
-              <div className="mt-1">{renderBoxedSizes('center')}</div>
             </div>
           </div>
         </div>
@@ -358,41 +393,44 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
         <div className="flex flex-col h-full justify-between relative bg-white dark:bg-[#16162a]">
           <div className={`img-box relative ${aspectClass} w-full ${imgBgClass} overflow-hidden`}>
             <ProductCardBadges product={product} currentPrice={currentPrice} currentComparePrice={currentComparePrice} />
-            <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} />
-            {renderTopRightWishlist()}
+            <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} isVariantSelected={isVariantSelected} />
 
-            <div className="elessi-floating-pill absolute bottom-3 left-1/2 -translate-x-1/2 z-[25] bg-white dark:bg-[#1a1a26] rounded-md shadow-lg border border-gray-200 dark:border-gray-700 flex items-center divide-x divide-gray-200 dark:divide-gray-700 overflow-hidden transition-all duration-200">
-              {showQuickcart && (
-                <button
-                  type="button"
-                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAddToCart(e); }}
-                  onPointerDown={(e) => e.stopPropagation()}
-                  className="px-3 py-2 text-gray-700 dark:text-gray-200 hover:text-black dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer flex items-center justify-center"
-                  aria-label="Add to cart"
-                >
-                  <CardCartIcon iconStyle={iconStyle} className="h-3.5 w-3.5" />
-                </button>
-              )}
-              {showQuickview && (
-                <button
-                  type="button"
-                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onOpenQuickView(e); }}
-                  onPointerDown={(e) => e.stopPropagation()}
-                  className="px-3 py-2 text-gray-700 dark:text-gray-200 hover:text-black dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer flex items-center justify-center"
-                  aria-label="Quick View"
-                >
-                  <CardQuickviewIcon iconStyle={iconStyle} className="h-3.5 w-3.5" />
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onOpenQuickView(e); }}
-                onPointerDown={(e) => e.stopPropagation()}
-                className="px-3 py-2 text-gray-700 dark:text-gray-200 hover:text-black dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer flex items-center justify-center"
-                aria-label="Compare"
-              >
-                <CardCompareIcon className="h-3.5 w-3.5" />
-              </button>
+            <div className="elessi-floating-pill-wrap absolute inset-x-0 bottom-3 z-[25] flex justify-center pointer-events-none transition-all duration-200">
+              <div className="elessi-floating-pill pointer-events-auto bg-white dark:bg-[#1a1a26] rounded-md shadow-lg border border-gray-200 dark:border-gray-700 flex items-center divide-x divide-gray-200 dark:divide-gray-700 overflow-hidden">
+                {showQuickcart && (
+                  <button
+                    type="button"
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAddToCart(e); }}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    className="px-3 py-2 text-gray-700 dark:text-gray-200 hover:text-black dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer flex items-center justify-center"
+                    aria-label="Add to cart"
+                  >
+                    <CardCartIcon iconStyle={iconStyle} className="h-3.5 w-3.5" />
+                  </button>
+                )}
+                {showWishlist && (
+                  <button
+                    type="button"
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleWishlist(e); }}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    className="px-3 py-2 text-gray-700 dark:text-gray-200 hover:text-black dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer flex items-center justify-center"
+                    aria-label="Wishlist"
+                  >
+                    <CardWishlistIcon isInWishlist={isInWishlist} iconStyle={iconStyle} className="h-3.5 w-3.5" />
+                  </button>
+                )}
+                {showQuickview && (
+                  <button
+                    type="button"
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); onOpenQuickView(e); }}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    className="px-3 py-2 text-gray-700 dark:text-gray-200 hover:text-black dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer flex items-center justify-center"
+                    aria-label="Quick View"
+                  >
+                    <CardQuickviewIcon iconStyle={iconStyle} className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
@@ -401,9 +439,8 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
               <Link href={productUrl} onClick={handleClick} prefetch={false} className={`card-title text-xs sm:text-sm font-semibold text-gray-900 dark:text-white leading-tight ${titleClampClass}`}>
                 {product.name}
               </Link>
-              <div className="mt-1">{renderPriceRow('left')}</div>
-              <div className="mt-2.5 flex items-center justify-between gap-2 flex-wrap">
-                {renderFlatSizes()}
+              <div className="flex items-center justify-between gap-2 mt-1.5 flex-wrap">
+                {renderPriceRow('left')}
                 {renderDots('right')}
               </div>
             </div>
@@ -412,35 +449,50 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
       );
     }
 
-    // ── ELESSI STYLE 4: Split Options Drawer [Choose options | 👁] ─────────────
+    // ── ELESSI STYLE 4: Split Options Drawer ───────────────────────────────────
     if (scClass === 'sc_style4') {
       return (
         <div className="flex flex-col h-full justify-between relative bg-white dark:bg-[#16162a]">
           <div className={`img-box relative ${aspectClass} w-full ${imgBgClass} overflow-hidden`}>
             <ProductCardBadges product={product} currentPrice={currentPrice} currentComparePrice={currentComparePrice} />
-            <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} />
-            {renderTopRightWishlist()}
+            <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} isVariantSelected={isVariantSelected} />
 
-            <div className="elessi-split-drawer absolute inset-x-2 bottom-2 z-[25] flex items-stretch shadow-md rounded overflow-hidden transition-all duration-200">
-              <button
-                type="button"
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAddToCart(e); }}
-                onPointerDown={(e) => e.stopPropagation()}
-                className="flex-1 py-2 px-3 bg-white dark:bg-[#1a1a26] text-gray-900 dark:text-white text-[11px] sm:text-xs font-bold border-r border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer text-center truncate"
-              >
-                {product.has_variants ? 'Choose options' : 'Add to cart'}
-              </button>
-              {showQuickview && (
+            <div className="elessi-split-drawer absolute inset-x-2 bottom-2 z-[25] flex items-center justify-between shadow-md rounded-lg bg-white/95 dark:bg-[#1a1a26]/95 border border-gray-200 dark:border-gray-700 p-1 transition-all duration-200">
+              {showQuickcart && (
                 <button
                   type="button"
-                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onOpenQuickView(e); }}
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAddToCart(e); }}
                   onPointerDown={(e) => e.stopPropagation()}
-                  className="w-10 bg-white dark:bg-[#1a1a26] text-gray-800 dark:text-gray-200 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer shrink-0"
-                  aria-label="Quick View"
+                  className="h-8 w-8 sm:h-9 sm:w-9 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center justify-center transition-colors cursor-pointer"
+                  aria-label={product.has_variants ? 'Choose options' : 'Add to cart'}
                 >
-                  <CardQuickviewIcon iconStyle={iconStyle} className="h-4 w-4" />
+                  <Plus className="h-4 w-4 sm:h-4.5 sm:w-4.5 stroke-[2.2]" style={{ color: 'var(--color-primary, #ef4444)' }} />
                 </button>
               )}
+              <div className="flex items-center gap-1">
+                {showWishlist && (
+                  <button
+                    type="button"
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleWishlist(e); }}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    className="h-8 w-8 sm:h-9 sm:w-9 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200 flex items-center justify-center transition-colors cursor-pointer"
+                    aria-label="Wishlist"
+                  >
+                    <CardWishlistIcon isInWishlist={isInWishlist} iconStyle={iconStyle} className="h-3.5 w-3.5" />
+                  </button>
+                )}
+                {showQuickview && (
+                  <button
+                    type="button"
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); onOpenQuickView(e); }}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    className="h-8 w-8 sm:h-9 sm:w-9 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200 flex items-center justify-center transition-colors cursor-pointer"
+                    aria-label="Quick View"
+                  >
+                    <CardQuickviewIcon iconStyle={iconStyle} className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
@@ -451,20 +503,19 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
               </Link>
               <div className="mt-1">{renderPriceRow('center')}</div>
               <div className="mt-2">{renderDots('center')}</div>
-              <div className="mt-1">{renderBoxedSizes('center')}</div>
             </div>
           </div>
         </div>
       );
     }
 
-    // ── ELESSI STYLE 5: 4-Icon Vertical Right Rail ─────────────────────────────
+    // ── ELESSI STYLE 5: 3-Icon Vertical Right Rail ─────────────────────────────
     if (scClass === 'sc_style5') {
       return (
         <div className="flex flex-col h-full justify-between relative bg-white dark:bg-[#16162a]">
           <div className={`img-box relative ${aspectClass} w-full ${imgBgClass} overflow-hidden`}>
             <ProductCardBadges product={product} currentPrice={currentPrice} currentComparePrice={currentComparePrice} />
-            <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} />
+            <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} isVariantSelected={isVariantSelected} />
 
             <div className="elessi-vertical-rail absolute right-2.5 top-2.5 z-[25] flex flex-col gap-1.5 sm:gap-2 transition-all duration-200">
               {showWishlist && (
@@ -489,15 +540,6 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
                   <CardQuickviewIcon iconStyle={iconStyle} className="h-3.5 w-3.5" />
                 </button>
               )}
-              <button
-                type="button"
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onOpenQuickView(e); }}
-                onPointerDown={(e) => e.stopPropagation()}
-                className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white dark:bg-[#1a1a26] text-gray-700 dark:text-gray-200 shadow-md border border-gray-100 dark:border-gray-800 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform cursor-pointer"
-                aria-label="Compare"
-              >
-                <CardCompareIcon className="h-3.5 w-3.5" />
-              </button>
               {showQuickcart && (
                 <button
                   type="button"
@@ -519,23 +561,32 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
               </Link>
               <div className="mt-1">{renderPriceRow('left')}</div>
               <div className="mt-2">{renderDots('left')}</div>
-              <div className="mt-1">{renderBoxedSizes('left')}</div>
             </div>
           </div>
         </div>
       );
     }
 
-    // ── ELESSI STYLE 6: Seam Full-Width Black Cart Bar ─────────────────────────
+    // ── ELESSI STYLE 6: Seam Full-Width Theme Cart Bar ─────────────────────────
     if (scClass === 'sc_style6') {
       return (
         <div className="flex flex-col h-full justify-between relative bg-white dark:bg-[#16162a]">
           <div className={`img-box relative ${aspectClass} w-full ${imgBgClass} overflow-hidden`}>
             <ProductCardBadges product={product} currentPrice={currentPrice} currentComparePrice={currentComparePrice} />
-            <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} />
-            {renderTopRightWishlist()}
+            <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} isVariantSelected={isVariantSelected} />
 
-            <div className="elessi-side-rail absolute right-2.5 top-11 z-[25] flex flex-col gap-1.5 sm:gap-2 transition-all duration-200">
+            <div className="elessi-side-rail absolute right-2.5 top-2.5 z-[25] flex flex-col gap-1.5 sm:gap-2 transition-all duration-200">
+              {showWishlist && (
+                <button
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleWishlist(e); }}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white dark:bg-[#1a1a26] text-gray-700 dark:text-gray-200 shadow-md border border-gray-100 dark:border-gray-800 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform cursor-pointer"
+                  aria-label="Wishlist"
+                >
+                  <CardWishlistIcon isInWishlist={isInWishlist} iconStyle={iconStyle} className="h-3.5 w-3.5" />
+                </button>
+              )}
               {showQuickview && (
                 <button
                   type="button"
@@ -547,15 +598,6 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
                   <CardQuickviewIcon iconStyle={iconStyle} className="h-3.5 w-3.5" />
                 </button>
               )}
-              <button
-                type="button"
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onOpenQuickView(e); }}
-                onPointerDown={(e) => e.stopPropagation()}
-                className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white dark:bg-[#1a1a26] text-gray-700 dark:text-gray-200 shadow-md border border-gray-100 dark:border-gray-800 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform cursor-pointer"
-                aria-label="Compare"
-              >
-                <CardCompareIcon className="h-3.5 w-3.5" />
-              </button>
             </div>
 
             {showQuickcart && (
@@ -563,7 +605,8 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
                 type="button"
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAddToCart(e); }}
                 onPointerDown={(e) => e.stopPropagation()}
-                className="elessi-black-cart-bar absolute inset-x-0 bottom-0 z-[25] py-2.5 bg-black text-white text-xs font-bold tracking-wider uppercase flex items-center justify-center hover:bg-gray-900 transition-colors cursor-pointer"
+                style={{ backgroundColor: 'var(--color-primary, #111827)' }}
+                className="elessi-black-cart-bar absolute inset-x-0 bottom-0 z-[25] py-1.5 sm:py-2 text-white text-[10.5px] sm:text-xs font-bold tracking-wider uppercase flex items-center justify-center hover:brightness-110 transition-all cursor-pointer"
               >
                 {product.has_variants ? 'Choose options' : 'Add to cart'}
               </button>
@@ -577,7 +620,6 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
               </Link>
               <div className="mt-1">{renderPriceRow('center')}</div>
               <div className="mt-2">{renderDots('center')}</div>
-              <div className="mt-1">{renderBoxedSizes('center')}</div>
             </div>
           </div>
         </div>
@@ -590,41 +632,44 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
         <div className="flex flex-col h-full justify-between relative bg-white dark:bg-[#16162a]">
           <div className={`img-box relative ${aspectClass} w-full ${imgBgClass} overflow-hidden`}>
             <ProductCardBadges product={product} currentPrice={currentPrice} currentComparePrice={currentComparePrice} />
-            <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} />
-            {renderTopRightWishlist()}
+            <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} isVariantSelected={isVariantSelected} />
 
-            <div className="elessi-floating-bubbles absolute bottom-3 left-1/2 -translate-x-1/2 z-[25] flex items-center gap-2 sm:gap-2.5 transition-all duration-200">
-              {showQuickcart && (
-                <button
-                  type="button"
-                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAddToCart(e); }}
-                  onPointerDown={(e) => e.stopPropagation()}
-                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white dark:bg-[#1a1a26] text-gray-700 dark:text-gray-200 shadow-lg border border-gray-100 dark:border-gray-800 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform cursor-pointer"
-                  aria-label="Add to cart"
-                >
-                  <CardCartIcon iconStyle={iconStyle} className="h-3.5 w-3.5" />
-                </button>
-              )}
-              {showQuickview && (
-                <button
-                  type="button"
-                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onOpenQuickView(e); }}
-                  onPointerDown={(e) => e.stopPropagation()}
-                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white dark:bg-[#1a1a26] text-gray-700 dark:text-gray-200 shadow-lg border border-gray-100 dark:border-gray-800 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform cursor-pointer"
-                  aria-label="Quick View"
-                >
-                  <CardQuickviewIcon iconStyle={iconStyle} className="h-3.5 w-3.5" />
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onOpenQuickView(e); }}
-                onPointerDown={(e) => e.stopPropagation()}
-                className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white dark:bg-[#1a1a26] text-gray-700 dark:text-gray-200 shadow-lg border border-gray-100 dark:border-gray-800 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform cursor-pointer"
-                aria-label="Compare"
-              >
-                <CardCompareIcon className="h-3.5 w-3.5" />
-              </button>
+            <div className="elessi-floating-bubbles-wrap absolute inset-x-0 bottom-3 z-[25] flex justify-center pointer-events-none transition-all duration-200">
+              <div className="elessi-floating-bubbles pointer-events-auto flex items-center gap-2 sm:gap-2.5">
+                {showQuickcart && (
+                  <button
+                    type="button"
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAddToCart(e); }}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white dark:bg-[#1a1a26] text-gray-700 dark:text-gray-200 shadow-lg border border-gray-100 dark:border-gray-800 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform cursor-pointer"
+                    aria-label="Add to cart"
+                  >
+                    <CardCartIcon iconStyle={iconStyle} className="h-3.5 w-3.5" />
+                  </button>
+                )}
+                {showWishlist && (
+                  <button
+                    type="button"
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleWishlist(e); }}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white dark:bg-[#1a1a26] text-gray-700 dark:text-gray-200 shadow-lg border border-gray-100 dark:border-gray-800 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform cursor-pointer"
+                    aria-label="Wishlist"
+                  >
+                    <CardWishlistIcon isInWishlist={isInWishlist} iconStyle={iconStyle} className="h-3.5 w-3.5" />
+                  </button>
+                )}
+                {showQuickview && (
+                  <button
+                    type="button"
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); onOpenQuickView(e); }}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white dark:bg-[#1a1a26] text-gray-700 dark:text-gray-200 shadow-lg border border-gray-100 dark:border-gray-800 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform cursor-pointer"
+                    aria-label="Quick View"
+                  >
+                    <CardQuickviewIcon iconStyle={iconStyle} className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
@@ -635,7 +680,6 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
               </Link>
               <div className="mt-1">{renderPriceRow('center')}</div>
               <div className="mt-2">{renderDots('center')}</div>
-              <div className="mt-1">{renderBoxedSizes('center')}</div>
             </div>
           </div>
         </div>
@@ -648,7 +692,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
         <div className="flex flex-col h-full justify-between relative bg-white dark:bg-[#16162a]">
           <div className={`img-box relative ${aspectClass} w-full ${imgBgClass} overflow-hidden`}>
             <ProductCardBadges product={product} currentPrice={currentPrice} currentComparePrice={currentComparePrice} />
-            <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} />
+            <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} isVariantSelected={isVariantSelected} />
 
             <div className="elessi-vertical-rail absolute right-2.5 top-2.5 z-[25] flex flex-col gap-1.5 sm:gap-2 transition-all duration-200">
               {showWishlist && (
@@ -673,15 +717,6 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
                   <CardQuickviewIcon iconStyle={iconStyle} className="h-3.5 w-3.5" />
                 </button>
               )}
-              <button
-                type="button"
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onOpenQuickView(e); }}
-                onPointerDown={(e) => e.stopPropagation()}
-                className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white dark:bg-[#1a1a26] text-gray-700 dark:text-gray-200 shadow-md border border-gray-100 dark:border-gray-800 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform cursor-pointer"
-                aria-label="Compare"
-              >
-                <CardCompareIcon className="h-3.5 w-3.5" />
-              </button>
             </div>
           </div>
 
@@ -692,7 +727,6 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
               </Link>
               <div className="mt-1">{renderPriceRow('center')}</div>
               <div className="mt-2">{renderDots('center')}</div>
-              <div className="mt-1">{renderBoxedSizes('center')}</div>
             </div>
 
             {showQuickcart && (
@@ -701,7 +735,8 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
                   type="button"
                   onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAddToCart(e); }}
                   onPointerDown={(e) => e.stopPropagation()}
-                  className="w-full py-2 px-3 rounded-lg bg-[#ff5a5f] hover:bg-[#e0484d] text-white text-xs font-bold shadow-sm transition-colors flex items-center justify-center cursor-pointer"
+                  style={{ backgroundColor: 'var(--color-primary, #ff5a5f)' }}
+                  className="w-full py-2 px-3 rounded-lg hover:brightness-110 text-white text-xs font-bold shadow-sm transition-all flex items-center justify-center cursor-pointer"
                 >
                   {product.has_variants ? 'Choose options' : 'Add to cart'}
                 </button>
@@ -718,7 +753,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
         <div className="flex flex-col h-full justify-between relative bg-white dark:bg-[#16162a]">
           <div className={`img-box relative ${aspectClass} w-full ${imgBgClass} overflow-hidden`}>
             <ProductCardBadges product={product} currentPrice={currentPrice} currentComparePrice={currentComparePrice} />
-            <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} />
+            <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} isVariantSelected={isVariantSelected} />
 
             <div className="elessi-vertical-rail absolute right-2.5 top-2.5 z-[25] flex flex-col gap-1.5 sm:gap-2 transition-all duration-200">
               {showWishlist && (
@@ -743,15 +778,6 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
                   <CardQuickviewIcon iconStyle={iconStyle} className="h-3.5 w-3.5" />
                 </button>
               )}
-              <button
-                type="button"
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onOpenQuickView(e); }}
-                onPointerDown={(e) => e.stopPropagation()}
-                className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white dark:bg-[#1a1a26] text-gray-700 dark:text-gray-200 shadow-md border border-gray-100 dark:border-gray-800 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform cursor-pointer"
-                aria-label="Compare"
-              >
-                <CardCompareIcon className="h-3.5 w-3.5" />
-              </button>
             </div>
           </div>
 
@@ -761,7 +787,8 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
                 type="button"
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAddToCart(e); }}
                 onPointerDown={(e) => e.stopPropagation()}
-                className="w-full py-2 px-3 rounded-lg bg-[#ff5a5f] hover:bg-[#e0484d] text-white text-xs font-bold shadow-sm transition-colors flex items-center justify-center cursor-pointer"
+                style={{ backgroundColor: 'var(--color-primary, #ff5a5f)' }}
+                className="w-full py-2 px-3 rounded-lg hover:brightness-110 text-white text-xs font-bold shadow-sm transition-all flex items-center justify-center cursor-pointer"
               >
                 {product.has_variants ? 'Choose options' : 'Add to cart'}
               </button>
@@ -775,7 +802,6 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
               </Link>
               <div className="mt-1">{renderPriceRow('center')}</div>
               <div className="mt-2">{renderDots('center')}</div>
-              <div className="mt-1">{renderBoxedSizes('center')}</div>
             </div>
           </div>
         </div>
@@ -788,107 +814,84 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
         <div className="flex flex-col h-full justify-between relative bg-white dark:bg-[#16162a]">
           <div className={`img-box relative ${aspectClass} w-full ${imgBgClass} overflow-hidden`}>
             <ProductCardBadges product={product} currentPrice={currentPrice} currentComparePrice={currentComparePrice} />
-            <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} />
-            {renderTopRightWishlist()}
+            <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} isVariantSelected={isVariantSelected} />
 
-            <div className="elessi-quick-shop-sheet absolute inset-x-2 bottom-2 z-[25] bg-white dark:bg-[#1a1a26] rounded-xl p-2.5 sm:p-3 shadow-xl border border-gray-100 dark:border-gray-800 flex flex-col gap-2 transition-all duration-200">
-              <div>
-                <div className="flex items-center justify-between text-[11px] font-bold text-gray-800 dark:text-gray-200">
-                  <span>Color: {selectedColor}</span>
-                  <span className="text-gray-400">▾</span>
-                </div>
-                <div className="flex items-center gap-2 mt-1.5">
-                  {availableColors.map((c, i) => {
-                    const isSelected = selectedColor === c.color;
-                    return (
-                      <button
-                        key={i}
-                        type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          setSelectedColor(c.color);
-                        }}
-                        onPointerDown={(e) => e.stopPropagation()}
-                        className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${
-                          isSelected ? 'ring-2 ring-gray-900 dark:ring-white scale-110' : 'border-gray-300 dark:border-gray-600'
-                        }`}
-                        style={{ backgroundColor: c.hex || '#2b3f56' }}
-                        title={c.color}
-                      />
-                    );
-                  })}
-                </div>
-              </div>
+            <div className="elessi-side-rail absolute right-2.5 top-2.5 z-[25] flex flex-col gap-1.5 transition-all duration-200">
+              {showWishlist && (
+                <button
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleWishlist(e); }}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white dark:bg-[#1a1a26] text-gray-700 dark:text-gray-200 shadow-md border border-gray-100 dark:border-gray-800 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform cursor-pointer"
+                  aria-label="Wishlist"
+                >
+                  <CardWishlistIcon isInWishlist={isInWishlist} iconStyle={iconStyle} className="h-3.5 w-3.5" />
+                </button>
+              )}
+              {showQuickview && (
+                <button
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onOpenQuickView(e); }}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white dark:bg-[#1a1a26] text-gray-700 dark:text-gray-200 shadow-md border border-gray-100 dark:border-gray-800 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform cursor-pointer"
+                  aria-label="Quick View"
+                >
+                  <CardQuickviewIcon iconStyle={iconStyle} className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
 
-              <div>
-                <div className="text-[11px] font-bold text-gray-800 dark:text-gray-200">
-                  Size: {selectedSize}
+            <div className="elessi-quick-shop-sheet absolute inset-x-2 bottom-2 z-[25] bg-white dark:bg-[#1a1a26] rounded-2xl p-2.5 sm:p-3 shadow-xl border border-gray-100 dark:border-gray-800 flex flex-col gap-2 transition-all duration-200 max-h-[85%] overflow-y-auto">
+              {/* Canonical swatches directly inside the sheet - Single Source of Truth */}
+              {finalRenderedGroups && (
+                <div className="w-full flex justify-center -my-1" onClick={(e) => e.stopPropagation()}>
+                  {finalRenderedGroups}
                 </div>
-                <div className="flex items-center gap-1.5 mt-1">
-                  {availableSizes.map((s, i) => {
-                    const isSelected = selectedSize === s;
-                    return (
-                      <button
-                        key={i}
-                        type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          setSelectedSize(s);
-                        }}
-                        onPointerDown={(e) => e.stopPropagation()}
-                        className={`w-6 h-6 rounded-full text-[10px] font-bold flex items-center justify-center transition-colors ${
-                          isSelected
-                            ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900'
-                            : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200'
-                        }`}
-                      >
-                        {s}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
+              )}
 
-              <div className="flex items-center gap-2 mt-0.5">
-                <div className="flex items-center border border-gray-200 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-900 h-8 shrink-0 overflow-hidden">
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setQuantity((q) => Math.max(1, q - 1));
-                    }}
-                    onPointerDown={(e) => e.stopPropagation()}
-                    className="w-6 h-full text-xs font-bold text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800 flex items-center justify-center"
-                  >
-                    -
-                  </button>
-                  <span className="w-6 text-center text-xs font-bold text-gray-900 dark:text-white">
-                    {quantity}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setQuantity((q) => q + 1);
-                    }}
-                    onPointerDown={(e) => e.stopPropagation()}
-                    className="w-6 h-full text-xs font-bold text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800 flex items-center justify-center"
-                  >
-                    +
-                  </button>
+              <div className="flex flex-col gap-1.5 mt-0.5">
+                <div className="flex items-center justify-center">
+                  <div className="flex items-center justify-between border border-gray-200 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-900 h-6.5 shrink-0 overflow-hidden px-1 w-24">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setQuantity((q) => Math.max(1, q - 1));
+                      }}
+                      onPointerDown={(e) => e.stopPropagation()}
+                      className="w-6 h-full text-xs font-bold text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800 flex items-center justify-center cursor-pointer"
+                    >
+                      -
+                    </button>
+                    <span className="w-6 text-center text-xs font-bold text-gray-900 dark:text-white">
+                      {quantity}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setQuantity((q) => q + 1);
+                      }}
+                      onPointerDown={(e) => e.stopPropagation()}
+                      className="w-6 h-full text-xs font-bold text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800 flex items-center justify-center cursor-pointer"
+                    >
+                      +
+                    </button>
+                  </div>
                 </div>
+
                 {showQuickcart && (
                   <button
                     type="button"
                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAddToCart(e); }}
                     onPointerDown={(e) => e.stopPropagation()}
-                    className="flex-1 h-8 rounded-md bg-[#ff5a5f] hover:bg-[#e0484d] text-white text-[11px] font-bold transition-colors flex items-center justify-center cursor-pointer"
+                    style={{ backgroundColor: 'var(--color-primary, #ff5a5f)' }}
+                    className="w-full h-7.5 sm:h-8 px-2.5 rounded-lg hover:brightness-110 text-white text-[11px] sm:text-xs font-bold tracking-tight transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs active:scale-[0.98]"
                   >
-                    Add to cart
+                    <CardCartIcon iconStyle={iconStyle} className="h-3.5 w-3.5" />
+                    <span>Add to cart</span>
                   </button>
                 )}
               </div>
@@ -900,9 +903,8 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
               <Link href={productUrl} onClick={handleClick} prefetch={false} className={`card-title text-xs sm:text-sm font-semibold text-gray-900 dark:text-white leading-tight ${titleClampClass}`}>
                 {product.name}
               </Link>
-              <div className="flex items-center justify-between gap-2 mt-1.5 flex-wrap">
+              <div className="mt-1.5">
                 {renderPriceRow('left')}
-                {renderDots('right')}
               </div>
             </div>
           </div>
@@ -915,12 +917,12 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
         <div className="flex flex-col h-full justify-between">
           <div className={`img-box relative ${aspectClass} w-full ${imgBgClass} overflow-hidden`}>
             <ProductCardBadges product={product} currentPrice={currentPrice} currentComparePrice={currentComparePrice} />
-            <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} />
+            <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} isVariantSelected={isVariantSelected} />
             <ProductCardActions variant="slide-drawer" iconStyle={iconStyle} showWishlist={showWishlist} showQuickview={showQuickview} showQuickcart={showQuickcart} isInWishlist={isInWishlist} hasVariants={product.has_variants} onToggleWishlist={onToggleWishlist} onOpenQuickView={onOpenQuickView} onAddToCart={onAddToCart} />
           </div>
           <div className="cb flex flex-col flex-grow justify-between px-1.5 pt-2 pb-1.5 w-full relative z-[2]">
             <div className="flex items-baseline justify-between gap-1.5 w-full">
-              <Link href={productUrl} onClick={handleClick} prefetch={false} className={`card-title text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-gray-900 dark:text-white truncate flex-1 ${titleClampClass}`}>
+              <Link href={productUrl} onClick={handleClick} prefetch={false} className={`card-title text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-gray-900 dark:text-white flex-1 ${titleClampClass}`}>
                 {product.name}
               </Link>
               <span className="card-price text-[11px] sm:text-xs font-bold text-gray-900 dark:text-white shrink-0">
@@ -944,7 +946,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
         <div className="flex flex-col h-full justify-between">
           <div className={`img-box relative ${aspectClass} w-full ${imgBgClass} rounded-t-xl overflow-hidden`}>
             <ProductCardBadges product={product} currentPrice={currentPrice} currentComparePrice={currentComparePrice} />
-            <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} />
+            <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} isVariantSelected={isVariantSelected} />
             <ProductCardActions variant="action-btn" iconStyle={iconStyle} showWishlist={showWishlist} showQuickview={showQuickview} showQuickcart={false} isInWishlist={isInWishlist} hasVariants={product.has_variants} onToggleWishlist={onToggleWishlist} onOpenQuickView={onOpenQuickView} onAddToCart={onAddToCart} />
           </div>
           <div className="cb flex flex-col flex-grow justify-between p-2.5 w-full relative z-[2] bg-white dark:bg-[#16162a] rounded-b-xl">
@@ -1001,7 +1003,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
           <div className={`relative ${aspectClass} w-full ${imgBgClass} rounded-t-xl z-[10]`}>
             <div className="img-box relative w-full h-full rounded-t-xl overflow-hidden">
               <ProductCardBadges product={product} currentPrice={currentPrice} currentComparePrice={currentComparePrice} />
-              <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} />
+              <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} isVariantSelected={isVariantSelected} />
             </div>
             {/* Actions are placed outside the inner overflow-hidden box so the corner FAB seamlessly overlaps the bottom seam without clipping */}
             <ProductCardActions variant="corner-fab" iconStyle={iconStyle} showWishlist={showWishlist} showQuickview={showQuickview} showQuickcart={showQuickcart} isInWishlist={isInWishlist} hasVariants={product.has_variants} onToggleWishlist={onToggleWishlist} onOpenQuickView={onOpenQuickView} onAddToCart={onAddToCart} />
@@ -1044,7 +1046,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
           </div>
           <div className={`img-box relative ${aspectClass} w-full ${imgBgClass} overflow-hidden`}>
             <ProductCardBadges product={product} currentPrice={currentPrice} currentComparePrice={currentComparePrice} />
-            <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} />
+            <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} isVariantSelected={isVariantSelected} />
             <ProductCardActions variant="action-btn" iconStyle={iconStyle} showWishlist={showWishlist} showQuickview={false} showQuickcart={false} isInWishlist={isInWishlist} hasVariants={product.has_variants} onToggleWishlist={onToggleWishlist} onOpenQuickView={onOpenQuickView} onAddToCart={onAddToCart} />
           </div>
           <div className="cb flex flex-col flex-grow justify-between p-2.5 w-full relative z-[2] bg-white dark:bg-[#16162a] rounded-b-lg">
@@ -1088,7 +1090,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
         <div className="flex flex-col h-full justify-between">
           <div className={`img-box relative ${aspectClass} w-full ${imgBgClass} rounded-t-2xl overflow-hidden`}>
             <ProductCardBadges product={product} currentPrice={currentPrice} currentComparePrice={currentComparePrice} />
-            <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} />
+            <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} isVariantSelected={isVariantSelected} />
             <ProductCardActions variant="center-pill" iconStyle={iconStyle} showWishlist={showWishlist} showQuickview={showQuickview} showQuickcart={showQuickcart} isInWishlist={isInWishlist} hasVariants={product.has_variants} onToggleWishlist={onToggleWishlist} onOpenQuickView={onOpenQuickView} onAddToCart={onAddToCart} />
           </div>
           <div className="cb flex flex-col flex-grow justify-between items-center text-center p-2.5 sm:p-3 w-full relative z-[2] bg-white dark:bg-[#16162a] rounded-b-2xl">
@@ -1166,7 +1168,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
           {/* Middle: Framed image */}
           <div className={`img-box relative ${aspectClass} w-full ${imgBgClass} rounded-lg overflow-hidden border border-gray-100 dark:border-gray-800 my-1`}>
             <ProductCardBadges product={product} currentPrice={currentPrice} currentComparePrice={currentComparePrice} />
-            <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} />
+            <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} isVariantSelected={isVariantSelected} />
           </div>
 
           {/* Bottom body: Price & swatches */}
@@ -1225,7 +1227,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
           {/* Polaroid Photo Window */}
           <div className={`img-box relative ${aspectClass} w-full ${imgBgClass} overflow-hidden border border-gray-200/60 dark:border-gray-700`}>
             <ProductCardBadges product={product} currentPrice={currentPrice} currentComparePrice={currentComparePrice} />
-            <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} />
+            <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} isVariantSelected={isVariantSelected} />
             {showWishlist && (
               <button
                 type="button"
@@ -1243,7 +1245,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
           <div className="cb flex flex-col flex-grow justify-between pt-2 px-1 w-full relative z-[2]">
             <div>
               <div className="flex items-baseline justify-between gap-1">
-                <Link href={productUrl} onClick={handleClick} prefetch={false} className={`card-title font-medium text-[11px] sm:text-xs text-gray-800 dark:text-gray-100 truncate flex-1 ${titleClampClass}`}>
+                <Link href={productUrl} onClick={handleClick} prefetch={false} className={`card-title font-medium text-[11px] sm:text-xs text-gray-800 dark:text-gray-100 flex-1 ${titleClampClass}`}>
                   {product.name}
                 </Link>
                 <span className="card-price font-bold text-xs text-gray-900 dark:text-white shrink-0">
@@ -1283,7 +1285,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
           {/* Top: Tall Image */}
           <div className={`img-box relative ${aspectClass} w-full ${imgBgClass} overflow-hidden`}>
             <ProductCardBadges product={product} currentPrice={currentPrice} currentComparePrice={currentComparePrice} />
-            <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} />
+            <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} isVariantSelected={isVariantSelected} />
             {showWishlist && (
               <button
                 type="button"
@@ -1304,7 +1306,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
 
             <div>
               <div className="flex items-baseline justify-between gap-1">
-                <Link href={productUrl} onClick={handleClick} prefetch={false} className={`card-title text-xs sm:text-[13px] font-bold text-gray-900 dark:text-white leading-tight truncate flex-1 ${titleClampClass}`}>
+                <Link href={productUrl} onClick={handleClick} prefetch={false} className={`card-title text-xs sm:text-[13px] font-bold text-gray-900 dark:text-white leading-tight flex-1 ${titleClampClass}`}>
                   {product.name}
                 </Link>
                 <span className="card-price text-xs sm:text-sm font-black text-gray-900 dark:text-white shrink-0">
@@ -1350,7 +1352,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
           {/* Image Container with Boutique Hang Tag Overlap */}
           <div className={`img-box relative ${aspectClass} w-full ${imgBgClass} overflow-hidden`}>
             <ProductCardBadges product={product} currentPrice={currentPrice} currentComparePrice={currentComparePrice} />
-            <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} />
+            <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} isVariantSelected={isVariantSelected} />
 
             {/* Kraft Paper Hang Tag pinned to top-right */}
             <div className="absolute top-2 right-2 z-[15] bg-[#ebdcc4] dark:bg-[#342a20] text-[#4a3a28] dark:text-[#eedec8] px-2 py-0.5 rounded shadow-sm border border-[#cfbe9f] dark:border-[#4d3e30] flex items-center gap-1 transform rotate-1 pointer-events-none">
@@ -1436,11 +1438,11 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
           )}
 
           {/* Background image */}
-          <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} />
+          <ProductCardMedia activeImage={activeImage} secondImage={secondImage} hoveredImage={hoveredImage} productName={product.name} settings={settings} fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'} isVariantSelected={isVariantSelected} />
 
           {/* Dark Scrim Gradient Overlay at Bottom */}
           <div className="mt-auto relative z-[15] bg-gradient-to-t from-black via-black/85 to-transparent pt-14 pb-3 px-3 flex flex-col justify-end w-full">
-            <Link href={productUrl} onClick={handleClick} prefetch={false} className={`card-title text-white font-bold text-xs sm:text-sm drop-shadow-md leading-tight truncate ${titleClampClass}`}>
+            <Link href={productUrl} onClick={handleClick} prefetch={false} className={`card-title text-white font-bold text-xs sm:text-sm drop-shadow-md leading-tight ${titleClampClass}`}>
               {product.name}
             </Link>
             <div className="flex items-baseline gap-1.5 my-1">
@@ -1490,6 +1492,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
             productName={product.name}
             settings={settings}
             fitClass={settings?.card_image_fit === 'cover' ? 'object-cover' : 'object-contain'}
+            isVariantSelected={isVariantSelected}
           />
           <ProductCardActions
             showWishlist={showWishlist}

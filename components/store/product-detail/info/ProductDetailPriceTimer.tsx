@@ -42,25 +42,19 @@ export function ProductDetailPriceTimer({
           {!hasPriceRange && (() => {
             const currentComparePrice = selectedVariant?.compare_price ?? productComparePrice;
             if (currentComparePrice && currentComparePrice > unitPrice) {
-              const pct = Math.round(((currentComparePrice - unitPrice) / currentComparePrice) * 100);
               return (
-                <div className="flex items-center gap-2">
-                  <span
-                    className="text-sm text-gray-400 line-through decoration-red-500 decoration-[1.5px] font-semibold font-body"
-                    style={{
-                      textDecoration: 'line-through',
-                      textDecorationColor: '#ef4444',
-                      WebkitTextDecorationColor: '#ef4444',
-                      textDecorationThickness: '1.5px',
-                      color: '#9ca3af',
-                    }}
-                  >
-                    {formatPrice(currentComparePrice, settings.currency_symbol)}
-                  </span>
-                  <span className="rounded-md bg-[#10b981] px-2 py-0.5 text-[10px] font-black text-white tracking-wide">
-                    -{pct}%
-                  </span>
-                </div>
+                <span
+                  className="text-sm text-gray-400 line-through decoration-red-500 decoration-[1.5px] font-semibold font-body"
+                  style={{
+                    textDecoration: 'line-through',
+                    textDecorationColor: '#ef4444',
+                    WebkitTextDecorationColor: '#ef4444',
+                    textDecorationThickness: '1.5px',
+                    color: '#9ca3af',
+                  }}
+                >
+                  {formatPrice(currentComparePrice, settings.currency_symbol)}
+                </span>
               );
             }
             return null;
@@ -76,24 +70,18 @@ export function ProductDetailPriceTimer({
             {(() => {
               const currentComparePrice = selectedVariant.compare_price;
               if (currentComparePrice && currentComparePrice > unitPrice) {
-                const pct = Math.round(((currentComparePrice - unitPrice) / currentComparePrice) * 100);
                 return (
-                  <span className="inline-flex items-center gap-1.5 ml-1">
-                    <span
-                      className="text-xs text-gray-400 line-through decoration-red-500 decoration-[1.5px] font-semibold font-body"
-                      style={{
-                        textDecoration: 'line-through',
-                        textDecorationColor: '#ef4444',
-                        WebkitTextDecorationColor: '#ef4444',
-                        textDecorationThickness: '1.5px',
-                        color: '#9ca3af',
-                      }}
-                    >
-                      {formatPrice(currentComparePrice, settings.currency_symbol)}
-                    </span>
-                    <span className="rounded-md bg-[#10b981] px-1.5 py-0.5 text-[9px] font-black text-white tracking-wide leading-none">
-                      -{pct}%
-                    </span>
+                  <span
+                    className="text-xs text-gray-400 line-through decoration-red-500 decoration-[1.5px] font-semibold font-body ml-1"
+                    style={{
+                      textDecoration: 'line-through',
+                      textDecorationColor: '#ef4444',
+                      WebkitTextDecorationColor: '#ef4444',
+                      textDecorationThickness: '1.5px',
+                      color: '#9ca3af',
+                    }}
+                  >
+                    {formatPrice(currentComparePrice, settings.currency_symbol)}
                   </span>
                 );
               }

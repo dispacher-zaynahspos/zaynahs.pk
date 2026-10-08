@@ -294,8 +294,8 @@ export class MobileCardFocusManager {
   }
 }
 
-export function useMobileCardFocus(mode: 'scroll' | 'touch' | 'off' = 'scroll') {
-  const cardRef = useRef<HTMLDivElement | null>(null);
+export function useMobileCardFocus<T extends HTMLElement = HTMLDivElement>(mode: 'scroll' | 'touch' | 'off' = 'scroll') {
+  const cardRef = useRef<T | null>(null);
   const [isFocused, setIsFocused] = useState(false);
 
   useEffect(() => {

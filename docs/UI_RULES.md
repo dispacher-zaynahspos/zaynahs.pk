@@ -134,19 +134,49 @@ All save/cancel action bars across the Admin Console must be sticky at the botto
 - Modal forms must use sticky footers (`shrink-0 border-t bg-gray-50 dark:bg-[#11111e] p-6 pt-4`) outside the scroll body.
 - See full rule: `docs/agent-rules/14-design-system.md` RULE DS6.
 
-## 12. Product Card Multi-Archetype Standard (RULE DS12 & RULE CARD-DIVERSITY)
-- **Strict Ban on Reskinning**: Changing only colors/borders while keeping the DOM layout and element placements identical is strictly forbidden.
-- **Mandatory Spatial & Visual Diversity**: Placements of icons, buttons, title, price, variations, badges, and ratings must genuinely differ across archetypes (Zara slide-drawer, Daraz price-first urgency + direct button, Nike corner FAB + kicker, Amazon split 50/50 footer, Sephora center-hover pill).
-- Every card must support all image aspect ratios (3:4, 1:1, 4:3, 16:9, auto) and both `cover` & `contain` modes.
+## 12. Product Card Standards & Core Themes (RULE BASE-CARDS & RULE DS2)
+- **Base Store Themes (Protected — NEVER TOUCH)**: The 5 original foundation themes (`style1`, `showcase_1`, `showcase_8`, `showcase_11`, `showcase_13`) mapped as Base Card 01 to 05 are the core foundation of this e-store and must NEVER be altered, stripped down, or broken.
+- **Elessi Theme (10 Styles)**: Implements 10 distinct layouts (`card_01` through `card_10`) with full spatial differentiation.
+- **Ella Theme (8 Styles)**: Implements 8 distinct layouts (`card_ella_01` through `card_ella_08`) via the shared `components/product-cards/` module. Follow the same protected base-card, swatch SSOT, unified action rail, and zero-dummy-data rules.
+- **Strict Ban on Compare Arrow Icon `[ 🔄 ]`**: No comparison feature exists in this e-store. `CardCompareIcon` is strictly banned and removed.
+- **Unified Action Rail (Wishlist Synchronized Spawning)**: Wishlist button must NOT be isolated sticky in the top-right corner. It must sit inside the action rail or row with Quick View and Cart, and spawn together on hover or mobile focus.
+- **1000% Reactive Swatches & Zero Dummy Data**: Swatches must render via `finalRenderedGroups` from `ProductCardSwatches.tsx`. Never hardcode dummy sizes `['L', 'M', 'S']` or fake color dots. Size pills only render when enabled in settings AND present on real product variants.
 - Zero CPU blur (`backdrop-blur` banned), hardware-accelerated CSS transforms for 60fps scrolling.
-- See full specification in `docs/UI_CARDS.md` and `docs/agent-rules/14-design-system.md` RULE DS12.
+- See full specification in `docs/UI_CARDS.md` and `docs/agent-rules/14-design-system.md` RULE DS2 & RULE BASE-CARDS.
 
 ## 13. Card Collision Prevention, Grid Baseline & Icon Presets (RULE DS13)
-- **Collision-Free Geometry**: Badges strictly anchored top-left (`top: 8px; left: 8px; z-10; max-w-[calc(100%-46px)]`), action buttons strictly anchored top-right (`top: 8px; right: 8px; z-25;`) or bottom. No CSS position overrides (`position: relative` banned on action buttons).
+- **Collision-Free Geometry**: Badges strictly anchored top-left (`top: 8px; left: 8px; z-10; max-w-[calc(100%-46px)]`), action buttons strictly anchored in their designated rail/row at `z-25`. No CSS position overrides (`position: relative` banned on action buttons).
 - **Grid Baseline Alignment**: Card body flex layout must use `flex flex-col flex-1 justify-between` and button wrappers must have `mt-auto w-full` so adjacent cards always align horizontally across the grid row.
 - **Single-Line Button Typography**: Buttons must use `whitespace-nowrap truncate` to prevent word-splitting onto two lines on mobile.
 - **5 Icon Style Presets**: Support 5 visual presets (`pill`, `minimal`, `luxe`, `brutalist`, `glass`) with distinct matching SVG glyphs.
 - **Multi-Aspect Ratio Standard**: Universal support for `3:4` portrait, `1:1` square, `4:3` landscape, `16:9` wide, and `auto` natural height without hardcoded height or aspect overrides.
 - See full rule: `docs/agent-rules/14-design-system.md` RULE DS13 and `docs/UI_CARDS.md`.
+
+## 14. Single Variation Swatches Instance & Zero Duplication (RULE SWATCH-DEDUPLICATION)
+- **Zero Duplicate Swatches**: Under NO circumstances may any product card render duplicate or double sets of variation swatches (e.g., rendering swatches inside an in-card drawer or quick-shop sheet AND simultaneously rendering swatches below the product price/title in the card footer).
+- **Canonical In-Drawer Placement**: For styles featuring an interactive in-card drawer or quick-shop sheet (such as Elessi Style 10 `card_10` / `sc_style10`), the single canonical instance of swatches (`finalRenderedGroups` from `ProductCardSwatches.tsx`) must be placed directly INSIDE the interactive sheet/drawer where the customer makes their selection. It must NEVER be duplicated in the card body below the price.
+- **Canvas Containment & Alignment**: The drawer, sheet, and swatches must remain cleanly aligned and contained within the card canvas boundaries (`inset-x-2 bottom-2` or designated container) without horizontal overflow, clipping, or modal jitter.
+- **Universal Customizer Wiring**: Swatches rendered inside drawers/sheets must remain 1000% reactive to all merchant customizer controls: image swatches, color hex swatches, swatch shapes (`swatch_shape`), sizes (`archive_swatch_size`), swatch limits (`swatch_limit` with `+N` counter), and instant active image switching upon variant selection.
+- See full rule: `docs/agent-rules/14-design-system.md` RULE DS14 and `docs/UI_CARDS.md`.
+
+## 15. Real Variant Swatches Standard — 100% Admin Fidelity (RULE REAL-PRODUCT-SWATCHES)
+- **100% Match with Admin Product Configuration**: Product card swatches must reflect the real colors and images configured by the merchant on the Admin Product Edit page (`VariantAxisCard.tsx` / `VariantTableRow.tsx`).
+- **Dynamic Color Hex & Multi-Color**: Custom hexes and multi-color gradients render via `getSwatchStyle(color_hex)`. Named colors without manual hex are dynamically resolved using `extractColorsFromName(color)` from `lib/utils/swatch.ts`. Never render arbitrary fallback colors (such as dark blue `#2b3f56`) or blank transparent circles.
+- **Real Variant Image Swatches**: When a variant has a linked image URL and `show_image_swatch === true` (or settings specify image swatches, or image is present without a custom color hex), the card swatch MUST render the real variant thumbnail via `getPresetImageUrl(image_url, 'card')` with `object-cover`.
+- **Richest Variant Attribute Merge**: Reducers that group variants by color must merge attributes across all rows of that color so real images or custom hexes are never lost across sparse variant rows.
+- See full rule: `docs/agent-rules/14-design-system.md` RULE DS15 and `docs/UI_CARDS.md`.
+
+## 16. Universal Customizer Controls Enforcement Standard (RULE CARD-ALL-CONTROLS)
+- **Title Line Limit**: Must strictly honor `settings.title_line_limit` via `getSharedTitleClampClass` (`line-clamp-1`, `line-clamp-2`, `line-clamp-none`). Hardcoded `truncate` on `card-title` is strictly banned.
+- **Card & Body Alignment**: Dynamically applies `settings.card_alignment` (`items-start text-left`, `items-center text-center`, `items-end text-right`).
+- **All Visibility Toggles**: Star ratings (`card_show_stars`), description (`card_show_description`), action buttons (`card_show_wishlist`, `card_show_quickview`, `card_show_quickcart`), badges (`card_show_badge`, `show_sale_badge`), and swatches (`enable_variant_swatches`, slot toggles, limit, shape, size, alignment) must be 100% functional and reactive across all card styles.
+- See full rule: `docs/agent-rules/14-design-system.md` RULE DS16 and `docs/UI_CARDS.md`.
+
+## 17. Universal Swatch Interaction Image Swap Standard (RULE SWATCH-CLICK-IMAGE-SWAP & RULE DS17)
+- **Instant Swap on Hover & Click**: On EVERY product card across all themes (Base, Elessi, Ella, Showcases), hovering over or clicking any variant swatch (color, size, material, custom) MUST instantly swap the main product image to the variant's linked image (`v.image_url`).
+- **Secondary Image Fade Override Protection**: When a variant is active/selected or hovered, generic catalog second image hover (`.hover-fade-in` / `.i2`) is blocked (`!isVariantSelected && !hoveredImage`) so it never covers the user's variant image.
+- **SSOT Image Precedence**: All card archetypes must prioritize parent-provided `activeImage` / `p.image`. Never hardcode `p.swatches[0]?.image` over `p.image`.
+- See full rule: `docs/agent-rules/14-design-system.md` RULE DS17 and `docs/UI_CARDS.md` Section 11.
+
 
 

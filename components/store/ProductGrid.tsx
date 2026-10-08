@@ -1,5 +1,6 @@
 import React from 'react';
 import { Product, StoreSettings } from '@/lib/types';
+import { getEllaCardVariant, toCardProduct, EllaProductGrid } from '@/components/product-cards';
 import ProductCard from './ProductCard';
 import EmptyState from '../common/EmptyState';
 import { getResponsiveGridClasses } from '@/lib/utils/responsiveGrid';
@@ -23,6 +24,30 @@ export default function ProductGrid({
 }: ProductGridProps) {
   if (products.length === 0) {
     return <EmptyState />;
+  }
+
+  const ellaVariant = getEllaCardVariant(settings?.card_style);
+  if (ellaVariant) {
+    return (
+      <EllaProductGrid
+        variant={ellaVariant}
+        products={products.map((product) => toCardProduct(product, settings))}
+        settings={settings}
+        currencySymbol={currencySymbol}
+        renderProduct={(cardProduct) => {
+          const product = products.find((item) => item.id === cardProduct.id) || products[0];
+          return product ? (
+            <ProductCard
+              key={product.id}
+              product={product}
+              currencySymbol={currencySymbol}
+              settings={settings}
+              ellaCardVariant={ellaVariant}
+            />
+          ) : null;
+        }}
+      />
+    );
   }
 
   const gridClasses = getResponsiveGridClasses({

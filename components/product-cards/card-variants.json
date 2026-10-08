@@ -1,0 +1,170 @@
+{
+  "01": {
+    "ff": "var(--font-card-poppins), sans-serif",
+    "cols": 4,
+    "gap": "30px 28px",
+    "lock": "",
+    "cta": 0,
+    "hstars": 0,
+    "pct": 0,
+    "defaults": {
+      "card_alignment": "center",
+      "image_aspect_ratio": "3:4",
+      "title_line_limit": "2",
+      "swatch_limit": 4,
+      "card_elements_order": ["title", "price", "swatches", "rating"],
+      "card_show_stars": false,
+      "card_show_sizes": false,
+      "card_image_fit": "cover",
+      "archive_swatch_size": "xl",
+      "card_border_enabled": false
+    }
+  },
+  "02": {
+    "ff": "var(--font-card-inter), sans-serif",
+    "cols": 5,
+    "gap": "14px",
+    "lock": "",
+    "cta": 1,
+    "hstars": 0,
+    "pct": 0,
+    "defaults": {
+      "card_alignment": "left",
+      "image_aspect_ratio": "1:1",
+      "title_line_limit": "2",
+      "swatch_limit": 4,
+      "card_elements_order": ["title", "rating", "price", "swatches"],
+      "card_show_stars": true,
+      "card_show_sizes": false,
+      "card_image_fit": "contain",
+      "archive_swatch_size": "xl",
+      "card_border_enabled": true
+    }
+  },
+  "03": {
+    "ff": "var(--font-card-poppins), sans-serif",
+    "cols": 4,
+    "gap": "30px 28px",
+    "lock": "",
+    "cta": 0,
+    "hstars": 1,
+    "pct": 0,
+    "defaults": {
+      "card_alignment": "center",
+      "image_aspect_ratio": "3:4",
+      "title_line_limit": "1",
+      "swatch_limit": 4,
+      "card_elements_order": ["title", "price", "swatches", "rating"],
+      "card_show_stars": true,
+      "card_show_sizes": false,
+      "card_image_fit": "cover",
+      "archive_swatch_size": "xl",
+      "card_border_enabled": false
+    }
+  },
+  "04": {
+    "ff": "var(--font-card-poppins), sans-serif",
+    "cols": 5,
+    "gap": "14px",
+    "lock": "04",
+    "cta": 0,
+    "hstars": 0,
+    "pct": 0,
+    "defaults": {
+      "card_alignment": "left",
+      "image_aspect_ratio": "3:4",
+      "title_line_limit": "1",
+      "swatch_limit": 4,
+      "card_elements_order": ["title", "price", "swatches", "rating"],
+      "card_show_stars": true,
+      "card_show_sizes": false,
+      "card_image_fit": "cover",
+      "archive_swatch_size": "xl",
+      "card_border_enabled": false
+    }
+  },
+  "05": {
+    "ff": "var(--font-card-inter), sans-serif",
+    "cols": 4,
+    "gap": "40px 30px",
+    "lock": "05",
+    "cta": 0,
+    "hstars": 0,
+    "pct": 0,
+    "defaults": {
+      "card_alignment": "left",
+      "image_aspect_ratio": "3:4",
+      "title_line_limit": "1",
+      "swatch_limit": 4,
+      "card_elements_order": ["swatches", "title", "price", "rating"],
+      "card_show_stars": true,
+      "card_show_sizes": true,
+      "card_image_fit": "cover",
+      "archive_swatch_size": "xxl",
+      "card_border_enabled": false
+    }
+  },
+  "06": {
+    "ff": "var(--font-card-poppins), sans-serif",
+    "cols": 4,
+    "gap": "30px 40px",
+    "lock": "",
+    "cta": 0,
+    "hstars": 0,
+    "pct": 0,
+    "defaults": {
+      "card_alignment": "left",
+      "image_aspect_ratio": "4:3",
+      "title_line_limit": "2",
+      "swatch_limit": 3,
+      "card_elements_order": ["title", "price", "swatches", "rating"],
+      "card_show_stars": false,
+      "card_show_sizes": false,
+      "card_image_fit": "contain",
+      "archive_swatch_size": "xl",
+      "card_border_enabled": false
+    }
+  },
+  "07": {
+    "ff": "var(--font-card-poppins), sans-serif",
+    "cols": 5,
+    "gap": "14px",
+    "lock": "",
+    "cta": 0,
+    "hstars": 0,
+    "pct": 1,
+    "defaults": {
+      "card_alignment": "left",
+      "image_aspect_ratio": "3:4",
+      "title_line_limit": "1",
+      "swatch_limit": 3,
+      "card_elements_order": ["title", "price", "swatches", "rating"],
+      "card_show_stars": false,
+      "card_show_sizes": true,
+      "card_image_fit": "cover",
+      "archive_swatch_size": "xxl",
+      "card_border_enabled": false
+    }
+  },
+  "08": {
+    "ff": "var(--font-card-inter), sans-serif",
+    "cols": 4,
+    "gap": "30px 32px",
+    "lock": "",
+    "cta": 0,
+    "hstars": 0,
+    "pct": 0,
+    "defaults": {
+      "card_alignment": "left",
+      "image_aspect_ratio": "1:1",
+      "title_line_limit": "1",
+      "swatch_limit": 4,
+      "card_elements_order": ["title", "price", "swatches", "rating"],
+      "card_show_stars": false,
+      "card_show_sizes": false,
+      "card_image_fit": "contain",
+      "archive_swatch_size": "xl",
+      "card_border_enabled": false
+    }
+  }
+}

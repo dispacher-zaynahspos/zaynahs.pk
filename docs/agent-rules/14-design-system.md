@@ -44,10 +44,42 @@ All icons import ONLY from `components/common/Icons.tsx` (e.g. `import { Shoppin
 - **Resolve input double borders**: for inline form groups/inputs inside border-bound containers, apply `style={{ borderWidth: 0 }}` inline on number/text inputs — suppresses native borders forced by global `globals.css` overrides, giving clean single-bordered inputs.
 - **Responsive/mobile card layouts**: all bulk editors, detail panels, settings forms use a responsive grid (`grid grid-cols-1 md:grid-cols-3` or similar) — side-by-side on desktop/tablet, stacked touch-cards on mobile.
 
+## RULE BASE-CARDS — Base Store Themes (Protected — NEVER TOUCH) (MANDATORY)
+The 5 original foundation themes (`style1`, `showcase_1`, `showcase_8`, `showcase_11`, `showcase_13`) mapped as **Base Card 01 to 05** are the core foundational pillars of this e-store.
+1. **Never Touch or Alter**: Under NO circumstances should any agent, refactor, or script modify, strip down, or overwrite these 5 base themes. They are protected baseline designs.
+2. **New Themes & Layouts**: All new theme collections (such as the 10 Elessi Theme styles `card_01` through `card_10`) must be implemented as distinct archetypes and must strictly honor the core store capabilities established by the base themes.
+
 ## RULE DS2 — Dynamic product card style templates & settings linking (MANDATORY)
-- Whenever adding/implementing/modifying any product card layout/template, it MUST fully link to all dynamic customizer settings: Image Aspect Ratio (`aspectClass`), Image Hover Style (`imageHoverStyle`), vertical element ordering (`elementsOrder`, `renderShowcaseContent`/`renderElement`), text alignment classes (`alignClass`), star rating visibility (`showStars`), swatches, quick view, wishlist, cart action overlays.
-- The card template MUST support dynamic multi-badge vertical stacking via the unified `<div className="bdg-container"> {renderCardBadge()} </div>` flexbox, matching the default `style1` layout.
-- Strictly follow the step-by-step checklist in `docs/prompts/add_card_style_prompt.md` and keep all templates fully synchronized.
+- **Single Source of Truth for Card Controls**: Every product card style across the store (Base Themes & Elessi Themes) MUST be 1000% reactive to all settings in both the **Admin Products Tab** (`/admin/settings?tab=products`) and the **Theme Customizer** (`ELEMENT VISIBILITY`, `SWATCHES`, `STYLE & TEMPLATE`, `APPEARANCE`, `ALIGNMENT & ORDERING`):
+  1. **Variation & Swatch Controls**:
+     - Master toggle: `enable_variant_swatches`. If false, NO swatches or size pills may ever render.
+     - Slot toggles: Variation 1 (`card_show_swatches`), Variation 2 (`card_show_sizes`), Variation 3 (`card_show_materials`), Variation 4 (`card_show_custom`), Variation 5 (`card_show_custom_2`).
+     - Attribute type toggles: `card_show_type_color`, `card_show_type_size`, `card_show_type_material`, `card_show_type_custom`.
+     - Styling: `swatch_shape` ('circle' | 'square'), `swatch_limit` (1–20), `archive_swatch_size` ('xxs' to 'xxl'), `archive_swatch_align` ('left' | 'center' | 'right').
+     - **Strict Ban on Hardcoded Sizes & Fake Dots**: NEVER hardcode fake dummy sizes `['L', 'M', 'S']` or fake color dots. Swatches MUST use `finalRenderedGroups` (from `ProductCardSwatches.tsx`) or only render real attributes if enabled in settings AND present on the product.
+  2. **Action Icons & Wishlist Spawn Synchronization**:
+     - **No Compare Arrow**: The dummy compare arrow icon (`CardCompareIcon` `[ 🔄 ]`) has zero function and is STRICTLY BANNED from all cards.
+     - **Wishlist Spawn Rule**: The wishlist heart icon must NOT sit isolated/sticky in the top-right corner while other action icons spawn below it. All action buttons (Wishlist, Quick View, Add to Cart/Quick Shop) must be grouped inside the action rail/row and spawn TOGETHER on hover or mobile focus.
+     - Action visibility: `card_show_wishlist`, `card_show_quickview`, `card_show_quickcart`.
+  3. **Visual & Layout Controls**:
+     - `image_hover_style` ('second_image', 'zoom', 'slide_left', 'zoom_swap', 'fade_up', 'blur_crossfade', 'flip_3d', 'none').
+     - `image_aspect_ratio` ('3:4', '1:1', '4:3', '16:9', 'auto') via `getSharedAspectClass()`.
+     - `title_line_limit` ('1', '2', 'none') via `getSharedTitleClampClass()`.
+     - `card_show_stars` (toggle star rating and review count).
+     - `card_show_description` (toggle catalog short description).
+     - `card_mobile_columns` (1 column large vs 2 columns standard).
+     - Vertical element ordering via `card_elements_order`.
+     - Content alignment via `card_alignment` ('left', 'center', 'right').
+  4. **Mobile Responsiveness & Quick Shop Layout**:
+     - On mobile 2-column grids (~160px card width), all buttons and drawers (such as Style 10 Quick Shop) must be compact and responsive without text clipping (e.g. quantity stepper stacked with full-width "Add to Bag" button).
+  - Multi-badge vertical stacking via the unified `<div className="bdg-container"> {renderCardBadge()} </div>` flexbox.
+  - Complete master reference lives in `docs/UI_CARDS.md`.
+
+## RULE CARD-COMPAT-MATRIX — Card Controls Compatibility & Exemption Rules (MANDATORY)
+1. **Universal Store DNA**: Variations (`enable_variant_swatches`, `card_show_sizes`, etc.), Pricing (`formatPrice`, Sale first, Strikethrough second), Images (`image_aspect_ratio`, `image_hover_style`), Badges, and Action Visibility (`card_show_wishlist`, `card_show_quickview`, `card_show_quickcart`) apply 100% dynamically across ALL card styles without exception.
+2. **Dedicated Silhouette Exemptions**: When an archetype employs a dedicated architectural silhouette (e.g. `card_01` parallel justified footer row, `card_02` centered seam pill, `card_08` bottom baseline locked button), layout-specific generic controls (arbitrary `card_alignment` or `card_elements_order`) are superseded to protect the brand silhouette.
+3. **Informative Customizer Feedback**: When a control does not apply to the active style, the Customizer UI must display an English explanatory badge or tooltip (e.g., *"This archetype uses a dedicated geometric layout: [Reason in English]"*). The merchant's saved preferences are preserved non-destructively and re-apply whenever they switch to a Base Theme. Full matrix lives in `docs/UI_CARDS.md` Section 7.
+
 
 ## RULE DS3 — Skeleton loaders (MANDATORY)
 Never use a global `app/loading.tsx` — it blocks the ENTIRE UI (hides Navbar, Footer, etc.) and ruins perceived performance. ALWAYS use component-level skeletons (map `<ProductCardSkeleton />` / `<LoadingSkeleton />` inside the page layout) so the app layout stays visible while data fetches, rendering instantly.
@@ -243,7 +275,62 @@ Verified 2026-10. All product card designs across storefront and admin must adhe
    - Supported canonical options: `3:4` (`aspect-[3/4]`), `1:1` (`aspect-square`), `4:3` (`aspect-[4/3]`), `16:9` (`aspect-[16/9] aspect-video`), and `auto` (`aspect-auto min-h-[220px] sm:min-h-[280px]`).
    - No card archetype or custom CSS may hardcode `aspect-ratio: 1`, `height: ...px`, or `padding-bottom: ...%` on `.ib` or `.img-box`. All sizing must be dynamically derived via the single source of truth `getSharedAspectClass`.
    - `tailwind.config.ts` content array MUST include `./lib/**/*.{js,ts,jsx,tsx}` so dynamic aspect classes compile reliably in production builds.
+## RULE DS14 — Universal Real-Data Binding & Zero Duplication Standard (MANDATORY)
+1. **Single Source of Truth for Swatches (Zero Duplicate Sets)**:
+   - Under NO circumstances may any product card render duplicate or double sets of variation swatches (e.g., rendering swatches inside an interactive in-card drawer or quick-shop sheet AND simultaneously rendering swatches below the product title/price in the card footer).
+   - In styles with an in-card interactive sheet or drawer (such as Elessi Style 10 `card_10` / `sc_style10`), the single canonical instance of swatches (`finalRenderedGroups` from `ProductCardSwatches.tsx`) must be placed directly INSIDE the interactive sheet/drawer where the customer makes their selection. It must NEVER be duplicated in the card body below the price.
+   - The interactive sheet and swatches must remain neatly aligned and contained within the card canvas boundaries (`inset-x-2 bottom-2` or designated container) without clipping or horizontal overflow.
+2. **100% Real-Data Linking Across All Elements (Zero Fake Dummy Data)**:
+   - **Variations & Swatches**: Real variants only (`product.variants`). Never hardcode fake fallback sizes (`['L', 'M', 'S']`) or fake fallback color hexes. Respect merchant settings: `enable_variant_swatches`, `card_show_swatches` (Slot 1), `card_show_sizes` (Slot 2), `card_show_materials` (Slot 3), `card_show_type_color`, `card_show_type_size`, `swatch_shape`, `swatch_limit`, and `archive_swatch_size`.
+   - **Title**: Render real `product.name`, clamped strictly via `getSharedTitleClampClass(settings?.title_line_limit)`.
+   - **Category**: Render real `product.category?.name` or breadcrumb only when present; never dummy text.
+   - **Price**: Render real live prices with PKR currency formatting (`formatPrice(currentPrice, currencySymbol)`). Sale price FIRST, strikethrough compare price SECOND (`RULE PRICE1`).
+   - **Description**: Render real `product.short_description` only when `settings?.card_show_description !== false`; never placeholder copy.
+   - **Ratings**: Render real review counts and star averages only when `settings?.card_show_stars !== false` and data exists; never hardcoded static 5-star ratings.
+   - **Action Buttons**: Wishlist, Quick View, and Quick Cart must trigger their real respective stores and modals (`useWishlist`, `onOpenQuickView`, `onAddToCart`).
 
+## RULE DS15 — Real Variant Swatches Standard: 100% Admin Edit Product Fidelity (MANDATORY)
+Verified 2026-10. All product card variations and swatches across storefront, catalog, and quick-shop drawers must adhere to absolute fidelity with the Admin Edit Product screen:
+1. **100% Match with Admin Product Configuration**:
+   - Product card swatches must reflect the real colors and images configured by the merchant on the Admin Product Edit page (`VariantAxisCard.tsx` / `VariantTableRow.tsx`).
+   - Custom hex codes and multi-color split gradients (e.g. `#ef4444,#ffffff`) MUST render using `getSwatchStyle(color_hex)`.
+   - Named colors where `color_hex` was omitted by the merchant MUST be dynamically resolved using `extractColorsFromName(color)` from `lib/utils/swatch.ts`. Arbitrary fallback colors (such as dark blue `#2b3f56`) or blank transparent circles are strictly banned.
+2. **Real Variant Image Swatches**:
+   - When a variant has a linked image URL and `show_image_swatch === true` (or settings specify image swatches, or image is present without a custom color hex), the card swatch MUST render the real variant thumbnail via `getPresetImageUrl(image_url, 'card')` with `object-cover`.
+   - Hovering or selecting the swatch immediately swaps the active product card media to that variant's real image.
+3. **Richest Variant Attribute Merge**:
+   - Reducers that group variants by color must merge attributes across all rows of that color so that if one row has the image or custom hex while another row lacks it, the richest data is preserved. Never discard real merchant data.
+4. **Zero Fake/Placeholder Data**:
+   - Hardcoded arrays like `['L', 'M', 'S']`, fake blue `#2b3f56` dots, or static placeholder badges are strictly forbidden. If a product does not have variants or images, swatches cleanly collapse and do not render.
+
+## RULE DS16 — Universal Customizer Controls Enforcement Standard (MANDATORY)
+Verified 2026-10. Every single Theme Customizer control configured by the merchant in `ProductCardSettings.tsx` MUST remain 100% active, dynamic, and respected across ALL product card styles and archetypes without exception:
+1. **Title Line Limit (`settings.title_line_limit`)**: Must apply `getSharedTitleClampClass(settings?.title_line_limit)` (`line-clamp-1`, `line-clamp-2`, or `line-clamp-none`). Raw `truncate` or `white-space: nowrap` on `card-title` is strictly banned.
+2. **Card & Body Alignment (`settings.card_alignment`)**: Controls text and content justification via `alignClass` (`items-start text-left`, `items-center text-center`, `items-end text-right`).
+3. **Star Ratings Visibility (`settings.card_show_stars`)**: Toggles visibility of customer star ratings. When disabled, collapses. When enabled, only real database ratings (`product.rating > 0`) are shown; zero fake fallback ratings.
+4. **Product Description Visibility (`settings.card_show_description`)**: Dynamically toggles `product.short_description`.
+5. **Action Buttons Visibility (`card_show_wishlist`, `card_show_quickview`, `card_show_quickcart`)**: Each action button respects its independent toggle.
+6. **Badges Visibility (`card_show_badge`, `show_sale_badge`)**: Dynamically toggles badges and discount tags.
+7. **Swatches Configuration**: Respects `enable_variant_swatches`, slot toggles (`card_show_swatches`, `card_show_sizes`), shape (`swatch_shape`), size (`archive_swatch_size`), limit (`swatch_limit` with `+N`), and alignment (`archive_swatch_align`).
+8. **Aspect Ratio & Fit**: Dynamically derives from `getSharedAspectClass(settings?.image_aspect_ratio)` and toggles `object-cover` vs `object-contain`.
+
+## RULE DS17 — Universal Swatch Interaction Image Swap Standard (MANDATORY)
+Verified 2026-10. Across all storefront grids, catalog listings, search feeds, and quick-shop drawers:
+1. **Instant Linked Image Swap on Hover & Click/Tap**:
+   - On **ALL product cards** (Base cards 01–05, Elessi styles 01–10, Ella variants 01–08, and Showcases), whenever the cursor (arrow pointer) hovers over or a user clicks/taps any variation swatch (color, size, material, or custom option):
+   - The main product image above MUST immediately swap to the specific variant's linked image (`v.image_url`).
+   - **Hover (`onMouseEnter`)**: Instantly previews the variant's linked photo via `hoveredImage` / `onHoverImage`.
+   - **Unhover (`onMouseLeave`)**: Instantly restores the active/selected image without modal jitter or flicker.
+   - **Click/Tap (`onClick`)**: Permanently locks the card to the clicked variant's photo (`selectedImage`), updates the current price and compare-at price, and activates the swatch highlight ring.
+2. **Hover Secondary Image Override Protection (`isVariantSelected`)**:
+   - When a specific variant swatch has been clicked/selected by the customer, or while hovering over a swatch, the generic product second image (`image_hover_style` / `.hover-fade-in` / `.i2`) MUST NEVER override, fade in over, or conceal the variant's photo when the card itself is hovered or mobile-scroll-focused.
+   - `showSecond` must strictly check `!hoveredImage && !isVariantSelected`.
+3. **Card Component SSOT Fidelity**:
+   - All card archetypes (including Ella and Showcases) MUST prioritize the active/hovered/selected variant image passed from the parent state (`activeImage` / `p.image`).
+   - Cards must NEVER discard `p.image` in favor of a hardcoded first swatch index (e.g. `img1 = p.swatches[0]?.image`).
+4. **Graceful Fallback & Attribute Merging**:
+   - If a clicked variant row lacks a dedicated image, it falls back to the product's primary image or resolves the photo from any matching variant attribute row.
+   - Attribute reducers must preserve `image_url` across all active variant rows so variant photos are never lost.
 
 
 
