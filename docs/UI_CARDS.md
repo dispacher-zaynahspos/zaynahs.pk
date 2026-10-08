@@ -454,3 +454,21 @@ Verified 2026-10. Across all card themes and archetypes (Base cards 01–05, Ele
      - **Dynamic Swatch Linking**: Instant image update upon hovering or tapping color/material swatches (`RULE SWATCH-CLICK-IMAGE-SWAP`).
    - Deep multi-image gallery exploration belongs strictly inside the full PDP gallery (`ProductDetailGallery`) and the Quick View drawer/modal (`QuickViewModal`), where customers have full space and dedicated carousel controls.
 
+---
+
+## 13. RULE CARD-ACTION-WIRING: Universal Action Buttons Wiring Standard (Quick View & Quick Add) (MANDATORY)
+
+Verified 2026-10. Across all card themes and archetypes (Base cards 01–05, Elessi styles 01–10, Ella variants 01–08, and Showcases):
+
+1. **Quick View Action Wiring**:
+   - The Quick View (Eye icon) button MUST reliably trigger `QuickViewModal` with the full product object and store settings.
+   - Any wrapper or child card component (such as `EllaProductCard` / `EllaProductGrid`) must receive `onQuickView` callback and `originalSettings={settings}`, and ensure `QuickViewModal` is rendered in its JSX tree.
+
+2. **Quick Add / Buy Icon Action Wiring**:
+   - On products **without variants**: Clicking the cart/buy icon immediately adds 1 item to the cart, triggers a toast notification, and runs the fly-to-cart animation.
+   - On products **with variants** (`product.has_variants === true`): Clicking the cart/buy icon MUST open `QuickViewModal` so the customer can select their desired size, color, and options before adding to cart. It must NEVER silently fail or do nothing.
+
+3. **Wishlist Action Wiring**:
+   - Must use the shared `useWishlist` hook with safe optional event handling (`toggleWishlist(e?: React.MouseEvent)`) ensuring compatibility whether called directly or via callbacks.
+
+

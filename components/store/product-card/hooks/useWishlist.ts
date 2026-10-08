@@ -32,9 +32,11 @@ export function useWishlist(productId: string, flyImage: string) {
     return () => window.removeEventListener('wishlist-updated', check);
   }, [productId]);
 
-  const toggleWishlist = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const toggleWishlist = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     const wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
     let newWishlist: string[];
     if (isInWishlist) {
@@ -45,7 +47,9 @@ export function useWishlist(productId: string, flyImage: string) {
       toast.success('Added to wishlist');
       const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
       const targetId = isMobile ? 'mobile-bottom-wishlist-icon' : 'header-wishlist-icon-desktop';
-      animateFlyTo(e.currentTarget as HTMLElement, targetId, flyImage);
+      if (e?.currentTarget) {
+        animateFlyTo(e.currentTarget as HTMLElement, targetId, flyImage);
+      }
     }
     localStorage.setItem('wishlist', JSON.stringify(newWishlist));
     setIsInWishlist(!isInWishlist);

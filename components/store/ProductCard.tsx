@@ -297,6 +297,25 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
   const isShowcase = safeStyle !== 'card_11' && safeStyle !== 'style1';
   const ellaVariant = getEllaCardVariant(settings?.card_style);
 
+  const handleEllaAddToCart = () => {
+    if (product.has_variants) {
+      setQuickViewOpen(true);
+      return;
+    }
+    addItem(product, undefined, [], 1);
+    toast.success(`${product.name} added to cart!`);
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+    const targetId = isMobile ? 'header-cart-icon-mobile' : 'header-cart-icon-desktop';
+    const cardEl = (typeof document !== 'undefined' ? (document.querySelector(`[data-product-id="${product.id}"]`) as HTMLElement) : null) || (typeof document !== 'undefined' ? document.body : null);
+    if (cardEl) {
+      animateFlyTo(cardEl, targetId, primaryImage);
+    }
+  };
+
+  const handleEllaQuickView = () => {
+    setQuickViewOpen(true);
+  };
+
   if (ellaCardVariant) {
     const baseElla = toCardProduct(product, settings);
     const ellaProduct = {
@@ -312,14 +331,27 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
       swatchNode: finalRenderedGroups,
     };
     return (
-      <EllaProductCard
-        product={ellaProduct}
-        variant={ellaCardVariant}
-        limit={settings?.swatch_limit ?? 4}
-        currencySymbol={currencySymbol}
-        cardMobileActivation={settings?.card_mobile_activation ?? 'scroll'}
-        settings={settings}
-      />
+      <>
+        <EllaProductCard
+          product={ellaProduct}
+          variant={ellaCardVariant}
+          limit={settings?.swatch_limit ?? 4}
+          currencySymbol={currencySymbol}
+          cardMobileActivation={settings?.card_mobile_activation ?? 'scroll'}
+          settings={settings}
+          originalSettings={settings}
+          onWishlist={() => handleToggleWishlist()}
+          onQuickView={handleEllaQuickView}
+          onAddToCart={handleEllaAddToCart}
+        />
+        {quickViewOpen && settings && (
+          <QuickViewModal
+            product={product}
+            settings={settings}
+            onClose={() => setQuickViewOpen(false)}
+          />
+        )}
+      </>
     );
   }
 
@@ -338,13 +370,25 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
       swatchNode: finalRenderedGroups,
     };
     return (
-      <EllaProductGrid
-        variant={ellaVariant}
-        products={[ellaProduct]}
-        settings={settings}
-        currencySymbol={currencySymbol}
-        single
-      />
+      <>
+        <EllaProductGrid
+          variant={ellaVariant}
+          products={[ellaProduct]}
+          settings={settings}
+          currencySymbol={currencySymbol}
+          single
+          onWishlist={() => handleToggleWishlist()}
+          onQuickView={handleEllaQuickView}
+          onAddToCart={handleEllaAddToCart}
+        />
+        {quickViewOpen && settings && (
+          <QuickViewModal
+            product={product}
+            settings={settings}
+            onClose={() => setQuickViewOpen(false)}
+          />
+        )}
+      </>
     );
   }
 

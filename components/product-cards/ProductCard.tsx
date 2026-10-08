@@ -76,16 +76,24 @@ export function ProductCard({ product: p, variant, limit, currencySymbol, cardMo
     : v.lock === '05' ? <>{vendor}{sw}{title}{desc}{price}<div className="brow">{rating}{more}</div></>
     : <>{vendor}{rating}{title}{desc}{price}{sw}{more}</>;
 
-  const handleDefaultAddToCart = (target: HTMLElement) => {
+  const handleDefaultAddToCart = (target?: HTMLElement | null) => {
     if (p.source?.has_variants) {
-      setQuickViewOpen(true);
+      if (onQuickView) {
+        onQuickView(p);
+      } else {
+        setQuickViewOpen(true);
+      }
       return;
     }
     if (p.source) {
       addItem(p.source, undefined, [], 1);
       toast.success(`${p.title} added to cart!`);
       const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-      animateFlyTo(target, isMobile ? 'header-cart-icon-mobile' : 'header-cart-icon-desktop', p.image);
+      const targetId = isMobile ? 'header-cart-icon-mobile' : 'header-cart-icon-desktop';
+      const flyTarget = target || cardRef.current;
+      if (flyTarget) {
+        animateFlyTo(flyTarget, targetId, p.image);
+      }
     }
   };
 
@@ -107,11 +115,11 @@ export function ProductCard({ product: p, variant, limit, currencySymbol, cardMo
       </div>
       <div className={`pc-body${v.lock ? " locked" : ""}`}>
         {body}
-        {!!v.cta && <button type="button" className="cta cart" onClick={(e) => { if (onAddToCart) { onAddToCart(p); return; } handleDefaultAddToCart(e.currentTarget); }}>ADD TO CART</button>}
+        {!!v.cta && <button type="button" className="cta cart" onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (onAddToCart) { onAddToCart(p); return; } handleDefaultAddToCart(e.currentTarget); }}>ADD TO CART</button>}
       </div>
     </article>
-      {quickViewOpen && p.source && originalSettings && (
-        <QuickViewModal product={p.source} settings={originalSettings} onClose={() => setQuickViewOpen(false)} />
+      {quickViewOpen && p.source && (originalSettings || settings) && (
+        <QuickViewModal product={p.source} settings={(originalSettings || settings) as StoreSettings} onClose={() => setQuickViewOpen(false)} />
       )}
     </>
   );

@@ -345,4 +345,11 @@ Verified 2026-10. Across all stores (TotVogue, Zaynahs, MiniMahal, LittleMister,
 1. **Footer Social Hover Contrast**: Every social link in `FooterSocialLinks.tsx` has branded hover background colors (`#1877F2` for Facebook, `#E1306C` for Instagram, `#25D366` for WhatsApp, `#FF0000` for YouTube, `#000000` for TikTok/Twitter, `#FFFC00` for Snapchat) with guaranteed high-contrast icon color (`#ffffff` / `#000000`), smooth lift, and dark mode compatibility. Resting icon color defaults to visible slate (`#334155`).
 2. **Grid 'View All' Button Contrast**: Center/bottom 'View All' action buttons (`StoreFrontProductGridSection`, `FlashSaleSection`, `StoreFrontSections`) must default text color to `#ffffff`. If a merchant or DB config accidentally sets the text color identical to the button background color, the runtime safely falls back to `#ffffff` to guarantee WCAG-AA legibility.
 
+## RULE DS20 — Universal Card Action Buttons Wiring Standard (Quick View & Quick Add) (MANDATORY)
+Verified 2026-10. Across all stores (TotVogue, Zaynahs, MiniMahal, LittleMister, Lobo):
+1. **Quick View (Eye Icon)**: Must reliably trigger `QuickViewModal` across all card variants (Base, Elessi, Ella 01–08). Card delegates must receive `onQuickView`, pass `originalSettings`, and mount `QuickViewModal`.
+2. **Quick Add / Buy (Bag Icon)**: If `product.has_variants` is true, clicking Cart/Bag opens `QuickViewModal` for option selection; if non-variant, adds directly to cart with fly-to-cart animation. It must never silently fail on variant products.
+3. **Wishlist (Heart Icon)**: Uses canonical `useWishlist` with optional mouse event.
+
+
 
