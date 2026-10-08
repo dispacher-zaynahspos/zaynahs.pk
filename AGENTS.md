@@ -48,7 +48,7 @@ Full-system audit + permanent fixes are documented in `docs/AUDIT_PASS{0..10}_*.
 | 11 | [11-storage-images.md](docs/agent-rules/11-storage-images.md) | S1–S6, bucket, compressor, media selector |
 | 12 | [12-testing-verification.md](docs/agent-rules/12-testing-verification.md) | Happy path + edge case rules |
 | 13 | [13-autonomy-boundaries.md](docs/agent-rules/13-autonomy-boundaries.md) | Auto-allowed / confirm-first / never-auto |
-| 14 | [14-design-system.md](docs/agent-rules/14-design-system.md) | Colors, tokens, DS1–DS21 (sticky bars, safe bounds, swatches, controls, linked image swap, zero card arrow clutter, mobile rating & swatch density), anti-bloat |
+| 14 | [14-design-system.md](docs/agent-rules/14-design-system.md) | Colors, tokens, DS1–DS22 (sticky bars, safe bounds, swatches, controls, linked image swap, zero card arrow clutter, mobile rating & swatch density, mandatory Ella engine for new cards), anti-bloat |
 | 15 | [15-shared-components-ui-modules.md](docs/agent-rules/15-shared-components-ui-modules.md) | Component library + mandatory module map |
 | 16 | [16-multi-system-architecture.md](docs/agent-rules/16-multi-system-architecture.md) | /store vs /admin boundaries |
 | 17 | [17-mobile-native-app-style.md](docs/agent-rules/17-mobile-native-app-style.md) | M1–M5, cards, touch, jitter prevention |

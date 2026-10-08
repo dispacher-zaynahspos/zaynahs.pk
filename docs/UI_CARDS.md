@@ -494,4 +494,21 @@ Verified 2026-10. Across all card themes and archetypes (Base cards 01–05, Ele
      - Title clamp limits (`title_line_limit`),
      - Card alignment (`card_alignment`).
 
+---
+
+## 15. RULE NEW-CARDS-ELLA-ENGINE: Future Card Expansion Standard (MANDATORY)
+
+Verified 2026-10. Across all stores (TotVogue, Zaynahs, MiniMahal, LittleMister, Lobo):
+
+1. **All New Cards MUST Use the Ella Engine Architecture**:
+   - Whenever any new product card design, preset, or variation is created in the project, it MUST be built using the **Ella architecture** (`components/product-cards/`):
+     - Add the new variant ID and layout configuration into `card-variants.json`.
+     - Add the scoped variant CSS into `product-cards.css` (`.pc-grid[data-card="NN"]`).
+     - Register the new style key in `lib/utils/cardStyles.ts` and `lib/types/settings.ts`.
+     - Do NOT create bespoke standalone card files or append ad-hoc styles into legacy CSS files.
+
+2. **Existing Live Cards Protection**:
+   - Existing Base cards (01–05), Elessi styles (01–10), and Showcase cards remain protected and untouched to preserve active merchant stores and database settings without breaking production (`RULE BASE-CARDS`).
+
+
 

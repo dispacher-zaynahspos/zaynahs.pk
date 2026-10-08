@@ -368,3 +368,21 @@ Verified 2026-10. Across all stores (TotVogue, Zaynahs, MiniMahal, LittleMister,
      - `title_line_limit` (1, 2, or none line clamping),
      - `card_alignment` (left, center, right alignment).
    - All customizer controls remain 100% reactive and honored.
+
+## RULE DS22 — New Product Cards Standard: Mandatory Ella JSON Engine Architecture (MANDATORY)
+Verified 2026-10. Across all stores (TotVogue, Zaynahs, MiniMahal, LittleMister, Lobo):
+1. **Mandatory Ella Engine for All Future Cards**:
+   - Any NEW product card variant, theme style, or card archetype added to the project MUST exclusively use the **Ella Card Engine architecture** (`components/product-cards/`):
+     - Configured declaratively via `card-variants.json`.
+     - Scoped modular CSS rules in `product-cards.css` (`.pc-grid[data-card="XX"]`).
+     - Rendered through the unified `components/product-cards/ProductCard.tsx` engine.
+   - Do NOT create fragmented standalone card components or append ad-hoc styles into legacy CSS files.
+2. **Existing Live Cards Protection**:
+   - Existing Base cards (01–05), Elessi styles (01–10), and Showcase cards remain protected and untouched to preserve active merchant stores and database settings without breaking production (`RULE BASE-CARDS`).
+3. **SSOT Shared Module Integration**:
+   - Every new card added to the Ella engine MUST consume canonical shared modules:
+     - Variation swatches via `ProductCardSwatches.tsx`.
+     - Wishlist via `useWishlist.ts`.
+     - Fly-to-cart animation and `QuickViewModal.tsx`.
+     - Title line clamping via `getSharedTitleClampClass`.
+
