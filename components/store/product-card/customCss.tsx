@@ -506,7 +506,7 @@ export const customCss = `
 
     }
 
-    .z-card-container .rat { display: flex; align-items: center; gap: 3px; margin-bottom: 3px; }
+    .z-card-container .rat { display: flex; align-items: center; gap: 3px; margin-top: 1px; margin-bottom: 2px; }
     .z-card-container .rat .st { color: #f59e0b; font-size: .62rem; }
     .z-card-container .rat .rc { font-size: .58rem; color: #888; }
 
@@ -1379,6 +1379,16 @@ export const customCss = `
         .grid-cols-2 .z-card-container .sc24 .center-pill-btn {
             padding: 4px 8px !important;
             font-size: 9.5px !important;
+        }
+
+        .z-card-container .rat {
+            margin-top: 0px !important;
+            margin-bottom: 1px !important;
+            gap: 2px !important;
+        }
+        .z-card-container .swatches {
+            margin-top: 1px !important;
+            margin-bottom: 2px !important;
         }
     }
 

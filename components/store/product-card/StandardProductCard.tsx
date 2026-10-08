@@ -118,7 +118,7 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
       case 'rating':
         if (!showStars) return null;
         return (
-          <div key="rating" className={`mt-1 flex items-center gap-0.5 text-[9px] text-amber-400 ${swatchAlign}`}>
+          <div key="rating" className={`mt-0.5 sm:mt-1 flex items-center gap-0.5 text-[9px] text-amber-400 ${swatchAlign}`}>
             {Array.from({ length: 5 }).map((_, idx) => (
               <svg
                 key={idx}
@@ -152,7 +152,7 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
       case 'swatches':
         if (product.show_swatches_on_archive === false || !finalRenderedGroups) return null;
         return (
-          <div key="swatches" className="relative z-[2] flex flex-col gap-1.5 w-full mt-2 mb-2">
+          <div key="swatches" className="relative z-[2] flex flex-col gap-1 sm:gap-1.5 w-full mt-1 sm:mt-2 mb-1 sm:mb-2">
             {finalRenderedGroups}
           </div>
         );

@@ -471,4 +471,26 @@ Verified 2026-10. Across all card themes and archetypes (Base cards 01–05, Ele
 3. **Wishlist Action Wiring**:
    - Must use the shared `useWishlist` hook with safe optional event handling (`toggleWishlist(e?: React.MouseEvent)`) ensuring compatibility whether called directly or via callbacks.
 
+---
+
+## 14. RULE MOBILE-CARD-DENSITY: Mobile Card Rating Margins & Swatch Elevation Standard (MANDATORY)
+
+Verified 2026-10. Across all card themes and archetypes (Base cards 01–05, Elessi styles 01–10, Ella variants 01–08, and Showcases):
+
+1. **Tight Mobile Rating Spacing**:
+   - On mobile screens (`@media (max-width: 639px)`), star ratings (`.rating`, `.rat`) must use compact vertical margins: `margin-top: -2px` (or `0px`), `margin-bottom: -1px` (or `1px`), with `line-height: 1.15`.
+   - Prevents bloated gaps between price, stars, and titles on compact mobile 2-column grids.
+
+2. **Swatch Elevation & Bottom Margin Lift**:
+   - Swatch containers (`.swatches`, `ProductCardSwatches`) must sit elevated above card bottom borders using responsive spacing `mt-1 sm:mt-2 mb-1 sm:mb-2` with `gap-1 sm:gap-1.5`.
+   - On Ella cards, `.pc-body` gap on mobile must be `3.5px` with `padding-top: 8px` so swatch circles do not touch or collide with the card's bottom container boundary.
+
+3. **Strict Customizer Control Preservation**:
+   - These spacing optimizations MUST NEVER break or bypass:
+     - Rating toggle (`card_show_stars`),
+     - Swatch toggles (`enable_variant_swatches`, `card_show_type_*`),
+     - Customizer element ordering (`card_elements_order` up/down),
+     - Title clamp limits (`title_line_limit`),
+     - Card alignment (`card_alignment`).
+
 

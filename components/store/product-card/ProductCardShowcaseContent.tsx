@@ -101,7 +101,7 @@ export const ProductCardShowcaseContent: React.FC<ProductCardShowcaseContentProp
           case 'rating':
             if (!showStars) return null;
             return (
-              <div key="rating" className="rat">
+              <div key="rating" className="rat my-0 sm:my-0.5">
                 <span className="st" style={{ color: starsColor }}>
                   {Array.from({ length: 5 }).map((_, idx) => idx < Math.round(product.rating || 5) ? '★' : '☆').join('')}
                 </span>
@@ -133,7 +133,7 @@ export const ProductCardShowcaseContent: React.FC<ProductCardShowcaseContentProp
           case 'swatches':
             if (product.show_swatches_on_archive === false || !finalRenderedGroups) return null;
             return (
-              <div key="swatches" className="relative z-[2] w-full mt-2" onClick={(e) => e.stopPropagation()}>
+              <div key="swatches" className="relative z-[2] w-full mt-1 sm:mt-2 mb-1 sm:mb-1.5" onClick={(e) => e.stopPropagation()}>
                 {finalRenderedGroups}
               </div>
             );

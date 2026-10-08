@@ -168,7 +168,7 @@ export const ProductCardSwatches: React.FC<ProductCardSwatchesProps> = ({
   if (finalRenderedGroups.length === 0) return null;
 
   return (
-    <div className="flex flex-col gap-1.5 w-full mt-2 mb-2">
+    <div className="flex flex-col gap-1 sm:gap-1.5 w-full mt-1 sm:mt-2 mb-1 sm:mb-2">
       {finalRenderedGroups}
     </div>
   );

@@ -351,5 +351,19 @@ Verified 2026-10. Across all stores (TotVogue, Zaynahs, MiniMahal, LittleMister,
 2. **Quick Add / Buy (Bag Icon)**: If `product.has_variants` is true, clicking Cart/Bag opens `QuickViewModal` for option selection; if non-variant, adds directly to cart with fly-to-cart animation. It must never silently fail on variant products.
 3. **Wishlist (Heart Icon)**: Uses canonical `useWishlist` with optional mouse event.
 
-
-
+## RULE DS21 — Mobile Card Vertical Density & Swatch Elevation Standard (MANDATORY)
+Verified 2026-10. Across all stores (TotVogue, Zaynahs, MiniMahal, LittleMister, Lobo) and all card styles (Base cards, Elessi styles, Ella 01–08, and Showcases):
+1. **Mobile Star Rating Vertical Margins**:
+   - On mobile screens (`@media (max-width: 639px)` / smartphone viewport), star ratings (`.rating`, `.rat`) must use compact vertical spacing: `margin-top: -2px` (or `0px`), `margin-bottom: -1px` (or `1px`), with `line-height: 1.15`.
+   - Never allow excessive vertical dead space above or below star rating rows on mobile 2-column grids.
+2. **Mobile Swatch Elevation & Breathing Room**:
+   - Variation swatches (`.swatches`, `ProductCardSwatches`) must sit elevated above card bottom edges, using responsive spacing `mt-1 sm:mt-2 mb-1 sm:mb-2` with `gap-1 sm:gap-1.5` instead of tall fixed 8px+ outer margins.
+   - On Ella cards, `.pc-body` gap on mobile must be `3.5px` with `padding-top: 8px` so swatch rows do not collide with or spill over the bottom border of the product card.
+3. **Customizer Control Preservation**:
+   - Spacing refinements MUST NEVER bypass, compromise, or break customizer toggles:
+     - `card_show_stars` (enable/disable ratings),
+     - `enable_variant_swatches` / `card_show_type_*` (enable/disable swatches),
+     - `card_elements_order` (drag-and-drop element ordering up/down),
+     - `title_line_limit` (1, 2, or none line clamping),
+     - `card_alignment` (left, center, right alignment).
+   - All customizer controls remain 100% reactive and honored.
