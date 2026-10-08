@@ -278,7 +278,7 @@ Below is the exhaustive mapping of every control present in **Theme Customizer (
 | **Ella 04** | `card_ella_04` | **White Action Panel** | Unified white panel with quick-view top-right, bordered add-to-cart, and text wishlist. |
 | **Ella 05** | `card_ella_05` | **Gold Classic** | Unified gold-accented rail with wishlist + quick-view + white cart bar. |
 | **Ella 06** | `card_ella_06` | **Right Square Rail** | Slide-in right-side rail with Wishlist + Quick View + Add to Cart. |
-| **Ella 07** | `card_ella_07` | **Floating Bottom-Right Row** | Unified bottom-right row with image arrows + Wishlist + Quick View + Add to Cart. |
+| **Ella 07** | `card_ella_07` | **Floating Bottom-Right Row** | Unified bottom-right row with Wishlist + Quick View + Add to Cart (clean aesthetic, zero arrow clutter). |
 | **Ella 08** | `card_ella_08` | **Vertical Bottom-Right Rail** | Unified vertical rail with Wishlist + Quick View + Add to Cart. |
 
 > New module: `components/product-cards/` (`ProductGrid.tsx`, `ProductCard.tsx`, `product-cards.css`, `card-variants.json`, `types.ts`, `toCardProduct.ts`). Registered as `card_ella_01`–`card_ella_08` in `lib/utils/cardStyles.ts`, `lib/types/settings.ts`, and the Theme Customizer selector. Base themes and Elessi `card_01`–`card_10` are untouched.
@@ -440,24 +440,17 @@ Verified 2026-10. Across all storefront grids, catalog listings, search results,
 
 ---
 
-## 12. RULE CARD-GALLERY-ARROWS: Card Image Gallery Arrow Navigation Directives (MANDATORY)
+## 12. RULE NO-CARD-ARROWS: Card Clean Media Standard (Zero Carousel Arrows Over Cards) (MANDATORY)
 
-Verified 2026-10. Across all card themes featuring carousel/arrow navigation (Ella 07, Ella 08, and any archetype exposing image navigation chevrons):
+Verified 2026-10. Across all card themes and archetypes (Base cards 01–05, Elessi styles 01–10, Ella variants 01–08, and Showcases):
 
-1. **Full Gallery Image Array**:
-   - Arrows MUST cycle across the entire set of product images (`product.images` / `CardProduct.images`), not merely toggle between 2 images.
-   - Images must be sorted by `sort_order` and deduplicated.
-   - Both `<` (Previous) and `>` (Next) buttons must loop cyclically: `(prev - 1 + len) % len` and `(prev + 1) % len`.
+1. **Zero Carousel Arrow Clutter on Product Cards**:
+   - Product cards must NOT render floating chevron or navigation arrow buttons (`<` and `>`) over the product image area.
+   - Arrow buttons clutter the card artwork, interfere with touch scroll ergonomics, and create unwanted DOM overlay layers.
 
-2. **Event Isolation & Bubbling Prevention**:
-   - Navigation button click handlers MUST call both `e.preventDefault()` and `e.stopPropagation()`.
-   - Clicks on arrow buttons must never bubble to the card overlay `Link` (`.ovl`), preventing unwanted PDP navigation.
-   - Arrow buttons must sit at `z-index: 30` (above `.ovl` at `z: 1` and `.pc-actions` at `z: 25`).
+2. **Clean Image Exploration Paradigm**:
+   - Storefront card image exploration is exclusively driven by:
+     - **Hover Secondary Preview**: Clean secondary photo swap/fade on desktop cursor hover (`image_hover_style` / `.i2`).
+     - **Dynamic Swatch Linking**: Instant image update upon hovering or tapping color/material swatches (`RULE SWATCH-CLICK-IMAGE-SWAP`).
+   - Deep multi-image gallery exploration belongs strictly inside the full PDP gallery (`ProductDetailGallery`) and the Quick View drawer/modal (`QuickViewModal`), where customers have full space and dedicated carousel controls.
 
-3. **Hover Secondary Image Suppression (`!isArrowNavActive`)**:
-   - Secondary hover fade-in images (`.i2` / `.hover-fade-in`) MUST NEVER be rendered or displayed when arrow navigation is active (`isArrowNavActive === true`).
-   - Because the cursor must hover over the card to click arrow buttons, a visible `.i2` element would permanently occlude `.i1` with `opacity: 1`, making arrows appear completely broken. Arrow navigation takes absolute precedence over hover secondary effects.
-
-4. **Bi-Directional Swatch & Arrow Synchronization**:
-   - Hovering or clicking a variation swatch resets `isArrowNavActive` to false and aligns the active gallery index to that swatch's linked photo.
-   - Clicking an arrow after selecting a swatch advances seamlessly from the chosen variant image.

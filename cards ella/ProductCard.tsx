@@ -54,12 +54,7 @@ export function ProductCard({ product: p, variant, limit, onWishlist, onQuickVie
         <Link className="ovl" href={p.href} aria-label={p.title} />
         <img className="i1" src={img1} alt="" loading="lazy" />{p.image2 && <img className="i2" src={p.image2} alt="" loading="lazy" />}
         {badge && <span className={`badge b-${badge.replace(/[^a-z]/gi, '').toLowerCase() || 'pct'}`}>{badge}</span>}
-        {variant === '07' && p.image2 && (
-          <>
-            <button className="nav l" type="button" aria-label="Previous" onClick={() => setSel(0)}><Svg d={D.l} /></button>
-            <button className="nav r" type="button" aria-label="Next" onClick={() => setSel(1)}><Svg d={D.r} /></button>
-          </>
-        )}
+
         {/* UNIFIED ACTION RAIL: wishlist + quick view + cart ek container, saath spawn */}
         <div className="pc-actions">
           <button type="button" className={`act wish${wish ? ' on' : ''}`} aria-label="Add to wishlist" onClick={e => { e.preventDefault(); e.stopPropagation(); setWish(!wish); onWishlist?.(p); }}><Svg d={D.heart} /><span className="lbl">Add to wishlist</span></button>

@@ -19,7 +19,7 @@ const QuickViewModal = dynamic(() => import('@/components/store/QuickViewModal')
 const money = (n: number, symbol?: string) => formatPrice(n, symbol);
 const bg = (c: { color: string; color2?: string }) => c.color2 ? `linear-gradient(135deg,${c.color} 50%,${c.color2} 50%)` : c.color;
 const Svg = ({ d }: { d: string }) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d={d} /></svg>;
-const D = { heart: 'M12 20.5s-8-4.9-9-10C2.4 7 4.5 4.5 7.3 4.5c1.9 0 3.5 1 4.7 2.7 1.2-1.7 2.8-2.7 4.7-2.7 2.8 0 4.9 2.5 4.3 6-1 5.1-9 10-9 10z', eye: 'M1.5 12S5.5 5 12 5s10.5 7 10.5 7-4 7-10.5 7S1.5 12 1.5 12zM12 9a3 3 0 100 6 3 3 0 000-6z', bag: 'M5 8h14l1 13H4zM8.5 8V6a3.5 3.5 0 017 0v2', l: 'M15 5l-7 7 7 7', r: 'M9 5l7 7-7 7' };
+const D = { heart: 'M12 20.5s-8-4.9-9-10C2.4 7 4.5 4.5 7.3 4.5c1.9 0 3.5 1 4.7 2.7 1.2-1.7 2.8-2.7 4.7-2.7 2.8 0 4.9 2.5 4.3 6-1 5.1-9 10-9 10z', eye: 'M1.5 12S5.5 5 12 5s10.5 7 10.5 7-4 7-10.5 7S1.5 12 1.5 12zM12 9a3 3 0 100 6 3 3 0 000-6z', bag: 'M5 8h14l1 13H4zM8.5 8V6a3.5 3.5 0 017 0v2' };
 
 export function ProductCard({ product: p, variant, limit, currencySymbol, cardMobileActivation = 'scroll', settings, originalSettings, onWishlist, onQuickView, onAddToCart }: {
   product: CardProduct; variant: CardVariant; limit: number; currencySymbol?: string; cardMobileActivation?: 'scroll' | 'touch' | 'off'; settings?: { title_line_limit?: string } & Record<string, any> | null; originalSettings?: StoreSettings | null;
@@ -30,52 +30,15 @@ export function ProductCard({ product: p, variant, limit, currencySymbol, cardMo
   const addItem = useCartStore((state) => state.addItem);
   const { isInWishlist, toggleWishlist } = useWishlist(p.id, p.image);
   const [sel, setSel] = useState(0);
-  const [galleryIndex, setGalleryIndex] = useState(0);
-  const [isArrowNavActive, setIsArrowNavActive] = useState(false);
-  const [lastPropImage, setLastPropImage] = useState(p.image);
   const [userSelected, setUserSelected] = useState(false);
   const [quickViewOpen, setQuickViewOpen] = useState(false);
-
-  const galleryImages = (p.images && p.images.length > 0)
-    ? p.images
-    : ([p.image, p.image2].filter(Boolean) as string[]);
-
-  if (p.image !== lastPropImage) {
-    setLastPropImage(p.image);
-    setIsArrowNavActive(false);
-    const foundIdx = galleryImages.indexOf(p.image);
-    setGalleryIndex(foundIdx >= 0 ? foundIdx : 0);
-  }
 
   const sale = !!p.compareAt && p.compareAt > p.price;
   const pct = sale ? Math.round(((p.compareAt! - p.price) / p.compareAt!) * 100) : 0;
   const badge = sale ? `-${pct}%` : p.badge || '';
   const shown = p.swatches.slice(0, limit);
 
-  let img1: string;
-  if (isArrowNavActive && galleryImages[galleryIndex]) {
-    img1 = galleryImages[galleryIndex];
-  } else if (p.swatchNode !== undefined) {
-    img1 = (p.image || p.swatches[sel]?.image) as string;
-  } else {
-    img1 = (p.swatches[sel]?.image || p.image) as string;
-  }
-
-  const hasArrows = (variant === '07' || variant === '08' || Boolean((v as Record<string, any>)?.arrows)) && galleryImages.length > 1;
-
-  const handlePrevImage = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsArrowNavActive(true);
-    setGalleryIndex((prev) => (prev - 1 + galleryImages.length) % galleryImages.length);
-  };
-
-  const handleNextImage = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsArrowNavActive(true);
-    setGalleryIndex((prev) => (prev + 1) % galleryImages.length);
-  };
+  const img1 = (p.swatchNode !== undefined ? (p.image || p.swatches[sel]?.image) : (p.swatches[sel]?.image || p.image)) as string;
 
   const stars = <span className="stars" style={{ '--r': p.rating || 0 } as React.CSSProperties}><i /></span>;
 
@@ -98,21 +61,12 @@ export function ProductCard({ product: p, variant, limit, currencySymbol, cardMo
     <div className="el swatches">
       {shown.length > 0 && <div className="sws">
         {shown.map((c, i) => <span key={i} className={`sw${i === sel ? ' on' : ''}`} style={{ '--c': bg(c) } as React.CSSProperties}
-          onMouseEnter={() => {
-            setSel(i);
-            setIsArrowNavActive(false);
-          }}
+          onMouseEnter={() => setSel(i)}
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
             setSel(i);
             setUserSelected(true);
-            setIsArrowNavActive(false);
-            const swatchImg = p.swatches[i]?.image;
-            if (swatchImg) {
-              const idx = galleryImages.indexOf(swatchImg);
-              if (idx >= 0) setGalleryIndex(idx);
-            }
           }} />)}
         {p.swatches.length > limit && <span className="more">+{p.swatches.length - limit}</span>}
       </div>}
@@ -141,14 +95,8 @@ export function ProductCard({ product: p, variant, limit, currencySymbol, cardMo
       <div className="pc-media">
         <Link className="ovl" href={p.href} aria-label={p.title} />
         <img className="i1" src={img1} alt="" loading="lazy" />
-        {p.image2 && !userSelected && !isArrowNavActive && <img className="i2" src={p.image2} alt="" loading="lazy" />}
+        {p.image2 && !userSelected && <img className="i2" src={p.image2} alt="" loading="lazy" />}
         {badge && <span className={`badge b-${badge.replace(/[^a-z]/gi, '').toLowerCase() || 'pct'}`}>{badge}</span>}
-        {hasArrows && (
-          <>
-            <button className="nav l" type="button" aria-label="Previous" onClick={handlePrevImage}><Svg d={D.l} /></button>
-            <button className="nav r" type="button" aria-label="Next" onClick={handleNextImage}><Svg d={D.r} /></button>
-          </>
-        )}
         {/* UNIFIED ACTION RAIL: wishlist + quick view + cart ek container, saath spawn */}
         <div className="pc-actions">
           <button type="button" className={`act wish${isInWishlist ? ' on' : ''}`} aria-label="Add to wishlist" onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (onWishlist) { onWishlist(p); return; } toggleWishlist(e as unknown as React.MouseEvent); }}><Svg d={D.heart} /><span className="lbl">Add to wishlist</span></button>
