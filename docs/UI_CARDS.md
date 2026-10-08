@@ -483,7 +483,8 @@ Verified 2026-10. Across all card themes and archetypes (Base cards 01–05, Ele
 
 2. **Swatch Elevation & Bottom Margin Lift**:
    - Swatch containers (`.swatches`, `ProductCardSwatches`) must sit elevated above card bottom borders using responsive spacing `mt-1 sm:mt-2 mb-1 sm:mb-2` with `gap-1 sm:gap-1.5`.
-   - On Ella cards, `.pc-body` gap on mobile must be `3.5px` with `padding-top: 8px` so swatch circles do not touch or collide with the card's bottom container boundary.
+   - On Ella cards, `.pc-body` gap on mobile must be `3.5px`, `padding-top: 8px`, and `padding-bottom: 6px` so swatch circles do not touch or collide with the card's bottom container boundary.
+   - Across all Showcases and Standard/List cards, ratings use `my-0.5 sm:my-1` and swatches use `my-0.5 sm:my-1.5` with `mt-1 sm:mt-1.5` for prices.
 
 3. **Strict Customizer Control Preservation**:
    - These spacing optimizations MUST NEVER break or bypass:

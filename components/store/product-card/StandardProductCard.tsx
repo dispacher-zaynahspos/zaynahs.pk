@@ -133,7 +133,7 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
         );
       case 'price':
         return (
-          <div key="price" className={`mt-1.5 flex items-baseline gap-x-1.5 gap-y-0.5 flex-wrap ${swatchAlign}`}>
+          <div key="price" className={`mt-1 sm:mt-1.5 flex items-baseline gap-x-1.5 gap-y-0.5 flex-wrap ${swatchAlign}`}>
             <span className="product-price text-xs sm:text-sm font-extrabold text-gray-900 dark:text-white" style={settings?.card_sale_price_color ? { color: settings.card_sale_price_color } : undefined}>
               {hasPriceRange
                 ? `${formatPrice(minPrice, currencySymbol)} – ${formatPrice(maxPrice, currencySymbol)}`

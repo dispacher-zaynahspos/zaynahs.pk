@@ -967,7 +967,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
                 )}
               </div>
               {showStars && (
-                <div className="flex items-center gap-1.5 my-1">
+                <div className="flex items-center gap-1.5 my-0.5 sm:my-1">
                   <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-sm bg-amber-500/10 text-amber-600 text-[9.5px] font-bold">
                     ★ {product.rating ? product.rating.toFixed(1) : '4.8'}
                   </span>
@@ -978,7 +978,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
                 {product.name}
               </Link>
               {finalRenderedGroups && (
-                <div className="my-1" onClick={(e) => e.stopPropagation()}>
+                <div className="my-0.5 sm:my-1" onClick={(e) => e.stopPropagation()}>
                   {finalRenderedGroups}
                 </div>
               )}
@@ -1017,7 +1017,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
                 {product.name}
               </Link>
               {finalRenderedGroups && (
-                <div className="my-1.5" onClick={(e) => e.stopPropagation()}>
+                <div className="my-0.5 sm:my-1.5" onClick={(e) => e.stopPropagation()}>
                   {finalRenderedGroups}
                 </div>
               )}
@@ -1052,7 +1052,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
           <div className="cb flex flex-col flex-grow justify-between p-2.5 w-full relative z-[2] bg-white dark:bg-[#16162a] rounded-b-lg">
             <div>
               {showStars && (
-                <div className="flex items-center gap-1 mb-1">
+                <div className="flex items-center gap-1 my-0.5 sm:my-1">
                   <span className="text-amber-500 text-xs tracking-tighter">★★★★★</span>
                   <span className="text-[10px] text-blue-600 dark:text-blue-400 font-medium">({product.reviews_count || 128})</span>
                 </div>
@@ -1071,7 +1071,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
                 {product.name}
               </Link>
               {finalRenderedGroups && (
-                <div className="my-1.5" onClick={(e) => e.stopPropagation()}>
+                <div className="my-0.5 sm:my-1.5" onClick={(e) => e.stopPropagation()}>
                   {finalRenderedGroups}
                 </div>
               )}
@@ -1096,7 +1096,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
           <div className="cb flex flex-col flex-grow justify-between items-center text-center p-2.5 sm:p-3 w-full relative z-[2] bg-white dark:bg-[#16162a] rounded-b-2xl">
             <div className="w-full flex flex-col items-center">
               {finalRenderedGroups && (
-                <div className="mb-1.5" onClick={(e) => e.stopPropagation()}>
+                <div className="mb-0.5 sm:mb-1.5" onClick={(e) => e.stopPropagation()}>
                   {finalRenderedGroups}
                 </div>
               )}
@@ -1114,7 +1114,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
                 )}
               </div>
               {showStars && (
-                <div className="flex items-center gap-1 mt-1">
+                <div className="flex items-center gap-1 my-0.5 sm:my-1">
                   <span className="text-amber-400 text-[10px]">★</span>
                   <span className="text-[10px] text-gray-500 font-bold">{(product.rating || 5).toFixed(1)}</span>
                 </div>
@@ -1185,7 +1185,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
                 )}
               </div>
               {finalRenderedGroups && (
-                <div className="my-1.5" onClick={(e) => e.stopPropagation()}>
+                <div className="my-0.5 sm:my-1.5" onClick={(e) => e.stopPropagation()}>
                   {finalRenderedGroups}
                 </div>
               )}
@@ -1253,7 +1253,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
                 </span>
               </div>
               {finalRenderedGroups && (
-                <div className="my-1" onClick={(e) => e.stopPropagation()}>
+                <div className="my-0.5 sm:my-1" onClick={(e) => e.stopPropagation()}>
                   {finalRenderedGroups}
                 </div>
               )}
@@ -1314,13 +1314,13 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
                 </span>
               </div>
               {showStars && (
-                <div className="flex items-center gap-1 my-1">
+                <div className="flex items-center gap-1 my-0.5 sm:my-1">
                   <span className="text-amber-500 text-[10px]">★</span>
                   <span className="text-[10px] text-gray-400 font-semibold">{(product.rating || 5).toFixed(1)}</span>
                 </div>
               )}
               {finalRenderedGroups && (
-                <div className="my-1.5" onClick={(e) => e.stopPropagation()}>
+                <div className="my-0.5 sm:my-1.5" onClick={(e) => e.stopPropagation()}>
                   {finalRenderedGroups}
                 </div>
               )}
@@ -1373,7 +1373,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
                 </span>
               )}
               {finalRenderedGroups && (
-                <div className="my-1.5" onClick={(e) => e.stopPropagation()}>
+                <div className="my-0.5 sm:my-1.5" onClick={(e) => e.stopPropagation()}>
                   {finalRenderedGroups}
                 </div>
               )}
@@ -1456,7 +1456,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
               )}
             </div>
             {finalRenderedGroups && (
-              <div className="my-1" onClick={(e) => e.stopPropagation()}>
+              <div className="my-0.5 sm:my-1" onClick={(e) => e.stopPropagation()}>
                 {finalRenderedGroups}
               </div>
             )}

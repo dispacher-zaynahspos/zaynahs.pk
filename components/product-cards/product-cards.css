@@ -46,10 +46,10 @@
 .sw.on{box-shadow:inset 0 0 0 2px #fff,0 0 0 1.5px var(--accent);transform:scale(1.1)}.more{font-size:10px;color:#9a9a9a;font-weight:700}
 .vrow,.brow{display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%}.cta{display:none}
 @media(max-width:639px){
-  .pc-body{padding-top:8px;gap:3.5px}
+  .pc-body{padding-top:8px;padding-bottom:6px;gap:3.5px}
   .rating{margin-top:-2px;margin-bottom:-1px;line-height:1.15}
   .stars{font-size:11px;letter-spacing:1.5px}
-  .swatches{margin-top:0;margin-bottom:2px}
+  .swatches{margin-top:0;margin-bottom:0}
   .sws{gap:4.5px}
   .price{font-size:13.5px;gap:2px 4px}
   .ttl{line-height:1.35}

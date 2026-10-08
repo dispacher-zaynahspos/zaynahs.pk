@@ -358,7 +358,8 @@ Verified 2026-10. Across all stores (TotVogue, Zaynahs, MiniMahal, LittleMister,
    - Never allow excessive vertical dead space above or below star rating rows on mobile 2-column grids.
 2. **Mobile Swatch Elevation & Breathing Room**:
    - Variation swatches (`.swatches`, `ProductCardSwatches`) must sit elevated above card bottom edges, using responsive spacing `mt-1 sm:mt-2 mb-1 sm:mb-2` with `gap-1 sm:gap-1.5` instead of tall fixed 8px+ outer margins.
-   - On Ella cards, `.pc-body` gap on mobile must be `3.5px` with `padding-top: 8px` so swatch rows do not collide with or spill over the bottom border of the product card.
+   - On Ella cards, `.pc-body` gap on mobile must be `3.5px`, `padding-top: 8px`, and `padding-bottom: 6px` so swatch rows do not collide with or spill over the bottom border of the product card.
+   - Across all Showcases and Standard/List cards, ratings use `my-0.5 sm:my-1` and swatches use `my-0.5 sm:my-1.5` with `mt-1 sm:mt-1.5` for prices.
 3. **Customizer Control Preservation**:
    - Spacing refinements MUST NEVER bypass, compromise, or break customizer toggles:
      - `card_show_stars` (enable/disable ratings),
