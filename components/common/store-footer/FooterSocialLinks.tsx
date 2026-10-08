@@ -24,6 +24,7 @@ type SocialItem = {
   Icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
   /** per-brand hover bg (WhatsApp = green); falls back to shared hover bg */
   hoverBg?: string;
+  hoverColor?: string;
 };
 
 /**
@@ -37,28 +38,29 @@ type SocialItem = {
  */
 export function FooterSocialLinks({ settings }: FooterSocialLinksProps) {
   const items: SocialItem[] = [
-    { key: 'facebook', href: settings.social_facebook || '', label: 'Facebook', Icon: FacebookIcon },
-    { key: 'instagram', href: settings.social_instagram || '', label: 'Instagram', Icon: InstagramIcon },
-    { key: 'tiktok', href: settings.social_tiktok || '', label: 'TikTok', Icon: TiktokIcon },
-    { key: 'snapchat', href: settings.social_snapchat || '', label: 'Snapchat', Icon: SnapchatIcon },
-    { key: 'twitter', href: settings.social_twitter || '', label: 'Twitter (X)', Icon: TwitterIcon },
-    { key: 'youtube', href: settings.social_youtube || '', label: 'YouTube', Icon: YoutubeIcon },
+    { key: 'facebook', href: settings.social_facebook || '', label: 'Facebook', Icon: FacebookIcon, hoverBg: '#1877F2', hoverColor: '#ffffff' },
+    { key: 'instagram', href: settings.social_instagram || '', label: 'Instagram', Icon: InstagramIcon, hoverBg: '#E1306C', hoverColor: '#ffffff' },
+    { key: 'tiktok', href: settings.social_tiktok || '', label: 'TikTok', Icon: TiktokIcon, hoverBg: '#000000', hoverColor: '#ffffff' },
+    { key: 'snapchat', href: settings.social_snapchat || '', label: 'Snapchat', Icon: SnapchatIcon, hoverBg: '#FFFC00', hoverColor: '#000000' },
+    { key: 'twitter', href: settings.social_twitter || '', label: 'Twitter (X)', Icon: TwitterIcon, hoverBg: '#000000', hoverColor: '#ffffff' },
+    { key: 'youtube', href: settings.social_youtube || '', label: 'YouTube', Icon: YoutubeIcon, hoverBg: '#FF0000', hoverColor: '#ffffff' },
     {
       key: 'whatsapp',
       href: settings.social_whatsapp ? `https://wa.me/${cleanWhatsAppPhone(settings.social_whatsapp)}` : '',
       label: 'WhatsApp',
       Icon: WhatsAppIcon,
-      hoverBg: '#10b981',
+      hoverBg: '#25D366',
+      hoverColor: '#ffffff',
     },
   ].filter((it) => it.href); // hide icons whose link is empty
 
   if (items.length === 0) return null;
 
   // Shared, editable colors with safe, WCAG-AA defaults.
-  const iconColor = settings.footer_social_icon_color || 'var(--footer-text, #5B6B85)';
+  const iconColor = settings.footer_social_icon_color || '#334155';
   const iconBg = settings.footer_social_icon_bg || 'rgba(0,0,0,0.05)';
   const hoverColor = settings.footer_social_hover_color || '#ffffff';
-  const hoverBg = settings.footer_social_hover_bg || '#e94560';
+  const hoverBg = settings.footer_social_hover_bg || '#0F2A5E';
 
   const styleVars = {
     ['--fs-icon']: iconColor,
@@ -74,12 +76,17 @@ export function FooterSocialLinks({ settings }: FooterSocialLinksProps) {
           color: var(--fs-icon);
           background-color: var(--fs-bg);
           -webkit-tap-highlight-color: transparent;
+          transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .fs-link svg { stroke: currentColor; }
+        .fs-link svg {
+          stroke: currentColor;
+          transition: transform 0.2s ease;
+        }
         /* Touch feedback (all devices) */
         .fs-link:active {
-          color: var(--fs-hover);
-          background-color: var(--fs-hover-bg);
+          color: var(--fs-item-hover-color, var(--fs-hover, #ffffff)) !important;
+          background-color: var(--fs-item-hover-bg, var(--fs-hover-bg)) !important;
+          border-color: transparent !important;
           transform: scale(0.94);
         }
         /* Keyboard focus always visible */
@@ -91,16 +98,19 @@ export function FooterSocialLinks({ settings }: FooterSocialLinksProps) {
         /* Hover ONLY on hover-capable devices → no sticky hover on mobile */
         @media (hover: hover) {
           .fs-link:hover {
-            color: var(--fs-hover);
-            background-color: var(--fs-hover-bg);
+            color: var(--fs-item-hover-color, var(--fs-hover, #ffffff)) !important;
+            background-color: var(--fs-item-hover-bg, var(--fs-hover-bg)) !important;
+            border-color: transparent !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 14px -2px rgba(0,0,0,0.2);
           }
-          .fs-link[data-hoverbg]:hover {
-            background-color: var(--fs-item-hover-bg, var(--fs-hover-bg));
+          .fs-link:hover svg {
+            transform: scale(1.1);
           }
         }
       `}</style>
 
-      {items.map(({ key, href, label, Icon, hoverBg: itemHoverBg }) => (
+      {items.map(({ key, href, label, Icon, hoverBg: itemHoverBg, hoverColor: itemHoverColor }) => (
         <a
           key={key}
           href={href}
@@ -108,8 +118,12 @@ export function FooterSocialLinks({ settings }: FooterSocialLinksProps) {
           rel="noopener noreferrer"
           aria-label={label}
           title={label}
-          data-hoverbg={itemHoverBg ? '' : undefined}
-          style={itemHoverBg ? ({ ['--fs-item-hover-bg']: itemHoverBg } as React.CSSProperties) : undefined}
+          style={
+            {
+              ['--fs-item-hover-bg']: itemHoverBg,
+              ['--fs-item-hover-color']: itemHoverColor || '#ffffff',
+            } as React.CSSProperties
+          }
           className="fs-link flex h-11 w-11 min-h-11 min-w-11 items-center justify-center rounded-xl border border-gray-200 dark:border-gray-800 transition-all duration-200 cursor-pointer"
         >
           <Icon className="h-5 w-5 shrink-0" />

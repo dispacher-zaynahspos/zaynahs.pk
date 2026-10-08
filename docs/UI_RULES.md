@@ -178,5 +178,10 @@ All save/cancel action bars across the Admin Console must be sticky at the botto
 - **SSOT Image Precedence**: All card archetypes must prioritize parent-provided `activeImage` / `p.image`. Never hardcode `p.swatches[0]?.image` over `p.image`.
 - See full rule: `docs/agent-rules/14-design-system.md` RULE DS17 and `docs/UI_CARDS.md` Section 11.
 
+## 18. Footer Social Icons & Grid View All Visibility Standard (RULE SOCIAL-VIEWALL-CONTRAST & RULE DS19)
+- **Footer Social Hover Contrast**: Every social link in `FooterSocialLinks.tsx` has branded hover background colors (`#1877F2` for Facebook, `#E1306C` for Instagram, `#25D366` for WhatsApp, `#FF0000` for YouTube, `#000000` for TikTok/Twitter, `#FFFC00` for Snapchat) with guaranteed high-contrast icon color (`#ffffff` / `#000000`), smooth lift, and dark mode compatibility. Resting icon color defaults to visible slate (`#334155`).
+- **Grid 'View All' Button Contrast**: Center/bottom 'View All' action buttons (`StoreFrontProductGridSection`, `FlashSaleSection`, `StoreFrontSections`) must default text color to `#ffffff`. If a merchant or DB config accidentally sets the text color identical to the button background color, the runtime safely falls back to `#ffffff` to guarantee WCAG-AA legibility.
+
+
 
 

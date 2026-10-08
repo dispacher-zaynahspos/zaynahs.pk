@@ -69,11 +69,11 @@ export default function BottomGridActions({
               />
               <button
                 type="button"
-                onClick={() => handleSettingsChange('bottomViewAllTextColor', '')}
+                onClick={() => handleSettingsChange('bottomViewAllTextColor', '#ffffff')}
                 className="text-[9px] text-gray-400 hover:text-[#e94560] font-bold uppercase tracking-wider cursor-pointer"
-                title="Reset to theme text"
+                title="Reset to white text"
               >
-                Reset to Theme
+                Reset to White
               </button>
             </div>
           </div>

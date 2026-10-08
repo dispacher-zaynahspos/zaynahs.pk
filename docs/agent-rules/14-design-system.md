@@ -340,3 +340,9 @@ Verified 2026-10. Across all storefront grids, catalog listings, search feeds, a
    - **Dynamic Swatch Linking**: Instant image update upon hovering or tapping color/material swatches (`RULE DS17`).
 3. **Dedicated Gallery Modals**: Deep multi-image carousel exploration is strictly reserved for the full Product Detail Page (`ProductDetailGallery`) and the Quick View drawer/modal (`QuickViewModal`).
 
+## RULE DS19 — Footer Social Icons & Grid View All Visibility Standard (MANDATORY)
+Verified 2026-10. Across all stores (TotVogue, Zaynahs, MiniMahal, LittleMister, Lobo):
+1. **Footer Social Hover Contrast**: Every social link in `FooterSocialLinks.tsx` has branded hover background colors (`#1877F2` for Facebook, `#E1306C` for Instagram, `#25D366` for WhatsApp, `#FF0000` for YouTube, `#000000` for TikTok/Twitter, `#FFFC00` for Snapchat) with guaranteed high-contrast icon color (`#ffffff` / `#000000`), smooth lift, and dark mode compatibility. Resting icon color defaults to visible slate (`#334155`).
+2. **Grid 'View All' Button Contrast**: Center/bottom 'View All' action buttons (`StoreFrontProductGridSection`, `FlashSaleSection`, `StoreFrontSections`) must default text color to `#ffffff`. If a merchant or DB config accidentally sets the text color identical to the button background color, the runtime safely falls back to `#ffffff` to guarantee WCAG-AA legibility.
+
+

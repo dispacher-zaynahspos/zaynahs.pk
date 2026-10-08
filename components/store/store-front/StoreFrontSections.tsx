@@ -175,7 +175,9 @@ export function CategoryGridSection({ section, refEntities = [] }: CategoryGridS
             href={section.settings?.bottom_view_all_url || '/shop'}
             style={{
               backgroundColor: section.settings?.bottom_view_all_bg_color || 'var(--btn-primary-bg, var(--color-primary, #0F2A5E))',
-              color: section.settings?.bottom_view_all_text_color || 'var(--btn-primary-text, #ffffff)',
+              color: (section.settings?.bottom_view_all_text_color && section.settings.bottom_view_all_text_color.toLowerCase() !== (section.settings?.bottom_view_all_bg_color || '#0f2a5e').toLowerCase())
+                ? section.settings.bottom_view_all_text_color
+                : '#ffffff',
               borderRadius: 'var(--border-radius-btn, 12px)'
             }}
             className="px-6 py-2.5 text-xs sm:text-sm font-bold shadow-sm hover:brightness-110 active:scale-95 transition-all cursor-pointer"

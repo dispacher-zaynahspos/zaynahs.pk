@@ -246,7 +246,9 @@ export function StoreFrontProductGridSection({
               className="px-5 py-2.5 text-xs md:text-sm font-semibold tracking-wide uppercase rounded-full transition-all duration-200 shadow-sm active:scale-95 hover:brightness-90 select-none touch-manipulation relative z-10"
               style={{
                 backgroundColor: section.settings?.bottomViewAllBgColor || 'var(--btn-primary-bg, var(--color-primary, #0F2A5E))',
-                color: section.settings?.bottomViewAllTextColor || 'var(--btn-primary-text, #ffffff)',
+                color: (section.settings?.bottomViewAllTextColor && section.settings.bottomViewAllTextColor.toLowerCase() !== (section.settings?.bottomViewAllBgColor || '#0f2a5e').toLowerCase())
+                  ? section.settings.bottomViewAllTextColor
+                  : '#ffffff',
                 borderRadius: 'var(--border-radius-btn, 9999px)',
               }}
             >
