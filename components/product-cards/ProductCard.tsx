@@ -30,16 +30,53 @@ export function ProductCard({ product: p, variant, limit, currencySymbol, cardMo
   const addItem = useCartStore((state) => state.addItem);
   const { isInWishlist, toggleWishlist } = useWishlist(p.id, p.image);
   const [sel, setSel] = useState(0);
-  const [arrowImageIndex, setArrowImageIndex] = useState(0);
+  const [galleryIndex, setGalleryIndex] = useState(0);
+  const [isArrowNavActive, setIsArrowNavActive] = useState(false);
+  const [lastPropImage, setLastPropImage] = useState(p.image);
   const [userSelected, setUserSelected] = useState(false);
   const [quickViewOpen, setQuickViewOpen] = useState(false);
+
+  const galleryImages = (p.images && p.images.length > 0)
+    ? p.images
+    : ([p.image, p.image2].filter(Boolean) as string[]);
+
+  if (p.image !== lastPropImage) {
+    setLastPropImage(p.image);
+    setIsArrowNavActive(false);
+    const foundIdx = galleryImages.indexOf(p.image);
+    setGalleryIndex(foundIdx >= 0 ? foundIdx : 0);
+  }
+
   const sale = !!p.compareAt && p.compareAt > p.price;
   const pct = sale ? Math.round(((p.compareAt! - p.price) / p.compareAt!) * 100) : 0;
   const badge = sale ? `-${pct}%` : p.badge || '';
   const shown = p.swatches.slice(0, limit);
-  const img1 = (variant === '07' && arrowImageIndex === 1 && p.image2
-    ? p.image2
-    : (p.swatchNode !== undefined ? (p.image || p.swatches[sel]?.image) : (p.swatches[sel]?.image || p.image))) as string;
+
+  let img1: string;
+  if (isArrowNavActive && galleryImages[galleryIndex]) {
+    img1 = galleryImages[galleryIndex];
+  } else if (p.swatchNode !== undefined) {
+    img1 = (p.image || p.swatches[sel]?.image) as string;
+  } else {
+    img1 = (p.swatches[sel]?.image || p.image) as string;
+  }
+
+  const hasArrows = (variant === '07' || variant === '08' || Boolean((v as Record<string, any>)?.arrows)) && galleryImages.length > 1;
+
+  const handlePrevImage = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsArrowNavActive(true);
+    setGalleryIndex((prev) => (prev - 1 + galleryImages.length) % galleryImages.length);
+  };
+
+  const handleNextImage = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsArrowNavActive(true);
+    setGalleryIndex((prev) => (prev + 1) % galleryImages.length);
+  };
+
   const stars = <span className="stars" style={{ '--r': p.rating || 0 } as React.CSSProperties}><i /></span>;
 
   const titleClampClass = getSharedTitleClampClass(settings?.title_line_limit);
@@ -61,12 +98,21 @@ export function ProductCard({ product: p, variant, limit, currencySymbol, cardMo
     <div className="el swatches">
       {shown.length > 0 && <div className="sws">
         {shown.map((c, i) => <span key={i} className={`sw${i === sel ? ' on' : ''}`} style={{ '--c': bg(c) } as React.CSSProperties}
-          onMouseEnter={() => setSel(i)}
+          onMouseEnter={() => {
+            setSel(i);
+            setIsArrowNavActive(false);
+          }}
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
             setSel(i);
             setUserSelected(true);
+            setIsArrowNavActive(false);
+            const swatchImg = p.swatches[i]?.image;
+            if (swatchImg) {
+              const idx = galleryImages.indexOf(swatchImg);
+              if (idx >= 0) setGalleryIndex(idx);
+            }
           }} />)}
         {p.swatches.length > limit && <span className="more">+{p.swatches.length - limit}</span>}
       </div>}
@@ -94,12 +140,13 @@ export function ProductCard({ product: p, variant, limit, currencySymbol, cardMo
       <article className="pc" ref={cardRef} onPointerDown={(e) => { if (e.pointerType === 'touch') setManualFocus(); }}>
       <div className="pc-media">
         <Link className="ovl" href={p.href} aria-label={p.title} />
-        <img className="i1" src={img1} alt="" loading="lazy" />{p.image2 && !userSelected && <img className="i2" src={p.image2} alt="" loading="lazy" />}
+        <img className="i1" src={img1} alt="" loading="lazy" />
+        {p.image2 && !userSelected && !isArrowNavActive && <img className="i2" src={p.image2} alt="" loading="lazy" />}
         {badge && <span className={`badge b-${badge.replace(/[^a-z]/gi, '').toLowerCase() || 'pct'}`}>{badge}</span>}
-        {variant === '07' && p.image2 && (
+        {hasArrows && (
           <>
-            <button className="nav l" type="button" aria-label="Previous" onClick={() => setArrowImageIndex(0)}><Svg d={D.l} /></button>
-            <button className="nav r" type="button" aria-label="Next" onClick={() => setArrowImageIndex(1)}><Svg d={D.r} /></button>
+            <button className="nav l" type="button" aria-label="Previous" onClick={handlePrevImage}><Svg d={D.l} /></button>
+            <button className="nav r" type="button" aria-label="Next" onClick={handleNextImage}><Svg d={D.r} /></button>
           </>
         )}
         {/* UNIFIED ACTION RAIL: wishlist + quick view + cart ek container, saath spawn */}

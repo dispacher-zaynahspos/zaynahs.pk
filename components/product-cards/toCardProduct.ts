@@ -38,6 +38,18 @@ export function toCardProduct(product: Product, settings?: StoreSettings | null)
   const primaryImage = getPresetImageUrl(product.images?.find((image) => image.is_primary)?.url || product.images?.[0]?.url || fallbackPlaceholder, 'card');
   const secondaryImage = product.images.length > 1 ? getPresetImageUrl(product.images[1]?.url || product.images[0]?.url || fallbackPlaceholder, 'card') : null;
 
+  const sortedImages = (product.images || [])
+    .slice()
+    .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+  const galleryUrls = sortedImages
+    .map((img) => getPresetImageUrl(img.url, 'card'))
+    .filter(Boolean);
+  const variantUrls = activeVariants
+    .map((v) => (v.image_url ? getPresetImageUrl(v.image_url, 'card') : ''))
+    .filter(Boolean);
+  const combinedImages = Array.from(new Set([primaryImage, secondaryImage, ...galleryUrls, ...variantUrls].filter(Boolean) as string[]));
+  const allImages = combinedImages.length > 0 ? combinedImages : ([primaryImage, secondaryImage].filter(Boolean) as string[]);
+
   return {
     id: product.id,
     href: `/product/${encodeURIComponent(product.slug || '')}`,
@@ -51,6 +63,7 @@ export function toCardProduct(product: Product, settings?: StoreSettings | null)
     badge: product.custom_badge?.name || undefined,
     image: primaryImage,
     image2: secondaryImage,
+    images: allImages,
     rating: product.rating,
     reviewCount: product.reviews_count,
     swatches,

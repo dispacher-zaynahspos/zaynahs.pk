@@ -32,7 +32,7 @@
 [data-icon=brutalist] .act{background:#fff;border:2px solid #000;border-radius:0;box-shadow:3px 3px 0 #000}
 [data-icon=glass] .act{background:#ffffff8c;border:1px solid #ffffffcc;box-shadow:0 1px 6px #0001}
 [data-wishlist=off] .wish,[data-quickview=off] .qv,[data-quickcart=off] .cart,[data-stars=off] .rating,[data-stars=off] .hstars,[data-desc=off] .desc,[data-swatches=off] .swatches{display:none!important}
-.nav{display:none;position:absolute;top:50%;margin-top:-18px;width:36px;height:36px;background:#fff;place-items:center;z-index:100;opacity:0;transition:opacity .3s;pointer-events:auto}.nav svg{width:14px;height:14px}.nav.l{left:12px}.nav.r{right:12px}:is(html:not(.touch) .pc:hover,.pc.active,.pc.is-in-focus) .nav{opacity:1}
+.nav{display:none;position:absolute;top:50%;margin-top:-18px;width:36px;height:36px;background:#fff;place-items:center;z-index:30;opacity:0;transition:opacity .3s,transform .2s,background-color .2s;pointer-events:auto;border-radius:50%;box-shadow:0 1px 4px #0002;cursor:pointer}.nav:hover{background:#f8f8f8}.nav:active{transform:scale(.92)}.nav svg{width:14px;height:14px}.nav.l{left:12px}.nav.r{right:12px}:is(html:not(.touch) .pc:hover,.pc.active,.pc.is-in-focus) .nav{opacity:1}
 .pc-body{display:flex;flex-direction:column;gap:6px;padding-top:14px;align-items:var(--ai,flex-start);text-align:var(--ta,left);min-width:0}
 .el{max-width:100%;min-width:0}.vendor{order:-1}.rating{order:var(--o-rating,10)}.price{order:var(--o-price,20)}.title{order:var(--o-title,30)}.desc{order:var(--o-desc,31)}.swatches{order:var(--o-swatches,40)}
 .ttl{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:var(--lines,2);overflow:hidden;line-height:1.5;overflow-wrap:anywhere}
@@ -102,13 +102,16 @@
 .pc-grid[data-card="06"] .act{border-radius:0}.pc-grid[data-card="06"] .wish{right:0;top:calc(50% - 68px)}.pc-grid[data-card="06"] .qv{right:0;top:calc(50% - 20px)}.pc-grid[data-card="06"] .cart{right:0;top:calc(50% + 28px)}
 @container (max-width:200px){.pc-grid[data-card="06"] .badge{right:auto;left:0}.pc-grid[data-card="06"] .act{--a:32px}.pc-grid[data-card="06"] .wish{top:calc(50% - 56px)}.pc-grid[data-card="06"] .qv{top:calc(50% - 16px)}.pc-grid[data-card="06"] .cart{top:calc(50% + 24px)}}
 @media(max-width:639px){.pc-grid[data-card="06"] .pc-body{padding-top:14px}.pc-grid[data-card="06"] .ttl{line-height:1.7}}
-/* ===== Card 07 ===== */
-.pc-grid[data-card="07"]{--psale:#e0607a}.pc-grid[data-card="07"] .nav{display:grid}.pc-grid[data-card="07"] .nav.l{left:clamp(6px,18%,50px)}.pc-grid[data-card="07"] .nav.r{right:clamp(6px,18%,50px)}
+/* ===== Card 07 & Card 08 ===== */
+.pc-grid[data-card="07"]{--psale:#e0607a}
+.pc-grid:is([data-card="07"],[data-card="08"]) .nav{display:grid}
+.pc-grid:is([data-card="07"],[data-card="08"]) .nav.l{left:clamp(6px,18%,50px)}
+.pc-grid:is([data-card="07"],[data-card="08"]) .nav.r{right:clamp(6px,18%,50px)}
 .pc-grid[data-card="07"] .vendor,.pc-grid[data-card="07"] .pct{display:none}.pc-grid[data-card="07"] .ttl{font-size:12px;font-weight:500}.pc-grid[data-card="07"] .old{font-size:12px}
 .pc-grid[data-card="07"] .badge{top:0;left:0;background:#e58c8c;color:#fff;font-size:10px;padding:4px 8px}
 .pc-grid[data-card="07"] .act{--a:34px}.pc-grid[data-card="07"] .wish{right:10px;bottom:10px}.pc-grid[data-card="07"] .qv{right:52px;bottom:10px}.pc-grid[data-card="07"] .cart{right:94px;bottom:10px}
 .pc-grid[data-card="07"] .pc-actions{transform:translateY(10px)}
-@container (max-width:200px){.pc-grid[data-card="07"] .act{--a:30px}.pc-grid[data-card="07"] .qv{right:44px}.pc-grid[data-card="07"] .cart{right:78px}.pc-grid[data-card="07"] .nav{width:28px;height:28px;margin-top:-14px}}
+@container (max-width:200px){.pc-grid[data-card="07"] .act{--a:30px}.pc-grid[data-card="07"] .qv{right:44px}.pc-grid[data-card="07"] .cart{right:78px}.pc-grid:is([data-card="07"],[data-card="08"]) .nav{width:28px;height:28px;margin-top:-14px}}
 /* ===== Card 08 ===== */
 .pc-grid[data-card="08"]{--psale:#c8323c}.pc-grid[data-card="08"] .pc-media,.pc-grid[data-card="08"] .pc-media img{background:#f3f3f3}.pc-grid[data-card="08"] .vendor{font-weight:600;font-size:14px}.pc-grid[data-card="08"] .ttl{font-size:14px;color:#444}
 .pc-grid[data-card="08"] .badge{top:16px;left:16px;border:1px solid #c8323c;color:#c8323c;background:#fff;font-size:12px;padding:2px 8px}

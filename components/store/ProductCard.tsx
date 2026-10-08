@@ -298,12 +298,16 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
   const ellaVariant = getEllaCardVariant(settings?.card_style);
 
   if (ellaCardVariant) {
+    const baseElla = toCardProduct(product, settings);
     const ellaProduct = {
-      ...toCardProduct(product, settings),
+      ...baseElla,
       price: currentPrice,
       compareAt: currentComparePrice,
       image: activeImage,
       image2: isVariantSelected ? null : secondImage,
+      images: baseElla.images && baseElla.images.length > 0
+        ? Array.from(new Set([activeImage, ...baseElla.images]))
+        : ([activeImage, secondImage].filter(Boolean) as string[]),
       source: product,
       swatchNode: finalRenderedGroups,
     };
@@ -320,12 +324,16 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
   }
 
   if (ellaVariant) {
+    const baseElla = toCardProduct(product, settings);
     const ellaProduct = {
-      ...toCardProduct(product, settings),
+      ...baseElla,
       price: currentPrice,
       compareAt: currentComparePrice,
       image: activeImage,
       image2: isVariantSelected ? null : secondImage,
+      images: baseElla.images && baseElla.images.length > 0
+        ? Array.from(new Set([activeImage, ...baseElla.images]))
+        : ([activeImage, secondImage].filter(Boolean) as string[]),
       source: product,
       swatchNode: finalRenderedGroups,
     };

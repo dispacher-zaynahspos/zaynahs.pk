@@ -22,6 +22,7 @@ export interface CardProduct {
   badge?: string;
   image: string;
   image2?: string | null;
+  images?: string[];
   rating?: number;
   reviewCount?: number;
   swatches: CardProductSwatch[];
