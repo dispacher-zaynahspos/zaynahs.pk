@@ -4,15 +4,17 @@
  * Universal Fly / Drop Animation System
  * Single Source of Truth (SSOT) for product card "Add to Cart" and "Wishlist" animations.
  *
- * Supports:
- * - Desktop screens: Silky smooth parabolic rainbow toss arc to header icons (760ms-920ms)
- * - Mobile / tablet: Responsive gravity drop into sticky bottom navigation bar (680ms)
- *   or upward arc to header when bottom nav is absent.
- * - True mathematical physics trajectory with zero layout thrashing or compositor clipping
- * - Web Animations API (WAAPI) engine with 30 keyframe interpolation steps for 60fps/120fps isolation
- * - Automatic visible target resolution with guaranteed viewport boundary clamping (never flies off-screen)
- * - Automatic source element fallback from product ID, image, or event
- * - Target celebratory bucket bounce & badge pop on arrival
+ * Rules (MANDATORY):
+ * - CART (Mobile & Desktop): MUST ALWAYS fly UP into the TOP HEADER CART ICON
+ *   ('header-cart-icon-mobile' on mobile, 'header-cart-icon-desktop' on desktop),
+ *   NEVER into the bottom navigation bar.
+ *   Features a tactile anticipation dip (drops DOWN +18px with 1.15x spring stretch in first 16%),
+ *   then vaults UPWARDS in a majestic parabolic rainbow arc into the top header cart ("dip fly upper").
+ * - WISHLIST (Mobile): Drops down into the sticky bottom navigation bar ('mobile-bottom-wishlist-icon').
+ * - WISHLIST (Desktop): Arcs to the top header wishlist icon ('header-wishlist-icon-desktop').
+ * - Web Animations API (WAAPI) engine with 30 keyframe interpolation steps for 60fps/120fps hardware isolation.
+ * - Viewport boundary clamping guarantees coordinates never fly off-screen.
+ * - Celebratory bucket bounce & badge pop on landing.
  */
 
 export type FlyTargetKind = 'cart' | 'wishlist' | string;
@@ -48,6 +50,7 @@ export function resolveFlyTarget(target: FlyTargetKind = 'cart'): HTMLElement | 
 
   if (isCart) {
     // CART ALWAYS TARGETS THE TOP HEADER CART ICON ON ALL DEVICES (MOBILE + DESKTOP)
+    // NEVER TARGETS THE BOTTOM NAVIGATION BAR ON MOBILE
     const candidates = isMobile
       ? [
           'header-cart-icon-mobile',
@@ -67,9 +70,12 @@ export function resolveFlyTarget(target: FlyTargetKind = 'cart'): HTMLElement | 
     const headerCart = document.querySelector('header a[href="/cart"], header button[aria-label*="cart" i], [id*="header-cart"]');
     if (headerCart instanceof HTMLElement && isElementRendered(headerCart)) return headerCart;
 
-    // Fallback 2: any link or button for cart that is rendered anywhere
+    // Fallback 2: any link or button for cart that is rendered anywhere (STRICTLY EXCLUDE BOTTOM NAV ON MOBILE)
     const queryEls = document.querySelectorAll('a[href="/cart"], button[aria-label*="cart" i], [data-cart-icon]');
     for (const qEl of Array.from(queryEls)) {
+      if (isMobile && (qEl.id.includes('bottom') || qEl.closest('nav[aria-label*="Mobile Bottom" i]') || qEl.closest('.mobile-bottom-nav'))) {
+        continue; // NEVER target bottom nav for cart on mobile
+      }
       if (qEl instanceof HTMLElement && isElementRendered(qEl)) return qEl;
     }
 
@@ -217,6 +223,14 @@ export function animateFlyTo(
   }
   targetCenterX = Math.max(25, Math.min(winW - 25, targetCenterX));
 
+  // STRICT GUARANTEE: CART ON MOBILE ALWAYS FLIES UP TO THE TOP HEADER CART ICON
+  if (!isWishlist && isMobile) {
+    targetCenterY = Math.min(56, Math.max(18, targetCenterY));
+    if (targetCenterX < winW * 0.5) {
+      targetCenterX = Math.max(30, winW - 48);
+    }
+  }
+
   // 2. Resolve Source Element and Coordinates
   const resolvedSource = resolveSourceElement(source, productId);
   let sourceCenterX = winW / 2;
@@ -262,9 +276,9 @@ export function animateFlyTo(
 
   // Calibrated timings:
   // Desktop: 780ms-920ms (smooth, silky parabolic arc)
-  // Mobile: 680ms for responsive native app feel
+  // Mobile: 740ms for responsive native app feel with tactile anticipation dip
   const DURATION = isMobile
-    ? (isBottomNavTarget ? 660 : 720)
+    ? (isBottomNavTarget ? 660 : 740)
     : Math.min(920, Math.max(760, Math.round(distance * 0.92)));
 
   // 3. Create Flying Thumbnail DOM Node
@@ -335,10 +349,11 @@ export function animateFlyTo(
   const steps = 30;
   const keyframes: Keyframe[] = [];
 
+  const dipDuration = 0.16;
   const arcPeak = isBottomNavTarget
     ? 0
     : isMobile
-      ? Math.min(80, Math.max(35, Math.abs(deltaX) * 0.18))
+      ? Math.min(90, Math.max(45, Math.abs(deltaX) * 0.22))
       : Math.min(160, Math.max(50, Math.abs(deltaX) * 0.14));
 
   for (let i = 0; i <= steps; i++) {
@@ -354,28 +369,47 @@ export function animateFlyTo(
       curX = startX + deltaX * px;
       curY = startY + deltaY * py;
     } else {
-      // Cart / Header target: tactile anticipation dip + majestic upward rainbow arc
-      const px = 1 - Math.pow(1 - t, 1.25); // smooth horizontal progression
-      const py = 1 - Math.pow(1 - t, 1.38); // smooth vertical progression
-      const lift = 4 * t * (1 - t) * arcPeak; // mathematical parabola cresting at midpoint
+      // CART & HEADER TARGET:
+      // Phase 1 (t <= dipDuration): Tactile anticipation dip (drops DOWN +18px on mobile, +14px on desktop)
+      // Phase 2 (t > dipDuration): Launches UPWARDS with parabolic arc into top header cart ("dip fly upper")
+      if (t <= dipDuration) {
+        const dipProgress = t / dipDuration;
+        const dipAmount = Math.sin(dipProgress * Math.PI) * (isMobile ? 18 : 14);
+        curX = startX;
+        curY = startY + dipAmount; // visibly dips DOWN below starting point!
+      } else {
+        const tFlight = (t - dipDuration) / (1 - dipDuration);
+        const px = 1 - Math.pow(1 - tFlight, 1.3);
+        const py = 1 - Math.pow(1 - tFlight, 1.45);
+        const lift = 4 * tFlight * (1 - tFlight) * arcPeak;
 
-      // Initial anticipation dip in first 14% of journey (subtle 8px dip)
-      const dip = (t < 0.14) ? Math.sin((t / 0.14) * Math.PI) * 8 : 0;
-
-      curX = startX + deltaX * px;
-      curY = startY + deltaY * py - lift + dip;
+        curX = startX + deltaX * px;
+        curY = startY + deltaY * py - lift; // shoots UPWARDS into header cart
+      }
     }
 
-    // Scale progression: prominent product thumbnail with slight anticipation bounce, then shrinks into target
+    // Scale progression: prominent product thumbnail with anticipation bounce, then shrinks into target
     let curScale: number;
-    if (t < 0.14) {
-      // Anticipation scale pop (1.0 -> 1.1)
-      curScale = 1.0 + 0.1 * Math.sin((t / 0.14) * Math.PI);
-    } else if (t < 0.6) {
-      curScale = 1.0 - 0.05 * ((t - 0.14) / 0.46);
+    if (isBottomNavTarget) {
+      if (t < 0.6) {
+        curScale = 1 - 0.05 * (t / 0.6);
+      } else {
+        const st = (t - 0.6) / 0.4;
+        curScale = 0.95 - 0.72 * Math.pow(st, 1.2);
+      }
     } else {
-      const st = (t - 0.6) / 0.4;
-      curScale = 0.95 - 0.72 * Math.pow(st, 1.2); // scales down to ~0.23
+      if (t <= dipDuration) {
+        // Anticipation spring stretch during downward dip
+        curScale = 1.0 + 0.15 * Math.sin((t / dipDuration) * Math.PI);
+      } else if (t < 0.65) {
+        // High visibility scale during flight
+        const flightNorm = (t - dipDuration) / (0.65 - dipDuration);
+        curScale = 1.05 - 0.10 * flightNorm;
+      } else {
+        // Smooth shrink into header icon bucket
+        const st = (t - 0.65) / 0.35;
+        curScale = 0.95 - 0.73 * Math.pow(st, 1.2); // scales down to ~0.22
+      }
     }
 
     // Opacity: stays 100% visible for 82% of journey, fades smoothly at landing
@@ -384,8 +418,8 @@ export function animateFlyTo(
       curOpacity = Math.max(0, 1 - (t - 0.82) / 0.18);
     }
 
-    const safeX = Number.isFinite(curX) ? curX : endX;
-    const safeY = Number.isFinite(curY) ? curY : endY;
+    const safeX = Number.isFinite(curX) ? Math.max(10, Math.min(winW - 10, curX)) : endX;
+    const safeY = Number.isFinite(curY) ? Math.max(10, Math.min(winH - 10, curY)) : endY;
     const safeScale = Number.isFinite(curScale) ? curScale : 0.5;
     const safeOpacity = Number.isFinite(curOpacity) ? curOpacity : 1;
 

@@ -187,7 +187,7 @@ All save/cancel action bars across the Admin Console must be sticky at the botto
   - **Wishlist (Mobile)**: Targets the **BOTTOM NAVIGATION BAR WISHLIST ICON** (`mobile-bottom-wishlist-icon`), falling back to header if bottom nav is absent.
   - **Wishlist (Desktop)**: Targets the **TOP HEADER WISHLIST ICON** (`header-wishlist-icon-desktop`).
 - **Anticipation Dip & Physics Arc**:
-  - **Cart Upward Flight ("Dip & Fly Upper")**: Begins with a tactile **8px anticipation dip and 1.1x spring stretch** in the first 14% of the trajectory, then vaults into a majestic upward parabolic rainbow arc into the header cart bucket. Calibrated duration: **720ms** on mobile, **760ms–920ms** on desktop.
+  - **Cart Upward Flight ("Dip & Fly Upper")**: Begins with a tactile **downward anticipation dip (+18px on mobile, +14px on desktop) with 1.15x spring stretch** in the first 16% of the trajectory, then vaults into a majestic upward parabolic rainbow arc directly into the top header cart bucket. Calibrated duration: **740ms** on mobile, **760ms–920ms** on desktop.
   - **Mobile Wishlist Gravity Drop**: Drops down into the sticky bottom navigation bar in **660ms** with natural gravity acceleration ($t^{1.35}$).
 - **Celebratory Target Bucket & Badge Pop**:
   - Upon landing, the target bucket element AND its live count badge pill (`span`, `.nav-count-badge`) MUST trigger `.bucket-animate` (`@keyframes bucket-bounce` + `@keyframes badge-pop`), producing an elastic 1.3x scale bounce without layout shift.

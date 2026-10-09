@@ -401,7 +401,7 @@ Verified 2026-10. Across all stores (TotVogue, Zaynahs, MiniMahal, LittleMister,
    - **Wishlist (Desktop)**: Targets the **TOP HEADER WISHLIST ICON** (`header-wishlist-icon-desktop`).
 3. **Web Animations API (WAAPI) Parametric Physics & Anticipation Dip**:
    - Single isolated GPU compositor node with zero parent clipping (`contain: paint` strictly forbidden on outer containers).
-   - **Cart Upward Arc & Anticipation Dip**: Distance from cards to the top header is traversed with a tactile initial **8px anticipation dip & spring pop** (first 14% of journey) before launching into a majestic upward parabolic rainbow arc directly into the header cart bucket. Calibrated duration: **720ms** on mobile, **760ms–920ms** on desktop.
+   - **Cart Upward Arc & Anticipation Dip ("Dip & Fly Upper")**: Trajectory executes an initial **downward anticipation dip (+18px on mobile, +14px on desktop) with 1.15x spring stretch** in the first 16% of travel, before vaulting into an upward soaring parabolic rainbow arc directly into the top header cart bucket. Calibrated duration: **740ms** on mobile, **760ms–920ms** on desktop.
    - **Mobile Wishlist Gravity Drop**: Drops down into the sticky bottom navigation bar in **660ms** with natural gravity acceleration ($t^{1.35}$).
 4. **Bucket & Badge Pop on Arrival**:
    - On landing, the target icon and live count badge pill (`span`, `.nav-count-badge`) MUST trigger `.bucket-animate` (`@keyframes bucket-bounce` spring bounce + `@keyframes badge-pop`), producing a high-delight celebratory bounce (scale 1.3x) without layout shift.

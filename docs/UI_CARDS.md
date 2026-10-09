@@ -521,10 +521,10 @@ Verified 2026-10. Across all card themes and archetypes (Ella 01–08, Elessi st
    - Zero duplicate or inline animation code.
 
 2. **Web Animations API (WAAPI) Parametric Trajectory Standard**:
-   - **Cart (Mobile & Desktop) — Header Target & Anticipation Dip**:
+   - **Cart (Mobile & Desktop) — Header Target & Anticipation Dip ("Dip & Fly Upper")**:
      - Cart MUST ALWAYS fly UP into the **TOP HEADER CART ICON** (`header-cart-icon-mobile` / `header-cart-icon-desktop`), NEVER into the bottom navigation bar.
-     - Begins with a tactile **8px anticipation dip & 1.1x spring stretch** in the first 14% of travel, before vaulting into an upward rainbow parabolic arc into the header cart.
-     - Duration calibrated to **720ms** on mobile, **760ms–920ms** on desktop, with thumbnail scale prominent for 60% of travel and full 100% opacity through 82% of flight.
+     - Begins with a tactile **downward anticipation dip (+18px on mobile, +14px on desktop) with 1.15x spring stretch** in the first 16% of travel, before vaulting into an upward soaring parabolic rainbow arc directly into the top header cart.
+     - Duration calibrated to **740ms** on mobile, **760ms–920ms** on desktop, with thumbnail scale prominent for 65% of travel and full 100% opacity through 82% of flight.
    - **Wishlist (Mobile) — Bottom Navigation Target**:
      - Drops down into the sticky bottom navigation bar (`mobile-bottom-wishlist-icon`) in **660ms** with natural gravity acceleration ($t^{1.35}$).
    - **Wishlist (Desktop) — Header Target**:
