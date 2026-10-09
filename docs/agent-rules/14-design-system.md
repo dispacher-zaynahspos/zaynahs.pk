@@ -386,3 +386,16 @@ Verified 2026-10. Across all stores (TotVogue, Zaynahs, MiniMahal, LittleMister,
      - Fly-to-cart animation and `QuickViewModal.tsx`.
      - Title line clamping via `getSharedTitleClampClass`.
 
+### RULE DS23 — Universal Drop/Fly Animation Standard (Cart & Wishlist Across All Devices)
+1. **Canonical Engine**: All Add-to-Cart and Wishlist triggers across the entire application MUST invoke the shared SSOT animation engine (`@/lib/utils/flyAnimation.ts::flyToCart` and `flyToWishlist`). Never hand-roll ad-hoc animation scripts or hardcoded element IDs.
+2. **Adaptive Speed & Curve**:
+   - **Desktop / Tablet Catalog**: Distance to header is large (400–900px). Duration is gracefully calibrated to 840–950ms (`cubic-bezier(0.04, 0.72, 0.32, 1.1)`) so the product thumbnail is clearly visible traveling in its parabolic arc into the header bucket.
+   - **Mobile App Native Drop**: Drops into the sticky bottom navigation bar in 720ms with a natural gravity acceleration curve (`cubic-bezier(0.42, 0, 0.28, 1)`).
+3. **Bucket & Badge Pop on Drop**:
+   - On landing, the target icon and live count badge pill (`span`) MUST trigger `.bucket-animate` (`@keyframes bucket-bounce` + `@keyframes badge-pop`), producing a high-delight celebratory bounce (scale 1.3x) without layout shift.
+4. **Resilient Target & Source Resolution**:
+   - Targets dynamically resolve the visible element (`mobile-bottom-*` on mobile, `header-*-desktop` on desktop). Never fails silently if an ID is missing or hidden via responsive CSS.
+   - Every card root element (`.pc`, `.z-card-container`, etc.) MUST set both `id={`product-card-${product.id}`}` and `data-product-id={product.id}` for automatic source fallback when events are synthetic or unmounted.
+5. **Universal Coverage**: Enforced on all catalog cards, collection grids, Related Products, Recently Viewed, Product Detail page buttons, Sticky Quick Buy Bar, and QuickViewModal. QuickViewModal MUST allow 450ms delay before closing so the flight originates cleanly from the button.
+
+

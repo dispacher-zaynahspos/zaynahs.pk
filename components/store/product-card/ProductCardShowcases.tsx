@@ -1537,6 +1537,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
     <div
       ref={cardRef}
       id={`product-card-${product.id}`}
+      data-product-id={product.id}
       data-hover-effect={hoverStyle}
       onPointerDown={handlePointerDown}
       style={{ touchAction: 'pan-y' }}

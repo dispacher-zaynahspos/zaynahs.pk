@@ -6,7 +6,7 @@ import { Product, StoreSettings } from '@/lib/types';
 import { useCartStore } from '@/store/cartStore';
 import { toast } from 'sonner';
 import dynamic from 'next/dynamic';
-import { animateFlyTo } from '@/lib/utils/flyAnimation';
+import { flyToCart } from '@/lib/utils/flyAnimation';
 import { useWishlist } from '@/components/store/product-card/hooks/useWishlist';
 import { getPresetImageUrl } from '@/lib/utils/imageUrl';
 import { normalizeCardStyle } from '@/lib/utils/cardStyles';
@@ -112,10 +112,7 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
     }
     addItem(product, undefined, [], 1);
     toast.success(`${product.name} added to cart!`);
-
-    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-    const targetId = isMobile ? 'header-cart-icon-mobile' : 'header-cart-icon-desktop';
-    animateFlyTo(e.currentTarget as HTMLElement, targetId, primaryImage);
+    flyToCart(e.currentTarget as HTMLElement, primaryImage, product.id);
   };
 
   const handleOpenQuickView = (e: React.MouseEvent) => {
@@ -297,19 +294,15 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
   const isShowcase = safeStyle !== 'card_11' && safeStyle !== 'style1';
   const ellaVariant = getEllaCardVariant(settings?.card_style);
 
-  const handleEllaAddToCart = () => {
+  const handleEllaAddToCart = (e?: React.MouseEvent | HTMLElement) => {
     if (product.has_variants) {
       setQuickViewOpen(true);
       return;
     }
     addItem(product, undefined, [], 1);
     toast.success(`${product.name} added to cart!`);
-    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-    const targetId = isMobile ? 'header-cart-icon-mobile' : 'header-cart-icon-desktop';
-    const cardEl = (typeof document !== 'undefined' ? (document.querySelector(`[data-product-id="${product.id}"]`) as HTMLElement) : null) || (typeof document !== 'undefined' ? document.body : null);
-    if (cardEl) {
-      animateFlyTo(cardEl, targetId, primaryImage);
-    }
+    const sourceEl = (e && 'currentTarget' in e && e.currentTarget instanceof HTMLElement ? e.currentTarget : (e instanceof HTMLElement ? e : null));
+    flyToCart(sourceEl, primaryImage, product.id);
   };
 
   const handleEllaQuickView = () => {
@@ -340,9 +333,9 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
           cardMobileActivation={settings?.card_mobile_activation ?? 'scroll'}
           settings={settings}
           originalSettings={settings}
-          onWishlist={() => handleToggleWishlist()}
+          onWishlist={(e) => handleToggleWishlist(e)}
           onQuickView={handleEllaQuickView}
-          onAddToCart={handleEllaAddToCart}
+          onAddToCart={(e) => handleEllaAddToCart(e)}
         />
         {quickViewOpen && settings && (
           <QuickViewModal
@@ -377,9 +370,9 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
           settings={settings}
           currencySymbol={currencySymbol}
           single
-          onWishlist={() => handleToggleWishlist()}
+          onWishlist={(e) => handleToggleWishlist(e)}
           onQuickView={handleEllaQuickView}
-          onAddToCart={handleEllaAddToCart}
+          onAddToCart={(e) => handleEllaAddToCart(e)}
         />
         {quickViewOpen && settings && (
           <QuickViewModal

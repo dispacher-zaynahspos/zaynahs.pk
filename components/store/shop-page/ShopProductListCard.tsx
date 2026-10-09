@@ -8,7 +8,7 @@ import { CardWishlistIcon, CardCartIcon } from '@/components/store/product-card/
 import { Product, StoreSettings } from '@/lib/types';
 import { formatPrice } from '@/lib/utils/whatsapp';
 import { toast } from 'sonner';
-import { animateFlyTo } from '@/lib/utils/flyAnimation';
+import { flyToCart } from '@/lib/utils/flyAnimation';
 import { getSharedAspectClass } from '@/lib/utils/styles';
 import { getPresetImageUrl } from '@/lib/utils/imageUrl';
 import { useWishlist } from '@/components/store/product-card/hooks/useWishlist';
@@ -36,6 +36,7 @@ export default function ShopProductListCard({ product, settings, addItem }: Shop
   return (
     <div
       id={`product-card-${product.id}`}
+      data-product-id={product.id}
       className="group flex flex-row overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] shadow-sm hover:shadow-md transition-all duration-300 relative"
     >
       {/* Stretched navigation link (covers card, sits above non-interactive content,
@@ -167,10 +168,7 @@ export default function ShopProductListCard({ product, settings, addItem }: Shop
                 }
                 addItem(product, undefined, [], 1);
                 toast.success(`${product.name} added to cart!`);
-
-                const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-                const targetId = isMobile ? 'header-cart-icon-mobile' : 'header-cart-icon-desktop';
-                animateFlyTo(e.currentTarget as HTMLElement, targetId, primaryImage);
+                flyToCart(e.currentTarget as HTMLElement, primaryImage, product.id);
               }}
               className="flex h-9 items-center gap-1.5 px-3.5 rounded-xl bg-[#1a1a2e] dark:bg-[#e94560] text-white hover:opacity-90 active:scale-95 text-xs font-bold transition-all cursor-pointer whitespace-nowrap truncate"
             >

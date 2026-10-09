@@ -8,7 +8,7 @@ import { useCartStore } from '@/store/cartStore';
 import { cleanWhatsAppPhone } from '@/lib/utils/whatsapp';
 import { toast } from 'sonner';
 import { trackEvent } from '@/lib/trackEvent';
-import { animateFlyTo } from '@/lib/utils/flyAnimation';
+import { flyToCart } from '@/lib/utils/flyAnimation';
 import { useWishlist } from '@/components/store/product-card/hooks/useWishlist';
 import { isFeatureEnabled } from '@/lib/features/premium';
 import {
@@ -66,7 +66,7 @@ export default function ProductDetail({ product, settings, averageRating, social
     setShowSizeGuide,
   } = useProductDetailState({ product, settings });
 
-  const handleAddBundleToCart = () => {
+  const handleAddBundleToCart = (e?: React.MouseEvent) => {
     const addedNames: string[] = [];
 
     bundleProducts.forEach(bp => {
@@ -100,6 +100,8 @@ export default function ProductDetail({ product, settings, averageRating, social
     });
 
     toast.success(`${addedNames.length} bundle item${addedNames.length > 1 ? 's' : ''} added to cart!`);
+    const sourceEl = e && 'currentTarget' in e && e.currentTarget instanceof HTMLElement ? e.currentTarget : null;
+    flyToCart(sourceEl, images?.[0]?.url, product.id);
   };
 
   const activeVariants = product.variants.filter(v => v.active);
@@ -150,9 +152,7 @@ export default function ProductDetail({ product, settings, averageRating, social
     toast.success(`${product.name} added to cart!`);
 
     const imageUrl = selectedVariant?.image_url || product.images?.find(img => img.is_primary)?.url || product.images?.[0]?.url;
-    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-    const targetId = isMobile ? 'header-cart-icon-mobile' : 'header-cart-icon-desktop';
-    animateFlyTo(e.currentTarget as HTMLElement, targetId, imageUrl);
+    flyToCart(e.currentTarget as HTMLElement, imageUrl, product.id);
   };
 
   // Wishlist via the shared single-source hook (variant-aware fly image).

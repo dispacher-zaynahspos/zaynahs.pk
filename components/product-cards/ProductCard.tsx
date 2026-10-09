@@ -7,7 +7,7 @@ import { formatPrice } from '@/lib/utils/whatsapp';
 import { useMobileCardFocus } from '@/lib/hooks/useMobileCardFocus';
 import { useCartStore } from '@/store/cartStore';
 import { useWishlist } from '@/components/store/product-card/hooks/useWishlist';
-import { animateFlyTo } from '@/lib/utils/flyAnimation';
+import { flyToCart } from '@/lib/utils/flyAnimation';
 import variants from './card-variants.json';
 
 import type { CardProduct, CardVariant } from './types';
@@ -23,7 +23,7 @@ const D = { heart: 'M12 20.5s-8-4.9-9-10C2.4 7 4.5 4.5 7.3 4.5c1.9 0 3.5 1 4.7 2
 
 export function ProductCard({ product: p, variant, limit, currencySymbol, cardMobileActivation = 'scroll', settings, originalSettings, onWishlist, onQuickView, onAddToCart }: {
   product: CardProduct; variant: CardVariant; limit: number; currencySymbol?: string; cardMobileActivation?: 'scroll' | 'touch' | 'off'; settings?: { title_line_limit?: string } & Record<string, any> | null; originalSettings?: StoreSettings | null;
-  onWishlist?: (p: CardProduct) => void; onQuickView?: (p: CardProduct) => void; onAddToCart?: (p: CardProduct) => void;
+  onWishlist?: (e: React.MouseEvent, p: CardProduct) => void; onQuickView?: (p: CardProduct) => void; onAddToCart?: (e: React.MouseEvent, p: CardProduct) => void;
 }) {
   const v = variants[variant];
   const { cardRef, setManualFocus } = useMobileCardFocus<HTMLElement>(cardMobileActivation);
@@ -88,18 +88,14 @@ export function ProductCard({ product: p, variant, limit, currencySymbol, cardMo
     if (p.source) {
       addItem(p.source, undefined, [], 1);
       toast.success(`${p.title} added to cart!`);
-      const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-      const targetId = isMobile ? 'header-cart-icon-mobile' : 'header-cart-icon-desktop';
       const flyTarget = target || cardRef.current;
-      if (flyTarget) {
-        animateFlyTo(flyTarget, targetId, p.image);
-      }
+      flyToCart(flyTarget, p.image, p.id);
     }
   };
 
   return (
     <>
-      <article className="pc" ref={cardRef} onPointerDown={(e) => { if (e.pointerType === 'touch') setManualFocus(); }}>
+      <article className="pc" id={`product-card-${p.id}`} data-product-id={p.id} ref={cardRef} onPointerDown={(e) => { if (e.pointerType === 'touch') setManualFocus(); }}>
       <div className="pc-media">
         <Link className="ovl" href={p.href} aria-label={p.title} />
         <img className="i1" src={img1} alt="" loading="lazy" />
@@ -107,15 +103,15 @@ export function ProductCard({ product: p, variant, limit, currencySymbol, cardMo
         {badge && <span className={`badge b-${badge.replace(/[^a-z]/gi, '').toLowerCase() || 'pct'}`}>{badge}</span>}
         {/* UNIFIED ACTION RAIL: wishlist + quick view + cart ek container, saath spawn */}
         <div className="pc-actions">
-          <button type="button" className={`act wish${isInWishlist ? ' on' : ''}`} aria-label="Add to wishlist" onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (onWishlist) { onWishlist(p); return; } toggleWishlist(e as unknown as React.MouseEvent); }}><Svg d={D.heart} /><span className="lbl">Add to wishlist</span></button>
+          <button type="button" className={`act wish${isInWishlist ? ' on' : ''}`} aria-label="Add to wishlist" onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (onWishlist) { onWishlist(e, p); return; } toggleWishlist(e); }}><Svg d={D.heart} /><span className="lbl">Add to wishlist</span></button>
           <button type="button" className="act qv" aria-label="Quick view" onClick={e => { e.preventDefault(); e.stopPropagation(); if (onQuickView) { onQuickView(p); return; } setQuickViewOpen(true); }}><Svg d={D.eye} /><span className="lbl">Quick view</span></button>
-          {!v.cta && <button type="button" className="act cart" aria-label="Add to cart" onClick={e => { e.preventDefault(); e.stopPropagation(); if (onAddToCart) { onAddToCart(p); return; } handleDefaultAddToCart(e.currentTarget); }}><Svg d={D.bag} /><span className="lbl">ADD TO CART</span></button>}
+          {!v.cta && <button type="button" className="act cart" aria-label="Add to cart" onClick={e => { e.preventDefault(); e.stopPropagation(); if (onAddToCart) { onAddToCart(e, p); return; } handleDefaultAddToCart(e.currentTarget); }}><Svg d={D.bag} /><span className="lbl">ADD TO CART</span></button>}
           {!!v.hstars && <div className="hstars">{stars}</div>}
         </div>
       </div>
       <div className={`pc-body${v.lock ? " locked" : ""}`}>
         {body}
-        {!!v.cta && <button type="button" className="cta cart" onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (onAddToCart) { onAddToCart(p); return; } handleDefaultAddToCart(e.currentTarget); }}>ADD TO CART</button>}
+        {!!v.cta && <button type="button" className="cta cart" onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (onAddToCart) { onAddToCart(e, p); return; } handleDefaultAddToCart(e.currentTarget); }}>ADD TO CART</button>}
       </div>
     </article>
       {quickViewOpen && p.source && (originalSettings || settings) && (

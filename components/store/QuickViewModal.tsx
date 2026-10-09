@@ -21,7 +21,7 @@ import { getSharedAspectClass } from '@/lib/utils/styles';
 import { formatPrice } from '@/lib/utils/whatsapp';
 import { toast } from 'sonner';
 import VariantSelector from './VariantSelector';
-import { animateFlyTo } from '@/lib/utils/flyAnimation';
+import { flyToCart } from '@/lib/utils/flyAnimation';
 import { getOptimizedImageUrl, getPresetImageUrl } from '@/lib/utils/imageUrl';
 
 interface QuickViewModalProps {
@@ -96,14 +96,12 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
 
     // Trigger fly animation
     const imageUrl = selectedVariant?.image_url || product.images?.find(img => img.is_primary)?.url || product.images?.[0]?.url;
-    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-    const targetId = isMobile ? 'header-cart-icon-mobile' : 'header-cart-icon-desktop';
-    animateFlyTo(e.currentTarget as HTMLElement, targetId, imageUrl);
+    flyToCart(e.currentTarget as HTMLElement, imageUrl, product.id);
 
-    // Close the modal after a short delay so the animation can source from the button before it unmounts
+    // Close the modal after a short delay so the animation smoothly launches from the button before modal unmounts
     setTimeout(() => {
       onClose();
-    }, 250);
+    }, 450);
   };
 
   // ── Escape + body scroll lock ─────────────────────────────────────────────

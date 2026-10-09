@@ -174,6 +174,7 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
     <div
       ref={cardRef}
       id={`product-card-${product.id}`}
+      data-product-id={product.id}
       data-hover-effect={hoverStyle}
       onPointerDown={handlePointerDown}
       style={{ borderRadius: 'var(--border-radius-card, 16px)', touchAction: 'pan-y' }}

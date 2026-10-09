@@ -510,5 +510,34 @@ Verified 2026-10. Across all stores (TotVogue, Zaynahs, MiniMahal, LittleMister,
 2. **Existing Live Cards Protection**:
    - Existing Base cards (01–05), Elessi styles (01–10), and Showcase cards remain protected and untouched to preserve active merchant stores and database settings without breaking production (`RULE BASE-CARDS`).
 
+---
+
+## 16. RULE FLY-ANIMATION-UNIVERSAL: Universal Drop/Fly Animation & Target Bucket Standard (MANDATORY)
+
+Verified 2026-10. Across all card themes and archetypes (Ella 01–08, Elessi styles 01–10, Showcases 01–16, Standard cards, QuickViewModal, and ProductDetail):
+
+1. **Single Source of Truth Animation Engine**:
+   - Every cart add and wishlist toggle must trigger the canonical engine in `lib/utils/flyAnimation.ts` (`flyToCart` / `flyToWishlist`).
+   - Zero duplicate or inline animation code.
+
+2. **Adaptive Timing & Speed Standard**:
+   - **Desktop / Laptop View (Header Target)**:
+     - The distance from card to header is typically 400px–900px.
+     - Duration is dynamically calibrated to **840ms–950ms** with smooth parabolic easing (`cubic-bezier(0.04, 0.72, 0.32, 1.1)`), ensuring the product thumbnail is clearly and comfortably visible arcing across the screen without vanishing prematurely.
+   - **Mobile App Native View (Bottom Navigation Target)**:
+     - On mobile screens, the animation drops into the sticky bottom navigation bar (`mobile-bottom-cart-icon` or `mobile-bottom-wishlist-icon`) in **720ms** with natural gravity acceleration (`cubic-bezier(0.42, 0, 0.28, 1)`).
+
+3. **Target Bucket & Badge Bounce on Drop**:
+   - When the flying thumbnail reaches its destination:
+     - The destination bucket icon executes `.bucket-animate` (`@keyframes bucket-bounce`: scale 1.3, translateY -5px).
+     - Any count badge pill (`span`) inside it executes `@keyframes badge-pop` (scale 1.45x pop).
+     - Applies universally to mobile bottom nav items and desktop header icons.
+
+4. **100% Reliable Source & Target Fallback**:
+   - Every card root element (`.pc`, `.z-card-container`, `article`) MUST declare both `id={`product-card-${product.id}`}` and `data-product-id={product.id}`.
+   - If an event lacks `e.currentTarget`, the engine automatically sources the trajectory from the card or its thumbnail image, guaranteeing zero animation failures.
+   - QuickViewModal maintains a 450ms unmount delay so the flight originates cleanly before the modal dismisses.
+
+
 
 

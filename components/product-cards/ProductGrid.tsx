@@ -11,7 +11,7 @@ const AL = { left: 'flex-start', center: 'center', right: 'flex-end' } as const;
 
 export function ProductGrid({ variant, products, settings, currencySymbol, single, renderProduct, onWishlist, onQuickView, onAddToCart }: {
   variant: CardVariant; products: CardProduct[]; settings?: StoreSettings | null; currencySymbol?: string; single?: boolean; renderProduct?: (product: CardProduct) => ReactNode;
-  onWishlist?: (p: CardProduct) => void; onQuickView?: (p: CardProduct) => void; onAddToCart?: (p: CardProduct) => void;
+  onWishlist?: (e: React.MouseEvent, p: CardProduct) => void; onQuickView?: (p: CardProduct) => void; onAddToCart?: (e: React.MouseEvent, p: CardProduct) => void;
 }) {
   const v = variants[variant];
   // merged settings for rendering (includes defaults)
