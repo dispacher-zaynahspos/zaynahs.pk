@@ -4,6 +4,30 @@
 
 ---
 
+### [2026-10-09] v7.x — Abandoned Carts 30-Day Auto-Purge Cron & Bulk Deletion System
+
+**Problem fixed:** 
+1. Anonymous abandoned carts accumulated indefinitely in `abandoned_carts` table with zero retention cleanup, threatening DB storage limits on Supabase free tier (500 MB).
+2. Admin had no bulk deletion, no checkboxes, and no "Clear All" API.
+3. Mobile product page had visual collision between `CartBar` ("View Bag") and `ProductDetailStickyBar` at the same bottom offset, with insufficient background blur.
+
+**Database Changes:**
+- `supabase/migrations/20261009150000_purge_abandoned_carts_cron.sql`
+  - Adds daily PostgreSQL `pg_cron` job `purge-abandoned-carts-30-days` at 03:30 AM:
+    `DELETE FROM public.abandoned_carts WHERE last_activity < NOW() - INTERVAL '30 days' AND order_placed = false;`
+- Synchronized into `SUPER_MASTER_SCHEMA.sql` right after abandoned_carts trigger.
+- Verified via `npm run check:setup` (148/148 migrations in sync).
+
+**Application & API Changes:**
+- `lib/services/abandonedCarts.ts`: Added `deleteMultipleAbandonedCarts`, `clearAbandonedCarts` (all or anonymous-only), and `purgeOldAbandonedCarts(30)`.
+- `app/api/admin/abandoned-carts/route.ts`: Added `DELETE` endpoint with support for `{ ids: string[] }` and `{ all: true, anonymousOnly?: boolean }`.
+- `app/api/cron/abandoned-cart/route.ts`: Runs daily auto-purge of carts >30 days alongside email recovery.
+- `app/admin/abandoned-carts/`: Added multi-select checkboxes, sticky bulk action bar, and "Clear Anonymous" 1-click header button.
+- `components/store/CartBar.tsx`: Suppressed on `/product/...` pages to prevent collision with `ProductDetailStickyBar`.
+- `components/common/MobileBottomNav.tsx` & `ProductDetailStickyBar.tsx`: Upgraded to `backdrop-blur-2xl backdrop-saturate-150` with high-opacity backgrounds (`bg-white/98 dark:bg-[#0c0c16]/98`) to eliminate bleed-through of page text and tickers.
+
+---
+
 ### [2026-10-07] v7.x — Ella Product Card Theme Integration (no DB schema change)
 
 **Code/UI integration:**
