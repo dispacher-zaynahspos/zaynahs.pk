@@ -189,9 +189,41 @@ export async function markAbandonmentEmailSent(cartId: string): Promise<void> {
 
 /** Delete a cart (admin) */
 export async function deleteAbandonedCart(id: string): Promise<void> {
-  const supabase = await createClient();
-  const { error } = await supabase.from('abandoned_carts').delete().eq('id', id);
+  const { error } = await staticSupabase.from('abandoned_carts').delete().eq('id', id);
   if (error) throw error;
+}
+
+/** Delete multiple abandoned carts by ID */
+export async function deleteMultipleAbandonedCarts(ids: string[]): Promise<void> {
+  if (!ids || ids.length === 0) return;
+  const { error } = await staticSupabase.from('abandoned_carts').delete().in('id', ids);
+  if (error) throw error;
+}
+
+/** Clear all carts or only anonymous carts */
+export async function clearAbandonedCarts(options?: { anonymousOnly?: boolean }): Promise<{ count: number }> {
+  let query = staticSupabase.from('abandoned_carts').delete();
+  if (options?.anonymousOnly) {
+    query = query.is('customer_name', null).is('customer_phone', null);
+  } else {
+    // Delete all
+    query = query.neq('id', '00000000-0000-0000-0000-000000000000');
+  }
+  const { error, count } = await query;
+  if (error) throw error;
+  return { count: count ?? 0 };
+}
+
+/** Purge abandoned carts older than N days (retention auto-clean) */
+export async function purgeOldAbandonedCarts(days = 30): Promise<{ count: number }> {
+  const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+  const { error, count } = await staticSupabase
+    .from('abandoned_carts')
+    .delete()
+    .lt('last_activity', cutoff)
+    .eq('order_placed', false);
+  if (error) throw error;
+  return { count: count ?? 0 };
 }
 
 /** Stats for dashboard */

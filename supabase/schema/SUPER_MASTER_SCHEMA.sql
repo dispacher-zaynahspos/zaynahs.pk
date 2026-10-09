@@ -1877,6 +1877,19 @@ CREATE TRIGGER trigger_link_order_to_abandoned_cart
   FOR EACH ROW
   EXECUTE FUNCTION link_order_to_abandoned_cart();
 
+-- Schedule Abandoned Carts Daily Cleanup Cron (30-day retention)
+CREATE EXTENSION IF NOT EXISTS pg_cron;
+
+SELECT cron.unschedule('purge-abandoned-carts-30-days')
+FROM cron.job
+WHERE jobname = 'purge-abandoned-carts-30-days';
+
+SELECT cron.schedule(
+  'purge-abandoned-carts-30-days',
+  '30 3 * * *',
+  $$ DELETE FROM public.abandoned_carts WHERE last_activity < NOW() - INTERVAL '30 days' AND order_placed = false; $$
+);
+
 -- ============================================================
 -- REALTIME SUBSCRIPTIONS
 -- ============================================================

@@ -21,6 +21,8 @@ export function useAbandonedCartsData() {
   const itemsPerPage = 50;
   const [selectedCartId, setSelectedCartId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const fetchCarts = useCallback(async () => {
@@ -267,11 +269,97 @@ export function useAbandonedCartsData() {
     return 'bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-900/50';
   };
 
+  const toggleSelectCart = (id: string) => {
+    setSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (paginatedCarts.length === 0) return;
+    const paginatedIds = paginatedCarts.map(c => c.id);
+    const allSelected = paginatedIds.every(id => selectedIds.includes(id));
+    if (allSelected) {
+      setSelectedIds(prev => prev.filter(id => !paginatedIds.includes(id)));
+    } else {
+      setSelectedIds(prev => Array.from(new Set([...prev, ...paginatedIds])));
+    }
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selectedIds.length === 0) return;
+    const confirmed = await confirm({
+      title: 'Delete Selected Carts',
+      message: `Are you sure you want to permanently delete ${selectedIds.length} selected cart(s) from the database?`,
+      variant: 'danger',
+      confirmText: `Delete (${selectedIds.length})`
+    });
+    if (!confirmed) return;
+    setBulkDeleting(true);
+    try {
+      const res = await fetch('/api/admin/abandoned-carts', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: selectedIds })
+      });
+      if (!res.ok) throw new Error('Bulk delete failed');
+      setCarts(prev => prev.filter(c => !selectedIds.includes(c.id)));
+      if (selectedCartId && selectedIds.includes(selectedCartId)) {
+        setSelectedCartId(null);
+      }
+      setSelectedIds([]);
+      toast.success('Selected carts deleted permanently');
+    } catch {
+      toast.error('Failed to delete selected carts');
+    } finally {
+      setBulkDeleting(false);
+    }
+  };
+
+  const handleClearAll = async (anonymousOnly = false) => {
+    const label = anonymousOnly ? 'all anonymous carts' : 'all abandoned carts';
+    const confirmed = await confirm({
+      title: anonymousOnly ? 'Clear Anonymous Carts' : 'Clear All Abandoned Carts',
+      message: `Are you sure you want to permanently delete ${label} from the database? This cannot be undone.`,
+      variant: 'danger',
+      confirmText: 'Delete Permanently'
+    });
+    if (!confirmed) return;
+    setBulkDeleting(true);
+    try {
+      const res = await fetch('/api/admin/abandoned-carts', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ all: true, anonymousOnly })
+      });
+      if (!res.ok) throw new Error('Clear failed');
+      if (anonymousOnly) {
+        setCarts(prev => prev.filter(c => Boolean(c.customerName || c.customerPhone || c.customerEmail)));
+      } else {
+        setCarts([]);
+      }
+      setSelectedIds([]);
+      setSelectedCartId(null);
+      toast.success(anonymousOnly ? 'Anonymous carts permanently cleared' : 'All abandoned carts cleared');
+    } catch {
+      toast.error('Failed to clear carts');
+    } finally {
+      setBulkDeleting(false);
+    }
+  };
+
   return {
     carts,
     loading,
     error,
     refetch: fetchCarts,
+    selectedIds,
+    setSelectedIds,
+    bulkDeleting,
+    toggleSelectCart,
+    toggleSelectAll,
+    handleDeleteSelected,
+    handleClearAll,
     searchQuery,
     setSearchQuery,
     statusFilter,

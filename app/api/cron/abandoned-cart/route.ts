@@ -1,16 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getPendingAbandonmentEmails, markAbandonmentEmailSent } from '@/lib/services/abandonedCarts';
+import { 
+  getPendingAbandonmentEmails, 
+  markAbandonmentEmailSent,
+  purgeOldAbandonedCarts 
+} from '@/lib/services/abandonedCarts';
 import { sendTemplatedEmail } from '@/lib/email/sendTemplatedEmail';
 import { getSettings } from '@/lib/services/settings';
 import { getSiteUrl } from '@/lib/site-url-server';
 
 /**
  * GET /api/cron/abandoned-cart
- * Vercel Cron job — runs every minute.
- * Finds carts idle > 5 mins with customer email → sends abandonment email.
- * 
- * Add to vercel.json:
- * { "crons": [{ "path": "/api/cron/abandoned-cart", "schedule": "* * * * *" }] }
+ * Vercel Cron job — runs daily.
+ * 1) Purges abandoned carts older than 30 days to prevent DB storage bloat.
+ * 2) Finds carts idle > 5 mins with customer email → sends abandonment email.
  */
 export async function GET(req: NextRequest) {
   // Verify cron secret to prevent unauthorized calls
@@ -21,18 +23,27 @@ export async function GET(req: NextRequest) {
   }
 
   try {
+    // 1. Auto-purge old abandoned carts (>30 days) to prevent storage bloat
+    let purgedCount = 0;
+    try {
+      const purgeRes = await purgeOldAbandonedCarts(30);
+      purgedCount = purgeRes.count;
+    } catch (purgeErr) {
+      console.error('[abandoned-cart cron] Auto-purge failed:', purgeErr);
+    }
+
     const settings = await getSettings();
     const siteUrl = await getSiteUrl(settings);
 
-    // If abandoned cart emails are disabled in settings → skip
+    // If abandoned cart emails are disabled in settings → skip email step
     if (settings.abandoned_cart_email_enabled === false) {
-      return NextResponse.json({ skipped: true, reason: 'Abandoned cart emails disabled' });
+      return NextResponse.json({ skipped: true, reason: 'Abandoned cart emails disabled', purgedOldCarts: purgedCount });
     }
 
     const pendingCarts = await getPendingAbandonmentEmails();
 
     if (pendingCarts.length === 0) {
-      return NextResponse.json({ processed: 0 });
+      return NextResponse.json({ processed: 0, purgedOldCarts: purgedCount });
     }
 
     let sent = 0;

@@ -24,8 +24,9 @@ export default function CartBar({ currencySymbol = 'Rs.', enabled = true }: Cart
     return () => clearTimeout(timer);
   }, []);
 
-  // Hide on cart/checkout pages or when cart is empty / disabled
-  if (!enabled || !mounted || totalItems === 0 || pathname === '/cart' || pathname === '/checkout') return null;
+  // Hide on cart/checkout pages, product detail pages (where ProductDetailStickyBar is active), or when cart is empty / disabled
+  const isProductPage = pathname?.startsWith('/product');
+  if (!enabled || !mounted || totalItems === 0 || pathname === '/cart' || pathname === '/checkout' || isProductPage) return null;
 
   return (
     <div

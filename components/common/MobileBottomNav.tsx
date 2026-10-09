@@ -106,7 +106,7 @@ export default function MobileBottomNav({
     <nav 
       aria-label="Mobile Bottom Navigation"
       style={{ zIndex: 60 }}
-      className="fixed bottom-0 left-0 right-0 z-[60] bg-white/95 dark:bg-[#0c0c16]/95 border-t border-gray-200/70 dark:border-white/10 shadow-[0_-8px_30px_rgba(0,0,0,0.06)] md:hidden transition-colors duration-200 pb-[max(env(safe-area-inset-bottom),0.35rem)]"
+      className="fixed bottom-0 left-0 right-0 z-[60] bg-white/98 dark:bg-[#0c0c16]/98 backdrop-blur-2xl backdrop-saturate-150 border-t border-gray-200/80 dark:border-white/10 shadow-[0_-8px_30px_rgba(0,0,0,0.12)] md:hidden transition-colors duration-200 pb-[max(env(safe-area-inset-bottom),0.35rem)]"
     >
       <div className="flex items-center justify-around h-16 px-1">
         {navItems.map((item) => {

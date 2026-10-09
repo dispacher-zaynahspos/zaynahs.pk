@@ -21,6 +21,9 @@ interface AbandonedCartTableProps {
   setCurrentPage: React.Dispatch<React.SetStateAction<number>>;
   totalPages: number;
   getStatusBadgeStyles: (cart: AbandonedCart) => string;
+  selectedIds?: string[];
+  onToggleSelect?: (id: string) => void;
+  onToggleSelectAll?: () => void;
 }
 
 export default function AbandonedCartTable({
@@ -37,6 +40,9 @@ export default function AbandonedCartTable({
   setCurrentPage,
   totalPages,
   getStatusBadgeStyles,
+  selectedIds = [],
+  onToggleSelect,
+  onToggleSelectAll,
 }: AbandonedCartTableProps) {
   return (
     <div className="bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden transition-colors">
@@ -75,6 +81,15 @@ export default function AbandonedCartTable({
               <table className="w-full text-left text-sm text-gray-700 dark:text-gray-300">
                 <thead className="text-[11px] font-bold text-gray-400 uppercase bg-gray-50/50 dark:bg-white/5 border-b border-gray-100 dark:border-gray-800">
                   <tr>
+                    <th className="py-2.5 px-3 w-10 text-center" onClick={(e) => e.stopPropagation()}>
+                      <input
+                        type="checkbox"
+                        aria-label="Select all on this page"
+                        checked={paginatedCarts.length > 0 && paginatedCarts.every(c => selectedIds.includes(c.id))}
+                        onChange={onToggleSelectAll}
+                        className="rounded border-gray-300 dark:border-gray-700 text-[#e94560] focus:ring-[#e94560] cursor-pointer"
+                      />
+                    </th>
                     <th className="py-2.5 px-3">Cart / Session</th>
                     <th className="py-2.5 px-3">Customer Info</th>
                     <th className="py-2.5 px-3">Items Left</th>
@@ -89,8 +104,20 @@ export default function AbandonedCartTable({
                     <tr 
                       key={cart.id} 
                       onClick={() => setSelectedCartId(cart.id)}
-                      className="hover:bg-gray-50/50 dark:hover:bg-white/3 transition-all align-top cursor-pointer text-xs"
+                      className={`hover:bg-gray-50/50 dark:hover:bg-white/3 transition-all align-top cursor-pointer text-xs ${
+                        selectedIds.includes(cart.id) ? 'bg-[#e94560]/5 dark:bg-[#e94560]/10' : ''
+                      }`}
                     >
+                      {/* Checkbox */}
+                      <td className="py-2.5 px-3 w-10 text-center" onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          aria-label={`Select cart ${cart.id}`}
+                          checked={selectedIds.includes(cart.id)}
+                          onChange={() => onToggleSelect?.(cart.id)}
+                          className="rounded border-gray-300 dark:border-gray-700 text-[#e94560] focus:ring-[#e94560] cursor-pointer"
+                        />
+                      </td>
                       {/* Session/Cart ID */}
                       <td className="py-2.5 px-3 font-bold text-[#1a1a2e] dark:text-white max-w-[130px] truncate">
                         {cart.customerName ? `Cart of ${cart.customerName}` : cart.sessionId.replace('cs_', '')}
@@ -190,13 +217,28 @@ export default function AbandonedCartTable({
               <div
                 key={cart.id}
                 onClick={() => setSelectedCartId(cart.id)}
-                className="bg-white dark:bg-[#16162a] p-4 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm space-y-2.5 cursor-pointer transition-colors active:scale-[0.99]"
+                className={`bg-white dark:bg-[#16162a] p-4 rounded-2xl border shadow-sm space-y-2.5 cursor-pointer transition-colors active:scale-[0.99] ${
+                  selectedIds.includes(cart.id)
+                    ? 'border-[#e94560] bg-[#e94560]/5 dark:bg-[#e94560]/10'
+                    : 'border-gray-200 dark:border-gray-800'
+                }`}
               >
-                <div className="flex items-start justify-between">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-black text-[#1a1a2e] dark:text-white truncate">{cart.customerName || 'Anonymous'}</p>
-                    {cart.customerPhone && <p className="text-[10px] text-[#10b981] font-semibold mt-0.5">{cart.customerPhone}</p>}
-                    {cart.customerEmail && <p className="text-[10px] text-gray-400 font-semibold">{cart.customerEmail}</p>}
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-start gap-2.5 min-w-0 flex-1">
+                    <div className="pt-0.5" onClick={(e) => e.stopPropagation()}>
+                      <input
+                        type="checkbox"
+                        aria-label={`Select cart ${cart.id}`}
+                        checked={selectedIds.includes(cart.id)}
+                        onChange={() => onToggleSelect?.(cart.id)}
+                        className="rounded border-gray-300 dark:border-gray-700 text-[#e94560] focus:ring-[#e94560] cursor-pointer"
+                      />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-black text-[#1a1a2e] dark:text-white truncate">{cart.customerName || 'Anonymous'}</p>
+                      {cart.customerPhone && <p className="text-[10px] text-[#10b981] font-semibold mt-0.5">{cart.customerPhone}</p>}
+                      {cart.customerEmail && <p className="text-[10px] text-gray-400 font-semibold">{cart.customerEmail}</p>}
+                    </div>
                   </div>
                   <div className="text-right flex-shrink-0 ml-2">
                     <p className="text-sm font-black text-[#1a1a2e] dark:text-white">{formatPrice(cart.subtotal)}</p>
