@@ -99,10 +99,10 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
     const imageUrl = selectedVariant?.image_url || product.images?.find(img => img.is_primary)?.url || product.images?.[0]?.url;
     flyToCart(e.currentTarget as HTMLElement, imageUrl, product.id);
 
-    // Close the modal after a short delay so the animation smoothly launches from the button before modal unmounts
+    // Close modal after animation completes its journey so the customer sees the item sail into the cart
     setTimeout(() => {
       onClose();
-    }, 450);
+    }, 650);
   };
 
   // ── Escape + body scroll lock ─────────────────────────────────────────────

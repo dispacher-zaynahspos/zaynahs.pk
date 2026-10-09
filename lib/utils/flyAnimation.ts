@@ -5,11 +5,12 @@
  * Single Source of Truth (SSOT) for product card "Add to Cart" and "Wishlist" animations.
  *
  * Supports:
- * - Desktop screens: Silky smooth, slower parabolic rainbow toss arc to header icons (840ms-960ms)
- * - Mobile / tablet: Responsive gravity drop into sticky bottom navigation bar (720ms)
+ * - Desktop screens: Silky smooth parabolic rainbow toss arc to header icons (760ms-920ms)
+ * - Mobile / tablet: Responsive gravity drop into sticky bottom navigation bar (680ms)
+ *   or upward arc to header when bottom nav is absent.
  * - True mathematical physics trajectory with zero layout thrashing or compositor clipping
  * - Web Animations API (WAAPI) engine with 30 keyframe interpolation steps for 60fps/120fps isolation
- * - Automatic visible target resolution (never fails silently on hidden or scrolled IDs)
+ * - Automatic visible target resolution with guaranteed viewport boundary clamping (never flies off-screen)
  * - Automatic source element fallback from product ID, image, or event
  * - Target celebratory bucket bounce & badge pop on arrival
  */
@@ -17,16 +18,11 @@
 export type FlyTargetKind = 'cart' | 'wishlist' | string;
 
 /**
- * Helper to test if an element is currently rendered, has dimension, and is visible.
+ * Helper to test if an element is currently connected to the DOM and rendered (not display: none).
  */
-function isElementVisible(el: HTMLElement | null): boolean {
-  if (!el) return false;
-  const rect = el.getBoundingClientRect();
-  if (rect.width <= 0 || rect.height <= 0) return false;
+function isElementRendered(el: HTMLElement | null): boolean {
+  if (!el || typeof el.isConnected === 'boolean' && !el.isConnected) return false;
   if (typeof window !== 'undefined') {
-    // Must be inside or partially within the visible viewport bounds
-    if (rect.bottom <= 0 || rect.top >= window.innerHeight) return false;
-    if (rect.right <= 0 || rect.left >= window.innerWidth) return false;
     const style = window.getComputedStyle(el);
     if (style.display === 'none' || style.visibility === 'hidden') return false;
     if (parseFloat(style.opacity || '1') === 0) return false;
@@ -35,17 +31,17 @@ function isElementVisible(el: HTMLElement | null): boolean {
 }
 
 /**
- * Intelligently resolve the most appropriate, visible target element in the DOM.
+ * Intelligently resolve the most appropriate, rendered target element in the DOM.
  */
 export function resolveFlyTarget(target: FlyTargetKind = 'cart'): HTMLElement | null {
   if (typeof document === 'undefined' || typeof window === 'undefined') return null;
 
   const isMobile = window.innerWidth < 768;
 
-  // If a specific element ID was requested and it's visible, check it first
+  // If a specific element ID was requested and it is rendered, return it
   if (target !== 'cart' && target !== 'wishlist') {
     const specific = document.getElementById(target);
-    if (isElementVisible(specific)) return specific;
+    if (isElementRendered(specific)) return specific;
   }
 
   const isCart = target === 'cart' || (typeof target === 'string' && target.toLowerCase().includes('cart'));
@@ -65,16 +61,16 @@ export function resolveFlyTarget(target: FlyTargetKind = 'cart'): HTMLElement | 
 
     for (const id of candidates) {
       const el = document.getElementById(id);
-      if (isElementVisible(el)) return el;
+      if (isElementRendered(el)) return el;
     }
 
-    // Fallback 1: any link or button for cart that is visible
+    // Fallback 1: any link or button for cart that is rendered
     const queryEls = document.querySelectorAll('a[href="/cart"], button[aria-label*="cart" i], [data-cart-icon]');
     for (const qEl of Array.from(queryEls)) {
-      if (qEl instanceof HTMLElement && isElementVisible(qEl)) return qEl;
+      if (qEl instanceof HTMLElement && isElementRendered(qEl)) return qEl;
     }
 
-    // Fallback 2: Any matching ID element even if dimensions pending
+    // Fallback 2: Any matching ID element even if style check is pending
     for (const id of candidates) {
       const el = document.getElementById(id);
       if (el) return el;
@@ -95,16 +91,16 @@ export function resolveFlyTarget(target: FlyTargetKind = 'cart'): HTMLElement | 
 
     for (const id of candidates) {
       const el = document.getElementById(id);
-      if (isElementVisible(el)) return el;
+      if (isElementRendered(el)) return el;
     }
 
-    // Fallback 1: any link or button for wishlist that is visible
+    // Fallback 1: any link or button for wishlist that is rendered
     const queryEls = document.querySelectorAll('a[href="/wishlist"], button[aria-label*="wishlist" i], [data-wishlist-icon]');
     for (const qEl of Array.from(queryEls)) {
-      if (qEl instanceof HTMLElement && isElementVisible(qEl)) return qEl;
+      if (qEl instanceof HTMLElement && isElementRendered(qEl)) return qEl;
     }
 
-    // Fallback 2: Any matching ID element even if dimensions pending
+    // Fallback 2: Any matching ID element even if style check is pending
     for (const id of candidates) {
       const el = document.getElementById(id);
       if (el) return el;
@@ -132,7 +128,7 @@ export function resolveSourceElement(
       if (rect.width > 0 && rect.height > 0) return target;
     }
     if ('target' in source && source.target instanceof HTMLElement) {
-      const closest = source.target.closest('button, [data-product-id], article, .pc, .z-card-container') || source.target;
+      const closest = source.target.closest('button, [data-product-id], article, .pc, .z-card-container, .group') || source.target;
       if (closest instanceof HTMLElement) {
         const rect = closest.getBoundingClientRect();
         if (rect.width > 0 && rect.height > 0) return closest;
@@ -166,40 +162,69 @@ export function animateFlyTo(
 ): void {
   if (typeof window === 'undefined' || typeof document === 'undefined') return;
 
-  const isMobile = window.innerWidth < 768;
+  const winW = window.innerWidth || document.documentElement.clientWidth || 390;
+  const winH = window.innerHeight || document.documentElement.clientHeight || 844;
+  const isMobile = winW < 768;
   const isWishlist = target === 'wishlist' || (typeof target === 'string' && target.toLowerCase().includes('wishlist'));
 
   // 1. Resolve Target Element and Coordinates
   const targetElement = resolveFlyTarget(target);
+  const isBottomNavTarget = Boolean(
+    isMobile && targetElement && (
+      targetElement.id.startsWith('mobile-bottom-') ||
+      targetElement.closest('nav[aria-label*="Mobile Bottom" i]')
+    )
+  );
+
+  // Robust default coordinate baselines
   let targetCenterX = isMobile
-    ? (isWishlist ? window.innerWidth / 2 : window.innerWidth - 65)
-    : (window.innerWidth - 65);
-  let targetCenterY = isMobile
-    ? (window.innerHeight - 38)
+    ? (isBottomNavTarget
+        ? (isWishlist ? Math.round(winW * 0.5) : Math.round(winW * 0.72))
+        : (isWishlist ? Math.max(30, winW - 95) : Math.max(30, winW - 50)))
+    : (isWishlist ? Math.max(30, winW - 110) : Math.max(30, winW - 65));
+
+  let targetCenterY = isBottomNavTarget
+    ? Math.max(30, winH - 34)
     : 28;
 
   if (targetElement) {
     const tRect = targetElement.getBoundingClientRect();
-    if (tRect.width > 0 && tRect.height > 0) {
-      targetCenterX = tRect.left + tRect.width / 2;
-      targetCenterY = tRect.top + tRect.height / 2;
+    if (tRect.width > 0 || tRect.height > 0) {
+      const measuredX = tRect.left + (tRect.width || 36) / 2;
+      const measuredY = tRect.top + (tRect.height || 36) / 2;
+      if (Number.isFinite(measuredX) && measuredX > 0 && measuredX < winW + 50) {
+        targetCenterX = measuredX;
+      }
+      if (Number.isFinite(measuredY)) {
+        targetCenterY = measuredY;
+      }
     }
   }
 
-  // Safety clamp for header icon targets: if header icon is scrolled above top of viewport, clamp to visible top edge
-  if (!isMobile && targetCenterY < 20) {
-    targetCenterY = 28;
+  // Safety clamps: guarantee target coordinate ALWAYS resides on-screen
+  if (isBottomNavTarget) {
+    targetCenterY = Math.min(winH - 18, Math.max(winH - 56, targetCenterY));
+  } else {
+    // Header icon: if scrolled off screen or unpinned, clamp directly to top header bar zone
+    if (targetCenterY < 15 || targetCenterY > 120) {
+      targetCenterY = 28;
+    }
   }
+  targetCenterX = Math.max(25, Math.min(winW - 25, targetCenterX));
 
   // 2. Resolve Source Element and Coordinates
   const resolvedSource = resolveSourceElement(source, productId);
-  let sourceCenterX = window.innerWidth / 2;
-  let sourceCenterY = window.innerHeight / 2;
+  let sourceCenterX = winW / 2;
+  let sourceCenterY = winH / 2;
 
   if (resolvedSource) {
-    // If the resolved element is a large card or container, find its thumbnail image for tighter origin
     let preciseOrigin: HTMLElement = resolvedSource;
-    if (resolvedSource.tagName === 'ARTICLE' || resolvedSource.classList.contains('pc') || resolvedSource.classList.contains('z-card-container')) {
+    if (
+      resolvedSource.tagName === 'ARTICLE' ||
+      resolvedSource.classList.contains('pc') ||
+      resolvedSource.classList.contains('z-card-container') ||
+      resolvedSource.classList.contains('group')
+    ) {
       const cardImg = resolvedSource.querySelector('img');
       if (cardImg instanceof HTMLElement && cardImg.getBoundingClientRect().width > 0) {
         preciseOrigin = cardImg;
@@ -212,7 +237,11 @@ export function animateFlyTo(
     }
   }
 
-  // Adaptive bubble dimensions: 52px on desktop for high-delight product visual, 42px on mobile
+  // Source boundary clamp: ensure origin is inside the visible viewport
+  sourceCenterX = Math.max(20, Math.min(winW - 20, sourceCenterX));
+  sourceCenterY = Math.max(20, Math.min(winH - 20, sourceCenterY));
+
+  // Adaptive bubble dimensions: 52px on desktop for delight, 42px on mobile
   const SIZE = isMobile ? 42 : 52;
   const HALF_SIZE = SIZE / 2;
 
@@ -228,11 +257,11 @@ export function animateFlyTo(
   const distance = Math.hypot(deltaX, deltaY);
 
   // Calibrated timings:
-  // Desktop: 840ms-960ms (slower, silky glide so customer clearly watches the product arc into the bag)
-  // Mobile: 720ms for crisp, responsive native app gravity drop
+  // Desktop: 780ms-920ms (smooth, silky parabolic arc)
+  // Mobile: 680ms for responsive gravity drop into sticky bottom bar
   const DURATION = isMobile
-    ? (isDroppingDown ? 720 : 750)
-    : Math.min(960, Math.max(840, Math.round(distance * 0.95)));
+    ? (isDroppingDown ? 680 : 720)
+    : Math.min(920, Math.max(760, Math.round(distance * 0.92)));
 
   // 3. Create Flying Thumbnail DOM Node
   const bubble = document.createElement('div');
@@ -242,20 +271,20 @@ export function animateFlyTo(
   bubble.style.width = `${SIZE}px`;
   bubble.style.height = `${SIZE}px`;
   bubble.style.borderRadius = '50%';
-  bubble.style.zIndex = '2147483647'; // Maximum z-index above all overlays
+  bubble.style.zIndex = '2147483647'; // Maximum z-index above all modals & sticky overlays
   bubble.style.pointerEvents = 'none';
   bubble.style.display = 'flex';
   bubble.style.alignItems = 'center';
   bubble.style.justifyContent = 'center';
   bubble.style.background = '#ffffff';
-  bubble.style.boxShadow = '0 12px 28px -4px rgba(0, 0, 0, 0.38), 0 4px 8px -2px rgba(0, 0, 0, 0.2)';
+  bubble.style.boxShadow = '0 12px 28px -4px rgba(0, 0, 0, 0.42), 0 4px 10px -2px rgba(0, 0, 0, 0.22)';
   bubble.style.border = '2.5px solid #ffffff';
   bubble.style.overflow = 'visible';
   bubble.style.willChange = 'transform, opacity';
   bubble.style.transform = `translate3d(${startX.toFixed(1)}px, ${startY.toFixed(1)}px, 0) scale(1)`;
   bubble.style.opacity = '1';
 
-  // Inner product snapshot or stylized emblem
+  // Inner product snapshot or stylized fallback emblem
   if (itemImage && typeof itemImage === 'string' && itemImage.trim().length > 0) {
     const img = document.createElement('img');
     img.src = itemImage;
@@ -298,11 +327,10 @@ export function animateFlyTo(
 
   document.body.appendChild(bubble);
 
-  // 4. Generate 30 Parametric Keyframe Coordinates (True Parabolic Physics)
+  // 4. Generate 30 Parametric Keyframe Coordinates (Physics Parabola)
   const steps = 30;
   const keyframes: Keyframe[] = [];
 
-  // Parabolic crest height: lifts gracefully upward before diving into destination
   const arcPeak = isMobile
     ? (isDroppingDown ? 0 : 40)
     : Math.min(160, Math.max(50, Math.abs(deltaX) * 0.14));
@@ -337,15 +365,20 @@ export function animateFlyTo(
       curScale = 0.95 - 0.73 * Math.pow(st, 1.2); // scales down to 0.22
     }
 
-    // Opacity: stays 100% visible for 82% of journey so user clearly sees it, fades at arrival
+    // Opacity: stays 100% visible for 82% of journey, fades smoothly at landing
     let curOpacity = 1;
     if (t > 0.82) {
       curOpacity = Math.max(0, 1 - (t - 0.82) / 0.18);
     }
 
+    const safeX = Number.isFinite(curX) ? curX : endX;
+    const safeY = Number.isFinite(curY) ? curY : endY;
+    const safeScale = Number.isFinite(curScale) ? curScale : 0.5;
+    const safeOpacity = Number.isFinite(curOpacity) ? curOpacity : 1;
+
     keyframes.push({
-      transform: `translate3d(${curX.toFixed(1)}px, ${curY.toFixed(1)}px, 0) scale(${curScale.toFixed(3)})`,
-      opacity: Number(curOpacity.toFixed(3)),
+      transform: `translate3d(${safeX.toFixed(1)}px, ${safeY.toFixed(1)}px, 0) scale(${safeScale.toFixed(3)})`,
+      opacity: Number(safeOpacity.toFixed(3)),
     });
   }
 
@@ -360,7 +393,7 @@ export function animateFlyTo(
 
     if (targetElement) {
       targetElement.classList.add('bucket-animate');
-      const badge = targetElement.querySelector('span, [class*="rounded-full"]');
+      const badge = targetElement.querySelector('span, [class*="rounded-full"], .nav-count-badge');
       if (badge instanceof HTMLElement) {
         badge.classList.add('bucket-animate');
       }
@@ -372,23 +405,33 @@ export function animateFlyTo(
         }
       }, 750);
     }
+
+    // Dispatch custom event for any listening UI elements
+    try {
+      window.dispatchEvent(new CustomEvent('bucket-bounce', { detail: { target } }));
+    } catch {}
   };
 
   // 6. Execute via Web Animations API (WAAPI) for 60fps/120fps hardware-composited isolation
   if (typeof bubble.animate === 'function') {
-    const animation = bubble.animate(keyframes, {
-      duration: DURATION,
-      fill: 'forwards',
-      easing: 'linear',
-    });
-    animation.onfinish = cleanup;
+    try {
+      const animation = bubble.animate(keyframes, {
+        duration: DURATION,
+        fill: 'forwards',
+        easing: 'linear',
+      });
+      animation.onfinish = cleanup;
+      animation.oncancel = cleanup;
+    } catch {
+      cleanup();
+    }
   } else {
     // Fallback for environments lacking WAAPI
     setTimeout(cleanup, DURATION);
   }
 
   // Safety fallback timeout
-  setTimeout(cleanup, DURATION + 120);
+  setTimeout(cleanup, DURATION + 150);
 }
 
 /**

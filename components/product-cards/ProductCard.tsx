@@ -116,6 +116,14 @@ export function ProductCard({ product: p, variant, limit, currencySymbol, cardMo
 
   const handleDefaultAddToCart = (target?: HTMLElement | null) => {
     if (p.source?.has_variants) {
+      const activeVars = (p.source.variants || []).filter((v: any) => v.active);
+      if (activeVars.length === 1) {
+        addItem(p.source, activeVars[0], [], 1);
+        toast.success(`${p.title} added to cart!`);
+        const flyTarget = target || cardRef.current;
+        flyToCart(flyTarget, p.image, p.id);
+        return;
+      }
       if (onQuickView) {
         onQuickView(p);
       } else {

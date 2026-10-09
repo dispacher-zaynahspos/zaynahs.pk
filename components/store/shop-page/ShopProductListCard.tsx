@@ -140,6 +140,13 @@ export default function ShopProductListCard({ product, settings, addItem }: Shop
                 e.preventDefault();
                 e.stopPropagation();
                 if (product.has_variants) {
+                  const activeVars = (product.variants || []).filter(v => v.active);
+                  if (activeVars.length === 1) {
+                    addItem(product, activeVars[0], [], 1);
+                    toast.success(`${product.name} added to cart!`);
+                    flyToCart(e.currentTarget as HTMLElement, primaryImage, product.id);
+                    return;
+                  }
                   window.location.href = `/product/${encodeURIComponent(product.slug || '')}`;
                   return;
                 }
