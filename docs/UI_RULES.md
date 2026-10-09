@@ -183,13 +183,13 @@ All save/cancel action bars across the Admin Console must be sticky at the botto
 ## 19. Universal Cart & Wishlist Drop/Fly Animation Standard (RULE DS23 & RULE FLY-ANIMATION-UNIVERSAL)
 - **SSOT Animation Engine**: All Add-to-Cart and Wishlist triggers across all devices (mobile, tablet, desktop) and tabs (catalog, shop, homepage, related products, product detail, quickview) MUST use the shared engine in `lib/utils/flyAnimation.ts` (`flyToCart` / `flyToWishlist`).
 - **Device-Aware Speed & Trajectory**:
-  - **Desktop / Laptop / Tablet**: Trajectory travels to header icons in **840ms–950ms** via a smooth parabolic arc (`cubic-bezier(0.04, 0.72, 0.32, 1.1)`) so customers can clearly see the article image gliding across the screen.
-  - **Mobile Native App View**: Drops into the sticky bottom navigation bar (`mobile-bottom-cart-icon` or `mobile-bottom-wishlist-icon`) in **720ms** with natural gravity acceleration (`cubic-bezier(0.42, 0, 0.28, 1)`).
+  - **Desktop / Laptop / Tablet**: Trajectory travels to header icons in **840ms–960ms** via a true mathematical rainbow parabola (30 parametric keyframe steps) with prominent scale and 100% full opacity for 82% of flight, ensuring customers clearly see the article image gliding across the screen into the bag.
+  - **Mobile Native App View**: Drops into the sticky bottom navigation bar (`mobile-bottom-cart-icon` or `mobile-bottom-wishlist-icon`) in **720ms** with natural gravity acceleration ($t^{1.35}$).
 - **Celebratory Target Bucket & Badge Pop**:
   - Upon landing, the target bucket element AND its live count badge pill (`span`) MUST trigger `.bucket-animate` (`@keyframes bucket-bounce` + `@keyframes badge-pop`), producing an elastic 1.3x scale bounce.
 - **Fail-Safe Source & Target Resolution**:
   - Every card root element (`.pc`, `.z-card-container`, `article`) MUST set `id={`product-card-${product.id}`}` and `data-product-id={product.id}`.
-  - If event target is unmounted or missing, the engine automatically resolves the card element or thumbnail, guaranteeing zero failures and zero console errors.
+  - If event target is unmounted or synthetic, the engine automatically resolves the card element or thumbnail, guaranteeing zero failures and zero console errors.
 
 
 

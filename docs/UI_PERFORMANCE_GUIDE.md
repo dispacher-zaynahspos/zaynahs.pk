@@ -422,4 +422,20 @@ When building ANY new page or tab:
 5. [ ] On client components, fetch only needed IDs (`getByIdsClient`), never the whole catalog.
 6. [ ] For tabs and filters, use `router.replace(..., { scroll: false })` so the browser never reloads the layout.
 
+---
+
+## 9. Universal 60fps Micro-Animations & Drop/Fly Standard (RULE DS23)
+
+### 9.1 Compositor-Only Hardware Acceleration Standard
+To prevent device lag, CPU/GPU spikes, or dropped frames on low-end mobile devices and high refresh-rate desktop screens:
+1. **Compositor Transforms Only**: The flying bubble uses strictly isolated GPU-accelerated CSS properties (`will-change: transform, opacity`, `transform: translate3d(...) scale(...)`). Never animate `top`, `left`, `width`, or `height` dynamically during flight. Zero parent clipping containers (`contain: paint` strictly forbidden).
+2. **True Parabolic Trajectory**: Pure Web Animations API (WAAPI) with 30 parametric physics keyframes produces a true, natural rainbow arc trajectory to header icons on desktop, and natural gravity acceleration on mobile.
+3. **Adaptive Distance Timing**:
+   - **Desktop / Laptop / Tablet**: Calibrated to **840ms–960ms** based on Euclidean distance with full opacity through 82% of flight so customers clearly see the product snapshot glide smoothly into the header.
+   - **Mobile Native App Drop**: Fast, responsive **720ms** gravity drop into the sticky bottom navigation bar.
+4. **Bucket & Badge Bounce**:
+   - On landing, the target icon triggers `.bucket-animate` (`@keyframes bucket-bounce` spring bounce) and its live count badge pill executes `@keyframes badge-pop` (1.45x pop).
+5. **Universal Coverage**: Applied across ALL card archetypes (Ella 01–08, Elessi, Showcases, Standard, List), ProductDetail page (Main Add to Cart, Wishlist, Mobile Sticky Buy Bar, Frequently Bought Together), QuickViewModal, Related Products, and Recently Viewed.
+
+
 

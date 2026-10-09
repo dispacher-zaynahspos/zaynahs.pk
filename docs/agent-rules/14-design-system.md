@@ -388,14 +388,15 @@ Verified 2026-10. Across all stores (TotVogue, Zaynahs, MiniMahal, LittleMister,
 
 ### RULE DS23 — Universal Drop/Fly Animation Standard (Cart & Wishlist Across All Devices)
 1. **Canonical Engine**: All Add-to-Cart and Wishlist triggers across the entire application MUST invoke the shared SSOT animation engine (`@/lib/utils/flyAnimation.ts::flyToCart` and `flyToWishlist`). Never hand-roll ad-hoc animation scripts or hardcoded element IDs.
-2. **Adaptive Speed & Curve**:
-   - **Desktop / Tablet Catalog**: Distance to header is large (400–900px). Duration is gracefully calibrated to 840–950ms (`cubic-bezier(0.04, 0.72, 0.32, 1.1)`) so the product thumbnail is clearly visible traveling in its parabolic arc into the header bucket.
-   - **Mobile App Native Drop**: Drops into the sticky bottom navigation bar in 720ms with a natural gravity acceleration curve (`cubic-bezier(0.42, 0, 0.28, 1)`).
+2. **Web Animations API (WAAPI) Parametric Physics Standard**:
+   - Single isolated GPU compositor node with zero parent clipping (`contain: paint` strictly forbidden on outer containers).
+   - **Desktop / Laptop Catalog Arc**: Distance to header is large (400–1000px). Trajectory follows a true mathematical rainbow parabola with 30 parametric keyframe steps, calibrated duration of **840ms–960ms**, prominent scale during 60% of travel, and 100% full opacity through 82% of flight before fading softly into the target bucket.
+   - **Mobile App Native Drop**: Drops into the sticky bottom navigation bar in **720ms** with natural gravity acceleration ($t^{1.35}$).
 3. **Bucket & Badge Pop on Drop**:
-   - On landing, the target icon and live count badge pill (`span`) MUST trigger `.bucket-animate` (`@keyframes bucket-bounce` + `@keyframes badge-pop`), producing a high-delight celebratory bounce (scale 1.3x) without layout shift.
+   - On landing, the target icon and live count badge pill (`span`) MUST trigger `.bucket-animate` (`@keyframes bucket-bounce` spring bounce + `@keyframes badge-pop`), producing a high-delight celebratory bounce (scale 1.3x) without layout shift.
 4. **Resilient Target & Source Resolution**:
-   - Targets dynamically resolve the visible element (`mobile-bottom-*` on mobile, `header-*-desktop` on desktop). Never fails silently if an ID is missing or hidden via responsive CSS.
-   - Every card root element (`.pc`, `.z-card-container`, etc.) MUST set both `id={`product-card-${product.id}`}` and `data-product-id={product.id}` for automatic source fallback when events are synthetic or unmounted.
-5. **Universal Coverage**: Enforced on all catalog cards, collection grids, Related Products, Recently Viewed, Product Detail page buttons, Sticky Quick Buy Bar, and QuickViewModal. QuickViewModal MUST allow 450ms delay before closing so the flight originates cleanly from the button.
+   - Targets dynamically resolve the visible element (`header-*-desktop` on desktop, `mobile-bottom-*` on mobile) with screen-edge clamping if scrolled. Never fails silently if an ID is missing.
+   - Every card root element (`.pc`, `.z-card-container`, etc.) MUST set both `id={`product-card-${product.id}`}` and `data-product-id={product.id}`. The engine automatically sources the trajectory from the card's thumbnail image when events are synthetic or unmounted.
+5. **Universal Coverage**: Enforced on all catalog cards (Ella 01–08, Elessi, Showcases, Standard, List), collection grids, Related Products, Recently Viewed, Product Detail page buttons, Sticky Quick Buy Bar, Frequently Bought Together bundles, and QuickViewModal. QuickViewModal MUST allow 450ms delay before closing so the flight originates cleanly from the button.
 
 

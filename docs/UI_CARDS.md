@@ -520,16 +520,17 @@ Verified 2026-10. Across all card themes and archetypes (Ella 01–08, Elessi st
    - Every cart add and wishlist toggle must trigger the canonical engine in `lib/utils/flyAnimation.ts` (`flyToCart` / `flyToWishlist`).
    - Zero duplicate or inline animation code.
 
-2. **Adaptive Timing & Speed Standard**:
+2. **Web Animations API (WAAPI) Parametric Trajectory Standard**:
    - **Desktop / Laptop View (Header Target)**:
-     - The distance from card to header is typically 400px–900px.
-     - Duration is dynamically calibrated to **840ms–950ms** with smooth parabolic easing (`cubic-bezier(0.04, 0.72, 0.32, 1.1)`), ensuring the product thumbnail is clearly and comfortably visible arcing across the screen without vanishing prematurely.
+     - Distance from card to header is typically 400px–1000px.
+     - Trajectory uses pure parametric rainbow parabola physics (30 keyframe interpolation steps).
+     - Duration calibrated to **840ms–960ms**, with thumbnail scale prominent for 60% of travel and full 100% opacity through 82% of flight, giving customers a rich, silky visual experience without flash or premature disappearance.
    - **Mobile App Native View (Bottom Navigation Target)**:
-     - On mobile screens, the animation drops into the sticky bottom navigation bar (`mobile-bottom-cart-icon` or `mobile-bottom-wishlist-icon`) in **720ms** with natural gravity acceleration (`cubic-bezier(0.42, 0, 0.28, 1)`).
+     - Drops into the sticky bottom navigation bar (`mobile-bottom-cart-icon` or `mobile-bottom-wishlist-icon`) in **720ms** with natural gravity acceleration ($t^{1.35}$).
 
 3. **Target Bucket & Badge Bounce on Drop**:
    - When the flying thumbnail reaches its destination:
-     - The destination bucket icon executes `.bucket-animate` (`@keyframes bucket-bounce`: scale 1.3, translateY -5px).
+     - The destination bucket icon executes `.bucket-animate` (`@keyframes bucket-bounce`: scale 1.3, translateY -5px spring bounce).
      - Any count badge pill (`span`) inside it executes `@keyframes badge-pop` (scale 1.45x pop).
      - Applies universally to mobile bottom nav items and desktop header icons.
 

@@ -112,7 +112,7 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
     }
     addItem(product, undefined, [], 1);
     toast.success(`${product.name} added to cart!`);
-    flyToCart(e.currentTarget as HTMLElement, primaryImage, product.id);
+    flyToCart(e, currentImage || primaryImage, product.id);
   };
 
   const handleOpenQuickView = (e: React.MouseEvent) => {
@@ -301,8 +301,7 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
     }
     addItem(product, undefined, [], 1);
     toast.success(`${product.name} added to cart!`);
-    const sourceEl = (e && 'currentTarget' in e && e.currentTarget instanceof HTMLElement ? e.currentTarget : (e instanceof HTMLElement ? e : null));
-    flyToCart(sourceEl, primaryImage, product.id);
+    flyToCart(e, currentImage || primaryImage, product.id);
   };
 
   const handleEllaQuickView = () => {
