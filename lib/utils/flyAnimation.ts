@@ -24,8 +24,12 @@ function isElementVisible(el: HTMLElement | null): boolean {
   const rect = el.getBoundingClientRect();
   if (rect.width <= 0 || rect.height <= 0) return false;
   if (typeof window !== 'undefined') {
+    // Must be inside or partially within the visible viewport bounds
+    if (rect.bottom <= 0 || rect.top >= window.innerHeight) return false;
+    if (rect.right <= 0 || rect.left >= window.innerWidth) return false;
     const style = window.getComputedStyle(el);
     if (style.display === 'none' || style.visibility === 'hidden') return false;
+    if (parseFloat(style.opacity || '1') === 0) return false;
   }
   return true;
 }
@@ -49,9 +53,9 @@ export function resolveFlyTarget(target: FlyTargetKind = 'cart'): HTMLElement | 
   if (isCart) {
     const candidates = isMobile
       ? [
+          'mobile-bottom-cart-icon',
           'header-cart-icon-mobile',
           'header-cart-icon-desktop',
-          'mobile-bottom-cart-icon',
         ]
       : [
           'header-cart-icon-desktop',
@@ -80,13 +84,13 @@ export function resolveFlyTarget(target: FlyTargetKind = 'cart'): HTMLElement | 
     const candidates = isMobile
       ? [
           'mobile-bottom-wishlist-icon',
-          'header-wishlist-icon-desktop',
           'header-wishlist-icon-mobile',
+          'header-wishlist-icon-desktop',
         ]
       : [
           'header-wishlist-icon-desktop',
-          'mobile-bottom-wishlist-icon',
           'header-wishlist-icon-mobile',
+          'mobile-bottom-wishlist-icon',
         ];
 
     for (const id of candidates) {
@@ -168,10 +172,10 @@ export function animateFlyTo(
   // 1. Resolve Target Element and Coordinates
   const targetElement = resolveFlyTarget(target);
   let targetCenterX = isMobile
-    ? (isWishlist ? window.innerWidth / 2 : window.innerWidth - 32)
+    ? (isWishlist ? window.innerWidth / 2 : window.innerWidth - 65)
     : (window.innerWidth - 65);
   let targetCenterY = isMobile
-    ? (isWishlist ? window.innerHeight - 38 : 28)
+    ? (window.innerHeight - 38)
     : 28;
 
   if (targetElement) {
@@ -183,7 +187,7 @@ export function animateFlyTo(
   }
 
   // Safety clamp for header icon targets: if header icon is scrolled above top of viewport, clamp to visible top edge
-  if (!isWishlist && targetCenterY < 20) {
+  if (!isMobile && targetCenterY < 20) {
     targetCenterY = 28;
   }
 

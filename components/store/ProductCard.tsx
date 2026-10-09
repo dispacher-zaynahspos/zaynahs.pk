@@ -106,13 +106,14 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    const sourceEl = (e.currentTarget as HTMLElement) || (e.target as HTMLElement) || null;
     if (product.has_variants) {
       setQuickViewOpen(true);
       return;
     }
     addItem(product, undefined, [], 1);
     toast.success(`${product.name} added to cart!`);
-    flyToCart(e, currentImage || primaryImage, product.id);
+    flyToCart(sourceEl, currentImage || primaryImage, product.id);
   };
 
   const handleOpenQuickView = (e: React.MouseEvent) => {
@@ -295,13 +296,14 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
   const ellaVariant = getEllaCardVariant(settings?.card_style);
 
   const handleEllaAddToCart = (e?: React.MouseEvent | HTMLElement) => {
+    const sourceEl = e instanceof HTMLElement ? e : (e && 'currentTarget' in e && e.currentTarget instanceof HTMLElement ? e.currentTarget : (e && 'target' in e && e.target instanceof HTMLElement ? e.target : null));
     if (product.has_variants) {
       setQuickViewOpen(true);
       return;
     }
     addItem(product, undefined, [], 1);
     toast.success(`${product.name} added to cart!`);
-    flyToCart(e, currentImage || primaryImage, product.id);
+    flyToCart(sourceEl, currentImage || primaryImage, product.id);
   };
 
   const handleEllaQuickView = () => {

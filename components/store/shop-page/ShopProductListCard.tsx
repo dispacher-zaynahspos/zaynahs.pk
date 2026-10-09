@@ -13,6 +13,7 @@ import { getSharedAspectClass } from '@/lib/utils/styles';
 import { getPresetImageUrl } from '@/lib/utils/imageUrl';
 import { useWishlist } from '@/components/store/product-card/hooks/useWishlist';
 import { saveScrollPosition } from '@/lib/hooks/useScrollRestoration';
+import { ProductCardBadges } from '@/components/store/product-card/ProductCardBadges';
 
 interface ShopProductListCardProps {
   product: Product;
@@ -56,36 +57,12 @@ export default function ShopProductListCard({ product, settings, addItem }: Shop
           sizes="200px"
           className="object-cover transition-transform duration-500 group-hover:scale-105"
         />
-        {/* Badge */}
-        <div className="absolute top-2 left-2 flex flex-col gap-1 z-10 items-start pointer-events-none">
-          {initialComparePrice && initialComparePrice > initialPrice && (
-            <span className="rounded-md bg-[#10b981] px-2 py-0.5 text-[9px] font-extrabold text-white tracking-wide shadow-sm animate-none">
-              -{Math.round(((initialComparePrice - initialPrice) / initialComparePrice) * 100)}%
-            </span>
-          )}
-          {product.is_featured && (
-            <span
-              className="rounded-md px-2 py-0.5 text-[9px] font-extrabold shadow-sm tracking-wide"
-              style={{
-                backgroundColor: product.custom_badge?.name?.toLowerCase() === 'featured' ? product.custom_badge.bg_color : '#e94560',
-                color: product.custom_badge?.name?.toLowerCase() === 'featured' ? product.custom_badge.text_color : '#ffffff'
-              }}
-            >
-              {product.custom_badge?.name?.toLowerCase() === 'featured' ? product.custom_badge.name : 'FEATURED'}
-            </span>
-          )}
-          {product.badge_enabled && product.custom_badge && (!product.is_featured || product.custom_badge.name.toLowerCase() !== 'featured') && (
-            <span
-              className="rounded-md px-2 py-0.5 text-[9px] font-extrabold shadow-sm tracking-wide"
-              style={{
-                backgroundColor: product.custom_badge.bg_color,
-                color: product.custom_badge.text_color
-              }}
-            >
-              {product.custom_badge.name}
-            </span>
-          )}
-        </div>
+        {/* Badges — SSOT ProductCardBadges */}
+        <ProductCardBadges
+          product={product}
+          currentPrice={initialPrice}
+          currentComparePrice={initialComparePrice}
+        />
       </div>
 
       {/* Right: Info container */}

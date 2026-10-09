@@ -24,11 +24,18 @@ export const ProductCardBadges: React.FC<ProductCardBadgesProps> = ({
   // 1. Sale Discount Badge
   if (currentComparePrice && currentComparePrice > currentPrice) {
     const saleCustom = product.custom_badge?.name?.toLowerCase() === 'sale' ? product.custom_badge : null;
+    const saleBg = saleCustom?.bg_color || '#10b981';
+    const saleColor = saleCustom?.text_color || '#ffffff';
     badges.push(
       <span
         key="sale"
         className={`${badgeClass} bdg-sale`}
-        style={saleCustom ? { backgroundColor: saleCustom.bg_color, color: saleCustom.text_color } : undefined}
+        style={{
+          backgroundColor: saleBg,
+          color: saleColor,
+          '--bdg-bg': saleBg,
+          '--bdg-color': saleColor,
+        } as React.CSSProperties}
       >
         -{Math.round(((currentComparePrice - currentPrice) / currentComparePrice) * 100)}%
       </span>
@@ -38,14 +45,18 @@ export const ProductCardBadges: React.FC<ProductCardBadgesProps> = ({
   // 2. Featured Badge
   if (product.is_featured) {
     const featuredCustom = product.custom_badge?.name?.toLowerCase() === 'featured' ? product.custom_badge : null;
+    const featBg = featuredCustom?.bg_color || '#e94560';
+    const featColor = featuredCustom?.text_color || '#ffffff';
     badges.push(
       <span
         key="featured"
         className={`${badgeClass} bdg-featured`}
         style={{
-          backgroundColor: featuredCustom?.bg_color || '#e94560',
-          color: featuredCustom?.text_color || '#ffffff',
-        }}
+          backgroundColor: featBg,
+          color: featColor,
+          '--bdg-bg': featBg,
+          '--bdg-color': featColor,
+        } as React.CSSProperties}
       >
         {featuredCustom?.name || 'FEATURED'}
       </span>
@@ -59,14 +70,18 @@ export const ProductCardBadges: React.FC<ProductCardBadgesProps> = ({
     (Boolean(currentComparePrice && currentComparePrice > currentPrice) && customName === 'sale');
 
   if (product.custom_badge && product.badge_enabled !== false && !isDuplicate) {
+    const custBg = product.custom_badge.bg_color || '#0f172a';
+    const custColor = product.custom_badge.text_color || '#ffffff';
     badges.push(
       <span
         key="custom"
-        className={badgeClass}
+        className={`${badgeClass} bdg-custom`}
         style={{
-          backgroundColor: product.custom_badge.bg_color,
-          color: product.custom_badge.text_color,
-        }}
+          backgroundColor: custBg,
+          color: custColor,
+          '--bdg-bg': custBg,
+          '--bdg-color': custColor,
+        } as React.CSSProperties}
       >
         {product.custom_badge.name}
       </span>
@@ -81,7 +96,7 @@ export const ProductCardBadges: React.FC<ProductCardBadgesProps> = ({
 
   if (badges.length === 0) return null;
 
-  const containerClasses = className || "bdg-container absolute top-2 left-2 flex flex-col gap-1 z-10 items-start pointer-events-none max-w-[calc(100%-48px)]";
+  const containerClasses = className ? `bdg-container ${className}` : "bdg-container";
 
   return (
     <div className={containerClasses}>

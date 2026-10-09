@@ -659,10 +659,11 @@ input[type="number"] {
   white-space: nowrap !important;
   border: none !important;
 }
-.bdg-new { background: #d97706 !important; color: #fff !important; }
-.bdg-hot { background: #ea580c !important; color: #fff !important; }
-.bdg-sale { background: #10b981 !important; color: #fff !important; }
-.bdg-featured { background: var(--color-accent, #e94560) !important; color: #fff !important; }
+.bdg-new { background: var(--bdg-bg, #d97706) !important; color: var(--bdg-color, #fff) !important; }
+.bdg-hot { background: var(--bdg-bg, #ea580c) !important; color: var(--bdg-color, #fff) !important; }
+.bdg-sale { background: var(--bdg-bg, #10b981) !important; color: var(--bdg-color, #fff) !important; }
+.bdg-featured { background: var(--bdg-bg, var(--color-accent, #e94560)) !important; color: var(--bdg-color, #fff) !important; }
+.bdg-custom { background: var(--bdg-bg, #0f172a) !important; color: var(--bdg-color, #fff) !important; }
 
 @media (max-width: 639px) {
   .bdg-container {

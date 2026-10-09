@@ -57,10 +57,11 @@ export const customCss = `
       white-space: nowrap !important;
       border: none !important;
     }
-    .bdg-new, .z-card-container .bdg-new, .pc-badges .badge.b-limited { background: #d97706 !important; color: #fff !important; }
-    .bdg-hot, .z-card-container .bdg-hot { background: #ea580c !important; color: #fff !important; }
-    .bdg-sale, .z-card-container .bdg-sale, .pc-badges .badge.b-sale, .pc-badges .badge.b-pct { background: #10b981 !important; color: #fff !important; }
-    .bdg-featured, .z-card-container .bdg-featured, .pc-badges .badge.b-featured { background: #e94560 !important; color: #fff !important; }
+    .bdg-new, .z-card-container .bdg-new, .pc-badges .badge.b-limited { background: var(--bdg-bg, #d97706) !important; color: var(--bdg-color, #fff) !important; }
+    .bdg-hot, .z-card-container .bdg-hot { background: var(--bdg-bg, #ea580c) !important; color: var(--bdg-color, #fff) !important; }
+    .bdg-sale, .z-card-container .bdg-sale, .pc-badges .badge.b-sale, .pc-badges .badge.b-pct { background: var(--bdg-bg, #10b981) !important; color: var(--bdg-color, #fff) !important; }
+    .bdg-featured, .z-card-container .bdg-featured, .pc-badges .badge.b-featured { background: var(--bdg-bg, #e94560) !important; color: var(--bdg-color, #fff) !important; }
+    .bdg-custom, .z-card-container .bdg-custom, .pc-badges .badge.b-custom { background: var(--bdg-bg, #0f172a) !important; color: var(--bdg-color, #fff) !important; }
 
     /* Universal Quick Action Controls Overlay */
     .z-card-container .card-actions,

@@ -33,8 +33,19 @@ export default function ChunkErrorListener() {
       }
     };
 
-    const onError = (event: ErrorEvent) => {
-      handleChunkError(event.message || event.error?.message || event.error?.toString?.());
+    const onError = (event: ErrorEvent | Event) => {
+      // 1. Check for resource load failure on <script> tags (capture phase)
+      if ('target' in event && event.target instanceof HTMLScriptElement) {
+        const src = event.target.src || '';
+        if (src.includes('_next/static/chunks') || src.includes('/_next/static/')) {
+          handleChunkError(`_next/static/chunks load failed: ${src}`);
+          return;
+        }
+      }
+      // 2. Check for ErrorEvent message or error
+      if ('message' in event) {
+        handleChunkError((event as ErrorEvent).message || (event as any).error?.message || (event as any).error?.toString?.());
+      }
     };
 
     const onUnhandledRejection = (event: PromiseRejectionEvent) => {
@@ -43,7 +54,8 @@ export default function ChunkErrorListener() {
       handleChunkError(message);
     };
 
-    window.addEventListener('error', onError);
+    // Note: useCapture=true is required because script element errors DO NOT BUBBLE.
+    window.addEventListener('error', onError, true);
     window.addEventListener('unhandledrejection', onUnhandledRejection);
 
     // Unregister legacy/stale service workers to prevent stale cache & WebView bugs
@@ -56,7 +68,7 @@ export default function ChunkErrorListener() {
     }
 
     return () => {
-      window.removeEventListener('error', onError);
+      window.removeEventListener('error', onError, true);
       window.removeEventListener('unhandledrejection', onUnhandledRejection);
     };
   }, []);

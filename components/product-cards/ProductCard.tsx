@@ -8,6 +8,7 @@ import { useMobileCardFocus } from '@/lib/hooks/useMobileCardFocus';
 import { useCartStore } from '@/store/cartStore';
 import { useWishlist } from '@/components/store/product-card/hooks/useWishlist';
 import { flyToCart } from '@/lib/utils/flyAnimation';
+import { ProductCardBadges } from '@/components/store/product-card/ProductCardBadges';
 import variants from './card-variants.json';
 
 import type { CardProduct, CardVariant } from './types';
@@ -139,16 +140,22 @@ export function ProductCard({ product: p, variant, limit, currencySymbol, cardMo
           <Link className="ovl" href={p.href} aria-label={p.title} />
           <img className="i1" src={img1} alt="" loading="lazy" />
           {p.image2 && !userSelected && hoveredSwatch === null && <img className="i2" src={p.image2} alt="" loading="lazy" />}
-          {allBadges.length > 0 && (
-            <div className="pc-badges">
+          {p.source ? (
+            <ProductCardBadges
+              product={p.source}
+              currentPrice={p.price}
+              currentComparePrice={p.compareAt}
+            />
+          ) : allBadges.length > 0 && (
+            <div className="bdg-container">
               {allBadges.map((b, idx) => (
                 <span
                   key={idx}
-                  className={`badge b-${b.type || 'pct'}`}
+                  className={`bdg bdg-${b.type || 'sale'}`}
                   style={{
-                    ...(b.bg ? { backgroundColor: b.bg } : {}),
-                    ...(b.color ? { color: b.color } : {}),
-                  }}
+                    ...(b.bg ? { backgroundColor: b.bg, '--bdg-bg': b.bg } : {}),
+                    ...(b.color ? { color: b.color, '--bdg-color': b.color } : {}),
+                  } as React.CSSProperties}
                 >
                   {b.text}
                 </span>
