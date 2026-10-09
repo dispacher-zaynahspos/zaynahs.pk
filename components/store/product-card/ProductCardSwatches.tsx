@@ -50,9 +50,10 @@ export const ProductCardSwatches: React.FC<ProductCardSwatchesProps> = ({
             const isActive = currentVariant?.color === v.color;
             const sSizeClass = getSwatchClasses('color', archiveSwatchSize, '');
             const resolvedColorHex = v.color_hex || (v.color ? extractColorsFromName(v.color) : undefined);
+            const variantImg = v.image_url || group.variants.find(o => o.color === v.color && o.image_url)?.image_url;
             const isImageSwatch = Boolean(
-              (v.show_image_swatch && v.image_url) ||
-              (!resolvedColorHex && v.image_url)
+              (v.show_image_swatch && (variantImg || v.image_url)) ||
+              (!resolvedColorHex && (variantImg || v.image_url))
             );
             const swatchBg = isImageSwatch ? {} : getSwatchStyle(resolvedColorHex);
 
@@ -61,12 +62,12 @@ export const ProductCardSwatches: React.FC<ProductCardSwatchesProps> = ({
                 key={i}
                 type="button"
                 title={v.color}
-                onMouseEnter={() => v.image_url ? onHoverImage(getPresetImageUrl(v.image_url, 'card')) : null}
+                onMouseEnter={() => variantImg ? onHoverImage(getPresetImageUrl(variantImg, 'card')) : null}
                 onMouseLeave={() => onHoverImage(null)}
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  onSelectAttribute('color', v.color || '', v.image_url || null);
+                  onSelectAttribute('color', v.color || '', variantImg || null);
                 }}
                 className={`
                   relative flex items-center justify-center cursor-pointer flex-shrink-0 overflow-hidden transition-all duration-150 border swatch-btn
@@ -79,9 +80,9 @@ export const ProductCardSwatches: React.FC<ProductCardSwatchesProps> = ({
                   boxShadow: isActive ? '0 0 0 1.5px var(--color-accent, var(--color-primary, #ef4444))' : 'none',
                 }}
               >
-                {isImageSwatch && v.image_url && (
+                {isImageSwatch && (variantImg || v.image_url) && (
                   <img
-                    src={getPresetImageUrl(v.image_url, 'card')}
+                    src={getPresetImageUrl((variantImg || v.image_url)!, 'card')}
                     alt={v.color || ''}
                     className="w-full h-full object-cover"
                     loading="lazy"
@@ -103,6 +104,10 @@ export const ProductCardSwatches: React.FC<ProductCardSwatchesProps> = ({
         <div key={group.type} className={`flex items-center gap-1.5 flex-wrap ${swatchAlign}`}>
           {group.variants.slice(0, settings?.swatch_limit ?? 8).map((v, i) => {
             const val = group.type === 'size' ? v.size : group.type === 'material' ? v.material : v.custom_value;
+            const variantImg = v.image_url || group.variants.find(o => {
+              const oVal = group.type === 'size' ? o.size : group.type === 'material' ? o.material : o.custom_value;
+              return oVal === val && o.image_url;
+            })?.image_url;
             const isActive = group.type === 'size'
               ? currentVariant?.size === v.size
               : group.type === 'material'
@@ -114,12 +119,12 @@ export const ProductCardSwatches: React.FC<ProductCardSwatchesProps> = ({
                 key={i}
                 type="button"
                 title={val || ''}
-                onMouseEnter={() => v.image_url ? onHoverImage(getPresetImageUrl(v.image_url, 'card')) : null}
+                onMouseEnter={() => variantImg ? onHoverImage(getPresetImageUrl(variantImg, 'card')) : null}
                 onMouseLeave={() => onHoverImage(null)}
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  onSelectAttribute(attrKey, val || '', v.image_url || null);
+                  onSelectAttribute(attrKey, val || '', variantImg || null);
                 }}
                 className={`
                   relative flex items-center justify-center font-bold transition-all duration-150 cursor-pointer flex-shrink-0 overflow-hidden select-none border swatch-btn

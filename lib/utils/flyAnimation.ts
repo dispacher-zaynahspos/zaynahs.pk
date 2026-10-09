@@ -49,14 +49,14 @@ export function resolveFlyTarget(target: FlyTargetKind = 'cart'): HTMLElement | 
   if (isCart) {
     const candidates = isMobile
       ? [
-          'mobile-bottom-cart-icon',
-          'header-cart-icon-desktop',
           'header-cart-icon-mobile',
+          'header-cart-icon-desktop',
+          'mobile-bottom-cart-icon',
         ]
       : [
           'header-cart-icon-desktop',
-          'mobile-bottom-cart-icon',
           'header-cart-icon-mobile',
+          'mobile-bottom-cart-icon',
         ];
 
     for (const id of candidates) {
@@ -167,8 +167,12 @@ export function animateFlyTo(
 
   // 1. Resolve Target Element and Coordinates
   const targetElement = resolveFlyTarget(target);
-  let targetCenterX = isMobile ? window.innerWidth / 2 : window.innerWidth - 65;
-  let targetCenterY = isMobile ? window.innerHeight - 38 : 28;
+  let targetCenterX = isMobile
+    ? (isWishlist ? window.innerWidth / 2 : window.innerWidth - 32)
+    : (window.innerWidth - 65);
+  let targetCenterY = isMobile
+    ? (isWishlist ? window.innerHeight - 38 : 28)
+    : 28;
 
   if (targetElement) {
     const tRect = targetElement.getBoundingClientRect();
@@ -178,8 +182,8 @@ export function animateFlyTo(
     }
   }
 
-  // Desktop safety clamp: if header icon is scrolled above top of viewport, clamp to visible top edge
-  if (!isMobile && targetCenterY < 20) {
+  // Safety clamp for header icon targets: if header icon is scrolled above top of viewport, clamp to visible top edge
+  if (!isWishlist && targetCenterY < 20) {
     targetCenterY = 28;
   }
 

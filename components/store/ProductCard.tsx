@@ -310,12 +310,20 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
 
   if (ellaCardVariant) {
     const baseElla = toCardProduct(product, settings);
+    const salePct = currentComparePrice && currentComparePrice > currentPrice
+      ? Math.round(((currentComparePrice - currentPrice) / currentComparePrice) * 100)
+      : 0;
+    const dynamicBadges = (baseElla.badges || []).map(b => (b.type === 'sale' && salePct > 0 ? { ...b, text: `-${salePct}%` } : b));
+    if (salePct > 0 && !dynamicBadges.some(b => b.type === 'sale')) {
+      dynamicBadges.unshift({ text: `-${salePct}%`, type: 'sale' });
+    }
     const ellaProduct = {
       ...baseElla,
       price: currentPrice,
       compareAt: currentComparePrice,
+      badges: dynamicBadges,
       image: activeImage,
-      image2: isVariantSelected ? null : secondImage,
+      image2: (isVariantSelected || Boolean(hoveredImage)) ? null : secondImage,
       images: baseElla.images && baseElla.images.length > 0
         ? Array.from(new Set([activeImage, ...baseElla.images]))
         : ([activeImage, secondImage].filter(Boolean) as string[]),
@@ -324,6 +332,7 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
     };
     return (
       <>
+        <ProductCardStyleInjector />
         <EllaProductCard
           product={ellaProduct}
           variant={ellaCardVariant}
@@ -349,12 +358,20 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
 
   if (ellaVariant) {
     const baseElla = toCardProduct(product, settings);
+    const salePct = currentComparePrice && currentComparePrice > currentPrice
+      ? Math.round(((currentComparePrice - currentPrice) / currentComparePrice) * 100)
+      : 0;
+    const dynamicBadges = (baseElla.badges || []).map(b => (b.type === 'sale' && salePct > 0 ? { ...b, text: `-${salePct}%` } : b));
+    if (salePct > 0 && !dynamicBadges.some(b => b.type === 'sale')) {
+      dynamicBadges.unshift({ text: `-${salePct}%`, type: 'sale' });
+    }
     const ellaProduct = {
       ...baseElla,
       price: currentPrice,
       compareAt: currentComparePrice,
+      badges: dynamicBadges,
       image: activeImage,
-      image2: isVariantSelected ? null : secondImage,
+      image2: (isVariantSelected || Boolean(hoveredImage)) ? null : secondImage,
       images: baseElla.images && baseElla.images.length > 0
         ? Array.from(new Set([activeImage, ...baseElla.images]))
         : ([activeImage, secondImage].filter(Boolean) as string[]),
@@ -363,6 +380,7 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
     };
     return (
       <>
+        <ProductCardStyleInjector />
         <EllaProductGrid
           variant={ellaVariant}
           products={[ellaProduct]}

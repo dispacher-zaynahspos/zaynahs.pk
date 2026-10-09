@@ -131,11 +131,11 @@ export function ProductCardPreviewStudio({ settings, onUpdateSettings }: Product
               )}
 
               {/* Badges on top-left */}
-              <div className="absolute top-2 left-2 flex flex-col gap-1 z-[2] items-start pointer-events-none">
-                <span className="rounded-full bg-emerald-500 px-2 py-0.5 text-[8px] font-black text-white shadow-xs uppercase tracking-wide">
+              <div className="bdg-container absolute top-2 left-2 flex flex-col gap-1 z-[10] items-start pointer-events-none max-w-[calc(100%-48px)]">
+                <span className="bdg bdg-sale">
                   -25%
                 </span>
-                <span className="rounded-full bg-[#e94560] px-2 py-0.5 text-[8px] font-black text-white shadow-xs uppercase tracking-wide">
+                <span className="bdg bdg-featured">
                   FEATURED
                 </span>
               </div>

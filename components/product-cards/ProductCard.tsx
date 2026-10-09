@@ -31,12 +31,45 @@ export function ProductCard({ product: p, variant, limit, currencySymbol, cardMo
   const { isInWishlist, toggleWishlist } = useWishlist(p.id, p.image);
   const [sel, setSel] = useState(0);
   const [userSelected, setUserSelected] = useState(false);
+  const [hoveredSwatch, setHoveredSwatch] = useState<number | null>(null);
   const [quickViewOpen, setQuickViewOpen] = useState(false);
 
   const sale = !!p.compareAt && p.compareAt > p.price;
   const pct = sale ? Math.round(((p.compareAt! - p.price) / p.compareAt!) * 100) : 0;
-  const badge = sale ? `-${pct}%` : p.badge || '';
   const shown = p.swatches.slice(0, limit);
+
+  // Collect all applicable badges for this card
+  const allBadges: Array<{ text: string; bg?: string; color?: string; type: string }> = [];
+  if (p.badges && p.badges.length > 0) {
+    allBadges.push(...p.badges);
+  } else {
+    if (sale) {
+      allBadges.push({ text: `-${pct}%`, type: 'sale' });
+    }
+    if (p.source?.is_featured) {
+      const feat = p.source.custom_badge?.name?.toLowerCase() === 'featured' ? p.source.custom_badge : null;
+      allBadges.push({
+        text: feat?.name || 'FEATURED',
+        bg: feat?.bg_color || '#e94560',
+        color: feat?.text_color || '#ffffff',
+        type: 'featured',
+      });
+    }
+    if (p.source?.custom_badge && p.source.badge_enabled !== false && (!p.source.is_featured || p.source.custom_badge.name.toLowerCase() !== 'featured')) {
+      allBadges.push({
+        text: p.source.custom_badge.name,
+        bg: p.source.custom_badge.bg_color,
+        color: p.source.custom_badge.text_color,
+        type: 'custom',
+      });
+    }
+    if (!p.source?.is_service && p.source?.stock && p.source.stock > 0 && p.source.stock <= 8) {
+      allBadges.push({ text: 'Limited', type: 'limited' });
+    }
+    if (p.badge && allBadges.length === 0) {
+      allBadges.push({ text: p.badge, type: 'pct' });
+    }
+  }
 
   const img1 = (p.swatchNode !== undefined ? (p.image || p.swatches[sel]?.image) : (p.swatches[sel]?.image || p.image)) as string;
 
@@ -61,7 +94,11 @@ export function ProductCard({ product: p, variant, limit, currencySymbol, cardMo
     <div className="el swatches">
       {shown.length > 0 && <div className="sws">
         {shown.map((c, i) => <span key={i} className={`sw${i === sel ? ' on' : ''}`} style={{ '--c': bg(c) } as React.CSSProperties}
-          onMouseEnter={() => setSel(i)}
+          onMouseEnter={() => {
+            setSel(i);
+            setHoveredSwatch(i);
+          }}
+          onMouseLeave={() => setHoveredSwatch(null)}
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -74,7 +111,7 @@ export function ProductCard({ product: p, variant, limit, currencySymbol, cardMo
   );
   const body = v.lock === '04' ? <><div className="vrow">{vendor}{rating}</div>{title}{desc}{price}{sw}</>
     : v.lock === '05' ? <>{vendor}{sw}{title}{desc}{price}<div className="brow">{rating}{more}</div></>
-    : <>{vendor}{rating}{title}{desc}{price}{sw}{more}</>;
+      : <>{vendor}{rating}{title}{desc}{price}{sw}{more}</>;
 
   const handleDefaultAddToCart = (target?: HTMLElement | null) => {
     if (p.source?.has_variants) {
@@ -93,27 +130,44 @@ export function ProductCard({ product: p, variant, limit, currencySymbol, cardMo
     }
   };
 
+  const hasHoveredVariant = hoveredSwatch !== null || (p.swatchNode !== undefined && p.image2 === null);
+
   return (
     <>
-      <article className="pc" id={`product-card-${p.id}`} data-product-id={p.id} ref={cardRef} onPointerDown={(e) => { if (e.pointerType === 'touch') setManualFocus(); }}>
-      <div className="pc-media">
-        <Link className="ovl" href={p.href} aria-label={p.title} />
-        <img className="i1" src={img1} alt="" loading="lazy" />
-        {p.image2 && !userSelected && <img className="i2" src={p.image2} alt="" loading="lazy" />}
-        {badge && <span className={`badge b-${badge.replace(/[^a-z]/gi, '').toLowerCase() || 'pct'}`}>{badge}</span>}
-        {/* UNIFIED ACTION RAIL: wishlist + quick view + cart ek container, saath spawn */}
-        <div className="pc-actions">
-          <button type="button" className={`act wish${isInWishlist ? ' on' : ''}`} aria-label="Add to wishlist" onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (onWishlist) { onWishlist(e, p); return; } toggleWishlist(e); }}><Svg d={D.heart} /><span className="lbl">Add to wishlist</span></button>
-          <button type="button" className="act qv" aria-label="Quick view" onClick={e => { e.preventDefault(); e.stopPropagation(); if (onQuickView) { onQuickView(p); return; } setQuickViewOpen(true); }}><Svg d={D.eye} /><span className="lbl">Quick view</span></button>
-          {!v.cta && <button type="button" className="act cart" aria-label="Add to cart" onClick={e => { e.preventDefault(); e.stopPropagation(); if (onAddToCart) { onAddToCart(e, p); return; } handleDefaultAddToCart(e.currentTarget); }}><Svg d={D.bag} /><span className="lbl">ADD TO CART</span></button>}
-          {!!v.hstars && <div className="hstars">{stars}</div>}
+      <article className={`pc${hasHoveredVariant ? ' has-hovered-variant' : ''}`} id={`product-card-${p.id}`} data-product-id={p.id} ref={cardRef} onPointerDown={(e) => { if (e.pointerType === 'touch') setManualFocus(); }}>
+        <div className="pc-media">
+          <Link className="ovl" href={p.href} aria-label={p.title} />
+          <img className="i1" src={img1} alt="" loading="lazy" />
+          {p.image2 && !userSelected && hoveredSwatch === null && <img className="i2" src={p.image2} alt="" loading="lazy" />}
+          {allBadges.length > 0 && (
+            <div className="pc-badges">
+              {allBadges.map((b, idx) => (
+                <span
+                  key={idx}
+                  className={`badge b-${b.type || 'pct'}`}
+                  style={{
+                    ...(b.bg ? { backgroundColor: b.bg } : {}),
+                    ...(b.color ? { color: b.color } : {}),
+                  }}
+                >
+                  {b.text}
+                </span>
+              ))}
+            </div>
+          )}
+          {/* UNIFIED ACTION RAIL: wishlist + quick view + cart ek container, saath spawn */}
+          <div className="pc-actions">
+            <button type="button" className={`act wish${isInWishlist ? ' on' : ''}`} aria-label="Add to wishlist" onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (onWishlist) { onWishlist(e, p); return; } toggleWishlist(e); }}><Svg d={D.heart} /><span className="lbl">Add to wishlist</span></button>
+            <button type="button" className="act qv" aria-label="Quick view" onClick={e => { e.preventDefault(); e.stopPropagation(); if (onQuickView) { onQuickView(p); return; } setQuickViewOpen(true); }}><Svg d={D.eye} /><span className="lbl">Quick view</span></button>
+            {!v.cta && <button type="button" className="act cart" aria-label="Add to cart" onClick={e => { e.preventDefault(); e.stopPropagation(); if (onAddToCart) { onAddToCart(e, p); return; } handleDefaultAddToCart(e.currentTarget); }}><Svg d={D.bag} /><span className="lbl">ADD TO CART</span></button>}
+            {!!v.hstars && <div className="hstars">{stars}</div>}
+          </div>
         </div>
-      </div>
-      <div className={`pc-body${v.lock ? " locked" : ""}`}>
-        {body}
-        {!!v.cta && <button type="button" className="cta cart" onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (onAddToCart) { onAddToCart(e, p); return; } handleDefaultAddToCart(e.currentTarget); }}>ADD TO CART</button>}
-      </div>
-    </article>
+        <div className={`pc-body${v.lock ? " locked" : ""}`}>
+          {body}
+          {!!v.cta && <button type="button" className="cta cart" onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (onAddToCart) { onAddToCart(e, p); return; } handleDefaultAddToCart(e.currentTarget); }}>ADD TO CART</button>}
+        </div>
+      </article>
       {quickViewOpen && p.source && (originalSettings || settings) && (
         <QuickViewModal product={p.source} settings={(originalSettings || settings) as StoreSettings} onClose={() => setQuickViewOpen(false)} />
       )}

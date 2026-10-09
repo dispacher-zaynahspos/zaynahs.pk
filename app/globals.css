@@ -626,3 +626,57 @@ input[type="number"] {
   0% { transform: translateX(-100%); }
   100% { transform: translateX(300%); }
 }
+
+/* Universal Product Badges SSOT (Standard, Showcases, Ella, PDP & Modals) */
+.bdg-container {
+  position: absolute !important;
+  top: 8px !important;
+  left: 8px !important;
+  right: auto !important;
+  bottom: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 3px !important;
+  z-index: 10 !important;
+  align-items: flex-start !important;
+  max-width: calc(100% - 46px) !important;
+  pointer-events: none !important;
+}
+.bdg {
+  display: inline-block !important;
+  padding: 2.5px 7px !important;
+  border-radius: 4px !important;
+  font-size: 9.5px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.5px !important;
+  text-transform: uppercase !important;
+  line-height: 1.15 !important;
+  pointer-events: none !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12) !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  border: none !important;
+}
+.bdg-new { background: #d97706 !important; color: #fff !important; }
+.bdg-hot { background: #ea580c !important; color: #fff !important; }
+.bdg-sale { background: #10b981 !important; color: #fff !important; }
+.bdg-featured { background: var(--color-accent, #e94560) !important; color: #fff !important; }
+
+@media (max-width: 639px) {
+  .bdg-container {
+    top: 6px !important;
+    left: 6px !important;
+    gap: 2.5px !important;
+    max-width: calc(100% - 36px) !important;
+  }
+  .bdg {
+    padding: 2px 5.5px !important;
+    font-size: 8px !important;
+    line-height: 1.1 !important;
+    letter-spacing: 0.4px !important;
+    border-radius: 3.5px !important;
+  }
+}
+

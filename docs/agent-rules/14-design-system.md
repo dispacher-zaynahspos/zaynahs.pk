@@ -80,6 +80,13 @@ The 5 original foundation themes (`style1`, `showcase_1`, `showcase_8`, `showcas
 2. **Dedicated Silhouette Exemptions**: When an archetype employs a dedicated architectural silhouette (e.g. `card_01` parallel justified footer row, `card_02` centered seam pill, `card_08` bottom baseline locked button), layout-specific generic controls (arbitrary `card_alignment` or `card_elements_order`) are superseded to protect the brand silhouette.
 3. **Informative Customizer Feedback**: When a control does not apply to the active style, the Customizer UI must display an English explanatory badge or tooltip (e.g., *"This archetype uses a dedicated geometric layout: [Reason in English]"*). The merchant's saved preferences are preserved non-destructively and re-apply whenever they switch to a Base Theme. Full matrix lives in `docs/UI_CARDS.md` Section 7.
 
+## RULE DS-BADGES — Universal Badges SSOT across Cards & Product Detail (MANDATORY)
+1. **Single Source of Truth**: All promotional, sale, featured, and custom badges across ALL product cards (Standard, Showcases 01–16, Ella 01–08), QuickView modals, and Product Detail Pages (PDP) MUST be rendered through ONE shared component: `components/store/product-card/ProductCardBadges.tsx`. Zero duplicate badge markup or ad-hoc badge spans are permitted anywhere in the codebase.
+2. **Admin Badges Tab Synchronization**: Badges strictly synchronize with the Admin Badges Tab (`/admin/badges`), honoring system badge defaults (Sale `#10b981`, Featured `#e94560`, HOT `#ea580c`, New/Limited `#d97706`) as well as merchant-configured custom badges (`bg_color` & `text_color` from the `badges` table).
+3. **Smart Geometric Styling**:
+   - Placement: Top-left clearance (`top: 8px, left: 8px` on desktop; `top: 6px, left: 6px` on mobile), vertically stacked via `.bdg-container` with `gap: 3px` (mobile `2.5px`).
+   - Dimensions & Typography: Smart rounded corners (`border-radius: 4px` desktop; `3.5px` mobile), bold uppercase text (`font-weight: 800`, `letter-spacing: 0.5px`, uppercase), compact mobile sizing (`8px` font, `2px 5.5px` padding) and balanced desktop sizing (`9.5px` font, `2.5px 7px` padding).
+   - Collision clearance: `max-width: calc(100% - 46px)` so badges never collide with top-right quick action rails.
 
 ## RULE DS3 — Skeleton loaders (MANDATORY)
 Never use a global `app/loading.tsx` — it blocks the ENTIRE UI (hides Navbar, Footer, etc.) and ruins perceived performance. ALWAYS use component-level skeletons (map `<ProductCardSkeleton />` / `<LoadingSkeleton />` inside the page layout) so the app layout stays visible while data fetches, rendering instantly.

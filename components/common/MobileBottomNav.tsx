@@ -148,7 +148,7 @@ export default function MobileBottomNav({
                 {mounted && item.badgeCount !== undefined && item.badgeCount > 0 && (
                   <span 
                     style={{ backgroundColor: 'var(--color-primary, #0f172a)' }}
-                    className="absolute -top-1 -right-2 min-w-[18px] h-[18px] px-1 rounded-full text-[8.5px] font-black text-white flex items-center justify-center ring-2 ring-white dark:ring-[#0c0c16] shadow-xs animate-in zoom-in-75 duration-150"
+                    className="nav-count-badge absolute -top-1 -right-2 min-w-[18px] h-[18px] px-1 rounded-full text-[8.5px] font-black text-white flex items-center justify-center ring-2 ring-white dark:ring-[#0c0c16] shadow-xs animate-in zoom-in-75 duration-150"
                   >
                     {item.badgeCount > 99 ? '99+' : item.badgeCount}
                   </span>

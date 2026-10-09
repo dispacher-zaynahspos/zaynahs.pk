@@ -178,7 +178,7 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
       data-hover-effect={hoverStyle}
       onPointerDown={handlePointerDown}
       style={{ borderRadius: 'var(--border-radius-card, 16px)', touchAction: 'pan-y' }}
-      className={`z-card-container group relative flex flex-col ${cardBorderClass} bg-white dark:bg-[#16162a] ${cardShadowClass} ${cardHoverClass} transition-all duration-300 ${isFocused ? 'is-in-focus active-card' : ''}`}
+      className={`z-card-container group relative flex flex-col ${cardBorderClass} bg-white dark:bg-[#16162a] ${cardShadowClass} ${cardHoverClass} transition-all duration-300 ${isFocused ? 'is-in-focus active-card' : ''} ${Boolean(hoveredImage || isVariantSelected) ? 'has-hovered-variant' : ''}`}
     >
       {/* ── Shopify-style full-card transparent overlay link ── */}
       {/* Sits at z-[1], covers entire card, enables single-tap navigation on mobile */}

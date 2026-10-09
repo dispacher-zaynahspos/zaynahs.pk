@@ -21,26 +21,46 @@ export const customCss = `
       isolation: isolate;
     }
     
-    /* Shared components scoped inside z-card-container */
-    .z-card-container .bdg-container {
-      position: absolute !important; top: 8px !important; left: 8px !important;
-      display: flex; flex-direction: column; gap: 4px;
-      z-index: 10 !important; align-items: flex-start;
+    /* Shared components: Universal Product Badges across all cards & PDP */
+    .bdg-container,
+    .z-card-container .bdg-container,
+    .pc-badges {
+      position: absolute !important;
+      top: 8px !important;
+      left: 8px !important;
+      right: auto !important;
+      bottom: auto !important;
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 3px !important;
+      z-index: 10 !important;
+      align-items: flex-start !important;
       max-width: calc(100% - 46px) !important;
       pointer-events: none !important;
     }
-    .z-card-container .bdg {
-      display: inline-block;
-      padding: 3px 8px; border-radius: 20px;
-      font-size: .58rem; font-weight: 800;
-      letter-spacing: 0.8px; text-transform: uppercase;
-      line-height: 1; pointer-events: none;
-      max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    .bdg,
+    .z-card-container .bdg,
+    .pc-badges .badge {
+      display: inline-block !important;
+      padding: 2.5px 7px !important;
+      border-radius: 4px !important;
+      font-size: 9.5px !important;
+      font-weight: 800 !important;
+      letter-spacing: 0.5px !important;
+      text-transform: uppercase !important;
+      line-height: 1.15 !important;
+      pointer-events: none !important;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12) !important;
+      max-width: 100% !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      white-space: nowrap !important;
+      border: none !important;
     }
-    .z-card-container .bdg-new { background: #d97706; color: #fff; }
-    .z-card-container .bdg-hot { background: #ea580c; color: #fff; }
-    .z-card-container .bdg-sale { background: #10b981; color: #fff; }
-    .z-card-container .bdg-featured { background: #e94560; color: #fff; }
+    .bdg-new, .z-card-container .bdg-new, .pc-badges .badge.b-limited { background: #d97706 !important; color: #fff !important; }
+    .bdg-hot, .z-card-container .bdg-hot { background: #ea580c !important; color: #fff !important; }
+    .bdg-sale, .z-card-container .bdg-sale, .pc-badges .badge.b-sale, .pc-badges .badge.b-pct { background: #10b981 !important; color: #fff !important; }
+    .bdg-featured, .z-card-container .bdg-featured, .pc-badges .badge.b-featured { background: #e94560 !important; color: #fff !important; }
 
     /* Universal Quick Action Controls Overlay */
     .z-card-container .card-actions,
@@ -317,6 +337,23 @@ export const customCss = `
         transform: rotateY(0deg) !important;
         opacity: 1 !important;
       }
+    }
+
+    /* Swatch hover override for Standard & Showcase cards: When hovering any swatch button, secondary hover image is hidden and variant image stays fully visible */
+    .z-card-container:has(.swatch-btn:hover) .hover-fade-in,
+    .z-card-container:has(.swatches button:hover) .hover-fade-in,
+    .z-card-container.has-hovered-variant .hover-fade-in {
+      opacity: 0 !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+      transform: none !important;
+    }
+    .z-card-container:has(.swatch-btn:hover) .hover-fade-out,
+    .z-card-container:has(.swatches button:hover) .hover-fade-out,
+    .z-card-container.has-hovered-variant .hover-fade-out {
+      opacity: 1 !important;
+      visibility: visible !important;
+      transform: none !important;
     }
 
     /* Universal Action Button Styling */
@@ -1322,16 +1359,28 @@ export const customCss = `
             width: 11px !important;
             height: 11px !important;
         }
-        .grid-cols-2 .z-card-container .bdg-container {
+        .bdg-container,
+        .z-card-container .bdg-container,
+        .grid-cols-2 .z-card-container .bdg-container,
+        .pc-badges {
             top: 6px !important;
             left: 6px !important;
-            gap: 2px !important;
+            right: auto !important;
+            bottom: auto !important;
+            gap: 2.5px !important;
             max-width: calc(100% - 36px) !important;
             pointer-events: none !important;
         }
-        .grid-cols-2 .z-card-container .bdg {
-            padding: 2px 6px !important;
-            font-size: 0.5rem !important;
+        .bdg,
+        .z-card-container .bdg,
+        .grid-cols-2 .z-card-container .bdg,
+        .pc-badges .badge {
+            padding: 2px 5.5px !important;
+            font-size: 8px !important;
+            line-height: 1.1 !important;
+            letter-spacing: 0.4px !important;
+            border-radius: 3.5px !important;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12) !important;
         }
 
         .grid-cols-2 .z-card-container .sc1,

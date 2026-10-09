@@ -50,17 +50,61 @@ export function toCardProduct(product: Product, settings?: StoreSettings | null)
   const combinedImages = Array.from(new Set([primaryImage, secondaryImage, ...galleryUrls, ...variantUrls].filter(Boolean) as string[]));
   const allImages = combinedImages.length > 0 ? combinedImages : ([primaryImage, secondaryImage].filter(Boolean) as string[]);
 
+  const effectivePrice = defaultVariant?.price && defaultVariant.price > 0 ? defaultVariant.price : product.price;
+  const effectiveComparePrice = defaultVariant?.compare_price && defaultVariant.compare_price > 0 ? defaultVariant.compare_price : product.compare_price;
+
+  const badgesList: import('./types').CardBadgeItem[] = [];
+
+  if (effectiveComparePrice && effectiveComparePrice > effectivePrice) {
+    const pct = Math.round(((effectiveComparePrice - effectivePrice) / effectiveComparePrice) * 100);
+    const saleCustom = product.custom_badge?.name?.toLowerCase() === 'sale' ? product.custom_badge : null;
+    badgesList.push({
+      text: `-${pct}%`,
+      type: 'sale',
+      ...(saleCustom ? { bg: saleCustom.bg_color, color: saleCustom.text_color } : {}),
+    });
+  }
+
+  if (product.is_featured) {
+    const featuredCustom = product.custom_badge?.name?.toLowerCase() === 'featured' ? product.custom_badge : null;
+    badgesList.push({
+      text: featuredCustom?.name || 'FEATURED',
+      bg: featuredCustom?.bg_color || '#e94560',
+      color: featuredCustom?.text_color || '#ffffff',
+      type: 'featured',
+    });
+  }
+
+  const customName = product.custom_badge?.name?.toLowerCase();
+  const isDuplicate =
+    (product.is_featured && customName === 'featured') ||
+    (Boolean(effectiveComparePrice && effectiveComparePrice > effectivePrice) && customName === 'sale');
+
+  if (product.custom_badge && product.badge_enabled !== false && !isDuplicate) {
+    badgesList.push({
+      text: product.custom_badge.name,
+      bg: product.custom_badge.bg_color,
+      color: product.custom_badge.text_color,
+      type: 'custom',
+    });
+  }
+
+  if (!product.is_service && product.stock > 0 && product.stock <= 8) {
+    badgesList.push({ text: 'Limited', type: 'limited' });
+  }
+
   return {
     id: product.id,
     href: `/product/${encodeURIComponent(product.slug || '')}`,
     title: product.name,
     vendor: product.category?.name,
     description: product.short_description || '',
-    price: defaultVariant?.price && defaultVariant.price > 0 ? defaultVariant.price : product.price,
-    compareAt: defaultVariant?.compare_price && defaultVariant.compare_price > 0 ? defaultVariant.compare_price : product.compare_price,
+    price: effectivePrice,
+    compareAt: effectiveComparePrice,
     hasPriceRange: minPrice !== maxPrice,
     hasMoreSizes: uniqueSizes.length > 4,
-    badge: product.custom_badge?.name || undefined,
+    badge: badgesList[0]?.text || product.custom_badge?.name || undefined,
+    badges: badgesList,
     image: primaryImage,
     image2: secondaryImage,
     images: allImages,

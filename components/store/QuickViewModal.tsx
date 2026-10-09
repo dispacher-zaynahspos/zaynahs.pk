@@ -23,6 +23,7 @@ import { toast } from 'sonner';
 import VariantSelector from './VariantSelector';
 import { flyToCart } from '@/lib/utils/flyAnimation';
 import { getOptimizedImageUrl, getPresetImageUrl } from '@/lib/utils/imageUrl';
+import { ProductCardBadges } from './product-card/ProductCardBadges';
 
 interface QuickViewModalProps {
   product: Product;
@@ -158,6 +159,11 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
 
             {/* ── Image Gallery ─────────────────────────────────────────── */}
             <div className="relative bg-gray-50 dark:bg-black/20">
+              <ProductCardBadges
+                product={product}
+                currentPrice={basePrice}
+                currentComparePrice={comparePrice}
+              />
               <div className={`relative w-full overflow-hidden touch-pan-y ${getSharedAspectClass(settings?.image_aspect_ratio)}`} ref={emblaRef}>
                 <div className="flex h-full">
                   {images.map((img, i) => (

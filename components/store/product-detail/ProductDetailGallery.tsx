@@ -8,6 +8,7 @@ import { StoreSettings, Product, ProductVariant } from '@/lib/types';
 import { getSharedAspectClass } from '@/lib/utils/styles';
 import { getPresetImageUrl } from '@/lib/utils/imageUrl';
 import { useEmblaGallery } from '@/components/store/product-card/hooks/useEmblaGallery';
+import { ProductCardBadges } from '@/components/store/product-card/ProductCardBadges';
 
 import { ProductLightboxModal } from './gallery/ProductLightboxModal';
 
@@ -103,51 +104,13 @@ export default function ProductDetailGallery({
           <ZoomIn className="w-4 h-4 text-gray-700 dark:text-gray-300" />
         </div>
 
-        {/* Badges */}
-        <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10 items-start pointer-events-none">
-          {(() => {
-            const currentCompare = selectedVariant?.compare_price ?? product.compare_price;
-            const currentPrc = selectedVariant?.price ?? product.price;
-            if (currentCompare && currentPrc && currentCompare > currentPrc) {
-              return (
-                <span
-                  style={{ backgroundColor: '#10b981' }}
-                  className="rounded-full px-3 py-1 text-[10px] font-black text-white shadow-sm uppercase tracking-wider"
-                >
-                  -{Math.round(((currentCompare - currentPrc) / currentCompare) * 100)}%
-                </span>
-              );
-            }
-            return null;
-          })()}
-          {product.is_featured && (
-            <span
-              className="rounded-full px-3 py-1 text-[10px] font-black shadow-sm uppercase tracking-wider"
-              style={{
-                backgroundColor: product.custom_badge?.name?.toLowerCase() === 'featured' ? product.custom_badge.bg_color : '#e94560',
-                color: product.custom_badge?.name?.toLowerCase() === 'featured' ? product.custom_badge.text_color : '#ffffff'
-              }}
-            >
-              {product.custom_badge?.name?.toLowerCase() === 'featured' ? product.custom_badge.name : 'FEATURED'}
-            </span>
-          )}
-          {product.badge_enabled && product.custom_badge && (!product.is_featured || product.custom_badge.name.toLowerCase() !== 'featured') && (
-            <span
-              className="rounded-full px-3 py-1 text-[10px] font-black text-white shadow-sm uppercase tracking-wider"
-              style={{
-                backgroundColor: product.custom_badge.bg_color,
-                color: product.custom_badge.text_color
-              }}
-            >
-              {product.custom_badge.name}
-            </span>
-          )}
-          {!product.is_service && stockAvailable > 0 && stockAvailable <= 8 && (
-            <span className="rounded-full bg-amber-600 px-3 py-1 text-[10px] font-black text-white shadow-sm uppercase tracking-wider">
-              LIMITED
-            </span>
-          )}
-        </div>
+        {/* Badges — Single Source of Truth */}
+        <ProductCardBadges
+          product={product}
+          currentPrice={selectedVariant?.price ?? product.price}
+          currentComparePrice={selectedVariant?.compare_price ?? product.compare_price}
+          stock={stockAvailable}
+        />
 
         {/* Prev Arrow */}
         {images.length > 1 && (

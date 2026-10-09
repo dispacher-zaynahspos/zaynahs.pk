@@ -9,6 +9,13 @@ export interface CardProductSwatch {
   image?: string;
 }
 
+export interface CardBadgeItem {
+  text: string;
+  bg?: string;
+  color?: string;
+  type: string;
+}
+
 export interface CardProduct {
   id: string;
   href: string;
@@ -20,6 +27,7 @@ export interface CardProduct {
   hasPriceRange?: boolean;
   hasMoreSizes?: boolean;
   badge?: string;
+  badges?: CardBadgeItem[];
   image: string;
   image2?: string | null;
   images?: string[];

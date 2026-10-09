@@ -213,10 +213,23 @@ export default function ThemeStyleRegistry({ settings }: ThemeStyleRegistryProps
 
     /* Backgrounds hardcoded to accent red/coral */
     span.bg-\\[\\#e94560\\], div.bg-\\[\\#e94560\\], 
-    [class*="bg-[#e94560]"]:not(button):not(a):not([class*="bg-[#e94560]/"]):not([class*="hover:"]):not([class*="peer-checked:"]),
+    [class*="bg-[#e94560]"]:not(button):not(a):not([class*="bg-[#e94560]/"]):not([class*="hover:"]):not([class*="peer-checked:"]):not(.nav-count-badge),
     .bg-accent, .dark .bg-accent {
       background-color: var(--color-accent) !important;
       color: #ffffff !important;
+    }
+
+    /* Header & bottom navigation numeric count badges (round pills only) linked to primary theme color */
+    .nav-count-badge {
+      background-color: var(--color-primary, #0f172a) !important;
+      color: #ffffff !important;
+    }
+
+    /* Mobile bottom navigation labels: transparent background always, active tab colored by text only */
+    [aria-label="Mobile Bottom Navigation"] a > span,
+    #mobile-bottom-cart-icon > span:not(.nav-count-badge),
+    #mobile-bottom-wishlist-icon > span:not(.nav-count-badge) {
+      background-color: transparent !important;
     }
     
     /* Text color hardcoded overrides */

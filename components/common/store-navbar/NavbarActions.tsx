@@ -52,7 +52,10 @@ export function NavWishlistLink({
     >
       <Heart className="h-5 w-5" style={customTextColorStyle} />
       {mounted && wishlistCount > 0 && (
-        <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-white dark:ring-[#0f0f1b]">
+        <span
+          style={{ backgroundColor: 'var(--color-primary, #0f172a)' }}
+          className="nav-count-badge absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold text-white ring-2 ring-white dark:ring-[#0f0f1b]"
+        >
           {wishlistCount}
         </span>
       )}
@@ -78,7 +81,10 @@ export function NavCartLink({
     >
       <ShoppingCart className="h-5 w-5" style={customTextColorStyle} />
       {mounted && totalItems > 0 && (
-        <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-[#e94560] text-[10px] font-bold text-white ring-2 ring-white dark:ring-[#0f0f1b]">
+        <span
+          style={{ backgroundColor: 'var(--color-primary, #0f172a)' }}
+          className="nav-count-badge absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold text-white ring-2 ring-white dark:ring-[#0f0f1b]"
+        >
           {totalItems}
         </span>
       )}
