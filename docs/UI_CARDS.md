@@ -521,23 +521,26 @@ Verified 2026-10. Across all card themes and archetypes (Ella 01–08, Elessi st
    - Zero duplicate or inline animation code.
 
 2. **Web Animations API (WAAPI) Parametric Trajectory Standard**:
-   - **Desktop / Laptop View (Header Target)**:
-     - Distance from card to header is typically 400px–1000px.
-     - Trajectory uses pure parametric rainbow parabola physics (30 keyframe interpolation steps).
-     - Duration calibrated to **840ms–960ms**, with thumbnail scale prominent for 60% of travel and full 100% opacity through 82% of flight, giving customers a rich, silky visual experience without flash or premature disappearance.
-   - **Mobile App Native View (Bottom Navigation Target)**:
-     - Drops into the sticky bottom navigation bar (`mobile-bottom-cart-icon` or `mobile-bottom-wishlist-icon`) in **720ms** with natural gravity acceleration ($t^{1.35}$).
+   - **Cart (Mobile & Desktop) — Header Target & Anticipation Dip**:
+     - Cart MUST ALWAYS fly UP into the **TOP HEADER CART ICON** (`header-cart-icon-mobile` / `header-cart-icon-desktop`), NEVER into the bottom navigation bar.
+     - Begins with a tactile **8px anticipation dip & 1.1x spring stretch** in the first 14% of travel, before vaulting into an upward rainbow parabolic arc into the header cart.
+     - Duration calibrated to **720ms** on mobile, **760ms–920ms** on desktop, with thumbnail scale prominent for 60% of travel and full 100% opacity through 82% of flight.
+   - **Wishlist (Mobile) — Bottom Navigation Target**:
+     - Drops down into the sticky bottom navigation bar (`mobile-bottom-wishlist-icon`) in **660ms** with natural gravity acceleration ($t^{1.35}$).
+   - **Wishlist (Desktop) — Header Target**:
+     - Traverses to `header-wishlist-icon-desktop` in **840ms–920ms** with smooth parabolic arc.
 
 3. **Target Bucket & Badge Bounce on Drop**:
    - When the flying thumbnail reaches its destination:
      - The destination bucket icon executes `.bucket-animate` (`@keyframes bucket-bounce`: scale 1.3, translateY -5px spring bounce).
-     - Any count badge pill (`span`) inside it executes `@keyframes badge-pop` (scale 1.45x pop).
-     - Applies universally to mobile bottom nav items and desktop header icons.
+     - Any count badge pill (`span`, `.nav-count-badge`) inside it executes `@keyframes badge-pop` (scale 1.45x pop).
+     - Applies universally to mobile bottom nav items and desktop/mobile header icons.
 
 4. **100% Reliable Source & Target Fallback**:
    - Every card root element (`.pc`, `.z-card-container`, `article`) MUST declare both `id={`product-card-${product.id}`}` and `data-product-id={product.id}`.
-   - If an event lacks `e.currentTarget`, the engine automatically sources the trajectory from the card or its thumbnail image, guaranteeing zero animation failures.
-   - QuickViewModal maintains a 450ms unmount delay so the flight originates cleanly before the modal dismisses.
+   - If an event lacks `e.currentTarget` or element unmounts, the engine automatically sources the trajectory from the card or its thumbnail image, guaranteeing zero animation failures.
+   - Screen-edge clamping (`[25, winW - 25]`, `[15, winH - 15]`) ensures targets and sources stay within the visible screen.
+   - QuickViewModal maintains a 650ms unmount delay so the flight completes visibly into the header cart before the modal dismisses. Single-variant products directly add to cart on card click without modal friction.
 
 
 

@@ -182,14 +182,20 @@ All save/cancel action bars across the Admin Console must be sticky at the botto
 - **Footer Social Hover Contrast**: Every social link in `FooterSocialLinks.tsx` has branded hover background colors (`#1877F2` for Facebook, `#E1306C` for Instagram, `#25D366` for WhatsApp, `#FF0000` for YouTube, `#000000` for TikTok/Twitter, `#FFFC00` for Snapchat) with guaranteed high-contrast icon color (`#ffffff` / `#000000`), smooth lift, and dark mode compatibility. Resting icon color defaults to visible slate (`#334155`).
 ## 19. Universal Cart & Wishlist Drop/Fly Animation Standard (RULE DS23 & RULE FLY-ANIMATION-UNIVERSAL)
 - **SSOT Animation Engine**: All Add-to-Cart and Wishlist triggers across all devices (mobile, tablet, desktop) and tabs (catalog, shop, homepage, related products, product detail, quickview) MUST use the shared engine in `lib/utils/flyAnimation.ts` (`flyToCart` / `flyToWishlist`).
-- **Device-Aware Speed & Trajectory**:
-  - **Desktop / Laptop / Tablet**: Trajectory travels to header icons in **840ms–960ms** via a true mathematical rainbow parabola (30 parametric keyframe steps) with prominent scale and 100% full opacity for 82% of flight, ensuring customers clearly see the article image gliding across the screen into the bag.
-  - **Mobile Native App View**: Drops into the sticky bottom navigation bar (`mobile-bottom-cart-icon` or `mobile-bottom-wishlist-icon`) in **720ms** with natural gravity acceleration ($t^{1.35}$).
+- **Device & Target Routing (MANDATORY)**:
+  - **Cart (Mobile & Desktop)**: MUST ALWAYS fly UP into the **TOP HEADER CART ICON** (`header-cart-icon-mobile` / `header-cart-icon-desktop`), NEVER into the bottom navigation bar.
+  - **Wishlist (Mobile)**: Targets the **BOTTOM NAVIGATION BAR WISHLIST ICON** (`mobile-bottom-wishlist-icon`), falling back to header if bottom nav is absent.
+  - **Wishlist (Desktop)**: Targets the **TOP HEADER WISHLIST ICON** (`header-wishlist-icon-desktop`).
+- **Anticipation Dip & Physics Arc**:
+  - **Cart Upward Flight ("Dip & Fly Upper")**: Begins with a tactile **8px anticipation dip and 1.1x spring stretch** in the first 14% of the trajectory, then vaults into a majestic upward parabolic rainbow arc into the header cart bucket. Calibrated duration: **720ms** on mobile, **760ms–920ms** on desktop.
+  - **Mobile Wishlist Gravity Drop**: Drops down into the sticky bottom navigation bar in **660ms** with natural gravity acceleration ($t^{1.35}$).
 - **Celebratory Target Bucket & Badge Pop**:
-  - Upon landing, the target bucket element AND its live count badge pill (`span`) MUST trigger `.bucket-animate` (`@keyframes bucket-bounce` + `@keyframes badge-pop`), producing an elastic 1.3x scale bounce.
+  - Upon landing, the target bucket element AND its live count badge pill (`span`, `.nav-count-badge`) MUST trigger `.bucket-animate` (`@keyframes bucket-bounce` + `@keyframes badge-pop`), producing an elastic 1.3x scale bounce without layout shift.
 - **Fail-Safe Source & Target Resolution**:
   - Every card root element (`.pc`, `.z-card-container`, `article`) MUST set `id={`product-card-${product.id}`}` and `data-product-id={product.id}`.
+  - Screen-edge clamping (`[25, winW - 25]`, `[15, winH - 15]`) ensures coordinates never fly off-screen if scrolled.
   - If event target is unmounted or synthetic, the engine automatically resolves the card element or thumbnail, guaranteeing zero failures and zero console errors.
+
 
 
 

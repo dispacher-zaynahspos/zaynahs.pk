@@ -47,16 +47,15 @@ export function resolveFlyTarget(target: FlyTargetKind = 'cart'): HTMLElement | 
   const isCart = target === 'cart' || (typeof target === 'string' && target.toLowerCase().includes('cart'));
 
   if (isCart) {
+    // CART ALWAYS TARGETS THE TOP HEADER CART ICON ON ALL DEVICES (MOBILE + DESKTOP)
     const candidates = isMobile
       ? [
-          'mobile-bottom-cart-icon',
           'header-cart-icon-mobile',
           'header-cart-icon-desktop',
         ]
       : [
           'header-cart-icon-desktop',
           'header-cart-icon-mobile',
-          'mobile-bottom-cart-icon',
         ];
 
     for (const id of candidates) {
@@ -64,19 +63,25 @@ export function resolveFlyTarget(target: FlyTargetKind = 'cart'): HTMLElement | 
       if (isElementRendered(el)) return el;
     }
 
-    // Fallback 1: any link or button for cart that is rendered
+    // Fallback 1: any link or button for cart inside header
+    const headerCart = document.querySelector('header a[href="/cart"], header button[aria-label*="cart" i], [id*="header-cart"]');
+    if (headerCart instanceof HTMLElement && isElementRendered(headerCart)) return headerCart;
+
+    // Fallback 2: any link or button for cart that is rendered anywhere
     const queryEls = document.querySelectorAll('a[href="/cart"], button[aria-label*="cart" i], [data-cart-icon]');
     for (const qEl of Array.from(queryEls)) {
       if (qEl instanceof HTMLElement && isElementRendered(qEl)) return qEl;
     }
 
-    // Fallback 2: Any matching ID element even if style check is pending
+    // Fallback 3: Any matching ID element even if style check is pending
     for (const id of candidates) {
       const el = document.getElementById(id);
       if (el) return el;
     }
   } else {
-    // Wishlist target
+    // WISHLIST TARGET:
+    // On Mobile: targets bottom navigation bar wishlist icon!
+    // On Desktop: targets header wishlist icon!
     const candidates = isMobile
       ? [
           'mobile-bottom-wishlist-icon',
@@ -170,7 +175,7 @@ export function animateFlyTo(
   // 1. Resolve Target Element and Coordinates
   const targetElement = resolveFlyTarget(target);
   const isBottomNavTarget = Boolean(
-    isMobile && targetElement && (
+    isMobile && isWishlist && targetElement && (
       targetElement.id.startsWith('mobile-bottom-') ||
       targetElement.closest('nav[aria-label*="Mobile Bottom" i]')
     )
@@ -179,8 +184,8 @@ export function animateFlyTo(
   // Robust default coordinate baselines
   let targetCenterX = isMobile
     ? (isBottomNavTarget
-        ? (isWishlist ? Math.round(winW * 0.5) : Math.round(winW * 0.72))
-        : (isWishlist ? Math.max(30, winW - 95) : Math.max(30, winW - 50)))
+        ? Math.round(winW * 0.5)
+        : (isWishlist ? Math.max(30, winW - 95) : Math.max(30, winW - 48)))
     : (isWishlist ? Math.max(30, winW - 110) : Math.max(30, winW - 65));
 
   let targetCenterY = isBottomNavTarget
@@ -253,14 +258,13 @@ export function animateFlyTo(
   const deltaX = endX - startX;
   const deltaY = endY - startY;
 
-  const isDroppingDown = deltaY > 0;
   const distance = Math.hypot(deltaX, deltaY);
 
   // Calibrated timings:
   // Desktop: 780ms-920ms (smooth, silky parabolic arc)
-  // Mobile: 680ms for responsive gravity drop into sticky bottom bar
+  // Mobile: 680ms for responsive native app feel
   const DURATION = isMobile
-    ? (isDroppingDown ? 680 : 720)
+    ? (isBottomNavTarget ? 660 : 720)
     : Math.min(920, Math.max(760, Math.round(distance * 0.92)));
 
   // 3. Create Flying Thumbnail DOM Node
@@ -327,13 +331,15 @@ export function animateFlyTo(
 
   document.body.appendChild(bubble);
 
-  // 4. Generate 30 Parametric Keyframe Coordinates (Physics Parabola)
+  // 4. Generate 30 Parametric Keyframe Coordinates (Physics Parabola with Anticipation Dip)
   const steps = 30;
   const keyframes: Keyframe[] = [];
 
-  const arcPeak = isMobile
-    ? (isDroppingDown ? 0 : 40)
-    : Math.min(160, Math.max(50, Math.abs(deltaX) * 0.14));
+  const arcPeak = isBottomNavTarget
+    ? 0
+    : isMobile
+      ? Math.min(80, Math.max(35, Math.abs(deltaX) * 0.18))
+      : Math.min(160, Math.max(50, Math.abs(deltaX) * 0.14));
 
   for (let i = 0; i <= steps; i++) {
     const t = i / steps; // normalized time 0.0 -> 1.0
@@ -341,28 +347,35 @@ export function animateFlyTo(
     let curX: number;
     let curY: number;
 
-    if (isMobile && isDroppingDown) {
-      // Natural gravity drop to bottom navigation bar
+    if (isBottomNavTarget) {
+      // Natural gravity drop to bottom navigation bar for mobile wishlist
       const px = 1 - Math.pow(1 - t, 1.4);
       const py = Math.pow(t, 1.35); // accelerates smoothly downwards
       curX = startX + deltaX * px;
       curY = startY + deltaY * py;
     } else {
-      // Majestic rainbow arc to top header icon (desktop or mobile top)
-      const px = 1 - Math.pow(1 - t, 1.3); // smooth horizontal progression
-      const py = 1 - Math.pow(1 - t, 1.45); // smooth vertical progression
+      // Cart / Header target: tactile anticipation dip + majestic upward rainbow arc
+      const px = 1 - Math.pow(1 - t, 1.25); // smooth horizontal progression
+      const py = 1 - Math.pow(1 - t, 1.38); // smooth vertical progression
       const lift = 4 * t * (1 - t) * arcPeak; // mathematical parabola cresting at midpoint
+
+      // Initial anticipation dip in first 14% of journey (subtle 8px dip)
+      const dip = (t < 0.14) ? Math.sin((t / 0.14) * Math.PI) * 8 : 0;
+
       curX = startX + deltaX * px;
-      curY = startY + deltaY * py - lift;
+      curY = startY + deltaY * py - lift + dip;
     }
 
-    // Scale progression: prominent product thumbnail for first 60%, then shrinks into target
+    // Scale progression: prominent product thumbnail with slight anticipation bounce, then shrinks into target
     let curScale: number;
-    if (t < 0.6) {
-      curScale = 1 - 0.05 * (t / 0.6);
+    if (t < 0.14) {
+      // Anticipation scale pop (1.0 -> 1.1)
+      curScale = 1.0 + 0.1 * Math.sin((t / 0.14) * Math.PI);
+    } else if (t < 0.6) {
+      curScale = 1.0 - 0.05 * ((t - 0.14) / 0.46);
     } else {
       const st = (t - 0.6) / 0.4;
-      curScale = 0.95 - 0.73 * Math.pow(st, 1.2); // scales down to 0.22
+      curScale = 0.95 - 0.72 * Math.pow(st, 1.2); // scales down to ~0.23
     }
 
     // Opacity: stays 100% visible for 82% of journey, fades smoothly at landing
@@ -381,6 +394,7 @@ export function animateFlyTo(
       opacity: Number(safeOpacity.toFixed(3)),
     });
   }
+
 
   // 5. Cleanup & Celebratory Bucket Bounce Trigger
   let cleaned = false;
