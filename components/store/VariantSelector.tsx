@@ -17,6 +17,7 @@ interface VariantSelectorProps {
 }
 
 const DEFAULT_AXIS_ORDER = ['color', 'size', 'material', 'custom'];
+const UNSELECTED_SWATCH_BORDER = 'var(--swatch-border-unselected, color-mix(in srgb, currentColor 28%, rgba(0, 0, 0, 0.22)))';
 
 export default function VariantSelector({
   variants,
@@ -113,7 +114,7 @@ export default function VariantSelector({
                   `}
                   style={{
                     ...swatchBg,
-                    borderColor: isSelected ? 'var(--color-accent, var(--color-primary, #ef4444))' : 'var(--color-border, #e5e7eb)',
+                    borderColor: isSelected ? 'var(--color-accent, var(--color-primary, #ef4444))' : UNSELECTED_SWATCH_BORDER,
                     boxShadow: isSelected ? '0 0 0 2px var(--color-accent, var(--color-primary, #ef4444))' : 'none',
                   }}
                 >
@@ -145,7 +146,7 @@ export default function VariantSelector({
                 style={{
                   backgroundColor: isSelected ? 'var(--btn-primary-bg)' : 'var(--color-surface)',
                   color: isSelected ? 'var(--btn-primary-text)' : 'var(--color-text-primary)',
-                  borderColor: isSelected ? 'var(--btn-primary-bg)' : 'var(--color-border)',
+                  borderColor: isSelected ? 'var(--btn-primary-bg)' : UNSELECTED_SWATCH_BORDER,
                 }}
               >
                 {color}
@@ -194,14 +195,14 @@ export default function VariantSelector({
                   ${isSelected ? 'scale-105 shadow-sm font-black' : 'hover:scale-105'}
                 ` : `min-w-[52px] py-2.5 px-3 text-center rounded-xl text-sm font-semibold transition-all duration-200 border cursor-pointer`}
                 style={showSwatches ? {
-                  borderColor: isSelected ? 'var(--color-accent)' : 'var(--color-border)',
+                  borderColor: isSelected ? 'var(--color-accent)' : UNSELECTED_SWATCH_BORDER,
                   color: isSelected ? 'var(--color-text-accent)' : 'var(--color-text-primary)',
                   backgroundColor: isSelected ? 'color-mix(in srgb, var(--color-accent) 8%, transparent)' : 'var(--color-surface)',
                   boxShadow: isSelected ? '0 0 0 1.5px var(--color-accent)' : 'none',
                 } : {
                   backgroundColor: isSelected ? 'var(--btn-primary-bg)' : 'var(--color-surface)',
                   color: isSelected ? 'var(--btn-primary-text)' : 'var(--color-text-primary)',
-                  borderColor: isSelected ? 'var(--btn-primary-bg)' : 'var(--color-border)',
+                  borderColor: isSelected ? 'var(--btn-primary-bg)' : UNSELECTED_SWATCH_BORDER,
                   boxShadow: isSelected ? '0 0 0 2px var(--btn-primary-bg)' : 'none'
                 }}
               >
@@ -251,14 +252,14 @@ export default function VariantSelector({
                   ${isSelected ? 'scale-105 shadow-sm font-black' : 'hover:scale-105'}
                 ` : `min-w-[52px] py-2.5 px-3 text-center rounded-xl text-sm font-semibold transition-all duration-200 border cursor-pointer`}
                 style={showSwatches ? {
-                  borderColor: isSelected ? 'var(--color-accent)' : 'var(--color-border)',
+                  borderColor: isSelected ? 'var(--color-accent)' : UNSELECTED_SWATCH_BORDER,
                   color: isSelected ? 'var(--color-text-accent)' : 'var(--color-text-primary)',
                   backgroundColor: isSelected ? 'color-mix(in srgb, var(--color-accent) 8%, transparent)' : 'var(--color-surface)',
                   boxShadow: isSelected ? '0 0 0 1.5px var(--color-accent)' : 'none',
                 } : {
                   backgroundColor: isSelected ? 'var(--btn-primary-bg)' : 'var(--color-surface)',
                   color: isSelected ? 'var(--btn-primary-text)' : 'var(--color-text-primary)',
-                  borderColor: isSelected ? 'var(--btn-primary-bg)' : 'var(--color-border)',
+                  borderColor: isSelected ? 'var(--btn-primary-bg)' : UNSELECTED_SWATCH_BORDER,
                   boxShadow: isSelected ? '0 0 0 2px var(--btn-primary-bg)' : 'none'
                 }}
               >
@@ -308,14 +309,14 @@ export default function VariantSelector({
                   ${isSelected ? 'scale-105 shadow-sm font-black' : 'hover:scale-105'}
                 ` : `min-w-[52px] py-2.5 px-3 text-center rounded-xl text-sm font-semibold transition-all duration-200 border cursor-pointer`}
                 style={showSwatches ? {
-                  borderColor: isSelected ? 'var(--color-accent)' : 'var(--color-border)',
+                  borderColor: isSelected ? 'var(--color-accent)' : UNSELECTED_SWATCH_BORDER,
                   color: isSelected ? 'var(--color-text-accent)' : 'var(--color-text-primary)',
                   backgroundColor: isSelected ? 'color-mix(in srgb, var(--color-accent) 8%, transparent)' : 'var(--color-surface)',
                   boxShadow: isSelected ? '0 0 0 1.5px var(--color-accent)' : 'none',
                 } : {
                   backgroundColor: isSelected ? 'var(--btn-primary-bg)' : 'var(--color-surface)',
                   color: isSelected ? 'var(--btn-primary-text)' : 'var(--color-text-primary)',
-                  borderColor: isSelected ? 'var(--btn-primary-bg)' : 'var(--color-border)',
+                  borderColor: isSelected ? 'var(--btn-primary-bg)' : UNSELECTED_SWATCH_BORDER,
                   boxShadow: isSelected ? '0 0 0 2px var(--btn-primary-bg)' : 'none'
                 }}
               >

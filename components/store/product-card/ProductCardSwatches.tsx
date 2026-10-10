@@ -76,7 +76,7 @@ export const ProductCardSwatches: React.FC<ProductCardSwatchesProps> = ({
                 `}
                 style={{
                   ...swatchBg,
-                  borderColor: isActive ? 'var(--color-accent, var(--color-primary, #ef4444))' : 'var(--color-border, #e5e7eb)',
+                  borderColor: isActive ? 'var(--color-accent, var(--color-primary, #ef4444))' : 'var(--swatch-border-unselected, color-mix(in srgb, currentColor 28%, rgba(0, 0, 0, 0.22)))',
                   boxShadow: isActive ? '0 0 0 1.5px var(--color-accent, var(--color-primary, #ef4444))' : 'none',
                 }}
               >
@@ -132,7 +132,7 @@ export const ProductCardSwatches: React.FC<ProductCardSwatchesProps> = ({
                   ${isActive ? 'scale-110 shadow-sm font-black' : 'hover:scale-110'}
                 `}
                 style={{
-                  borderColor: isActive ? 'var(--color-accent)' : 'var(--color-border)',
+                  borderColor: isActive ? 'var(--color-accent)' : 'var(--swatch-border-unselected, color-mix(in srgb, currentColor 28%, rgba(0, 0, 0, 0.22)))',
                   color: isActive ? 'var(--color-text-accent)' : 'var(--color-text-secondary)',
                   backgroundColor: isActive ? 'color-mix(in srgb, var(--color-accent) 8%, transparent)' : 'var(--color-surface)',
                   boxShadow: isActive ? '0 0 0 1px var(--color-accent)' : 'none',

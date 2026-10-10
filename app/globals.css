@@ -64,6 +64,7 @@
   --text-muted: #6b7280;
   --border: #e5e7eb;
   --border-dark: #d1d5db;
+  --swatch-border-unselected: color-mix(in srgb, var(--text, #111827) 28%, transparent);
   --radius-btn: 12px;
   --radius-card: 16px;
   --radius-modal: 20px;

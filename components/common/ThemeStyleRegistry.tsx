@@ -48,6 +48,7 @@ export default function ThemeStyleRegistry({ settings }: ThemeStyleRegistryProps
       --color-warning: ${colors.warning || '#f59e0b'} !important;
       --color-link: ${colors.link || colors.accent || '#e94560'} !important;
       --color-border: ${colors.border} !important;
+      --swatch-border-unselected: color-mix(in srgb, ${colors.textPrimary || '#111827'} 28%, transparent) !important;
       --header-top-bar-bg: ${settings.header_top_bar_bg || colors.headerTopBarBg || colors.primary} !important;
       --header-top-bar-text: ${settings.header_top_bar_text_color || colors.headerTopBarTextColor || '#ffffff'} !important;
       --footer-bg: ${settings.footer_bg || colors.footerBg || (colors.background === '#0E0E10' || colors.background === '#0B1120' || colors.background === '#121212' ? colors.surface : '#FFFFFF')} !important;
