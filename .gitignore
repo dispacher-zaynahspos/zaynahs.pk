@@ -36,6 +36,15 @@ yarn-error.log*
 
 # opencode config (contains API keys)
 opencode.json
+opencode.jsonc
+.opencode/
+docs/opencode/
+**/providers.json
+# any stray secret/key files
+*.key
+*secret*.json
+*credentials*.json
+*.env.local
 
 # vercel
 .vercel
