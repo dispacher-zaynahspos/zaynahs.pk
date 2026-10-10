@@ -210,6 +210,11 @@ export function useShopPageFilters({
   const searchError: Error | null = null;
   const totalResults = filteredProducts.length;
 
+  // Pagination mode: 'infinite' | 'load_more' | 'numbered' (legacy infinite flag kept in sync)
+  const paginationMode: 'infinite' | 'load_more' | 'numbered' =
+    activeSettings?.shop_pagination_mode
+    || (activeSettings?.shop_infinite_scroll ? 'infinite' : 'load_more');
+
   const pageFromUrl = isNaN(urlPage) ? 1 : Math.max(1, urlPage);
   const targetLimitFromUrl = pageFromUrl * PAGE_SIZE;
   const [loadMoreLimit, setLoadMoreLimit] = useState(() => targetLimitFromUrl);
@@ -218,14 +223,25 @@ export function useShopPageFilters({
     setLoadMoreLimit((prev) => Math.max(prev, targetLimitFromUrl));
   }, [targetLimitFromUrl]);
 
+  const totalPages = Math.max(1, Math.ceil(totalResults / PAGE_SIZE));
+  const numberedPage = Math.min(pageFromUrl, totalPages);
+
   const displayProducts = useMemo(() => {
+    if (paginationMode === 'numbered') {
+      // Show ONLY the current page slice (classic 1 2 3 pagination)
+      const start = (numberedPage - 1) * PAGE_SIZE;
+      return filteredProducts.slice(start, start + PAGE_SIZE);
+    }
+    // infinite / load_more: cumulative slice
     return filteredProducts.slice(0, loadMoreLimit);
-  }, [filteredProducts, loadMoreLimit]);
+  }, [filteredProducts, loadMoreLimit, paginationMode, numberedPage, PAGE_SIZE]);
 
-  // Load More / Infinite Scroll works for BOTH browse and search (same list).
-  const hasMore = displayProducts.length < totalResults;
+  // hasMore only applies to infinite + load_more (numbered uses page buttons)
+  const hasMore = paginationMode !== 'numbered' && displayProducts.length < totalResults;
 
-  const currentPage = Math.ceil(displayProducts.length / PAGE_SIZE);
+  const currentPage = paginationMode === 'numbered'
+    ? numberedPage
+    : Math.ceil(displayProducts.length / PAGE_SIZE);
 
   const {
     handleCategorySelect,
@@ -234,6 +250,7 @@ export function useShopPageFilters({
     removeSortPill,
     removePricePill,
     handleLoadMore,
+    handleGoToPage,
     handleClearFilters,
   } = useShopUrlParamsSync({
     categories,
@@ -340,6 +357,10 @@ export function useShopPageFilters({
     totalResults,
     hasMore,
     isSearching,
+    paginationMode,
+    currentPage,
+    totalPages,
+    handleGoToPage,
     handleSortChange,
     handleAvailabilityChange,
     removeSortPill,

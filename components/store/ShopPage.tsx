@@ -68,6 +68,10 @@ export default function ShopPage({
     displayProducts,
     totalResults,
     hasMore,
+    paginationMode,
+    currentPage,
+    totalPages,
+    handleGoToPage,
     handleSortChange,
     handleAvailabilityChange,
     removeSortPill,
@@ -111,7 +115,7 @@ export default function ShopPage({
   }, [displayProducts.length]);
 
   useEffect(() => {
-    if (!activeSettings?.shop_infinite_scroll || !hasMore) return;
+    if (paginationMode !== 'infinite' || !hasMore) return;
     const sentinel = sentinelRef.current;
     if (!sentinel) return;
 
@@ -127,7 +131,7 @@ export default function ShopPage({
 
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [activeSettings?.shop_infinite_scroll, hasMore, handleLoadMore]);
+  }, [paginationMode, hasMore, handleLoadMore]);
 
   const gridGapClass = activeSettings?.shop_grid_gap === 'tight' ? 'gap-2'
     : activeSettings?.shop_grid_gap === 'relaxed' ? 'gap-6'
@@ -307,33 +311,111 @@ export default function ShopPage({
             </div>
           )}
 
-          {hasMore && (
-            activeSettings?.shop_infinite_scroll ? (
-              <div ref={sentinelRef} className="w-full flex items-center justify-center py-8">
-                <div className="flex items-center gap-2.5 text-xs font-bold text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-white/5 px-4 py-2 rounded-full border border-gray-200 dark:border-gray-800 shadow-2xs">
-                  <span className="w-4 h-4 rounded-full border-2 border-[#e94560] border-t-transparent animate-spin" />
-                  <span>Loading more products...</span>
-                </div>
+          {/* Infinite scroll sentinel */}
+          {paginationMode === 'infinite' && hasMore && (
+            <div ref={sentinelRef} className="w-full flex items-center justify-center py-8">
+              <div className="flex items-center gap-2.5 text-xs font-bold text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-white/5 px-4 py-2 rounded-full border border-gray-200 dark:border-gray-800 shadow-2xs">
+                <span className="w-4 h-4 rounded-full border-2 border-[#e94560] border-t-transparent animate-spin" />
+                <span>Loading more products...</span>
               </div>
-            ) : (
-              <div className="w-full flex items-center justify-center mt-8">
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleLoadMore();
-                  }}
-                  style={{
-                    backgroundColor: activeSettings?.shop_load_more_bg || 'var(--btn-primary-bg, var(--color-primary, #0F2A5E))',
-                    color: activeSettings?.shop_load_more_text_color || 'var(--btn-primary-text, #ffffff)',
-                    borderRadius: 'var(--border-radius-btn, 9999px)',
-                  }}
-                  className="px-8 py-3 text-sm font-bold uppercase tracking-wider hover:brightness-110 hover:shadow-md hover:scale-[1.02] active:scale-95 transition-all duration-300 shadow-sm cursor-pointer select-none touch-manipulation relative z-10"
-                >
-                  Load More ({totalResults - displayProducts.length} remaining)
-                </button>
-              </div>
-            )
+            </div>
+          )}
+
+          {/* Load More button */}
+          {paginationMode === 'load_more' && hasMore && (
+            <div className="w-full flex items-center justify-center mt-8">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleLoadMore();
+                }}
+                style={{
+                  backgroundColor: activeSettings?.shop_load_more_bg || 'var(--btn-primary-bg, var(--color-primary, #0F2A5E))',
+                  color: activeSettings?.shop_load_more_text_color || 'var(--btn-primary-text, #ffffff)',
+                  borderRadius: 'var(--border-radius-btn, 9999px)',
+                }}
+                className="px-8 py-3 text-sm font-bold uppercase tracking-wider hover:brightness-110 hover:shadow-md hover:scale-[1.02] active:scale-95 transition-all duration-300 shadow-sm cursor-pointer select-none touch-manipulation relative z-10"
+              >
+                {activeSettings?.shop_load_more_text || 'Load More'} ({totalResults - displayProducts.length} remaining)
+              </button>
+            </div>
+          )}
+
+          {/* Numbered pagination */}
+          {paginationMode === 'numbered' && totalPages > 1 && (
+            <div className="w-full flex flex-wrap items-center justify-center gap-1.5 mt-8">
+              <button
+                type="button"
+                disabled={currentPage <= 1}
+                onClick={() => handleGoToPage(currentPage - 1)}
+                className="px-3 py-2 rounded-lg text-xs font-bold border border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-300 disabled:opacity-30 disabled:cursor-not-allowed hover:border-[#e94560] cursor-pointer"
+              >
+                Prev
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                .filter((p) => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 2)
+                .reduce<number[]>((acc, p) => {
+                  if (acc.length && p - acc[acc.length - 1] > 1) acc.push(-1); // gap marker
+                  acc.push(p);
+                  return acc;
+                }, [])
+                .map((p, idx) =>
+                  p === -1 ? (
+                    <span key={`gap-${idx}`} className="px-2 text-gray-400">…</span>
+                  ) : (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => handleGoToPage(p)}
+                      aria-current={p === currentPage ? 'page' : undefined}
+                      style={p === currentPage ? {
+                        backgroundColor: activeSettings?.shop_load_more_bg || 'var(--btn-primary-bg, var(--color-primary, #0F2A5E))',
+                        color: activeSettings?.shop_load_more_text_color || '#ffffff',
+                      } : undefined}
+                      className={`min-w-[36px] px-3 py-2 rounded-lg text-xs font-bold border transition-all cursor-pointer ${
+                        p === currentPage
+                          ? 'border-transparent'
+                          : 'border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 hover:border-[#e94560]'
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  )
+                )}
+              <button
+                type="button"
+                disabled={currentPage >= totalPages}
+                onClick={() => handleGoToPage(currentPage + 1)}
+                className="px-3 py-2 rounded-lg text-xs font-bold border border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-300 disabled:opacity-30 disabled:cursor-not-allowed hover:border-[#e94560] cursor-pointer"
+              >
+                Next
+              </button>
+            </div>
+          )}
+
+          {/* View All button (optional) */}
+          {activeSettings?.shop_enable_view_all && (
+            <div className="w-full flex items-center justify-center mt-6">
+              <a
+                href={activeSettings?.shop_view_all_url || '/shop'}
+                style={{
+                  backgroundColor: activeSettings?.shop_view_all_bg || 'var(--btn-primary-bg, var(--color-primary, #0F2A5E))',
+                  color: activeSettings?.shop_view_all_text_color || '#ffffff',
+                  borderRadius: 'var(--border-radius-btn, 9999px)',
+                }}
+                className="px-8 py-3 text-sm font-bold uppercase tracking-wider hover:brightness-110 active:scale-95 transition-all shadow-sm cursor-pointer"
+              >
+                {activeSettings?.shop_view_all_text || 'View All'}
+              </a>
+            </div>
+          )}
+
+          {/* End of results */}
+          {!hasMore && paginationMode !== 'numbered' && displayProducts.length > 0 && displayProducts.length === totalResults && totalResults > 0 && (
+            <div className="w-full text-center mt-6 text-xs font-semibold text-gray-400">
+              You&apos;ve seen all {totalResults} products
+            </div>
           )}
         </div>
       </div>

@@ -4,6 +4,20 @@
 
 ---
 
+### [2026-10-10] v8.x — Shop pagination + bottom-grid-action settings
+
+**Feature:** `/shop` + category pages get the same controls as the Home product grid: pagination mode (infinite / load_more / numbered), Load More button (label + colors), optional View All button. Were type-only before → now real columns so the customizer save round-trips.
+
+**DB (`supabase/migrations/20261010140000_shop_pagination_settings.sql`):**
+- `store_settings` + `shop_pagination_mode` ('infinite'|'load_more'|'numbered'), `shop_enable_load_more`, `shop_load_more_text`, `shop_load_more_bg`, `shop_load_more_text_color`, `shop_enable_view_all`, `shop_view_all_text`, `shop_view_all_url`, `shop_view_all_bg`, `shop_view_all_text_color`.
+- Backfill `shop_pagination_mode` from legacy `shop_infinite_scroll`.
+- Recreated `store_settings_public` view so new cols are anon-readable.
+- Reflected in `SUPER_MASTER_SCHEMA.sql`; `npm run check:setup` green (154 migrations). Applied to all 5 stores.
+
+**App:** `ShopPageSettings.tsx` pagination tab (mode selector + load-more + view-all), `useShopPageFilters` (numbered page slice + hasMore per mode), `ShopPage.tsx` renders infinite sentinel / load-more / numbered 1-2-3 / view-all + "seen all" end state. Mapper + mutations updated.
+
+---
+
 ### [2026-10-10] v8.x — Per-category manual order (`product_categories.position`) + unified sorting/reordering
 
 **Feature:** Decouple the two sorting systems and unify them (RULE SORT1/SORT2/REORDER1–3, `docs/agent-rules/30-sorting-reordering.md`). Manual order for /shop + every category is now PER-CATEGORY, so reordering one category no longer changes the Home customizer product sections or other categories (the original coupling bug).

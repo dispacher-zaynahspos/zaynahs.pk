@@ -229,6 +229,16 @@ export const updateSettings = async (settings: Partial<StoreSettings>): Promise<
     if (settings.shop_products_per_page_mobile !== undefined) updatePayload.shop_products_per_page_mobile = settings.shop_products_per_page_mobile;
     if (settings.shop_category_chips_enabled !== undefined) updatePayload.shop_category_chips_enabled = settings.shop_category_chips_enabled;
     if (settings.shop_infinite_scroll !== undefined) updatePayload.shop_infinite_scroll = settings.shop_infinite_scroll;
+    if (settings.shop_pagination_mode !== undefined) updatePayload.shop_pagination_mode = settings.shop_pagination_mode;
+    if (settings.shop_enable_load_more !== undefined) updatePayload.shop_enable_load_more = settings.shop_enable_load_more;
+    if (settings.shop_load_more_text !== undefined) updatePayload.shop_load_more_text = settings.shop_load_more_text;
+    if (settings.shop_load_more_bg !== undefined) updatePayload.shop_load_more_bg = settings.shop_load_more_bg;
+    if (settings.shop_load_more_text_color !== undefined) updatePayload.shop_load_more_text_color = settings.shop_load_more_text_color;
+    if (settings.shop_enable_view_all !== undefined) updatePayload.shop_enable_view_all = settings.shop_enable_view_all;
+    if (settings.shop_view_all_text !== undefined) updatePayload.shop_view_all_text = settings.shop_view_all_text;
+    if (settings.shop_view_all_url !== undefined) updatePayload.shop_view_all_url = settings.shop_view_all_url;
+    if (settings.shop_view_all_bg !== undefined) updatePayload.shop_view_all_bg = settings.shop_view_all_bg;
+    if (settings.shop_view_all_text_color !== undefined) updatePayload.shop_view_all_text_color = settings.shop_view_all_text_color;
     if (settings.shop_grid_gap !== undefined) updatePayload.shop_grid_gap = settings.shop_grid_gap;
     if (settings.shop_show_breadcrumbs !== undefined) updatePayload.shop_show_breadcrumbs = settings.shop_show_breadcrumbs;
     if (settings.recent_buyers_enabled !== undefined) updatePayload.recent_buyers_enabled = settings.recent_buyers_enabled;

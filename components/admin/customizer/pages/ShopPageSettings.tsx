@@ -111,25 +111,46 @@ export default function ShopPageSettings({
       {/* 2. Pagination & Infinite Scroll */}
       {subTab === 'pagination' && (
         <div className="space-y-4 pt-1">
-          {/* Infinite Scroll Toggle */}
-          <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-200/80 dark:border-gray-800">
-            <div>
-              <span className="text-xs font-bold text-gray-700 dark:text-gray-300 block">Infinite Scroll</span>
-              <span className="text-[10px] text-gray-400">Auto-load next products when scrolling down</span>
+          {/* Pagination Mode selector (Infinite / Load More / Numbered) */}
+          <div className="p-3 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-200/80 dark:border-gray-800 space-y-2.5">
+            <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#e94560] block">
+              Pagination Mode
+            </span>
+            <div className="grid grid-cols-3 gap-1.5">
+              {([
+                { key: 'infinite', label: 'Infinite', desc: 'Auto-load on scroll' },
+                { key: 'load_more', label: 'Load More', desc: 'Button to load next' },
+                { key: 'numbered', label: 'Numbered', desc: '1 2 3 pages' },
+              ] as const).map((m) => {
+                const current = settings.shop_pagination_mode
+                  || (settings.shop_infinite_scroll ? 'infinite' : 'load_more');
+                const active = current === m.key;
+                return (
+                  <button
+                    key={m.key}
+                    type="button"
+                    onClick={() => onUpdateSettings({
+                      shop_pagination_mode: m.key,
+                      // keep legacy flag in sync so existing storefront reads still work
+                      shop_infinite_scroll: m.key === 'infinite',
+                    })}
+                    className={`px-2 py-2 rounded-lg border text-center transition-all cursor-pointer ${
+                      active
+                        ? 'border-[#e94560] bg-[#e94560]/5 text-[#e94560]'
+                        : 'border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-300 hover:border-gray-300'
+                    }`}
+                  >
+                    <span className="block text-[11px] font-bold">{m.label}</span>
+                    <span className="block text-[9px] text-gray-400 leading-tight mt-0.5">{m.desc}</span>
+                  </button>
+                );
+              })}
             </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                checked={settings.shop_infinite_scroll === true}
-                onChange={(e) => onUpdateSettings({ shop_infinite_scroll: e.target.checked })}
-                className="sr-only peer"
-              />
-              <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#e94560]" />
-            </label>
           </div>
 
-          {/* Load More Button Style (When Infinite Scroll is Off) */}
-          {!settings.shop_infinite_scroll && (
+          {/* Load More Button Style (only for Load More mode) */}
+          {(settings.shop_pagination_mode === 'load_more'
+            || (!settings.shop_pagination_mode && !settings.shop_infinite_scroll)) && (
             <div className="space-y-3 p-3 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-200/80 dark:border-gray-800">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#e94560] block">
@@ -144,6 +165,14 @@ export default function ShopPageSettings({
                   Reset to Theme
                 </button>
               </div>
+
+              <input
+                type="text"
+                value={settings.shop_load_more_text || ''}
+                onChange={(e) => onUpdateSettings({ shop_load_more_text: e.target.value })}
+                placeholder="Load More"
+                className="w-full px-3 py-2 bg-white dark:bg-[#0f0f1b] border border-gray-200 dark:border-gray-800 rounded-lg text-xs font-semibold focus:outline-none focus:border-[#e94560]"
+              />
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
@@ -186,6 +215,63 @@ export default function ShopPageSettings({
               </div>
             </div>
           )}
+
+          {/* View All button (optional, like Home grid) */}
+          <div className="space-y-3 p-3 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-200/80 dark:border-gray-800">
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="text-xs font-bold text-gray-700 dark:text-gray-300 block">View All Button</span>
+                <span className="text-[10px] text-gray-400">Show a button that links to the full catalog</span>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={settings.shop_enable_view_all === true}
+                  onChange={(e) => onUpdateSettings({ shop_enable_view_all: e.target.checked })}
+                  className="sr-only peer"
+                />
+                <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#e94560]" />
+              </label>
+            </div>
+            {settings.shop_enable_view_all === true && (
+              <div className="space-y-2 pl-2 border-l-2 border-[#e94560]/30">
+                <input
+                  type="text"
+                  value={settings.shop_view_all_text || ''}
+                  onChange={(e) => onUpdateSettings({ shop_view_all_text: e.target.value })}
+                  placeholder="View All"
+                  className="w-full px-3 py-2 bg-white dark:bg-[#0f0f1b] border border-gray-200 dark:border-gray-800 rounded-lg text-xs font-semibold focus:outline-none focus:border-[#e94560]"
+                />
+                <input
+                  type="text"
+                  value={settings.shop_view_all_url || ''}
+                  onChange={(e) => onUpdateSettings({ shop_view_all_url: e.target.value })}
+                  placeholder="/shop"
+                  className="w-full px-3 py-2 bg-white dark:bg-[#0f0f1b] border border-gray-200 dark:border-gray-800 rounded-lg text-xs font-mono focus:outline-none focus:border-[#e94560]"
+                />
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 block uppercase tracking-wider">Button Bg</label>
+                    <input
+                      type="color"
+                      value={settings.shop_view_all_bg || settings.theme_config?.colors?.primary || '#0F2A5E'}
+                      onChange={(e) => onUpdateSettings({ shop_view_all_bg: e.target.value })}
+                      className="w-full h-7 rounded-lg border border-gray-200 dark:border-gray-700 cursor-pointer overflow-hidden p-0 bg-transparent"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 block uppercase tracking-wider">Text Color</label>
+                    <input
+                      type="color"
+                      value={settings.shop_view_all_text_color || '#ffffff'}
+                      onChange={(e) => onUpdateSettings({ shop_view_all_text_color: e.target.value })}
+                      className="w-full h-7 rounded-lg border border-gray-200 dark:border-gray-700 cursor-pointer overflow-hidden p-0 bg-transparent"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Products Per Page / Load More Limit (Responsive per Device) */}
           <div className="space-y-2.5 p-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-white/[0.02]">

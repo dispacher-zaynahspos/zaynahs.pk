@@ -314,6 +314,15 @@ export interface StoreSettings {
   shop_infinite_scroll?: boolean;
   shop_load_more_bg?: string;
   shop_load_more_text_color?: string;
+  // Pagination mode for /shop + category pages: 'infinite' | 'load_more' | 'numbered'
+  shop_pagination_mode?: 'infinite' | 'load_more' | 'numbered';
+  shop_enable_load_more?: boolean;
+  shop_load_more_text?: string;
+  shop_enable_view_all?: boolean;
+  shop_view_all_text?: string;
+  shop_view_all_url?: string;
+  shop_view_all_bg?: string;
+  shop_view_all_text_color?: string;
   shop_grid_gap?: 'tight' | 'normal' | 'relaxed';
   shop_show_breadcrumbs?: boolean;
   recent_buyers_enabled?: boolean;

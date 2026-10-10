@@ -248,6 +248,21 @@ export function useShopUrlParamsSync({
     setLoadMoreLimit(nextPage * PAGE_SIZE);
   };
 
+  // Numbered pagination: jump to an exact page (classic 1 2 3). Scrolls to top.
+  const handleGoToPage = (page: number) => {
+    const params = currentParams();
+    if (page > 1) {
+      params.set('page', String(page));
+    } else {
+      params.delete('page');
+    }
+    updateUrl(params);
+    setLoadMoreLimit(page * PAGE_SIZE);
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
   const handleClearFilters = () => {
     setSelectedCategoryId(undefined);
     setSelectedCollectionId(undefined);
@@ -285,6 +300,7 @@ export function useShopUrlParamsSync({
     removeSortPill,
     removePricePill,
     handleLoadMore,
+    handleGoToPage,
     handleClearFilters,
   };
 }
