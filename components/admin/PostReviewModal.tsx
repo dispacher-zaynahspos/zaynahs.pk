@@ -10,6 +10,7 @@ import { SocialProof, Product } from '@/lib/types';
 import MediaSelectorModal from './MediaSelectorModal';
 import { toast } from 'sonner';
 import StarRating from '@/components/store/StarRating';
+import { rankProducts } from '@/lib/services/product-search/useInMemoryProductSearch';
 
 interface PostReviewModalProps {
   isOpen: boolean;
@@ -313,7 +314,7 @@ export default function PostReviewModal({ isOpen, onClose, onSuccess, editProof 
                       <p className="text-xs text-gray-400 italic text-center py-4">No products found</p>
                     )}
                     {(() => {
-                      const filtered = products.filter(p => !productSearch || p.name.toLowerCase().includes(productSearch.toLowerCase()));
+                      const filtered = rankProducts(products, productSearch);
                       if (filtered.length === 0 && productSearch) {
                         return <p className="text-xs text-gray-400 italic text-center py-4">No products match &quot;{productSearch}&quot;</p>;
                       }

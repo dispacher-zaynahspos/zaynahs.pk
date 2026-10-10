@@ -212,16 +212,15 @@ GRANT EXECUTE ON FUNCTION public.update_product_search_vector_on_category_change
 GRANT EXECUTE ON FUNCTION public.update_product_search_vector_on_category_rename() TO authenticated;
 
 -- ============================================================
--- OPTIONAL: Add age fields to products for age-aware search
--- Uncomment if age-based search is needed
+-- Age fields to products for age-aware search
 -- ============================================================
--- ALTER TABLE public.products 
--- ADD COLUMN IF NOT EXISTS recommended_age_min_months integer,
--- ADD COLUMN IF NOT EXISTS recommended_age_max_months integer,
--- ADD COLUMN IF NOT EXISTS age_group text;
+ALTER TABLE public.products 
+ADD COLUMN IF NOT EXISTS recommended_age_min_months integer,
+ADD COLUMN IF NOT EXISTS recommended_age_max_months integer,
+ADD COLUMN IF NOT EXISTS age_group text;
 
--- CREATE INDEX IF NOT EXISTS idx_products_age_range 
--- ON public.products (recommended_age_min_months, recommended_age_max_months);
+CREATE INDEX IF NOT EXISTS idx_products_age_range 
+ON public.products (recommended_age_min_months, recommended_age_max_months);
 
 -- ============================================================
 -- VERIFICATION QUERIES (run after migration)

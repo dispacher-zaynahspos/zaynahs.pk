@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { X, ChevronDown, Search } from '@/components/common/Icons';
 import { Category, Product, NavigationItem } from '@/lib/types';
+import { rankProducts } from '@/lib/services/product-search/useInMemoryProductSearch';
 
 interface MenuItemFormModalProps {
   isOpen: boolean;
@@ -246,8 +247,7 @@ export default function MenuItemFormModal({
                     >
                       -- Choose Product --
                     </div>
-                    {productsList
-                      .filter(p => p.name.toLowerCase().includes(productSearch.toLowerCase()))
+                    {rankProducts(productsList, productSearch)
                       .map(p => {
                         const url = `/product/${p.slug}`;
                         const existingLabel = existingMenuUrls.get(url);

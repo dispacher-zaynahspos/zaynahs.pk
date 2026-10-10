@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Product } from '@/lib/types';
 import { toast } from 'sonner';
 import { createClient } from '@/lib/supabase/client';
+import { rankProducts } from '@/lib/services/product-search/useInMemoryProductSearch';
 
 export function useOrderCreateProducts(isOpen: boolean) {
   const [dbProducts, setDbProducts] = useState<Product[]>([]);
@@ -103,19 +104,10 @@ export function useOrderCreateProducts(isOpen: boolean) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Filter products based on search
-  const filteredProducts = dbProducts.filter(p => {
-    const q = searchQuery.toLowerCase();
-    return p.name.toLowerCase().includes(q) ||
-    (p.sku && p.sku.toLowerCase().includes(q)) ||
-    (p.variants && p.variants.some(v => 
-      (v.sku && v.sku.toLowerCase().includes(q)) ||
-      (v.color && v.color.toLowerCase().includes(q)) ||
-      (v.size && v.size.toLowerCase().includes(q)) ||
-      (v.material && v.material.toLowerCase().includes(q)) ||
-      (v.custom_value && v.custom_value.toLowerCase().includes(q))
-    ));
-  });
+  // Filter products based on search (shared ranking engine — SSOT)
+  const filteredProducts = searchQuery.trim()
+    ? rankProducts(dbProducts, searchQuery)
+    : dbProducts;
 
   const handleProductSelect = (product: Product) => {
     setSelectedProduct(product);

@@ -13,6 +13,7 @@ import { cleanWhatsAppPhone } from '@/lib/utils/whatsapp';
 import { useConfirm } from '@/components/admin/shared/AdminConfirmProvider';
 import { getAllProductsAdmin } from '@/lib/services/products';
 import { assignReviewProduct } from '@/lib/services/reviews';
+import { rankProducts } from '@/lib/services/product-search/useInMemoryProductSearch';
 import { toast } from 'sonner';
 
 const FALLBACK_IMAGE = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%23f3f4f6'/%3E%3C/svg%3E";
@@ -223,7 +224,7 @@ export default function ReviewDetailSheet({ review, onClose, onApprove, onHide, 
                       <p className="text-xs text-gray-400 italic text-center py-4">Loading products…</p>
                     )}
                     {(() => {
-                      const filtered = products.filter(p => !productSearch || p.name.toLowerCase().includes(productSearch.toLowerCase()));
+                      const filtered = rankProducts(products, productSearch);
                       if (products.length > 0 && filtered.length === 0) {
                         return <p className="text-xs text-gray-400 italic text-center py-4">No products match &quot;{productSearch}&quot;</p>;
                       }

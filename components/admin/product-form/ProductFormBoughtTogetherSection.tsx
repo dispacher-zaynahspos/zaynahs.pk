@@ -4,6 +4,7 @@ import React from 'react';
 import { Trash2, Search, Image as ImageIcon } from '@/components/common/Icons';
 import { Product } from '@/lib/types';
 import { toast } from 'sonner';
+import { rankProducts } from '@/lib/services/product-search/useInMemoryProductSearch';
 
 interface ProductFormBoughtTogetherSectionProps {
   frequentlyBoughtTogetherIds: string[];
@@ -82,17 +83,7 @@ export const ProductFormBoughtTogetherSection: React.FC<ProductFormBoughtTogethe
       <div className="border border-gray-200 dark:border-gray-800 rounded-lg max-h-48 overflow-y-auto p-1.5 space-y-1 bg-gray-50/50 dark:bg-[#0f0f1b] overscroll-contain">
         {(() => {
           const q = productSearchQuery.toLowerCase();
-          const filteredList = productList.filter(product =>
-            product.name.toLowerCase().includes(q) ||
-            (product.sku && product.sku.toLowerCase().includes(q)) ||
-            (product.variants && product.variants.some(v =>
-              (v.sku && v.sku.toLowerCase().includes(q)) ||
-              (v.color && v.color.toLowerCase().includes(q)) ||
-              (v.size && v.size.toLowerCase().includes(q)) ||
-              (v.material && v.material.toLowerCase().includes(q)) ||
-              (v.custom_value && v.custom_value.toLowerCase().includes(q))
-            ))
-          );
+          const filteredList = rankProducts(productList, productSearchQuery);
 
           if (filteredList.length === 0) {
             return <div className="p-3 text-xs text-gray-400 text-center">No matching products found.</div>;

@@ -238,32 +238,38 @@ interface ProductSearchFilters {
 
 ## Migration Checklist
 
-### Completed Locations (22/22)
+### Completed Locations
 
 | # | Location | Component | Migration |
 |---|----------|-----------|-----------|
-| 1 | Navbar live search | `useNavbarSearch.ts` | ✅ `useProductSearch` |
-| 2 | Shop page text search | `shopFilterUtils.ts` | ✅ `rankSearchResults` |
+| 1 | Navbar live search | `useNavbarSearch.ts` | ✅ `useProductSearch` (server) |
+| 2 | Shop page text search | `shopFilterUtils.ts` + `useShopSearch.ts` | ✅ server search + `rankSearchResults` |
 | 3 | Admin products list | `ProductList.tsx` | ✅ `useAdminProductSearch` |
 | 4 | Category detail | `CategoryDetailManager.tsx` | ✅ `useAdminCategorySearch` |
 | 5 | Category add modal | `CategoryDetailManager.tsx` | ✅ `useAdminCategorySearch` |
-| 6 | Order product search | `OrderProductSearch.tsx` | ✅ `rankSearchResults` |
-| 7 | Bought together | `ProductFormBoughtTogetherSection.tsx` | ✅ `rankSearchResults` |
-| 8 | Navigation menu | `MenuItemFormModal.tsx` | ⏳ Pending |
-| 9 | Reviews modal | `PostReviewModal.tsx` | ⏳ Pending |
-| 10 | Customizer product picker | `ManualProductPicker.tsx` | ⏳ Pending |
-| 11 | Customizer collections | `CollectionsGridSettings.tsx` | ⏳ Pending |
-| 12 | Collection table | `CollectionTable.tsx` | ⏳ Pending |
-| 13 | Product list (legacy) | `ProductList.tsx` | ✅ Done |
-| 14 | Trash console | `TrashProductsTable.tsx` | ⏳ Pending |
-| 15 | Order create | `OrderCreateProductsSection.tsx` | ⏳ Pending |
-| 16 | Order editor | `OrderEditor.tsx` | ✅ Done |
-| 17 | Flash sale manager | `FlashSaleProductManager.tsx` | ⏳ Pending |
-| 18 | Recent reviews | `RecentReviewsSettings.tsx` | ⏳ Pending |
-| 19 | Category manager | `CategoryManager.tsx` | ⏳ Pending |
-| 20 | Category products table | `CategoryProductsTable.tsx` | ⏳ Pending |
-| 21 | SearchBar | `SearchBar.tsx` | ⏳ Redirects to `/shop` |
-| 22 | Quick view modal | `QuickViewModal.tsx` | ✅ Uses shop filters |
+| 6 | Order product search (editor) | `OrderProductSearch.tsx` | ✅ `rankProducts` |
+| 7 | Bought together | `ProductFormBoughtTogetherSection.tsx` | ✅ `rankProducts` |
+| 8 | Navigation menu | `MenuItemFormModal.tsx` | ✅ `rankProducts` |
+| 9 | Reviews post modal | `PostReviewModal.tsx` | ✅ `rankProducts` |
+| 10 | Customizer product picker | `ManualProductPicker.tsx` | ✅ `rankProducts` |
+| 11 | Review detail sheet | `ReviewDetailSheet.tsx` | ✅ `rankProducts` |
+| 12 | Order create products | `useOrderCreateProducts.ts` | ✅ `rankProducts` |
+| 13 | Quick view modal | `QuickViewModal.tsx` | ✅ Uses shop filters |
+
+### Remaining (collection-name / non-product OR low-priority)
+
+| # | Location | Component | Reason |
+|---|----------|-----------|--------|
+| 14 | Collection table | `CollectionTable.tsx` | Searches COLLECTIONS (name/slug), not products — out of engine scope |
+| 15 | Customizer collections grid | `CollectionsGridSettings.tsx` | Searches COLLECTIONS, not products |
+| 16 | Recent reviews settings | `RecentReviewsSettings.tsx` | Filters REVIEWS, not products |
+| 17 | Trash console | `TrashProductsTable.tsx` | Trash list filter (small set) |
+| 18 | Import/Export modal | `ImportExportModal.tsx` | Local export selection filter |
+| 19 | SearchBar | `SearchBar.tsx` | Redirects to `/shop?search=` (uses engine) |
+
+**Shared in-memory helper:** `rankProducts(products, query)` and `useInMemoryProductSearch()` in
+`lib/services/product-search/useInMemoryProductSearch.ts` — same canonical ranking as the server
+engine, zero extra DB load, used by all admin pickers that already hold the product list in memory.
 
 ---
 

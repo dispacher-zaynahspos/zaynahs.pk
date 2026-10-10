@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { Product, ProductVariant, StoreSettings } from '@/lib/types';
 import { formatPrice } from '@/lib/utils/whatsapp';
 import { Search, Plus, X } from '@/components/common/Icons';
+import { rankProducts } from '@/lib/services/product-search/useInMemoryProductSearch';
 
 interface OrderProductSearchProps {
   products: Product[];
@@ -20,18 +21,7 @@ export default function OrderProductSearch({
 }: OrderProductSearchProps) {
   const filteredProducts = useMemo(() => {
     if (!searchQuery) return [];
-    const lowerQ = searchQuery.toLowerCase();
-    return products.filter(p => 
-      p.name.toLowerCase().includes(lowerQ) || 
-      (p.sku && p.sku.toLowerCase().includes(lowerQ)) ||
-      (p.variants && p.variants.some(v => 
-        (v.sku && v.sku.toLowerCase().includes(lowerQ)) ||
-        (v.color && v.color.toLowerCase().includes(lowerQ)) ||
-        (v.size && v.size.toLowerCase().includes(lowerQ)) ||
-        (v.material && v.material.toLowerCase().includes(lowerQ)) ||
-        (v.custom_value && v.custom_value.toLowerCase().includes(lowerQ))
-      ))
-    ).slice(0, 10);
+    return rankProducts(products, searchQuery).slice(0, 10);
   }, [searchQuery, products]);
 
   return (

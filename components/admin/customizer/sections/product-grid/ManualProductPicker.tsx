@@ -4,6 +4,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Product } from '@/lib/types';
 import { ChevronUp, ChevronDown, Trash2, Search, X } from '@/components/common/Icons';
 import Image from 'next/image';
+import { rankProducts } from '@/lib/services/product-search/useInMemoryProductSearch';
 
 interface ManualProductPickerProps {
   products: Product[];
@@ -44,10 +45,7 @@ export default function ManualProductPicker({
     }
 
     if (pickerSearch.trim()) {
-      const q = pickerSearch.toLowerCase();
-      list = list.filter(
-        (p) => p.name.toLowerCase().includes(q) || (p.sku && p.sku.toLowerCase().includes(q))
-      );
+      list = rankProducts(list, pickerSearch);
     }
     return list;
   }, [pickerSearch, products, settingsSource]);
