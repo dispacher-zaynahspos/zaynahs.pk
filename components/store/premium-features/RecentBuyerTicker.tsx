@@ -37,17 +37,17 @@ export default function RecentBuyerTicker({
   return (
     <aside
       aria-label="Recent purchase notification"
-      className="fixed left-3 sm:left-6 z-[var(--z-toast)] w-[calc(100vw-1.5rem)] max-w-[316px] sm:max-w-[340px] bg-white/95 dark:bg-[#0c0c16]/95 border border-black/[0.08] dark:border-white/[0.12] rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.12),0_2px_8px_rgba(0,0,0,0.06)] dark:shadow-[0_16px_40px_rgba(0,0,0,0.6)] transition-all duration-300 animate-in fade-in slide-in-from-bottom-3 group overflow-hidden"
+      className="fixed left-3 sm:left-6 z-[var(--z-toast)] w-[calc(100vw-1.5rem)] max-w-[316px] sm:max-w-[340px] bg-white/[0.97] dark:bg-[#0c0c16]/[0.96] backdrop-blur-2xl backdrop-saturate-[180%] [-webkit-backdrop-filter:blur(32px)_saturate(180%)] border border-white/90 dark:border-white/15 ring-1 ring-black/[0.08] dark:ring-white/[0.08] rounded-2xl shadow-[0_16px_40px_-10px_rgba(0,0,0,0.18),0_4px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.7)] transition-all duration-300 animate-in fade-in slide-in-from-bottom-3 group overflow-hidden before:absolute before:inset-0 before:pointer-events-none before:rounded-2xl before:bg-gradient-to-b before:from-white/70 before:via-white/10 before:to-transparent dark:before:from-white/10 dark:before:to-transparent"
       style={{
         bottom: isCartBarVisible ? 'var(--offset-above-cart)' : 'var(--offset-above-nav)',
       }}
     >
       <Link
         href={`/product/${product.slug}`}
-        className="flex items-center gap-3 p-2.5 sm:p-3 pr-8 w-full group/link"
+        className="relative z-1 flex items-center gap-3 p-2.5 sm:p-3 pr-8 w-full group/link"
       >
         {/* Product Thumbnail */}
-        <div className="relative w-12 h-12 flex-shrink-0 bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden border border-black/5 dark:border-white/10 shadow-2xs">
+        <div className="relative w-12 h-12 flex-shrink-0 bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden border border-black/10 dark:border-white/10 shadow-2xs">
           {product.images?.[0]?.url ? (
             <Image
               src={product.images[0].url}
@@ -67,19 +67,19 @@ export default function RecentBuyerTicker({
         <div className="flex-1 min-w-0">
           {/* Top Row: Buyer Name + Location */}
           <div className="flex items-center gap-1 min-w-0">
-            <span className="font-bold text-gray-900 dark:text-white text-[12px] truncate tracking-tight">
+            <span className="font-extrabold text-gray-950 dark:text-white text-[12px] truncate tracking-tight">
               {buyer.name}
             </span>
-            <span className="text-[10.5px] text-gray-400 dark:text-gray-500 font-normal shrink-0">
+            <span className="text-[10.5px] text-gray-400 dark:text-gray-500 font-medium shrink-0">
               from
             </span>
-            <span className="text-[11px] font-semibold text-gray-600 dark:text-gray-300 truncate">
+            <span className="text-[11px] font-bold text-gray-700 dark:text-gray-300 truncate">
               {buyer.city}
             </span>
           </div>
 
           {/* Middle Row: Product Name */}
-          <p className="text-[11.5px] font-semibold text-gray-800 dark:text-gray-200 truncate mt-0.5 leading-snug group-hover/link:text-[var(--color-primary)] transition-colors">
+          <p className="text-[11.5px] font-bold text-gray-900 dark:text-gray-100 truncate mt-0.5 leading-snug group-hover/link:text-[var(--color-primary)] transition-colors">
             Bought {product.name}
           </p>
 
