@@ -1,6 +1,8 @@
 import { Product, Collection } from '@/lib/types';
 import { applySort, SORT_OPTIONS as SHARED_SORT_OPTIONS, getSortLabel as sharedGetSortLabel } from '@/lib/sorting/sortOptions';
 import { SHOP_CATEGORY_ID } from '@/lib/config/singleton-ids';
+import { rankProducts } from '@/lib/services/product-search/useInMemoryProductSearch';
+import { expandSynonyms } from './searchSynonyms';
 
 /**
  * Re-export the SSOT sort options/labels so existing imports keep working.
@@ -102,36 +104,50 @@ export function filterProductsList({
   }
 
   const q = searchQuery.toLowerCase().trim();
-  if (q) {
-    list = list.filter((product) => {
-      const matchesCollection = collections?.some((c) => {
-        if (!c.name.toLowerCase().includes(q)) return false;
-        const collectionCategoryIds = c.categories?.map((cat) => cat.id) || [];
-        return (
-          (product.category_id && collectionCategoryIds.includes(product.category_id)) ||
-          product.product_categories?.some((pc) => pc.category_id && collectionCategoryIds.includes(pc.category_id))
-        );
-      });
+  const hasQuery = q.length > 0;
+  if (hasQuery) {
+    // Multi-word: every word must match somewhere. Each word is expanded with
+    // its synonyms / Roman-Urdu equivalents (any one of them counts as a match).
+    const words = q.split(/\s+/).filter(Boolean);
+    const wordVariants = words.map((w) => expandSynonyms(w));
 
-      return (
-        product.name.toLowerCase().includes(q) ||
-        matchesCollection ||
-        (product.description && product.description.toLowerCase().includes(q)) ||
-        (product.short_description && product.short_description.toLowerCase().includes(q)) ||
-        (product.sku && product.sku.toLowerCase().includes(q)) ||
-        (product.tags && product.tags.some((t) => t.toLowerCase().includes(q))) ||
-        (product.category?.name && product.category.name.toLowerCase().includes(q)) ||
-        (product.variants &&
-          product.variants.some(
-            (v) =>
-              v.active &&
-              ((v.color && v.color.toLowerCase().includes(q)) ||
-                (v.size && v.size.toLowerCase().includes(q)) ||
-                (v.material && v.material.toLowerCase().includes(q)) ||
-                (v.sku && v.sku.toLowerCase().includes(q)) ||
-                (v.custom_value && v.custom_value.toLowerCase().includes(q)))
-          ))
-      );
+    list = list.filter((product) => {
+      const name = product.name.toLowerCase();
+      const desc = (product.description || '').toLowerCase();
+      const shortDesc = (product.short_description || '').toLowerCase();
+      const sku = (product.sku || '').toLowerCase();
+      const tags = (product.tags || []).map((t) => t.toLowerCase());
+      const catName = (product.category?.name || '').toLowerCase();
+      const relCatNames = (product.product_categories || [])
+        .map((pc) => pc.category?.name?.toLowerCase())
+        .filter(Boolean) as string[];
+      const collectionNames = (collections || [])
+        .filter((c) => {
+          const ids = c.categories?.map((cat) => cat.id) || [];
+          return (
+            (product.category_id && ids.includes(product.category_id)) ||
+            product.product_categories?.some((pc) => pc.category_id && ids.includes(pc.category_id))
+          );
+        })
+        .map((c) => c.name.toLowerCase());
+      const variantText = (product.variants || [])
+        .filter((v) => v.active)
+        .map((v) => [v.color, v.size, v.material, v.sku, v.custom_value].filter(Boolean).join(' ').toLowerCase());
+
+      // haystacks for this product
+      const matchesTerm = (term: string): boolean =>
+        name.includes(term) ||
+        catName.includes(term) ||
+        relCatNames.some((c) => c.includes(term)) ||
+        collectionNames.some((c) => c.includes(term)) ||
+        tags.some((t) => t.includes(term)) ||
+        shortDesc.includes(term) ||
+        desc.includes(term) ||
+        sku.includes(term) ||
+        variantText.some((vt) => vt.includes(term));
+
+      // every search word (via any of its synonyms) must match somewhere
+      return wordVariants.every((variants) => variants.some((term) => matchesTerm(term)));
     });
   }
 
@@ -164,6 +180,13 @@ export function filterProductsList({
     list = list.filter((product) =>
       product.variants?.some((v) => v.active && v.material && selectedMaterials.includes(v.material.trim()))
     );
+  }
+
+  // When a text query is active, rank by relevance (title → category → tags →
+  // short desc → long desc → variant) via the shared SSOT ranker — same order
+  // as the admin search engine. Facet-only browsing keeps the manual/applySort order.
+  if (hasQuery) {
+    return rankProducts(list, q);
   }
 
   // Manual order: use THIS category's per-category position (SSOT), not a global rank.

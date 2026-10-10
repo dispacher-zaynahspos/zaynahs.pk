@@ -36,6 +36,17 @@ Tie-breakers: featured first → in-stock first → newer.
 - `GET /api/search/products` is cached: `Cache-Control: public, max-age=30, stale-while-revalidate=60` + client 30s Map cache. Debounce 300ms (server) / 150ms (in-memory). AbortController cancels stale requests.
 - Age-aware search needs `recommended_age_min_months`, `recommended_age_max_months`, `age_group` columns (in master schema + all stores).
 
+## RULE PS3b — Catalog-size strategy + NON-NEGOTIABLE query safety (learned the hard way)
+> A 2026-10 "optimization" wired `/shop` + search modal to the server path and **lost data**: `product_images!inner` / `product_variants!inner` INNER JOINs silently dropped every product without an image or active variant (winter 36 → 5), and the list query had no `{ count: 'exact' }` so `total` was wrong and pagination/infinite-scroll died. Root cause = app code, NOT the DB (tsvector/indexes were correct). Permanent rules:
+>
+> 1. **Small catalog (≤ ~2000 products) → CLIENT path.** `/shop`, category pages, and the storefront navbar suggestions use the in-memory `filterProductsList()` + `rankProducts()` over the already-loaded catalog. One source → correct total, every field matched, zero DB round-trip, no data-loss. This is the DEFAULT and the recommended path for all current stores.
+> 2. **Large catalog → SERVER path** (`searchProductsServer` / `/api/search/products`) only when the full catalog is too big to hold in memory.
+> 3. **Relation joins in product search are NORMAL joins, NEVER `!inner`.** A product missing an image/variant must still appear. `!inner` on `product_images`/`product_variants` is BANNED in any search/listing query.
+> 4. **Any list query that reports a total MUST use `{ count: 'exact' }`.** `hasMore = offset + results.length < total`. Never `results.length === limit`.
+> 5. **Search + category:** only apply a `categoryId`/category filter when it comes from the URL (`?category=`) or an explicit chip — never from leftover state, or search-alone silently returns 0.
+> 6. **Multi-word** = every word must match somewhere (AND across words, OR across fields). Synonyms/Roman-Urdu via `components/store/shop-page/searchSynonyms.ts` (`expandSynonyms`, easy to extend: sardi=winter, larkay=boys, bachon=kids).
+> 7. **Count parity:** modal count, `/shop?search=` count, and admin count all come from the SAME engine → numbers always match.
+
 ## RULE PS4 — DB objects (migration SSOT)
 `supabase/migrations/20261009190000_product_search_optimization.sql` (reflected in `SUPER_MASTER_SCHEMA.sql`):
 - `products.search_vector tsvector` + `idx_products_search_vector` GIN

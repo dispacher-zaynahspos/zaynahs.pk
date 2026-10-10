@@ -1,4 +1,16 @@
-Searched for "favicon"
+## [2026-10-10] Search/listing regression — `!inner` joins + missing count = data loss
+**Symptom:** `/shop?search=winter` showed 5 of 36; `?search=boys` showed 0; infinite scroll / load-more dead on normal browse; only first batch of 152 visible.
+**Root cause (app code, NOT DB — tsvector/indexes were correct: winter=100, boys=116 in DB):**
+1. `server-search.ts` used `product_images!inner` + `product_variants!inner` → INNER JOIN dropped every product with no image / no active variant.
+2. list query had no `{ count: 'exact' }` → `total` was null → `total: count || ranked.length` = only current-page rows; `hasMore: ranked.length === limit` broke pagination.
+3. `/shop` passed leftover `categoryId` into search → search-alone returned 0.
+4. non-search `hasMore` hardcoded `false` → 152 products never fully revealed.
+**Fix (permanent):** small catalog → ONE client path (`filterProductsList` + `rankProducts` over in-memory catalog); deleted `useShopSearch`. Server path kept for navbar/admin/large stores but fixed: normal joins (no `!inner`), `{ count: 'exact' }`, `hasMore = offset + results.length < total`, `websearch` tsquery. Added synonym map. **No DB change / migration needed.**
+**Rule added:** `agent-rules/29` RULE PS3b (catalog-size strategy + query-safety).
+
+---
+
+
 Viewed layout.tsx:1-213
 Ran command: `find . -name "*favicon*"`
 Viewed .env.local:1-36

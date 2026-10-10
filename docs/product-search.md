@@ -242,9 +242,9 @@ interface ProductSearchFilters {
 
 | # | Location | Component | Migration |
 |---|----------|-----------|-----------|
-| 1 | Navbar live search | `useNavbarSearch.ts` | ✅ `useProductSearch` (server) |
-| 2 | Shop page text search | `shopFilterUtils.ts` + `useShopSearch.ts` | ✅ server search + `rankSearchResults` |
-| 3 | Admin products list | `ProductList.tsx` | ✅ `useAdminProductSearch` |
+| 1 | Navbar live search | `useNavbarSearch.ts` | ✅ in-memory `rankProducts` + synonyms (client, full catalog) |
+| 2 | Shop page text search | `shopFilterUtils.ts` (`filterProductsList` + `rankProducts` + `searchSynonyms`) | ✅ CLIENT path — `useShopSearch` removed (see RULE PS3b) |
+| 3 | Admin products list | `ProductList.tsx` | ✅ `rankProducts` (title-first) |
 | 4 | Category detail | `CategoryDetailManager.tsx` | ✅ `useAdminCategorySearch` |
 | 5 | Category add modal | `CategoryDetailManager.tsx` | ✅ `useAdminCategorySearch` |
 | 6 | Order product search (editor) | `OrderProductSearch.tsx` | ✅ `rankProducts` |

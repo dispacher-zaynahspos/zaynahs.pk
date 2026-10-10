@@ -4,6 +4,8 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useSearchStore } from '@/store/searchStore';
 import { Product } from '@/lib/types';
+import { rankProducts } from '@/lib/services/product-search/useInMemoryProductSearch';
+import { expandSynonyms } from '@/components/store/shop-page/searchSynonyms';
 
 export function useNavbarSearch() {
   const pathname = usePathname();
@@ -53,26 +55,39 @@ export function useNavbarSearch() {
     const q = searchQuery.toLowerCase().trim();
     if (!q || products.length === 0) return [];
 
-    return products.filter((product) => {
-      return (
-        product.name.toLowerCase().includes(q) ||
-        (product.description && product.description.toLowerCase().includes(q)) ||
-        (product.short_description && product.short_description.toLowerCase().includes(q)) ||
-        (product.sku && product.sku.toLowerCase().includes(q)) ||
-        (product.tags && product.tags.some((tag) => tag.toLowerCase().includes(q))) ||
-        (product.category?.name && product.category.name.toLowerCase().includes(q)) ||
-        (product.variants &&
-          product.variants.some(
-            (v) =>
-              v.active &&
-              ((v.color && v.color.toLowerCase().includes(q)) ||
-                (v.size && v.size.toLowerCase().includes(q)) ||
-                (v.material && v.material.toLowerCase().includes(q)) ||
-                (v.sku && v.sku.toLowerCase().includes(q)) ||
-                (v.custom_value && v.custom_value.toLowerCase().includes(q)))
-          ))
-      );
-    }).slice(0, 5);
+    // Multi-word + synonym-aware match (same logic as /shop), then rank by the
+    // shared engine (title-first). Top 5 for the dropdown.
+    const words = q.split(/\s+/).filter(Boolean);
+    const wordVariants = words.map((w) => expandSynonyms(w));
+
+    const matched = products.filter((product) => {
+      const name = product.name.toLowerCase();
+      const desc = (product.description || '').toLowerCase();
+      const shortDesc = (product.short_description || '').toLowerCase();
+      const sku = (product.sku || '').toLowerCase();
+      const tags = (product.tags || []).map((t) => t.toLowerCase());
+      const catName = (product.category?.name || '').toLowerCase();
+      const relCat = (product.product_categories || [])
+        .map((pc) => pc.category?.name?.toLowerCase())
+        .filter(Boolean) as string[];
+      const variantText = (product.variants || [])
+        .filter((v) => v.active)
+        .map((v) => [v.color, v.size, v.material, v.sku, v.custom_value].filter(Boolean).join(' ').toLowerCase());
+
+      const matchesTerm = (term: string) =>
+        name.includes(term) ||
+        catName.includes(term) ||
+        relCat.some((c) => c.includes(term)) ||
+        tags.some((t) => t.includes(term)) ||
+        shortDesc.includes(term) ||
+        desc.includes(term) ||
+        sku.includes(term) ||
+        variantText.some((vt) => vt.includes(term));
+
+      return wordVariants.every((variants) => variants.some((term) => matchesTerm(term)));
+    });
+
+    return rankProducts(matched, q).slice(0, 5);
   }, [products, searchQuery]);
 
   useEffect(() => {

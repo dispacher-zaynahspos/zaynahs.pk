@@ -12,6 +12,7 @@ import PaginationFooter from './PaginationFooter';
 import ImagePreviewModal from '@/components/admin/ImagePreviewModal';
 import { saveProductNavContext } from '@/lib/hooks/useProductNav';
 import { applySort } from '@/lib/sorting/sortOptions';
+import { rankProducts } from '@/lib/services/product-search/useInMemoryProductSearch';
 import { 
   ProductListToolbar, 
   ProductListBulkActions, 
@@ -246,31 +247,21 @@ export default function ProductList({ initialProducts, settings }: ProductListPr
     }
   };
 
-  const baseFilteredProducts = products
-    .filter(p => {
-      const q = searchQuery.toLowerCase();
-      if (!q) return true;
-      return (
-        p.name.toLowerCase().includes(q) ||
-        (p.sku && p.sku.toLowerCase().includes(q)) ||
-        (p.variants && p.variants.some(v => 
-          (v.sku && v.sku.toLowerCase().includes(q)) ||
-          (v.color && v.color.toLowerCase().includes(q)) ||
-          (v.size && v.size.toLowerCase().includes(q)) ||
-          (v.material && v.material.toLowerCase().includes(q)) ||
-          (v.custom_value && v.custom_value.toLowerCase().includes(q))
-        ))
-      );
-    })
-    .filter(p => {
-      if (selectedCategory === 'all') return true;
-      if (p.product_categories && p.product_categories.length > 0) {
-        return p.product_categories.some(pc => pc.category_id === selectedCategory);
-      }
-      return p.category_id === selectedCategory;
-    });
+  // Category filter first (keeps admin scoping), then the shared ranking engine
+  // handles the text query (title → sku → variant → short → tags → category → long).
+  const categoryScoped = products.filter(p => {
+    if (selectedCategory === 'all') return true;
+    if (p.product_categories && p.product_categories.length > 0) {
+      return p.product_categories.some(pc => pc.category_id === selectedCategory);
+    }
+    return p.category_id === selectedCategory;
+  });
 
-  const filteredProducts = sortBy === 'manual'
+  const baseFilteredProducts = searchQuery.trim()
+    ? rankProducts(categoryScoped, searchQuery)
+    : categoryScoped;
+
+  const filteredProducts = (searchQuery.trim() || sortBy === 'manual')
     ? baseFilteredProducts
     : applySort(baseFilteredProducts, sortBy);
 

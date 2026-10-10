@@ -9,7 +9,6 @@ import { trackEvent } from '@/lib/trackEvent';
 import { useSettings } from '@/lib/hooks/useSettings';
 import { SORT_OPTIONS, getSortLabel, toNumber, extractUsedVariants, filterProductsList } from './shopFilterUtils';
 import { useShopUrlParamsSync } from './hooks/useShopUrlParamsSync';
-import { useShopSearch } from './useShopSearch';
 
 export { SORT_OPTIONS, getSortLabel };
 
@@ -170,33 +169,19 @@ export function useShopPageFilters({
 
   const sliderRef = useRef<HTMLInputElement>(null);
 
-  // Server-side search for text queries
-  const categoryIdForSearch = selectedCategoryId || activeCategory?.id;
-  const {
-    searchResults: serverSearchResults,
-    isSearching,
-    searchError,
-    totalResults: serverTotalResults,
-    hasMore: serverHasMore,
-    loadMore: loadMoreServer,
-    clearSearch: clearServerSearch,
-  } = useShopSearch({
-    initialProducts,
-    searchQuery,
-    categoryId: categoryIdForSearch,
-    enabled: !!searchQuery.trim(),
-  });
-
-  // Client-side filtering for facet filters (when no search query)
-  const clientFilteredProducts = useMemo(() => {
-    if (searchQuery.trim()) return []; // Will use server results
+  // SEARCH + FILTER (ONE client-side path for this catalog size).
+  // The full catalog (initialProducts) is already in memory, so text search +
+  // facet filters run together through filterProductsList — correct total count,
+  // every matching field, no DB round-trip, no data-loss. Ranking (title-first)
+  // is applied inside filterProductsList when a query is present.
+  const filteredProducts = useMemo(() => {
     return filterProductsList({
       allProducts,
       selectedCategoryId,
       selectedCollectionId,
       activeCollection,
       collections,
-      searchQuery: '',
+      searchQuery,
       availability,
       priceMin,
       priceMax,
@@ -211,6 +196,7 @@ export function useShopPageFilters({
     selectedCollectionId,
     activeCollection,
     collections,
+    searchQuery,
     availability,
     priceMin,
     priceMax,
@@ -218,13 +204,11 @@ export function useShopPageFilters({
     selectedSizes,
     selectedMaterials,
     sortBy,
-    searchQuery,
   ]);
 
-  // Use server results when searching, client results when only filtering
-  const filteredProducts = searchQuery.trim() ? serverSearchResults : clientFilteredProducts;
-  const totalResults = searchQuery.trim() ? serverTotalResults : clientFilteredProducts.length;
-  const hasMore = searchQuery.trim() ? serverHasMore : false; // Load more only for server search
+  const isSearching = false;
+  const searchError: Error | null = null;
+  const totalResults = filteredProducts.length;
 
   const pageFromUrl = isNaN(urlPage) ? 1 : Math.max(1, urlPage);
   const targetLimitFromUrl = pageFromUrl * PAGE_SIZE;
@@ -237,6 +221,9 @@ export function useShopPageFilters({
   const displayProducts = useMemo(() => {
     return filteredProducts.slice(0, loadMoreLimit);
   }, [filteredProducts, loadMoreLimit]);
+
+  // Load More / Infinite Scroll works for BOTH browse and search (same list).
+  const hasMore = displayProducts.length < totalResults;
 
   const currentPage = Math.ceil(displayProducts.length / PAGE_SIZE);
 
@@ -280,14 +267,8 @@ export function useShopPageFilters({
     currentPage,
   });
 
-  // Override handleLoadMore to use server loadMore when searching
-  const handleLoadMoreWrapper = useCallback(async () => {
-    if (searchQuery.trim()) {
-      await loadMoreServer();
-    } else {
-      handleLoadMore();
-    }
-  }, [searchQuery, loadMoreServer, handleLoadMore]);
+  // Single Load More path (client list drives both browse + search).
+  const handleLoadMoreWrapper = handleLoadMore;
 
   const sidebarProps = {
     allProductsCount: allProducts.length,

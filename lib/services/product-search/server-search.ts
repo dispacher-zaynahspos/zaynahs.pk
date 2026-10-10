@@ -26,11 +26,11 @@ export async function searchProductsServer(
       enable_swatches, show_swatches_on_archive,
       recommended_age_min_months, recommended_age_max_months, age_group,
       created_at, updated_at, deleted_at,
-      product_images!inner(id, product_id, url, is_primary, sort_order, alt, created_at),
-      product_variants!inner(id, product_id, color, size, material, custom_value, sku, price, stock, active, sort_order),
+      product_images(id, product_id, url, is_primary, sort_order, alt, created_at),
+      product_variants(id, product_id, color, size, material, custom_value, sku, price, stock, active, sort_order),
       categories!category_id(id, name, slug, sort_order, active, created_at, updated_at, parent_id, description, image_url, meta_title, meta_description, deleted_at),
       modifiers(id, product_id, name, price, active, sort_order)
-    `)
+    `, { count: 'exact' })
     .is('deleted_at', null)
     .eq('is_active', true);
 
@@ -70,9 +70,10 @@ export async function searchProductsServer(
   }
 
   if (tokens.length > 0) {
-    dbQuery = dbQuery.textSearch('search_vector', tokens.join(' & '), {
+    // websearch handles multi-word + partial better than plain tsquery
+    dbQuery = dbQuery.textSearch('search_vector', tokens.join(' '), {
       config: 'simple',
-      type: 'plain',
+      type: 'websearch',
     });
   }
 
@@ -168,10 +169,11 @@ export async function searchProductsServer(
 
   const ranked = rankSearchResults(products, query);
 
+  const total = count ?? ranked.length;
   return {
     results: ranked,
-    total: count || ranked.length,
-    hasMore: ranked.length === limit,
+    total,
+    hasMore: offset + ranked.length < total,
     query,
     tookMs: Date.now() - startTime,
   };
@@ -196,11 +198,11 @@ async function searchProductsServerFallback(
       enable_swatches, show_swatches_on_archive,
       recommended_age_min_months, recommended_age_max_months, age_group,
       created_at, updated_at, deleted_at,
-      product_images!inner(id, product_id, url, is_primary, sort_order, alt, created_at),
-      product_variants!inner(id, product_id, color, size, material, custom_value, sku, price, stock, active, sort_order),
+      product_images(id, product_id, url, is_primary, sort_order, alt, created_at),
+      product_variants(id, product_id, color, size, material, custom_value, sku, price, stock, active, sort_order),
       categories!category_id(id, name, slug, sort_order, active, created_at, updated_at, parent_id, description, image_url, meta_title, meta_description, deleted_at),
       modifiers(id, product_id, name, price, active, sort_order)
-    `)
+    `, { count: 'exact' })
     .is('deleted_at', null)
     .eq('is_active', true);
 
@@ -349,10 +351,11 @@ async function searchProductsServerFallback(
 
   const ranked = rankSearchResults(products, query);
 
+  const total = count ?? ranked.length;
   return {
     results: ranked,
-    total: count || ranked.length,
-    hasMore: ranked.length === limit,
+    total,
+    hasMore: offset + ranked.length < total,
     query,
     tookMs: Date.now() - startTime,
   };
@@ -372,8 +375,8 @@ export async function searchProductsByIds(
       enable_swatches, show_swatches_on_archive,
       recommended_age_min_months, recommended_age_max_months, age_group,
       created_at, updated_at, deleted_at,
-      product_images!inner(id, product_id, url, is_primary, sort_order, alt, created_at),
-      product_variants!inner(id, product_id, color, size, material, custom_value, sku, price, stock, active, sort_order),
+      product_images(id, product_id, url, is_primary, sort_order, alt, created_at),
+      product_variants(id, product_id, color, size, material, custom_value, sku, price, stock, active, sort_order),
       categories!category_id(id, name, slug, sort_order, active, created_at, updated_at, parent_id, description, image_url, meta_title, meta_description, deleted_at),
       modifiers(id, product_id, name, price, active, sort_order)
     `)
