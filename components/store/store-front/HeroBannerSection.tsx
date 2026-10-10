@@ -144,8 +144,8 @@ export function HeroBannerSection({ section, settings }: HeroBannerSectionProps)
         }}
       />
       {/* Embla Viewport wrapper */}
-      <div className="overflow-hidden h-full w-full" ref={emblaRef}>
-        <div className="flex h-full w-full">
+      <div className="overflow-hidden min-h-[200px] h-full w-full" ref={emblaRef}>
+        <div className="flex min-h-[200px] h-full w-full">
           {slides.map((slide, idx) => (
             <HeroSlideItem
               key={slide.id}

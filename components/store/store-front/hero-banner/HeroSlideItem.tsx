@@ -58,7 +58,7 @@ export function HeroSlideItem({
   const mobileButtonSecondaryLink = slide.mobile_button_secondary_link || slide.button_secondary_link;
 
   return (
-    <div className="relative flex-grow-0 flex-shrink-0 w-full h-full overflow-hidden select-none">
+    <div className="relative flex-grow-0 flex-shrink-0 w-full min-h-[200px] h-full overflow-hidden select-none">
       {/* Per-slide responsive focal-point CSS */}
       <style
         dangerouslySetInnerHTML={{

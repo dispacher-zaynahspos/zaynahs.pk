@@ -9,7 +9,11 @@ export function formatCssDimension(val: any, defaultVal: string): string {
   return valStr;
 }
 
-export function resolveBannerHeightCss(val: any, defaultVal: string): {
+export function resolveBannerHeightCss(
+  val: any,
+  defaultVal: string,
+  fallbackRatio: string = '16/9'
+): {
   height: string;
   cssRule: string;
   isAspectRatio: boolean;
@@ -26,16 +30,18 @@ export function resolveBannerHeightCss(val: any, defaultVal: string): {
     const h = aspectMatch[2];
     return {
       height: 'auto',
-      cssRule: `aspect-ratio: ${w} / ${h} !important; height: auto !important; min-height: unset;`,
+      cssRule: `aspect-ratio: ${w} / ${h} !important; height: auto !important; min-height: 180px;`,
       isAspectRatio: true,
     };
   }
 
-  // Auto / natural adapt
+  // Auto / natural adapt: MUST maintain a real aspect ratio (4/3 mobile, 16/9 tablet, 21/9 desktop)
+  // so absolute positioned slide images NEVER collapse to 0px height!
   if (raw === 'auto' || raw === 'adapt' || raw === 'natural') {
+    const [rw, rh] = fallbackRatio.split('/');
     return {
       height: 'auto',
-      cssRule: `height: auto !important; min-height: 180px; aspect-ratio: auto;`,
+      cssRule: `aspect-ratio: ${rw} / ${rh} !important; height: auto !important; min-height: 220px;`,
       isAspectRatio: true,
     };
   }
@@ -44,15 +50,15 @@ export function resolveBannerHeightCss(val: any, defaultVal: string): {
   const px = /^\d+$/.test(raw) ? `${raw}px` : raw;
   return {
     height: px,
-    cssRule: `height: ${px} !important; aspect-ratio: auto;`,
+    cssRule: `height: ${px} !important; aspect-ratio: auto; min-height: 180px;`,
     isAspectRatio: false,
   };
 }
 
 export function useHeroBannerStyles(section: HomepageSection) {
-  const desktopHeightInfo = resolveBannerHeightCss(section.settings?.height_desktop, '450px');
-  const tabletHeightInfo = resolveBannerHeightCss(section.settings?.height_tablet, '350px');
-  const mobileHeightInfo = resolveBannerHeightCss(section.settings?.height_mobile, '250px');
+  const desktopHeightInfo = resolveBannerHeightCss(section.settings?.height_desktop, '450px', '21/9');
+  const tabletHeightInfo = resolveBannerHeightCss(section.settings?.height_tablet, '350px', '16/9');
+  const mobileHeightInfo = resolveBannerHeightCss(section.settings?.height_mobile, '250px', '4/3');
 
   const heightDesktop = desktopHeightInfo.height;
   const heightTablet = tabletHeightInfo.height;

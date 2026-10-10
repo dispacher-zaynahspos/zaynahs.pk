@@ -22,29 +22,38 @@ export function CustomizerPreview({
   storeSettings,
   iframeRef,
 }: CustomizerPreviewProps) {
-  const [mobilePreset, setMobilePreset] = useState<'393' | '412' | '375'>('393');
+  const [mobilePreset, setMobilePreset] = useState<'393' | '412' | '375' | '430'>('393');
   const [scaleMode, setScaleMode] = useState<'fit' | 'real'>('fit');
+  const [zoomPercent, setZoomPercent] = useState<number>(100);
 
   // Modern device specifications (2024-2026 standards)
-  const mobileScreenWidth = mobilePreset === '412' ? 412 : mobilePreset === '375' ? 375 : 393;
-  const mobileScreenHeight = mobilePreset === '412' ? 915 : mobilePreset === '375' ? 667 : 844;
+  const mobileScreenWidth =
+    mobilePreset === '430' ? 430 : mobilePreset === '412' ? 412 : mobilePreset === '375' ? 375 : 393;
+  const mobileScreenHeight =
+    mobilePreset === '430' ? 932 : mobilePreset === '412' ? 915 : mobilePreset === '375' ? 667 : 852;
   const tabletScreenWidth = 820;
   const tabletScreenHeight = 1180;
   const desktopScreenWidth = 1280;
   const desktopScreenHeight = 800;
 
+  const handleZoom = (delta: number) => {
+    setZoomPercent((prev) => Math.min(150, Math.max(70, prev + delta)));
+  };
+
+  const zoomMultiplier = zoomPercent / 100;
+
   return (
     <main className={`flex-grow bg-gray-100 dark:bg-[#0f0f1b]/40 overflow-hidden flex flex-col h-full ${mobileTab !== 'preview' ? 'hidden' : ''} md:flex`}>
       {/* Device Calibration Toolbar */}
-      <div className="h-10 px-4 bg-white/95 dark:bg-[#16162a]/95 backdrop-blur-md border-b border-gray-200/80 dark:border-gray-800 flex items-center justify-between text-xs shrink-0 select-none z-10 shadow-2xs">
-        <div className="flex items-center gap-2.5">
-          <span className="text-[10px] font-black uppercase tracking-wider text-gray-400">Device View:</span>
+      <div className="h-10 px-3 md:px-4 bg-white/95 dark:bg-[#16162a]/95 backdrop-blur-md border-b border-gray-200/80 dark:border-gray-800 flex items-center justify-between text-xs shrink-0 select-none z-10 shadow-2xs gap-2 overflow-x-auto scrollbar-none">
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] font-black uppercase tracking-wider text-gray-400 shrink-0">Device View:</span>
           {viewportMode === 'mobile' && (
-            <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 p-0.5 rounded-lg text-[10px] font-bold">
+            <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 p-0.5 rounded-lg text-[10px] font-bold shrink-0">
               <button
                 type="button"
                 onClick={() => setMobilePreset('393')}
-                className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
+                className={`px-2 py-1 rounded-md transition-all cursor-pointer ${
                   mobilePreset === '393'
                     ? 'bg-white dark:bg-[#0f0f1b] text-[#e94560] shadow-xs'
                     : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
@@ -56,7 +65,7 @@ export function CustomizerPreview({
               <button
                 type="button"
                 onClick={() => setMobilePreset('412')}
-                className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
+                className={`px-2 py-1 rounded-md transition-all cursor-pointer ${
                   mobilePreset === '412'
                     ? 'bg-white dark:bg-[#0f0f1b] text-[#e94560] shadow-xs'
                     : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
@@ -68,7 +77,7 @@ export function CustomizerPreview({
               <button
                 type="button"
                 onClick={() => setMobilePreset('375')}
-                className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
+                className={`px-2 py-1 rounded-md transition-all cursor-pointer ${
                   mobilePreset === '375'
                     ? 'bg-white dark:bg-[#0f0f1b] text-[#e94560] shadow-xs'
                     : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
@@ -77,21 +86,62 @@ export function CustomizerPreview({
               >
                 Compact (375px)
               </button>
+              <button
+                type="button"
+                onClick={() => setMobilePreset('430')}
+                className={`px-2 py-1 rounded-md transition-all cursor-pointer ${
+                  mobilePreset === '430'
+                    ? 'bg-white dark:bg-[#0f0f1b] text-[#e94560] shadow-xs'
+                    : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
+                }`}
+                title="iPhone Pro Max / Plus (430px)"
+              >
+                Pro Max (430px)
+              </button>
             </div>
           )}
           {viewportMode === 'tablet' && (
-            <span className="text-[10px] font-bold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 px-2.5 py-1 rounded-md">
+            <span className="text-[10px] font-bold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 px-2.5 py-1 rounded-md shrink-0">
               iPad 10.9&quot; / Air (820px)
             </span>
           )}
           {viewportMode === 'desktop' && (
-            <span className="text-[10px] font-bold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 px-2.5 py-1 rounded-md">
+            <span className="text-[10px] font-bold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 px-2.5 py-1 rounded-md shrink-0">
               Desktop Standard (1280px)
             </span>
           )}
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2 shrink-0">
+          {/* Zoom controls */}
+          <div className="flex items-center gap-0.5 bg-gray-100 dark:bg-gray-800 p-0.5 rounded-lg text-[10px] font-bold">
+            <button
+              type="button"
+              onClick={() => handleZoom(-10)}
+              className="w-5 h-5 flex items-center justify-center rounded text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 cursor-pointer"
+              title="Zoom Out"
+            >
+              -
+            </button>
+            <button
+              type="button"
+              onClick={() => setZoomPercent(100)}
+              className="px-1.5 py-0.5 text-gray-600 dark:text-gray-300 hover:text-[#e94560] cursor-pointer font-mono"
+              title="Reset Zoom to 100%"
+            >
+              {zoomPercent}%
+            </button>
+            <button
+              type="button"
+              onClick={() => handleZoom(10)}
+              className="w-5 h-5 flex items-center justify-center rounded text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 cursor-pointer"
+              title="Zoom In"
+            >
+              +
+            </button>
+          </div>
+
+          {/* Mode Switcher */}
           <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 p-0.5 rounded-lg text-[10px] font-bold">
             <button
               type="button"
@@ -101,7 +151,7 @@ export function CustomizerPreview({
                   ? 'bg-white dark:bg-[#0f0f1b] text-[#e94560] shadow-xs'
                   : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
               }`}
-              title="Scale to fit viewport"
+              title="Fit Viewport (Adaptive)"
             >
               Fit Screen
             </button>
@@ -118,6 +168,7 @@ export function CustomizerPreview({
               100% Real Size
             </button>
           </div>
+
           <span className="text-[10px] font-mono text-gray-400 bg-gray-100/60 dark:bg-gray-800/60 px-2 py-0.5 rounded">
             {viewportMode === 'mobile'
               ? `${mobileScreenWidth}×${mobileScreenHeight}`
@@ -130,7 +181,7 @@ export function CustomizerPreview({
 
       <div 
         ref={previewContainerRef}
-        className="flex-1 overflow-auto p-4 md:p-6 flex justify-center items-center h-full"
+        className="flex-1 overflow-auto p-2 md:p-3 flex justify-center items-center h-full"
       >
         {viewportMode === 'desktop' ? (
           (() => {
@@ -139,14 +190,14 @@ export function CustomizerPreview({
               (containerWidth - 32) / desktopScreenWidth,
               (containerHeight - 56) / desktopScreenHeight
             );
-            const desktopScale = scaleMode === 'real' ? 1 : Math.max(0.4, rawScale);
+            const desktopScale = scaleMode === 'real' ? zoomMultiplier : Math.max(0.4, rawScale * zoomMultiplier);
 
             return (
               <div
                 style={{
                   width: `${desktopScreenWidth * desktopScale}px`,
                   height: `${desktopScreenHeight * desktopScale}px`,
-                  transition: 'all 0.25s ease',
+                  transition: 'all 0.2s ease',
                 }}
                 className="relative mx-auto my-auto"
               >
@@ -185,28 +236,39 @@ export function CustomizerPreview({
           (() => {
             const mobileMockupWidth = mobileScreenWidth + 24;
             const mobileMockupHeight = mobileScreenHeight + 24;
-            const rawScale = Math.min(
-              1,
-              (containerWidth - 32) / mobileMockupWidth,
-              (containerHeight - 56) / mobileMockupHeight
-            );
-            const mobileScale = scaleMode === 'real' ? 1 : Math.max(0.4, rawScale);
+
+            // Available space in preview canvas
+            const availW = Math.max(containerWidth - 24, 320);
+            const availH = Math.max(containerHeight - 36, 460);
+
+            // In Fit Screen mode, frame height adapts to canvas height (max device height)
+            // so that the phone width is NOT artificially crushed to 50% by tall aspect ratio!
+            const frameHeight = scaleMode === 'real'
+              ? mobileMockupHeight
+              : Math.min(availH, mobileMockupHeight);
+
+            // Width scaling: only scale down if container width is narrower than phone mockup
+            const fitScaleW = Math.min(1.2, availW / mobileMockupWidth);
+            const baseScale = scaleMode === 'real'
+              ? 1
+              : Math.max(0.85, Math.min(fitScaleW, 1));
+            const mobileScale = Math.min(1.4, Math.max(0.7, baseScale * zoomMultiplier));
 
             return (
               <div
                 style={{
                   width: `${mobileMockupWidth * mobileScale}px`,
-                  height: `${mobileMockupHeight * mobileScale}px`,
-                  transition: 'all 0.25s ease',
+                  height: `${frameHeight * mobileScale}px`,
+                  transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
                 }}
                 className="relative mx-auto my-auto"
               >
                 <div
                   style={{
                     width: `${mobileMockupWidth}px`,
-                    height: `${mobileMockupHeight}px`,
+                    height: `${frameHeight}px`,
                     transform: `scale(${mobileScale})`,
-                    transformOrigin: 'top left',
+                    transformOrigin: 'top center',
                   }}
                   className="absolute top-0 left-0 overflow-hidden shadow-2xl bg-white dark:bg-[#0f0f1b] rounded-[38px] border-[12px] border-gray-800 dark:border-gray-900 flex flex-col scrollbar-none"
                 >
@@ -233,14 +295,14 @@ export function CustomizerPreview({
               (containerWidth - 32) / tabletMockupWidth,
               (containerHeight - 56) / tabletMockupHeight
             );
-            const tabletScale = scaleMode === 'real' ? 1 : Math.max(0.4, rawScale);
+            const tabletScale = scaleMode === 'real' ? zoomMultiplier : Math.max(0.4, rawScale * zoomMultiplier);
 
             return (
               <div
                 style={{
                   width: `${tabletMockupWidth * tabletScale}px`,
                   height: `${tabletMockupHeight * tabletScale}px`,
-                  transition: 'all 0.25s ease',
+                  transition: 'all 0.2s ease',
                 }}
                 className="relative mx-auto my-auto"
               >
