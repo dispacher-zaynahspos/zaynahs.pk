@@ -4,6 +4,34 @@
 
 ---
 
+### [2026-10-10] v8.x — Per-category manual order (`product_categories.position`) + unified sorting/reordering
+
+**Feature:** Decouple the two sorting systems and unify them (RULE SORT1/SORT2/REORDER1–3, `docs/agent-rules/30-sorting-reordering.md`). Manual order for /shop + every category is now PER-CATEGORY, so reordering one category no longer changes the Home customizer product sections or other categories (the original coupling bug).
+
+**Database Changes:**
+- `supabase/migrations/20261010120000_product_categories_position.sql`
+  - `ALTER TABLE product_categories ADD COLUMN IF NOT EXISTS position INTEGER;`
+  - `CREATE INDEX IF NOT EXISTS idx_product_categories_category_position ON product_categories (category_id, position);`
+  - Backfill: per-category `position` seeded from the CURRENT global `products.sort_order` ordering (`sort_order ASC, created_at DESC`) so every list looks identical to before. Only `position IS NULL` rows touched → idempotent.
+  - Atomic RPC `reorder_category_products(p_category_id UUID, p_product_ids UUID[])` (SECURITY DEFINER) — rewrites `position` = array index in ONE transaction (RULE D15). GRANT to authenticated + service_role.
+  - Reversible (DOWN block documented in the migration).
+- Synchronized into `SUPER_MASTER_SCHEMA.sql`: `product_categories` table + column + idempotent `ADD COLUMN`, `idx_product_categories_category_position`, `reorder_category_products` function, and new `revalidate-product_categories` trigger.
+- `scripts/setup-triggers.mjs` TRIGGERS list + `app/api/revalidate/route.ts` handle `product_categories`.
+
+**Application Changes:**
+- New SSOT `lib/sorting/sortOptions.ts` — `SORT_OPTIONS`, `getSortLabel`, `normalizeSortKey` (legacy/alias-safe, no data migration), `applySort` (pure, stable id tiebreaker), `buildOrderBy`.
+- New shared reorder UI: `components/common/reorder/SortableList.tsx` + `ReorderMoveModal.tsx`, `lib/hooks/useReorder.ts`, `lib/hooks/useLongPress.ts` (fixes broken long-press). Uses `@dnd-kit`.
+- `updateCategorySortOrderAction` now calls the per-category RPC (not global `products.sort_order`). `getProductsByCategoryId` reads + orders by `product_categories.position`. Storefront `shopFilterUtils.filterProductsList` reads this category's position for manual mode.
+- Removed `updateProductSortOrders` (global reorder helper) to prevent re-coupling.
+- Sort dropdowns wired to `SORT_OPTIONS` in shop controls, admin category detail, admin ProductList.
+- `lib/types/category.ts` `ProductCategoryRelation.position?` + mapper surfaces it.
+
+**DB usage impact:** No new per-request cost; one extra integer column + composite index. Reorder is one transactional RPC call instead of N per-row updates.
+
+**Apply to all stores:** `node scripts/apply-migration-all-stores.mjs supabase/migrations/20261010120000_product_categories_position.sql` (littlemister, lobo, minimahal, totvogue, zaynahs).
+
+---
+
 ### [2026-10-09] v7.x — Project-Wide Product Search Engine (search_vector + pg_trgm + age fields)
 
 **Feature:** ONE shared, intelligent product-search + ranking + pagination engine across all `/admin/**` and `/store/**` product-search entry points (SSOT — RULE PS1, `docs/agent-rules/29-product-search-pagination.md`).

@@ -46,5 +46,7 @@ export interface MetaCategoryMapping {
 export interface ProductCategoryRelation {
   product_id: string;
   category_id: string;
+  /** per-category manual order position (SSOT for /shop + category reorder) */
+  position?: number | null;
   category?: Category;
 }

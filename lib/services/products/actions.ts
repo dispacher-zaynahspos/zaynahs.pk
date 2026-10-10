@@ -835,7 +835,17 @@ export async function removeProductsFromCategoryAction(
 }
 
 /**
- * Server Action: Update sort order and sort preference for category products
+ * Server Action: Update per-category manual order + sort preference.
+ *
+ * DECOUPLING FIX: manual order is written to the PER-CATEGORY join column
+ * `product_categories.position` via the atomic `reorder_category_products` RPC
+ * (RULE D15), NOT to the global `products.sort_order`. This guarantees that
+ * reordering one category never changes /shop (unless it IS the Shop category),
+ * other categories, or the Home customizer product sections.
+ *
+ * @param categoryId            the category being reordered (Shop system category allowed)
+ * @param productIds            full ordered id list for the category (manual mode only)
+ * @param activeSortPreference  persisted sort key for this category
  */
 export async function updateCategorySortOrderAction(
   categoryId: string,
@@ -845,14 +855,11 @@ export async function updateCategorySortOrderAction(
   try {
     const supabase = supabaseAdmin;
     if (productIds && productIds.length > 0) {
-      await Promise.all(
-        productIds.map((id, idx) =>
-          supabase
-            .from('products')
-            .update({ sort_order: idx + 1 })
-            .eq('id', id)
-        )
-      );
+      const { error: rpcError } = await supabase.rpc('reorder_category_products', {
+        p_category_id: categoryId,
+        p_product_ids: productIds,
+      });
+      if (rpcError) throw rpcError;
     }
 
     if (activeSortPreference) {

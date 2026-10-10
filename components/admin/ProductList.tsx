@@ -11,6 +11,7 @@ import ImportExportModal from '@/components/admin/ImportExportModal';
 import PaginationFooter from './PaginationFooter';
 import ImagePreviewModal from '@/components/admin/ImagePreviewModal';
 import { saveProductNavContext } from '@/lib/hooks/useProductNav';
+import { applySort } from '@/lib/sorting/sortOptions';
 import { 
   ProductListToolbar, 
   ProductListBulkActions, 
@@ -32,7 +33,7 @@ export default function ProductList({ initialProducts, settings }: ProductListPr
   const [syncingProductId, setSyncingProductId] = useState<string | null>(null);
   const [isImportExportOpen, setIsImportExportOpen] = useState(false);
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
-  const [sortBy, setSortBy] = useState<string>('created-desc');
+  const [sortBy, setSortBy] = useState<string>('newest');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
@@ -245,7 +246,7 @@ export default function ProductList({ initialProducts, settings }: ProductListPr
     }
   };
 
-  const filteredProducts = products
+  const baseFilteredProducts = products
     .filter(p => {
       const q = searchQuery.toLowerCase();
       if (!q) return true;
@@ -267,17 +268,11 @@ export default function ProductList({ initialProducts, settings }: ProductListPr
         return p.product_categories.some(pc => pc.category_id === selectedCategory);
       }
       return p.category_id === selectedCategory;
-    })
-    .sort((a, b) => {
-      switch (sortBy) {
-        case 'manual': return 0;
-        case 'created-asc': return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-        case 'price-desc': return (b.price || 0) - (a.price || 0);
-        case 'price-asc': return (a.price || 0) - (b.price || 0);
-        case 'created-desc':
-        default: return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-      }
     });
+
+  const filteredProducts = sortBy === 'manual'
+    ? baseFilteredProducts
+    : applySort(baseFilteredProducts, sortBy);
 
   const totalFiltered = filteredProducts.length;
   const paginatedProducts = filteredProducts.slice(

@@ -75,6 +75,7 @@ const TRIGGERS = [
   ['revalidate-payment_methods',       'payment_methods'],
   ['revalidate-collections',           'collections'],
   ['revalidate-collection_categories', 'collection_categories'],
+  ['revalidate-product_categories',    'product_categories'],
 ];
 
 async function runSQL(sql) {

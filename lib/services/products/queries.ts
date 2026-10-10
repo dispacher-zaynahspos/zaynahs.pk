@@ -243,12 +243,16 @@ export const getProductsByCategoryId = async (categoryId: string): Promise<Produ
   try {
     const { data: catRelations, error: relError } = await staticSupabase
       .from('product_categories')
-      .select('product_id')
+      .select('product_id, position')
       .eq('category_id', categoryId);
 
     if (relError) throw relError;
 
     const relProductIds = (catRelations || []).map(r => r.product_id);
+    // per-category manual order position map (SSOT; decoupled from global sort_order)
+    const positionMap = new Map<string, number | null>(
+      (catRelations || []).map(r => [r.product_id, (r as any).position ?? null])
+    );
 
     let query = staticSupabase
       .from('products')
@@ -267,7 +271,23 @@ export const getProductsByCategoryId = async (categoryId: string): Promise<Produ
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    const products = (data ?? []).map(mapProduct);
+    const products = (data ?? []).map(mapProduct).map((p) => {
+      // surface this category's manual position for applySort('manual', positions)
+      const pos = positionMap.get(p.id);
+      return typeof pos === 'number' ? { ...p, sort_order: pos } : p;
+    });
+    // order by per-category position (nulls last), stable tiebreaker newest→id
+    products.sort((a, b) => {
+      const pa = positionMap.get(a.id);
+      const pb = positionMap.get(b.id);
+      const oa = typeof pa === 'number' ? pa : Number.MAX_SAFE_INTEGER;
+      const ob = typeof pb === 'number' ? pb : Number.MAX_SAFE_INTEGER;
+      if (oa !== ob) return oa - ob;
+      const ta = new Date(a.created_at || 0).getTime();
+      const tb = new Date(b.created_at || 0).getTime();
+      if (ta !== tb) return tb - ta;
+      return a.id.localeCompare(b.id);
+    });
     return applyFlashSaleDiscounts(products);
   } catch (err) {
     console.error('[Products Error Debug] getProductsByCategoryId failed:', err);

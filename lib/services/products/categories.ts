@@ -1,6 +1,6 @@
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { SHOP_CATEGORY_ID } from '@/lib/config/singleton-ids';
-import { revalidateProduct, revalidateTagSafe, revalidateStorefrontEdge } from '@/lib/revalidate';
+import { revalidateProduct, revalidateTagSafe } from '@/lib/revalidate';
 import { staticSupabase } from './mappers';
 
 export const updateProductCategoryRelationFields = async (
@@ -210,20 +210,9 @@ export const removeProductsFromCategory = async (
   }
 };
 
-export const updateProductSortOrders = async (productIds: string[]): Promise<void> => {
-  if (!productIds || productIds.length === 0) return;
-  try {
-    await Promise.all(
-      productIds.map((id, idx) =>
-        supabaseAdmin
-          .from('products')
-          .update({ sort_order: idx + 1 })
-          .eq('id', id)
-      )
-    );
-    await revalidateStorefrontEdge('products', 'categories');
-  } catch (error) {
-    console.error('[products] updateProductSortOrders failed:', error);
-    throw error;
-  }
-};
+/**
+ * @deprecated Legacy global reorder. REMOVED from the category/shop flow — manual
+ * order now lives in `product_categories.position` (see `reorder_category_products`
+ * RPC + `updateCategorySortOrderAction`). Kept intentionally absent to prevent any
+ * new caller from re-introducing the global-coupling bug. Do not re-add.
+ */

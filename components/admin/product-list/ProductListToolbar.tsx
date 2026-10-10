@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import AdminSearchInput from '@/components/admin/shared/AdminSearchInput';
 import { StoreSettings } from '@/lib/types';
+import { SORT_OPTIONS } from '@/lib/sorting/sortOptions';
 import { Plus, Globe, RefreshCw, Loader2, PackageOpen } from '@/components/common/Icons';
 
 interface ProductListToolbarProps {
@@ -64,11 +65,9 @@ export default function ProductListToolbar({
             onChange={(e) => { setSortBy(e.target.value); setCurrentPage(1); }}
             className="flex-1 sm:flex-none rounded-xl border border-gray-200/80 dark:border-gray-800/80 bg-white dark:bg-[#16162a] px-3 py-2 text-xs font-bold text-gray-800 dark:text-gray-200 focus:outline-none focus:border-[#e94560] focus:ring-2 focus:ring-[#e94560]/15 cursor-pointer shadow-xs min-h-[38px]"
           >
-            <option value="created-desc">Newest First</option>
-            <option value="created-asc">Oldest First</option>
-            <option value="price-desc">Price: High to Low</option>
-            <option value="price-asc">Price: Low to High</option>
-            <option value="manual">Manual Order</option>
+            {SORT_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
           </select>
         </div>
       </div>

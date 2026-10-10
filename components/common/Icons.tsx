@@ -120,6 +120,8 @@ export {
   Info,
   CornerDownLeft,
   ArrowUpDown,
+  ChevronsUp,
+  ChevronsDown,
   Strikethrough,
   Highlighter,
   Quote,

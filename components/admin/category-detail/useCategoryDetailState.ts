@@ -10,6 +10,7 @@ import {
 } from '@/lib/services/products/actions';
 import { getAllProductsAdmin } from '@/lib/services/products';
 import { useConfirm } from '@/components/admin/shared/AdminConfirmProvider';
+import { arrayMove } from '@/lib/utils/arrayMove';
 import { toast } from 'sonner';
 
 export function useCategoryDetailState(category: Category, initialProducts: Product[]) {
@@ -45,6 +46,33 @@ export function useCategoryDetailState(category: Category, initialProducts: Prod
     setProducts(reordered);
     setHasUnsavedChanges(true);
     setTargetPosition('');
+  };
+
+  // --- single-item reorder helpers (shared by table drag / chevrons / move modal) ---
+  const moveProduct = (productId: string, direction: 'up' | 'down') => {
+    const idx = products.findIndex(p => p.id === productId);
+    if (idx === -1) return;
+    const target = direction === 'up' ? idx - 1 : idx + 1;
+    if (target < 0 || target >= products.length) return;
+    setProducts(arrayMove(products, idx, target));
+    setHasUnsavedChanges(true);
+  };
+
+  const moveProductToPosition = (productId: string, position1Based: number) => {
+    const idx = products.findIndex(p => p.id === productId);
+    if (idx === -1) return;
+    const target = Math.max(0, Math.min(position1Based - 1, products.length - 1));
+    if (idx === target) return;
+    setProducts(arrayMove(products, idx, target));
+    setHasUnsavedChanges(true);
+  };
+
+  const reorderProductsByDrag = (fromId: string, toId: string) => {
+    const from = products.findIndex(p => p.id === fromId);
+    const to = products.findIndex(p => p.id === toId);
+    if (from === -1 || to === -1 || from === to) return;
+    setProducts(arrayMove(products, from, to));
+    setHasUnsavedChanges(true);
   };
 
   const handleBulkRemoveProducts = async () => {
@@ -171,6 +199,9 @@ export function useCategoryDetailState(category: Category, initialProducts: Prod
     modalSearchQuery, setModalSearchQuery,
     modalSelectedProductIds, setModalSelectedProductIds,
     handleBulkMoveToPosition,
+    moveProduct,
+    moveProductToPosition,
+    reorderProductsByDrag,
     handleBulkRemoveProducts,
     openAddModal,
     handleAddProduct,

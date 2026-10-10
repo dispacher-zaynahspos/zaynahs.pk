@@ -59,6 +59,7 @@ export const mapProduct = (row: DBProductRow): Product => {
   const product_categories: ProductCategoryRelation[] = (row.product_categories ?? []).map((pc: any) => ({
     product_id: pc.product_id,
     category_id: pc.category_id,
+    position: typeof pc.position === 'number' ? pc.position : null,
     category: pc.categories ? {
       id: pc.categories.id,
       name: pc.categories.name,

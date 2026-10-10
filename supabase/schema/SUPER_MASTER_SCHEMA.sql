@@ -2142,9 +2142,13 @@ EXCEPTION WHEN OTHERS THEN NULL; END $$;
 CREATE TABLE IF NOT EXISTS public.product_categories (
   product_id UUID NOT NULL REFERENCES public.products(id) ON DELETE CASCADE,
   category_id UUID NOT NULL REFERENCES public.categories(id) ON DELETE CASCADE,
+  position INTEGER,  -- per-category manual order (SSOT for /shop + category reorder); independent per category, decoupled from global products.sort_order
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   PRIMARY KEY (product_id, category_id)
 );
+
+-- Older DBs created before the position column: add it idempotently.
+ALTER TABLE public.product_categories ADD COLUMN IF NOT EXISTS position INTEGER;
 
 -- Enable RLS on product_categories
 ALTER TABLE public.product_categories ENABLE ROW LEVEL SECURITY;
@@ -2166,6 +2170,32 @@ DO $$
 BEGIN
   ALTER PUBLICATION supabase_realtime ADD TABLE public.product_categories;
 EXCEPTION WHEN OTHERS THEN NULL; END $$;
+
+-- Atomic per-category reorder RPC (RULE D15). Rewrites product_categories.position
+-- = array index + 1 for the given category in ONE transaction. The /shop + category
+-- manual order SSOT. Decoupled from the global products.sort_order and from home
+-- customizer section ordering.
+CREATE OR REPLACE FUNCTION public.reorder_category_products(
+  p_category_id UUID,
+  p_product_ids UUID[]
+)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  UPDATE public.product_categories pc
+  SET position = idx.ord
+  FROM (
+    SELECT unnest(p_product_ids) AS product_id,
+           generate_subscripts(p_product_ids, 1) AS ord
+  ) idx
+  WHERE pc.category_id = p_category_id
+    AND pc.product_id = idx.product_id;
+END;
+$$;
+GRANT EXECUTE ON FUNCTION public.reorder_category_products(UUID, UUID[]) TO authenticated, service_role;
 
 
 -- Index for soft delete Recycle Bin checks
@@ -2496,6 +2526,15 @@ CREATE TRIGGER "revalidate-collection_categories"
     '{"Content-Type":"application/json","x-revalidate-secret":"YOUR_REVALIDATE_SECRET"}',
     '{"type":"CHANGE","table":"collection_categories"}', '5000');
 
+-- 22. product_categories (per-category manual order position changes → purge shop/category cache)
+DROP TRIGGER IF EXISTS "revalidate-product_categories" ON public.product_categories;
+CREATE TRIGGER "revalidate-product_categories"
+  AFTER INSERT OR UPDATE OR DELETE ON public.product_categories
+  FOR EACH ROW EXECUTE FUNCTION supabase_functions.http_request(
+    'https://domain.com/api/revalidate', 'POST',
+    '{"Content-Type":"application/json","x-revalidate-secret":"YOUR_REVALIDATE_SECRET"}',
+    '{"type":"CHANGE","table":"product_categories"}', '5000');
+
 GRANT SELECT, INSERT, UPDATE, DELETE ON collections TO anon, authenticated, service_role;
 GRANT SELECT, INSERT, UPDATE, DELETE ON collection_categories TO anon, authenticated, service_role;
 
@@ -2584,6 +2623,7 @@ SELECT cron.schedule('purge-page-views-90-days', '0 3 * * *',
 -- PERFORMANCE INDEXES (hot query paths) — added Pass 8
 -- ============================================================================
 CREATE INDEX IF NOT EXISTS idx_product_categories_category ON public.product_categories (category_id);
+CREATE INDEX IF NOT EXISTS idx_product_categories_category_position ON public.product_categories (category_id, position);
 CREATE INDEX IF NOT EXISTS idx_orders_created_at ON public.orders (created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_orders_status ON public.orders (status);
 CREATE INDEX IF NOT EXISTS idx_products_active ON public.products (is_active) WHERE deleted_at IS NULL;

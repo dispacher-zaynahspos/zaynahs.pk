@@ -7,6 +7,7 @@ import { updateProductFieldsAction as updateProductFields, updateProductVariantF
 import { updateCategorySafe } from '@/lib/services/categories';
 import { toast } from 'sonner';
 import { Search } from '@/components/common/Icons';
+import { SORT_OPTIONS } from '@/lib/sorting/sortOptions';
 import PaginationFooter from './PaginationFooter';
 import { saveProductNavContext } from '@/lib/hooks/useProductNav';
 import ImagePreviewModal from '@/components/admin/ImagePreviewModal';
@@ -61,6 +62,9 @@ export default function CategoryDetailManager({ category, initialProducts }: Cat
     modalSearchQuery, setModalSearchQuery,
     modalSelectedProductIds, setModalSelectedProductIds,
     handleBulkMoveToPosition,
+    moveProduct,
+    moveProductToPosition,
+    reorderProductsByDrag,
     handleBulkRemoveProducts,
     openAddModal,
     handleAddProduct,
@@ -183,58 +187,6 @@ export default function CategoryDetailManager({ category, initialProducts }: Cat
     (currentPage - 1) * pageSize,
     currentPage * pageSize
   );
-
-  const [draggingId, setDraggingId] = useState<string | null>(null);
-
-  const handleDragStart = (e: React.DragEvent, idx: number) => {
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', paginatedProducts[idx].id);
-    setDraggingId(paginatedProducts[idx].id);
-  };
-
-  const handleDragOver = (e: React.DragEvent, idx: number) => {
-    e.preventDefault();
-    const threshold = 120;
-    const speed = 15;
-    const cursorY = e.clientY;
-    const viewportH = window.innerHeight;
-    if (cursorY > viewportH - threshold) {
-      window.scrollBy({ top: speed, behavior: 'auto' });
-    } else if (cursorY < threshold) {
-      window.scrollBy({ top: -speed, behavior: 'auto' });
-    }
-
-    if (!draggingId) return;
-    const tgtId = paginatedProducts[idx].id;
-    if (draggingId === tgtId) return;
-
-    const srcIdx = products.findIndex(p => p.id === draggingId);
-    const tgtIdx = products.findIndex(p => p.id === tgtId);
-    if (srcIdx === -1 || tgtIdx === -1) return;
-
-    const reordered = [...products];
-    const [dragged] = reordered.splice(srcIdx, 1);
-    const adjustedTgt = tgtIdx > srcIdx ? tgtIdx - 1 : tgtIdx;
-    reordered.splice(adjustedTgt, 0, dragged);
-    setProducts(reordered);
-    setHasUnsavedChanges(true);
-    setDraggingId(tgtId);
-  };
-
-  const handleDrop = () => { setDraggingId(null); };
-  const handleDragEnd = () => { setDraggingId(null); };
-
-  const moveProduct = (productId: string, direction: 'up' | 'down') => {
-    const idx = products.findIndex(p => p.id === productId);
-    if (idx === -1) return;
-    const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
-    if (targetIdx < 0 || targetIdx >= products.length) return;
-    const copy = [...products];
-    const [removed] = copy.splice(idx, 1);
-    copy.splice(targetIdx, 0, removed);
-    setProducts(copy);
-    setHasUnsavedChanges(true);
-  };
 
   const handleOpenEditCategory = () => {
     setCatName(currentCategory.name);
@@ -370,20 +322,18 @@ export default function CategoryDetailManager({ category, initialProducts }: Cat
           selectedProductIds={selectedProductIds}
           setSelectedProductIds={setSelectedProductIds}
           sortBy={sortBy}
-          draggingId={draggingId}
           expandedProducts={expandedProducts}
           toggleExpand={toggleExpand}
-          handleDragStart={handleDragStart}
-          handleDragOver={handleDragOver}
-          handleDrop={handleDrop}
-          handleDragEnd={handleDragEnd}
+          moveToPosition={moveProductToPosition}
           moveProduct={moveProduct}
+          reorderByDrag={reorderProductsByDrag}
           handleEditProduct={handleEditProduct}
           handleRemoveProduct={handleRemoveProduct}
           handleUpdateProduct={handleUpdateProduct}
           handleUpdateVariant={handleUpdateVariant}
           updatingIds={updatingIds}
           setPreviewImageUrl={setPreviewImageUrl}
+          rankOffset={(currentPage - 1) * pageSize}
         />
         <PaginationFooter
           currentPage={currentPage}

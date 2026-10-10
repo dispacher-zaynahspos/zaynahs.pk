@@ -98,6 +98,9 @@ export async function POST(req: NextRequest) {
       }
     } else if (table === 'banners' || table === 'homepage_sections') {
       await revalidateBanner();
+    } else if (table === 'product_categories') {
+      // Per-category manual order (position) changed → refresh shop + category listings.
+      await revalidateSettings();
     } else if (table === 'categories') {
       const slug = activeRecord.slug;
       if (slug) {

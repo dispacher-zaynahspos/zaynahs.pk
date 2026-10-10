@@ -1,16 +1,13 @@
 import { Product, Collection } from '@/lib/types';
+import { applySort, SORT_OPTIONS as SHARED_SORT_OPTIONS, getSortLabel as sharedGetSortLabel } from '@/lib/sorting/sortOptions';
+import { SHOP_CATEGORY_ID } from '@/lib/config/singleton-ids';
 
-export const SORT_OPTIONS = [
-  { value: 'manual', label: 'Manual Order' },
-  { value: 'newest', label: 'Newest First' },
-  { value: 'oldest', label: 'Oldest First' },
-  { value: 'price_desc', label: 'Price: High to Low' },
-  { value: 'price_asc', label: 'Price: Low to High' },
-  { value: 'alpha_asc', label: 'Alphabetically: A-Z' },
-  { value: 'alpha_desc', label: 'Alphabetically: Z-A' },
-];
-
-export const getSortLabel = (value: string) => SORT_OPTIONS.find((o) => o.value === value)?.label || value;
+/**
+ * Re-export the SSOT sort options/labels so existing imports keep working.
+ * The ONLY definition lives in lib/sorting/sortOptions.ts.
+ */
+export const SORT_OPTIONS = SHARED_SORT_OPTIONS;
+export const getSortLabel = sharedGetSortLabel;
 
 export const toNumber = (v: string | null, fallback: number) => {
   const n = Number(v);
@@ -169,36 +166,19 @@ export function filterProductsList({
     );
   }
 
+  // Manual order: use THIS category's per-category position (SSOT), not a global rank.
+  // When a category is selected, read product_categories[].position for that category.
+  // On the all-products /shop view, fall back to the Shop system category position.
+  let manualPositions: Record<string, number> | undefined;
   if (sortBy === 'manual') {
-    list.sort((a, b) => {
-      const orderA = typeof a.sort_order === 'number' && a.sort_order > 0 ? a.sort_order : 999999;
-      const orderB = typeof b.sort_order === 'number' && b.sort_order > 0 ? b.sort_order : 999999;
-      if (orderA !== orderB) return orderA - orderB;
-      const timeA = new Date(a.created_at || 0).getTime();
-      const timeB = new Date(b.created_at || 0).getTime();
-      return timeB - timeA;
-    });
-  } else if (sortBy === 'newest') {
-    list.sort((a, b) => {
-      const timeA = new Date(a.created_at || 0).getTime();
-      const timeB = new Date(b.created_at || 0).getTime();
-      return timeB - timeA;
-    });
-  } else if (sortBy === 'oldest') {
-    list.sort((a, b) => {
-      const timeA = new Date(a.created_at || 0).getTime();
-      const timeB = new Date(b.created_at || 0).getTime();
-      return timeA - timeB;
-    });
-  } else if (sortBy === 'price_desc') {
-    list.sort((a, b) => (Number(b.price) || 0) - (Number(a.price) || 0));
-  } else if (sortBy === 'price_asc') {
-    list.sort((a, b) => (Number(a.price) || 0) - (Number(b.price) || 0));
-  } else if (sortBy === 'alpha_asc') {
-    list.sort((a, b) => (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' }));
-  } else if (sortBy === 'alpha_desc') {
-    list.sort((a, b) => (b.name || '').localeCompare(a.name || '', undefined, { sensitivity: 'base' }));
+    const scopeCategoryId = selectedCategoryId || SHOP_CATEGORY_ID;
+    manualPositions = {};
+    for (const p of list) {
+      const rel = p.product_categories?.find((pc) => pc.category_id === scopeCategoryId);
+      const pos = rel?.position;
+      if (typeof pos === 'number') manualPositions[p.id] = pos;
+    }
   }
 
-  return list;
+  return applySort(list, sortBy, manualPositions);
 }
