@@ -4,12 +4,11 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Product, Category } from '@/lib/types';
 import {
-  addProductsToCategory,
-  removeProductsFromCategory,
-  updateProductSortOrders,
-  getAllProductsAdmin
-} from '@/lib/services/products';
-import { updateCategory } from '@/lib/services/categories';
+  addProductsToCategoryAction,
+  removeProductsFromCategoryAction,
+  updateCategorySortOrderAction,
+} from '@/lib/services/products/actions';
+import { getAllProductsAdmin } from '@/lib/services/products';
 import { useConfirm } from '@/components/admin/shared/AdminConfirmProvider';
 import { toast } from 'sonner';
 
@@ -128,23 +127,24 @@ export function useCategoryDetailState(category: Category, initialProducts: Prod
       const removedProductIds = initialProducts.filter(p => !currentProductIds.has(p.id)).map(p => p.id);
 
       if (addedProductIds.length > 0) {
-        await addProductsToCategory(addedProductIds, category.id);
+        await addProductsToCategoryAction(addedProductIds, category.id);
       }
       
       if (removedProductIds.length > 0) {
-        await removeProductsFromCategory(removedProductIds, category.id);
+        await removeProductsFromCategoryAction(removedProductIds, category.id);
       }
 
-      if (sortBy === 'manual') {
-        await updateProductSortOrders(products.map(p => p.id));
-      }
-      
-      await updateCategory(category.id, { active_sort_preference: sortBy });
+      await updateCategorySortOrderAction(
+        category.id,
+        sortBy === 'manual' ? products.map(p => p.id) : [],
+        sortBy
+      );
       
       setHasUnsavedChanges(false);
       toast.success('Settings and products saved successfully', { id: toastId });
       router.refresh();
     } catch (err) {
+      console.error('[category-detail] handleSaveSortOrder failed:', err);
       toast.error('Failed to save settings', { id: toastId });
     } finally {
       setSavingSortOrder(false);

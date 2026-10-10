@@ -45,15 +45,38 @@ export default function VariantSelector({
   });
 
   const showSwatches = (enableSwatches !== false) && (settings?.enable_variant_swatches ?? true);
-  const productSwatchSize = settings?.product_swatch_size ?? settings?.swatch_size ?? 'md';
-  const swatchShape = settings?.swatch_shape || 'circle';
 
+  // Responsive PDP Swatch Size (Desktop, Tablet, Mobile)
+  const responsiveSwatchSizes = {
+    mobile: settings?.product_swatch_size_mobile || settings?.product_swatch_size || 'md',
+    tablet: settings?.product_swatch_size_tablet || settings?.product_swatch_size || 'md',
+    desktop: settings?.product_swatch_size_desktop || settings?.product_swatch_size || 'md',
+  };
+
+  // Dedicated PDP Swatch Shape (Circle vs Box/Square)
+  const productSwatchShape = settings?.product_swatch_shape || settings?.swatch_shape || 'circle';
   const shapeMap: Record<string, string> = {
     circle: 'rounded-full',
     square: 'rounded-lg'
   };
+  const shapeClass = shapeMap[productSwatchShape] || shapeMap.circle;
 
-  const shapeClass = shapeMap[swatchShape] || shapeMap.circle;
+  // Responsive PDP Swatch Alignment (Desktop, Tablet, Mobile)
+  const alignMob = settings?.product_swatch_align_mobile || settings?.product_swatch_align || 'left';
+  const alignTab = settings?.product_swatch_align_tablet || settings?.product_swatch_align || 'left';
+  const alignDesk = settings?.product_swatch_align_desktop || settings?.product_swatch_align || 'left';
+
+  const rowAlignClass = `
+    ${alignMob === 'center' ? 'justify-center' : alignMob === 'right' ? 'justify-end' : 'justify-start'}
+    ${alignTab === 'center' ? 'md:justify-center' : alignTab === 'right' ? 'md:justify-end' : 'md:justify-start'}
+    ${alignDesk === 'center' ? 'lg:justify-center' : alignDesk === 'right' ? 'lg:justify-end' : 'lg:justify-start'}
+  `.trim();
+
+  const labelAlignClass = `
+    ${alignMob === 'center' ? 'text-center' : alignMob === 'right' ? 'text-right' : 'text-left'}
+    ${alignTab === 'center' ? 'md:text-center' : alignTab === 'right' ? 'md:text-right' : 'md:text-left'}
+    ${alignDesk === 'center' ? 'lg:text-center' : alignDesk === 'right' ? 'lg:text-right' : 'lg:text-left'}
+  `.trim();
 
   // Helper: pick a color variant by color name click
   const handleColorClick = (color: string) => {
@@ -85,14 +108,14 @@ export default function VariantSelector({
       label: 'Color',
       selectedLabel: selectedColor,
       render: () => (
-        <div className="flex flex-wrap items-center gap-2.5">
+        <div className={`flex flex-wrap items-center gap-2.5 ${rowAlignClass}`}>
           {colors.map(color => {
             const matchVar = activeVariants.find(v => v.color === color);
             const isSelected = selectedColor === color;
             const resolvedHex = matchVar?.color_hex || (color ? extractColorsFromName(color) : undefined);
 
             if (showSwatches && matchVar && (resolvedHex || matchVar.image_url)) {
-              const sSizeClass = getSwatchClasses('color', productSwatchSize, '');
+              const sSizeClass = getSwatchClasses('color', responsiveSwatchSizes, '');
               const isImageSwatch = Boolean(
                 (matchVar.show_image_swatch && matchVar.image_url) ||
                 (!resolvedHex && matchVar.image_url)
@@ -161,10 +184,10 @@ export default function VariantSelector({
       label: 'Size',
       selectedLabel: selectedSize,
       render: () => (
-        <div className="flex flex-wrap gap-2 max-w-sm sm:max-w-md">
+        <div className={`flex flex-wrap gap-2 ${rowAlignClass}`}>
           {sizes.map(size => {
             const isSelected = selectedSize === size;
-            const sSizeClass = getSwatchClasses('text', productSwatchSize, size);
+            const sSizeClass = getSwatchClasses('text', responsiveSwatchSizes, size);
             return (
               <button
                 key={size}
@@ -218,10 +241,10 @@ export default function VariantSelector({
       label: 'Material',
       selectedLabel: selectedMaterial,
       render: () => (
-        <div className="flex flex-wrap gap-2 max-w-sm sm:max-w-md">
+        <div className={`flex flex-wrap gap-2 ${rowAlignClass}`}>
           {materials.map(mat => {
             const isSelected = selectedMaterial === mat;
-            const sSizeClass = getSwatchClasses('text', productSwatchSize, mat);
+            const sSizeClass = getSwatchClasses('text', responsiveSwatchSizes, mat);
             return (
               <button
                 key={mat}
@@ -275,10 +298,10 @@ export default function VariantSelector({
       label: customOptionName || 'Custom',
       selectedLabel: selectedCustomValue,
       render: () => (
-        <div className="flex flex-wrap gap-2 max-w-sm sm:max-w-md">
+        <div className={`flex flex-wrap gap-2 ${rowAlignClass}`}>
           {customValues.map(val => {
             const isSelected = selectedCustomValue === val;
-            const sSizeClass = getSwatchClasses('text', productSwatchSize, val);
+            const sSizeClass = getSwatchClasses('text', responsiveSwatchSizes, val);
             return (
               <button
                 key={val}
@@ -335,8 +358,8 @@ export default function VariantSelector({
         const section = sectionMap[axisType];
         if (!section || !section.hasValues) return null;
         return (
-          <div key={axisType}>
-            <div className="flex items-center gap-2 mb-2.5">
+          <div key={axisType} className={labelAlignClass}>
+            <div className={`flex items-center gap-2 mb-2.5 ${rowAlignClass}`}>
               <span className="text-xs font-bold uppercase tracking-wider text-gray-500">{section.label}</span>
               {section.selectedLabel && (
                 <span className="text-xs font-bold text-[#1a1a2e] dark:text-white">: {section.selectedLabel}</span>

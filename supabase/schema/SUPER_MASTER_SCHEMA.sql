@@ -187,6 +187,214 @@ CREATE INDEX IF NOT EXISTS idx_products_category_active ON products (category_id
 CREATE INDEX IF NOT EXISTS idx_products_featured ON products (is_featured) WHERE is_featured = true;
 
 -- ============================================================
+-- PRODUCT SEARCH OPTIMIZATION
+-- ============================================================
+
+-- Add search_vector column for full-text search
+ALTER TABLE public.products 
+ADD COLUMN IF NOT EXISTS search_vector tsvector;
+
+-- Add age fields for age-aware search
+ALTER TABLE public.products 
+ADD COLUMN IF NOT EXISTS recommended_age_min_months integer,
+ADD COLUMN IF NOT EXISTS recommended_age_max_months integer,
+ADD COLUMN IF NOT EXISTS age_group text;
+
+-- GIN index on search_vector for fast full-text search
+CREATE INDEX IF NOT EXISTS idx_products_search_vector 
+ON public.products USING GIN (search_vector);
+
+-- Trigram indexes for fuzzy matching (requires pg_trgm extension)
+CREATE INDEX IF NOT EXISTS idx_products_name_trgm 
+ON public.products USING GIN (name gin_trgm_ops);
+
+CREATE INDEX IF NOT EXISTS idx_products_description_trgm 
+ON public.products USING GIN (description gin_trgm_ops);
+
+CREATE INDEX IF NOT EXISTS idx_products_short_description_trgm 
+ON public.products USING GIN (short_description gin_trgm_ops);
+
+CREATE INDEX IF NOT EXISTS idx_products_sku_trgm 
+ON public.products USING GIN (sku gin_trgm_ops);
+
+-- Age range index
+CREATE INDEX IF NOT EXISTS idx_products_age_range 
+ON public.products (recommended_age_min_months, recommended_age_max_months);
+
+-- Trigram indexes on variant attributes
+CREATE INDEX IF NOT EXISTS idx_variants_color_trgm 
+ON public.product_variants USING GIN (color gin_trgm_ops);
+
+CREATE INDEX IF NOT EXISTS idx_variants_size_trgm 
+ON public.product_variants USING GIN (size gin_trgm_ops);
+
+CREATE INDEX IF NOT EXISTS idx_variants_material_trgm 
+ON public.product_variants USING GIN (material gin_trgm_ops);
+
+CREATE INDEX IF NOT EXISTS idx_variants_custom_value_trgm 
+ON public.product_variants USING GIN (custom_value gin_trgm_ops);
+
+CREATE INDEX IF NOT EXISTS idx_variants_sku_trgm 
+ON public.product_variants USING GIN (sku gin_trgm_ops);
+
+-- Enable pg_trgm extension for fuzzy matching
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
+-- Function to build search vector from product and related data
+CREATE OR REPLACE FUNCTION public.build_product_search_vector(p_id uuid)
+RETURNS tsvector AS $$
+DECLARE
+  v_vector tsvector := ' ';
+  v_product record;
+  v_variants text := '';
+  v_categories text := '';
+  v_tags text := '';
+BEGIN
+  SELECT p.*, c.name as category_name
+  INTO v_product
+  FROM public.products p
+  LEFT JOIN public.categories c ON p.category_id = c.id
+  WHERE p.id = p_id;
+
+  IF NOT FOUND THEN
+    RETURN ' ';
+  END IF;
+
+  v_vector := v_vector || 
+    setweight(to_tsvector('simple', coalesce(v_product.name, '')), 'A');
+
+  v_vector := v_vector || 
+    setweight(to_tsvector('simple', coalesce(v_product.short_description, '')), 'B') ||
+    setweight(to_tsvector('simple', coalesce(v_product.sku, '')), 'B') ||
+    setweight(to_tsvector('simple', coalesce(v_product.category_name, '')), 'B');
+
+  v_vector := v_vector || 
+    setweight(to_tsvector('simple', coalesce(v_product.description, '')), 'C') ||
+    setweight(to_tsvector('simple', coalesce(array_to_string(v_product.tags, ' '), '')), 'C');
+
+  SELECT string_agg(coalesce(color, '') || ' ' || coalesce(size, '') || ' ' || 
+           coalesce(material, '') || ' ' || coalesce(custom_value, '') || ' ' || 
+           coalesce(sku, ''), ' ')
+  INTO v_variants
+  FROM public.product_variants
+  WHERE product_id = p_id AND active = true;
+
+  IF v_variants != '' THEN
+    v_vector := v_vector || setweight(to_tsvector('simple', v_variants), 'B');
+  END IF;
+
+  SELECT string_agg(c.name, ' ')
+  INTO v_categories
+  FROM public.product_categories pc
+  JOIN public.categories c ON pc.category_id = c.id
+  WHERE pc.product_id = p_id;
+
+  IF v_categories != '' THEN
+    v_vector := v_vector || setweight(to_tsvector('simple', v_categories), 'B');
+  END IF;
+
+  RETURN v_vector;
+END;
+$$ LANGUAGE plpgsql STABLE;
+
+-- Trigger function to update search_vector on product changes
+CREATE OR REPLACE FUNCTION public.update_product_search_vector()
+RETURNS trigger AS $$
+BEGIN
+  NEW.search_vector := public.build_product_search_vector(NEW.id);
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trigger_update_product_search_vector ON public.products;
+CREATE TRIGGER trigger_update_product_search_vector
+BEFORE INSERT OR UPDATE ON public.products
+FOR EACH ROW EXECUTE FUNCTION public.update_product_search_vector();
+
+-- Function to update search vector for all products (run once after migration)
+CREATE OR REPLACE FUNCTION public.refresh_all_product_search_vectors()
+RETURNS void AS $$
+BEGIN
+  UPDATE public.products 
+  SET search_vector = public.build_product_search_vector(id)
+  WHERE deleted_at IS NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger functions to update product search_vector when related data changes
+CREATE OR REPLACE FUNCTION public.update_product_search_vector_on_variant_change()
+RETURNS trigger AS $$
+BEGIN
+  IF TG_OP = 'INSERT' OR TG_OP = 'UPDATE' THEN
+    UPDATE public.products 
+    SET search_vector = public.build_product_search_vector(NEW.product_id)
+    WHERE id = NEW.product_id;
+    RETURN NEW;
+  ELSIF TG_OP = 'DELETE' THEN
+    UPDATE public.products 
+    SET search_vector = public.build_product_search_vector(OLD.product_id)
+    WHERE id = OLD.product_id;
+    RETURN OLD;
+  END IF;
+  RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trigger_variant_search_vector ON public.product_variants;
+CREATE TRIGGER trigger_variant_search_vector
+AFTER INSERT OR UPDATE OR DELETE ON public.product_variants
+FOR EACH ROW EXECUTE FUNCTION public.update_product_search_vector_on_variant_change();
+
+CREATE OR REPLACE FUNCTION public.update_product_search_vector_on_category_change()
+RETURNS trigger AS $$
+BEGIN
+  IF TG_OP = 'INSERT' OR TG_OP = 'UPDATE' THEN
+    UPDATE public.products 
+    SET search_vector = public.build_product_search_vector(NEW.product_id)
+    WHERE id = NEW.product_id;
+    RETURN NEW;
+  ELSIF TG_OP = 'DELETE' THEN
+    UPDATE public.products 
+    SET search_vector = public.build_product_search_vector(OLD.product_id)
+    WHERE id = OLD.product_id;
+    RETURN OLD;
+  END IF;
+  RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trigger_product_category_search_vector ON public.product_categories;
+CREATE TRIGGER trigger_product_category_search_vector
+AFTER INSERT OR UPDATE OR DELETE ON public.product_categories
+FOR EACH ROW EXECUTE FUNCTION public.update_product_search_vector_on_category_change();
+
+CREATE OR REPLACE FUNCTION public.update_product_search_vector_on_category_rename()
+RETURNS trigger AS $$
+BEGIN
+  IF TG_OP = 'UPDATE' AND OLD.name IS DISTINCT FROM NEW.name THEN
+    UPDATE public.products p
+    SET search_vector = public.build_product_search_vector(p.id)
+    FROM public.product_categories pc
+    WHERE pc.product_id = p.id AND pc.category_id = NEW.id;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trigger_category_rename_search_vector ON public.categories;
+CREATE TRIGGER trigger_category_rename_search_vector
+AFTER UPDATE ON public.categories
+FOR EACH ROW EXECUTE FUNCTION public.update_product_search_vector_on_category_rename();
+
+-- Grant execute permissions
+GRANT EXECUTE ON FUNCTION public.build_product_search_vector(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.refresh_all_product_search_vectors() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.update_product_search_vector() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.update_product_search_vector_on_variant_change() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.update_product_search_vector_on_category_change() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.update_product_search_vector_on_category_rename() TO authenticated;
+
+-- ============================================================
 -- PRODUCT IMAGES
 -- ============================================================
 CREATE TABLE IF NOT EXISTS product_images (
@@ -377,8 +585,25 @@ CREATE TABLE IF NOT EXISTS store_settings (
   add_to_cart_animation TEXT DEFAULT 'default',
   enable_fly_to_cart BOOLEAN DEFAULT true,
   archive_swatch_size TEXT DEFAULT 'md',
-  product_swatch_size TEXT DEFAULT 'md',
+  archive_swatch_size_desktop TEXT DEFAULT NULL,
+  archive_swatch_size_tablet TEXT DEFAULT NULL,
+  archive_swatch_size_mobile TEXT DEFAULT NULL,
+  swatch_limit_desktop INTEGER DEFAULT NULL,
+  swatch_limit_tablet INTEGER DEFAULT NULL,
+  swatch_limit_mobile INTEGER DEFAULT NULL,
   archive_swatch_align TEXT DEFAULT 'left',
+  archive_swatch_align_desktop TEXT DEFAULT NULL,
+  archive_swatch_align_tablet TEXT DEFAULT NULL,
+  archive_swatch_align_mobile TEXT DEFAULT NULL,
+  product_swatch_size TEXT DEFAULT 'md',
+  product_swatch_size_desktop TEXT DEFAULT NULL,
+  product_swatch_size_tablet TEXT DEFAULT NULL,
+  product_swatch_size_mobile TEXT DEFAULT NULL,
+  product_swatch_align TEXT DEFAULT 'left',
+  product_swatch_align_desktop TEXT DEFAULT NULL,
+  product_swatch_align_tablet TEXT DEFAULT NULL,
+  product_swatch_align_mobile TEXT DEFAULT NULL,
+  product_swatch_shape TEXT DEFAULT 'circle',
   enable_product_quick_whatsapp BOOLEAN DEFAULT true,
   
   -- Header configuration settings

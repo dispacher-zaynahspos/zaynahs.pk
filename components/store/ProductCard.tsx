@@ -280,9 +280,15 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
     cardAlignment === 'right' ? 'items-end text-right' :
       'items-start text-left';
 
-  const swatchAlign = (settings?.archive_swatch_align || 'left') === 'center' ? 'justify-center' :
-    (settings?.archive_swatch_align || 'left') === 'right' ? 'justify-end' :
-      'justify-start';
+  const alignMob = settings?.archive_swatch_align_mobile || settings?.archive_swatch_align || 'left';
+  const alignTab = settings?.archive_swatch_align_tablet || settings?.archive_swatch_align || 'left';
+  const alignDesk = settings?.archive_swatch_align_desktop || settings?.archive_swatch_align || 'left';
+
+  const swatchAlign = `
+    ${alignMob === 'center' ? 'justify-center' : alignMob === 'right' ? 'justify-end' : 'justify-start'}
+    ${alignTab === 'center' ? 'md:justify-center' : alignTab === 'right' ? 'md:justify-end' : 'md:justify-start'}
+    ${alignDesk === 'center' ? 'lg:justify-center' : alignDesk === 'right' ? 'lg:justify-end' : 'lg:justify-start'}
+  `.trim();
 
   const activeImage = hoveredImage || currentImage;
   const safeStyle = normalizeCardStyle(settings?.card_style);

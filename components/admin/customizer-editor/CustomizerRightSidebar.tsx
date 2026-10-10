@@ -360,6 +360,7 @@ export function CustomizerRightSidebar({
             settings={storeSettings}
             onUpdateSettings={(updates: Partial<StoreSettings>) => setStoreSettings(prev => ({ ...prev, ...updates }))}
             activeSubTab={activeSubTab}
+            viewportMode={viewportMode}
           />
         ) : (
           <GlobalSettings

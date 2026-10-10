@@ -1,61 +1,101 @@
 'use client';
 
-export function getSwatchClasses(type: 'color' | 'text', sizeKey: string, text: string) {
-  const heightMap: Record<string, string> = {
-    xxs: 'h-5',
-    xs: 'h-6',
-    sm: 'h-8',
-    md: 'h-10',
-    lg: 'h-12',
-    xl: 'h-14',
-    xxl: 'h-16'
-  };
-  const widthMap: Record<string, string> = {
-    xxs: 'w-5',
-    xs: 'w-6',
-    sm: 'w-8',
-    md: 'w-10',
-    lg: 'w-12',
-    xl: 'w-14',
-    xxl: 'w-16'
-  };
-  const fontMap: Record<string, string> = {
-    xxs: 'text-[8px]',
-    xs: 'text-[10px]',
-    sm: 'text-xs',
-    md: 'text-sm',
-    lg: 'text-base',
-    xl: 'text-lg',
-    xxl: 'text-xl'
-  };
+export interface ResponsiveSwatchSizes {
+  mobile: string;
+  tablet?: string | null;
+  desktop?: string | null;
+}
 
-  const height = heightMap[sizeKey] || heightMap.md;
-  const fontClass = fontMap[sizeKey] || fontMap.md;
+const heightMap: Record<string, string> = {
+  xxs: 'h-5',
+  xs: 'h-6',
+  sm: 'h-8',
+  md: 'h-10',
+  lg: 'h-12',
+  xl: 'h-14',
+  xxl: 'h-16',
+};
+
+const widthMap: Record<string, string> = {
+  xxs: 'w-5',
+  xs: 'w-6',
+  sm: 'w-8',
+  md: 'w-10',
+  lg: 'w-12',
+  xl: 'w-14',
+  xxl: 'w-16',
+};
+
+const fontMap: Record<string, string> = {
+  xxs: 'text-[8px]',
+  xs: 'text-[10px]',
+  sm: 'text-xs',
+  md: 'text-sm',
+  lg: 'text-base',
+  xl: 'text-lg',
+  xxl: 'text-xl',
+};
+
+function getMinWidthClass(sizeKey: string): string {
+  switch (sizeKey) {
+    case 'xxs': return 'min-w-[20px] px-1';
+    case 'xs': return 'min-w-[26px] px-1.5';
+    case 'sm': return 'min-w-[32px] px-1.5';
+    case 'lg': return 'min-w-[48px] px-2.5';
+    case 'xl': return 'min-w-[56px] px-3';
+    case 'xxl': return 'min-w-[64px] px-3.5';
+    default: return 'min-w-[40px] px-2';
+  }
+}
+
+function getAdjustedFont(sizeKey: string, text: string): string {
+  const base = fontMap[sizeKey] || fontMap.md;
+  if (text.length <= 3) return base;
+  switch (sizeKey) {
+    case 'xxs': return 'text-[6.5px]';
+    case 'xs': return 'text-[8px]';
+    case 'sm': return 'text-[9.5px]';
+    case 'lg': return 'text-xs';
+    case 'xl': return 'text-sm';
+    case 'xxl': return 'text-base';
+    default: return 'text-[11px]';
+  }
+}
+
+function getSinglePartClasses(type: 'color' | 'text', sizeKey: string, text: string) {
+  const h = heightMap[sizeKey] || heightMap.md;
+  const w = widthMap[sizeKey] || widthMap.md;
+  const font = getAdjustedFont(sizeKey, text);
+  const minW = getMinWidthClass(sizeKey);
+  return { h, w, font, minW };
+}
+
+export function getSwatchClasses(
+  type: 'color' | 'text',
+  sizeKeyOrResponsive: string | ResponsiveSwatchSizes,
+  text: string
+): string {
+  if (typeof sizeKeyOrResponsive === 'string') {
+    const single = getSinglePartClasses(type, sizeKeyOrResponsive, text);
+    return type === 'color' ? `${single.h} ${single.w}` : `${single.h} ${single.minW} ${single.font}`;
+  }
+
+  const mobKey = sizeKeyOrResponsive.mobile || 'md';
+  const tabKey = sizeKeyOrResponsive.tablet || mobKey;
+  const deskKey = sizeKeyOrResponsive.desktop || tabKey;
+
+  const m = getSinglePartClasses(type, mobKey, text);
+  const t = getSinglePartClasses(type, tabKey, text);
+  const d = getSinglePartClasses(type, deskKey, text);
+
+  if (mobKey === tabKey && tabKey === deskKey) {
+    return type === 'color' ? `${m.h} ${m.w}` : `${m.h} ${m.minW} ${m.font}`;
+  }
 
   if (type === 'color') {
-    const width = widthMap[sizeKey] || widthMap.md;
-    return `${height} ${width}`;
-  } else {
-    const minWidthClass =
-      sizeKey === 'xxs' ? 'min-w-[20px] px-1' :
-      sizeKey === 'xs' ? 'min-w-[26px] px-1.5' :
-      sizeKey === 'sm' ? 'min-w-[32px] px-1.5' :
-      sizeKey === 'lg' ? 'min-w-[48px] px-2.5' :
-      sizeKey === 'xl' ? 'min-w-[56px] px-3' :
-      sizeKey === 'xxl' ? 'min-w-[64px] px-3.5' :
-      'min-w-[40px] px-2';
-
-    let adjustedFont = fontClass;
-    if (text.length > 3) {
-      adjustedFont =
-        sizeKey === 'xxs' ? 'text-[6.5px]' :
-        sizeKey === 'xs' ? 'text-[8px]' :
-        sizeKey === 'sm' ? 'text-[9.5px]' :
-        sizeKey === 'lg' ? 'text-xs' :
-        sizeKey === 'xl' ? 'text-sm' :
-        sizeKey === 'xxl' ? 'text-base' :
-        'text-[11px]';
-    }
-    return `${height} ${minWidthClass} ${adjustedFont}`;
+    return `${m.h} ${m.w} md:${t.h} md:${t.w} lg:${d.h} lg:${d.w}`;
   }
+
+  // Text variant responsive classes
+  return `${m.h} md:${t.h} lg:${d.h} ${m.minW} md:${t.minW} lg:${d.minW} ${m.font} md:${t.font} lg:${d.font}`;
 }

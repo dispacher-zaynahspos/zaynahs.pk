@@ -58,11 +58,62 @@ export function useSettingsTrustAndProducts({ initialSettings }: UseSettingsTrus
   const [archiveSwatchSize, setArchiveSwatchSize] = useState<'xxs' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'xxl'>(
     initialSettings.archive_swatch_size ?? 'md'
   );
-  const [productSwatchSize, setProductSwatchSize] = useState<'xxs' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'xxl'>(
-    initialSettings.product_swatch_size ?? 'md'
+  const [archiveSwatchSizeDesktop, setArchiveSwatchSizeDesktop] = useState<'xxs' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'xxl' | null>(
+    initialSettings.archive_swatch_size_desktop ?? null
+  );
+  const [archiveSwatchSizeTablet, setArchiveSwatchSizeTablet] = useState<'xxs' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'xxl' | null>(
+    initialSettings.archive_swatch_size_tablet ?? null
+  );
+  const [archiveSwatchSizeMobile, setArchiveSwatchSizeMobile] = useState<'xxs' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'xxl' | null>(
+    initialSettings.archive_swatch_size_mobile ?? null
+  );
+  const [swatchLimitDesktop, setSwatchLimitDesktop] = useState<number | null>(
+    initialSettings.swatch_limit_desktop ?? null
+  );
+  const [swatchLimitTablet, setSwatchLimitTablet] = useState<number | null>(
+    initialSettings.swatch_limit_tablet ?? null
+  );
+  const [swatchLimitMobile, setSwatchLimitMobile] = useState<number | null>(
+    initialSettings.swatch_limit_mobile ?? null
   );
   const [archiveSwatchAlign, setArchiveSwatchAlign] = useState<'left' | 'center' | 'right'>(
     initialSettings.archive_swatch_align ?? 'left'
+  );
+  const [archiveSwatchAlignDesktop, setArchiveSwatchAlignDesktop] = useState<'left' | 'center' | 'right' | null>(
+    initialSettings.archive_swatch_align_desktop ?? null
+  );
+  const [archiveSwatchAlignTablet, setArchiveSwatchAlignTablet] = useState<'left' | 'center' | 'right' | null>(
+    initialSettings.archive_swatch_align_tablet ?? null
+  );
+  const [archiveSwatchAlignMobile, setArchiveSwatchAlignMobile] = useState<'left' | 'center' | 'right' | null>(
+    initialSettings.archive_swatch_align_mobile ?? null
+  );
+  const [productSwatchSize, setProductSwatchSize] = useState<'xxs' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'xxl'>(
+    initialSettings.product_swatch_size ?? 'md'
+  );
+  const [productSwatchSizeDesktop, setProductSwatchSizeDesktop] = useState<'xxs' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'xxl' | null>(
+    initialSettings.product_swatch_size_desktop ?? null
+  );
+  const [productSwatchSizeTablet, setProductSwatchSizeTablet] = useState<'xxs' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'xxl' | null>(
+    initialSettings.product_swatch_size_tablet ?? null
+  );
+  const [productSwatchSizeMobile, setProductSwatchSizeMobile] = useState<'xxs' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'xxl' | null>(
+    initialSettings.product_swatch_size_mobile ?? null
+  );
+  const [productSwatchAlign, setProductSwatchAlign] = useState<'left' | 'center' | 'right'>(
+    initialSettings.product_swatch_align ?? 'left'
+  );
+  const [productSwatchAlignDesktop, setProductSwatchAlignDesktop] = useState<'left' | 'center' | 'right' | null>(
+    initialSettings.product_swatch_align_desktop ?? null
+  );
+  const [productSwatchAlignTablet, setProductSwatchAlignTablet] = useState<'left' | 'center' | 'right' | null>(
+    initialSettings.product_swatch_align_tablet ?? null
+  );
+  const [productSwatchAlignMobile, setProductSwatchAlignMobile] = useState<'left' | 'center' | 'right' | null>(
+    initialSettings.product_swatch_align_mobile ?? null
+  );
+  const [productSwatchShape, setProductSwatchShape] = useState<'circle' | 'square'>(
+    initialSettings.product_swatch_shape ?? 'circle'
   );
   const [cardShowDescription, setCardShowDescription] = useState(initialSettings.card_show_description ?? true);
   const [cardShowSwatches, setCardShowSwatches] = useState(initialSettings.card_show_swatches ?? true);
@@ -156,10 +207,44 @@ export function useSettingsTrustAndProducts({ initialSettings }: UseSettingsTrus
     setEnableFlyToCart,
     archiveSwatchSize,
     setArchiveSwatchSize,
-    productSwatchSize,
-    setProductSwatchSize,
+    archiveSwatchSizeDesktop,
+    setArchiveSwatchSizeDesktop,
+    archiveSwatchSizeTablet,
+    setArchiveSwatchSizeTablet,
+    archiveSwatchSizeMobile,
+    setArchiveSwatchSizeMobile,
+    swatchLimitDesktop,
+    setSwatchLimitDesktop,
+    swatchLimitTablet,
+    setSwatchLimitTablet,
+    swatchLimitMobile,
+    setSwatchLimitMobile,
     archiveSwatchAlign,
     setArchiveSwatchAlign,
+    archiveSwatchAlignDesktop,
+    setArchiveSwatchAlignDesktop,
+    archiveSwatchAlignTablet,
+    setArchiveSwatchAlignTablet,
+    archiveSwatchAlignMobile,
+    setArchiveSwatchAlignMobile,
+    productSwatchSize,
+    setProductSwatchSize,
+    productSwatchSizeDesktop,
+    setProductSwatchSizeDesktop,
+    productSwatchSizeTablet,
+    setProductSwatchSizeTablet,
+    productSwatchSizeMobile,
+    setProductSwatchSizeMobile,
+    productSwatchAlign,
+    setProductSwatchAlign,
+    productSwatchAlignDesktop,
+    setProductSwatchAlignDesktop,
+    productSwatchAlignTablet,
+    setProductSwatchAlignTablet,
+    productSwatchAlignMobile,
+    setProductSwatchAlignMobile,
+    productSwatchShape,
+    setProductSwatchShape,
     cardShowDescription,
     setCardShowDescription,
     cardShowSwatches,

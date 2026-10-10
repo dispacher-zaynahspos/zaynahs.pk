@@ -2,22 +2,14 @@
 
 import { Category } from '@/lib/types';
 import { SHOP_CATEGORY_ID } from '@/lib/config/singleton-ids';
-import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 import { revalidateCategory, revalidateTagSafe } from '@/lib/revalidate';
 import { mapCategory } from './types';
 import { safeAction } from '@/lib/utils/serverAction';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder';
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || supabaseAnonKey;
-const staticSupabase = createSupabaseClient(supabaseUrl, supabaseServiceKey, {
-  auth: { persistSession: false, autoRefreshToken: false },
-  global: { fetch: (url, init) => fetch(url, { ...init, cache: 'no-store' }) }
-});
-
 export const createCategory = async (category: Omit<Category, 'id' | 'created_at' | 'updated_at'>): Promise<Category> => {
   try {
-    const supabase = staticSupabase;
+    const supabase = supabaseAdmin;
     const { data, error } = await supabase
       .from('categories')
       .insert({
@@ -47,7 +39,7 @@ export const createCategory = async (category: Omit<Category, 'id' | 'created_at
 
 export const updateCategory = async (id: string, category: Partial<Category>): Promise<Category> => {
   try {
-    const supabase = staticSupabase;
+    const supabase = supabaseAdmin;
     const updatePayload: Record<string, string | number | boolean | null | undefined> = {};
     if (category.name !== undefined) updatePayload.name = category.name;
     if (category.slug !== undefined) updatePayload.slug = category.slug;
@@ -84,7 +76,7 @@ export const deleteCategory = async (id: string): Promise<void> => {
       throw new Error('The system "All Products" category cannot be deleted.');
     }
 
-    const supabase = staticSupabase;
+    const supabase = supabaseAdmin;
     const { data: catData } = await supabase
       .from('categories')
       .select('slug')
@@ -115,7 +107,7 @@ export const deleteCategory = async (id: string): Promise<void> => {
 
 export const restoreCategory = async (id: string): Promise<void> => {
   try {
-    const supabase = staticSupabase;
+    const supabase = supabaseAdmin;
     
     const { data: catData } = await supabase
       .from('categories')
@@ -146,7 +138,7 @@ export const restoreCategory = async (id: string): Promise<void> => {
 
 export const hardDeleteCategory = async (id: string): Promise<void> => {
   try {
-    const supabase = staticSupabase;
+    const supabase = supabaseAdmin;
     const { error } = await supabase
       .from('categories')
       .delete()

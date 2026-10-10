@@ -134,10 +134,10 @@ export default function RichTextEditor({
 
   return (
     <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-[#0f0f1b]/50 overflow-hidden mt-1.5 transition-colors">
-      {/* Formatting Toolbar */}
-      <div className="flex items-center justify-between px-2.5 py-1.5 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#1a1a2e] transition-colors gap-1.5 flex-wrap">
+      {/* Formatting Toolbar - Solid neutral background resistant to theme color clashes */}
+      <div className="flex items-center justify-between px-2.5 py-1.5 border-b border-gray-200 dark:border-gray-800 bg-slate-100 dark:bg-[#1a1a2e] transition-colors gap-1.5 flex-wrap">
         
-        <div className="flex items-center gap-0.5 flex-wrap">
+        <div className="flex items-center gap-1 flex-wrap">
           {!isHtmlMode ? (
             <>
               {/* History / Undo & Redo */}
@@ -145,7 +145,7 @@ export default function RichTextEditor({
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => execCommand('undo')}
-                className="p-1.5 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-[#2c2c4d] hover:text-[#e94560] transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-[#262646] hover:text-[var(--color-primary,#e94560)] transition-all cursor-pointer shadow-2xs"
                 title="Undo (Ctrl+Z)"
               >
                 <Undo className="h-3.5 w-3.5" />
@@ -154,20 +154,20 @@ export default function RichTextEditor({
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => execCommand('redo')}
-                className="p-1.5 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-[#2c2c4d] hover:text-[#e94560] transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-[#262646] hover:text-[var(--color-primary,#e94560)] transition-all cursor-pointer shadow-2xs"
                 title="Redo (Ctrl+Y)"
               >
                 <RotateCw className="h-3.5 w-3.5" />
               </button>
 
-              <div className="w-px h-4 bg-gray-200 dark:bg-gray-700 mx-1 shrink-0" />
+              <div className="w-px h-4 bg-gray-300 dark:bg-gray-700 mx-1 shrink-0" />
 
-              {/* Headings & Paragraph */}
+              {/* Headings & Paragraph - High-contrast pills */}
               <button
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => execCommand('formatBlock', '<h1>')}
-                className="px-1.5 py-1 rounded-md text-[10px] font-black text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-[#2c2c4d] hover:text-[#e94560] transition-colors cursor-pointer"
+                className="px-2 py-1 rounded-md text-[11px] font-black bg-white dark:bg-[#22223d] border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white hover:border-[var(--color-primary,#e94560)] hover:text-[var(--color-primary,#e94560)] shadow-2xs transition-all cursor-pointer"
                 title="Heading 1"
               >
                 H1
@@ -176,7 +176,7 @@ export default function RichTextEditor({
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => execCommand('formatBlock', '<h2>')}
-                className="px-1.5 py-1 rounded-md text-[10px] font-bold text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-[#2c2c4d] hover:text-[#e94560] transition-colors cursor-pointer"
+                className="px-2 py-1 rounded-md text-[11px] font-bold bg-white dark:bg-[#22223d] border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white hover:border-[var(--color-primary,#e94560)] hover:text-[var(--color-primary,#e94560)] shadow-2xs transition-all cursor-pointer"
                 title="Heading 2"
               >
                 H2
@@ -185,7 +185,7 @@ export default function RichTextEditor({
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => execCommand('formatBlock', '<h3>')}
-                className="px-1.5 py-1 rounded-md text-[10px] font-bold text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-[#2c2c4d] hover:text-[#e94560] transition-colors cursor-pointer"
+                className="px-2 py-1 rounded-md text-[11px] font-bold bg-white dark:bg-[#22223d] border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white hover:border-[var(--color-primary,#e94560)] hover:text-[var(--color-primary,#e94560)] shadow-2xs transition-all cursor-pointer"
                 title="Heading 3"
               >
                 H3
@@ -194,20 +194,20 @@ export default function RichTextEditor({
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => execCommand('formatBlock', '<p>')}
-                className="px-1.5 py-1 rounded-md text-[9.5px] font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-[#2c2c4d] hover:text-[#e94560] transition-colors cursor-pointer"
+                className="px-2 py-1 rounded-md text-[10px] font-semibold bg-white dark:bg-[#22223d] border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white hover:border-[var(--color-primary,#e94560)] hover:text-[var(--color-primary,#e94560)] shadow-2xs transition-all cursor-pointer"
                 title="Normal Paragraph"
               >
                 Normal
               </button>
 
-              <div className="w-px h-4 bg-gray-200 dark:bg-gray-700 mx-1 shrink-0" />
+              <div className="w-px h-4 bg-gray-300 dark:bg-gray-700 mx-1 shrink-0" />
 
               {/* Text Styles: Bold, Italic, Underline, Strikethrough, Code */}
               <button
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => execCommand('bold')}
-                className="p-1.5 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-[#2c2c4d] hover:text-[#e94560] transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-[#262646] hover:text-[var(--color-primary,#e94560)] transition-all cursor-pointer shadow-2xs"
                 title="Bold (Ctrl+B)"
               >
                 <Bold className="h-3.5 w-3.5" />
@@ -216,7 +216,7 @@ export default function RichTextEditor({
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => execCommand('italic')}
-                className="p-1.5 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-[#2c2c4d] hover:text-[#e94560] transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-[#262646] hover:text-[var(--color-primary,#e94560)] transition-all cursor-pointer shadow-2xs"
                 title="Italic (Ctrl+I)"
               >
                 <Italic className="h-3.5 w-3.5" />
@@ -225,7 +225,7 @@ export default function RichTextEditor({
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => execCommand('underline')}
-                className="p-1.5 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-[#2c2c4d] hover:text-[#e94560] transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-[#262646] hover:text-[var(--color-primary,#e94560)] transition-all cursor-pointer shadow-2xs"
                 title="Underline (Ctrl+U)"
               >
                 <Underline className="h-3.5 w-3.5" />
@@ -234,13 +234,13 @@ export default function RichTextEditor({
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => execCommand('strikeThrough')}
-                className="p-1.5 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-[#2c2c4d] hover:text-[#e94560] transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-[#262646] hover:text-[var(--color-primary,#e94560)] transition-all cursor-pointer shadow-2xs"
                 title="Strikethrough"
               >
                 <Strikethrough className="h-3.5 w-3.5" />
               </button>
 
-              <div className="w-px h-4 bg-gray-200 dark:bg-gray-700 mx-1 shrink-0" />
+              <div className="w-px h-4 bg-gray-300 dark:bg-gray-700 mx-1 shrink-0" />
 
               {/* Text Color Picker Tool */}
               <div className="relative" ref={colorMenuRef}>
@@ -347,14 +347,14 @@ export default function RichTextEditor({
                 )}
               </div>
 
-              <div className="w-px h-4 bg-gray-200 dark:bg-gray-700 mx-1 shrink-0" />
+              <div className="w-px h-4 bg-gray-300 dark:bg-gray-700 mx-1 shrink-0" />
 
               {/* Alignments */}
               <button
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => execCommand('justifyLeft')}
-                className="p-1.5 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-[#2c2c4d] hover:text-[#e94560] transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-[#262646] hover:text-[var(--color-primary,#e94560)] transition-all cursor-pointer shadow-2xs"
                 title="Align Left"
               >
                 <AlignLeft className="h-3.5 w-3.5" />
@@ -363,7 +363,7 @@ export default function RichTextEditor({
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => execCommand('justifyCenter')}
-                className="p-1.5 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-[#2c2c4d] hover:text-[#e94560] transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-[#262646] hover:text-[var(--color-primary,#e94560)] transition-all cursor-pointer shadow-2xs"
                 title="Align Center"
               >
                 <AlignCenter className="h-3.5 w-3.5" />
@@ -372,7 +372,7 @@ export default function RichTextEditor({
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => execCommand('justifyRight')}
-                className="p-1.5 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-[#2c2c4d] hover:text-[#e94560] transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-[#262646] hover:text-[var(--color-primary,#e94560)] transition-all cursor-pointer shadow-2xs"
                 title="Align Right"
               >
                 <AlignRight className="h-3.5 w-3.5" />
@@ -381,20 +381,20 @@ export default function RichTextEditor({
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => execCommand('justifyFull')}
-                className="p-1.5 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-[#2c2c4d] hover:text-[#e94560] transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-[#262646] hover:text-[var(--color-primary,#e94560)] transition-all cursor-pointer shadow-2xs"
                 title="Justify"
               >
                 <AlignJustify className="h-3.5 w-3.5" />
               </button>
 
-              <div className="w-px h-4 bg-gray-200 dark:bg-gray-700 mx-1 shrink-0" />
+              <div className="w-px h-4 bg-gray-300 dark:bg-gray-700 mx-1 shrink-0" />
 
               {/* Lists, Quote & Divider */}
               <button
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => execCommand('insertUnorderedList')}
-                className="p-1.5 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-[#2c2c4d] hover:text-[#e94560] transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-[#262646] hover:text-[var(--color-primary,#e94560)] transition-all cursor-pointer shadow-2xs"
                 title="Bullet List"
               >
                 <List className="h-3.5 w-3.5" />
@@ -403,7 +403,7 @@ export default function RichTextEditor({
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => execCommand('insertOrderedList')}
-                className="p-1.5 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-[#2c2c4d] hover:text-[#e94560] transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-[#262646] hover:text-[var(--color-primary,#e94560)] transition-all cursor-pointer shadow-2xs"
                 title="Numbered List"
               >
                 <ListOrdered className="h-3.5 w-3.5" />
@@ -412,7 +412,7 @@ export default function RichTextEditor({
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => execCommand('formatBlock', '<blockquote>')}
-                className="p-1.5 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-[#2c2c4d] hover:text-[#e94560] transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-[#262646] hover:text-[var(--color-primary,#e94560)] transition-all cursor-pointer shadow-2xs"
                 title="Blockquote"
               >
                 <Quote className="h-3.5 w-3.5" />
@@ -421,20 +421,20 @@ export default function RichTextEditor({
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => execCommand('insertHorizontalRule')}
-                className="p-1.5 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-[#2c2c4d] hover:text-[#e94560] transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-[#262646] hover:text-[var(--color-primary,#e94560)] transition-all cursor-pointer shadow-2xs"
                 title="Insert Divider Line"
               >
                 <Minus className="h-3.5 w-3.5" />
               </button>
 
-              <div className="w-px h-4 bg-gray-200 dark:bg-gray-700 mx-1 shrink-0" />
+              <div className="w-px h-4 bg-gray-300 dark:bg-gray-700 mx-1 shrink-0" />
 
               {/* Insert Link & Remove Link */}
               <button
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={handleInsertLink}
-                className="p-1.5 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-[#2c2c4d] hover:text-[#e94560] transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-[#262646] hover:text-[var(--color-primary,#e94560)] transition-all cursor-pointer shadow-2xs"
                 title="Insert Link"
               >
                 <LinkIcon className="h-3.5 w-3.5" />
@@ -443,25 +443,25 @@ export default function RichTextEditor({
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => execCommand('unlink')}
-                className="p-1.5 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-[#2c2c4d] hover:text-red-500 transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-[#262646] hover:text-red-500 transition-all cursor-pointer shadow-2xs"
                 title="Remove Link"
               >
                 <Unlink className="h-3.5 w-3.5" />
               </button>
 
-              {/* Clear Formatting */}
+              {/* Clear Formatting - High-contrast badge */}
               <button
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => execCommand('removeFormat')}
-                className="px-2 py-1 rounded-md text-[10px] font-semibold text-gray-400 hover:bg-gray-200 dark:hover:bg-[#2c2c4d] hover:text-red-500 transition-colors cursor-pointer shrink-0 ml-1"
+                className="px-2.5 py-1 rounded-md text-[10px] font-extrabold uppercase tracking-wide bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/50 shadow-2xs transition-all cursor-pointer shrink-0 ml-1 active:scale-95"
                 title="Clear Formatting"
               >
                 Clear Format
               </button>
             </>
           ) : (
-            <span className="text-xs font-bold text-gray-400 dark:text-gray-500 px-2 py-1">
+            <span className="text-xs font-bold text-gray-500 dark:text-gray-400 px-2 py-1">
               HTML Code View
             </span>
           )}
@@ -471,7 +471,7 @@ export default function RichTextEditor({
         <button
           type="button"
           onClick={() => setIsHtmlMode(!isHtmlMode)}
-          className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white dark:bg-[#16162a] border border-gray-200 dark:border-gray-800 text-xs font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#2c2c4d] hover:text-[#e94560] transition-colors cursor-pointer shadow-xs active:scale-95 shrink-0"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-[#202038] border border-gray-300 dark:border-gray-700 text-xs font-bold text-gray-800 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-[#2c2c4d] hover:border-[var(--color-primary,#e94560)] hover:text-[var(--color-primary,#e94560)] transition-all cursor-pointer shadow-xs active:scale-95 shrink-0"
         >
           {isHtmlMode ? (
             <>

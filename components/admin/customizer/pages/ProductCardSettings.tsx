@@ -24,9 +24,15 @@ interface ProductCardSettingsProps {
   settings: StoreSettings;
   onUpdateSettings: (updates: Partial<StoreSettings>) => void;
   activeSubTab?: string;
+  viewportMode?: 'desktop' | 'tablet' | 'mobile';
 }
 
-export default function ProductCardSettings({ settings, onUpdateSettings, activeSubTab = 'style' }: ProductCardSettingsProps) {
+export default function ProductCardSettings({
+  settings,
+  onUpdateSettings,
+  activeSubTab = 'style',
+  viewportMode = 'desktop',
+}: ProductCardSettingsProps) {
   const activeStyle = normalizeCardStyle(settings.card_style);
   const activeVariant = settings.card_variant || 'v1';
   const showStars = settings.card_show_stars !== false;
@@ -231,6 +237,7 @@ export default function ProductCardSettings({ settings, onUpdateSettings, active
         <ProductCardSwatchSettingsSection
           settings={settings}
           onUpdateSettings={onUpdateSettings}
+          viewportMode={viewportMode}
         />
       )}
 

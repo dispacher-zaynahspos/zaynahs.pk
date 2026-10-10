@@ -7,6 +7,7 @@ import ProductSaleSubTab from './product-detail/ProductSaleSubTab';
 import ProductSocialFeedSubTab from './product-detail/ProductSocialFeedSubTab';
 import ProductLayoutSubTab from './product-detail/ProductLayoutSubTab';
 import ResponsiveGridColumnsControl from '@/components/admin/customizer/shared/ResponsiveGridColumnsControl';
+import { ResponsiveProductDetailSwatchControl } from '@/components/admin/customizer/shared/ResponsiveSwatchControls';
 import { ATC_ANIMATION_OPTIONS } from '@/lib/constants/productCardOptions';
 import { Star, MessageSquare } from '@/components/common/Icons';
 
@@ -402,19 +403,12 @@ export default function ProductDetailPageSettings({
             </label>
           </div>
 
-          <div className="space-y-1.5 border-t border-gray-100 dark:border-gray-800/80 pt-3">
-            <label className="text-[11px] font-bold text-gray-700 dark:text-gray-300 block uppercase tracking-wider">
-              Product Swatch Size
-            </label>
-            <select
-              value={settings.product_swatch_size || 'md'}
-              onChange={(e) => onUpdateSettings({ product_swatch_size: e.target.value as any })}
-              className="w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#0f0f1b] px-3 py-2 text-xs font-semibold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
-            >
-              {['xxs', 'xs', 'sm', 'md', 'lg', 'xl', 'xxl'].map((sz) => (
-                <option key={sz} value={sz}>{sz.toUpperCase()}</option>
-              ))}
-            </select>
+          <div className="border-t border-gray-100 dark:border-gray-800/80 pt-3">
+            <ResponsiveProductDetailSwatchControl
+              settings={settings}
+              onUpdateSettings={onUpdateSettings}
+              viewportMode={viewportMode}
+            />
           </div>
         </div>
       </div>

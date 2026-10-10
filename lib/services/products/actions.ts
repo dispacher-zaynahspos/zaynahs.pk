@@ -2,7 +2,7 @@
 
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { Product, ProductImage, ProductVariant, ProductModifier } from '@/lib/types';
-import { revalidateProduct, revalidateTagSafe, revalidateAfterResponse } from '@/lib/revalidate';
+import { revalidateProduct, revalidateTagSafe, revalidateAfterResponse, revalidateStorefrontEdge } from '@/lib/revalidate';
 import { SHOP_CATEGORY_ID } from '@/lib/config/singleton-ids';
 import { getProductById } from './queries';
 import { slugify } from '@/lib/utils/slugify';
@@ -722,5 +722,154 @@ export async function bulkUpdateInventoryAction(payload: BulkInventoryPayload): 
     }
   }
   revalidateTagSafe('products');
+}
+
+/**
+ * Server Action: Add products to a category using service role (bypasses RLS)
+ */
+export async function addProductsToCategoryAction(
+  productIds: string[],
+  categoryId: string
+): Promise<void> {
+  if (!productIds || productIds.length === 0 || !categoryId) return;
+  try {
+    const supabase = supabaseAdmin;
+    const inserts = productIds.map(productId => ({
+      product_id: productId,
+      category_id: categoryId,
+    }));
+
+    const { error: relError } = await supabase
+      .from('product_categories')
+      .upsert(inserts, { onConflict: 'product_id,category_id', ignoreDuplicates: true });
+
+    if (relError) throw relError;
+
+    const { data: prodData } = await supabase
+      .from('products')
+      .select('id, slug, category_id')
+      .in('id', productIds);
+
+    if (prodData && prodData.length > 0) {
+      const nullCatProdIds = prodData.filter(p => !p.category_id).map(p => p.id);
+      if (nullCatProdIds.length > 0) {
+        await supabase
+          .from('products')
+          .update({ category_id: categoryId })
+          .in('id', nullCatProdIds);
+      }
+
+      const revalidatePromises = prodData
+        .filter(prod => prod.slug)
+        .map(prod =>
+          revalidateProduct(prod.slug!).catch(e =>
+            console.error(`[products] revalidateProduct failed for ${prod.slug}:`, e)
+          )
+        );
+      await Promise.allSettled(revalidatePromises);
+    }
+
+    revalidateTagSafe('products');
+    revalidateTagSafe('categories');
+    await revalidateAfterResponse(async () => {
+      await revalidateStorefrontEdge('products', 'categories');
+    });
+  } catch (error) {
+    console.error('[products] addProductsToCategoryAction failed:', error);
+    throw error;
+  }
+}
+
+/**
+ * Server Action: Remove products from a category using service role (bypasses RLS)
+ */
+export async function removeProductsFromCategoryAction(
+  productIds: string[],
+  categoryId: string
+): Promise<void> {
+  if (categoryId === SHOP_CATEGORY_ID) return;
+  if (!productIds || productIds.length === 0) return;
+  try {
+    const supabase = supabaseAdmin;
+    const { error: relError } = await supabase
+      .from('product_categories')
+      .delete()
+      .eq('category_id', categoryId)
+      .in('product_id', productIds);
+
+    if (relError) throw relError;
+
+    const { data: prodData } = await supabase
+      .from('products')
+      .select('id, slug, category_id')
+      .in('id', productIds);
+
+    if (prodData && prodData.length > 0) {
+      const primaryCatProdIds = prodData.filter(p => p.category_id === categoryId).map(p => p.id);
+      if (primaryCatProdIds.length > 0) {
+        await supabase
+          .from('products')
+          .update({ category_id: null })
+          .in('id', primaryCatProdIds);
+      }
+
+      const revalidatePromises = prodData
+        .filter(prod => prod.slug)
+        .map(prod =>
+          revalidateProduct(prod.slug!).catch(e =>
+            console.error(`[products] revalidateProduct failed for ${prod.slug}:`, e)
+          )
+        );
+      await Promise.allSettled(revalidatePromises);
+    }
+
+    revalidateTagSafe('products');
+    revalidateTagSafe('categories');
+    await revalidateAfterResponse(async () => {
+      await revalidateStorefrontEdge('products', 'categories');
+    });
+  } catch (error) {
+    console.error('[products] removeProductsFromCategoryAction failed:', error);
+    throw error;
+  }
+}
+
+/**
+ * Server Action: Update sort order and sort preference for category products
+ */
+export async function updateCategorySortOrderAction(
+  categoryId: string,
+  productIds: string[],
+  activeSortPreference?: string
+): Promise<void> {
+  try {
+    const supabase = supabaseAdmin;
+    if (productIds && productIds.length > 0) {
+      await Promise.all(
+        productIds.map((id, idx) =>
+          supabase
+            .from('products')
+            .update({ sort_order: idx + 1 })
+            .eq('id', id)
+        )
+      );
+    }
+
+    if (activeSortPreference) {
+      await supabase
+        .from('categories')
+        .update({ active_sort_preference: activeSortPreference })
+        .eq('id', categoryId);
+    }
+
+    revalidateTagSafe('products');
+    revalidateTagSafe('categories');
+    await revalidateAfterResponse(async () => {
+      await revalidateStorefrontEdge('products', 'categories');
+    });
+  } catch (error) {
+    console.error('[products] updateCategorySortOrderAction failed:', error);
+    throw error;
+  }
 }
 

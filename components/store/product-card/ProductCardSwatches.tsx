@@ -40,15 +40,45 @@ export const ProductCardSwatches: React.FC<ProductCardSwatchesProps> = ({
   const showVariation4 = isSwatchesEnabled && (settings?.card_show_custom !== false);
   const showVariation5 = isSwatchesEnabled && (settings?.card_show_custom_2 !== false);
 
+  // Responsive Archive Swatch Size (Desktop, Tablet, Mobile)
+  const responsiveSwatchSizes = {
+    mobile: settings?.archive_swatch_size_mobile || archiveSwatchSize || settings?.archive_swatch_size || 'md',
+    tablet: settings?.archive_swatch_size_tablet || archiveSwatchSize || settings?.archive_swatch_size || 'md',
+    desktop: settings?.archive_swatch_size_desktop || archiveSwatchSize || settings?.archive_swatch_size || 'md',
+  };
+
+  // Responsive Swatch Limits (Desktop, Tablet, Mobile)
+  const limitMob = settings?.swatch_limit_mobile || settings?.swatch_limit || 4;
+  const limitTab = settings?.swatch_limit_tablet || settings?.swatch_limit || 6;
+  const limitDesk = settings?.swatch_limit_desktop || settings?.swatch_limit || 8;
+  const maxLimit = Math.max(limitMob, limitTab, limitDesk);
+
   const renderedGroups: React.ReactNode[] = [];
 
+  const getVisibilityClass = (i: number) => {
+    const inMob = i < limitMob;
+    const inTab = i < limitTab;
+    const inDesk = i < limitDesk;
+
+    if (inMob && inTab && inDesk) return 'flex';
+    if (!inMob && inTab && inDesk) return 'hidden md:flex';
+    if (!inMob && !inTab && inDesk) return 'hidden lg:flex';
+    if (inMob && !inTab && !inDesk) return 'flex md:hidden';
+    if (inMob && inTab && !inDesk) return 'flex lg:hidden';
+    return 'hidden';
+  };
+
   const renderGroupElement = (group: VariationGroup) => {
+    const hasMoreMob = group.variants.length > limitMob;
+    const hasMoreTab = group.variants.length > limitTab;
+    const hasMoreDesk = group.variants.length > limitDesk;
+
     if (group.type === 'color') {
       return (
         <div key="colors" className={`flex items-center gap-1.5 flex-wrap ${swatchAlign}`}>
-          {group.variants.slice(0, settings?.swatch_limit ?? 8).map((v, i) => {
+          {group.variants.slice(0, maxLimit).map((v, i) => {
             const isActive = currentVariant?.color === v.color;
-            const sSizeClass = getSwatchClasses('color', archiveSwatchSize, '');
+            const sSizeClass = getSwatchClasses('color', responsiveSwatchSizes, '');
             const resolvedColorHex = v.color_hex || (v.color ? extractColorsFromName(v.color) : undefined);
             const variantImg = v.image_url || group.variants.find(o => o.color === v.color && o.image_url)?.image_url;
             const isImageSwatch = Boolean(
@@ -56,6 +86,7 @@ export const ProductCardSwatches: React.FC<ProductCardSwatchesProps> = ({
               (!resolvedColorHex && (variantImg || v.image_url))
             );
             const swatchBg = isImageSwatch ? {} : getSwatchStyle(resolvedColorHex);
+            const visClass = getVisibilityClass(i);
 
             return (
               <button
@@ -70,8 +101,8 @@ export const ProductCardSwatches: React.FC<ProductCardSwatchesProps> = ({
                   onSelectAttribute('color', v.color || '', variantImg || null);
                 }}
                 className={`
-                  relative flex items-center justify-center cursor-pointer flex-shrink-0 overflow-hidden transition-all duration-150 border swatch-btn
-                  ${sSizeClass} ${shapeClass}
+                  relative items-center justify-center cursor-pointer flex-shrink-0 overflow-hidden transition-all duration-150 border swatch-btn
+                  ${visClass} ${sSizeClass} ${shapeClass}
                   shadow-sm ${isActive ? 'scale-110' : 'hover:scale-110'}
                 `}
                 style={{
@@ -91,9 +122,19 @@ export const ProductCardSwatches: React.FC<ProductCardSwatchesProps> = ({
               </button>
             );
           })}
-          {group.variants.length > (settings?.swatch_limit ?? 8) && (
-            <span className="text-[10px] text-gray-400 font-semibold">
-              +{group.variants.length - (settings?.swatch_limit ?? 8)}
+          {hasMoreMob && (
+            <span className="md:hidden text-[10px] text-gray-400 font-semibold">
+              +{group.variants.length - limitMob}
+            </span>
+          )}
+          {hasMoreTab && (
+            <span className="hidden md:inline lg:hidden text-[10px] text-gray-400 font-semibold">
+              +{group.variants.length - limitTab}
+            </span>
+          )}
+          {hasMoreDesk && (
+            <span className="hidden lg:inline text-[10px] text-gray-400 font-semibold">
+              +{group.variants.length - limitDesk}
             </span>
           )}
         </div>
@@ -102,7 +143,7 @@ export const ProductCardSwatches: React.FC<ProductCardSwatchesProps> = ({
       const attrKey = group.type === 'size' ? 'size' : group.type === 'material' ? 'material' : 'customValue';
       return (
         <div key={group.type} className={`flex items-center gap-1.5 flex-wrap ${swatchAlign}`}>
-          {group.variants.slice(0, settings?.swatch_limit ?? 8).map((v, i) => {
+          {group.variants.slice(0, maxLimit).map((v, i) => {
             const val = group.type === 'size' ? v.size : group.type === 'material' ? v.material : v.custom_value;
             const variantImg = v.image_url || group.variants.find(o => {
               const oVal = group.type === 'size' ? o.size : group.type === 'material' ? o.material : o.custom_value;
@@ -113,7 +154,9 @@ export const ProductCardSwatches: React.FC<ProductCardSwatchesProps> = ({
               : group.type === 'material'
                 ? currentVariant?.material === v.material
                 : currentVariant?.custom_value === v.custom_value;
-            const sSizeClass = getSwatchClasses('text', archiveSwatchSize, val || '');
+            const sSizeClass = getSwatchClasses('text', responsiveSwatchSizes, val || '');
+            const visClass = getVisibilityClass(i);
+
             return (
               <button
                 key={i}
@@ -127,8 +170,8 @@ export const ProductCardSwatches: React.FC<ProductCardSwatchesProps> = ({
                   onSelectAttribute(attrKey, val || '', variantImg || null);
                 }}
                 className={`
-                  relative flex items-center justify-center font-bold transition-all duration-150 cursor-pointer flex-shrink-0 overflow-hidden select-none border swatch-btn
-                  ${sSizeClass} ${shapeClass}
+                  relative items-center justify-center font-bold transition-all duration-150 cursor-pointer flex-shrink-0 overflow-hidden select-none border swatch-btn
+                  ${visClass} ${sSizeClass} ${shapeClass}
                   ${isActive ? 'scale-110 shadow-sm font-black' : 'hover:scale-110'}
                 `}
                 style={{
@@ -142,9 +185,19 @@ export const ProductCardSwatches: React.FC<ProductCardSwatchesProps> = ({
               </button>
             );
           })}
-          {group.variants.length > (settings?.swatch_limit ?? 8) && (
-            <span className="text-[9px] text-gray-400 font-semibold">
-              +{group.variants.length - (settings?.swatch_limit ?? 8)}
+          {hasMoreMob && (
+            <span className="md:hidden text-[9px] text-gray-400 font-semibold">
+              +{group.variants.length - limitMob}
+            </span>
+          )}
+          {hasMoreTab && (
+            <span className="hidden md:inline lg:hidden text-[9px] text-gray-400 font-semibold">
+              +{group.variants.length - limitTab}
+            </span>
+          )}
+          {hasMoreDesk && (
+            <span className="hidden lg:inline text-[9px] text-gray-400 font-semibold">
+              +{group.variants.length - limitDesk}
             </span>
           )}
         </div>

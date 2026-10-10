@@ -16,7 +16,7 @@ export const addProductToCategory = async (
   categoryId: string
 ): Promise<void> => {
   try {
-    const supabase = staticSupabase;
+    const supabase = supabaseAdmin;
 
     const { error: relError } = await supabase
       .from('product_categories')
@@ -60,7 +60,7 @@ export const addProductsToCategory = async (
   categoryId: string
 ): Promise<void> => {
   try {
-    const supabase = staticSupabase;
+    const supabase = supabaseAdmin;
 
     const inserts = productIds.map(productId => ({
       product_id: productId,
@@ -112,7 +112,7 @@ export const removeProductFromCategory = async (
   try {
     if (categoryId === SHOP_CATEGORY_ID) return;
 
-    const supabase = staticSupabase;
+    const supabase = supabaseAdmin;
 
     const { error: relError } = await supabase
       .from('product_categories')
@@ -166,7 +166,7 @@ export const removeProductsFromCategory = async (
     if (categoryId === SHOP_CATEGORY_ID) return;
     if (!productIds || productIds.length === 0) return;
 
-    const supabase = staticSupabase;
+    const supabase = supabaseAdmin;
 
     const { error: relError } = await supabase
       .from('product_categories')

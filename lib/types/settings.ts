@@ -113,8 +113,25 @@ export interface StoreSettings {
   swatch_shape: 'circle' | 'square';
   swatch_size: 'sm' | 'md' | 'lg'; // Deprecated but kept
   archive_swatch_size?: 'xxs' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'xxl';
-  product_swatch_size?: 'xxs' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'xxl';
+  archive_swatch_size_desktop?: 'xxs' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'xxl' | null;
+  archive_swatch_size_tablet?: 'xxs' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'xxl' | null;
+  archive_swatch_size_mobile?: 'xxs' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'xxl' | null;
+  swatch_limit_desktop?: number | null;
+  swatch_limit_tablet?: number | null;
+  swatch_limit_mobile?: number | null;
   archive_swatch_align?: 'left' | 'center' | 'right';
+  archive_swatch_align_desktop?: 'left' | 'center' | 'right' | null;
+  archive_swatch_align_tablet?: 'left' | 'center' | 'right' | null;
+  archive_swatch_align_mobile?: 'left' | 'center' | 'right' | null;
+  product_swatch_size?: 'xxs' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'xxl';
+  product_swatch_size_desktop?: 'xxs' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'xxl' | null;
+  product_swatch_size_tablet?: 'xxs' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'xxl' | null;
+  product_swatch_size_mobile?: 'xxs' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'xxl' | null;
+  product_swatch_align?: 'left' | 'center' | 'right';
+  product_swatch_align_desktop?: 'left' | 'center' | 'right' | null;
+  product_swatch_align_tablet?: 'left' | 'center' | 'right' | null;
+  product_swatch_align_mobile?: 'left' | 'center' | 'right' | null;
+  product_swatch_shape?: 'circle' | 'square';
   enable_product_quick_whatsapp?: boolean;
   swatch_limit: number;
   default_variant_index: number;
