@@ -52,9 +52,44 @@ export default function PreviewClient({
 
   const lastScrolledSectionId = useRef<string | null>(null);
 
+  // Hide Next.js dev overlays (the "N" button + "N Issue" badge) INSIDE the
+  // preview iframe only — never touches the admin page itself.
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.setAttribute('data-preview-hide-dev', '');
+    style.textContent = `
+      nextjs-portal,
+      [data-nextjs-dev-tools-button],
+      [data-nextjs-toast],
+      #__next-build-watcher,
+      [data-next-badge-root],
+      [data-next-badge] { display: none !important; visibility: hidden !important; }
+    `;
+    document.head.appendChild(style);
+    return () => { style.remove(); };
+  }, []);
+
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.data) {
+        // Device viewport + safe-area insets from the customizer frame.
+        if (event.data.type === 'VIEWPORT_WIDTH') {
+          const root = document.documentElement;
+          const top = Number(event.data.safeTop) || 0;
+          const bottom = Number(event.data.safeBottom) || 0;
+          try {
+            root.style.setProperty('--preview-safe-top', `${top}px`);
+            root.style.setProperty('--preview-safe-bottom', `${bottom}px`);
+            // feed the storefront's existing bottom-overlay system so WhatsApp
+            // button + sales toast sit above the home-indicator inset.
+            root.style.setProperty('--safe-bottom', `${bottom}px`);
+            if (event.data.mode) {
+              root.setAttribute('data-device', event.data.mode);
+              root.setAttribute('data-viewport-mode', event.data.mode);
+            }
+          } catch {}
+          return;
+        }
         if (event.data.type === 'sync') {
           if (event.data.viewportMode) {
             setViewportMode(event.data.viewportMode);
