@@ -119,14 +119,15 @@ function DeviceMockup({
   // iframe pixel scale: cssW maps to the full wrapper width (edge to edge).
   const iframeScale = wrapW / cssW;
 
-  // Safe-area zones rendered as REAL rows. +2px seam-killer so each row overlaps
-  // its neighbor and no hairline/background can peek through sub-pixel gaps.
+  // Safe-area zones + seam killer (2px overlap over the iframe so no hairline).
   const SEAM = 2;
-  const topZonePx = safeTop > 0 ? Math.round(safeTop * iframeScale) + OVER + SEAM : 0;
-  const bottomZonePx = safeBottom > 0 ? Math.round(safeBottom * iframeScale) + SEAM : 0;
-  // Remaining height for the iframe row (base px) → convert back to CSS px.
-  const iframeRowPx = wrapH - topZonePx - bottomZonePx;
-  const iframeCssH = iframeRowPx / iframeScale;
+  // iframe shows EXACTLY the real viewport content height (viewport − zones), so
+  // the storefront's fixed bottom nav sits at its true last row and nothing can
+  // render below it. e.g. iPhone 956−54−34 = 868, S26 915−32−16 = 867.
+  const iframeCssH = cssH - safeTop - safeBottom;
+  const iframeTopPx = Math.round(safeTop * iframeScale);          // top zone height (base px)
+  const bottomZonePx = safeBottom > 0 ? Math.round(safeBottom * iframeScale) + OVER + SEAM : OVER;
+  const topZonePx = iframeTopPx > 0 ? iframeTopPx + OVER : 0;
 
   const radius = cornerPct * holePxW + OVER;
 
@@ -135,57 +136,53 @@ function DeviceMockup({
       position: 'relative', width: baseW, height: baseH, flexShrink: 0,
       willChange: 'transform', backfaceVisibility: 'hidden',
     }}>
-      {/* Screen wrapper = measured cutout + overscan. Vertical stack inside.
-          Base background = topFill (orange) so the top edge behind the camera is
-          NEVER white; the iframe row + bottom zone paint white over the rest. */}
+      {/* Screen wrapper = measured cutout + overscan. Absolute-positioned stack so
+          the iframe height is EXACT and the bottom zone overlays its last rows.
+          Base background = topFill (orange) at top, bottomFill (white) elsewhere. */}
       <div style={{
         position: 'absolute',
         top: wrapY, left: wrapX,
         width: wrapW, height: wrapH,
         overflow: 'hidden',
         borderRadius: radius,
-        background: topZonePx > 0 ? topFill : bottomFill,
-        display: 'flex',
-        flexDirection: 'column',
+        background: bottomFill,
       }}>
-        {/* Row 1: top inset zone — orange, overlaps iframe by SEAM (negative mb) */}
+        {/* Top inset zone — orange, from very top edge, overlaps iframe by SEAM */}
         {topZonePx > 0 && (
           <div style={{
-            height: topZonePx, flexShrink: 0, background: topFill,
-            marginBottom: -SEAM, outline: `1px solid ${topFill}`,
-            position: 'relative', zIndex: 1,
+            position: 'absolute', top: 0, left: 0, right: 0,
+            height: topZonePx + SEAM, background: topFill,
+            zIndex: 2, outline: `1px solid ${topFill}`,
           }} />
         )}
 
-        {/* Row 2: iframe — real viewport width, scaled edge-to-edge, zero inset */}
-        <div style={{ flex: 1, minHeight: 0, overflow: 'hidden', position: 'relative', background: bottomFill }}>
-          <iframe
-            ref={iframeRef}
-            src={iframeSrc}
-            className="border-none"
-            style={{
-              position: 'absolute',
-              top: 0, left: 0,
-              width: cssW,
-              height: iframeCssH,
-              transform: `scale(${iframeScale})`,
-              transformOrigin: 'top left',
-              display: 'block',
-              maxWidth: 'none',
-              background: 'transparent',
-            }}
-            title="Preview"
-          />
-        </div>
+        {/* Iframe — real viewport width, exact content height, clipped by wrapper */}
+        <iframe
+          ref={iframeRef}
+          src={iframeSrc}
+          className="border-none"
+          style={{
+            position: 'absolute',
+            top: topZonePx, left: 0,
+            width: cssW,
+            height: iframeCssH,
+            transform: `scale(${iframeScale})`,
+            transformOrigin: 'top left',
+            display: 'block',
+            maxWidth: 'none',
+            background: 'transparent',
+            zIndex: 1,
+          }}
+          title="Preview"
+        />
 
-        {/* Row 3: bottom inset zone — white, overlaps iframe by SEAM (negative mt) */}
-        {bottomZonePx > 0 && (
-          <div style={{
-            height: bottomZonePx, flexShrink: 0, background: bottomFill,
-            marginTop: -SEAM, outline: `1px solid ${bottomFill}`,
-            position: 'relative', zIndex: 1,
-          }} />
-        )}
+        {/* Bottom inset zone — opaque white, overlays the iframe's last rows so no
+            page content ever peeks under the nav. Covers the bottom corners too. */}
+        <div style={{
+          position: 'absolute', bottom: 0, left: 0, right: 0,
+          height: bottomZonePx, background: bottomFill,
+          zIndex: 2, outline: `1px solid ${bottomFill}`,
+        }} />
       </div>
 
       {/* Device image overlay — ON TOP, pointer-events none */}
@@ -236,23 +233,23 @@ export function CustomizerPreview({
   const canvasW = Math.max(containerWidth  - PAD * 2, 280);
   const canvasH = Math.max(containerHeight - TOOLBAR_H - PAD * 2, 400);
 
-  // Fit the WHOLE device (frame included) inside BOTH pane width and height,
-  // using the full available area (PAD is the margin). No extra shrink constant.
+  // Fit the WHOLE device (frame included) inside BOTH pane width and height.
+  // Checks BOTH axes — for the landscape MacBook, width is the limiting side.
   function fitScale(imgW: number, imgH: number) {
     return Math.min(canvasW / imgW, canvasH / imgH);
   }
-
-  // "100%" baseline = Fit × 1.2 (the previous 120% size is now the default 100%).
-  const FIT_BOOST = 1.2;
 
   const mob  = MOBILE_DEVICES[mobileKey];
   const tab  = TABLET_DEVICE;
   const desk = DESKTOP_DEVICE;
 
   const activeSpec = viewportMode === 'mobile' ? mob : viewportMode === 'tablet' ? tab : desk;
-  // Baseline that the "100%" label maps to = Fit size × 1.2 (the old 120% view is
-  // now the default). Pane scrolls if the boosted device exceeds it.
-  const baseFit = fitScale(activeSpec.mockupW, activeSpec.mockupH) * FIT_BOOST;
+  // "100%" baseline = Fit × a per-device boost (the old larger default is now the
+  // 100% label). Phones + iPad use ×1.2, MacBook uses ×1.05 (landscape, so a
+  // smaller boost keeps it close to the pane; it scrolls if it exceeds).
+  const rawFit = fitScale(activeSpec.mockupW, activeSpec.mockupH);
+  const fitBoost = viewportMode === 'desktop' ? 1.05 : 1.2;
+  const baseFit = rawFit * fitBoost;
   // finalScale: Fit → baseFit × userZoom. 1:1 → real device px × userZoom.
   // Rounded to 3 decimals to avoid long fractional scales → sub-pixel seams.
   const finalScale = +((scaleMode === 'real' ? userZoom : baseFit * userZoom).toFixed(3));
