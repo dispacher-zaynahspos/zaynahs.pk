@@ -1,5 +1,5 @@
 import React from 'react';
-import { Eye } from 'lucide-react';
+import { Eye } from '@/components/common/Icons';
 
 interface TableThumbnailProps {
   url: string | null;

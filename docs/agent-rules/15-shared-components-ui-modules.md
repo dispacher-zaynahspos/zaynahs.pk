@@ -20,18 +20,49 @@ Any new page/feature in `/admin` or `/store` MUST reuse these shared modules. If
 | Icons | Central registry only | `@/components/common/Icons` |
 | Search bar (Admin) | `AdminSearchInput` | `@/components/admin/shared/AdminSearchInput` |
 | Search bar (Store) | `SearchBar` | `@/components/store/SearchBar` |
-| Pagination | `PaginationFooter` | `@/components/admin/PaginationFooter` |
+| Product search engine (ALL product search) | `product-search` SSOT (`rankProducts`, `useProductSearch`, `searchProductsServer`, `ProductSearchModal`) | `@/lib/services/product-search` |
+| Pagination (admin lists) | `PaginationFooter` | `@/components/admin/PaginationFooter` |
 | Date filters | `AdminDateFilter` | `@/components/admin/shared/AdminDateFilter` (backed by `lib/utils/dateFilters.ts`) |
 | Confirmation dialogs | `useConfirm` / `AdminConfirmProvider` (raw `window.confirm()` forbidden) | `@/components/admin/shared/AdminConfirmProvider` |
+| Reorder / drag-move list | `SortableList` + `useReorder` + `useLongPress` | `@/components/common/reorder` · `@/lib/hooks/useReorder` · `@/lib/hooks/useLongPress` |
+| Reorder "Move" modal (Top/Up/Down/Bottom/position) | `ReorderMoveModal` | `@/components/common/reorder` |
+| Rich text editor (WYSIWYG) | `RichTextEditor` (ONLY editor; no second WYSIWYG/tiptap) | `@/components/admin/RichTextEditor` |
+| Media picker / image selector | `MediaSelectorModal` + `MediaField` (customizer URL field) | `@/components/admin/MediaSelectorModal` · `@/components/admin/customizer/shared/MediaField` |
+| Media library | `MediaManager` | `@/components/admin/MediaManager` |
+| Image preview (zoom) | `ImagePreviewModal` | `@/components/admin/ImagePreviewModal` |
+| Modal scroll lock (every popup/sheet) | `useBodyScrollLock` | `@/lib/hooks/useBodyScrollLock` |
+| Portal (render above chrome) | `Portal` | `@/components/common/Portal` |
 | Empty states | `EmptyState` | `@/components/common/EmptyState` |
 | Loading states | `LoadingSkeleton` variants | `@/components/common/LoadingSkeleton` |
 | Admin page headers | `AdminPageHeader` | `@/components/admin/shared/AdminPageHeader` |
 | Admin cards/panels | `AdminCard` | `@/components/admin/shared/AdminCard` |
 | Admin bulk actions | `AdminBulkActionBar` | `@/components/admin/shared/AdminBulkActionBar` |
 | Admin toolbars | `AdminToolbar` | `@/components/admin/shared/AdminToolbar` |
+| Store navbar | `Navbar` + `store-navbar/*` (NOT the dead `common/navbar/`) | `@/components/common/Navbar` |
+| Store navbar search modal | `NavbarSearchModal` | `@/components/common/store-navbar/NavbarSearchModal` |
+| Mobile bottom nav | `MobileBottomNav` | `@/components/common/MobileBottomNav` |
+| Footer | `Footer` + `store-footer/*` | `@/components/common/Footer` |
+| Nav progress bar | `NavigationProgress` | `@/components/common/NavigationProgress` |
 | Storefront category filter | `CategoryFilter` (canonical) | `@/components/store/CategoryFilter` |
 | Shop page filters | `ShopPageSidebar` (price/color/size/material/sort live here) | `@/components/store/shop-page/ShopPageSidebar` |
 | Tab management | `useAdminTab.ts` pattern | `lib/hooks/useAdminTab` |
+
+## RULE SHARED-MODAL1 — One shared implementation per primitive, EVERYWHERE (STRICT)
+> Jab bhi koi reusable UI primitive 2+ jagah chahiye, uska **exactly ONE shared component** hoga; har jagah wahi import ho. Dusra version / copy-paste variant banana BANNED (RULE SSOT1).
+
+Applies to ALL of these — never fork, never re-implement inline:
+- **Drag / reorder + Move modal** → `SortableList` / `useReorder` / `useLongPress` / `ReorderMoveModal`. Har reorderable list (category products, customizer sections, manual product list, collections, variants, banners, FAQ, nav items, shipping/payment methods, future lists) inhi ko use kare. Rule detail: [30-sorting-reordering.md](30-sorting-reordering.md).
+- **Search + ranking + pagination** → `lib/services/product-search` SSOT (`rankProducts` in-memory, `useProductSearch` client, `searchProductsServer` server, `ProductSearchModal` UI). Koi inline `products.filter(p => p.name.includes(q))` nahi. Rule detail: [29-product-search-pagination.md](29-product-search-pagination.md).
+- **Pagination** → admin lists `PaginationFooter`; storefront load-more/infinite-scroll ek shared sentinel pattern (RULE C11, [08-caching-isr-ssr.md](08-caching-isr-ssr.md)). Naya list bina shared pagination ke merge na ho.
+- **Rich text / WYSIWYG editor** → sirf `RichTextEditor`. Dusra editor ya `contentEditable` block inline mat banao; kisi aur jagah rich text chahiye to isi ko import karo.
+- **Media / image selector + preview** → `MediaSelectorModal` (picker), `MediaField` (customizer URL field), `MediaManager` (library), `ImagePreviewModal` (zoom). Naya inline `<input type=file>` + custom picker BANNED.
+- **Any modal / dialog / drawer / bottom-sheet** → MUST use `useBodyScrollLock` + render through `Portal` (document.body, correct z-index) + shared scroll pattern (`flex-1 min-h-0 overflow-y-auto overscroll-contain`, `docs/UI_RULES.md` §9). Destructive confirms → `useConfirm` (never `window.confirm`).
+- **Navigation** → `Navbar` + `store-navbar/*`, `MobileBottomNav`, `Footer`, `NavigationProgress`. The old `components/common/navbar/` folder is DEAD — never import or extend it (use `store-navbar/`).
+- **Icons** → ONLY `@/components/common/Icons`. Inline `<svg>` ya direct `lucide-react` import BANNED. Naya icon chahiye → `Icons.tsx` me ek line add karo.
+
+**Enforcement:** naya feature banane se pehle is table + RULE SSOT1 ke "Before writing ANY new code" pre-check se guzro. Agar yahan primitive listed hai → import karo, naya mat banao. Agar genuinely naya shared primitive chahiye → `components/common/` ya `components/admin/shared/` me banao, phir is table me ek row add karo (RULE IDX1).
+
+
 
 ## ✅ Mandatory utility map
 - Reordering arrays / drag & drop → `import { arrayMove } from '@/lib/utils/arrayMove'`

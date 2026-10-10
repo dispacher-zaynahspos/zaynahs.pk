@@ -104,6 +104,7 @@ export {
   ShieldCheck,
   AlertTriangle,
   Archive,
+  Crop,
   RotateCw,
   FlipHorizontal,
   FlipVertical,

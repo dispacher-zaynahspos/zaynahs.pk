@@ -8,9 +8,9 @@ import {
   Undo,
   Save,
   Plus,
-  Loader2
+  Loader2,
+  Crop as CropIcon
 } from '@/components/common/Icons';
-import { Crop as CropIcon } from 'lucide-react';
 
 interface ImageEditorControlsProps {
   rotation: number;
