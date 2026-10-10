@@ -199,7 +199,7 @@ export default function ProductSearchModal({
   if (!isOpen) return null;
 
   const primaryImage = (product: ProductSearchResult) => 
-    product.images?.find(img => img.isPrimary) || product.images?.[0];
+    product.images?.find(img => img.is_primary) || product.images?.[0];
 
   const variantBadges = (product: ProductSearchResult) => {
     if (!showVariants || !product.variants?.length) return null;
@@ -318,8 +318,8 @@ export default function ProductSearchModal({
               {results.map((product) => {
                 const isSelected = selectedMulti.includes(product.id);
                 const img = primaryImage(product);
-                const price = product.comparePrice && product.comparePrice > product.price
-                  ? product.comparePrice
+                const price = product.compare_price && product.compare_price > product.price
+                  ? product.compare_price
                   : product.price;
 
                 return (
@@ -375,9 +375,9 @@ export default function ProductSearchModal({
                       <span className="text-xs font-black text-gray-900 dark:text-white">
                         {formatPrice(price, 'Rs. ')}
                       </span>
-                      {product.comparePrice && product.comparePrice > product.price && (
+                      {product.compare_price && product.compare_price > product.price && (
                         <span className="text-[10px] line-through text-gray-400 ml-1">
-                          {formatPrice(product.comparePrice, 'Rs. ')}
+                          {formatPrice(product.compare_price, 'Rs. ')}
                         </span>
                       )}
                     </div>

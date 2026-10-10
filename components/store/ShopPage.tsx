@@ -278,7 +278,7 @@ export default function ShopPage({
             </div>
           ) : viewMode === 'list' ? (
             <div className="flex flex-col gap-4">
-              {displayProducts.map((product: Product) => (
+              {displayProducts.map((product: Product | import('@/lib/services/product-search').ProductSearchResult) => (
                 <ShopProductListCard
                   key={product.id}
                   product={product}
@@ -295,7 +295,7 @@ export default function ShopPage({
                 desktop: viewMode === 'grid-3' ? 3 : viewMode === 'grid-4' ? 4 : (desktopColsOverride ?? activeSettings?.shop_columns_desktop ?? 4),
               })}`}
             >
-              {displayProducts.map((product: Product, index: number) => (
+              {displayProducts.map((product: Product | import('@/lib/services/product-search').ProductSearchResult, index: number) => (
                 <ProductCard
                   key={product.id}
                   product={product}

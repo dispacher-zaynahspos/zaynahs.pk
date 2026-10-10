@@ -18,19 +18,18 @@ export async function searchProductsServer(
   const offset = config.offset || 0;
   const filters = config.filters || {};
 
-  // Build full-text search query
-  const searchQuery = tokens.length > 0 ? tokens.join(' & ') : '';
-  const trigramQuery = tokens.length > 0 ? tokens.join(' ') : '';
-
   let dbQuery = supabaseAdmin
     .from('products')
     .select(`
       id, name, slug, short_description, description, price, compare_price, sku,
-      category_id, stock, has_variants, is_featured, is_active, tags,
+      category_id, stock, has_variants, is_featured, is_active, is_service, tags,
+      enable_swatches, show_swatches_on_archive,
       recommended_age_min_months, recommended_age_max_months, age_group,
-      product_images!inner(url, is_primary, sort_order),
-      product_variants!inner(id, color, size, material, custom_value, sku, price, stock, active),
-      categories!category_id(id, name, slug)
+      created_at, updated_at, deleted_at,
+      product_images!inner(id, product_id, url, is_primary, sort_order, alt, created_at),
+      product_variants!inner(id, product_id, color, size, material, custom_value, sku, price, stock, active, sort_order),
+      categories!category_id(id, name, slug, sort_order, active, created_at, updated_at, parent_id, description, image_url, meta_title, meta_description, deleted_at),
+      modifiers(id, product_id, name, price, active, sort_order)
     `)
     .is('deleted_at', null)
     .eq('is_active', true);
@@ -70,16 +69,13 @@ export async function searchProductsServer(
     dbQuery = dbQuery.contains('tags', [filters.tag]);
   }
 
-  // Apply full-text search if query provided
-  if (searchQuery) {
-    // Use search_vector for full-text search (requires migration)
-    dbQuery = dbQuery.textSearch('search_vector', searchQuery, {
+  if (tokens.length > 0) {
+    dbQuery = dbQuery.textSearch('search_vector', tokens.join(' & '), {
       config: 'simple',
       type: 'plain',
     });
   }
 
-  // Apply ordering: featured first, then by sort_order, then by relevance
   dbQuery = dbQuery
     .order('is_featured', { ascending: false })
     .order('sort_order', { ascending: true, nullsFirst: false })
@@ -89,7 +85,6 @@ export async function searchProductsServer(
   const { data, error, count } = await dbQuery;
 
   if (error) {
-    // Fallback to ILIKE if search_vector not available
     if (error.code === '42703' || error.message.includes('search_vector')) {
       return searchProductsServerFallback(query, config);
     }
@@ -101,44 +96,74 @@ export async function searchProductsServer(
     id: row.id,
     name: row.name,
     slug: row.slug,
-    shortDescription: row.short_description,
+    short_description: row.short_description,
     description: row.description,
     price: Number(row.price),
-    comparePrice: row.compare_price ? Number(row.compare_price) : undefined,
+    compare_price: row.compare_price ? Number(row.compare_price) : undefined,
     sku: row.sku,
     images: (row.product_images || []).map((img: any) => ({
+      id: img.id,
+      product_id: img.product_id,
       url: img.url,
-      isPrimary: img.is_primary,
-      sortOrder: img.sort_order,
-    })).sort((a: any, b: any) => a.sortOrder - b.sortOrder),
+      is_primary: img.is_primary,
+      sort_order: img.sort_order,
+      alt: img.alt,
+      created_at: img.created_at,
+    })).sort((a: any, b: any) => a.sort_order - b.sort_order),
     variants: (row.product_variants || [])
       .filter((v: any) => v.active)
       .map((v: any) => ({
         id: v.id,
+        product_id: v.product_id,
         color: v.color,
         size: v.size,
         material: v.material,
-        customValue: v.custom_value,
+        custom_value: v.custom_value,
         sku: v.sku,
         price: v.price ? Number(v.price) : undefined,
         stock: v.stock,
         active: v.active,
+        sort_order: v.sort_order,
       })),
     category: row.categories ? {
       id: row.categories.id,
       name: row.categories.name,
       slug: row.categories.slug,
+      sort_order: row.categories.sort_order,
+      active: row.categories.active,
+      created_at: row.categories.created_at,
+      updated_at: row.categories.updated_at,
+      parent_id: row.categories.parent_id,
+      description: row.categories.description,
+      image_url: row.categories.image_url,
+      meta_title: row.categories.meta_title,
+      meta_description: row.categories.meta_description,
+      deleted_at: row.categories.deleted_at,
     } : undefined,
     tags: row.tags || [],
-    isActive: row.is_active,
-    isFeatured: row.is_featured,
+    is_active: row.is_active,
+    is_featured: row.is_featured,
     stock: row.stock,
-    hasVariants: row.has_variants,
+    has_variants: row.has_variants,
+    enable_swatches: row.enable_swatches,
+    show_swatches_on_archive: row.show_swatches_on_archive,
+    modifiers: (row.modifiers || []).map((m: any) => ({
+      id: m.id,
+      product_id: m.product_id,
+      name: m.name,
+      price: m.price,
+      active: m.active,
+      sort_order: m.sort_order,
+    })),
+    is_service: row.is_service,
+    created_at: row.created_at,
+    updated_at: row.updated_at,
+    deleted_at: row.deleted_at,
     score: 0,
-    matchedFields: [],
-    recommendedAgeMinMonths: row.recommended_age_min_months,
-    recommendedAgeMaxMonths: row.recommended_age_max_months,
-    ageGroup: row.age_group,
+    matched_fields: [],
+    recommended_age_min_months: row.recommended_age_min_months,
+    recommended_age_max_months: row.recommended_age_max_months,
+    age_group: row.age_group,
   }));
 
   const ranked = rankSearchResults(products, query);
@@ -167,10 +192,14 @@ async function searchProductsServerFallback(
     .from('products')
     .select(`
       id, name, slug, short_description, description, price, compare_price, sku,
-      category_id, stock, has_variants, is_featured, is_active, tags,
-      product_images!inner(url, is_primary, sort_order),
-      product_variants!inner(id, color, size, material, custom_value, sku, price, stock, active),
-      categories!category_id(id, name, slug)
+      category_id, stock, has_variants, is_featured, is_active, is_service, tags,
+      enable_swatches, show_swatches_on_archive,
+      recommended_age_min_months, recommended_age_max_months, age_group,
+      created_at, updated_at, deleted_at,
+      product_images!inner(id, product_id, url, is_primary, sort_order, alt, created_at),
+      product_variants!inner(id, product_id, color, size, material, custom_value, sku, price, stock, active, sort_order),
+      categories!category_id(id, name, slug, sort_order, active, created_at, updated_at, parent_id, description, image_url, meta_title, meta_description, deleted_at),
+      modifiers(id, product_id, name, price, active, sort_order)
     `)
     .is('deleted_at', null)
     .eq('is_active', true);
@@ -248,41 +277,74 @@ async function searchProductsServerFallback(
     id: row.id,
     name: row.name,
     slug: row.slug,
-    shortDescription: row.short_description,
+    short_description: row.short_description,
     description: row.description,
     price: Number(row.price),
-    comparePrice: row.compare_price ? Number(row.compare_price) : undefined,
+    compare_price: row.compare_price ? Number(row.compare_price) : undefined,
     sku: row.sku,
     images: (row.product_images || []).map((img: any) => ({
+      id: img.id,
+      product_id: img.product_id,
       url: img.url,
-      isPrimary: img.is_primary,
-      sortOrder: img.sort_order,
-    })).sort((a: any, b: any) => a.sortOrder - b.sortOrder),
+      is_primary: img.is_primary,
+      sort_order: img.sort_order,
+      alt: img.alt,
+      created_at: img.created_at,
+    })).sort((a: any, b: any) => a.sort_order - b.sort_order),
     variants: (row.product_variants || [])
       .filter((v: any) => v.active)
       .map((v: any) => ({
         id: v.id,
+        product_id: v.product_id,
         color: v.color,
         size: v.size,
         material: v.material,
-        customValue: v.custom_value,
+        custom_value: v.custom_value,
         sku: v.sku,
         price: v.price ? Number(v.price) : undefined,
         stock: v.stock,
         active: v.active,
+        sort_order: v.sort_order,
       })),
     category: row.categories ? {
       id: row.categories.id,
       name: row.categories.name,
       slug: row.categories.slug,
+      sort_order: row.categories.sort_order,
+      active: row.categories.active,
+      created_at: row.categories.created_at,
+      updated_at: row.categories.updated_at,
+      parent_id: row.categories.parent_id,
+      description: row.categories.description,
+      image_url: row.categories.image_url,
+      meta_title: row.categories.meta_title,
+      meta_description: row.categories.meta_description,
+      deleted_at: row.categories.deleted_at,
     } : undefined,
     tags: row.tags || [],
-    isActive: row.is_active,
-    isFeatured: row.is_featured,
+    is_active: row.is_active,
+    is_featured: row.is_featured,
     stock: row.stock,
-    hasVariants: row.has_variants,
+    has_variants: row.has_variants,
+    enable_swatches: row.enable_swatches,
+    show_swatches_on_archive: row.show_swatches_on_archive,
+    modifiers: (row.modifiers || []).map((m: any) => ({
+      id: m.id,
+      product_id: m.product_id,
+      name: m.name,
+      price: m.price,
+      active: m.active,
+      sort_order: m.sort_order,
+    })),
+    is_service: row.is_service,
+    created_at: row.created_at,
+    updated_at: row.updated_at,
+    deleted_at: row.deleted_at,
     score: 0,
-    matchedFields: [],
+    matched_fields: [],
+    recommended_age_min_months: row.recommended_age_min_months,
+    recommended_age_max_months: row.recommended_age_max_months,
+    age_group: row.age_group,
   }));
 
   const ranked = rankSearchResults(products, query);
@@ -306,11 +368,14 @@ export async function searchProductsByIds(
     .from('products')
     .select(`
       id, name, slug, short_description, description, price, compare_price, sku,
-      category_id, stock, has_variants, is_featured, is_active, tags,
+      category_id, stock, has_variants, is_featured, is_active, is_service, tags,
+      enable_swatches, show_swatches_on_archive,
       recommended_age_min_months, recommended_age_max_months, age_group,
-      product_images!inner(url, is_primary, sort_order),
-      product_variants!inner(id, color, size, material, custom_value, sku, price, stock, active),
-      categories!category_id(id, name, slug)
+      created_at, updated_at, deleted_at,
+      product_images!inner(id, product_id, url, is_primary, sort_order, alt, created_at),
+      product_variants!inner(id, product_id, color, size, material, custom_value, sku, price, stock, active, sort_order),
+      categories!category_id(id, name, slug, sort_order, active, created_at, updated_at, parent_id, description, image_url, meta_title, meta_description, deleted_at),
+      modifiers(id, product_id, name, price, active, sort_order)
     `)
     .is('deleted_at', null)
     .in('id', ids);
@@ -321,43 +386,73 @@ export async function searchProductsByIds(
     id: row.id,
     name: row.name,
     slug: row.slug,
-    shortDescription: row.short_description,
+    short_description: row.short_description,
     description: row.description,
     price: Number(row.price),
-    comparePrice: row.compare_price ? Number(row.compare_price) : undefined,
+    compare_price: row.compare_price ? Number(row.compare_price) : undefined,
     sku: row.sku,
     images: (row.product_images || []).map((img: any) => ({
+      id: img.id,
+      product_id: img.product_id,
       url: img.url,
-      isPrimary: img.is_primary,
-      sortOrder: img.sort_order,
-    })).sort((a: any, b: any) => a.sortOrder - b.sortOrder),
+      is_primary: img.is_primary,
+      sort_order: img.sort_order,
+      alt: img.alt,
+      created_at: img.created_at,
+    })).sort((a: any, b: any) => a.sort_order - b.sort_order),
     variants: (row.product_variants || [])
       .filter((v: any) => v.active)
       .map((v: any) => ({
         id: v.id,
+        product_id: v.product_id,
         color: v.color,
         size: v.size,
         material: v.material,
-        customValue: v.custom_value,
+        custom_value: v.custom_value,
         sku: v.sku,
         price: v.price ? Number(v.price) : undefined,
         stock: v.stock,
         active: v.active,
+        sort_order: v.sort_order,
       })),
     category: row.categories ? {
       id: row.categories.id,
       name: row.categories.name,
       slug: row.categories.slug,
+      sort_order: row.categories.sort_order,
+      active: row.categories.active,
+      created_at: row.categories.created_at,
+      updated_at: row.categories.updated_at,
+      parent_id: row.categories.parent_id,
+      description: row.categories.description,
+      image_url: row.categories.image_url,
+      meta_title: row.categories.meta_title,
+      meta_description: row.categories.meta_description,
+      deleted_at: row.categories.deleted_at,
     } : undefined,
     tags: row.tags || [],
-    isActive: row.is_active,
-    isFeatured: row.is_featured,
+    is_active: row.is_active,
+    is_featured: row.is_featured,
     stock: row.stock,
-    hasVariants: row.has_variants,
+    has_variants: row.has_variants,
+    enable_swatches: row.enable_swatches,
+    show_swatches_on_archive: row.show_swatches_on_archive,
+    modifiers: (row.modifiers || []).map((m: any) => ({
+      id: m.id,
+      product_id: m.product_id,
+      name: m.name,
+      price: m.price,
+      active: m.active,
+      sort_order: m.sort_order,
+    })),
+    is_service: row.is_service,
+    created_at: row.created_at,
+    updated_at: row.updated_at,
+    deleted_at: row.deleted_at,
     score: 100,
-    matchedFields: ['direct_id'],
-    recommendedAgeMinMonths: row.recommended_age_min_months,
-    recommendedAgeMaxMonths: row.recommended_age_max_months,
-    ageGroup: row.age_group,
+    matched_fields: ['direct_id'],
+    recommended_age_min_months: row.recommended_age_min_months,
+    recommended_age_max_months: row.recommended_age_max_months,
+    age_group: row.age_group,
   }));
 }

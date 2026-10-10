@@ -6,12 +6,12 @@ export function calculateSearchScore(
   query: string,
   parsedAge: ParsedAgeQuery,
   weights: SearchRankWeights = DEFAULT_SEARCH_WEIGHTS
-): { score: number; matchedFields: string[] } {
+): { score: number; matched_fields: string[] } {
   const tokens = tokenizeQuery(query);
-  if (tokens.length === 0) return { score: 0, matchedFields: [] };
+  if (tokens.length === 0) return { score: 0, matched_fields: [] };
 
   const name = product.name.toLowerCase();
-  const shortDesc = (product.shortDescription || '').toLowerCase();
+  const shortDesc = (product.short_description || '').toLowerCase();
   const longDesc = (product.description || '').toLowerCase();
   const sku = (product.sku || '').toLowerCase();
   const tags = product.tags.map(t => t.toLowerCase());
@@ -20,11 +20,11 @@ export function calculateSearchScore(
   const variantText = product.variants
     .filter(v => v.active)
     .map(v => [
-      v.color, v.size, v.material, v.customValue, v.sku
+      v.color, v.size, v.material, v.custom_value, v.sku
     ].filter(Boolean).join(' ')).join(' ').toLowerCase();
 
   let score = 0;
-  const matchedFields: string[] = [];
+  const matched_fields: string[] = [];
 
   for (const token of tokens) {
     if (token.length < 2) continue;
@@ -32,71 +32,71 @@ export function calculateSearchScore(
     // 1. Exact title match
     if (name === token) {
       score += weights.titleExact;
-      matchedFields.push('title:exact');
+      matched_fields.push('title:exact');
       continue;
     }
 
     // 2. Title prefix match
     if (name.startsWith(token)) {
       score += weights.titlePrefix;
-      matchedFields.push('title:prefix');
+      matched_fields.push('title:prefix');
       continue;
     }
 
     // 3. Strong title keyword match (word boundary)
     if (new RegExp(`\\b${escapeRegExp(token)}\\b`).test(name)) {
       score += weights.titleKeyword;
-      matchedFields.push('title:keyword');
+      matched_fields.push('title:keyword');
       continue;
     }
 
     // 4. Title partial match
     if (name.includes(token)) {
       score += weights.titlePartial;
-      matchedFields.push('title:partial');
+      matched_fields.push('title:partial');
     }
 
     // 5. Variant exact match
     if (new RegExp(`\\b${escapeRegExp(token)}\\b`).test(variantText)) {
       score += weights.variantExact;
-      matchedFields.push('variant:exact');
+      matched_fields.push('variant:exact');
       continue;
     }
 
     // 6. Variant partial match
     if (variantText.includes(token)) {
       score += weights.variantPartial;
-      matchedFields.push('variant:partial');
+      matched_fields.push('variant:partial');
     }
 
     // 7. SKU exact match (high priority for exact SKU searches)
     if (sku === token || sku.includes(token)) {
       score += weights.sku;
-      matchedFields.push('sku');
+      matched_fields.push('sku');
     }
 
     // 8. Short description match
     if (shortDesc.includes(token)) {
-      score += weights.shortDescription;
-      matchedFields.push('short_desc');
+      score += weights.short_description;
+      matched_fields.push('short_desc');
     }
 
     // 9. Tags match
     if (tags.some(t => t.includes(token))) {
       score += weights.tags;
-      matchedFields.push('tags');
+      matched_fields.push('tags');
     }
 
     // 10. Category match
     if (categoryName.includes(token)) {
       score += weights.category;
-      matchedFields.push('category');
+      matched_fields.push('category');
     }
 
     // 11. Long description match (lowest weight)
     if (longDesc.includes(token)) {
-      score += weights.longDescription;
-      matchedFields.push('long_desc');
+      score += weights.long_description;
+      matched_fields.push('long_desc');
     }
   }
 
@@ -106,17 +106,17 @@ export function calculateSearchScore(
     const ageMatch = ageMatchesQuery(productAge.min, productAge.max, parsedAge);
     if (ageMatch.exact) {
       score += weights.ageExact;
-      matchedFields.push('age:exact');
+      matched_fields.push('age:exact');
     } else if (ageMatch.compatible) {
       score += weights.ageCompatible;
-      matchedFields.push('age:compatible');
+      matched_fields.push('age:compatible');
     }
   }
 
   // Deduplicate matched fields
-  const uniqueMatchedFields = [...new Set(matchedFields)];
+  const uniqueMatchedFields = [...new Set(matched_fields)];
 
-  return { score, matchedFields: uniqueMatchedFields };
+  return { score, matched_fields: uniqueMatchedFields };
 }
 
 export function rankSearchResults(
@@ -129,14 +129,14 @@ export function rankSearchResults(
 
   return products
     .map(product => {
-      const { score, matchedFields } = calculateSearchScore(product, normalizedQuery, parsedAge, weights);
-      return { ...product, score, matchedFields };
+      const { score, matched_fields } = calculateSearchScore(product, normalizedQuery, parsedAge, weights);
+      return { ...product, score, matched_fields };
     })
     .sort((a, b) => {
       // Primary: score descending
       if (b.score !== a.score) return b.score - a.score;
       // Tie-breaker: featured first
-      if (b.isFeatured !== a.isFeatured) return b.isFeatured ? 1 : -1;
+      if (b.is_featured !== a.is_featured) return b.is_featured ? 1 : -1;
       // Tie-breaker: in stock first
       if ((b.stock > 0) !== (a.stock > 0)) return b.stock > 0 ? 1 : -1;
       // Tie-breaker: newer first

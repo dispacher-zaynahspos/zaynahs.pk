@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { Product, Category, Collection, StoreSettings } from '@/lib/types';
 import { useCartStore } from '@/store/cartStore';
@@ -9,6 +9,7 @@ import { trackEvent } from '@/lib/trackEvent';
 import { useSettings } from '@/lib/hooks/useSettings';
 import { SORT_OPTIONS, getSortLabel, toNumber, extractUsedVariants, filterProductsList } from './shopFilterUtils';
 import { useShopUrlParamsSync } from './hooks/useShopUrlParamsSync';
+import { useShopSearch } from './useShopSearch';
 
 export { SORT_OPTIONS, getSortLabel };
 
@@ -42,7 +43,6 @@ export function useShopPageFilters({
   const urlMinPriceParam = searchParams.get('minPrice');
   const urlMaxPriceParam = searchParams.get('maxPrice');
 
-
   const displayCategories = useMemo(() => {
     return categories.filter((c) => c.id !== SYSTEM_CATEGORY_ID);
   }, [categories]);
@@ -70,8 +70,6 @@ export function useShopPageFilters({
     urlSortParam && SORT_OPTIONS.some((o) => o.value === urlSortParam) ? urlSortParam : defaultSort
   );
   const [viewMode, setViewModeRaw] = useState<'grid-3' | 'grid-4' | 'list'>('grid-4');
-  // Desktop columns chosen by the user via the view toggle. Overrides the admin
-  // default (shop_columns_desktop) so the per-line toggle actually takes effect.
   const [desktopColsOverride, setDesktopColsOverride] = useState<number | null>(null);
   const setViewMode = (mode: 'grid-3' | 'grid-4' | 'list') => {
     setViewModeRaw(mode);
@@ -124,7 +122,7 @@ export function useShopPageFilters({
     outStock: urlAvailabilityParam.includes('out-of-stock'),
   });
 
-  // Calculate global min and max prices
+  // Calculate global min and max prices from initial products (for slider bounds)
   const priceLimits = useMemo(() => {
     if (allProducts.length === 0) return { min: 0, max: 10000 };
     const prices = allProducts.map((p) => p.price);
@@ -138,7 +136,7 @@ export function useShopPageFilters({
   const [priceMax, setPriceMax] = useState<number>(() => toNumber(urlMaxPriceParam, priceLimits.max));
   const priceDirtyRef = useRef(false);
 
-  // Dynamic extraction of active/used variants
+  // Dynamic extraction of active/used variants from initial products (for sidebar filters)
   const usedVariants = useMemo(() => extractUsedVariants(allProducts), [allProducts]);
 
   // Variant Filter States
@@ -172,14 +170,33 @@ export function useShopPageFilters({
 
   const sliderRef = useRef<HTMLInputElement>(null);
 
-  const filteredProducts = useMemo(() => {
+  // Server-side search for text queries
+  const categoryIdForSearch = selectedCategoryId || activeCategory?.id;
+  const {
+    searchResults: serverSearchResults,
+    isSearching,
+    searchError,
+    totalResults: serverTotalResults,
+    hasMore: serverHasMore,
+    loadMore: loadMoreServer,
+    clearSearch: clearServerSearch,
+  } = useShopSearch({
+    initialProducts,
+    searchQuery,
+    categoryId: categoryIdForSearch,
+    enabled: !!searchQuery.trim(),
+  });
+
+  // Client-side filtering for facet filters (when no search query)
+  const clientFilteredProducts = useMemo(() => {
+    if (searchQuery.trim()) return []; // Will use server results
     return filterProductsList({
       allProducts,
       selectedCategoryId,
       selectedCollectionId,
       activeCollection,
       collections,
-      searchQuery,
+      searchQuery: '',
       availability,
       priceMin,
       priceMax,
@@ -192,17 +209,22 @@ export function useShopPageFilters({
     allProducts,
     selectedCategoryId,
     selectedCollectionId,
-    searchQuery,
+    activeCollection,
+    collections,
     availability,
     priceMin,
     priceMax,
-    sortBy,
     selectedColors,
     selectedSizes,
     selectedMaterials,
-    activeCollection,
-    collections,
+    sortBy,
+    searchQuery,
   ]);
+
+  // Use server results when searching, client results when only filtering
+  const filteredProducts = searchQuery.trim() ? serverSearchResults : clientFilteredProducts;
+  const totalResults = searchQuery.trim() ? serverTotalResults : clientFilteredProducts.length;
+  const hasMore = searchQuery.trim() ? serverHasMore : false; // Load more only for server search
 
   const pageFromUrl = isNaN(urlPage) ? 1 : Math.max(1, urlPage);
   const targetLimitFromUrl = pageFromUrl * PAGE_SIZE;
@@ -216,8 +238,6 @@ export function useShopPageFilters({
     return filteredProducts.slice(0, loadMoreLimit);
   }, [filteredProducts, loadMoreLimit]);
 
-  const totalResults = filteredProducts.length;
-  const hasMore = displayProducts.length < totalResults;
   const currentPage = Math.ceil(displayProducts.length / PAGE_SIZE);
 
   const {
@@ -259,6 +279,15 @@ export function useShopPageFilters({
     PAGE_SIZE,
     currentPage,
   });
+
+  // Override handleLoadMore to use server loadMore when searching
+  const handleLoadMoreWrapper = useCallback(async () => {
+    if (searchQuery.trim()) {
+      await loadMoreServer();
+    } else {
+      handleLoadMore();
+    }
+  }, [searchQuery, loadMoreServer, handleLoadMore]);
 
   const sidebarProps = {
     allProductsCount: allProducts.length,
@@ -329,11 +358,12 @@ export function useShopPageFilters({
     displayProducts,
     totalResults,
     hasMore,
+    isSearching,
     handleSortChange,
     handleAvailabilityChange,
     removeSortPill,
     removePricePill,
-    handleLoadMore,
+    handleLoadMore: handleLoadMoreWrapper,
     handleClearFilters,
     sidebarProps,
   };
