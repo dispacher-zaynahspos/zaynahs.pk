@@ -119,7 +119,12 @@ export {
   Box,
   Info,
   CornerDownLeft,
-  ArrowUpDown
+  ArrowUpDown,
+  Strikethrough,
+  Highlighter,
+  Quote,
+  AlignJustify,
+  Unlink
 } from 'lucide-react';
 
 // Custom Social Platform Icons (Consistent styling and sizes)
