@@ -33,9 +33,9 @@ const MOBILE_DEVICES: Record<string, MockupSpec & { label: string; tip: string }
     tip: 'Samsung Galaxy S26 Ultra — 412 × 915 CSS px',
     img: '/devices/mockup-samsung-galaxy-s26-ultra.webp',
     mockupW: 385, mockupH: 800,
-    holeL: 0.0312, holeT: 0.0512, holeW: 0.9325, holeH: 0.9337,
+    holeL: 0.0312, holeT: 0.0138, holeW: 0.9325, holeH: 0.9712,
     cssW: 412, cssH: 915,
-    cornerPct: 0.085,
+    cornerPct: 0.0557,
     safeTop: 32, safeBottom: 16,
   },
   iphone18pm: {
@@ -43,31 +43,31 @@ const MOBILE_DEVICES: Record<string, MockupSpec & { label: string; tip: string }
     tip: 'Apple iPhone 18 Pro Max — 440 × 956 CSS px',
     img: '/devices/mockup-apple-iphone-18-pro-max.webp',
     mockupW: 389, mockupH: 800,
-    holeL: 0.0437, holeT: 0.0725, holeW: 0.9126, holeH: 0.9100,
+    holeL: 0.0437, holeT: 0.0175, holeW: 0.9126, holeH: 0.9650,
     cssW: 440, cssH: 956,
-    cornerPct: 0.11,
+    cornerPct: 0.1718,
     safeTop: 54, safeBottom: 34,
   },
 };
 type MobileKey = keyof typeof MOBILE_DEVICES;
 
-// iPad Pro 11 — image 578×800, viewport 834×1194 (aspect 0.698 ≈ measured hole 0.698 ✓)
+// iPad Pro 11 — image 578×800, viewport 834×1194
 const TABLET_DEVICE: MockupSpec = {
   img: '/devices/mockup-apple-ipad-pro-11.webp',
   mockupW: 578, mockupH: 800,
-  holeL: 0.0519, holeT: 0.0388, holeW: 0.8927, holeH: 0.9238,
+  holeL: 0.0519, holeT: 0.0387, holeW: 0.8927, holeH: 0.9237,
   cssW: 834, cssH: 1194,
-  cornerPct: 0.03,
+  cornerPct: 0.0174,
   safeTop: 24, safeBottom: 20,
 };
 
-// MacBook Neo — image 800×488, viewport 1440×900 (aspect 1.60 ≈ measured hole 1.597 ✓)
+// MacBook Neo — image 800×488, viewport 1440×900
 const DESKTOP_DEVICE: MockupSpec = {
   img: '/devices/mockup-apple-macbook-neo-2026-transparent.webp',
   mockupW: 800, mockupH: 488,
   holeL: 0.0988, holeT: 0.0451, holeW: 0.8025, holeH: 0.8238,
   cssW: 1440, cssH: 900,
-  cornerPct: 0.0,
+  cornerPct: 0.0093,
   safeTop: 0, safeBottom: 0,
 };
 
@@ -103,11 +103,11 @@ function DeviceMockup({
   const baseW = mockupW;
   const baseH = mockupH;
 
-  // Measured transparent screen hole (base px).
-  const holeX = holeL * baseW;
-  const holeY = holeT * baseH;
-  const holePxW = holeW * baseW;
-  const holePxH = holeH * baseH;
+  // Measured transparent screen hole (base px) — snapped to whole px.
+  const holeX = Math.round(holeL * baseW);
+  const holeY = Math.round(holeT * baseH);
+  const holePxW = Math.round(holeW * baseW);
+  const holePxH = Math.round(holeH * baseH);
 
   // 3px overscan so the wrapper tucks UNDER the frame on all 4 sides.
   const OVER = 3;
@@ -119,35 +119,46 @@ function DeviceMockup({
   // iframe pixel scale: cssW maps to the full wrapper width (edge to edge).
   const iframeScale = wrapW / cssW;
 
-  // Safe-area zones rendered as REAL rows (base px heights after scaling cssPx).
-  const topZonePx = safeTop * iframeScale;
-  const bottomZonePx = safeBottom * iframeScale;
-  // Remaining height for the iframe row (base px) → convert back to CSS px height.
+  // Safe-area zones rendered as REAL rows. +2px seam-killer so each row overlaps
+  // its neighbor and no hairline/background can peek through sub-pixel gaps.
+  const SEAM = 2;
+  const topZonePx = safeTop > 0 ? Math.round(safeTop * iframeScale) + OVER + SEAM : 0;
+  const bottomZonePx = safeBottom > 0 ? Math.round(safeBottom * iframeScale) + SEAM : 0;
+  // Remaining height for the iframe row (base px) → convert back to CSS px.
   const iframeRowPx = wrapH - topZonePx - bottomZonePx;
   const iframeCssH = iframeRowPx / iframeScale;
 
   const radius = cornerPct * holePxW + OVER;
 
   return (
-    <div style={{ position: 'relative', width: baseW, height: baseH, flexShrink: 0 }}>
-      {/* Screen wrapper = measured cutout + overscan. Vertical stack inside. */}
+    <div style={{
+      position: 'relative', width: baseW, height: baseH, flexShrink: 0,
+      willChange: 'transform', backfaceVisibility: 'hidden',
+    }}>
+      {/* Screen wrapper = measured cutout + overscan. Vertical stack inside.
+          Base background = topFill (orange) so the top edge behind the camera is
+          NEVER white; the iframe row + bottom zone paint white over the rest. */}
       <div style={{
         position: 'absolute',
         top: wrapY, left: wrapX,
         width: wrapW, height: wrapH,
         overflow: 'hidden',
         borderRadius: radius,
-        background: bottomFill,
+        background: topZonePx > 0 ? topFill : bottomFill,
         display: 'flex',
         flexDirection: 'column',
       }}>
-        {/* Row 1: top inset zone — square corners, edge to edge, announcement color */}
+        {/* Row 1: top inset zone — orange, overlaps iframe by SEAM (negative mb) */}
         {topZonePx > 0 && (
-          <div style={{ height: topZonePx, flexShrink: 0, background: topFill }} />
+          <div style={{
+            height: topZonePx, flexShrink: 0, background: topFill,
+            marginBottom: -SEAM, outline: `1px solid ${topFill}`,
+            position: 'relative', zIndex: 1,
+          }} />
         )}
 
         {/* Row 2: iframe — real viewport width, scaled edge-to-edge, zero inset */}
-        <div style={{ flex: 1, minHeight: 0, overflow: 'hidden', position: 'relative' }}>
+        <div style={{ flex: 1, minHeight: 0, overflow: 'hidden', position: 'relative', background: bottomFill }}>
           <iframe
             ref={iframeRef}
             src={iframeSrc}
@@ -167,9 +178,13 @@ function DeviceMockup({
           />
         </div>
 
-        {/* Row 3: bottom inset zone — square corners, edge to edge, nav bg */}
+        {/* Row 3: bottom inset zone — white, overlaps iframe by SEAM (negative mt) */}
         {bottomZonePx > 0 && (
-          <div style={{ height: bottomZonePx, flexShrink: 0, background: bottomFill }} />
+          <div style={{
+            height: bottomZonePx, flexShrink: 0, background: bottomFill,
+            marginTop: -SEAM, outline: `1px solid ${bottomFill}`,
+            position: 'relative', zIndex: 1,
+          }} />
         )}
       </div>
 
@@ -227,23 +242,29 @@ export function CustomizerPreview({
     return Math.min(canvasW / imgW, canvasH / imgH);
   }
 
+  // "100%" baseline = Fit × 1.2 (the previous 120% size is now the default 100%).
+  const FIT_BOOST = 1.2;
+
   const mob  = MOBILE_DEVICES[mobileKey];
   const tab  = TABLET_DEVICE;
   const desk = DESKTOP_DEVICE;
 
   const activeSpec = viewportMode === 'mobile' ? mob : viewportMode === 'tablet' ? tab : desk;
-  const baseFit = fitScale(activeSpec.mockupW, activeSpec.mockupH);
-  // finalScale: Fit → fitScale × userZoom. 1:1 → real device px × userZoom.
-  const finalScale = scaleMode === 'real' ? userZoom : baseFit * userZoom;
-  // label: Fit shows userZoom %, 1:1 shows the true percent vs Fit baseline.
+  // Baseline that the "100%" label maps to = Fit size × 1.2 (the old 120% view is
+  // now the default). Pane scrolls if the boosted device exceeds it.
+  const baseFit = fitScale(activeSpec.mockupW, activeSpec.mockupH) * FIT_BOOST;
+  // finalScale: Fit → baseFit × userZoom. 1:1 → real device px × userZoom.
+  // Rounded to 3 decimals to avoid long fractional scales → sub-pixel seams.
+  const finalScale = +((scaleMode === 'real' ? userZoom : baseFit * userZoom).toFixed(3));
+  // label: Fit shows userZoom %, 1:1 shows the true percent vs the 100% baseline.
   const zoomLabel = scaleMode === 'real'
     ? `${Math.round((finalScale / baseFit) * 100)}%`
     : `${Math.round(userZoom * 100)}%`;
 
-  // Visual (post-scale) device size — drives the sizer box so centering + scroll
-  // area are correct. The inner block is natural size with scale(finalScale).
-  const sizerW = activeSpec.mockupW * finalScale;
-  const sizerH = activeSpec.mockupH * finalScale;
+  // Visual (post-scale) device size — snapped to whole px so the sizer box and
+  // scroll area never land on fractional positions.
+  const sizerW = Math.round(activeSpec.mockupW * finalScale);
+  const sizerH = Math.round(activeSpec.mockupH * finalScale);
 
   // Reset zoom to Fit baseline + recenter scroll on device / viewport / page switch.
   useEffect(() => {
@@ -374,6 +395,8 @@ export function CustomizerPreview({
               transformOrigin: 'top left',
               position: 'absolute',
               top: 0, left: 0,
+              willChange: 'transform',
+              backfaceVisibility: 'hidden',
             }}
           >
             <DeviceMockup
