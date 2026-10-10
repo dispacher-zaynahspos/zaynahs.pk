@@ -73,7 +73,7 @@ export function CustomizerRightSidebar({
   handleUpdateProductSale
 }: CustomizerRightSidebarProps) {
   return (
-    <aside className={`w-96 flex-shrink-0 flex flex-col bg-white dark:bg-[#16162a] border-l border-gray-200 dark:border-gray-800 overflow-hidden h-full ${mobileTab === 'settings' ? 'fixed inset-0 z-50' : 'hidden'} md:flex md:static md:z-auto`}>
+    <aside className={`w-full md:w-96 flex-shrink-0 flex flex-col bg-white dark:bg-[#16162a] border-l border-gray-200 dark:border-gray-800 overflow-hidden h-full ${mobileTab === 'settings' ? 'fixed inset-x-0 top-0 bottom-16 z-40' : 'hidden'} md:flex md:static md:z-auto md:bottom-auto md:inset-auto`}>
       <div className="p-4 border-b border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-white/2 bg-surface-2 flex-shrink-0 flex items-center justify-between">
         <div className="flex items-center gap-1.5">
           <Settings className="h-4 w-4 text-[#e94560]" />
@@ -90,7 +90,7 @@ export function CustomizerRightSidebar({
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-5">
+      <div className="flex-1 overflow-y-auto p-5 pb-[calc(2rem+env(safe-area-inset-bottom))] md:pb-5 overscroll-contain">
         {activePage === 'home' ? (
           activeSectionId === 'announcement_bar' ? (
             <AnnouncementBarSettings
@@ -330,7 +330,8 @@ export function CustomizerRightSidebar({
               <div>
                 <h4 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">No Section Selected</h4>
                 <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold mt-1.5 max-w-[220px] leading-relaxed">
-                  Click a section in the left stack or directly on the live storefront preview to begin editing properties.
+                  <span className="md:hidden">Select a section from the Sections tab to edit its settings here.</span>
+                  <span className="hidden md:inline">Click a section in the left stack or directly on the live storefront preview to begin editing properties.</span>
                 </p>
               </div>
             </div>

@@ -50,8 +50,23 @@ export function CustomizerLeftSidebar({
   handleDuplicateSection,
   currentProduct
 }: CustomizerLeftSidebarProps) {
+  // Mobile UX: tapping a section/block in the Sections tab opens its settings in
+  // the Settings tab automatically. On desktop (md+) the right column is always
+  // visible, so no tab switch needed.
+  const selectSection = (id: string | null) => {
+    setActiveSectionId(id);
+    if (typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches) {
+      setMobileTab('settings');
+    }
+  };
+  const selectSubTab = (id: string) => {
+    setActiveSubTab(id);
+    if (typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches) {
+      setMobileTab('settings');
+    }
+  };
   return (
-    <aside className={`w-80 flex-shrink-0 flex flex-col bg-white dark:bg-[#16162a] border-r border-gray-200 dark:border-gray-800 overflow-hidden h-full ${mobileTab === 'sections' ? 'fixed inset-0 z-50' : 'hidden'} md:flex md:static md:z-auto`}>
+    <aside className={`w-full md:w-80 flex-shrink-0 flex flex-col bg-white dark:bg-[#16162a] border-r border-gray-200 dark:border-gray-800 overflow-hidden h-full ${mobileTab === 'sections' ? 'fixed inset-x-0 top-0 bottom-16 z-40' : 'hidden'} md:flex md:static md:z-auto md:bottom-auto md:inset-auto`}>
       <div className="p-4 border-b border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-white/2 bg-surface-2 flex-shrink-0 flex items-center justify-between">
         <h3 className="font-extrabold text-xs tracking-wider text-gray-900 dark:text-white uppercase">
           {activePage === 'home' ? 'Sections Stack' : `${activePage.replace('_', ' ')} Properties`}
@@ -65,13 +80,13 @@ export function CustomizerLeftSidebar({
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-6">
+      <div className="flex-1 overflow-y-auto p-4 pb-[calc(2rem+env(safe-area-inset-bottom))] md:pb-4 space-y-6 overscroll-contain">
         {activePage === 'home' ? (
           <HomeSectionsStack
             storeSettings={storeSettings}
             sections={sections}
             activeSectionId={activeSectionId}
-            setActiveSectionId={setActiveSectionId}
+            setActiveSectionId={selectSection}
             setActivePage={setActivePage}
             handleAddSection={handleAddSection}
             handleUpdateSection={handleUpdateSection}
@@ -93,7 +108,7 @@ export function CustomizerLeftSidebar({
               ].map(tab => (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveSubTab(tab.id)}
+                  onClick={() => selectSubTab(tab.id)}
                   className={`w-full text-left p-3 border rounded-xl transition-all cursor-pointer ${
                     activeSubTab === tab.id
                       ? 'border-[#e94560] bg-[#e94560]/5 dark:bg-[#e94560]/10 shadow-sm'
@@ -115,9 +130,9 @@ export function CustomizerLeftSidebar({
             storeSettings={storeSettings}
             setStoreSettings={setStoreSettings}
             activeSectionId={activeSectionId}
-            setActiveSectionId={setActiveSectionId}
+            setActiveSectionId={selectSection}
             activeSubTab={activeSubTab}
-            setActiveSubTab={setActiveSubTab}
+            setActiveSubTab={selectSubTab}
             currentProduct={currentProduct}
           />
         ) : activePage === 'product_card' ? (
@@ -139,7 +154,7 @@ export function CustomizerLeftSidebar({
               ].map(tab => (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveSubTab(tab.id)}
+                  onClick={() => selectSubTab(tab.id)}
                   className={`w-full text-left p-3 border rounded-xl transition-all cursor-pointer ${
                     activeSubTab === tab.id
                       ? 'border-[#e94560] bg-[#e94560]/5 dark:bg-[#e94560]/10 shadow-sm'
@@ -195,7 +210,7 @@ export function CustomizerLeftSidebar({
               ].map(tab => (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveSubTab(tab.id)}
+                  onClick={() => selectSubTab(tab.id)}
                   className={`w-full text-left p-3 border rounded-xl transition-all cursor-pointer ${
                     activeSubTab === tab.id
                       ? 'border-[#e94560] bg-[#e94560]/5 dark:bg-[#e94560]/10 shadow-sm'

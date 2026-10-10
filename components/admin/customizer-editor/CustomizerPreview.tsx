@@ -221,6 +221,17 @@ export function CustomizerPreview({
   const [scaleMode, setScaleMode] = useState<'fit' | 'real'>('fit');
   // userZoom: 1.00 = Fit baseline (label "100%"). +/- step 0.05, range 0.50–2.00.
   const [userZoom, setUserZoom] = useState(1);
+  // Is the ADMIN browser a phone (<768px)? Preview frame shrinks ~10% on phones
+  // only — desktop/tablet admin scale is untouched.
+  const [isPhoneBrowser, setIsPhoneBrowser] = useState(false);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mq = window.matchMedia('(max-width: 767px)');
+    const update = () => setIsPhoneBrowser(mq.matches);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, []);
 
   const nudgeZoom = useCallback((d: number) =>
     setUserZoom(z => Math.min(2, Math.max(0.5, +(z + d).toFixed(2)))), []);
@@ -249,7 +260,10 @@ export function CustomizerPreview({
   // smaller boost keeps it close to the pane; it scrolls if it exceeds).
   const rawFit = fitScale(activeSpec.mockupW, activeSpec.mockupH);
   const fitBoost = viewportMode === 'desktop' ? 1.05 : 1.2;
-  const baseFit = rawFit * fitBoost;
+  // On a PHONE admin browser, shrink the whole preview ~10% so the frame + its
+  // toolbar fit the small screen comfortably. Desktop/tablet admin unaffected.
+  const phoneShrink = isPhoneBrowser ? 0.9 : 1;
+  const baseFit = rawFit * fitBoost * phoneShrink;
   // finalScale: Fit → baseFit × userZoom. 1:1 → real device px × userZoom.
   // Rounded to 3 decimals to avoid long fractional scales → sub-pixel seams.
   const finalScale = +((scaleMode === 'real' ? userZoom : baseFit * userZoom).toFixed(3));

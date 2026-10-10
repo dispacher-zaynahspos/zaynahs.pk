@@ -130,6 +130,7 @@ export function CustomizerTopBar({
               : 'text-white/75 hover:text-white'
           }`}
           title="Desktop View"
+          aria-label="Desktop View"
         >
           <Monitor className="h-3.5 w-3.5 shrink-0" />
           <span className="hidden lg:inline">Desktop</span>
@@ -142,6 +143,7 @@ export function CustomizerTopBar({
               : 'text-white/75 hover:text-white'
           }`}
           title="Tablet View"
+          aria-label="Tablet View"
         >
           <Tablet className="h-3.5 w-3.5 shrink-0" />
           <span className="hidden lg:inline">Tablet</span>
@@ -154,6 +156,7 @@ export function CustomizerTopBar({
               : 'text-white/75 hover:text-white'
           }`}
           title="Mobile View"
+          aria-label="Mobile View"
         >
           <Smartphone className="h-3.5 w-3.5 shrink-0" />
           <span className="hidden lg:inline">Mobile</span>
