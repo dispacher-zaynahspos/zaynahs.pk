@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { Category } from '@/lib/types';
-import { ArrowLeft, ExternalLink, Plus, Loader2 } from '@/components/common/Icons';
+import { ArrowLeft, ExternalLink, Plus, Loader2, Edit } from '@/components/common/Icons';
 
 interface CategoryDetailHeaderProps {
   category: Category;
@@ -12,6 +12,7 @@ interface CategoryDetailHeaderProps {
   savingSortOrder: boolean;
   onSaveSortOrder: () => void;
   onOpenAddModal: () => void;
+  onOpenEditCategory?: () => void;
 }
 
 export function CategoryDetailHeader({
@@ -21,6 +22,7 @@ export function CategoryDetailHeader({
   savingSortOrder,
   onSaveSortOrder,
   onOpenAddModal,
+  onOpenEditCategory,
 }: CategoryDetailHeaderProps) {
   return (
     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-[#16162a] border border-gray-200 dark:border-gray-800 rounded-2xl p-6 shadow-sm">
@@ -48,11 +50,22 @@ export function CategoryDetailHeader({
         <Link
           href={`/shop?category=${category.slug}`}
           target="_blank"
-          className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all shadow-xs shrink-0 whitespace-nowrap active:scale-98"
+          className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-bold border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all shadow-xs shrink-0 whitespace-nowrap active:scale-98"
         >
           <ExternalLink className="h-3.5 w-3.5 shrink-0" />
           <span>View on Store</span>
         </Link>
+
+        {onOpenEditCategory && (
+          <button
+            type="button"
+            onClick={onOpenEditCategory}
+            className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-bold border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all shadow-xs shrink-0 whitespace-nowrap active:scale-98 cursor-pointer"
+          >
+            <Edit className="h-3.5 w-3.5 shrink-0" />
+            <span>Edit Category</span>
+          </button>
+        )}
 
         <button
           type="button"

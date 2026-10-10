@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useConfirm } from '@/components/admin/shared/AdminConfirmProvider';
 import { toast } from 'sonner';
 import { getClientSiteUrl } from '@/lib/site-url';
+import { slugify } from '@/lib/utils/slugify';
 import { useCategoryImportExport } from './useCategoryImportExport';
 
 interface UseCategoryManagerStateProps {
@@ -49,20 +50,13 @@ export function useCategoryManagerState({
     setSelectedCategoryIds,
   });
 
+  const [slugTouched, setSlugTouched] = useState(false);
+
   useEffect(() => {
-    if (!editId && name) {
-      const timer = setTimeout(() => {
-        setSlug(
-          name
-            .toLowerCase()
-            .replace(/[^a-z0-9 -]/g, '')
-            .replace(/\s+/g, '-')
-            .replace(/-+/g, '-')
-        );
-      }, 0);
-      return () => clearTimeout(timer);
+    if (name && !slugTouched) {
+      setSlug(slugify(name));
     }
-  }, [name, editId]);
+  }, [name, slugTouched]);
 
   const handleAICopywrite = async () => {
     if (!name.trim()) {
@@ -120,6 +114,7 @@ export function useCategoryManagerState({
     setImageUrl('');
     setSortOrder('0');
     setActive(true);
+    setSlugTouched(false);
     setIsOpen(true);
   };
 
@@ -131,6 +126,7 @@ export function useCategoryManagerState({
     setImageUrl(cat.image_url || '');
     setSortOrder(cat.sort_order != null ? cat.sort_order.toString() : '0');
     setActive(cat.active);
+    setSlugTouched(false);
     setIsOpen(true);
   };
 

@@ -7,6 +7,7 @@ export interface Category {
   sort_order: number;
   active: boolean;
   active_sort_preference?: string | null;
+  product_count?: number;
   deleted_at?: string | null;
   created_at: string;
   updated_at: string;

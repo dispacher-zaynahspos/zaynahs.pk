@@ -49,13 +49,18 @@ export default function CategoryCard({
               <div className="w-4 h-4 mt-1 flex-shrink-0" />
             )}
             <div>
-              <h3 className="font-bold text-gray-950 dark:text-white text-base group-hover:text-[#e94560] transition-colors flex items-center gap-1.5 flex-wrap">
+              <h3 className="font-bold text-gray-950 dark:text-white text-base group-hover:text-[#e94560] transition-colors flex items-center gap-2 flex-wrap">
                 {cat._level > 0 && (
                   <span className="text-gray-400">{'—'.repeat(cat._level)} </span>
                 )}
-                {cat.name}
+                <span>{cat.name}</span>
+                {typeof cat.product_count === 'number' && (
+                  <span className="inline-flex items-center text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700">
+                    {cat.product_count} {cat.product_count === 1 ? 'product' : 'products'}
+                  </span>
+                )}
                 {cat.id === SHOP_CATEGORY_ID && (
-                  <span className="ml-2 text-[9px] font-bold text-indigo-600 bg-indigo-50 dark:bg-indigo-950/20 px-1.5 py-0.5 rounded uppercase">System</span>
+                  <span className="ml-1 text-[9px] font-bold text-indigo-600 bg-indigo-50 dark:bg-indigo-950/20 px-1.5 py-0.5 rounded uppercase">System</span>
                 )}
               </h3>
               <p className="text-xs text-gray-500 font-semibold mt-1">Slug: {cat.slug}</p>

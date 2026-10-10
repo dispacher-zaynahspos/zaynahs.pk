@@ -2,8 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Plus, X, Image as ImageIcon, Zap, Loader2 } from '@/components/common/Icons';
+import { Plus, X, Image as ImageIcon, Zap, Loader2, RefreshCw } from '@/components/common/Icons';
 import RichTextEditor from '@/components/admin/RichTextEditor';
+import { useBodyScrollLock } from '@/lib/hooks/useBodyScrollLock';
+import { slugify } from '@/lib/utils/slugify';
 
 interface CategoryFormModalProps {
   isOpen: boolean;
@@ -53,21 +55,40 @@ export default function CategoryFormModal({
   onOpenMediaModal,
 }: CategoryFormModalProps) {
   const [mounted, setMounted] = useState(false);
+  const [isSlugTouched, setIsSlugTouched] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
+  useEffect(() => {
+    if (isOpen) {
+      setIsSlugTouched(false);
+    }
+  }, [isOpen, editId]);
+
+  useBodyScrollLock(isOpen);
+
   if (!isOpen || !mounted) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4">
-      <div className="bg-white dark:bg-[#16162a] w-full max-w-3xl max-h-[90vh] rounded-2xl border border-gray-250 dark:border-gray-800 shadow-2xl overflow-hidden flex flex-col animate-scale-in text-gray-900 dark:text-white overscroll-contain">
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 bg-black/60 animate-in fade-in duration-200"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="category-form-modal-title"
+        className="relative w-full max-w-3xl bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 shadow-2xl flex flex-col max-h-[90dvh] overflow-hidden animate-in zoom-in-95 duration-200 text-gray-900 dark:text-white"
+      >
         
         {/* Sticky Header */}
-        <div className="flex justify-between items-center px-6 py-4 border-b border-gray-150 dark:border-gray-800 shrink-0 bg-white dark:bg-[#16162a] sticky top-0 z-20">
+        <div className="flex justify-between items-center px-5 sm:px-6 py-4 border-b border-gray-150 dark:border-gray-800 shrink-0 bg-white dark:bg-[#16162a]">
           <div className="flex items-center gap-3">
-            <h3 className="text-base font-extrabold tracking-tight text-gray-900 dark:text-white">
+            <h3 id="category-form-modal-title" className="text-base font-extrabold tracking-tight text-gray-900 dark:text-white">
               {editId ? 'Edit Category' : 'Create New Category'}
             </h3>
             {name.trim() !== '' && (
@@ -94,16 +115,17 @@ export default function CategoryFormModal({
           <button 
             type="button"
             onClick={onClose} 
-            className="text-gray-400 hover:text-gray-650 dark:hover:text-white cursor-pointer p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5"
+            className="text-gray-400 hover:text-gray-650 dark:hover:text-white cursor-pointer p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 transition-all"
+            aria-label="Close modal"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
         {/* Form Container */}
-        <form onSubmit={onSubmit} className="flex-1 flex flex-col min-h-0">
+        <form onSubmit={onSubmit} className="flex-1 min-h-0 flex flex-col overflow-hidden">
           {/* Scrollable Form Body */}
-          <div className="flex-1 overflow-y-auto p-6 space-y-5">
+          <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-5 touch-pan-y scroll-smooth custom-scrollbar" style={{ WebkitOverflowScrolling: 'touch' }}>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-gray-500">Category Name *</label>
@@ -111,18 +133,41 @@ export default function CategoryFormModal({
                   type="text"
                   required
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e) => {
+                    const newName = e.target.value;
+                    setName(newName);
+                    if (!isSlugTouched) {
+                      setSlug(slugify(newName));
+                    }
+                  }}
                   className="mt-1.5 w-full rounded-xl border border-gray-250 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 px-4 py-2.5 text-sm font-medium focus:border-[#e94560] focus:bg-white focus:outline-none transition-all dark:text-white"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-gray-500">Category Slug *</label>
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-500">Category Slug *</label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSlug(slugify(name));
+                      setIsSlugTouched(false);
+                    }}
+                    className="text-[11px] font-bold text-[var(--color-primary,#e94560)] hover:underline inline-flex items-center gap-1 cursor-pointer"
+                    title="Generate slug from category name"
+                  >
+                    <RefreshCw className="h-3 w-3" />
+                    <span>Sync with Name</span>
+                  </button>
+                </div>
                 <input
                   type="text"
                   required
                   value={slug}
-                  onChange={(e) => setSlug(e.target.value)}
+                  onChange={(e) => {
+                    setIsSlugTouched(true);
+                    setSlug(e.target.value);
+                  }}
                   className="mt-1.5 w-full rounded-xl border border-gray-255 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 px-4 py-2.5 text-sm font-medium focus:border-[#e94560] focus:bg-white focus:outline-none transition-all dark:text-white"
                 />
                 {slug && (

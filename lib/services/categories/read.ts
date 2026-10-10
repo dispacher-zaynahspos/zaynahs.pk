@@ -1,6 +1,7 @@
 'use server';
 
 import { Category } from '@/lib/types';
+import { SHOP_CATEGORY_ID } from '@/lib/config/singleton-ids';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { mapCategory } from './types';
 
@@ -93,15 +94,50 @@ export const getCategoryBySlug = async (slug: string): Promise<Category | null> 
 export const getAllCategories = async (): Promise<Category[]> => {
   try {
     const supabase = staticSupabase;
-    const { data, error } = await supabase
-      .from('categories')
-      .select('*')
-      .is('deleted_at', null)
-      .order('sort_order', { ascending: true })
-      .order('created_at', { ascending: false });
+    const [catsRes, prodsRes, pcRes] = await Promise.all([
+      supabase
+        .from('categories')
+        .select('*')
+        .is('deleted_at', null)
+        .order('sort_order', { ascending: true })
+        .order('created_at', { ascending: false }),
+      supabase
+        .from('products')
+        .select('id, category_id')
+        .is('deleted_at', null),
+      supabase
+        .from('product_categories')
+        .select('product_id, category_id')
+    ]);
 
-    if (error) throw error;
-    return (data ?? []).map(mapCategory);
+    if (catsRes.error) throw catsRes.error;
+
+    const validProductIds = new Set((prodsRes.data || []).map(p => p.id));
+    const totalCount = validProductIds.size;
+
+    const catMap = new Map<string, Set<string>>();
+    for (const p of prodsRes.data || []) {
+      if (p.category_id) {
+        if (!catMap.has(p.category_id)) catMap.set(p.category_id, new Set());
+        catMap.get(p.category_id)!.add(p.id);
+      }
+    }
+    for (const r of pcRes.data || []) {
+      if (validProductIds.has(r.product_id)) {
+        if (!catMap.has(r.category_id)) catMap.set(r.category_id, new Set());
+        catMap.get(r.category_id)!.add(r.product_id);
+      }
+    }
+
+    return (catsRes.data ?? []).map(row => {
+      const cat = mapCategory(row);
+      if (cat.id === SHOP_CATEGORY_ID) {
+        cat.product_count = totalCount;
+      } else {
+        cat.product_count = catMap.get(cat.id)?.size ?? 0;
+      }
+      return cat;
+    });
   } catch (error) {
     console.error('[categories] getAllCategories failed, returning fallback list:', error);
     return [];

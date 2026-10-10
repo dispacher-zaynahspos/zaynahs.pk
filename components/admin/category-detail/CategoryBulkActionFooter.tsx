@@ -34,7 +34,7 @@ export function CategoryBulkActionFooter({
 
   return (
     <div
-      className="fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-[#16162a]/95 backdrop-blur-md border-t border-gray-200 dark:border-gray-800 px-4 sm:px-6 py-2.5 sm:py-3 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] transition-all duration-200"
+      className="fixed bottom-0 inset-x-0 z-40 bg-white dark:bg-[#16162a] border-t border-gray-200 dark:border-gray-800 px-4 sm:px-6 py-2.5 sm:py-3 shadow-[0_-4px_20px_rgba(0,0,0,0.12)] transition-all duration-200"
     >
       <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-4">
         {selectedProductIds.length > 0 ? (
