@@ -69,8 +69,11 @@ export function FooterSocialLinks({ settings }: FooterSocialLinksProps) {
     ['--fs-hover-bg']: hoverBg,
   } as React.CSSProperties;
 
+  const isCenter = settings.footer_align === 'center';
+  const justifyClass = isCenter ? 'justify-center' : 'justify-center sm:justify-start';
+
   return (
-    <div className="pt-2 flex flex-wrap gap-2" style={styleVars}>
+    <div className={`pt-2 flex flex-wrap items-center gap-2 ${justifyClass}`} style={styleVars}>
       <style>{`
         .fs-link {
           color: var(--fs-icon);

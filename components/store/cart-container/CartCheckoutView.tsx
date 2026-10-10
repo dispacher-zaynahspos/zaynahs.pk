@@ -6,6 +6,7 @@ import { StoreSettings, ShippingMethod, PaymentMethod, CartItem, ShippingZone } 
 import { formatPrice } from '@/lib/utils/whatsapp';
 import PhoneInput from '@/components/store/PhoneInput';
 import CitySelect from '@/components/store/CitySelect';
+import { getPaymentMethodIcon } from '@/components/common/PaymentBadges';
 
 interface CartCheckoutViewProps {
   settings: StoreSettings;
@@ -268,11 +269,18 @@ export default function CartCheckoutView({
                   <div className="space-y-2">
                     {paymentMethods.map(method => {
                       const sel = selectedPaymentId === method.id;
+                      const iconSrc = getPaymentMethodIcon(method.code || method.name) || ((method.code || method.name || '').toLowerCase().includes('cod') ? '/payments/cod.ico' : null);
                       return (
                         <div key={method.id} className="space-y-2">
                           <label className={`flex items-center justify-between p-3.5 rounded-xl border-2 cursor-pointer transition-all ${sel ? 'border-[#e94560] bg-red-50/30 dark:bg-red-900/10' : 'border-gray-200 dark:border-gray-800 hover:border-gray-300'}`}>
                             <div className="flex items-center gap-3">
                               <input type="radio" name="paymentCheckout" checked={sel} onChange={() => setSelectedPaymentId(method.id)} className="accent-[#e94560] h-4 w-4" />
+                              {iconSrc ? (
+                                <div className="h-7 w-7 rounded-lg bg-white dark:bg-white/10 p-0.5 border border-black/5 dark:border-white/10 flex items-center justify-center shrink-0 shadow-2xs">
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img src={iconSrc} alt={method.name} className="h-5 w-5 object-contain" />
+                                </div>
+                              ) : null}
                               <span className="text-sm font-bold text-gray-800 dark:text-gray-200">{method.name}</span>
                             </div>
                             <span className="text-xs font-semibold px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded-md text-gray-600 dark:text-gray-400 uppercase">

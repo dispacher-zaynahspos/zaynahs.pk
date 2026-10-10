@@ -177,7 +177,7 @@ export default function Footer({ settings, brandName }: FooterProps) {
 
         {/* Footer Bottom (Divider & Copyright) */}
         <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-xs font-semibold text-gray-500 dark:text-gray-400" style={{ color: 'var(--footer-copyright, var(--footer-text))' }}>
+          <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 text-center sm:text-left" style={{ color: 'var(--footer-copyright, var(--footer-text))' }}>
             {settings.footer_bottom_text
               ? settings.footer_bottom_text
               : `© ${currentYear} ${brandName || settings.store_name || 'Our Store'}. All rights reserved.`}
@@ -188,7 +188,7 @@ export default function Footer({ settings, brandName }: FooterProps) {
             settings.safe_checkout_methods.length > 0 && (
               <PaymentBadges
                 methods={settings.safe_checkout_methods}
-                className="flex flex-wrap items-center gap-1.5 justify-end"
+                className="flex flex-wrap items-center justify-center sm:justify-end gap-1.5"
               />
             )}
         </div>

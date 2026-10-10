@@ -3,6 +3,7 @@
 import React from 'react';
 import { CreditCard, Loader2, Plus, Edit2, Trash2, Check, X, GripVertical, ChevronUp, ChevronDown } from '@/components/common/Icons';
 import { PaymentMethod } from '@/lib/types';
+import { getPaymentMethodIcon } from '@/components/common/PaymentBadges';
 
 interface PaymentMethodsCardProps {
   paymentMethods: PaymentMethod[];
@@ -115,6 +116,7 @@ export default function PaymentMethodsCard({
                       <option value="easypaisa">EasyPaisa</option>
                       <option value="jazzcash">JazzCash</option>
                       <option value="banktransfer">Bank Transfer</option>
+                      <option value="nayapay">NayaPay</option>
                       <option value="paypal">PayPal</option>
                       <option value="amex">AMEX</option>
                       <option value="klarna">Klarna</option>
@@ -174,7 +176,21 @@ export default function PaymentMethodsCard({
                       </button>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-bold text-gray-800 dark:text-gray-200 truncate">{method.name}</div>
+                      <div className="flex items-center gap-2">
+                        {(() => {
+                          const iconSrc = getPaymentMethodIcon(method.code || method.name) || ((method.code || method.name || '').toLowerCase().includes('cod') ? '/payments/cod.ico' : null);
+                          if (iconSrc) {
+                            return (
+                              <div className="h-6 w-6 rounded bg-white dark:bg-white/10 p-0.5 border border-black/5 dark:border-white/10 flex items-center justify-center shrink-0 shadow-2xs">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img src={iconSrc} alt={method.name} className="h-4 w-4 object-contain" />
+                              </div>
+                            );
+                          }
+                          return null;
+                        })()}
+                        <div className="font-bold text-gray-800 dark:text-gray-200 truncate">{method.name}</div>
+                      </div>
                       <div className="text-xs text-gray-400 dark:text-gray-500 font-semibold mt-0.5 uppercase">
                         Badge Code: {method.code}
                       </div>
@@ -245,6 +261,7 @@ export default function PaymentMethodsCard({
                 <option value="easypaisa">EasyPaisa</option>
                 <option value="jazzcash">JazzCash</option>
                 <option value="banktransfer">Bank Transfer</option>
+                <option value="nayapay">NayaPay</option>
                 <option value="paypal">PayPal</option>
                 <option value="amex">AMEX</option>
                 <option value="klarna">Klarna</option>

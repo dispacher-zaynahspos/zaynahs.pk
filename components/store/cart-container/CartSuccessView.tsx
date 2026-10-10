@@ -8,6 +8,7 @@ import { StoreSettings } from '@/lib/types';
 import { formatPrice } from '@/lib/utils/whatsapp';
 import { getSharedAspectClass } from '@/lib/utils/styles';
 import { getPresetImageUrl } from '@/lib/utils/imageUrl';
+import { getPaymentMethodIcon } from '@/components/common/PaymentBadges';
 
 interface CartSuccessViewProps {
   placedOrder: any;
@@ -62,7 +63,21 @@ export default function CartSuccessView({ placedOrder, settings, onContinueShopp
           </div>
           <div className="space-y-1">
             <span className="text-gray-400 dark:text-gray-500 font-bold uppercase tracking-wider block text-[10px]">Payment method:</span>
-            <strong className="text-gray-900 dark:text-white font-black">{placedOrder.paymentMethodName || 'Cash on delivery'}</strong>
+            <div className="flex items-center gap-1.5">
+              {(() => {
+                const iconSrc = getPaymentMethodIcon(placedOrder.paymentMethodName || '') || (((placedOrder.paymentMethodName || '').toLowerCase().includes('cod') || (placedOrder.paymentMethodName || '').toLowerCase().includes('cash')) ? '/payments/cod.ico' : null);
+                if (iconSrc) {
+                  return (
+                    <div className="h-5 w-5 rounded bg-white dark:bg-white/10 p-0.5 border border-black/5 dark:border-white/10 flex items-center justify-center shrink-0 shadow-2xs">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={iconSrc} alt={placedOrder.paymentMethodName} className="h-3.5 w-3.5 object-contain" />
+                    </div>
+                  );
+                }
+                return null;
+              })()}
+              <strong className="text-gray-900 dark:text-white font-black">{placedOrder.paymentMethodName || 'Cash on delivery'}</strong>
+            </div>
           </div>
         </div>
 

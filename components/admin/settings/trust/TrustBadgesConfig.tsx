@@ -127,6 +127,11 @@ export default function TrustBadgesConfig({
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-1.5">
               {[
+                { code: 'jazzcash', label: 'JazzCash', icon: '/payments/jazzcash.ico' },
+                { code: 'easypaisa', label: 'EasyPaisa', icon: '/payments/easypaisa.ico' },
+                { code: 'banktransfer', label: 'Bank Transfer', icon: '/payments/banktransfer.ico' },
+                { code: 'nayapay', label: 'NayaPay', icon: '/payments/nayapay.ico' },
+                { code: 'cod', label: 'Cash on Delivery', icon: '/payments/cod.ico' },
                 { code: 'visa', label: 'Visa' },
                 { code: 'mastercard', label: 'Mastercard' },
                 { code: 'amex', label: 'Amex' },
@@ -134,16 +139,12 @@ export default function TrustBadgesConfig({
                 { code: 'klarna', label: 'Klarna' },
                 { code: 'cirrus', label: 'Cirrus' },
                 { code: 'westernunion', label: 'Western Union' },
-                { code: 'cod', label: '💵 Cash on Delivery' },
-                { code: 'easypaisa', label: 'EasyPaisa' },
-                { code: 'jazzcash', label: 'JazzCash' },
-                { code: 'banktransfer', label: '🏦 Bank Transfer' },
-              ].map(({ code, label }) => {
+              ].map(({ code, label, icon }) => {
                 const isChecked = safeCheckoutMethods.includes(code);
                 return (
                   <label
                     key={code}
-                    className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-gray-700 dark:text-gray-300 select-none"
+                    className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-gray-700 dark:text-gray-300 select-none p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
                   >
                     <input
                       type="checkbox"
@@ -155,7 +156,11 @@ export default function TrustBadgesConfig({
                       }}
                       className="rounded border-gray-300 dark:border-gray-700 text-[#e94560] focus:ring-[#e94560] h-3.5 w-3.5"
                     />
-                    <span>{label}</span>
+                    {icon ? (
+                      /* eslint-disable-next-line @next/next/no-img-element */
+                      <img src={icon} alt={label} className="h-4 w-4 object-contain shrink-0 rounded-xs" />
+                    ) : null}
+                    <span className="truncate">{label}</span>
                   </label>
                 );
               })}
