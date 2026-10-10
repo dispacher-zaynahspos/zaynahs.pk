@@ -10,6 +10,7 @@ interface UseCustomizerIframeSyncProps {
   activeProductSlug: string | null;
   activeSectionId: string | null;
   activePage: 'home' | 'shop' | 'product_detail' | 'product_card' | 'global' | 'appearance';
+  viewportMode: 'desktop' | 'tablet' | 'mobile';
   setActivePage: (page: 'home' | 'shop' | 'product_detail' | 'product_card' | 'global' | 'appearance') => void;
   setActiveSectionId: (id: string | null) => void;
   setActiveSubTab: (subTab: string) => void;
@@ -24,6 +25,7 @@ export function useCustomizerIframeSync({
   activeProductSlug,
   activeSectionId,
   activePage,
+  viewportMode,
   setActivePage,
   setActiveSectionId,
   setActiveSubTab,
@@ -40,11 +42,16 @@ export function useCustomizerIframeSync({
             settings: storeSettings,
             products: localProducts,
             activeProductSlug,
-            activeSectionId
+            activeSectionId,
+            viewportMode,
           }, '*');
           iframeRef.current.contentWindow.postMessage({
             type: 'change_page',
             page: activePage
+          }, '*');
+          iframeRef.current.contentWindow.postMessage({
+            type: 'change_viewport',
+            viewportMode,
           }, '*');
         }
       }
@@ -58,16 +65,30 @@ export function useCustomizerIframeSync({
         settings: storeSettings,
         products: localProducts,
         activeProductSlug,
-        activeSectionId
+        activeSectionId,
+        viewportMode,
       }, '*');
       iframeRef.current.contentWindow.postMessage({
         type: 'change_page',
         page: activePage
       }, '*');
+      iframeRef.current.contentWindow.postMessage({
+        type: 'change_viewport',
+        viewportMode,
+      }, '*');
     }
 
     return () => window.removeEventListener('message', handleReady);
-  }, [sections, storeSettings, activePage, localProducts, activeProductSlug, activeSectionId, iframeRef]);
+  }, [sections, storeSettings, activePage, localProducts, activeProductSlug, activeSectionId, viewportMode, iframeRef]);
+
+  useEffect(() => {
+    if (iframeRef.current?.contentWindow) {
+      iframeRef.current.contentWindow.postMessage({
+        type: 'change_viewport',
+        viewportMode,
+      }, '*');
+    }
+  }, [viewportMode, iframeRef]);
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {

@@ -3,6 +3,11 @@ import { HomepageSection, StoreSettings } from '@/lib/types';
 export interface HeroSlide {
   id: string;
   image_url: string;
+  mobile_image_url?: string;
+  tablet_image_url?: string;
+  image_fit?: 'cover' | 'contain' | 'fill';
+  mobile_image_fit?: 'cover' | 'contain' | 'fill';
+  tablet_image_fit?: 'cover' | 'contain' | 'fill';
   video_url?: string;
   video_autoplay?: boolean;
   video_muted?: boolean;
@@ -39,4 +44,6 @@ export interface ParsedVideo {
 export interface HeroBannerSectionProps {
   section: HomepageSection;
   settings: StoreSettings;
+  viewportMode?: 'desktop' | 'tablet' | 'mobile';
 }
+

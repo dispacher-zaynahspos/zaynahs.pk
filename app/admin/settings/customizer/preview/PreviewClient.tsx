@@ -40,6 +40,7 @@ export default function PreviewClient({
   const [productsList, setProductsList] = useState<Product[]>(products);
   const [activeProductSlug, setActiveProductSlug] = useState<string | null>(null);
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
+  const [viewportMode, setViewportMode] = useState<'desktop' | 'tablet' | 'mobile'>('mobile');
 
   const liveProducts = useLiveProducts(productsList, sections, settings);
 
@@ -55,6 +56,13 @@ export default function PreviewClient({
     const handleMessage = (event: MessageEvent) => {
       if (event.data) {
         if (event.data.type === 'sync') {
+          if (event.data.viewportMode) {
+            setViewportMode(event.data.viewportMode);
+            try {
+              document.documentElement.setAttribute('data-device', event.data.viewportMode);
+              document.documentElement.setAttribute('data-viewport-mode', event.data.viewportMode);
+            } catch {}
+          }
           if (event.data.sections) {
             setSections(event.data.sections);
           }
@@ -79,6 +87,14 @@ export default function PreviewClient({
                 }
               }, 100);
             }
+          }
+        } else if (event.data.type === 'change_viewport') {
+          if (event.data.viewportMode) {
+            setViewportMode(event.data.viewportMode);
+            try {
+              document.documentElement.setAttribute('data-device', event.data.viewportMode);
+              document.documentElement.setAttribute('data-viewport-mode', event.data.viewportMode);
+            } catch {}
           }
         } else if (event.data.type === 'scroll_to_section') {
           lastScrolledSectionId.current = event.data.sectionId;
@@ -197,6 +213,7 @@ export default function PreviewClient({
             sections={sections}
             isPreview={true}
             activeSectionId={activeSectionId}
+            viewportMode={viewportMode}
           />
         )}
         {(activePage === 'shop' || activePage === 'product_card') && (
@@ -221,7 +238,7 @@ export default function PreviewClient({
         )}
       </main>
       <Footer settings={settings} />
-      <CartBar currencySymbol={settings.currency_symbol} />
+      <CartBar currencySymbol={settings.currency_symbol} enabled={settings?.cart_bar_enabled !== false} />
       <MobileBottomNav
         enabled={settings?.mobile_bottom_nav_enabled !== false}
         items={settings?.mobile_bottom_nav_items}

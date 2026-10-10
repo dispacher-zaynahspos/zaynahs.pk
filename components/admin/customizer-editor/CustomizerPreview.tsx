@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { StoreSettings } from '@/lib/types';
 
 interface CustomizerPreviewProps {
@@ -22,30 +22,133 @@ export function CustomizerPreview({
   storeSettings,
   iframeRef,
 }: CustomizerPreviewProps) {
+  const [mobilePreset, setMobilePreset] = useState<'393' | '412' | '375'>('393');
+  const [scaleMode, setScaleMode] = useState<'fit' | 'real'>('fit');
+
+  // Modern device specifications (2024-2026 standards)
+  const mobileScreenWidth = mobilePreset === '412' ? 412 : mobilePreset === '375' ? 375 : 393;
+  const mobileScreenHeight = mobilePreset === '412' ? 915 : mobilePreset === '375' ? 667 : 844;
+  const tabletScreenWidth = 820;
+  const tabletScreenHeight = 1180;
+  const desktopScreenWidth = 1280;
+  const desktopScreenHeight = 800;
+
   return (
-    <main className={`flex-grow bg-gray-100 dark:bg-[#0f0f1b]/30 overflow-hidden flex flex-col h-full ${mobileTab !== 'preview' ? 'hidden' : ''} md:flex`}>
+    <main className={`flex-grow bg-gray-100 dark:bg-[#0f0f1b]/40 overflow-hidden flex flex-col h-full ${mobileTab !== 'preview' ? 'hidden' : ''} md:flex`}>
+      {/* Device Calibration Toolbar */}
+      <div className="h-10 px-4 bg-white/95 dark:bg-[#16162a]/95 backdrop-blur-md border-b border-gray-200/80 dark:border-gray-800 flex items-center justify-between text-xs shrink-0 select-none z-10 shadow-2xs">
+        <div className="flex items-center gap-2.5">
+          <span className="text-[10px] font-black uppercase tracking-wider text-gray-400">Device View:</span>
+          {viewportMode === 'mobile' && (
+            <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 p-0.5 rounded-lg text-[10px] font-bold">
+              <button
+                type="button"
+                onClick={() => setMobilePreset('393')}
+                className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
+                  mobilePreset === '393'
+                    ? 'bg-white dark:bg-[#0f0f1b] text-[#e94560] shadow-xs'
+                    : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
+                }`}
+                title="iPhone 14 / 15 / 16 (393px standard)"
+              >
+                iPhone (393px)
+              </button>
+              <button
+                type="button"
+                onClick={() => setMobilePreset('412')}
+                className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
+                  mobilePreset === '412'
+                    ? 'bg-white dark:bg-[#0f0f1b] text-[#e94560] shadow-xs'
+                    : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
+                }`}
+                title="Samsung Galaxy / Pixel (412px)"
+              >
+                Galaxy (412px)
+              </button>
+              <button
+                type="button"
+                onClick={() => setMobilePreset('375')}
+                className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
+                  mobilePreset === '375'
+                    ? 'bg-white dark:bg-[#0f0f1b] text-[#e94560] shadow-xs'
+                    : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
+                }`}
+                title="Compact Screen (375px)"
+              >
+                Compact (375px)
+              </button>
+            </div>
+          )}
+          {viewportMode === 'tablet' && (
+            <span className="text-[10px] font-bold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 px-2.5 py-1 rounded-md">
+              iPad 10.9&quot; / Air (820px)
+            </span>
+          )}
+          {viewportMode === 'desktop' && (
+            <span className="text-[10px] font-bold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 px-2.5 py-1 rounded-md">
+              Desktop Standard (1280px)
+            </span>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 p-0.5 rounded-lg text-[10px] font-bold">
+            <button
+              type="button"
+              onClick={() => setScaleMode('fit')}
+              className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
+                scaleMode === 'fit'
+                  ? 'bg-white dark:bg-[#0f0f1b] text-[#e94560] shadow-xs'
+                  : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
+              }`}
+              title="Scale to fit viewport"
+            >
+              Fit Screen
+            </button>
+            <button
+              type="button"
+              onClick={() => setScaleMode('real')}
+              className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
+                scaleMode === 'real'
+                  ? 'bg-white dark:bg-[#0f0f1b] text-[#e94560] shadow-xs'
+                  : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
+              }`}
+              title="100% Real Device 1:1 Pixel Scale (Exact live size)"
+            >
+              100% Real Size
+            </button>
+          </div>
+          <span className="text-[10px] font-mono text-gray-400 bg-gray-100/60 dark:bg-gray-800/60 px-2 py-0.5 rounded">
+            {viewportMode === 'mobile'
+              ? `${mobileScreenWidth}×${mobileScreenHeight}`
+              : viewportMode === 'tablet'
+              ? `${tabletScreenWidth}×${tabletScreenHeight}`
+              : `${desktopScreenWidth}×${desktopScreenHeight}`}
+          </span>
+        </div>
+      </div>
+
       <div 
         ref={previewContainerRef}
-        className="flex-1 overflow-auto p-6 flex justify-center items-center h-full"
+        className="flex-1 overflow-auto p-4 md:p-6 flex justify-center items-center h-full"
       >
         {viewportMode === 'desktop' ? (
           (() => {
-            const desktopScreenWidth = 1280;
-            const desktopScreenHeight = 800;
-            const desktopScale = Math.min(
+            const rawScale = Math.min(
               1,
               (containerWidth - 32) / desktopScreenWidth,
-              (containerHeight - 32) / desktopScreenHeight
+              (containerHeight - 56) / desktopScreenHeight
             );
+            const desktopScale = scaleMode === 'real' ? 1 : Math.max(0.4, rawScale);
 
             return (
               <div
                 style={{
                   width: `${desktopScreenWidth * desktopScale}px`,
                   height: `${desktopScreenHeight * desktopScale}px`,
-                  transition: 'all 0.3s ease',
+                  transition: 'all 0.25s ease',
                 }}
-                className="relative mx-auto"
+                className="relative mx-auto my-auto"
               >
                 <div
                   style={{
@@ -80,24 +183,23 @@ export function CustomizerPreview({
           })()
         ) : viewportMode === 'mobile' ? (
           (() => {
-            const mobileScreenWidth = 375;
-            const mobileScreenHeight = 700;
             const mobileMockupWidth = mobileScreenWidth + 24;
             const mobileMockupHeight = mobileScreenHeight + 24;
-            const mobileScale = Math.min(
+            const rawScale = Math.min(
               1,
               (containerWidth - 32) / mobileMockupWidth,
-              (containerHeight - 32) / mobileMockupHeight
+              (containerHeight - 56) / mobileMockupHeight
             );
+            const mobileScale = scaleMode === 'real' ? 1 : Math.max(0.4, rawScale);
 
             return (
               <div
                 style={{
                   width: `${mobileMockupWidth * mobileScale}px`,
                   height: `${mobileMockupHeight * mobileScale}px`,
-                  transition: 'all 0.3s ease',
+                  transition: 'all 0.25s ease',
                 }}
-                className="relative mx-auto"
+                className="relative mx-auto my-auto"
               >
                 <div
                   style={{
@@ -106,7 +208,7 @@ export function CustomizerPreview({
                     transform: `scale(${mobileScale})`,
                     transformOrigin: 'top left',
                   }}
-                  className="absolute top-0 left-0 overflow-hidden shadow-2xl bg-white dark:bg-[#0f0f1b] rounded-[36px] border-[12px] border-gray-800 dark:border-gray-900 flex flex-col scrollbar-none"
+                  className="absolute top-0 left-0 overflow-hidden shadow-2xl bg-white dark:bg-[#0f0f1b] rounded-[38px] border-[12px] border-gray-800 dark:border-gray-900 flex flex-col scrollbar-none"
                 >
                   <iframe
                     ref={iframeRef}
@@ -124,24 +226,23 @@ export function CustomizerPreview({
           })()
         ) : (
           (() => {
-            const tabletScreenWidth = 800;
-            const tabletScreenHeight = 1024;
             const tabletMockupWidth = tabletScreenWidth + 24;
             const tabletMockupHeight = tabletScreenHeight + 24;
-            const tabletScale = Math.min(
+            const rawScale = Math.min(
               1,
               (containerWidth - 32) / tabletMockupWidth,
-              (containerHeight - 32) / tabletMockupHeight
+              (containerHeight - 56) / tabletMockupHeight
             );
+            const tabletScale = scaleMode === 'real' ? 1 : Math.max(0.4, rawScale);
 
             return (
               <div
                 style={{
                   width: `${tabletMockupWidth * tabletScale}px`,
                   height: `${tabletMockupHeight * tabletScale}px`,
-                  transition: 'all 0.3s ease',
+                  transition: 'all 0.25s ease',
                 }}
-                className="relative mx-auto"
+                className="relative mx-auto my-auto"
               >
                 <div
                   style={{
@@ -150,7 +251,7 @@ export function CustomizerPreview({
                     transform: `scale(${tabletScale})`,
                     transformOrigin: 'top left',
                   }}
-                  className="absolute top-0 left-0 overflow-hidden shadow-2xl bg-white dark:bg-[#0f0f1b] rounded-[24px] border-[12px] border-gray-800 dark:border-gray-900 flex flex-col"
+                  className="absolute top-0 left-0 overflow-hidden shadow-2xl bg-white dark:bg-[#0f0f1b] rounded-[28px] border-[12px] border-gray-800 dark:border-gray-900 flex flex-col"
                 >
                   <iframe
                     ref={iframeRef}

@@ -119,17 +119,26 @@ export function HeroBannerSection({ section, settings }: HeroBannerSectionProps)
         dangerouslySetInnerHTML={{
           __html: `
         .${bannerClassName} {
-          height: ${styles.heightMobile} !important;
+          ${styles.cssMobile}
+        }
+        [data-device="mobile"] .${bannerClassName} {
+          ${styles.cssMobile}
         }
         @media (min-width: 768px) {
           .${bannerClassName} {
-            height: ${styles.heightTablet} !important;
+            ${styles.cssTablet}
           }
+        }
+        [data-device="tablet"] .${bannerClassName} {
+          ${styles.cssTablet}
         }
         @media (min-width: 1024px) {
           .${bannerClassName} {
-            height: ${styles.heightDesktop} !important;
+            ${styles.cssDesktop}
           }
+        }
+        [data-device="desktop"] .${bannerClassName} {
+          ${styles.cssDesktop}
         }
       `,
         }}

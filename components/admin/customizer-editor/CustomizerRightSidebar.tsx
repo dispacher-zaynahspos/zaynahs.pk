@@ -183,7 +183,12 @@ export function CustomizerRightSidebar({
               {activeSection.section_type === 'promo_banner' && (
                 <PromoBannerSettings
                   section={activeSection}
+                  viewportMode={viewportMode}
                   onUpdateSection={(updates) => handleUpdateSection(activeSection.id, updates)}
+                  onSelectMedia={(fieldPath, fieldKey) => {
+                    setMediaUploadTarget({ sectionId: activeSection.id, fieldPath, fieldKey });
+                    setIsMediaModalOpen(true);
+                  }}
                 />
               )}
 

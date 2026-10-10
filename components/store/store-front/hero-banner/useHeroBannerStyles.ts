@@ -9,10 +9,57 @@ export function formatCssDimension(val: any, defaultVal: string): string {
   return valStr;
 }
 
+export function resolveBannerHeightCss(val: any, defaultVal: string): {
+  height: string;
+  cssRule: string;
+  isAspectRatio: boolean;
+} {
+  if (val === undefined || val === null || val === '') {
+    val = defaultVal;
+  }
+  const raw = val.toString().trim().toLowerCase();
+
+  // Aspect ratio forms: "16:9", "16/9", "21:9", "21/9", "4:3", "4/3", "1:1", "3:4", "3/4", "9:16", "9/16"
+  const aspectMatch = raw.match(/^(\d+)\s*[:/]\s*(\d+)$/);
+  if (aspectMatch) {
+    const w = aspectMatch[1];
+    const h = aspectMatch[2];
+    return {
+      height: 'auto',
+      cssRule: `aspect-ratio: ${w} / ${h} !important; height: auto !important; min-height: unset;`,
+      isAspectRatio: true,
+    };
+  }
+
+  // Auto / natural adapt
+  if (raw === 'auto' || raw === 'adapt' || raw === 'natural') {
+    return {
+      height: 'auto',
+      cssRule: `height: auto !important; min-height: 180px; aspect-ratio: auto;`,
+      isAspectRatio: true,
+    };
+  }
+
+  // Digits only -> convert to px
+  const px = /^\d+$/.test(raw) ? `${raw}px` : raw;
+  return {
+    height: px,
+    cssRule: `height: ${px} !important; aspect-ratio: auto;`,
+    isAspectRatio: false,
+  };
+}
+
 export function useHeroBannerStyles(section: HomepageSection) {
-  const heightDesktop = formatCssDimension(section.settings?.height_desktop, '450px');
-  const heightTablet = formatCssDimension(section.settings?.height_tablet, '350px');
-  const heightMobile = formatCssDimension(section.settings?.height_mobile, '250px');
+  const desktopHeightInfo = resolveBannerHeightCss(section.settings?.height_desktop, '450px');
+  const tabletHeightInfo = resolveBannerHeightCss(section.settings?.height_tablet, '350px');
+  const mobileHeightInfo = resolveBannerHeightCss(section.settings?.height_mobile, '250px');
+
+  const heightDesktop = desktopHeightInfo.height;
+  const heightTablet = tabletHeightInfo.height;
+  const heightMobile = mobileHeightInfo.height;
+  const cssDesktop = desktopHeightInfo.cssRule;
+  const cssTablet = tabletHeightInfo.cssRule;
+  const cssMobile = mobileHeightInfo.cssRule;
   const opacity = section.settings?.overlay_opacity ?? 0.3;
   const overlayColor = section.settings?.overlay_color ?? '#000000';
 
@@ -127,6 +174,9 @@ export function useHeroBannerStyles(section: HomepageSection) {
     heightDesktop,
     heightTablet,
     heightMobile,
+    cssDesktop,
+    cssTablet,
+    cssMobile,
     opacity,
     overlayColor,
     backdropClass,

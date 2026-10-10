@@ -30,10 +30,14 @@ export function HeroSlideItem({
   styles,
 }: HeroSlideItemProps) {
   const hasVideo = !!slide.video_url;
-  const slideImage = slide.image_url || bannerUrl || '';
+  const desktopImage = slide.image_url || bannerUrl || '';
+  const tabletImage = slide.tablet_image_url || desktopImage;
+  const mobileImage = slide.mobile_image_url || desktopImage;
   const autoplay = slide.video_autoplay !== false;
   const muted = slide.video_muted !== false;
   const slideClass = `hbs-${slide.id.replace(/[^a-z0-9]/gi, '_')}`;
+  const imageFit = slide.image_fit || section.settings?.image_fit || 'cover';
+  const objectFitClass = imageFit === 'contain' ? 'object-contain' : imageFit === 'fill' ? 'object-fill' : 'object-cover';
 
   // Graceful fallbacks for Tablet view
   const tabletTagline = slide.tablet_tagline || slide.tagline;
@@ -65,12 +69,22 @@ export function HeroSlideItem({
             transform-origin: ${styles.imageFocalXDesktop}% ${styles.imageFocalYDesktop}%;
             transition: transform 0.3s ease, object-position 0.3s ease, opacity 0.7s ease;
           }
+          [data-device="desktop"] .${slideClass} {
+            object-position: ${styles.imageFocalXDesktop}% ${styles.imageFocalYDesktop}%;
+            transform: scale(${styles.imageScaleDesktop / 100});
+            transform-origin: ${styles.imageFocalXDesktop}% ${styles.imageFocalYDesktop}%;
+          }
           @media (max-width: 1023px) {
             .${slideClass} {
               object-position: ${styles.imageFocalXTablet}% ${styles.imageFocalYTablet}%;
               transform: scale(${styles.imageScaleTablet / 100});
               transform-origin: ${styles.imageFocalXTablet}% ${styles.imageFocalYTablet}%;
             }
+          }
+          [data-device="tablet"] .${slideClass} {
+            object-position: ${styles.imageFocalXTablet}% ${styles.imageFocalYTablet}%;
+            transform: scale(${styles.imageScaleTablet / 100});
+            transform-origin: ${styles.imageFocalXTablet}% ${styles.imageFocalYTablet}%;
           }
           @media (max-width: 767px) {
             .${slideClass} {
@@ -79,20 +93,39 @@ export function HeroSlideItem({
               transform-origin: ${styles.imageFocalXMobile}% ${styles.imageFocalYMobile}%;
             }
           }
+          [data-device="mobile"] .${slideClass} {
+            object-position: ${styles.imageFocalXMobile}% ${styles.imageFocalYMobile}%;
+            transform: scale(${styles.imageScaleMobile / 100});
+            transform-origin: ${styles.imageFocalXMobile}% ${styles.imageFocalYMobile}%;
+          }
         `,
         }}
       />
 
-      {/* Background Image */}
-      {slideImage && (
-        <img
-          src={getPresetImageUrl(slideImage, 'hero')}
-          alt={slide.title || section.title || settings.store_name}
-          className={`${slideClass} w-full h-full object-cover select-none pointer-events-none absolute inset-0 z-0 ${
-            hasVideo && loadedMedia[slide.id] ? 'opacity-0' : 'opacity-100'
-          }`}
-          loading={idx === 0 ? 'eager' : 'lazy'}
-        />
+      {/* Background Image with Responsive Mobile/Tablet/Desktop Sources */}
+      {(desktopImage || mobileImage || tabletImage) && (
+        <picture className="absolute inset-0 w-full h-full pointer-events-none select-none z-0">
+          {slide.mobile_image_url && (
+            <source
+              media="(max-width: 767px)"
+              srcSet={getPresetImageUrl(slide.mobile_image_url, 'hero')}
+            />
+          )}
+          {slide.tablet_image_url && (
+            <source
+              media="(max-width: 1023px)"
+              srcSet={getPresetImageUrl(slide.tablet_image_url, 'hero')}
+            />
+          )}
+          <img
+            src={getPresetImageUrl(desktopImage, 'hero')}
+            alt={slide.title || section.title || settings.store_name}
+            className={`${slideClass} w-full h-full ${objectFitClass} select-none pointer-events-none ${
+              hasVideo && loadedMedia[slide.id] ? 'opacity-0' : 'opacity-100'
+            }`}
+            loading={idx === 0 ? 'eager' : 'lazy'}
+          />
+        </picture>
       )}
 
       {/* Video Overlay */}

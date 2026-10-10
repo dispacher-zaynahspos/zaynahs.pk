@@ -62,26 +62,125 @@ export function HeroActiveSlideForm({
         </span>
       </div>
 
-      {/* Single Media Editor — one image + one video for all breakpoints */}
-      <div className="space-y-4">
-        <div className="space-y-3">
-          {/* Image Input */}
+      {/* Responsive Media Editor — Desktop, Mobile, Tablet */}
+      <div className="space-y-3.5">
+        <div className="flex items-center justify-between">
+          <span className="text-[10px] font-extrabold uppercase tracking-wider text-gray-700 dark:text-gray-300">
+            Slide Media
+          </span>
+          <span className="text-[9px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 px-2 py-0.5 rounded-md uppercase">
+            {viewportMode} view
+          </span>
+        </div>
+
+        {viewportMode === 'mobile' && (
+          <div className="space-y-2 p-2.5 bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200/60 dark:border-blue-900/40 rounded-xl">
+            <MediaField
+              label={
+                <>
+                  Mobile Banner Image{' '}
+                  <span className="ml-1 align-middle inline-block text-[8px] font-bold uppercase tracking-wide text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-900/60 rounded px-1.5 py-0.5">
+                    Mobile Only
+                  </span>
+                </>
+              }
+              value={activeSlide.mobile_image_url || ''}
+              onChange={(v) => handleSlideChange(activeSlide.id, { mobile_image_url: v })}
+              onSelect={() => onSelectMedia('content_data', 'mobile_image_url', true, activeSlide.id)}
+              placeholder={activeSlide.image_url ? 'Inherits desktop image...' : 'Mobile Image URL'}
+            />
+            {!activeSlide.mobile_image_url && activeSlide.image_url && (
+              <p className="text-[10px] text-gray-500 italic">
+                Using desktop banner image as fallback. Upload a portrait or mobile-optimized banner above for best fit on phones.
+              </p>
+            )}
+            {activeSlide.mobile_image_url && (
+              <button
+                type="button"
+                onClick={() => handleSlideChange(activeSlide.id, { mobile_image_url: '' })}
+                className="text-[10px] font-bold text-[#e94560] hover:underline cursor-pointer"
+              >
+                Reset to inherit Desktop Image
+              </button>
+            )}
+          </div>
+        )}
+
+        {viewportMode === 'tablet' && (
+          <div className="space-y-2 p-2.5 bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200/60 dark:border-blue-900/40 rounded-xl">
+            <MediaField
+              label={
+                <>
+                  Tablet Banner Image{' '}
+                  <span className="ml-1 align-middle inline-block text-[8px] font-bold uppercase tracking-wide text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-900/60 rounded px-1.5 py-0.5">
+                    Tablet Only
+                  </span>
+                </>
+              }
+              value={activeSlide.tablet_image_url || ''}
+              onChange={(v) => handleSlideChange(activeSlide.id, { tablet_image_url: v })}
+              onSelect={() => onSelectMedia('content_data', 'tablet_image_url', true, activeSlide.id)}
+              placeholder={activeSlide.image_url ? 'Inherits desktop image...' : 'Tablet Image URL'}
+            />
+            {!activeSlide.tablet_image_url && activeSlide.image_url && (
+              <p className="text-[10px] text-gray-500 italic">
+                Using desktop banner image as fallback.
+              </p>
+            )}
+            {activeSlide.tablet_image_url && (
+              <button
+                type="button"
+                onClick={() => handleSlideChange(activeSlide.id, { tablet_image_url: '' })}
+                className="text-[10px] font-bold text-[#e94560] hover:underline cursor-pointer"
+              >
+                Reset to inherit Desktop Image
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Primary Desktop Banner Image (Fallback for all devices) */}
+        <div className="space-y-2">
           <MediaField
-            label={<>Banner Image <span className="ml-1 align-middle inline-block text-[8px] font-bold uppercase tracking-wide text-gray-500 bg-gray-100 dark:bg-gray-800 rounded px-1.5 py-0.5">All devices</span></>}
+            label={
+              <>
+                Desktop Banner Image{' '}
+                <span className="ml-1 align-middle inline-block text-[8px] font-bold uppercase tracking-wide text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 rounded px-1.5 py-0.5">
+                  {viewportMode === 'desktop' ? 'All devices (Primary)' : 'Fallback'}
+                </span>
+              </>
+            }
             value={activeSlide.image_url || ''}
             onChange={(v) => handleSlideChange(activeSlide.id, { image_url: v })}
             onSelect={() => onSelectMedia('content_data', 'image_url', true, activeSlide.id)}
-            placeholder="Image URL"
+            placeholder="Desktop Image URL"
           />
+        </div>
 
-          {/* Video URL Input */}
-          <MediaField
-            label={<>Video URL <span className="ml-1 align-middle inline-block text-[8px] font-bold uppercase tracking-wide text-gray-500 bg-gray-100 dark:bg-gray-800 rounded px-1.5 py-0.5">All devices · optional</span></>}
-            value={activeSlide.video_url || ''}
-            onChange={(v) => handleSlideChange(activeSlide.id, { video_url: v })}
-            onSelect={() => onSelectMedia('content_data', 'video_url', true, activeSlide.id)}
-            placeholder="https://.../video.mp4 or YouTube/Vimeo URL"
-          />
+        {/* Image Fit Mode */}
+        <div className="flex items-center justify-between pt-1">
+          <label className="text-[11px] font-bold text-gray-500 dark:text-gray-400">
+            Image Scaling Mode
+          </label>
+          <select
+            value={activeSlide.image_fit || 'cover'}
+            onChange={(e) => handleSlideChange(activeSlide.id, { image_fit: e.target.value as any })}
+            className="px-2.5 py-1 bg-white dark:bg-[#0f0f1b]/50 border border-gray-200 dark:border-gray-800 rounded-lg text-xs font-semibold text-gray-900 dark:text-white"
+          >
+            <option value="cover">Cover (Full Bleed - recommended)</option>
+            <option value="contain">Contain (No Crop - full image visible)</option>
+            <option value="fill">Stretch to Fill</option>
+          </select>
+        </div>
+
+        {/* Video URL Input */}
+        <MediaField
+          label={<>Video URL <span className="ml-1 align-middle inline-block text-[8px] font-bold uppercase tracking-wide text-gray-500 bg-gray-100 dark:bg-gray-800 rounded px-1.5 py-0.5">All devices · optional</span></>}
+          value={activeSlide.video_url || ''}
+          onChange={(v) => handleSlideChange(activeSlide.id, { video_url: v })}
+          onSelect={() => onSelectMedia('content_data', 'video_url', true, activeSlide.id)}
+          placeholder="https://.../video.mp4 or YouTube/Vimeo URL"
+        />
 
           {/* Autoplay & Muted */}
           {activeSlide.video_url && (
@@ -113,7 +212,6 @@ export function HeroActiveSlideForm({
             </div>
           )}
         </div>
-      </div>
 
       {/* Viewport-specific Text Content Editor */}
       <div className="space-y-3 pt-2 border-t border-gray-200 dark:border-gray-800">

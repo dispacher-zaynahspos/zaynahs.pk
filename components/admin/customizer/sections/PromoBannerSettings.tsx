@@ -4,14 +4,20 @@ import React from 'react';
 import { HomepageSection } from '@/lib/types';
 import SectionSpacingControls from '../shared/SectionSpacingControls';
 
+import MediaField from '../shared/MediaField';
+
 interface PromoBannerSettingsProps {
   section: HomepageSection;
+  viewportMode?: 'desktop' | 'tablet' | 'mobile';
   onUpdateSection: (updates: Partial<HomepageSection>) => void;
+  onSelectMedia?: (fieldPath: 'settings' | 'content_data', fieldKey: string) => void;
 }
 
 export default function PromoBannerSettings({
   section,
-  onUpdateSection
+  viewportMode = 'desktop',
+  onUpdateSection,
+  onSelectMedia
 }: PromoBannerSettingsProps) {
   const settings = section.settings || {};
   const contentData = section.content_data || {};
@@ -30,6 +36,38 @@ export default function PromoBannerSettings({
 
   return (
     <div className="space-y-4">
+      <div className="space-y-3 pt-1">
+        <MediaField
+          label={
+            <>
+              Desktop Banner Image{' '}
+              <span className="ml-1 text-[8px] font-bold text-gray-400 bg-gray-100 dark:bg-gray-800 rounded px-1.5 py-0.5 uppercase">
+                Optional
+              </span>
+            </>
+          }
+          value={contentData.image_url || ''}
+          onChange={val => handleContentChange('image_url', val)}
+          onSelect={() => onSelectMedia?.('content_data', 'image_url')}
+          placeholder="Desktop Background Image URL"
+        />
+
+        <MediaField
+          label={
+            <>
+              Mobile Banner Image{' '}
+              <span className="ml-1 text-[8px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 rounded px-1.5 py-0.5 uppercase">
+                Mobile
+              </span>
+            </>
+          }
+          value={contentData.mobile_image_url || ''}
+          onChange={val => handleContentChange('mobile_image_url', val)}
+          onSelect={() => onSelectMedia?.('content_data', 'mobile_image_url')}
+          placeholder={contentData.image_url ? 'Inherits desktop image...' : 'Mobile Background Image URL'}
+        />
+      </div>
+
       <div className="space-y-1.5">
         <label className="text-[11px] font-bold text-gray-500 dark:text-gray-400">
           Promo Description

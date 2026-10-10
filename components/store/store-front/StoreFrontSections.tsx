@@ -9,7 +9,7 @@ import { getSharedAspectClass } from '@/lib/utils/styles';
 import { getResponsiveGridClasses } from '@/lib/utils/responsiveGrid';
 import SocialFeedRibbon from '../SocialFeedRibbon';
 import { SectionWrapper } from './SectionWrapper';
-import { getOptimizedImageUrl } from '@/lib/utils/imageUrl';
+import { getOptimizedImageUrl, getPresetImageUrl } from '@/lib/utils/imageUrl';
 import { resolveCardImage, buildRefLookup, type RefEntity } from '@/lib/utils/resolveCardImage';
 import { SectionIcon } from '@/components/common/SectionIcon';
 import { Lock, Eye, Sparkles } from '@/components/common/Icons';
@@ -22,27 +22,49 @@ export function PromoBannerSection({ section }: PromoBannerSectionProps) {
   const bg = section.settings?.bg_color || '#e94560';
   const text = section.settings?.text_color || '#ffffff';
   const link = section.content_data?.link || '/shop';
+  const desktopImage = section.content_data?.image_url;
+  const mobileImage = section.content_data?.mobile_image_url || desktopImage;
 
   return (
     <div 
       key={section.id} 
       style={{ backgroundColor: bg, color: text }}
-      className="w-full py-12 px-6 text-center space-y-4"
+      className="relative w-full py-12 px-6 text-center space-y-4 overflow-hidden"
     >
-      <h2 className="text-2xl font-black uppercase tracking-wider">{section.title || 'Special Promotion!'}</h2>
-      {section.content_data?.text && (
-        <p className="text-sm max-w-xl mx-auto opacity-95 leading-relaxed">{section.content_data.text}</p>
+      {desktopImage && (
+        <>
+          <picture className="absolute inset-0 w-full h-full pointer-events-none select-none z-0">
+            {mobileImage && (
+              <source
+                media="(max-width: 767px)"
+                srcSet={getPresetImageUrl(mobileImage, 'hero')}
+              />
+            )}
+            <img
+              src={getPresetImageUrl(desktopImage, 'hero')}
+              alt={section.title || 'Promo Banner'}
+              className="w-full h-full object-cover select-none pointer-events-none absolute inset-0 z-0"
+            />
+          </picture>
+          <div className="absolute inset-0 bg-black/40 z-[1]" />
+        </>
       )}
-      {section.content_data?.show_button !== false && (
-        <div className="pt-2">
-          <Link
-            href={link}
-            className="px-6 py-2.5 bg-white text-gray-950 hover:bg-gray-100 text-xs font-bold uppercase rounded-xl transition-all shadow-md active:scale-95 inline-block cursor-pointer"
-          >
-            {section.content_data?.button_text || 'Shop Offer'}
-          </Link>
-        </div>
-      )}
+      <div className="relative z-10 space-y-4">
+        <h2 className="text-2xl font-black uppercase tracking-wider">{section.title || 'Special Promotion!'}</h2>
+        {section.content_data?.text && (
+          <p className="text-sm max-w-xl mx-auto opacity-95 leading-relaxed">{section.content_data.text}</p>
+        )}
+        {section.content_data?.show_button !== false && (
+          <div className="pt-2">
+            <Link
+              href={link}
+              className="px-6 py-2.5 bg-white text-gray-950 hover:bg-gray-100 text-xs font-bold uppercase rounded-xl transition-all shadow-md active:scale-95 inline-block cursor-pointer"
+            >
+              {section.content_data?.button_text || 'Shop Offer'}
+            </Link>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

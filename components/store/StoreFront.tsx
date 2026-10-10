@@ -38,6 +38,7 @@ interface StoreFrontProps {
   isPreview?: boolean;
   activeSectionId?: string | null;
   socialProofCount?: number;
+  viewportMode?: 'desktop' | 'tablet' | 'mobile';
 }
 
 export default function StoreFront({
@@ -50,6 +51,7 @@ export default function StoreFront({
   isPreview = false,
   activeSectionId = null,
   socialProofCount = 0,
+  viewportMode,
 }: StoreFrontProps) {
   const searchQuery = useSearchStore((state) => state.searchQuery);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | undefined>(undefined);
@@ -157,7 +159,7 @@ export default function StoreFront({
   }, [allProducts, selectedCategoryId, searchQuery, categories]);
 
   const renderHeroBanner = (section: HomepageSection) => {
-    return <HeroBannerSection section={section} settings={activeSettings} />;
+    return <HeroBannerSection section={section} settings={activeSettings} viewportMode={viewportMode} />;
   };
 
   const renderCategoryList = (section: HomepageSection) => {

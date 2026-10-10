@@ -14,28 +14,119 @@ export function HeroMobileSettings({
   widthMobile,
   handleSettingsChange
 }: HeroMobileSettingsProps) {
+  const currentHeightStr = (settings.height_mobile ?? '').toString().trim().toLowerCase();
+  const isAspectMode = ['16:9', '16/9', 'auto', 'adapt', 'natural', '1:1', '3:4', '3/4', '21:9', '21/9', '4:3', '4/3'].includes(currentHeightStr);
+
   return (
     <div className="space-y-4">
-      <div className="space-y-4 p-3.5 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-200 dark:border-gray-800">
-        <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#e94560] block">Mobile Dimensions</span>
-        
-        <NumberSliderControl
-          label="Height"
-          value={heightMobile}
-          min={0}
-          max={500}
-          step={5}
-          unit="px"
-          onChange={val => handleSettingsChange('height_mobile', `${val}px`)}
-          presets={[
-            { label: '16:9 Aspect (210px)', val: 210 },
-            { label: 'Mini (100px)', val: 100 },
-            { label: 'Compact (150px)', val: 150 },
-            { label: 'Standard (250px)', val: 250 },
-            { label: 'Tall (300px)', val: 300 },
-            { label: 'Heroic (400px)', val: 400 }
-          ]}
-        />
+      <div className="space-y-3.5 p-3.5 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-200 dark:border-gray-800">
+        <div className="flex items-center justify-between">
+          <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#e94560]">
+            Mobile Dimensions
+          </span>
+          <span className="text-[9px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 px-1.5 py-0.5 rounded">
+            {isAspectMode ? 'Proportional (Identical on all phones)' : 'Fixed Height'}
+          </span>
+        </div>
+
+        {/* Aspect Ratio Modes */}
+        <div className="space-y-1.5">
+          <label className="text-[11px] font-bold text-gray-700 dark:text-gray-300 block">
+            Height Mode
+          </label>
+          <div className="grid grid-cols-3 gap-1.5 p-1 bg-gray-200/60 dark:bg-gray-800/80 rounded-xl text-[10px] font-bold text-center">
+            <button
+              type="button"
+              onClick={() => handleSettingsChange('height_mobile', '16:9')}
+              className={`py-1.5 rounded-lg transition-all cursor-pointer ${
+                currentHeightStr === '16:9' || currentHeightStr === '16/9'
+                  ? 'bg-white dark:bg-[#16162a] text-[#e94560] shadow-xs'
+                  : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
+              }`}
+            >
+              16:9 Ratio
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSettingsChange('height_mobile', 'auto')}
+              className={`py-1.5 rounded-lg transition-all cursor-pointer ${
+                currentHeightStr === 'auto' || currentHeightStr === 'adapt'
+                  ? 'bg-white dark:bg-[#16162a] text-[#e94560] shadow-xs'
+                  : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
+              }`}
+            >
+              Auto (100% Fit)
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSettingsChange('height_mobile', '1:1')}
+              className={`py-1.5 rounded-lg transition-all cursor-pointer ${
+                currentHeightStr === '1:1'
+                  ? 'bg-white dark:bg-[#16162a] text-[#e94560] shadow-xs'
+                  : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
+              }`}
+            >
+              1:1 Square
+            </button>
+          </div>
+
+          <div className="grid grid-cols-3 gap-1.5 p-1 bg-gray-200/60 dark:bg-gray-800/80 rounded-xl text-[10px] font-bold text-center">
+            <button
+              type="button"
+              onClick={() => handleSettingsChange('height_mobile', '3:4')}
+              className={`py-1.5 rounded-lg transition-all cursor-pointer ${
+                currentHeightStr === '3:4' || currentHeightStr === '3/4'
+                  ? 'bg-white dark:bg-[#16162a] text-[#e94560] shadow-xs'
+                  : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
+              }`}
+            >
+              3:4 Portrait
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSettingsChange('height_mobile', '21:9')}
+              className={`py-1.5 rounded-lg transition-all cursor-pointer ${
+                currentHeightStr === '21:9' || currentHeightStr === '21/9'
+                  ? 'bg-white dark:bg-[#16162a] text-[#e94560] shadow-xs'
+                  : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
+              }`}
+            >
+              21:9 Wide
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const px = heightMobile > 0 ? heightMobile : 250;
+                handleSettingsChange('height_mobile', `${px}px`);
+              }}
+              className={`py-1.5 rounded-lg transition-all cursor-pointer ${
+                !isAspectMode
+                  ? 'bg-white dark:bg-[#16162a] text-[#e94560] shadow-xs'
+                  : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
+              }`}
+            >
+              Custom px
+            </button>
+          </div>
+        </div>
+
+        {!isAspectMode && (
+          <NumberSliderControl
+            label="Custom Height"
+            value={heightMobile}
+            min={100}
+            max={500}
+            step={5}
+            unit="px"
+            onChange={val => handleSettingsChange('height_mobile', `${val}px`)}
+            presets={[
+              { label: 'Mini (150px)', val: 150 },
+              { label: 'Standard (250px)', val: 250 },
+              { label: 'Tall (300px)', val: 300 },
+              { label: 'Heroic (400px)', val: 400 }
+            ]}
+          />
+        )}
 
         <div className="border-t border-gray-200 dark:border-gray-800/60 pt-3">
           <NumberSliderControl

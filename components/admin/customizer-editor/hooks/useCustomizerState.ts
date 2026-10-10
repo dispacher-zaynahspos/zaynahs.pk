@@ -81,6 +81,7 @@ export function useCustomizerState({
     activeProductSlug,
     activeSectionId,
     activePage,
+    viewportMode,
     setActivePage,
     setActiveSectionId,
     setActiveSubTab,
