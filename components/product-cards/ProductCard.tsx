@@ -115,13 +115,17 @@ export function ProductCard({ product: p, variant, limit, currencySymbol, cardMo
       : <>{vendor}{rating}{title}{desc}{price}{sw}{more}</>;
 
   const handleDefaultAddToCart = (target?: HTMLElement | null) => {
-    if (p.source?.has_variants) {
-      const activeVars = (p.source.variants || []).filter((v: any) => v.active);
+    const sourceProduct = p.source;
+    if (!sourceProduct) return;
+
+    if (sourceProduct.has_variants) {
+      const activeVars = (sourceProduct.variants || []).filter(v => v.active);
       if (activeVars.length === 1) {
-        addItem(p.source, activeVars[0], [], 1);
-        toast.success(`${p.title} added to cart!`);
         const flyTarget = target || cardRef.current;
-        flyToCart(flyTarget, p.image, p.id);
+        flyToCart(flyTarget, p.image, p.id, undefined, () => {
+          addItem(sourceProduct, activeVars[0], [], 1);
+          toast.success(`${p.title} added to cart!`);
+        });
         return;
       }
       if (onQuickView) {
@@ -131,12 +135,12 @@ export function ProductCard({ product: p, variant, limit, currencySymbol, cardMo
       }
       return;
     }
-    if (p.source) {
-      addItem(p.source, undefined, [], 1);
+
+    const flyTarget = target || cardRef.current;
+    flyToCart(flyTarget, p.image, p.id, undefined, () => {
+      addItem(sourceProduct, undefined, [], 1);
       toast.success(`${p.title} added to cart!`);
-      const flyTarget = target || cardRef.current;
-      flyToCart(flyTarget, p.image, p.id);
-    }
+    });
   };
 
   const hasHoveredVariant = hoveredSwatch !== null || (p.swatchNode !== undefined && p.image2 === null);

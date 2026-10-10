@@ -69,6 +69,8 @@ export interface SettingsRow {
   image_hover_style?: string | null;
   image_aspect_ratio?: string | null;
   title_line_limit?: string | null;
+  add_to_cart_animation?: string | null;
+  enable_fly_to_cart?: boolean | null;
   archive_swatch_size?: string | null;
   product_swatch_size?: string | null;
   archive_swatch_align?: string | null;

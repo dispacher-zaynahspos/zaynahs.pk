@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { ShoppingCart, MessageCircle } from '@/components/common/Icons';
 import { Product, ProductVariant } from '@/lib/types';
 import { formatPrice } from '@/lib/utils/whatsapp';
+import { AddToCartButton } from '@/components/store/AddToCartButton';
 
 interface ProductDetailStickyBarProps {
   product: Product;
@@ -12,10 +13,11 @@ interface ProductDetailStickyBarProps {
   stockAvailable: number;
   unitPrice: number;
   currencySymbol: string;
-  onAddToCart: (e: React.MouseEvent) => void;
+  onAddToCart: (e: React.MouseEvent<HTMLButtonElement>) => void;
   whatsappUrl: string;
   activeImage: string;
   enableQuickWhatsapp?: boolean;
+  animation?: string;
 }
 
 export function ProductDetailStickyBar({
@@ -28,6 +30,7 @@ export function ProductDetailStickyBar({
   whatsappUrl,
   activeImage,
   enableQuickWhatsapp = true,
+  animation = 'none',
 }: ProductDetailStickyBarProps) {
   const [show, setShow] = useState(false);
 
@@ -91,28 +94,14 @@ export function ProductDetailStickyBar({
           )}
 
           {/* Smart Icon-Only Add to Bag CTA */}
-          {stockAvailable <= 0 ? (
-            <div
-              className="h-10 px-3 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 text-[10px] font-bold uppercase tracking-wider flex items-center justify-center border border-gray-200 dark:border-gray-700 cursor-not-allowed select-none"
-              title="Out of Stock"
-            >
-              Sold Out
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={onAddToCart}
-              style={{ backgroundColor: 'var(--color-primary, #C2185B)' }}
-              className="relative flex h-10 w-10 items-center justify-center rounded-full text-white shadow-lg shadow-[var(--color-primary,#C2185B)]/30 hover:brightness-110 active:scale-90 transition-all cursor-pointer flex-shrink-0"
-              title="Add to Bag"
-              aria-label="Add to Bag"
-            >
-              <ShoppingCart className="h-4.5 w-4.5 stroke-[2.2]" />
-              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-white dark:bg-[#16162a] text-[var(--color-primary,#C2185B)] font-black text-[10px] shadow-sm leading-none border border-black/10 dark:border-white/10">
-                +
-              </span>
-            </button>
-          )}
+          <AddToCartButton
+            variant="icon"
+            animation={animation}
+            isOutOfStock={stockAvailable <= 0}
+            isFaded={Boolean(product.has_variants && product.variants?.length && !selectedVariant)}
+            onAddToCart={onAddToCart}
+            title={stockAvailable <= 0 ? 'Out of Stock' : (!selectedVariant && product.has_variants ? 'Select an Option' : 'Add to Bag')}
+          />
         </div>
       </div>
     </div>

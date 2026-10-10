@@ -45,11 +45,14 @@ export default function ProductPageBlocks({
               key="details"
               id="details"
               onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                window.parent.postMessage({ type: 'select_product_detail_tab', subTab: 'swatches' }, '*');
+                const target = e.target as HTMLElement | null;
+                const isInteractive = target?.closest('button, a, input, select, textarea');
+                if (!isInteractive) {
+                  e.preventDefault();
+                }
+                window.parent.postMessage({ type: 'select_product_detail_tab', subTab: 'details' }, '*');
               }}
-              className="relative cursor-pointer transition-all duration-200 hover:ring-2 hover:ring-[#e94560] hover:ring-offset-2 group/preview-block"
+              className="relative transition-all duration-200 hover:ring-2 hover:ring-[#e94560] hover:ring-offset-2 group/preview-block"
             >
               <div className="absolute top-2 left-2 z-[60] bg-[#e94560] text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-md uppercase opacity-0 group-hover/preview-block:opacity-100 transition-opacity duration-200 pointer-events-none">
                 Product Details
@@ -91,11 +94,14 @@ export default function ProductPageBlocks({
               key="reviews"
               id="reviews"
               onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                window.parent.postMessage({ type: 'select_product_detail_tab', subTab: 'urgency' }, '*');
+                const target = e.target as HTMLElement | null;
+                const isInteractive = target?.closest('button, a, input, select, textarea');
+                if (!isInteractive) {
+                  e.preventDefault();
+                }
+                window.parent.postMessage({ type: 'select_product_detail_tab', subTab: 'reviews' }, '*');
               }}
-              className="relative cursor-pointer transition-all duration-200 hover:ring-2 hover:ring-[#e94560] hover:ring-offset-2 group/preview-block mx-auto max-w-7xl px-4 sm:px-6 lg:px-8"
+              className="relative transition-all duration-200 hover:ring-2 hover:ring-[#e94560] hover:ring-offset-2 group/preview-block mx-auto max-w-7xl px-4 sm:px-6 lg:px-8"
             >
               <div className="absolute top-2 left-2 z-[60] bg-[#e94560] text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-md uppercase opacity-0 group-hover/preview-block:opacity-100 transition-opacity duration-200 pointer-events-none">
                 Reviews &amp; FAQ Feed

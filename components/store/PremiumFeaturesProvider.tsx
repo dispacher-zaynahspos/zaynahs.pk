@@ -16,6 +16,8 @@ import {
 } from './premium-features';
 import { useRecentBuyerTicker } from './premium-features/hooks/useRecentBuyerTicker';
 
+import { setFlyToCartEnabled } from '@/lib/utils/flyAnimation';
+
 interface PremiumFeaturesProviderProps {
   settings: StoreSettings;
 }
@@ -24,7 +26,8 @@ export default function PremiumFeaturesProvider({ settings }: PremiumFeaturesPro
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
     setMounted(true);
-  }, []);
+    setFlyToCartEnabled(settings?.enable_fly_to_cart !== false);
+  }, [settings?.enable_fly_to_cart]);
 
   const pathname = usePathname();
   const isCheckout = pathname === '/cart' || pathname === '/checkout';

@@ -359,6 +359,7 @@ export function CustomizerRightSidebar({
           <ProductCardSettings
             settings={storeSettings}
             onUpdateSettings={(updates: Partial<StoreSettings>) => setStoreSettings(prev => ({ ...prev, ...updates }))}
+            activeSubTab={activeSubTab}
           />
         ) : (
           <GlobalSettings

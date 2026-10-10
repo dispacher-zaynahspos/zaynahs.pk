@@ -121,6 +121,24 @@ export interface StoreSettings {
   image_hover_style?: 'second_image' | 'zoom' | 'slide_left' | 'zoom_swap' | 'fade_up' | 'blur_crossfade' | 'flip_3d' | 'none';
   image_aspect_ratio?: string;
   title_line_limit?: '1' | '2' | 'none';
+  /** Animation style for primary Add to Cart buttons on PDP, Sticky Bar, and QuickViewModal. */
+  add_to_cart_animation?:
+    | 'none'
+    | 'default'
+    | 'morph_check'
+    | 'roll_swap'
+    | 'ripple'
+    | 'border_draw'
+    | 'key_press'
+    | 'jelly'
+    | 'plus_float'
+    | 'curtains'
+    | 'dots_tick'
+    | 'plus_tick'
+    | 'sparkle'
+    | string;
+  /** Universal thumbnail flight into top header cart bucket with anticipation dip and bounce on cart adds. */
+  enable_fly_to_cart?: boolean;
   product_page_layout?: string[];
   /** Blocks that are hidden (kept in layout order but not rendered). Reversible. */
   product_page_hidden_blocks?: string[];

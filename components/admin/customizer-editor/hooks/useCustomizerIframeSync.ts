@@ -81,16 +81,9 @@ export function useCustomizerIframeSync({
           setActiveSectionId(null);
         } else if (event.data.type === 'select_product_detail_tab') {
           setActivePage('product_detail');
-          setActiveSubTab(event.data.subTab);
-          const blockMap: Record<string, string> = {
-            swatches: 'details',
-            ticker: 'ticker',
-            urgency: 'reviews',
-            delivery: 'related',
-            recently_viewed: 'recently_viewed',
-            social_feed: 'social_feed'
-          };
-          setActiveSectionId(blockMap[event.data.subTab] || null);
+          const blockId = event.data.subTab === 'swatches' ? 'details' : event.data.subTab;
+          setActiveSubTab(blockId);
+          setActiveSectionId(blockId);
         } else if (event.data.type === 'nav_to_page') {
           const newPage = event.data.page;
           setActivePage(newPage);
@@ -103,19 +96,12 @@ export function useCustomizerIframeSync({
               setActiveProductSlug(slug);
             }
             const firstBlock = (storeSettings.product_page_layout || ['details', 'ticker', 'reviews', 'related', 'recently_viewed', 'social_feed'])[0];
-            setActiveSectionId(firstBlock);
-            const tabMap: Record<string, string> = {
-              details: 'swatches',
-              ticker: 'ticker',
-              reviews: 'urgency',
-              related: 'delivery',
-              recently_viewed: 'recently_viewed',
-              social_feed: 'social_feed'
-            };
-            setActiveSubTab(tabMap[firstBlock] || 'swatches');
+            const blockId = firstBlock || 'details';
+            setActiveSectionId(blockId);
+            setActiveSubTab(blockId);
           } else if (newPage === 'shop') {
             setActiveSectionId(null);
-            setActiveSubTab('swatches');
+            setActiveSubTab('layout');
           }
         }
       }

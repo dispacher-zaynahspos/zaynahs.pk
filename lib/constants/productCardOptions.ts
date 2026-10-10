@@ -69,3 +69,21 @@ export const CARD_ICON_STYLE_OPTIONS: SelectOption[] = [
 ];
 export const DEFAULT_CARD_ICON_STYLE = 'pill';
 
+/** Add to Cart Button Tactile Animation (PDP, Sticky Bar, QuickView Modal). */
+export const ATC_ANIMATION_OPTIONS: SelectOption[] = [
+  { value: 'none', label: 'None (Classic Solid Button)' },
+  { value: 'morph_check', label: 'Morph Circle & Check (Spinner + Checkmark + Burst)' },
+  { value: 'roll_swap', label: '3D Roll Swap (Icon & Text Flip)' },
+  { value: 'ripple', label: 'Click Ripple (Radial Wave Fill)' },
+  { value: 'border_draw', label: 'Border Draw (Outline Trace & Fill)' },
+  { value: 'key_press', label: '3D Key Press (Tactile Push & Pop)' },
+  { value: 'jelly', label: 'Jelly Bounce (Rubber Squash & Stretch)' },
+  { value: 'plus_float', label: '+1 Floating Badge (Hop & Rise)' },
+  { value: 'curtains', label: 'Curtains (Dual Side Slide & Reveal)' },
+  { value: 'dots_tick', label: 'Dots to Tick (Bouncing Pulse & Check)' },
+  { value: 'plus_tick', label: 'Plus to Tick (Rotating Morph & Circle)' },
+  { value: 'sparkle', label: 'Sparkle Burst (Radiant Starburst Pop)' },
+];
+export const DEFAULT_ATC_ANIMATION = 'none';
+
+

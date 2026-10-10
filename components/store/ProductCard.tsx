@@ -109,17 +109,19 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
     const sourceEl = (e.currentTarget as HTMLElement) || (e.target as HTMLElement) || null;
     if (product.has_variants) {
       if (activeVariants.length === 1) {
-        addItem(product, activeVariants[0], [], 1);
-        toast.success(`${product.name} added to cart!`);
-        flyToCart(sourceEl, currentImage || primaryImage, product.id);
+        flyToCart(sourceEl, currentImage || primaryImage, product.id, settings?.enable_fly_to_cart !== false, () => {
+          addItem(product, activeVariants[0], [], 1);
+          toast.success(`${product.name} added to cart!`);
+        });
         return;
       }
       setQuickViewOpen(true);
       return;
     }
-    addItem(product, undefined, [], 1);
-    toast.success(`${product.name} added to cart!`);
-    flyToCart(sourceEl, currentImage || primaryImage, product.id);
+    flyToCart(sourceEl, currentImage || primaryImage, product.id, settings?.enable_fly_to_cart !== false, () => {
+      addItem(product, undefined, [], 1);
+      toast.success(`${product.name} added to cart!`);
+    });
   };
 
   const handleOpenQuickView = (e: React.MouseEvent) => {
@@ -305,17 +307,19 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
     const sourceEl = e instanceof HTMLElement ? e : (e && 'currentTarget' in e && e.currentTarget instanceof HTMLElement ? e.currentTarget : (e && 'target' in e && e.target instanceof HTMLElement ? e.target : null));
     if (product.has_variants) {
       if (activeVariants.length === 1) {
-        addItem(product, activeVariants[0], [], 1);
-        toast.success(`${product.name} added to cart!`);
-        flyToCart(sourceEl, currentImage || primaryImage, product.id);
+        flyToCart(sourceEl, currentImage || primaryImage, product.id, settings?.enable_fly_to_cart !== false, () => {
+          addItem(product, activeVariants[0], [], 1);
+          toast.success(`${product.name} added to cart!`);
+        });
         return;
       }
       setQuickViewOpen(true);
       return;
     }
-    addItem(product, undefined, [], 1);
-    toast.success(`${product.name} added to cart!`);
-    flyToCart(sourceEl, currentImage || primaryImage, product.id);
+    flyToCart(sourceEl, currentImage || primaryImage, product.id, settings?.enable_fly_to_cart !== false, () => {
+      addItem(product, undefined, [], 1);
+      toast.success(`${product.name} added to cart!`);
+    });
   };
 
   const handleEllaQuickView = () => {

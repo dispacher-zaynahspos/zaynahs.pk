@@ -117,6 +117,8 @@ export function buildSettingsPayload(data: {
     image_hover_style: trustProducts.imageHoverStyle,
     image_aspect_ratio: trustProducts.imageAspectRatio,
     title_line_limit: trustProducts.titleLineLimit,
+    add_to_cart_animation: trustProducts.addToCartAnimation,
+    enable_fly_to_cart: trustProducts.enableFlyToCart,
     archive_swatch_size: trustProducts.archiveSwatchSize,
     product_swatch_size: trustProducts.productSwatchSize,
     archive_swatch_align: trustProducts.archiveSwatchAlign,

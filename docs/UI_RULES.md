@@ -196,6 +196,33 @@ All save/cancel action bars across the Admin Console must be sticky at the botto
   - Screen-edge clamping (`[25, winW - 25]`, `[15, winH - 15]`) ensures coordinates never fly off-screen if scrolled.
   - If event target is unmounted or synthetic, the engine automatically resolves the card element or thumbnail, guaranteeing zero failures and zero console errors.
 
+## 20. Add-to-Cart Button Tactile Animations & Fly-to-Cart Standard (RULE DS24 & RULE ATC-ANIMATIONS)
+- **Independent Fly & Drop to Cart Engine (`enable_fly_to_cart`)**:
+  - Universal trajectory where thumbnail flies into top header cart bucket with anticipation dip (+18px stretch on mobile, +14px on desktop) and celebratory bounce.
+  - Controlled via its OWN independent toggle (`store_settings.enable_fly_to_cart`, default `true`).
+  - Runs alongside ALL button animations (or on its own when button animation is `none`).
+  - If disabled, product additions still succeed immediately, but the flying bubble trajectory is suppressed app-wide.
+- **High-Intent Surfaces Only for Button Tactile Animations**: Tactile button morphing/burst animations are strictly enabled on **PDP (`ProductDetailInfo.tsx`)**, **Mobile Sticky Quick-Buy Bar (`ProductDetailStickyBar.tsx`)**, and **Quick Buy Modal (`QuickViewModal.tsx`)**.
+- **Catalog Grid Cards Protected**: Product cards in grids (`Ella`, `Elessi`, Base) MUST NOT use multi-stage button animations to prevent layout shifts and grid jitter; cards trigger instant additions with SSOT `flyToCart` flight to the top header cart.
+- **12 Selectable Engine Presets (`ATC_ANIMATION_OPTIONS`)**:
+  - `none`: Clean classic solid button with instant click.
+  - `morph_check`: Morphs to circular spinner -> green checkmark + 12-particle burst + ring pulse -> expands to "Added to Cart" (1.5s).
+  - `roll_swap`: 3D vertical roll swap of shopping cart icon and label with cubic spring flip.
+  - `ripple`: Radial click wave expanding from exact pointer coordinates `(--x, --y)` with crossfade to "Added to Cart".
+  - `border_draw`: Animated SVG perimeter trace -> fills success green with checkmark draw.
+  - `key_press`: Physical 3D key depression with tactile bottom shadow swap and bounce.
+  - `jelly`: Elastic rubber squash & stretch bounce on add.
+  - `plus_float`: Joyful cart hop with animated `+1` floating badge rising into air.
+  - `curtains`: Dual split green side panels sliding inward to meet and reveal green checkmark.
+  - `dots_tick`: Three bouncing loading dots transitioning into drawn checkmark.
+  - `plus_tick`: Rotating plus sign morphing into a circled checkmark with green background.
+  - `sparkle`: Radiant 8-ray starburst pop around cart icon with spring text swap.
+- **Dynamic Theme CSS Variables Binding**:
+  - All 12 animation styles dynamically bind to store theme CSS variables: `var(--btn-primary-bg, var(--color-primary))`, `var(--btn-primary-text)`, `var(--border-radius-btn)`, and `var(--color-success, #22c55e)`.
+  - Zero hardcoded colors. When a merchant adjusts brand colors or button border radii in Settings or Customizer, all animations automatically conform immediately across all clone stores.
+- **SSOT Component**: Reusable component `<AddToCartButton />` (`components/store/AddToCartButton.tsx`). Configurable in Admin Settings (`/admin/settings?tab=products`) and Customizer (`ProductDetailPageSettings.tsx`).
+
+
 
 
 

@@ -49,6 +49,12 @@ export function useSettingsTrustAndProducts({ initialSettings }: UseSettingsTrus
   );
   const [imageAspectRatio, setImageAspectRatio] = useState(initialSettings.image_aspect_ratio ?? '1:1');
   const [titleLineLimit, setTitleLineLimit] = useState<'1' | '2' | 'none'>(initialSettings.title_line_limit ?? '2');
+  const [addToCartAnimation, setAddToCartAnimation] = useState<string>(
+    initialSettings.add_to_cart_animation ?? 'none'
+  );
+  const [enableFlyToCart, setEnableFlyToCart] = useState<boolean>(
+    initialSettings.enable_fly_to_cart ?? true
+  );
   const [archiveSwatchSize, setArchiveSwatchSize] = useState<'xxs' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'xxl'>(
     initialSettings.archive_swatch_size ?? 'md'
   );
@@ -144,6 +150,10 @@ export function useSettingsTrustAndProducts({ initialSettings }: UseSettingsTrus
     setImageAspectRatio,
     titleLineLimit,
     setTitleLineLimit,
+    addToCartAnimation,
+    setAddToCartAnimation,
+    enableFlyToCart,
+    setEnableFlyToCart,
     archiveSwatchSize,
     setArchiveSwatchSize,
     productSwatchSize,

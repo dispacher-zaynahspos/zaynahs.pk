@@ -22,7 +22,27 @@ const requiredColumns = [
   'recently_viewed_title',
   'recently_viewed_subtitle',
   'shop_category_chips_enabled',
-  'shop_infinite_scroll'
+  'shop_infinite_scroll',
+  'add_to_cart_animation',
+  'enable_fly_to_cart',
+  'footer_social_icon_color',
+  'footer_social_icon_bg',
+  'footer_social_hover_color',
+  'footer_social_hover_bg',
+  'footer_heading_font',
+  'footer_body_font',
+  'footer_heading_size',
+  'footer_body_size',
+  'footer_heading_weight',
+  'footer_body_weight',
+  'footer_align',
+  'footer_padding',
+  'footer_bg',
+  'footer_text_color',
+  'footer_border_color',
+  'footer_heading_color',
+  'footer_link_color',
+  'footer_copyright_color'
 ];
 
 const migrationSql = `
@@ -44,7 +64,27 @@ ALTER TABLE store_settings
   ADD COLUMN IF NOT EXISTS recently_viewed_title TEXT DEFAULT 'Recently Viewed',
   ADD COLUMN IF NOT EXISTS recently_viewed_subtitle TEXT DEFAULT 'Products you have recently browsed',
   ADD COLUMN IF NOT EXISTS shop_category_chips_enabled BOOLEAN DEFAULT true,
-  ADD COLUMN IF NOT EXISTS shop_infinite_scroll BOOLEAN DEFAULT false;
+  ADD COLUMN IF NOT EXISTS shop_infinite_scroll BOOLEAN DEFAULT false,
+  ADD COLUMN IF NOT EXISTS add_to_cart_animation TEXT DEFAULT 'default',
+  ADD COLUMN IF NOT EXISTS enable_fly_to_cart BOOLEAN DEFAULT true,
+  ADD COLUMN IF NOT EXISTS footer_social_icon_color TEXT,
+  ADD COLUMN IF NOT EXISTS footer_social_icon_bg TEXT,
+  ADD COLUMN IF NOT EXISTS footer_social_hover_color TEXT,
+  ADD COLUMN IF NOT EXISTS footer_social_hover_bg TEXT,
+  ADD COLUMN IF NOT EXISTS footer_heading_font TEXT,
+  ADD COLUMN IF NOT EXISTS footer_body_font TEXT,
+  ADD COLUMN IF NOT EXISTS footer_heading_size TEXT,
+  ADD COLUMN IF NOT EXISTS footer_body_size TEXT,
+  ADD COLUMN IF NOT EXISTS footer_heading_weight TEXT,
+  ADD COLUMN IF NOT EXISTS footer_body_weight TEXT,
+  ADD COLUMN IF NOT EXISTS footer_align TEXT,
+  ADD COLUMN IF NOT EXISTS footer_padding TEXT,
+  ADD COLUMN IF NOT EXISTS footer_bg TEXT,
+  ADD COLUMN IF NOT EXISTS footer_text_color TEXT,
+  ADD COLUMN IF NOT EXISTS footer_border_color TEXT,
+  ADD COLUMN IF NOT EXISTS footer_heading_color TEXT,
+  ADD COLUMN IF NOT EXISTS footer_link_color TEXT,
+  ADD COLUMN IF NOT EXISTS footer_copyright_color TEXT;
 `;
 
 const verifySql = `

@@ -19,6 +19,7 @@ import VariantSelector from '../VariantSelector';
 import { formatPrice } from '@/lib/utils/whatsapp';
 import { ProductDetailPriceTimer } from './info/ProductDetailPriceTimer';
 import { ProductDetailTrustBadges } from './info/ProductDetailTrustBadges';
+import { AddToCartButton } from '@/components/store/AddToCartButton';
 
 interface ProductDetailInfoProps {
   product: Product;
@@ -282,19 +283,16 @@ export default function ProductDetailInfo({
 
         {/* Add to Cart & Wishlist buttons */}
         <div className="flex gap-3">
-          <button
-            onClick={onAddToCart}
-            disabled={stockAvailable <= 0}
-            style={{
-              backgroundColor: stockAvailable <= 0 ? undefined : 'var(--btn-primary-bg, var(--color-primary, #C2185B))',
-              color: 'var(--btn-primary-text, #ffffff)',
-              borderRadius: 'var(--border-radius-btn, 12px)'
-            }}
-            className="flex-1 flex items-center justify-center gap-2 active:scale-95 disabled:bg-gray-300 dark:disabled:bg-gray-800 disabled:cursor-not-allowed px-5 py-3.5 text-sm font-bold transition-all duration-200 shadow-md cursor-pointer hover:brightness-110"
-          >
-            <ShoppingCart className="h-5 w-5" />
-            <span>{stockAvailable <= 0 ? 'Out of Stock' : 'Add to Cart'}</span>
-          </button>
+          <div className="flex-1 min-w-0">
+            <AddToCartButton
+              animation={settings.add_to_cart_animation || 'none'}
+              isOutOfStock={stockAvailable <= 0}
+              isFaded={Boolean(product.has_variants && product.variants?.length && !selectedVariant)}
+              label={Boolean(product.has_variants && product.variants?.length && !selectedVariant) ? 'Select an Option' : 'Add to Cart'}
+              onAddToCart={onAddToCart}
+              className="py-3.5"
+            />
+          </div>
 
           {mounted && (
             <button

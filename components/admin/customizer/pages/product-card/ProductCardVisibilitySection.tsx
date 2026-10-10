@@ -62,6 +62,18 @@ export function ProductCardVisibilitySection({
             className="rounded border-gray-350 dark:border-gray-700 text-[#e94560] focus:ring-[#e94560] h-4 w-4 cursor-pointer"
           />
         </label>
+        <label className="flex items-center justify-between cursor-pointer select-none text-xs border-t border-gray-100 dark:border-gray-800/60 pt-2.5">
+          <div>
+            <span className="font-bold text-gray-700 dark:text-gray-300 block">Fly &amp; Drop to Cart Animation</span>
+            <span className="text-[10px] text-gray-400">Animate item flying into top header cart bucket with anticipation dip</span>
+          </div>
+          <input
+            type="checkbox"
+            checked={settings.enable_fly_to_cart !== false}
+            onChange={e => onUpdateSettings({ enable_fly_to_cart: e.target.checked })}
+            className="rounded border-gray-350 dark:border-gray-700 text-[#e94560] focus:ring-[#e94560] h-4 w-4 cursor-pointer"
+          />
+        </label>
         <label className="flex items-center justify-between cursor-pointer select-none text-xs">
           <span className="font-bold text-gray-700 dark:text-gray-300">Show Short Description</span>
           <input

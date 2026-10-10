@@ -59,6 +59,8 @@ export const mapSettings = (row: SettingsRow): StoreSettings => ({
   image_hover_style: (row.image_hover_style as 'second_image' | 'zoom' | 'slide_left' | 'zoom_swap' | 'fade_up' | 'blur_crossfade' | 'flip_3d' | 'none') ?? 'second_image',
   image_aspect_ratio: row.image_aspect_ratio ?? '1:1',
   title_line_limit: (row.title_line_limit as '1' | '2' | 'none') ?? '2',
+  add_to_cart_animation: (row.add_to_cart_animation as any) ?? 'none',
+  enable_fly_to_cart: row.enable_fly_to_cart ?? true,
   archive_swatch_size: (row.archive_swatch_size as any) ?? 'md',
   product_swatch_size: (row.product_swatch_size as any) ?? 'md',
   archive_swatch_align: (row.archive_swatch_align as any) ?? 'left',

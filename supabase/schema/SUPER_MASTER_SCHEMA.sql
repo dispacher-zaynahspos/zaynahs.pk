@@ -374,6 +374,8 @@ CREATE TABLE IF NOT EXISTS store_settings (
   image_hover_style TEXT DEFAULT 'second_image',
   image_aspect_ratio TEXT DEFAULT '1:1',
   title_line_limit TEXT DEFAULT '2',
+  add_to_cart_animation TEXT DEFAULT 'default',
+  enable_fly_to_cart BOOLEAN DEFAULT true,
   archive_swatch_size TEXT DEFAULT 'md',
   product_swatch_size TEXT DEFAULT 'md',
   archive_swatch_align TEXT DEFAULT 'left',

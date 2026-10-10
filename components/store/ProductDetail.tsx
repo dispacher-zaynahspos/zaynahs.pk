@@ -77,7 +77,6 @@ export default function ProductDetail({ product, settings, averageRating, social
           chosenVariant = bp.variants?.find(v => v.id === selectedVarId && v.active)
             ?? bp.variants.filter(v => v.active)[0];
         }
-        addItem(bp, chosenVariant, [], 1);
         addedNames.push(bp.name);
       }
     });
@@ -99,9 +98,21 @@ export default function ProductDetail({ product, settings, averageRating, social
       currency: settings.currency || 'PKR'
     });
 
-    toast.success(`${addedNames.length} bundle item${addedNames.length > 1 ? 's' : ''} added to cart!`);
     const sourceEl = e && 'currentTarget' in e && e.currentTarget instanceof HTMLElement ? e.currentTarget : null;
-    flyToCart(sourceEl, images?.[0]?.url, product.id);
+    flyToCart(sourceEl, images?.[0]?.url, product.id, settings.enable_fly_to_cart !== false, () => {
+      bundleProducts.forEach(bp => {
+        if (selectedBundleIds.includes(bp.id)) {
+          let chosenVariant = undefined;
+          if (bp.has_variants && bp.variants.length > 0) {
+            const selectedVarId = bundleVariantSelections[bp.id];
+            chosenVariant = bp.variants?.find(v => v.id === selectedVarId && v.active)
+              ?? bp.variants.filter(v => v.active)[0];
+          }
+          addItem(bp, chosenVariant, [], 1);
+        }
+      });
+      toast.success(`${addedNames.length} bundle item${addedNames.length > 1 ? 's' : ''} added to cart!`);
+    });
   };
 
   const activeVariants = product.variants.filter(v => v.active);
@@ -130,17 +141,22 @@ export default function ProductDetail({ product, settings, averageRating, social
   };
 
   const handleAddToCart = (e: React.MouseEvent) => {
-    if (product.has_variants && product.variants.filter(v => v.active).length > 0 && !selectedVariant) {
-      toast.error('Please select a variant first');
+    if (product.has_variants && activeVariants.length > 0 && !selectedVariant) {
+      toast.error('Please select an option first');
+      const swatchEl = document.getElementById('product-options-picker') || document.querySelector('[data-swatches-container]');
+      if (swatchEl) {
+        swatchEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
       return;
     }
+
+    const variantToUse = selectedVariant || undefined;
     if (quantity > stockAvailable) {
       toast.error(`Only ${stockAvailable} items left in stock`);
       return;
     }
-    addItem(product, selectedVariant, selectedModifiers, quantity);
 
-    const activeId = selectedVariant?.id || product.id;
+    const activeId = variantToUse?.id || product.id;
     trackEvent('AddToCart', {
       content_ids: [activeId],
       content_name: product.name,
@@ -149,10 +165,13 @@ export default function ProductDetail({ product, settings, averageRating, social
       currency: settings.currency || 'PKR'
     });
 
-    toast.success(`${product.name} added to cart!`);
+    const imageUrl = variantToUse?.image_url || product.images?.find(img => img.is_primary)?.url || product.images?.[0]?.url;
+    const sourceEl = (e?.currentTarget as HTMLElement) || (e?.target as HTMLElement) || (document.querySelector('.atc-btn') as HTMLElement) || null;
 
-    const imageUrl = selectedVariant?.image_url || product.images?.find(img => img.is_primary)?.url || product.images?.[0]?.url;
-    flyToCart(e.currentTarget as HTMLElement, imageUrl, product.id);
+    flyToCart(sourceEl, imageUrl, product.id, settings.enable_fly_to_cart !== false, () => {
+      addItem(product, variantToUse, selectedModifiers, quantity);
+      toast.success(`${product.name} added to cart!`);
+    });
   };
 
   // Wishlist via the shared single-source hook (variant-aware fly image).
@@ -280,6 +299,7 @@ export default function ProductDetail({ product, settings, averageRating, social
         whatsappUrl={whatsappUrl}
         activeImage={activeImage}
         enableQuickWhatsapp={settings.enable_product_quick_whatsapp !== false && !!settings.whatsapp_number}
+        animation={settings.add_to_cart_animation}
       />
     </div>
   );

@@ -47,6 +47,10 @@ interface ProductsTabProps {
   setCardShowTypeCustom: (val: boolean) => void;
   cardMobileColumns: number;
   setCardMobileColumns: (val: number) => void;
+  addToCartAnimation?: string;
+  setAddToCartAnimation?: (val: string) => void;
+  enableFlyToCart?: boolean;
+  setEnableFlyToCart?: (val: boolean) => void;
 }
 
 export default function ProductsTab(props: ProductsTabProps) {
@@ -65,6 +69,10 @@ export default function ProductsTab(props: ProductsTabProps) {
         setCardMobileColumns={props.setCardMobileColumns}
         cardShowDescription={props.cardShowDescription}
         setCardShowDescription={props.setCardShowDescription}
+        addToCartAnimation={props.addToCartAnimation}
+        setAddToCartAnimation={props.setAddToCartAnimation}
+        enableFlyToCart={props.enableFlyToCart}
+        setEnableFlyToCart={props.setEnableFlyToCart}
       />
     </div>
   );

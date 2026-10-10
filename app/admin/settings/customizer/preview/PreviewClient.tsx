@@ -183,7 +183,7 @@ export default function PreviewClient({
   }, []);
 
   return (
-    <div className="flex min-h-screen flex-col bg-gray-50 dark:bg-[#0f0f1b] text-gray-900 dark:text-gray-100 pb-20 md:pb-0 transition-colors duration-200 overflow-x-hidden w-full">
+    <div className="flex min-h-screen flex-col bg-gray-50 dark:bg-[#0f0f1b] text-gray-900 dark:text-gray-100 pb-20 md:pb-0 transition-colors duration-200 overflow-x-clip w-full">
       <ThemeStyleRegistry settings={settings} />
       <Navbar settings={settings} storeName={settings?.store_name || 'Store'} logoUrl={settings?.logo_url} logoWidth={settings?.logo_width} />
       <main className="flex-grow bg-gray-50 dark:bg-[#0f0f1b] transition-colors duration-200 w-full">

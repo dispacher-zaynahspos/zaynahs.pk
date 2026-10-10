@@ -142,17 +142,19 @@ export default function ShopProductListCard({ product, settings, addItem }: Shop
                 if (product.has_variants) {
                   const activeVars = (product.variants || []).filter(v => v.active);
                   if (activeVars.length === 1) {
-                    addItem(product, activeVars[0], [], 1);
-                    toast.success(`${product.name} added to cart!`);
-                    flyToCart(e.currentTarget as HTMLElement, primaryImage, product.id);
+                    flyToCart(e.currentTarget as HTMLElement, primaryImage, product.id, settings?.enable_fly_to_cart !== false, () => {
+                      addItem(product, activeVars[0], [], 1);
+                      toast.success(`${product.name} added to cart!`);
+                    });
                     return;
                   }
                   window.location.href = `/product/${encodeURIComponent(product.slug || '')}`;
                   return;
                 }
-                addItem(product, undefined, [], 1);
-                toast.success(`${product.name} added to cart!`);
-                flyToCart(e.currentTarget as HTMLElement, primaryImage, product.id);
+                flyToCart(e.currentTarget as HTMLElement, primaryImage, product.id, settings?.enable_fly_to_cart !== false, () => {
+                  addItem(product, undefined, [], 1);
+                  toast.success(`${product.name} added to cart!`);
+                });
               }}
               className="flex h-9 items-center gap-1.5 px-3.5 rounded-xl bg-[#1a1a2e] dark:bg-[#e94560] text-white hover:opacity-90 active:scale-95 text-xs font-bold transition-all cursor-pointer whitespace-nowrap truncate"
             >

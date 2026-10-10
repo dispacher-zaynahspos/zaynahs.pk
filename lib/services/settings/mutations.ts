@@ -67,6 +67,8 @@ export const updateSettings = async (settings: Partial<StoreSettings>): Promise<
     if (settings.image_hover_style !== undefined) updatePayload.image_hover_style = settings.image_hover_style;
     if (settings.image_aspect_ratio !== undefined) updatePayload.image_aspect_ratio = settings.image_aspect_ratio;
     if (settings.title_line_limit !== undefined) updatePayload.title_line_limit = settings.title_line_limit;
+    if (settings.add_to_cart_animation !== undefined) updatePayload.add_to_cart_animation = settings.add_to_cart_animation;
+    if (settings.enable_fly_to_cart !== undefined) updatePayload.enable_fly_to_cart = settings.enable_fly_to_cart;
     if (settings.archive_swatch_size !== undefined) updatePayload.archive_swatch_size = settings.archive_swatch_size;
     if (settings.product_swatch_size !== undefined) updatePayload.product_swatch_size = settings.product_swatch_size;
     if (settings.archive_swatch_align !== undefined) updatePayload.archive_swatch_align = settings.archive_swatch_align;

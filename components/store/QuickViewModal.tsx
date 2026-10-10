@@ -24,6 +24,7 @@ import VariantSelector from './VariantSelector';
 import { flyToCart } from '@/lib/utils/flyAnimation';
 import { getOptimizedImageUrl, getPresetImageUrl } from '@/lib/utils/imageUrl';
 import { ProductCardBadges } from './product-card/ProductCardBadges';
+import { AddToCartButton } from '@/components/store/AddToCartButton';
 
 interface QuickViewModalProps {
   product: Product;
@@ -58,9 +59,7 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
 
   const activeVariants = product.variants.filter(v => v.active);
 
-  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | undefined>(
-    product.has_variants && activeVariants.length > 0 ? activeVariants[0] : undefined
-  );
+  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | undefined>(undefined);
   const [quantity, setQuantity] = useState(1);
   const fallbackPlaceholder = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%23f3f4f6'/%3E%3C/svg%3E";
 
@@ -88,21 +87,28 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
 
   // ── Cart ──────────────────────────────────────────────────────────────────
   const handleAddToCart = (e: React.MouseEvent) => {
+    if (product.has_variants && activeVariants.length > 0 && !selectedVariant) {
+      toast.error('Please select an option first');
+      return;
+    }
     if (quantity > stockAvailable) {
       toast.error(`Only ${stockAvailable} items left in stock`);
       return;
     }
-    addItem(product, selectedVariant, [], quantity);
-    toast.success(`${product.name} added to cart!`);
 
-    // Trigger fly animation
+    // Trigger fly animation and defer addItem to bucket bounce
     const imageUrl = selectedVariant?.image_url || product.images?.find(img => img.is_primary)?.url || product.images?.[0]?.url;
-    flyToCart(e.currentTarget as HTMLElement, imageUrl, product.id);
+    flyToCart(e.currentTarget as HTMLElement, imageUrl, product.id, settings?.enable_fly_to_cart !== false, () => {
+      addItem(product, selectedVariant, [], quantity);
+      toast.success(`${product.name} added to cart!`);
+    });
 
     // Close modal after animation completes its journey so the customer sees the item sail into the cart
+    const anim = settings?.add_to_cart_animation || 'none';
+    const isAnimated = anim !== 'none' && anim !== 'default';
     setTimeout(() => {
       onClose();
-    }, 650);
+    }, isAnimated ? 1200 : 700);
   };
 
   // ── Escape + body scroll lock ─────────────────────────────────────────────
@@ -363,15 +369,16 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
                   </button>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={handleAddToCart}
-                  disabled={stockAvailable <= 0}
-                  className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[#1a1a2e] hover:bg-[#e94560] disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2.5 text-sm font-bold transition-all duration-200 cursor-pointer"
-                >
-                  <ShoppingCart className="w-4 h-4" />
-                  <span>{stockAvailable <= 0 ? 'Out of Stock' : 'Add to Cart'}</span>
-                </button>
+                <div className="flex-1 min-w-0">
+                  <AddToCartButton
+                    animation={settings?.add_to_cart_animation || 'none'}
+                    isOutOfStock={stockAvailable <= 0}
+                    isFaded={Boolean(product.has_variants && activeVariants.length > 0 && !selectedVariant)}
+                    label={Boolean(product.has_variants && activeVariants.length > 0 && !selectedVariant) ? 'Select an Option' : 'Add to Cart'}
+                    onAddToCart={handleAddToCart}
+                    className="py-2.5 text-sm"
+                  />
+                </div>
               </div>
 
               {/* Full details link */}

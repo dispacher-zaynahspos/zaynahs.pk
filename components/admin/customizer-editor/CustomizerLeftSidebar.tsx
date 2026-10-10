@@ -76,14 +76,14 @@ export function CustomizerLeftSidebar({
             handleDuplicateSection={handleDuplicateSection}
           />
         ) : activePage === 'shop' ? (
-          <div className="space-y-2">
+          <div className="space-y-4">
             <label className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest block">
               Shop Page Properties
             </label>
             <div className="space-y-1.5">
               {[
-                { id: 'swatches', label: 'Color Swatches', desc: 'Display product variant colors on list cards' },
-                { id: 'layout', label: 'Product Layout', desc: 'Grid aspect ratio, line limit, hover style' }
+                { id: 'layout', label: 'Catalog Layout & Grid', desc: 'Columns, default variant, category chips' },
+                { id: 'pagination', label: 'Pagination & Infinite Scroll', desc: 'Products per page and scroll loading' },
               ].map(tab => (
                 <button
                   key={tab.id}
@@ -121,8 +121,33 @@ export function CustomizerLeftSidebar({
                 Product Cards Design
               </h4>
               <p className="text-[10px] text-gray-500 dark:text-gray-400 font-semibold leading-relaxed">
-                Choose templates and configure card layout preferences applied globally to all catalog grids, shop listings, and recommended sliders.
+                Choose templates and configure card layout preferences. Click a section below to edit its properties on the right.
               </p>
+            </div>
+            <div className="space-y-1.5">
+              {[
+                { id: 'style', label: 'Style & Template', desc: 'Card theme archetype and action presets' },
+                { id: 'visibility', label: 'Element Visibility', desc: 'Wishlist, Quick View, and Fly to Cart' },
+                { id: 'swatches', label: 'Variant Swatches', desc: 'Swatch shape, size, limits & alignment' },
+                { id: 'appearance', label: 'Card Appearance & Layout', desc: 'Shadows, hover lift, aspect ratio & title clamp' },
+              ].map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveSubTab(tab.id)}
+                  className={`w-full text-left p-3 border rounded-xl transition-all cursor-pointer ${
+                    activeSubTab === tab.id
+                      ? 'border-[#e94560] bg-[#e94560]/5 dark:bg-[#e94560]/10 shadow-sm'
+                      : 'border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] hover:border-gray-300 dark:hover:border-gray-700'
+                  }`}
+                >
+                  <div className="text-xs font-bold text-gray-900 dark:text-white">
+                    {tab.label}
+                  </div>
+                  <div className="text-[10px] text-gray-400 dark:text-gray-500 font-semibold mt-0.5">
+                    {tab.desc}
+                  </div>
+                </button>
+              ))}
             </div>
           </div>
         ) : activePage === 'appearance' ? (

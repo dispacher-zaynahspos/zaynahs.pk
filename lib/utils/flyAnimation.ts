@@ -169,7 +169,8 @@ export function animateFlyTo(
   source: HTMLElement | React.MouseEvent | null | undefined,
   target: FlyTargetKind = 'cart',
   itemImage?: string | null,
-  productId?: string
+  productId?: string,
+  onComplete?: () => void
 ): void {
   if (typeof window === 'undefined' || typeof document === 'undefined') return;
 
@@ -454,6 +455,13 @@ export function animateFlyTo(
       }, 750);
     }
 
+    // Celebratory item landing: trigger cart update exactly when thumbnail lands in bucket
+    try {
+      onComplete?.();
+    } catch (e) {
+      console.error('Error in fly animation onComplete callback:', e);
+    }
+
     // Dispatch custom event for any listening UI elements
     try {
       window.dispatchEvent(new CustomEvent('bucket-bounce', { detail: { target } }));
@@ -482,15 +490,36 @@ export function animateFlyTo(
   setTimeout(cleanup, DURATION + 150);
 }
 
+let flyToCartEnabledGlobally = true;
+
+/**
+ * Configure global fly-to-cart animation enabled state from store settings.
+ */
+export function setFlyToCartEnabled(enabled: boolean): void {
+  flyToCartEnabledGlobally = enabled;
+}
+
+export function isFlyToCartEnabled(): boolean {
+  return flyToCartEnabledGlobally;
+}
+
 /**
  * Canonical helper for flying to Cart.
+ * Honors enable_fly_to_cart toggle.
+ * Runs onComplete callback at the exact moment of bucket dip & bounce landing.
  */
 export function flyToCart(
   source?: HTMLElement | React.MouseEvent | null,
   itemImage?: string | null,
-  productId?: string
+  productId?: string,
+  enabled?: boolean,
+  onComplete?: () => void
 ): void {
-  animateFlyTo(source, 'cart', itemImage, productId);
+  if (enabled === false || (enabled === undefined && !flyToCartEnabledGlobally)) {
+    onComplete?.();
+    return;
+  }
+  animateFlyTo(source, 'cart', itemImage, productId, onComplete);
 }
 
 /**

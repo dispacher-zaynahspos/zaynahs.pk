@@ -63,9 +63,12 @@ export function useCustomizerState({
 
   useEffect(() => {
     if (activePage === 'shop') {
-      setActiveSubTab('swatches');
-    } else if (activePage === 'product_detail') {
       setActiveSubTab('layout');
+    } else if (activePage === 'product_detail') {
+      setActiveSubTab('details');
+      setActiveSectionId('details');
+    } else if (activePage === 'product_card') {
+      setActiveSubTab('style');
     } else if (activePage === 'global') {
       setActiveSubTab('branding');
     }

@@ -101,9 +101,9 @@ export default function ProductDetailBlocksStack({
               blockId === 'social_feed' && !isFeatureEnabled(storeSettings, 'social_feeds');
             const isHidden = hiddenBlocks.includes(blockId);
             const tabMap: Record<string, string> = {
-              details: 'swatches',
+              details: 'details',
               ticker: 'ticker',
-              reviews: 'urgency',
+              reviews: 'reviews',
               related: 'related',
               recently_viewed: 'recently_viewed',
               social_feed: 'social_feed',
@@ -131,7 +131,7 @@ export default function ProductDetailBlocksStack({
                 renameValue=""
                 onSelect={() => {
                   setActiveSectionId(blockId);
-                  setActiveSubTab(tabMap[blockId] || 'swatches');
+                  setActiveSubTab(tabMap[blockId] || blockId);
                 }}
                 onToggleVisible={() => {
                   const nextHidden = isHidden
@@ -177,14 +177,14 @@ export default function ProductDetailBlocksStack({
                     setStoreSettings((prev) => ({ ...prev, product_page_layout: newLayout }));
                     setActiveSectionId(block.id);
                     const tabMap: Record<string, string> = {
-                      details: 'swatches',
+                      details: 'details',
                       ticker: 'ticker',
-                      reviews: 'urgency',
-                      related: 'delivery',
+                      reviews: 'reviews',
+                      related: 'related',
                       recently_viewed: 'recently_viewed',
                       social_feed: 'social_feed',
                     };
-                    setActiveSubTab(tabMap[block.id] || 'swatches');
+                    setActiveSubTab(tabMap[block.id] || block.id);
                   }}
                   className={`px-2.5 py-1.5 text-left border rounded-xl transition-all text-[10px] font-bold truncate ${
                     isFeatureDisabled

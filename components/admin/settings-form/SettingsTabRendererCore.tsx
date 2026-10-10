@@ -190,6 +190,10 @@ export function SettingsTabRendererCore({ activeTab, s }: SettingsTabRendererCor
           setCardShowTypeCustom={s.setCardShowTypeCustom}
           cardMobileColumns={s.cardMobileColumns}
           setCardMobileColumns={s.setCardMobileColumns}
+          addToCartAnimation={s.addToCartAnimation}
+          setAddToCartAnimation={s.setAddToCartAnimation}
+          enableFlyToCart={s.enableFlyToCart}
+          setEnableFlyToCart={s.setEnableFlyToCart}
         />
       );
     case 'trust':

@@ -22,6 +22,16 @@ export default function GlobalSettings({
   if (subTab === 'branding') {
     return (
       <div className="space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-800">
+          <div className="min-w-0">
+            <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest block leading-none mb-1">Editing Section</span>
+            <h4 className="text-sm font-black text-gray-900 dark:text-white truncate">Store Branding</h4>
+          </div>
+          <span className="text-[9px] font-black text-[#e94560] bg-[#e94560]/10 px-2.5 py-1 rounded-full uppercase tracking-wider flex-shrink-0">
+            Branding
+          </span>
+        </div>
+
         {/* Favicon Selector */}
         <div className="space-y-1.5 p-3 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-gray-800">
           <MediaField
@@ -83,6 +93,16 @@ export default function GlobalSettings({
 
     return (
       <div className="space-y-5">
+        <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-800">
+          <div className="min-w-0">
+            <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest block leading-none mb-1">Editing Section</span>
+            <h4 className="text-sm font-black text-gray-900 dark:text-white truncate">Header & Topbar</h4>
+          </div>
+          <span className="text-[9px] font-black text-[#e94560] bg-[#e94560]/10 px-2.5 py-1 rounded-full uppercase tracking-wider flex-shrink-0">
+            Header
+          </span>
+        </div>
+
         {/* SECTION 1: Top Bar & Announcement */}
         <div className="space-y-3.5 p-3.5 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-200/80 dark:border-gray-800">
           <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-800 pb-2">
@@ -312,6 +332,16 @@ export default function GlobalSettings({
 
   return (
     <div className="space-y-4">
+      <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-800">
+        <div className="min-w-0">
+          <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest block leading-none mb-1">Editing Section</span>
+          <h4 className="text-sm font-black text-gray-900 dark:text-white truncate">Footer & Social</h4>
+        </div>
+        <span className="text-[9px] font-black text-[#e94560] bg-[#e94560]/10 px-2.5 py-1 rounded-full uppercase tracking-wider flex-shrink-0">
+          Footer
+        </span>
+      </div>
+
       {/* Footer Colors */}
       <div className="space-y-3 p-3 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-gray-800">
         <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#e94560] block">

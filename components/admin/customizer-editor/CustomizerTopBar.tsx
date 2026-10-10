@@ -80,20 +80,15 @@ export function CustomizerTopBar({
                   setActiveSubTab('');
                 } else if (newPage === 'product_detail') {
                   const firstBlock = (storeSettings.product_page_layout || ['details', 'ticker', 'reviews', 'related', 'recently_viewed', 'social_feed'])[0];
-                  setActiveSectionId(firstBlock);
-                  const tabMap: Record<string, string> = {
-                    details: 'swatches',
-                    ticker: 'ticker',
-                    reviews: 'urgency',
-                    related: 'delivery'
-                  };
-                  setActiveSubTab(tabMap[firstBlock] || 'swatches');
+                  const blockId = firstBlock || 'details';
+                  setActiveSectionId(blockId);
+                  setActiveSubTab(blockId);
                 } else if (newPage === 'shop') {
                   setActiveSectionId(null);
-                  setActiveSubTab('swatches');
+                  setActiveSubTab('layout');
                 } else if (newPage === 'product_card') {
                   setActiveSectionId(null);
-                  setActiveSubTab('');
+                  setActiveSubTab('style');
                 } else if (newPage === 'global') {
                   setActiveSectionId(null);
                   setActiveSubTab('branding');

@@ -411,4 +411,34 @@ Verified 2026-10. Across all stores (TotVogue, Zaynahs, MiniMahal, LittleMister,
 6. **Universal Coverage**: Enforced on all catalog cards (Ella 01–08, Elessi 01–16, Showcases, Base themes 1–5, Shop list view), collection grids, Related Products, Recently Viewed, Product Detail page buttons, Sticky Quick Buy Bar, Frequently Bought Together bundles, and QuickViewModal. QuickViewModal MUST allow 650ms delay before closing so the flight originates cleanly from the button and completes its journey visibly into the header cart. Single-variant products on cards directly add to cart and trigger the fly animation without modal friction.
 7. **Universal Badges Sync (RULE DS-BADGES)**: All cards, modals, and PDP pages must render badges through the SSOT `<ProductCardBadges>`, reflecting real badge colors and labels configured in `/admin/badges`.
 
+### RULE DS24 — High-Intent Add-to-Cart Button Tactile Animations & Independent Fly-to-Cart Engine
+1. **Independent Fly & Drop to Cart Engine (`enable_fly_to_cart`)**:
+   - Universal trajectory where thumbnail flies into top header cart bucket with anticipation dip (+18px stretch on mobile, +14px on desktop) and celebratory bounce.
+   - Controlled via its OWN independent toggle (`store_settings.enable_fly_to_cart`, default `true`).
+   - Runs alongside ALL button animations (or on its own when button animation is `none`).
+   - If disabled, product additions still succeed immediately, but the flying bubble trajectory is suppressed app-wide.
+2. **Target Locations for Button Tactile Click Animations (STRICT CONSTRAINT)**:
+   - **Allowed**: Product Detail Page (PDP) main CTA (`ProductDetailInfo.tsx`), PDP Mobile Sticky Quick-Buy Bar (`ProductDetailStickyBar.tsx`), and Quick Buy Modal (`QuickViewModal.tsx`).
+   - **FORBIDDEN on Catalog Grid Cards**: Cards (`Ella`, `Elessi`, etc.) MUST NOT use morphing or multi-stage button animations to avoid layout shifts and card jumpiness. Cards retain instantaneous click + SSOT `flyToCart` flight to the header cart.
+3. **12 Selectable Tactile Styles (`ATC_ANIMATION_OPTIONS`)**:
+   - `none`: Classic clean solid button with instant click.
+   - `morph_check`: Morphs into circle spinner (260ms), draws animated checkmark path, triggers 12-particle burst + ring pulse, expands back to "Added to Cart" (reverts at 1.5s).
+   - `roll_swap`: 3D vertical roll swap of shopping cart icon and label with cubic-bezier spring flip.
+   - `ripple`: Radial click wave expanding from exact pointer coordinates `(--x, --y)` with crossfade to "Added to Cart".
+   - `border_draw`: Animated SVG rect border tracing around perimeter, fills success green with checkmark draw.
+   - `key_press`: Physical 3D button press with tactile depth, shadow swap, and bounce up.
+   - `jelly`: Elastic rubber squash & stretch bounce on add (`scale(1.06, 0.84)` to `scale(0.95, 1.12)`).
+   - `plus_float`: Joyful cart hop with animated `+1` floating badge rising and fading into air.
+   - `curtains`: Dual split green side panels sliding inward to meet and reveal green checkmark.
+   - `dots_tick`: Three bouncing loading dots transitioning into a drawn checkmark.
+   - `plus_tick`: Rotating plus sign morphing into a circled checkmark with green background.
+   - `sparkle`: Radiant 8-ray starburst pop around cart icon with spring text swap.
+4. **Dynamic Theme Variable Binding**:
+   - Buttons MUST dynamically consume store theme CSS tokens: `var(--btn-primary-bg, var(--color-primary))`, `var(--btn-primary-text)`, `var(--border-radius-btn)`, and `var(--color-success, #22c55e)`.
+   - Never hardcode fixed hex colors or fixed border radii. Updating Primary Color or Button Radius in Customizer / Settings automatically skins all 12 animations across all store clones.
+5. **Single Source of Truth Component (`AddToCartButton.tsx`)**:
+   - Reusable component at `components/store/AddToCartButton.tsx`. All PDP, sticky, and modal callers use this component.
+   - Controlled via `store_settings.add_to_cart_animation` from Admin Settings (`/admin/settings?tab=products`) and Customizer (`ProductDetailPageSettings.tsx`).
+
+
 
