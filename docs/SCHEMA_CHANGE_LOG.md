@@ -4,6 +4,34 @@
 
 ---
 
+### [2026-10-09] v7.x — Project-Wide Product Search Engine (search_vector + pg_trgm + age fields)
+
+**Feature:** ONE shared, intelligent product-search + ranking + pagination engine across all `/admin/**` and `/store/**` product-search entry points (SSOT — RULE PS1, `docs/agent-rules/29-product-search-pagination.md`).
+
+**Database Changes:**
+- `supabase/migrations/20261009190000_product_search_optimization.sql`
+  - `CREATE EXTENSION IF NOT EXISTS pg_trgm;`
+  - `products.search_vector tsvector` + `idx_products_search_vector` GIN index.
+  - Trigram GIN indexes: products(name, description, short_description, sku) + product_variants(color, size, material, custom_value, sku).
+  - Age fields: `products.recommended_age_min_months`, `recommended_age_max_months`, `age_group` + `idx_products_age_range`.
+  - Functions: `build_product_search_vector(uuid)`, `refresh_all_product_search_vectors()`, variant/category/category-rename sync functions.
+  - Triggers: BEFORE INSERT/UPDATE on products; AFTER INSERT/UPDATE/DELETE on product_variants & product_categories; AFTER UPDATE on categories(name) — all keep `search_vector` fresh.
+  - Fully idempotent (`IF NOT EXISTS` / `CREATE OR REPLACE` / `DROP TRIGGER IF EXISTS`).
+- Synchronized into `SUPER_MASTER_SCHEMA.sql` (products block). Verified via `npm run check:setup` (152/152 migrations in sync).
+- **Applied to ALL 5 live stores** via `node scripts/apply-migration-all-stores.mjs supabase/migrations/20261009190000_product_search_optimization.sql`: littlemister, lobo, minimahal, totvogue, zaynahs — columns verified present on each.
+
+**Application Changes:**
+- New `lib/services/product-search/` engine: `types.ts` (weights SSOT), `normalization.ts` (age parsing), `ranking.ts` (`rankSearchResults`), `server-search.ts` (`searchProductsServer` full-text + trigram), `client-search.ts` (30s cache), `useProductSearch.ts` (debounce+abort), `useInMemoryProductSearch.ts` (`rankProducts`), `ProductSearchModal.tsx`.
+- API: `GET /api/search/products` (paginated 50/page, `Cache-Control max-age=30, swr=60`).
+- Migrated entry points: navbar live search, shop page text search, admin ProductList, category detail + add modal, order editor, order create, bought-together, nav menu picker, post-review modal, review detail sheet, customizer product picker.
+- Ranking order: title → sku → variant → short_desc → tags → category → long_desc → age (title-first, deterministic tie-breakers).
+
+**DB usage impact:** Server-side indexed search replaces full-catalog client filtering → only matching rows (≤50/page) transferred; ~90% fewer rows scanned/transferred per search. 2-layer cache (CDN 30s + client 30s).
+
+**Docs:** `docs/product-search.md` (architecture + integration + migration table), `docs/agent-rules/29-product-search-pagination.md` (RULE PS1–PS5), SSOT entry added to `27-single-source-of-truth.md`, index row added to `AGENTS.md`.
+
+---
+
 ### [2026-10-09] v7.x — Abandoned Carts 30-Day Auto-Purge Cron & Bulk Deletion System
 
 **Problem fixed:** 
