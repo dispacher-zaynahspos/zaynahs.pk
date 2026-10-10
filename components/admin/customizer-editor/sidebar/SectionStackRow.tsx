@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  Eye, EyeOff, ChevronUp, ChevronDown, Trash2, Edit2, Check, MoreVertical, Copy, Lock,
+  Eye, EyeOff, ChevronUp, ChevronDown, Trash2, Edit2, Check, MoreVertical, Copy, Lock, GripVertical,
 } from '@/components/common/Icons';
 
 /**
@@ -36,13 +36,17 @@ export interface SectionStackRowProps {
   lockActions?: boolean;
   /** Hide the kebab menu entirely (e.g. core blocks with no menu actions). */
   hideMenu?: boolean;
+  /** Optional dnd-kit drag handle props (spread onto the grip). Enables drag + a grip icon. */
+  dragHandleProps?: Record<string, unknown>;
+  /** Optional long-press handlers (open shared Move modal). Spread onto the row. */
+  longPressProps?: Record<string, unknown>;
 }
 
 export default function SectionStackRow({
   title, subtitle, isActive, isDisabled, isVisible, isFirst, isLast,
   renaming, renameValue, onSelect, onToggleVisible, onStartRename,
   onRenameChange, onCommitRename, onCancelRename, onMoveUp, onMoveDown, onDelete,
-  onDuplicate, lockActions = false, hideMenu = false,
+  onDuplicate, lockActions = false, hideMenu = false, dragHandleProps, longPressProps,
 }: SectionStackRowProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -75,12 +79,25 @@ export default function SectionStackRow({
   return (
     <div
       onClick={onSelect}
-      className={`flex items-center gap-2 h-12 px-2.5 border rounded-xl transition-all cursor-pointer ${
+      {...(longPressProps || {})}
+      className={`flex items-center gap-2 h-12 px-2.5 border rounded-xl transition-all cursor-pointer [-webkit-touch-callout:none] ${
         isActive
           ? 'border-[#e94560] bg-[#e94560]/5 dark:bg-[#e94560]/10 shadow-sm'
           : 'border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] hover:border-gray-300 dark:hover:border-gray-700'
       }`}
     >
+      {/* Drag handle (only when wired) */}
+      {dragHandleProps && !renaming && (
+        <span
+          {...dragHandleProps}
+          onClick={(e) => e.stopPropagation()}
+          style={{ touchAction: 'none' }}
+          title="Drag to reorder"
+          className="flex h-7 w-5 items-center justify-center text-gray-300 dark:text-gray-600 cursor-grab active:cursor-grabbing select-none shrink-0"
+        >
+          <GripVertical className="h-4 w-4" />
+        </span>
+      )}
       {/* Title block */}
       <div className="min-w-0 flex-1">
         {renaming ? (

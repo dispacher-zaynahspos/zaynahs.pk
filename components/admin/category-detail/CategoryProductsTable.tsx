@@ -173,6 +173,37 @@ export function CategoryProductsTable({
         </DndContext>
       </div>
 
+      {/* Mobile card view (shared reorder controls) */}
+      <div className="md:hidden">
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <SortableContext items={pageIds} strategy={verticalListSortingStrategy}>
+            <div className="space-y-2 p-3">
+              {paginatedProducts.map((product, index) => (
+                <ProductCardMobile
+                  key={product.id}
+                  product={product}
+                  globalRank={rankOffset + index + 1}
+                  isManual={isManual}
+                  isFirstGlobal={globalIndexOf(product.id) === 0}
+                  isLastGlobal={globalIndexOf(product.id) === products.length - 1}
+                  selected={selectedProductIds.includes(product.id)}
+                  onToggleSelect={(checked) =>
+                    setSelectedProductIds(prev =>
+                      checked ? [...prev, product.id] : prev.filter(id => id !== product.id)
+                    )
+                  }
+                  moveProduct={moveProduct}
+                  onOpenMove={() => setMoveTargetId(product.id)}
+                  handleEditProduct={() => handleEditProduct(product.id, products)}
+                  handleRemoveProduct={() => handleRemoveProduct(product.id)}
+                  setPreviewImageUrl={setPreviewImageUrl}
+                />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
+      </div>
+
       <ReorderMoveModal
         open={moveTargetGlobalIdx !== -1}
         title="Move product"
@@ -420,5 +451,158 @@ function ProductRow({
         </tr>
       )}
     </React.Fragment>
+  );
+}
+
+interface ProductCardMobileProps {
+  product: Product;
+  globalRank: number;
+  isManual: boolean;
+  isFirstGlobal: boolean;
+  isLastGlobal: boolean;
+  selected: boolean;
+  onToggleSelect: (checked: boolean) => void;
+  moveProduct: (id: string, dir: 'up' | 'down') => void;
+  onOpenMove: () => void;
+  handleEditProduct: () => void;
+  handleRemoveProduct: () => void;
+  setPreviewImageUrl: (url: string | null) => void;
+}
+
+function ProductCardMobile({
+  product,
+  globalRank,
+  isManual,
+  isFirstGlobal,
+  isLastGlobal,
+  selected,
+  onToggleSelect,
+  moveProduct,
+  onOpenMove,
+  handleEditProduct,
+  handleRemoveProduct,
+  setPreviewImageUrl,
+}: ProductCardMobileProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    setActivatorNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: product.id, disabled: !isManual });
+
+  const style: React.CSSProperties = {
+    transform: CSS.Translate.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  const longPress = useLongPress({
+    onLongPress: onOpenMove,
+    delay: 500,
+    moveTolerance: 10,
+    disabled: !isManual,
+  });
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...(isManual ? longPress : {})}
+      className="[-webkit-touch-callout:none] rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] p-3"
+    >
+      <div className="flex items-center gap-3">
+        <input
+          type="checkbox"
+          checked={selected}
+          onChange={(e) => onToggleSelect(e.target.checked)}
+          className="rounded border-gray-300 text-[#e94560] focus:ring-[#e94560] h-4 w-4 cursor-pointer shrink-0"
+        />
+        {isManual && (
+          <span className="text-xs font-semibold text-slate-400 w-7 text-center shrink-0">#{globalRank}</span>
+        )}
+        <div
+          className="relative h-12 w-12 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shrink-0"
+          onClick={() => product.images?.[0] && setPreviewImageUrl(product.images[0].url)}
+        >
+          {product.images?.[0] ? (
+            <Image src={product.images[0].url} alt={product.name} fill className="object-cover" sizes="48px" />
+          ) : (
+            <div className="h-full w-full flex items-center justify-center text-[10px] text-gray-400 font-bold">NO IMG</div>
+          )}
+        </div>
+        <div className="flex-1 min-w-0" onClick={handleEditProduct}>
+          <div className="font-bold text-sm text-gray-900 dark:text-white truncate">{product.name}</div>
+          <div className="text-[11px] text-gray-400 font-mono truncate">
+            {formatPrice(product.price)} · {product.stock} in stock
+          </div>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between mt-2.5 pt-2.5 border-t border-gray-100 dark:border-gray-800">
+        {isManual ? (
+          <div className="flex items-center gap-0.5">
+            <button
+              type="button"
+              aria-label="Move up"
+              onClick={() => moveProduct(product.id, 'up')}
+              disabled={isFirstGlobal}
+              className="h-9 w-9 flex items-center justify-center text-gray-400 hover:text-gray-700 dark:hover:text-white disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer rounded-lg"
+            >
+              <ChevronUp className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              aria-label="Move down"
+              onClick={() => moveProduct(product.id, 'down')}
+              disabled={isLastGlobal}
+              className="h-9 w-9 flex items-center justify-center text-gray-400 hover:text-gray-700 dark:hover:text-white disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer rounded-lg"
+            >
+              <ChevronDown className="h-4 w-4" />
+            </button>
+            <span
+              ref={setActivatorNodeRef}
+              {...attributes}
+              {...listeners}
+              aria-label="Drag to reorder"
+              style={{ touchAction: 'none' }}
+              className="h-9 w-9 flex items-center justify-center text-gray-400 cursor-grab active:cursor-grabbing select-none"
+            >
+              <GripVertical className="h-4 w-4" />
+            </span>
+            <button
+              type="button"
+              aria-label="Move options"
+              onClick={onOpenMove}
+              className="h-9 w-9 flex items-center justify-center text-gray-400 hover:text-gray-700 dark:hover:text-white cursor-pointer rounded-lg"
+            >
+              <MoreVertical className="h-4 w-4" />
+            </button>
+          </div>
+        ) : (
+          <span className="text-[11px] text-amber-600 dark:text-amber-400 font-medium">Manual Order to reorder</span>
+        )}
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={handleEditProduct}
+            className="h-9 w-9 flex items-center justify-center text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer rounded-lg"
+            title="Edit product"
+          >
+            <Edit className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            onClick={handleRemoveProduct}
+            className="h-9 w-9 flex items-center justify-center text-gray-400 hover:text-rose-600 dark:hover:text-rose-400 cursor-pointer rounded-lg"
+            title="Remove from category"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }

@@ -25,7 +25,10 @@
   - `lib/hooks/useReorder.ts` — order operations (up/down, top/bottom, move-to-position, drag, multi-select, pagination-aware global index).
   - `lib/hooks/useLongPress.ts` — 500ms long-press (10px tolerance, refs not state, `contextmenu` preventDefault, `navigator.vibrate`).
   - `components/common/reorder/ReorderMoveModal.tsx` — Top/Up/Down/Bottom/Move-to-position, rendered through a Portal to `document.body` (never clipped), `z-[120]`, body-scroll-locked.
-- The admin category products table composes these primitives directly (table-cell layout) using `useSortable` + `useLongPress` + `ReorderMoveModal`; the customizer manual product list uses `<SortableList />` directly. Both share the SAME hooks/modal — zero duplicate drag logic.
+- Current shared consumers (keep using these primitives, never fork):
+  - **Admin category products** (`CategoryProductsTable.tsx`) — desktop table rows AND mobile card view both use `useSortable` + `useLongPress` + `ReorderMoveModal`. Bulk multi-select move uses the same `moveSelectedToPosition` algorithm.
+  - **Customizer manual product picker** (`ManualProductPicker.tsx`) — uses `<SortableList />` directly.
+  - **Customizer Home Section Stack** (`HomeSectionsStack.tsx`) — dnd-kit drag + grip on `SectionStackRow` + long-press Move modal + up/down + move-to-position (`handleReorderSections` / `handleMoveSectionToPosition` in `useCustomizerState`). `handleMoveSection` uses shared `moveItemInArray`.
 - Required features on every reorder surface: drag handle, up/down, move menu, long-press modal, keyboard, optimistic update + rollback, 44px touch targets, disabled-with-hint when sort ≠ Manual (`"Switch to Manual Order to reorder"`).
 - Do NOT add a second DnD library. The repo standard is `@dnd-kit/*`. `@hello-pangea/dnd` is unused/dead — don't import it.
 
@@ -45,7 +48,7 @@
 - Move-to-position works across pages (e.g. #1 → #25).
 - No duplicate/missing products across pagination after reorder.
 - `sort != manual` disables reordering with the hint.
-- Unit tests for `applySort` + the reorder transaction live in `__tests__/sorting/`.
+- Unit tests for `applySort` + the reorder transaction live in `__tests__/sorting/` (`sortOptions.test.mjs` + `reorderFlow.test.mjs`, run with `node`). The e2e-ish flow test covers drag→save payload, move-to-position, multi-select, category independence, and long-press timing (fires @500ms, cancels >10px, survives wobble).
 
 ## Cross-references
 - RULE SSOT1 ([27](27-single-source-of-truth.md)) — zero duplicate implementations.

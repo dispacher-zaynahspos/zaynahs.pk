@@ -22,6 +22,8 @@ interface CustomizerLeftSidebarProps {
   handleAddSection: (type: string) => void;
   handleUpdateSection: (id: string, updates: Partial<HomepageSection>) => void;
   handleMoveSection: (idx: number, dir: 'up' | 'down') => void;
+  handleReorderSections?: (fromId: string, toId: string) => void;
+  handleMoveSectionToPosition?: (id: string, position1Based: number) => void;
   handleDeleteSection: (id: string) => void;
   handleDuplicateSection?: (id: string) => void;
   currentProduct?: { name: string } | null;
@@ -42,6 +44,8 @@ export function CustomizerLeftSidebar({
   handleAddSection,
   handleUpdateSection,
   handleMoveSection,
+  handleReorderSections,
+  handleMoveSectionToPosition,
   handleDeleteSection,
   handleDuplicateSection,
   currentProduct
@@ -72,6 +76,8 @@ export function CustomizerLeftSidebar({
             handleAddSection={handleAddSection}
             handleUpdateSection={handleUpdateSection}
             handleMoveSection={handleMoveSection}
+            handleReorderSections={handleReorderSections}
+            handleMoveSectionToPosition={handleMoveSectionToPosition}
             handleDeleteSection={handleDeleteSection}
             handleDuplicateSection={handleDuplicateSection}
           />

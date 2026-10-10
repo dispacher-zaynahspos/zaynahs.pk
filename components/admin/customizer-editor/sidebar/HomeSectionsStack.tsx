@@ -3,10 +3,29 @@
 import { MessageSquare } from '@/components/common/Icons';
 
 import React, { useState } from 'react';
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  TouchSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+  sortableKeyboardCoordinates,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { HomepageSection, StoreSettings } from '@/lib/types';
 import { isSectionEnabled, sectionPremiumFeature, PREMIUM_FEATURE_LABEL } from '@/lib/features/premium';
 import { SECTION_PALETTE } from '@/lib/theme-schema/sections';
 import { toast } from 'sonner';
+import { useLongPress } from '@/lib/hooks/useLongPress';
+import { ReorderMoveModal } from '@/components/common/reorder';
 import SectionStackRow from './SectionStackRow';
 
 interface HomeSectionsStackProps {
@@ -18,6 +37,8 @@ interface HomeSectionsStackProps {
   handleAddSection: (type: string) => void;
   handleUpdateSection: (id: string, updates: Partial<HomepageSection>) => void;
   handleMoveSection: (idx: number, dir: 'up' | 'down') => void;
+  handleReorderSections?: (fromId: string, toId: string) => void;
+  handleMoveSectionToPosition?: (id: string, position1Based: number) => void;
   handleDeleteSection: (id: string) => void;
   handleDuplicateSection?: (id: string) => void;
 }
@@ -31,11 +52,20 @@ export default function HomeSectionsStack({
   handleAddSection,
   handleUpdateSection,
   handleMoveSection,
+  handleReorderSections,
+  handleMoveSectionToPosition,
   handleDeleteSection,
   handleDuplicateSection,
 }: HomeSectionsStackProps) {
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
+  const [moveTargetId, setMoveTargetId] = useState<string | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 520, tolerance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
 
   const startRename = (section: HomepageSection) => {
     setRenamingId(section.id);
@@ -46,6 +76,14 @@ export default function HomeSectionsStack({
     if (next) handleUpdateSection(id, { title: next });
     setRenamingId(null);
   };
+
+  const handleDragEnd = (e: DragEndEvent) => {
+    const { active, over } = e;
+    if (!over || active.id === over.id || !handleReorderSections) return;
+    handleReorderSections(active.id as string, over.id as string);
+  };
+
+  const moveTargetIdx = moveTargetId ? sections.findIndex((s) => s.id === moveTargetId) : -1;
 
   return (
     <>
@@ -120,37 +158,127 @@ export default function HomeSectionsStack({
             No custom sections added yet.
           </div>
         ) : (
-          <div className="space-y-2">
-            {sections.map((section, idx) => {
-              const isFeatureDisabled = !isSectionEnabled(storeSettings, section.section_type);
-              return (
-                <SectionStackRow
-                  key={section.id}
-                  title={section.title || section.section_type}
-                  subtitle={section.section_type.replace('_', ' ')}
-                  isActive={activeSectionId === section.id}
-                  isDisabled={isFeatureDisabled}
-                  isVisible={section.active !== false}
-                  isFirst={idx === 0}
-                  isLast={idx === sections.length - 1}
-                  renaming={renamingId === section.id}
-                  renameValue={renameValue}
-                  onSelect={() => setActiveSectionId(section.id)}
-                  onToggleVisible={() => handleUpdateSection(section.id, { active: !section.active })}
-                  onStartRename={() => startRename(section)}
-                  onRenameChange={setRenameValue}
-                  onCommitRename={() => commitRename(section.id)}
-                  onCancelRename={() => setRenamingId(null)}
-                  onMoveUp={() => handleMoveSection(idx, 'up')}
-                  onMoveDown={() => handleMoveSection(idx, 'down')}
-                  onDelete={() => handleDeleteSection(section.id)}
-                  onDuplicate={handleDuplicateSection ? () => handleDuplicateSection(section.id) : undefined}
-                />
-              );
-            })}
-          </div>
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={sections.map((s) => s.id)} strategy={verticalListSortingStrategy}>
+              <div className="space-y-2">
+                {sections.map((section, idx) => (
+                  <SortableSectionRow
+                    key={section.id}
+                    section={section}
+                    idx={idx}
+                    total={sections.length}
+                    isActive={activeSectionId === section.id}
+                    isDisabled={!isSectionEnabled(storeSettings, section.section_type)}
+                    renaming={renamingId === section.id}
+                    renameValue={renameValue}
+                    onSelect={() => setActiveSectionId(section.id)}
+                    onToggleVisible={() => handleUpdateSection(section.id, { active: !section.active })}
+                    onStartRename={() => startRename(section)}
+                    onRenameChange={setRenameValue}
+                    onCommitRename={() => commitRename(section.id)}
+                    onCancelRename={() => setRenamingId(null)}
+                    onMoveUp={() => handleMoveSection(idx, 'up')}
+                    onMoveDown={() => handleMoveSection(idx, 'down')}
+                    onDelete={() => handleDeleteSection(section.id)}
+                    onDuplicate={handleDuplicateSection ? () => handleDuplicateSection(section.id) : undefined}
+                    onOpenMove={handleMoveSectionToPosition ? () => setMoveTargetId(section.id) : undefined}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
         )}
       </div>
+
+      {handleMoveSectionToPosition && (
+        <ReorderMoveModal
+          open={moveTargetIdx !== -1}
+          title="Move section"
+          currentPosition={moveTargetIdx + 1}
+          totalCount={sections.length}
+          isFirst={moveTargetIdx === 0}
+          isLast={moveTargetIdx === sections.length - 1}
+          onClose={() => setMoveTargetId(null)}
+          onMoveTop={() => moveTargetId && handleMoveSectionToPosition(moveTargetId, 1)}
+          onMoveUp={() => moveTargetIdx > 0 && handleMoveSection(moveTargetIdx, 'up')}
+          onMoveDown={() => moveTargetIdx < sections.length - 1 && handleMoveSection(moveTargetIdx, 'down')}
+          onMoveBottom={() => moveTargetId && handleMoveSectionToPosition(moveTargetId, sections.length)}
+          onMoveToPosition={(pos: number) => moveTargetId && handleMoveSectionToPosition(moveTargetId, pos)}
+        />
+      )}
     </>
+  );
+}
+
+interface SortableSectionRowProps {
+  section: HomepageSection;
+  idx: number;
+  total: number;
+  isActive: boolean;
+  isDisabled: boolean;
+  renaming: boolean;
+  renameValue: string;
+  onSelect: () => void;
+  onToggleVisible: () => void;
+  onStartRename: () => void;
+  onRenameChange: (v: string) => void;
+  onCommitRename: () => void;
+  onCancelRename: () => void;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+  onDelete: () => void;
+  onDuplicate?: () => void;
+  onOpenMove?: () => void;
+}
+
+function SortableSectionRow({
+  section, idx, total, isActive, isDisabled, renaming, renameValue,
+  onSelect, onToggleVisible, onStartRename, onRenameChange, onCommitRename,
+  onCancelRename, onMoveUp, onMoveDown, onDelete, onDuplicate, onOpenMove,
+}: SortableSectionRowProps) {
+  const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } =
+    useSortable({ id: section.id });
+
+  const style: React.CSSProperties = {
+    transform: CSS.Translate.toString(transform),
+    transition,
+    opacity: isDragging ? 0.4 : 1,
+  };
+
+  const longPress = useLongPress({
+    onLongPress: () => onOpenMove?.(),
+    delay: 500,
+    moveTolerance: 10,
+    disabled: !onOpenMove,
+  });
+
+  const dragHandleProps = { ref: setActivatorNodeRef, ...attributes, ...listeners };
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      <SectionStackRow
+        title={section.title || section.section_type}
+        subtitle={section.section_type.replace('_', ' ')}
+        isActive={isActive}
+        isDisabled={isDisabled}
+        isVisible={section.active !== false}
+        isFirst={idx === 0}
+        isLast={idx === total - 1}
+        renaming={renaming}
+        renameValue={renameValue}
+        onSelect={onSelect}
+        onToggleVisible={onToggleVisible}
+        onStartRename={onStartRename}
+        onRenameChange={onRenameChange}
+        onCommitRename={onCommitRename}
+        onCancelRename={onCancelRename}
+        onMoveUp={onMoveUp}
+        onMoveDown={onMoveDown}
+        onDelete={onDelete}
+        onDuplicate={onDuplicate}
+        dragHandleProps={dragHandleProps as Record<string, unknown>}
+        longPressProps={onOpenMove ? (longPress as unknown as Record<string, unknown>) : undefined}
+      />
+    </div>
   );
 }

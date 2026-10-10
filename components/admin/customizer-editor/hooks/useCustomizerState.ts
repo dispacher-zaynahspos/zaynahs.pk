@@ -9,6 +9,7 @@ import { updateSettings } from '@/lib/services/settings';
 import { updateProductFieldsAction as updateProductFields } from '@/lib/services/products/actions';
 import { toast } from 'sonner';
 import { resolveDefaultTitle, buildSectionDefaults } from '@/lib/theme-schema';
+import { arrayMove, moveItemInArray } from '@/lib/utils/arrayMove';
 import { useCustomizerIframeSync } from './useCustomizerIframeSync';
 
 interface UseCustomizerStateProps {
@@ -147,22 +148,29 @@ export function useCustomizerState({
   };
 
   const handleMoveSection = (index: number, direction: 'up' | 'down') => {
-    if (direction === 'up' && index === 0) return;
-    if (direction === 'down' && index === sections.length - 1) return;
+    // SSOT: reuse the shared adjacent-move util instead of an inline temp swap.
+    const moved = moveItemInArray(sections, index, direction);
+    if (moved === sections) return; // out of range → no-op
+    setSections(moved.map((sec, idx) => ({ ...sec, sort_order: idx + 1 })));
+  };
 
-    const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    const newSections = [...sections];
-    
-    const temp = newSections[index];
-    newSections[index] = newSections[targetIndex];
-    newSections[targetIndex] = temp;
+  // Drag/keyboard reorder (shared system) — move a section by id to another id's slot.
+  const handleReorderSections = (fromId: string, toId: string) => {
+    const from = sections.findIndex((s) => s.id === fromId);
+    const to = sections.findIndex((s) => s.id === toId);
+    if (from === -1 || to === -1 || from === to) return;
+    const moved = arrayMove(sections, from, to);
+    setSections(moved.map((sec, idx) => ({ ...sec, sort_order: idx + 1 })));
+  };
 
-    const reordered = newSections.map((sec, idx) => ({
-      ...sec,
-      sort_order: idx + 1
-    }));
-
-    setSections(reordered);
+  // Move-to-position (shared Move modal) — 1-based target.
+  const handleMoveSectionToPosition = (id: string, position1Based: number) => {
+    const from = sections.findIndex((s) => s.id === id);
+    if (from === -1) return;
+    const to = Math.max(0, Math.min(position1Based - 1, sections.length - 1));
+    if (from === to) return;
+    const moved = arrayMove(sections, from, to);
+    setSections(moved.map((sec, idx) => ({ ...sec, sort_order: idx + 1 })));
   };
 
   const handleDeleteSection = async (id: string) => {
@@ -400,6 +408,8 @@ export function useCustomizerState({
     previewContainerRef,
     handleUpdateSection,
     handleMoveSection,
+    handleReorderSections,
+    handleMoveSectionToPosition,
     handleDeleteSection,
     handleAddSection,
     handleDuplicateSection,

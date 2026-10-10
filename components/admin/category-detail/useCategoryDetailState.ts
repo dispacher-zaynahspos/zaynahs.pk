@@ -37,10 +37,14 @@ export function useCategoryDetailState(category: Category, initialProducts: Prod
   const [modalSearchQuery, setModalSearchQuery] = useState('');
   const [modalSelectedProductIds, setModalSelectedProductIds] = useState<string[]>([]);
 
+  // Multi-select bulk move → shared reorder semantics (preserve selected order,
+  // insert at a 1-based target). Same algorithm as useReorder.moveSelectedToPosition.
   const handleBulkMoveToPosition = (targetPos: number) => {
-    const targetIndex = Math.max(0, Math.min(targetPos - 1, products.length - 1));
-    const selectedItems = products.filter(p => selectedProductIds.includes(p.id));
-    const remainingItems = products.filter(p => !selectedProductIds.includes(p.id));
+    if (selectedProductIds.length === 0) return;
+    const idSet = new Set(selectedProductIds);
+    const selectedItems = products.filter(p => idSet.has(p.id));
+    const remainingItems = products.filter(p => !idSet.has(p.id));
+    const targetIndex = Math.max(0, Math.min(targetPos - 1, remainingItems.length));
     const reordered = [...remainingItems];
     reordered.splice(targetIndex, 0, ...selectedItems);
     setProducts(reordered);

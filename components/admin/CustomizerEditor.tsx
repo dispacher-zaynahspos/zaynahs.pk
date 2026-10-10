@@ -62,6 +62,8 @@ export default function CustomizerEditor(props: CustomizerEditorProps) {
           handleAddSection={state.handleAddSection}
           handleUpdateSection={state.handleUpdateSection}
           handleMoveSection={state.handleMoveSection}
+          handleReorderSections={state.handleReorderSections}
+          handleMoveSectionToPosition={state.handleMoveSectionToPosition}
           handleDeleteSection={state.handleDeleteSection}
           handleDuplicateSection={state.handleDuplicateSection}
           currentProduct={state.currentProduct}
