@@ -21,7 +21,7 @@ Always set `cdn-cache-control: public, s-maxage=86400, stale-while-revalidate=60
 
 ## New feature caching checklist (whenever a new DB-driven page/feature is added)
 1. Wrap data fetches in `unstable_cache(fn, keyParts, { revalidate: 3600, tags: [tag] })` in `lib/services/`.
-2. Add a revalidation helper in `lib/revalidate.ts` that revalidates the tag AND purges the specific page URLs (or `purgeCloudflareEverything()` if layout-level).
+2. Add a revalidation helper in `lib/revalidate.ts` that calls `revalidateTag`/`revalidatePath` for the affected tags. Only call `purgeCloudflareEverything()` if this is a **layout-level/global change** (RULE C9). For product/category/banner/section saves: Next.js tags only — no CF purge.
 3. Call the revalidation helper inside the corresponding `create`/`update`/`delete` service functions.
 4. Update `app/api/revalidate/route.ts` to route Supabase DB-trigger webhooks for the new table.
 
@@ -118,8 +118,10 @@ Result: price change visible to customers in < 1 second, zero DB hits per page l
 
 ## RULE C9 — Cloudflare edge cache purging strategy (MANDATORY)
 - NEVER use `purgeCloudflareUrls()` — Cloudflare URL purging is strict (exact protocol, `www` vs non-`www` matching) and silently fails on a slight mismatch.
-- ALWAYS use `purgeCloudflareEverything()` inside `lib/revalidate.ts` functions (`revalidateBanner`, `revalidateHomepage`, `revalidateSettings`, etc.).
-- Any admin save of layout, setting, product, or category → webhook must trigger a FULL zone purge for instant fresh data.
+- **Targeted entity saves** (product, category, banner, homepage section, vertical): use Next.js `revalidateTag`/`revalidatePath` ONLY. No Cloudflare purge. Next.js ISR + `stale-while-revalidate` ensures fresh data at CDN edge without a full zone wipe.
+- **Global/layout-level saves** (theme, store settings, bulk import, `revalidateStorefrontEdge`): ALWAYS use `purgeCloudflareEverything()` — these affect every page simultaneously and targeted tags alone are insufficient.
+- **Post-deploy + Manual "Purge Cache" button**: ALWAYS use `purgeCloudflareEverything()`.
+- NEVER call `purgeCloudflareEverything()` inside `revalidateProduct`, `revalidateCategory`, `revalidateBanner`, `revalidateHomepage`, `revalidateVertical` — doing so causes unnecessary full-zone cache misses on every admin save (contradiction with RULE C10 targeted invalidation).
 
 ## RULE C10 — Every admin write auto-invalidates ALL cache layers (STRICT)
 Manual "Purge Cache" button sirf **emergency** ke liye hai. **Normal save ke baad kabhi bhi manual purge zaroori na ho** — har admin write khud saari cache layers invalidate kare, ek hi **shared utility** ke through (per-page/per-handler custom purge banned).
@@ -134,26 +136,37 @@ Manual "Purge Cache" button sirf **emergency** ke liye hai. **Normal save ke baa
 ## CACHE1 — Active cache/page rule table
 | Cloudflare Cache Rule | Action | Notes |
 |------|--------|-------|
-| `no-cache-dynamic` | cache:true + edge_ttl:0 + browser_ttl:0 | cart, checkout, account, api, admin |
-| `static-assets` | cache:true + edge_ttl:1yr | `/_next/static/*` |
-| `html-pages` | cache:true + edge_ttl:24h | all HTML pages (`/*`) |
+| `no-cache-dynamic` | cache:false (bypass) | cart, checkout, account, api, admin |
+| `static-assets` | cache:true + edge_ttl:1yr | `/_next/static/*` — hash filenames, never stale |
+| `html-pages` | **cache:false (bypass)** | all HTML pages — Next.js ISR + revalidateTag handles freshness |
 | `supabase-images` | cache:true + edge_ttl:30d | supabase.co images |
 
-Page Rules (fallback): `cart*`, `checkout*`, `my-account*` → `cache_level: bypass`.
+> ⚠️ **html-pages = bypass** (changed 2026-10): HTML is no longer cached at Cloudflare edge.
+> Reason: With html-pages bypassed, `purgeCloudflareEverything()` is NOT needed for entity saves
+> (product/category/banner). Next.js ISR serves fresh responses directly. Cloudflare only caches
+> static assets (JS/CSS/images) which never go stale (hash-based filenames).
 
-⚠️ Cloudflare Free tier may still cache 200 HTML responses despite bypass rules — Pro plan ($20/mo) needed for strict bypass enforcement on cart/checkout/account.
+Page Rules (legacy fallback): `cart*`, `checkout*`, `my-account*` → `cache_level: bypass`.
 
-**Cache purge flow**:
+**Cache flow — entity save (product/category/banner):**
 ```
 Admin DB change → Supabase webhook → /api/revalidate
-  → revalidateTag() + revalidatePath() + purgeCloudflareEverything()
-  → next visitor → MISS → fresh data → re-cached as HIT
+  → revalidateTag("product-slug") + revalidatePath("/shop")
+  → Next.js ISR marks cache stale → next visitor → fresh response from Vercel
+  → Cloudflare: MISS (html-pages bypassed) → always fresh ✅
+```
+
+**Cache flow — global/settings save:**
+```
+Admin settings/theme change → revalidateSettings()
+  → revalidateTag (all tags) + revalidatePath + purgeCloudflareEverything()
+  → all layers cleared ✅
 ```
 
 ## CACHE2 — Enforcement checklist for every NEW feature/table/admin tab
 1. **DB trigger**: add `revalidate-<table_name>` to `SUPER_MASTER_SCHEMA.sql` (+ migration) POSTing to `https://domain.com/api/revalidate` with `x-revalidate-secret`.
 2. **Cache tags**: new data queries use appropriate tags (e.g. `['new_feature']`) via `unstable_cache`.
-3. **Revalidation logic**: update `app/api/revalidate/route.ts` / `lib/revalidate.ts` to handle the new table — call `revalidateTag` and trigger a Cloudflare purge.
+3. **Revalidation logic**: update `app/api/revalidate/route.ts` / `lib/revalidate.ts` to handle the new table — call `revalidateTag`/`revalidatePath` ONLY. Do NOT add `purgeCloudflareEverything()` unless this is a global/layout-level change (RULE C9).
 4. **Multi-project sync**: apply schema changes + webhooks across ALL active project databases (TotVogue, Zaynahspk, MiniMahal, LittleMister) simultaneously.
 
 ## RULE C11 — Data Loading & Caching (lists, pagination, cache layers)

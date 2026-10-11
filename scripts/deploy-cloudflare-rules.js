@@ -41,11 +41,10 @@ const payload = {
       description: 'html-pages',
       action: 'set_cache_settings',
       action_parameters: {
-        cache: true,
-        edge_ttl: {
-          mode: 'override_origin',
-          default: 86400
-        }
+        // cache:false = bypass Cloudflare HTML cache.
+        // Next.js ISR + revalidateTag handles HTML freshness (RULE C9).
+        // No purgeCloudflareEverything() needed on entity saves (product/category/banner).
+        cache: false
       }
     },
     {

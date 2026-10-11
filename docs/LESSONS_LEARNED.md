@@ -1,3 +1,20 @@
+## [2026-10-11] Cache: Rule C9/C10 contradiction fixed — targeted purge strategy
+
+**Problem:** Rule C9 said "ALWAYS `purgeCloudflareEverything()`" for ALL saves including product/category/banner. Rule C10 said "targeted invalidation, no unnecessary full purge". Contradiction → every product price change caused full zone cache miss across entire site.
+
+**Root cause:** html-pages Cloudflare cache rule had `edge_ttl:24h`. So purge was needed to clear stale HTML. But purging everything on every entity save was overkill.
+
+**Fix (permanent — 2 parts):**
+1. **Cloudflare**: Updated `html-pages` rule from `cache:true edge_ttl:24h` → `cache:false (bypass)` on ALL 5 stores via API (`scripts/update-cf-cache-rules.mjs`). HTML no longer cached at CF edge — Next.js ISR serves fresh directly.
+2. **Code**: Removed `purgeCloudflareEverything()` from `revalidateProduct`, `revalidateCategory`, `revalidateBanner`, `revalidateHomepage`, `revalidateVertical`. Kept in `revalidateSettings`, `revalidateStorefrontEdge`, post-deploy.
+3. **Rule C9** updated in `docs/agent-rules/08-caching-isr-ssr.md` — now distinguishes entity saves (tags only) vs global/layout saves (full purge).
+
+**Result:** Product/category/banner saves = instant, no site-wide cache miss. Settings/theme = still full purge. Static assets (JS/CSS/images) still cached 1yr at CF edge.
+
+**Rule added:** RULE C9 updated. `scripts/update-cf-cache-rules.mjs` added for re-running on new clones.
+
+---
+
 ## [2026-10-10] Search/listing regression — `!inner` joins + missing count = data loss
 **Symptom:** `/shop?search=winter` showed 5 of 36; `?search=boys` showed 0; infinite scroll / load-more dead on normal browse; only first batch of 152 visible.
 **Root cause (app code, NOT DB — tsvector/indexes were correct: winter=100, boys=116 in DB):**

@@ -37,6 +37,14 @@ async function resolveSiteUrl(): Promise<string> {
   return getSiteUrl();
 }
 
+/**
+ * TARGETED PURGE STRATEGY (RULE C9 updated — synced with RULE C10):
+ * - Product/category/banner/homepage-section/vertical saves: Next.js revalidateTag/revalidatePath ONLY.
+ *   Next.js ISR + stale-while-revalidate ensures CDN freshness — no full CF zone purge needed.
+ * - Global/layout-level saves (theme, store settings, storefrontEdge): purgeCloudflareEverything() — every page affected.
+ * - Post-deploy + Manual "Purge Cache" button: purgeCloudflareEverything() always.
+ * Rationale: full zone purge on every entity save caused unnecessary cache misses site-wide (RULE C10: targeted invalidation).
+ */
 async function purgeCloudflareEverything() {
   const multiStoreConfigStr = process.env.MULTI_STORE_CLOUDFLARE_CONFIG;
   let cfConfigs: Array<{ zoneId: string; apiToken: string; name?: string }> = [];
@@ -107,8 +115,7 @@ export async function revalidateProduct(slug: string, action: 'UPDATED' | 'DELET
     revalidatePath('/admin', 'layout');
     if (action !== 'DELETED') revalidatePath(`/product/${slug}`);
 
-    await purgeCloudflareEverything();
-
+    // Next.js ISR handles CDN freshness — no full CF purge needed for entity-level saves (RULE C9/C10)
     // Notify search engines for instant indexing
     const siteUrl = await resolveSiteUrl();
     const productUrl = `${siteUrl}/product/${slug}`;
@@ -145,7 +152,7 @@ export async function revalidateBanner() {
     revalidatePath('/store', 'layout');
     revalidatePath('/admin', 'layout');
 
-    await purgeCloudflareEverything();
+    // Next.js ISR handles CDN freshness — no full CF purge needed for banner saves (RULE C9/C10)
     console.log('[revalidate] Banners & homepage revalidated');
   } catch (error) {
     console.error('Error in revalidateBanner:', error);
@@ -165,8 +172,7 @@ export async function revalidateCategory(slug: string, action: 'UPDATED' | 'DELE
     revalidatePath('/admin', 'layout');
     if (action !== 'DELETED') revalidatePath(`/category/${slug}`);
 
-    await purgeCloudflareEverything();
-
+    // Next.js ISR handles CDN freshness — no full CF purge needed for entity-level saves (RULE C9/C10)
     const siteUrl = await resolveSiteUrl();
     const categoryUrl = `${siteUrl}/shop?category=${slug}`;
 
@@ -199,8 +205,7 @@ export async function revalidateHomepage() {
     revalidatePath('/store', 'layout');
     revalidatePath('/admin', 'layout');
 
-    await purgeCloudflareEverything();
-
+    // Next.js ISR handles CDN freshness — no full CF purge needed for homepage section saves (RULE C9/C10)
     const dynamicSiteUrl = await resolveSiteUrl();
     const urls = [
       `${dynamicSiteUrl}/`,
@@ -231,8 +236,7 @@ export async function revalidateVertical(slug: string) {
     revalidatePath('/');
     revalidatePath('/admin', 'layout');
 
-    // RULE C9: never rely on URL-based purge (silent mismatch on www / protocol) — full zone purge.
-    await purgeCloudflareEverything();
+    // Next.js ISR handles CDN freshness — no full CF purge needed for vertical saves (RULE C9/C10)
     console.log(`[revalidate] Vertical revalidated: ${slug}`);
   } catch (error) {
     console.error(`Error in revalidateVertical for ${slug}:`, error);

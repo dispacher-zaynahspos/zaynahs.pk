@@ -4,6 +4,41 @@
 
 ---
 
+## ✅ TEST 0 — Cache Targeted Revalidation (Run after any product/category/settings save)
+
+> Verifies that Next.js ISR handles freshness correctly without full CF purge on entity saves.
+> CF html-pages rule = bypass — HTML never cached at Cloudflare edge.
+
+```bash
+# 1. Verify HTML pages are BYPASSED at Cloudflare (not cached)
+curl -sI https://DOMAIN.com/ | grep -i "cf-cache-status"
+# Expected: cf-cache-status: BYPASS or MISS — never HIT for HTML
+
+curl -sI https://DOMAIN.com/shop | grep -i "cf-cache-status"
+# Expected: cf-cache-status: BYPASS or MISS
+
+# 2. Verify static assets ARE cached
+curl -sI https://DOMAIN.com/_next/static/chunks/main.js | grep -i "cf-cache-status"
+# Expected: cf-cache-status: HIT (after first request)
+
+# 3. Product price change test
+# a) Change product price in admin → save
+# b) curl -s https://DOMAIN.com/product/SLUG | grep -i "price"  → new price ✅
+# c) curl -s https://DOMAIN.com/shop | grep -i "SLUG"  → new price ✅
+# d) NO manual purge needed — if it doesn't update, check webhook + revalidateTag
+
+# 4. Settings/theme change → should still do full purge
+# Change any setting → save → check ALL pages show updated (full zone purge still happens for settings)
+```
+
+**Pass criteria:**
+- HTML pages: `cf-cache-status: BYPASS` or `MISS` ✅
+- Static assets: `cf-cache-status: HIT` after first load ✅
+- Product price change reflects on storefront within 5s ✅
+- No manual Purge Cache button press needed for product/category saves ✅
+
+---
+
 ## ⭐ TEST 5 — GOLD STANDARD: 10-Point Auto-Discovery Audit (All Projects)
 
 > **Reads `env-backups/*.env.local` automatically** — works for ALL current + future projects.
