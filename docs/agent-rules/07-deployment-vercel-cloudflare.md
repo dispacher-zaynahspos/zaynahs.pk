@@ -66,3 +66,60 @@ The user does **zero** manual setup. A fresh `clone → give credentials → age
 3. **Agent owns RLS / UUID / cache / auth / admin creation** — never delegate a dashboard step to the user. Everything reproducible from migrations + scripts + env vars + Management/Cloudflare/Vercel APIs.
 4. **Zero-error acceptance:** after an agent setup, a customer-flow + admin-flow smoke test (`/`, `/shop`, `/product/[slug]`, `/checkout`, `/admin/login`, `/admin/dashboard`) must pass with no runtime errors, no missing columns, no RLS lockouts. If a new feature could break a fresh clone, fix the schema/setup, don't patch per-store.
 5. **New settings default to current look** so a fresh clone renders correctly with defaults (no undefined-driven breakage).
+
+---
+
+## RULE V-PROJ1 — One Vercel Project Per Store (STRICT, PERMANENT)
+
+**Every store must have EXACTLY ONE Vercel project — the one with the custom domain linked.**
+
+### Problem this prevents
+When `vercel --prod` is run from a machine without `.vercel/` config, Vercel creates a NEW duplicate project (named `zaynahsestore-tv-main` or similar) instead of deploying to the correct existing project. These orphan projects waste build minutes, confuse logs, and can accidentally capture domain redirects.
+
+### Rules
+1. **Before any `vercel` CLI deploy**, always confirm the target project: `vercel project ls --token=$VERCEL_TOKEN` — the result must match `VERCEL_PROJECT_NAME` in `env-backups/<store>.env.local`.
+2. **Never deploy via `vercel --prod` without `--project` flag** unless `.vercel/project.json` already exists and matches the correct project ID.
+3. **Correct deploy command** (always explicit):
+   ```bash
+   vercel --prod --token=$VERCEL_TOKEN --project=$VERCEL_PROJECT_NAME
+   ```
+4. **After any deploy**, run `vercel project ls` and verify only ONE project with that `VERCEL_PROJECT_NAME` exists in the account.
+5. **Canonical project IDs** (do not create new ones — these are the ONLY valid projects):
+
+   | Store | Vercel Project Name | Project ID | Domain |
+   |-------|-------------------|------------|--------|
+   | TotVogue | `zaynahsestore-tv` | `prj_4YNXcnk6AOXQfTQeausLWgn36j6M` | totvogue.pk |
+   | Zaynahs | `zaynahs-pk` | `prj_4xecB10gue1JYbovg5FbOpa2cpJd` | zaynahs.pk |
+   | Lobo | `lobo-pk` | `prj_W0fmRcNx1RGaxtGyZ75gQ3Aqpp7V` | lobo.pk |
+   | MiniMahal | `mini-mahal-e-store` | `prj_uBAU5DIPpiuSlal9ENW9lJ2YkGjH` | minimahal.com |
+   | LittleMister | `eestore` | `prj_fYG7cR3Nx0o2wDnjCw65jzAIMs66` | littlemister.pk |
+
+6. **If a duplicate project is discovered** (no custom domain, named `zaynahsestore-tv-main` or otherwise):
+   - Check it has NO custom domain: `curl /v9/projects/<id>/domains`
+   - If domain present → move domain to correct project first
+   - Then delete the duplicate: `curl -X DELETE /v9/projects/<id>`
+   - Never leave 2+ projects per Vercel account.
+
+---
+
+## RULE V-GIT1 — One Git Remote Per Store (STRICT, PERMANENT)
+
+**This monorepo uses ONE remote per store. Never add duplicate remotes for the same GitHub repo.**
+
+### Canonical remotes (ONLY these 5)
+```
+origin       → totvoguepk-bot/zaynahsestore-tv     (TotVogue)
+zaynahspk    → dispacher-zaynahspos/zaynahs.pk     (Zaynahs)
+lobo         → infolobopk-lgtm/lobo.pk             (Lobo)
+minimahal    → infominimahal-bit/mini-mahal-e-store (MiniMahal)
+littlemister → littlemisterpk-cell/eestore          (LittleMister)
+```
+
+### Rules
+1. **Never add a second remote pointing to the same GitHub repo** — use `git remote -v` to check before `git remote add`.
+2. **Standard push command** (all 5 stores, one-liner):
+   ```bash
+   git push origin main && git push zaynahspk main && git push lobo main && git push minimahal main && git push littlemister main
+   ```
+3. **If duplicate remotes are found** (e.g., `infolobopk-lgtm` and `lobo` both pointing to `lobo.pk.git`), remove the alias-without-auth version: `git remote remove <duplicate>`. Keep the one with embedded credentials.
+4. **Never add a `zaynahs` bare remote** (without auth token) — always use `zaynahspk` which has the embedded token.
