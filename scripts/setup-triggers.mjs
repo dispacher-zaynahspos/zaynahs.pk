@@ -1,7 +1,7 @@
 /**
  * setup-triggers.mjs
  * ──────────────────────────────────────────────────────────────
- * Creates / fixes all 21 Supabase revalidation triggers for a
+ * Creates / fixes all 22 Supabase revalidation triggers for a
  * given project.  Run once per Supabase project (new clone OR
  * to fix broken triggers on an existing project).
  *

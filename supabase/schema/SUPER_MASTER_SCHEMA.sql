@@ -2197,6 +2197,18 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 BEGIN
+  -- Ensure a join row exists for every product in the ordered list that is
+  -- linked to this category (already joined OR via legacy products.category_id),
+  -- so products without a product_categories row still get their manual order.
+  INSERT INTO public.product_categories (product_id, category_id)
+  SELECT pid, p_category_id
+  FROM unnest(p_product_ids) AS pid
+  WHERE EXISTS (
+    SELECT 1 FROM public.products p
+    WHERE p.id = pid AND p.category_id = p_category_id
+  )
+  ON CONFLICT (product_id, category_id) DO NOTHING;
+
   UPDATE public.product_categories pc
   SET position = idx.ord
   FROM (

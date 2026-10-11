@@ -7,7 +7,7 @@
  *
  *   1. preflight     — validate required env keys + no-redirect site URL
  *   2. db:schema     — scripts/init-db.mjs           (SUPER_MASTER_SCHEMA.sql)
- *   3. db:webhooks   — scripts/setup-triggers.mjs    (21 revalidate triggers, real URL+secret)
+ *   3. db:webhooks   — scripts/setup-triggers.mjs    (22 revalidate triggers, real URL+secret)
  *   4. db:admin      — scripts/create-admin.mjs      (Supabase Auth admin user)
  *   5. db:brand      — scripts/seed-brand.mjs        (brand text in settings/ai/seo)
  *   6. vercel        — scripts/vercel-setup.mjs      (push ALL env vars [+ --deploy])
