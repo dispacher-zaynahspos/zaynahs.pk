@@ -1,4 +1,31 @@
+## [2026-10-11] 9 Orphan Vercel Projects Deleted — Root Cause: bare `vercel --prod` without `--project` flag
+
+**Symptom:** TotVogue account had 7 orphan projects (e.g. `zaynahsestore-tv-main`, `project-xxxx`); Zaynahs account had 2 orphans. None had custom domains — all were `.vercel.app` only.
+
+**Root cause:** Previous agent sessions ran `vercel --prod` (or `vercel deploy`) without specifying `--project`. When no `.vercel/project.json` exists locally (e.g. fresh git clone or different machine), Vercel CLI **creates a brand new project** in the account instead of deploying to the existing one. This silently accumulates orphans over time.
+
+**Fix (permanent):**
+1. All 9 orphan projects verified (no custom domain via `/v9/projects/<id>/domains`) then hard-deleted via `DELETE /v9/projects/<id>` API.
+2. **RULE V-PROJ1** updated in `docs/agent-rules/07-deployment-vercel-cloudflare.md` — canonical project ID table added, strict "no duplicates" enforcement.
+3. **RULE V-GIT1** tightened — `git remote -v` check required before any `git remote add`.
+4. **RULE CLEANUP1** added — orphan audit required on every Vercel deploy.
+
+**Canonical state after cleanup (per account):**
+- TotVogue account: 1 project (`zaynahsestore-tv` → `totvogue.pk`)
+- Zaynahs account: 1 project (`zaynahs-pk` → `zaynahs.pk`)
+- Lobo account: 1 project (`lobo-pk` → `lobo.pk`)
+- MiniMahal account: 2 projects (`mini-mahal-e-store` + `mini-mahal-pos`) ← legitimate
+- LittleMister account: 1 project (`eestore` → `littlemister.pk`)
+
+**Prevention:** Always deploy as:
+```bash
+vercel --prod --token=$VERCEL_TOKEN --project=$VERCEL_PROJECT_NAME
+```
+
+---
+
 ## [2026-10-11] Cache: Rule C9/C10 contradiction fixed — targeted purge strategy
+
 
 **Problem:** Rule C9 said "ALWAYS `purgeCloudflareEverything()`" for ALL saves including product/category/banner. Rule C10 said "targeted invalidation, no unnecessary full purge". Contradiction → every product price change caused full zone cache miss across entire site.
 

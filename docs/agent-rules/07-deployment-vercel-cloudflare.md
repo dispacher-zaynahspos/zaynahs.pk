@@ -71,10 +71,10 @@ The user does **zero** manual setup. A fresh `clone → give credentials → age
 
 ## RULE V-PROJ1 — One Vercel Project Per Store (STRICT, PERMANENT)
 
-**Every store must have EXACTLY ONE Vercel project — the one with the custom domain linked.**
+**Every store must have EXACTLY ONE Vercel project — the one with the custom domain linked. No duplicates. No orphans. Ever.**
 
 ### Problem this prevents
-When `vercel --prod` is run from a machine without `.vercel/` config, Vercel creates a NEW duplicate project (named `zaynahsestore-tv-main` or similar) instead of deploying to the correct existing project. These orphan projects waste build minutes, confuse logs, and can accidentally capture domain redirects.
+When `vercel --prod` is run from a machine without `.vercel/` config, Vercel creates a NEW duplicate project (named `zaynahsestore-tv-main` or similar) instead of deploying to the correct existing project. These orphan projects waste build minutes, confuse logs, and can accidentally capture domain redirects. **Past audit (2026-10-11) found 9 orphan projects across TotVogue + Zaynahs accounts — all deleted.**
 
 ### Rules
 1. **Before any `vercel` CLI deploy**, always confirm the target project: `vercel project ls --token=$VERCEL_TOKEN` — the result must match `VERCEL_PROJECT_NAME` in `env-backups/<store>.env.local`.
@@ -84,21 +84,24 @@ When `vercel --prod` is run from a machine without `.vercel/` config, Vercel cre
    vercel --prod --token=$VERCEL_TOKEN --project=$VERCEL_PROJECT_NAME
    ```
 4. **After any deploy**, run `vercel project ls` and verify only ONE project with that `VERCEL_PROJECT_NAME` exists in the account.
-5. **Canonical project IDs** (do not create new ones — these are the ONLY valid projects):
+5. **Canonical project IDs** (do not create new ones — these are the ONLY valid projects per Vercel account):
 
-   | Store | Vercel Project Name | Project ID | Domain |
-   |-------|-------------------|------------|--------|
-   | TotVogue | `zaynahsestore-tv` | `prj_4YNXcnk6AOXQfTQeausLWgn36j6M` | totvogue.pk |
-   | Zaynahs | `zaynahs-pk` | `prj_4xecB10gue1JYbovg5FbOpa2cpJd` | zaynahs.pk |
-   | Lobo | `lobo-pk` | `prj_W0fmRcNx1RGaxtGyZ75gQ3Aqpp7V` | lobo.pk |
-   | MiniMahal | `mini-mahal-e-store` | `prj_uBAU5DIPpiuSlal9ENW9lJ2YkGjH` | minimahal.com |
-   | LittleMister | `eestore` | `prj_fYG7cR3Nx0o2wDnjCw65jzAIMs66` | littlemister.pk |
+   | Store | Vercel Account | Project Name | Project ID | Live Domain |
+   |-------|---------------|-------------|------------|-------------|
+   | TotVogue | totvogue | `zaynahsestore-tv` | `prj_4YNXcnk6AOXQfTQeausLWgn36j6M` | `totvogue.pk` |
+   | Zaynahs | zaynahs | `zaynahs-pk` | `prj_4xecB10gue1JYbovg5FbOpa2cpJd` | `zaynahs.pk` |
+   | Lobo | lobo | `lobo-pk` | `prj_W0fmRcNx1RGaxtGyZ75gQ3Aqpp7V` | `lobo.pk` |
+   | MiniMahal | minimahal | `mini-mahal-e-store` | `prj_uBAU5DIPpiuSlal9ENW9lJ2YkGjH` | `minimahal.com` |
+   | MiniMahal | minimahal | `mini-mahal-pos` | `prj_DoQJhzAdhmy9CQjqJPdVRXrE5n5g` | `minimahal.zaynahspos.com` |
+   | LittleMister | littlemister | `eestore` | `prj_fYG7cR3Nx0o2wDnjCw65jzAIMs66` | `littlemister.pk` |
 
-6. **If a duplicate project is discovered** (no custom domain, named `zaynahsestore-tv-main` or otherwise):
+   > **Rule:** A project entry in this table requires a real custom domain. Any Vercel project with only a `.vercel.app` domain is by definition an orphan and must be deleted.
+
+6. **If a duplicate/orphan project is discovered** (no custom domain, named `zaynahsestore-tv-main` or otherwise):
    - Check it has NO custom domain: `curl /v9/projects/<id>/domains`
    - If domain present → move domain to correct project first
    - Then delete the duplicate: `curl -X DELETE /v9/projects/<id>`
-   - Never leave 2+ projects per Vercel account.
+   - **Never leave 2+ projects in any single Vercel account** (exception: MiniMahal which legitimately has 2 — store + POS).
 
 ---
 
@@ -116,10 +119,41 @@ littlemister → littlemisterpk-cell/eestore          (LittleMister)
 ```
 
 ### Rules
-1. **Never add a second remote pointing to the same GitHub repo** — use `git remote -v` to check before `git remote add`.
+1. **Never add a second remote pointing to the same GitHub repo** — always run `git remote -v` to check before any `git remote add`.
 2. **Standard push command** (all 5 stores, one-liner):
    ```bash
    git push origin main && git push zaynahspk main && git push lobo main && git push minimahal main && git push littlemister main
    ```
 3. **If duplicate remotes are found** (e.g., `infolobopk-lgtm` and `lobo` both pointing to `lobo.pk.git`), remove the alias-without-auth version: `git remote remove <duplicate>`. Keep the one with embedded credentials.
 4. **Never add a `zaynahs` bare remote** (without auth token) — always use `zaynahspk` which has the embedded token.
+5. **Same codebase = same commit hash on all remotes.** After every push, verify:
+   ```bash
+   git remote -v  # must show exactly 5 remotes, no duplicates
+   ```
+
+---
+
+## RULE CLEANUP1 — Periodic Orphan Audit (RECURRING)
+
+**Any time the agent does a Vercel deploy or is asked to verify project health, it MUST run an orphan audit.**
+
+### What counts as an orphan
+- Any Vercel project with **no custom domain** (only `.vercel.app`) that is not a known exception.
+- Any Git remote that points to the same repo as an existing canonical remote.
+- Any Vercel project whose name does not appear in the RULE V-PROJ1 canonical table.
+
+### Audit command (quick check)
+```bash
+# List all projects per account and flag any without custom domains
+node scripts/audit-vercel-projects.mjs
+```
+
+### Agent action on orphan discovery
+1. **Immediately delete** any orphan Vercel project with no custom domain — no confirmation needed (non-destructive because it has no real traffic).
+2. **Remove** any duplicate Git remote — keep canonical name from RULE V-GIT1 table.
+3. **Log the deletion** to `docs/LESSONS_LEARNED.md` with date + project ID + root cause (e.g., "bare vercel deploy without --project flag").
+4. **Add/update** the `RULE V-PROJ1` table if a new legitimate project is created.
+
+### Known legitimate multi-project exception
+- **MiniMahal account**: 2 projects allowed — `mini-mahal-e-store` (store) + `mini-mahal-pos` (POS). Any 3rd project in this account is an orphan.
+- **All other accounts**: strictly 1 project allowed.
