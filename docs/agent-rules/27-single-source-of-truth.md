@@ -78,3 +78,20 @@ All of these MUST share the MAXIMUM COMMON CONTROLS:
 3. **Exact Product Limit**: Configured product limits (e.g. 8) MUST BE STRICTLY RESPECTED. Never round up to next row multiple or show arbitrary extra products.
 4. **View All & Pagination Options**: Reusable View All Button (Toggle, Text, URL) + Load More / Infinite Scroll where applicable.
 
+## RULE SSOT-SHARED-FAMILIES — Shared Customizer Control Families A–I (MANDATORY)
+Every customizer tab (Home, Shop, Product Details, Product Cards, Global Settings, Appearance/Presets) and every section/block in it MUST compose its UI from the ONE shared component per control family below. Hand-rolling an ad-hoc copy of any of these — a second column selector, a second gap dropdown, an inline bottom-actions block, a raw `<input type="color">` where a shared picker exists, a copy-pasted per-device tab switcher — is BANNED (RULE SSOT1). If a section lacks an option its family defines, add the shared control (with safe defaults so existing stores look unchanged) rather than inventing a new one.
+
+| Family | What it controls | SSOT component(s) | Storefront SSOT |
+|---|---|---|---|
+| **A — Product catalog grids** | columns, gap, limit, bottom actions (view-all/load-more/infinite + colors) | `ResponsiveGridColumnsControl`, `GridGapControl`, `BottomGridActions` (`sections/product-grid/BottomGridActions.tsx`) | `ProductGrid` + `getResponsiveGridClasses()` + `getGridGapClass()` |
+| **B — Collection / category tiles** | columns, gap, aspect/shape, label, limit, view-all, slider/grid | `ResponsiveGridColumnsControl`, `GridGapControl` + tile controls | `getResponsiveGridClasses()` + `getGridGapClass()` |
+| **C — Sliders / carousels** | slides per device, autoplay, speed, arrows, dots, loop, drag | hero-banner slider controls (to be generalised) | embla config |
+| **D — Section wrapper** | title, subtitle, align, padding, margin, bg, per-device visibility | `SectionSpacingControls` | `SectionWrapper` |
+| **E — Cards** | radius, border, shadow, hover, image ratio, title clamp | `ProductCardSettings` controls | Ella/card renderers |
+| **F — Buttons & bottom actions** | label, bg, text color, radius, size, reset-to-theme, click animation | `BottomGridActions` (grid buttons), `AddToCartButton` (cart CTAs) | theme CSS tokens |
+| **G — Variations / swatches** | shape, size, max visible, size chips, OOS style, default variant, hover/tap image switch | `ResponsiveArchiveSwatchControl`, `ResponsiveProductDetailSwatchControl` | swatch renderers |
+| **H — Typography & colors** | color picker (reset-to-theme), font/size/weight, spacing | `ColorControl`, `SpacingControl`, `SegmentedControl`, `SliderControl` (`customizer/controls`) | theme tokens |
+| **I — Responsive device editing** | per-device override (desktop/tablet/mobile), "Editing MOBILE" banner, inherit | `ControlRow` + `DeviceBadge` (`customizer/controls`) + built-in device tabs in `ResponsiveGridColumnsControl`/swatch controls | — |
+
+Per-tab required families: Home → A,B,C,D,E,F · Shop → A,D,E,F,G · Product Details → A,D,F,G · Product Cards → E,F,G,H · Global → F,H,I · Appearance/Presets → H,E,F (presets write the same shared keys). Before adding ANY new section/control, check this table + the module map in [15-shared-components-ui-modules.md](15-shared-components-ui-modules.md); import the family's shared control, never duplicate.
+
