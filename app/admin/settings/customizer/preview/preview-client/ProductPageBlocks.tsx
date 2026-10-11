@@ -7,7 +7,7 @@ import ProductDetail from '@/components/store/ProductDetail';
 import ProductReviews from '@/components/store/ProductReviews';
 import ProductCard from '@/components/store/ProductCard';
 import SocialFeedRibbon from '@/components/store/SocialFeedRibbon';
-import { getResponsiveGridClasses } from '@/lib/utils/responsiveGrid';
+import { getResponsiveGridClasses, getGridGapClass } from '@/lib/utils/responsiveGrid';
 
 interface ProductPageBlocksProps {
   currentProduct: Product;
@@ -139,7 +139,7 @@ export default function ProductPageBlocks({
                   {settings.related_products_subtitle || 'You might also like these handpicked recommendations'}
                 </p>
               </div>
-              <div className={`grid gap-4 ${relatedCols}`}>
+              <div className={`grid ${getGridGapClass(settings.related_grid_gap)} ${relatedCols}`}>
                 {products.slice(0, settings.related_products_limit || 4).map(prod => (
                   <ProductCard key={prod.id} product={prod} currencySymbol={settings.currency_symbol} settings={settings} />
                 ))}
@@ -171,7 +171,7 @@ export default function ProductPageBlocks({
                   {settings.recently_viewed_subtitle || 'Products you have recently browsed'}
                 </p>
               </div>
-              <div className={`grid gap-4 ${recentCols}`}>
+              <div className={`grid ${getGridGapClass(settings.recently_viewed_grid_gap)} ${recentCols}`}>
                 {products.slice(1, 1 + (settings.recently_viewed_limit || 4)).map(prod => (
                   <ProductCard key={prod.id} product={prod} currencySymbol={settings.currency_symbol} settings={settings} />
                 ))}

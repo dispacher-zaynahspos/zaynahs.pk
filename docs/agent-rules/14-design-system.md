@@ -440,5 +440,15 @@ Verified 2026-10. Across all stores (TotVogue, Zaynahs, MiniMahal, LittleMister,
    - Reusable component at `components/store/AddToCartButton.tsx`. All PDP, sticky, and modal callers use this component.
    - Controlled via `store_settings.add_to_cart_animation` from Admin Settings (`/admin/settings?tab=products`) and Customizer (`ProductDetailPageSettings.tsx`).
 
+## RULE DS24 — Standardized Catalog & Grid Layout Controls (MANDATORY)
+1. **Maximum Common Options Across All Catalog Layouts**:
+   Every section or page displaying a product grid, collection grid, or catalog layout (`/shop`, Home Featured Products, Tabbed Products, Flash Sale, Collections Grid, PDP Related Products, PDP Recently Viewed) MUST implement the shared set of controls:
+   - **Responsive Grid Columns**: Desktop (2–6 cols), Tablet (2–4 cols), Mobile (1–3 cols) using `ResponsiveGridColumnsControl`.
+   - **Grid Gap**: Tight (`gap-2 sm:gap-2.5`), Normal (`gap-3.5 sm:gap-4 md:gap-4 lg:gap-5`), Relaxed (`gap-5 sm:gap-6`) using `GridGapControl` and `getGridGapClass`.
+   - **Strict Product Limit**: Configured limits (e.g. 8) must be respected without artificial rounding up.
+   - **View All & Pagination Options**: Reusable View All Button (Toggle, Text, URL) + Load More / Infinite Scroll where applicable.
+2. **Single Source of Truth**:
+   Controls MUST use `components/admin/customizer/shared/GridGapControl.tsx` and `components/admin/customizer/shared/ResponsiveGridColumnsControl.tsx`. Hand-rolling ad-hoc selects or inline segmented controls for grid columns or gap is strictly forbidden.
+
 
 

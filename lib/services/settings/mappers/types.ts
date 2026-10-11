@@ -217,6 +217,8 @@ export interface SettingsRow {
   shop_category_chips_enabled?: boolean | null;
   shop_infinite_scroll?: boolean | null;
   shop_grid_gap?: string | null;
+  related_grid_gap?: string | null;
+  recently_viewed_grid_gap?: string | null;
   shop_show_breadcrumbs?: boolean | null;
   recent_buyers_enabled?: boolean | null;
   cookie_consent_enabled?: boolean | null;

@@ -5,6 +5,7 @@ import { HomepageSection, Category } from '@/lib/types';
 import { Trash2, Plus } from '@/components/common/Icons';
 import { AccordionGroup } from '@/components/admin/customizer/controls';
 import ResponsiveGridColumnsControl from '../shared/ResponsiveGridColumnsControl';
+import GridGapControl from '../shared/GridGapControl';
 import SectionSpacingControls from '../shared/SectionSpacingControls';
 
 interface Tab {
@@ -113,6 +114,10 @@ export default function TabbedProductGridSettings({
             onChangeDesktop={(c) => setSetting('columns_desktop', c)}
             onChangeTablet={(c) => setSetting('columns_tablet', c)}
             onChangeMobile={(c) => setSetting('columns_mobile', c)}
+          />
+          <GridGapControl
+            value={s.grid_gap || 'normal'}
+            onChange={(gap) => setSetting('grid_gap', gap)}
           />
         </div>
       </AccordionGroup>

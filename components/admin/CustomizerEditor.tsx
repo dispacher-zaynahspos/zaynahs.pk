@@ -25,7 +25,7 @@ export default function CustomizerEditor(props: CustomizerEditorProps) {
   const state = useCustomizerState(props);
 
   return (
-    <div className="fixed inset-0 z-[100] w-screen h-screen overflow-hidden flex flex-col bg-gray-50 dark:bg-[#0f0f1b] select-none text-gray-900 dark:text-gray-100">
+    <div className="fixed inset-0 z-[100] w-screen h-[100dvh] overflow-hidden flex flex-col bg-gray-50 dark:bg-[#0f0f1b] select-none text-gray-900 dark:text-gray-100">
       
       {/* 1. TOP HEADER BAR */}
       <CustomizerTopBar
@@ -44,7 +44,7 @@ export default function CustomizerEditor(props: CustomizerEditorProps) {
       />
 
       {/* 2. THREE-COLUMN WORKSPACE */}
-      <div className="flex-grow flex flex-row overflow-hidden h-[calc(100vh-4rem)]">
+      <div className="flex-1 min-h-0 flex flex-row overflow-hidden">
         
         {/* LEFT COLUMN: Sections & Add Widgets */}
         <CustomizerLeftSidebar
@@ -105,8 +105,8 @@ export default function CustomizerEditor(props: CustomizerEditorProps) {
 
       </div>
 
-      {/* 3. MOBILE BOTTOM TAB BAR */}
-      <div className="md:hidden flex items-center justify-around bg-white dark:bg-[#16162a] border-t border-gray-200 dark:border-gray-800 px-2 py-2 flex-shrink-0">
+      {/* 3. MOBILE BOTTOM TAB BAR — always visible; safe-area padding clears iPhone home indicator */}
+      <div className="md:hidden flex items-center justify-around bg-white dark:bg-[#16162a] border-t border-gray-200 dark:border-gray-800 px-2 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] flex-shrink-0 z-50 relative">
         <button
           onClick={() => state.setMobileTab('sections')}
           className={`flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-xl text-[10px] font-bold transition-all cursor-pointer ${

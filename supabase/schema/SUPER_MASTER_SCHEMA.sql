@@ -760,6 +760,8 @@ CREATE TABLE IF NOT EXISTS store_settings (
   shop_view_all_bg TEXT,
   shop_view_all_text_color TEXT,
   shop_grid_gap TEXT DEFAULT 'normal',
+  related_grid_gap TEXT DEFAULT 'normal',
+  recently_viewed_grid_gap TEXT DEFAULT 'normal',
   shop_show_breadcrumbs BOOLEAN DEFAULT true,
   recent_buyers_enabled BOOLEAN DEFAULT true,
   cookie_consent_enabled BOOLEAN DEFAULT true,

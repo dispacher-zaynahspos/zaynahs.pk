@@ -324,6 +324,8 @@ export interface StoreSettings {
   shop_view_all_bg?: string;
   shop_view_all_text_color?: string;
   shop_grid_gap?: 'tight' | 'normal' | 'relaxed';
+  related_grid_gap?: 'tight' | 'normal' | 'relaxed';
+  recently_viewed_grid_gap?: 'tight' | 'normal' | 'relaxed';
   shop_show_breadcrumbs?: boolean;
   recent_buyers_enabled?: boolean;
   cookie_consent_enabled?: boolean;

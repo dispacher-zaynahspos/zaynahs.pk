@@ -220,7 +220,7 @@ export function useShopPageFilters({
   const [loadMoreLimit, setLoadMoreLimit] = useState(() => targetLimitFromUrl);
 
   useEffect(() => {
-    setLoadMoreLimit((prev) => Math.max(prev, targetLimitFromUrl));
+    setLoadMoreLimit(targetLimitFromUrl);
   }, [targetLimitFromUrl]);
 
   const totalPages = Math.max(1, Math.ceil(totalResults / PAGE_SIZE));

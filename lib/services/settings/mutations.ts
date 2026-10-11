@@ -240,6 +240,8 @@ export const updateSettings = async (settings: Partial<StoreSettings>): Promise<
     if (settings.shop_view_all_bg !== undefined) updatePayload.shop_view_all_bg = settings.shop_view_all_bg;
     if (settings.shop_view_all_text_color !== undefined) updatePayload.shop_view_all_text_color = settings.shop_view_all_text_color;
     if (settings.shop_grid_gap !== undefined) updatePayload.shop_grid_gap = settings.shop_grid_gap;
+    if (settings.related_grid_gap !== undefined) updatePayload.related_grid_gap = settings.related_grid_gap;
+    if (settings.recently_viewed_grid_gap !== undefined) updatePayload.recently_viewed_grid_gap = settings.recently_viewed_grid_gap;
     if (settings.shop_show_breadcrumbs !== undefined) updatePayload.shop_show_breadcrumbs = settings.shop_show_breadcrumbs;
     if (settings.recent_buyers_enabled !== undefined) updatePayload.recent_buyers_enabled = settings.recent_buyers_enabled;
     if (settings.cookie_consent_enabled !== undefined) updatePayload.cookie_consent_enabled = settings.cookie_consent_enabled;

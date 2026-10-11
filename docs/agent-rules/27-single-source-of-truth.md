@@ -59,4 +59,22 @@ d. Koi grid/tab jo expected sub-options miss kar raha ho (jaise ek grid me respo
 - **Server-only secrets** → `lib/services/settings/server-secrets.ts` (SMTP) + `getAISettings()` (AI keys). Secrets (`smtp_app_password`, `postex_api_token`, `content_keys`, `vision_keys`, `ai_model_credentials`) are NEVER mapped into the client-facing `StoreSettings` object, NEVER returned by `/api/settings`, and are written **write-only-if-provided**. Established Pass 6.
 - **Product Badges SSOT** → `components/store/product-card/ProductCardBadges.tsx`. Universal entry point for all product badges across cards (Standard, Showcases 01–16, Ella 01–08), QuickView modals, and ProductDetailGallery PDP. Synchronizes with `/admin/badges` system & custom badges with zero duplicate JSX (RULE DS-BADGES).
 - **Product search engine SSOT** → `lib/services/product-search/` (the ONLY ranking/search logic for the whole app — admin + storefront). Entry points: server search `searchProductsServer()` + `/api/search/products` (full-text `search_vector` + trigram, paginated); client hook `useProductSearch()` (debounce + 30s cache + AbortController); in-memory ranker `rankProducts(products, query)` / `useInMemoryProductSearch()` for admin pickers that already hold the list; shared UI `ProductSearchModal`. NEVER write an inline `products.filter(p => p.name.toLowerCase().includes(q))` for product search again — call `rankProducts()` (in-memory) or the server API. Ranking weights live ONCE in `DEFAULT_SEARCH_WEIGHTS` (`types.ts`). Full rules + searchable fields + pagination: see [29-product-search-pagination.md](29-product-search-pagination.md).
+- **Catalog & Grid Layout Controls SSOT** → `components/admin/customizer/shared/GridGapControl.tsx` + `ResponsiveGridColumnsControl.tsx` + `lib/utils/responsiveGrid.ts::getGridGapClass`. The ONLY controls for columns & gap across ALL catalog sections.
+
+## RULE SSOT-CATALOG-LAYOUTS — Unified Catalog & Grid Layout Controls (MANDATORY)
+Whenever a section, page, or tab presents a catalog, product grid, or collection grid:
+- `/shop` (Shop Catalog)
+- Home Page Product Grid (`StoreFrontProductGridSection`)
+- Home Page Tabbed Products Grid (`TabbedProductGridSection`)
+- Home Page Flash Sale Grid (`FlashSaleSection`)
+- Home Page Collections Grid (`CollectionsGridSection` / `CategoryGridSection`)
+- Product Detail: Related Products Grid
+- Product Detail: Recently Viewed Products Grid
+- Category & Brand collections
+
+All of these MUST share the MAXIMUM COMMON CONTROLS:
+1. **Responsive Columns Control** (`ResponsiveGridColumnsControl`): Desktop (2–6 cols), Tablet (2–4 cols), Mobile (1–3 cols).
+2. **Grid Gap Control** (`GridGapControl` / `getGridGapClass`): Tight (`gap-2 sm:gap-2.5`), Normal (`gap-3.5 sm:gap-4 md:gap-4 lg:gap-5`), Relaxed (`gap-5 sm:gap-6`).
+3. **Exact Product Limit**: Configured product limits (e.g. 8) MUST BE STRICTLY RESPECTED. Never round up to next row multiple or show arbitrary extra products.
+4. **View All & Pagination Options**: Reusable View All Button (Toggle, Text, URL) + Load More / Infinite Scroll where applicable.
 

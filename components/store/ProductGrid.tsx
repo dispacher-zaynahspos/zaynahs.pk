@@ -3,7 +3,7 @@ import { Product, StoreSettings } from '@/lib/types';
 import { getEllaCardVariant, toCardProduct, EllaProductGrid } from '@/components/product-cards';
 import ProductCard from './ProductCard';
 import EmptyState from '../common/EmptyState';
-import { getResponsiveGridClasses } from '@/lib/utils/responsiveGrid';
+import { getResponsiveGridClasses, getGridGapClass, GridGapOption } from '@/lib/utils/responsiveGrid';
 
 interface ProductGridProps {
   products: Product[];
@@ -12,6 +12,7 @@ interface ProductGridProps {
   columnsDesktop?: number;
   columnsTablet?: number;
   columnsMobile?: number;
+  gridGap?: GridGapOption;
 }
 
 export default function ProductGrid({
@@ -21,10 +22,13 @@ export default function ProductGrid({
   columnsDesktop,
   columnsTablet,
   columnsMobile,
+  gridGap,
 }: ProductGridProps) {
   if (products.length === 0) {
     return <EmptyState />;
   }
+
+  const effectiveGap = gridGap || (settings as any)?.shop_grid_gap || 'normal';
 
   const ellaVariant = getEllaCardVariant(settings?.card_style);
   if (ellaVariant) {
@@ -56,8 +60,10 @@ export default function ProductGrid({
     desktop: columnsDesktop ?? 4,
   });
 
+  const gapClass = getGridGapClass(effectiveGap);
+
   return (
-    <div className={`grid gap-2.5 sm:gap-3.5 md:gap-4 lg:gap-5 ${gridClasses}`}>
+    <div className={`grid ${gapClass} ${gridClasses}`}>
       {products.map((product, index) => (
         <ProductCard key={product.id} product={product} currencySymbol={currencySymbol} settings={settings} priority={index < 6} />
       ))}

@@ -7,6 +7,7 @@ import ProductSaleSubTab from './product-detail/ProductSaleSubTab';
 import ProductSocialFeedSubTab from './product-detail/ProductSocialFeedSubTab';
 import ProductLayoutSubTab from './product-detail/ProductLayoutSubTab';
 import ResponsiveGridColumnsControl from '@/components/admin/customizer/shared/ResponsiveGridColumnsControl';
+import GridGapControl from '@/components/admin/customizer/shared/GridGapControl';
 import { ResponsiveProductDetailSwatchControl } from '@/components/admin/customizer/shared/ResponsiveSwatchControls';
 import { ATC_ANIMATION_OPTIONS } from '@/lib/constants/productCardOptions';
 import { Star, MessageSquare } from '@/components/common/Icons';
@@ -211,6 +212,12 @@ export default function ProductDetailPageSettings({
           onChangeTablet={(cols: number) => onUpdateSettings({ related_columns_tablet: cols })}
           onChangeMobile={(cols: number) => onUpdateSettings({ related_columns_mobile: cols })}
         />
+
+        {/* Grid Gap */}
+        <GridGapControl
+          value={settings.related_grid_gap || 'normal'}
+          onChange={(gap) => onUpdateSettings({ related_grid_gap: gap })}
+        />
       </div>
     );
   }
@@ -290,6 +297,12 @@ export default function ProductDetailPageSettings({
               onChangeDesktop={(cols: number) => onUpdateSettings({ recently_viewed_columns_desktop: cols })}
               onChangeTablet={(cols: number) => onUpdateSettings({ recently_viewed_columns_tablet: cols })}
               onChangeMobile={(cols: number) => onUpdateSettings({ recently_viewed_columns_mobile: cols })}
+            />
+
+            {/* Grid Gap */}
+            <GridGapControl
+              value={settings.recently_viewed_grid_gap || 'normal'}
+              onChange={(gap) => onUpdateSettings({ recently_viewed_grid_gap: gap })}
             />
           </div>
         )}

@@ -66,7 +66,7 @@ export function CustomizerLeftSidebar({
     }
   };
   return (
-    <aside className={`w-full md:w-80 flex-shrink-0 flex flex-col bg-white dark:bg-[#16162a] border-r border-gray-200 dark:border-gray-800 overflow-hidden h-full ${mobileTab === 'sections' ? 'fixed inset-x-0 top-0 bottom-16 z-40' : 'hidden'} md:flex md:static md:z-auto md:bottom-auto md:inset-auto`}>
+    <aside className={`w-full md:w-80 flex-shrink-0 flex flex-col bg-white dark:bg-[#16162a] border-r border-gray-200 dark:border-gray-800 overflow-hidden h-full ${mobileTab === 'sections' ? 'fixed inset-x-0 top-0 bottom-[calc(3.75rem+env(safe-area-inset-bottom))] z-40' : 'hidden'} md:flex md:static md:z-auto md:bottom-auto md:inset-auto`}>
       <div className="p-4 border-b border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-white/2 bg-surface-2 flex-shrink-0 flex items-center justify-between">
         <h3 className="font-extrabold text-xs tracking-wider text-gray-900 dark:text-white uppercase">
           {activePage === 'home' ? 'Sections Stack' : `${activePage.replace('_', ' ')} Properties`}

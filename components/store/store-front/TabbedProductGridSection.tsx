@@ -99,6 +99,7 @@ export function TabbedProductGridSection({ section, allProducts, activeSettings 
           columnsDesktop={Number(s.columns_desktop) || 4}
           columnsTablet={Number(s.columns_tablet) || 3}
           columnsMobile={Number(s.columns_mobile) || 2}
+          gridGap={s.grid_gap || 'normal'}
         />
       ) : (
         <div className="py-12 text-center text-gray-400 text-sm font-semibold">

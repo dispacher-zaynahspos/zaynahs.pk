@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { StoreSettings } from '@/lib/types';
 import ResponsiveGridColumnsControl from '@/components/admin/customizer/shared/ResponsiveGridColumnsControl';
+import GridGapControl from '@/components/admin/customizer/shared/GridGapControl';
 import { Monitor, Tablet, Smartphone, Palette } from '@/components/common/Icons';
 import { AccordionGroup } from '@/components/admin/customizer/controls';
 import { SegmentedControl, ToggleControl } from '@/components/admin/customizer/controls';
@@ -88,15 +89,9 @@ export default function ShopPageSettings({
             onChangeMobile={(cols: number) => onUpdateSettings({ shop_columns_mobile: cols })}
           />
 
-          <SegmentedControl
-            label="Grid Gap"
+          <GridGapControl
             value={settings.shop_grid_gap ?? 'normal'}
-            onChange={(v) => onUpdateSettings({ shop_grid_gap: v as 'tight' | 'normal' | 'relaxed' })}
-            options={[
-              { label: 'Tight', value: 'tight' },
-              { label: 'Normal', value: 'normal' },
-              { label: 'Relaxed', value: 'relaxed' },
-            ]}
+            onChange={(v) => onUpdateSettings({ shop_grid_gap: v })}
           />
 
           <ToggleControl

@@ -6,6 +6,7 @@ import { HomepageSection, Category, Product } from '@/lib/types';
 import ManualProductPicker from './product-grid/ManualProductPicker';
 import BottomGridActions from './product-grid/BottomGridActions';
 import ResponsiveGridColumnsControl from '../shared/ResponsiveGridColumnsControl';
+import GridGapControl from '../shared/GridGapControl';
 import SectionSpacingControls from '../shared/SectionSpacingControls';
 import { AccordionGroup } from '@/components/admin/customizer/controls';
 import { Grid2X2, Play } from '@/components/common/Icons';
@@ -142,6 +143,12 @@ export default function ProductGridSettings({
         onChangeDesktop={(cols) => handleSettingsChange('columns_desktop', cols)}
         onChangeTablet={(cols) => handleSettingsChange('columns_tablet', cols)}
         onChangeMobile={(cols) => handleSettingsChange('columns_mobile', cols)}
+      />
+
+      {/* Grid Gap (Tight, Normal, Relaxed) */}
+      <GridGapControl
+        value={settings.grid_gap || 'normal'}
+        onChange={(gap) => handleSettingsChange('grid_gap', gap)}
       />
 
       {/* Display Mode: Grid vs Carousel/Slider */}

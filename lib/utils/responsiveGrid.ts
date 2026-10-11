@@ -45,3 +45,17 @@ export function getResponsiveGridClasses(options?: ResponsiveGridOptions): strin
 
   return `${mobileCls} ${tabletCls} ${desktopCls}`;
 }
+
+export type GridGapOption = 'tight' | 'normal' | 'relaxed';
+
+/**
+ * Maps grid gap setting to responsive Tailwind gap classes.
+ * - tight: gap-2 sm:gap-2.5 (compact catalog view)
+ * - normal: gap-3.5 sm:gap-4 md:gap-4 lg:gap-5 (standard)
+ * - relaxed: gap-5 sm:gap-6 (spacious)
+ */
+export function getGridGapClass(gap?: GridGapOption | string | null): string {
+  if (gap === 'tight') return 'gap-2 sm:gap-2.5';
+  if (gap === 'relaxed') return 'gap-5 sm:gap-6';
+  return 'gap-3.5 sm:gap-4 md:gap-4 lg:gap-5';
+}

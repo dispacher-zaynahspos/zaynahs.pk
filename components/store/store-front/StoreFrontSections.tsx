@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { HomepageSection, StoreSettings } from '@/lib/types';
 import { isFeatureEnabled } from '@/lib/features/premium';
 import { getSharedAspectClass } from '@/lib/utils/styles';
-import { getResponsiveGridClasses } from '@/lib/utils/responsiveGrid';
+import { getResponsiveGridClasses, getGridGapClass } from '@/lib/utils/responsiveGrid';
 import SocialFeedRibbon from '../SocialFeedRibbon';
 import { SectionWrapper } from './SectionWrapper';
 import { getOptimizedImageUrl, getPresetImageUrl } from '@/lib/utils/imageUrl';
@@ -161,7 +161,7 @@ export function CategoryGridSection({ section, refEntities = [] }: CategoryGridS
       )}
 
       {/* Responsive Cards Grid on Mobile, Tablet & Desktop */}
-      <div className={`grid gap-3 sm:gap-4 lg:gap-5 ${responsiveCols}`}>
+      <div className={`grid ${getGridGapClass(section.settings?.grid_gap || 'normal')} ${responsiveCols}`}>
         {displayItems.map((item: any, idx: number) => (
           <Link 
             key={idx} 

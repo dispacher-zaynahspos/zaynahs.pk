@@ -112,55 +112,71 @@ async function cleanupStore(config) {
     // 1. Identify active production deployment ID
     let activeProdId = proj.targets?.production?.id || null;
 
-    // 2. Fetch all deployments for this project (up to 100)
-    let deployments = [];
+    // First fetch to locate active prod if not in targets
     try {
-      const dplData = await fetchJson(
-        `https://api.vercel.com/v6/deployments?${teamParam}projectId=${proj.id}&limit=100`,
+      const initData = await fetchJson(
+        `https://api.vercel.com/v6/deployments?${teamParam}projectId=${proj.id}&limit=20`,
         config.token
       );
-      deployments = dplData.deployments || [];
-    } catch (err) {
-      console.error(`   ⚠️ Failed to list deployments for ${proj.name}:`, err.message);
-      continue;
-    }
-
-    if (deployments.length === 0) {
-      console.log(`   ℹ️ No deployments found.`);
-      continue;
-    }
-
-    // Sort newest first
-    deployments.sort((a, b) => b.created - a.created);
-
-    // If activeProdId was not in project targets, use the newest READY production deployment
-    if (!activeProdId) {
-      const newestReadyProd = deployments.find(
-        (d) => d.target === 'production' && d.state === 'READY'
-      );
-      if (newestReadyProd) {
-        activeProdId = newestReadyProd.uid;
-      } else {
-        // If no ready prod, keep the newest deployment of any type
-        activeProdId = deployments[0].uid;
+      const initList = initData.deployments || [];
+      if (initList.length === 0) {
+        console.log(`   ℹ️ No deployments found.`);
+        continue;
       }
+      if (!activeProdId) {
+        const newestReadyProd = initList.find(
+          (d) => d.target === 'production' && d.state === 'READY'
+        );
+        activeProdId = newestReadyProd ? newestReadyProd.uid : initList[0].uid;
+      }
+    } catch (err) {
+      console.error(`   ⚠️ Failed initial check for ${proj.name}:`, err.message);
+      continue;
     }
 
     console.log(`   🔒 Current Live Production Deployment (KEEP): ${activeProdId}`);
 
-    for (const dpl of deployments) {
-      if (dpl.uid === activeProdId) {
-        console.log(`   ✅ KEEPING ACTIVE: ${dpl.uid} | ${dpl.url} | ${new Date(dpl.created).toISOString()} | State: ${dpl.state}`);
-        totalKept++;
-      } else {
-        process.stdout.write(`   🗑️ DELETING OLD: ${dpl.uid} (${new Date(dpl.created).toLocaleDateString()} - ${dpl.state})... `);
+    // 2. Loop until only the active production deployment remains
+    while (true) {
+      let deployments = [];
+      try {
+        const dplData = await fetchJson(
+          `https://api.vercel.com/v6/deployments?${teamParam}projectId=${proj.id}&limit=100`,
+          config.token
+        );
+        deployments = dplData.deployments || [];
+      } catch (err) {
+        console.error(`   ⚠️ Failed to list deployments for ${proj.name}:`, err.message);
+        break;
+      }
+
+      const toDelete = deployments.filter((d) => d.uid !== activeProdId);
+      if (toDelete.length === 0) {
+        console.log(`   ✨ All old deployments cleaned up for [${proj.name}]! Only active production remains.`);
+        if (deployments.some((d) => d.uid === activeProdId)) {
+          totalKept++;
+        }
+        break;
+      }
+
+      console.log(`   Found ${toDelete.length} old deployment(s) to delete in this batch...`);
+
+      for (const dpl of toDelete) {
+        // Skip in-progress builds
+        if (dpl.state === 'BUILDING' || dpl.readyState === 'BUILDING' || dpl.state === 'INITIALIZING') {
+          console.log(`   ⏳ Skipping in-progress build: ${dpl.uid}`);
+          continue;
+        }
+
+        process.stdout.write(`   🗑️ DELETING: ${dpl.uid} (${new Date(dpl.created).toLocaleDateString()} - ${dpl.state})... `);
         try {
           await deleteDeployment(dpl.uid, config.token, config.teamId);
           console.log(`✓ Deleted`);
           totalDeleted++;
-          await sleep(250); // Respect rate limits
+          await sleep(150); // Respect rate limits
         } catch (delErr) {
           console.log(`❌ Error: ${delErr.message}`);
+          await sleep(500);
         }
       }
     }

@@ -236,6 +236,7 @@ export function FlashSaleSection({ section, products, currencySymbol, settings, 
         columnsDesktop={Number(section.settings?.columns_desktop) || 4}
         columnsTablet={Number(section.settings?.columns_tablet) || 3}
         columnsMobile={Number(section.settings?.columns_mobile) || 2}
+        gridGap={section.settings?.grid_gap || 'normal'}
       />
 
       {(bottomEnableLoadMore || bottomEnableViewAll) && (

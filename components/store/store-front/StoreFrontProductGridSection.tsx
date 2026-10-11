@@ -97,25 +97,8 @@ export function StoreFrontProductGridSection({
   }, [filteredProducts, sortMethod, manualProductIds, source, selectedCategoryId, getValidCategoryIds]);
 
   const displayProducts = React.useMemo(() => {
-    if (effectiveLimit >= sectionProducts.length) {
-      return sectionProducts;
-    }
-    const cols = Number(section.settings?.columns_desktop) || 4;
-    let targetCount = effectiveLimit;
-    if (cols > 1 && sectionProducts.length > effectiveLimit) {
-      const remainder = effectiveLimit % cols;
-      if (remainder !== 0) {
-        const nextMultiple = effectiveLimit + (cols - remainder);
-        if (sectionProducts.length >= nextMultiple) {
-          targetCount = nextMultiple;
-        } else {
-          targetCount = Math.floor(effectiveLimit / cols) * cols;
-        }
-      }
-    }
-    if (targetCount <= 0) targetCount = effectiveLimit;
-    return sectionProducts.slice(0, targetCount);
-  }, [sectionProducts, effectiveLimit, section.settings?.columns_desktop]);
+    return sectionProducts.slice(0, effectiveLimit);
+  }, [sectionProducts, effectiveLimit]);
 
   const viewAllLink = (() => {
     if (section.settings?.viewAllUrl) {
@@ -209,6 +192,7 @@ export function StoreFrontProductGridSection({
           columnsDesktop={Number(section.settings?.columns_desktop) || 4}
           columnsTablet={Number(section.settings?.columns_tablet) || 3}
           columnsMobile={Number(section.settings?.columns_mobile) || 2}
+          gridGap={section.settings?.grid_gap || 'normal'}
         />
       )}
       {bottomEnableInfiniteScroll && hasMore && (

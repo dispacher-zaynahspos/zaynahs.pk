@@ -221,6 +221,8 @@ export const mapSettings = (row: SettingsRow): StoreSettings => ({
   shop_view_all_bg: (row as any).shop_view_all_bg ?? undefined,
   shop_view_all_text_color: (row as any).shop_view_all_text_color ?? undefined,
   shop_grid_gap: (row.shop_grid_gap as 'tight' | 'normal' | 'relaxed') ?? 'normal',
+  related_grid_gap: (row.related_grid_gap as 'tight' | 'normal' | 'relaxed') ?? 'normal',
+  recently_viewed_grid_gap: (row.recently_viewed_grid_gap as 'tight' | 'normal' | 'relaxed') ?? 'normal',
   shop_show_breadcrumbs: row.shop_show_breadcrumbs ?? true,
   recent_buyers_enabled: row.recent_buyers_enabled ?? true,
   cookie_consent_enabled: row.cookie_consent_enabled ?? true,

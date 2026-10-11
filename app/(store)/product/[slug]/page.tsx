@@ -11,7 +11,7 @@ import { Product } from '@/lib/types';
 import { isFeatureEnabled } from '@/lib/features/premium';
 import RecentlyViewed from '@/components/store/RecentlyViewed';
 import SocialFeedRibbon from '@/components/store/SocialFeedRibbon';
-import { getResponsiveGridClasses } from '@/lib/utils/responsiveGrid';
+import { getResponsiveGridClasses, getGridGapClass } from '@/lib/utils/responsiveGrid';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { cleanLocalhostUrls } from '@/lib/site-url';
 import { getDomainBrand, cleanBrandName } from '@/lib/utils/getDomainBrand';
@@ -334,7 +334,7 @@ export default async function ProductPage({ params }: PageProps) {
                     {settings.related_products_subtitle || 'You might also like these handpicked recommendations'}
                   </p>
                 </div>
-                <div className={`grid gap-4 ${relatedCols}`}>
+                <div className={`grid ${getGridGapClass(settings.related_grid_gap)} ${relatedCols}`}>
                   {displayRelated.map((prod: Product) => (
                     <ProductCard key={prod.id} product={prod} currencySymbol={settings.currency_symbol} settings={settings} />
                   ))}

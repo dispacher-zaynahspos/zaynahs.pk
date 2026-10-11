@@ -73,7 +73,7 @@ export function CustomizerRightSidebar({
   handleUpdateProductSale
 }: CustomizerRightSidebarProps) {
   return (
-    <aside className={`w-full md:w-96 flex-shrink-0 flex flex-col bg-white dark:bg-[#16162a] border-l border-gray-200 dark:border-gray-800 overflow-hidden h-full ${mobileTab === 'settings' ? 'fixed inset-x-0 top-0 bottom-16 z-40' : 'hidden'} md:flex md:static md:z-auto md:bottom-auto md:inset-auto`}>
+    <aside className={`w-full md:w-96 flex-shrink-0 flex flex-col bg-white dark:bg-[#16162a] border-l border-gray-200 dark:border-gray-800 overflow-hidden h-full ${mobileTab === 'settings' ? 'fixed inset-x-0 top-0 bottom-[calc(3.75rem+env(safe-area-inset-bottom))] z-40' : 'hidden'} md:flex md:static md:z-auto md:bottom-auto md:inset-auto`}>
       <div className="p-4 border-b border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-white/2 bg-surface-2 flex-shrink-0 flex items-center justify-between">
         <div className="flex items-center gap-1.5">
           <Settings className="h-4 w-4 text-[#e94560]" />

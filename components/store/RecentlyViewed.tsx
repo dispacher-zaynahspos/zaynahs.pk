@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Product, StoreSettings } from '@/lib/types';
 import ProductCard from './ProductCard';
 import { getProductsByIdsClient } from '@/lib/services/products-client';
-import { getResponsiveGridClasses } from '@/lib/utils/responsiveGrid';
+import { getResponsiveGridClasses, getGridGapClass } from '@/lib/utils/responsiveGrid';
 
 interface RecentlyViewedProps {
   products?: Product[];
@@ -91,7 +91,7 @@ export default function RecentlyViewed({ products, settings, currentProductId }:
           {settings?.recently_viewed_subtitle || 'Products you have recently browsed'}
         </p>
       </div>
-      <div className={`grid gap-4 ${recentCols}`}>
+      <div className={`grid ${getGridGapClass(settings?.recently_viewed_grid_gap)} ${recentCols}`}>
         {recentProducts.map((prod, index) => (
           <ProductCard key={prod.id} product={prod} currencySymbol={settings.currency_symbol} settings={settings} priority={index < 4} />
         ))}
