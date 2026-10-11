@@ -140,26 +140,9 @@ export function FlashSaleSection({ section, products, currencySymbol, settings, 
   const bottomEnableViewAll = section.settings?.bottomEnableViewAll === true;
   const bottomEnableLoadMore = section.settings?.bottomEnableLoadMore === true;
 
-  const cols = Number(section.settings?.columns_desktop) || 4;
-  let targetCount = effectiveLimit;
-  if (cols > 1 && allMatchedProducts.length >= cols) {
-    const remainder = effectiveLimit % cols;
-    if (remainder !== 0) {
-      const nextMultiple = effectiveLimit + (cols - remainder);
-      if (allMatchedProducts.length >= nextMultiple) {
-        targetCount = nextMultiple;
-      } else {
-        targetCount = Math.floor(effectiveLimit / cols) * cols;
-      }
-    } else {
-      if (allMatchedProducts.length < targetCount) {
-        targetCount = Math.floor(allMatchedProducts.length / cols) * cols;
-      }
-    }
-  }
-  if (targetCount === 0) targetCount = allMatchedProducts.length;
-
-  const displayProducts = allMatchedProducts.slice(0, targetCount);
+  // STRICT LIMIT (RULE SSOT-CATALOG-LAYOUTS Phase 3): show EXACTLY the configured
+  // limit — never round up to a full-row multiple.
+  const displayProducts = allMatchedProducts.slice(0, effectiveLimit);
   const hasMore = displayProducts.length < allMatchedProducts.length && displayProducts.length >= effectiveLimit;
 
   if (displayProducts.length === 0) {

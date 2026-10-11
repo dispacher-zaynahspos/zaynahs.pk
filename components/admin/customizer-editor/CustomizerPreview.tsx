@@ -328,7 +328,10 @@ export function CustomizerPreview({
     <main className={`flex-grow bg-[#f0f2f7] dark:bg-[#0a0a12] overflow-hidden flex flex-col h-full ${mobileTab !== 'preview' ? 'hidden' : ''} md:flex`}>
 
       {/* ── Toolbar ─────────────────────────────────────────────────────────── */}
-      <div className="shrink-0 h-10 bg-white/95 dark:bg-[#13131f]/95 backdrop-blur-md border-b border-gray-200/60 dark:border-white/5 flex items-center justify-between px-3 gap-2 overflow-x-auto scrollbar-none select-none z-10 text-[10px]">
+      {/* Single horizontally-scrollable row — no absolute centering (which
+          overlapped the device chips on narrow panes), no backdrop-blur
+          (RULE M10b: solid bg only on scroll-adjacent bars). */}
+      <div className="shrink-0 min-h-10 bg-white/95 dark:bg-[#13131f] border-b border-gray-200/60 dark:border-white/5 flex items-center gap-2 px-3 py-1.5 overflow-x-auto scrollbar-none select-none z-10 text-[10px]">
 
         {/* LEFT: Device picker */}
         <div className="flex items-center gap-1.5 shrink-0">
@@ -355,8 +358,8 @@ export function CustomizerPreview({
           )}
         </div>
 
-        {/* CENTER: Zoom + Mode — always centered */}
-        <div className="flex items-center gap-1.5 absolute left-1/2 -translate-x-1/2">
+        {/* CENTER: Zoom + Mode — inline (no absolute center so it never overlaps chips) */}
+        <div className="flex items-center gap-1.5 shrink-0 ml-auto">
           {/* Zoom */}
           <div className="flex items-center gap-0.5 bg-gray-100 dark:bg-white/5 p-0.5 rounded-lg font-bold">
             <button type="button" onClick={() => nudgeZoom(-0.05)} title="Zoom Out"
@@ -377,7 +380,7 @@ export function CustomizerPreview({
         </div>
 
         {/* RIGHT: Dim badge */}
-        <span className="font-mono text-[10px] text-gray-400 bg-gray-100/70 dark:bg-white/5 px-2 py-0.5 rounded shrink-0 hidden sm:inline">
+        <span className="font-mono text-[10px] text-gray-400 bg-gray-100/70 dark:bg-white/5 px-2 py-0.5 rounded shrink-0 hidden lg:inline">
           {dimLabel}
         </span>
       </div>

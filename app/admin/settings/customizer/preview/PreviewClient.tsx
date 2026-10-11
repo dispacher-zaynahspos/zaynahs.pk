@@ -117,7 +117,9 @@ export default function PreviewClient({
               lastScrolledSectionId.current = nextActiveId;
               setTimeout(() => {
                 const element = document.getElementById(nextActiveId);
-                if (element) {
+                // Guard: node may have unmounted (page switch) before the timer
+                // fires — scrolling a detached node throws parentNode errors.
+                if (element && element.isConnected) {
                   element.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
               }, 100);
@@ -134,7 +136,7 @@ export default function PreviewClient({
         } else if (event.data.type === 'scroll_to_section') {
           lastScrolledSectionId.current = event.data.sectionId;
           const element = document.getElementById(event.data.sectionId);
-          if (element) {
+          if (element && element.isConnected) {
             element.scrollIntoView({ behavior: 'smooth', block: 'center' });
           }
         } else if (event.data.type === 'change_page') {

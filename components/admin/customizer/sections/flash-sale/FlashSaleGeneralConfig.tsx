@@ -1,6 +1,7 @@
 import React from 'react';
 import { HomepageSection } from '@/lib/types';
 import ResponsiveGridColumnsControl from '@/components/admin/customizer/shared/ResponsiveGridColumnsControl';
+import GridGapControl from '@/components/admin/customizer/shared/GridGapControl';
 
 interface FlashSaleGeneralConfigProps {
   section: HomepageSection;
@@ -125,6 +126,12 @@ export default function FlashSaleGeneralConfig({
         onChangeDesktop={(cols) => handleSettingsChange('columns_desktop', cols)}
         onChangeTablet={(cols) => handleSettingsChange('columns_tablet', cols)}
         onChangeMobile={(cols) => handleSettingsChange('columns_mobile', cols)}
+      />
+
+      {/* Grid Gap (Tight, Normal, Relaxed) — shared SSOT control */}
+      <GridGapControl
+        value={settings.grid_gap || 'normal'}
+        onChange={(gap) => handleSettingsChange('grid_gap', gap)}
       />
 
       <hr className="border-gray-200 dark:border-gray-800" />

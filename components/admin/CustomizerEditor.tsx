@@ -24,6 +24,31 @@ interface CustomizerEditorProps {
 export default function CustomizerEditor(props: CustomizerEditorProps) {
   const state = useCustomizerState(props);
 
+  // Back from a settings pane → clear selection (return to the Sections/Blocks
+  // list) and, on mobile, switch back to the Sections tab. On home we also drop
+  // the active section so the list is shown cleanly.
+  const handleBackToList = React.useCallback(() => {
+    state.setActiveSectionId(null);
+    if (typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches) {
+      state.setMobileTab('sections');
+    }
+  }, [state]);
+
+  // Mobile hardware/browser Back: if a settings pane is open, close it first
+  // (return to the list) instead of leaving the customizer.
+  React.useEffect(() => {
+    const settingsPaneOpen =
+      state.mobileTab === 'settings' &&
+      (state.activeSectionId !== null || state.activePage !== 'home');
+    if (!settingsPaneOpen) return;
+    window.history.pushState({ customizerPane: true }, '');
+    const onPop = () => {
+      state.setMobileTab('sections');
+    };
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, [state.mobileTab, state.activeSectionId, state.activePage, state]);
+
   return (
     <div className="fixed inset-0 z-[100] w-screen h-[100dvh] overflow-hidden flex flex-col bg-gray-50 dark:bg-[#0f0f1b] select-none text-gray-900 dark:text-gray-100">
       
@@ -101,6 +126,7 @@ export default function CustomizerEditor(props: CustomizerEditorProps) {
           activeSubTab={state.activeSubTab}
           currentProduct={state.currentProduct}
           handleUpdateProductSale={state.handleUpdateProductSale}
+          onBack={handleBackToList}
         />
 
       </div>

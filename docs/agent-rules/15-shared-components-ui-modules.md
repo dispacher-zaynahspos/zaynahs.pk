@@ -46,6 +46,8 @@ Any new page/feature in `/admin` or `/store` MUST reuse these shared modules. If
 | Storefront category filter | `CategoryFilter` (canonical) | `@/components/store/CategoryFilter` |
 | Shop page filters | `ShopPageSidebar` (price/color/size/material/sort live here) | `@/components/store/shop-page/ShopPageSidebar` |
 | Tab management | `useAdminTab.ts` pattern | `lib/hooks/useAdminTab` |
+| Catalog grid columns (customizer) | `ResponsiveGridColumnsControl` (ONLY columns control) | `@/components/admin/customizer/shared/ResponsiveGridColumnsControl` |
+| Catalog grid gap (customizer) | `GridGapControl` + `getGridGapClass` (ONLY gap control) | `@/components/admin/customizer/shared/GridGapControl` · `@/lib/utils/responsiveGrid` |
 
 ## RULE SHARED-MODAL1 — One shared implementation per primitive, EVERYWHERE (STRICT)
 > Jab bhi koi reusable UI primitive 2+ jagah chahiye, uska **exactly ONE shared component** hoga; har jagah wahi import ho. Dusra version / copy-paste variant banana BANNED (RULE SSOT1).
@@ -59,6 +61,7 @@ Applies to ALL of these — never fork, never re-implement inline:
 - **Any modal / dialog / drawer / bottom-sheet** → MUST use `useBodyScrollLock` + render through `Portal` (document.body, correct z-index) + shared scroll pattern (`flex-1 min-h-0 overflow-y-auto overscroll-contain`, `docs/UI_RULES.md` §9). Destructive confirms → `useConfirm` (never `window.confirm`).
 - **Navigation** → `Navbar` + `store-navbar/*`, `MobileBottomNav`, `Footer`, `NavigationProgress`. The old `components/common/navbar/` folder is DEAD — never import or extend it (use `store-navbar/`).
 - **Icons** → ONLY `@/components/common/Icons`. Inline `<svg>` ya direct `lucide-react` import BANNED. Naya icon chahiye → `Icons.tsx` me ek line add karo.
+- **Catalog & grid layout controls (columns + gap)** → customizer side `ResponsiveGridColumnsControl` + `GridGapControl`; storefront side `getResponsiveGridClasses()` + `getGridGapClass()` (`lib/utils/responsiveGrid.ts`). Har catalog/product/collection grid (shop, home featured, tabbed, flash sale, collections/category grid, PDP related, PDP recently viewed) inhi ko use kare. Ad-hoc column selects, inline segmented gap controls, ya hardcoded `grid-cols-*`/`gap-*` on a product grid BANNED. Exact limit respect karo — full-row tak round-up mat karo. Rule detail: RULE DS24 ([14-design-system.md](14-design-system.md)) + RULE SSOT-CATALOG-LAYOUTS ([27-single-source-of-truth.md](27-single-source-of-truth.md)).
 
 **Enforcement:** naya feature banane se pehle is table + RULE SSOT1 ke "Before writing ANY new code" pre-check se guzro. Agar yahan primitive listed hai → import karo, naya mat banao. Agar genuinely naya shared primitive chahiye → `components/common/` ya `components/admin/shared/` me banao, phir is table me ek row add karo (RULE IDX1).
 

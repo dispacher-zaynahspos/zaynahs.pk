@@ -13,7 +13,7 @@ import {
   useShopPageFilters,
   getSortLabel,
 } from './shop-page';
-import { getResponsiveGridClasses } from '@/lib/utils/responsiveGrid';
+import { getResponsiveGridClasses, getGridGapClass } from '@/lib/utils/responsiveGrid';
 import { useScrollRestoration } from '@/lib/hooks/useScrollRestoration';
 
 interface ShopPageProps {
@@ -133,9 +133,8 @@ export default function ShopPage({
     return () => observer.disconnect();
   }, [paginationMode, hasMore, handleLoadMore]);
 
-  const gridGapClass = activeSettings?.shop_grid_gap === 'tight' ? 'gap-2'
-    : activeSettings?.shop_grid_gap === 'relaxed' ? 'gap-6'
-    : 'gap-4';
+  // SSOT: shared gap classes (RULE SSOT-CATALOG-LAYOUTS / DS24) — never hardcode.
+  const gridGapClass = getGridGapClass(activeSettings?.shop_grid_gap);
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8 transition-colors duration-200">

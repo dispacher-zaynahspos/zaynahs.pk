@@ -3,7 +3,7 @@
 import React from 'react';
 import { HomepageSection, StoreSettings, Category, Product, Collection, Review } from '@/lib/types';
 import { isFeatureEnabled } from '@/lib/features/premium';
-import { Settings, X, Lock } from '@/components/common/Icons';
+import { Settings, X, Lock, ChevronLeft } from '@/components/common/Icons';
 import HeroBannerSettings from '../customizer/sections/HeroBannerSettings';
 import ProductGridSettings from '../customizer/sections/ProductGridSettings';
 import CategoryListSettings from '../customizer/sections/CategoryListSettings';
@@ -49,6 +49,7 @@ interface CustomizerRightSidebarProps {
   activeSubTab: string;
   currentProduct?: Product | null;
   handleUpdateProductSale: (id: string, updates: Partial<Product>) => void;
+  onBack?: () => void;
 }
 
 export function CustomizerRightSidebar({
@@ -70,15 +71,32 @@ export function CustomizerRightSidebar({
   setMediaSelectCallback,
   activeSubTab,
   currentProduct,
-  handleUpdateProductSale
+  handleUpdateProductSale,
+  onBack
 }: CustomizerRightSidebarProps) {
+  // Title shown in the sticky sub-header (Back row). Prefer the section's own
+  // title, else a readable page label.
+  const paneTitle = activePage === 'home'
+    ? (activeSection?.title || (activeSectionId === 'announcement_bar' ? 'Announcement Bar' : 'Section Settings'))
+    : `${activePage.replace('_', ' ')} Settings`;
   return (
     <aside className={`w-full md:w-96 flex-shrink-0 flex flex-col bg-white dark:bg-[#16162a] border-l border-gray-200 dark:border-gray-800 overflow-hidden h-full ${mobileTab === 'settings' ? 'fixed inset-x-0 top-0 bottom-[calc(3.75rem+env(safe-area-inset-bottom))] z-40' : 'hidden'} md:flex md:static md:z-auto md:bottom-auto md:inset-auto`}>
-      <div className="p-4 border-b border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-white/2 bg-surface-2 flex-shrink-0 flex items-center justify-between">
-        <div className="flex items-center gap-1.5">
-          <Settings className="h-4 w-4 text-[#e94560]" />
-          <h3 className="font-extrabold text-xs tracking-wider text-gray-900 dark:text-white uppercase">
-            {activePage === 'home' ? 'Section Settings' : `${activePage.replace('_', ' ')} Settings`}
+      <div className="p-4 border-b border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-white/2 bg-surface-2 flex-shrink-0 flex items-center justify-between gap-2 min-w-0">
+        <div className="flex items-center gap-1.5 min-w-0">
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="flex items-center gap-1 shrink-0 px-1.5 py-1 -ml-1 rounded-lg text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/70 dark:hover:bg-gray-700 transition-all cursor-pointer"
+              aria-label="Back to sections list"
+              title="Back"
+            >
+              <ChevronLeft className="h-4 w-4 shrink-0" />
+              <span className="text-[11px] font-bold uppercase tracking-wider hidden sm:inline">Back</span>
+            </button>
+          )}
+          <Settings className="h-4 w-4 text-[#e94560] shrink-0" />
+          <h3 className="font-extrabold text-xs tracking-wider text-gray-900 dark:text-white uppercase truncate" title={paneTitle}>
+            {paneTitle}
           </h3>
         </div>
         <button
