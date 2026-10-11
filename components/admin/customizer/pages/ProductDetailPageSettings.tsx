@@ -8,6 +8,7 @@ import ProductSocialFeedSubTab from './product-detail/ProductSocialFeedSubTab';
 import ProductLayoutSubTab from './product-detail/ProductLayoutSubTab';
 import ResponsiveGridColumnsControl from '@/components/admin/customizer/shared/ResponsiveGridColumnsControl';
 import GridGapControl from '@/components/admin/customizer/shared/GridGapControl';
+import GridLimitControl from '@/components/admin/customizer/shared/GridLimitControl';
 import { ResponsiveProductDetailSwatchControl } from '@/components/admin/customizer/shared/ResponsiveSwatchControls';
 import { ATC_ANIMATION_OPTIONS } from '@/lib/constants/productCardOptions';
 import { Star, MessageSquare } from '@/components/common/Icons';
@@ -185,21 +186,14 @@ export default function ProductDetailPageSettings({
           />
         </div>
 
-        <div className="space-y-1.5">
-          <div className="flex justify-between text-[11px] font-bold text-gray-500">
-            <span>Product Limit</span>
-            <span className="text-[#e94560]">{settings.related_products_limit || 4} items</span>
-          </div>
-          <input
-            type="range"
-            min="2"
-            max="12"
-            step="1"
-            value={settings.related_products_limit || 4}
-            onChange={(e) => onUpdateSettings({ related_products_limit: parseInt(e.target.value) })}
-            className="w-full accent-[#e94560]"
-          />
-        </div>
+        <GridLimitControl
+          label="Product Limit"
+          value={settings.related_products_limit || 4}
+          onChange={(v) => onUpdateSettings({ related_products_limit: v })}
+          min={2}
+          max={12}
+          step={1}
+        />
 
         {/* Responsive Columns per Device */}
         <ResponsiveGridColumnsControl
@@ -271,21 +265,14 @@ export default function ProductDetailPageSettings({
               />
             </div>
 
-            <div className="space-y-1.5">
-              <div className="flex justify-between text-[11px] font-bold text-gray-500">
-                <span>Product Limit</span>
-                <span className="text-[#e94560]">{settings.recently_viewed_limit || 4} items</span>
-              </div>
-              <input
-                type="range"
-                min="2"
-                max="8"
-                step="1"
-                value={settings.recently_viewed_limit || 4}
-                onChange={(e) => onUpdateSettings({ recently_viewed_limit: parseInt(e.target.value) })}
-                className="w-full accent-[#e94560]"
-              />
-            </div>
+            <GridLimitControl
+              label="Product Limit"
+              value={settings.recently_viewed_limit || 4}
+              onChange={(v) => onUpdateSettings({ recently_viewed_limit: v })}
+              min={2}
+              max={8}
+              step={1}
+            />
 
             {/* Responsive Columns per Device */}
             <ResponsiveGridColumnsControl

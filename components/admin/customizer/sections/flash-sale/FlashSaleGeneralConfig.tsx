@@ -2,6 +2,7 @@ import React from 'react';
 import { HomepageSection } from '@/lib/types';
 import ResponsiveGridColumnsControl from '@/components/admin/customizer/shared/ResponsiveGridColumnsControl';
 import GridGapControl from '@/components/admin/customizer/shared/GridGapControl';
+import GridLimitControl from '@/components/admin/customizer/shared/GridLimitControl';
 import BottomGridActions from '@/components/admin/customizer/sections/product-grid/BottomGridActions';
 
 interface FlashSaleGeneralConfigProps {
@@ -99,25 +100,10 @@ export default function FlashSaleGeneralConfig({
       </div>
 
       {/* PRODUCT LIMIT AND PAGINATION SETTINGS */}
-      <div className="space-y-1.5">
-        <div className="flex justify-between">
-          <label className="text-[11px] font-bold text-gray-500 dark:text-gray-400">
-            Product Limit
-          </label>
-          <span className="text-xs font-bold text-[#e94560]">
-            {settings.limit || 8}
-          </span>
-        </div>
-        <input
-          type="range"
-          min="2"
-          max="24"
-          step="2"
-          value={settings.limit || 8}
-          onChange={e => handleSettingsChange('limit', parseInt(e.target.value))}
-          className="w-full accent-[#e94560]"
-        />
-      </div>
+      <GridLimitControl
+        value={settings.limit || 8}
+        onChange={(v) => handleSettingsChange('limit', v)}
+      />
 
       <ResponsiveGridColumnsControl
         label="Flash Sale Grid Columns"

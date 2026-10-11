@@ -6,6 +6,7 @@ import { Trash2, Plus } from '@/components/common/Icons';
 import { AccordionGroup } from '@/components/admin/customizer/controls';
 import ResponsiveGridColumnsControl from '../shared/ResponsiveGridColumnsControl';
 import GridGapControl from '../shared/GridGapControl';
+import GridLimitControl from '../shared/GridLimitControl';
 import SectionSpacingControls from '../shared/SectionSpacingControls';
 
 interface Tab {
@@ -93,18 +94,13 @@ export default function TabbedProductGridSettings({
       {/* Grid Layout */}
       <AccordionGroup id={`tpg-${section.id}-layout`} title="Grid Layout" defaultOpen={false}>
         <div className="space-y-4 pt-2">
-          <div className="space-y-1.5">
-            <div className="flex justify-between items-center">
-              <label className="text-[11px] font-bold text-gray-500 dark:text-gray-400">Products per Tab</label>
-              <span className="text-xs font-bold text-[#e94560]">{s.limit_per_tab || 8}</span>
-            </div>
-            <input
-              type="range" min={4} max={24} step={4}
-              value={s.limit_per_tab || 8}
-              onChange={(e) => setSetting('limit_per_tab', parseInt(e.target.value, 10))}
-              className="w-full accent-[#e94560]"
-            />
-          </div>
+          <GridLimitControl
+            label="Products per Tab"
+            value={s.limit_per_tab || 8}
+            onChange={(v) => setSetting('limit_per_tab', v)}
+            min={4}
+            step={4}
+          />
           <ResponsiveGridColumnsControl
             label="Columns per Row"
             viewportMode={viewportMode}

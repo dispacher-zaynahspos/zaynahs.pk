@@ -48,6 +48,8 @@ Any new page/feature in `/admin` or `/store` MUST reuse these shared modules. If
 | Tab management | `useAdminTab.ts` pattern | `lib/hooks/useAdminTab` |
 | Catalog grid columns (customizer) | `ResponsiveGridColumnsControl` (ONLY columns control) | `@/components/admin/customizer/shared/ResponsiveGridColumnsControl` |
 | Catalog grid gap (customizer) | `GridGapControl` + `getGridGapClass` (ONLY gap control) | `@/components/admin/customizer/shared/GridGapControl` · `@/lib/utils/responsiveGrid` |
+| Catalog grid product limit (customizer) | `GridLimitControl` (ONLY limit slider) | `@/components/admin/customizer/shared/GridLimitControl` |
+| Catalog bottom actions (view-all/load-more/infinite) | `BottomGridActions` (ONLY bottom-actions block) | `@/components/admin/customizer/sections/product-grid/BottomGridActions` |
 
 ## RULE SHARED-MODAL1 — One shared implementation per primitive, EVERYWHERE (STRICT)
 > Jab bhi koi reusable UI primitive 2+ jagah chahiye, uska **exactly ONE shared component** hoga; har jagah wahi import ho. Dusra version / copy-paste variant banana BANNED (RULE SSOT1).

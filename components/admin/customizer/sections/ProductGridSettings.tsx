@@ -7,6 +7,7 @@ import ManualProductPicker from './product-grid/ManualProductPicker';
 import BottomGridActions from './product-grid/BottomGridActions';
 import ResponsiveGridColumnsControl from '../shared/ResponsiveGridColumnsControl';
 import GridGapControl from '../shared/GridGapControl';
+import GridLimitControl from '../shared/GridLimitControl';
 import SectionSpacingControls from '../shared/SectionSpacingControls';
 import { AccordionGroup } from '@/components/admin/customizer/controls';
 import { Grid2X2, Play } from '@/components/common/Icons';
@@ -114,25 +115,10 @@ export default function ProductGridSettings({
         />
       )}
 
-      <div className="space-y-1.5">
-        <div className="flex justify-between">
-          <label className="text-[11px] font-bold text-gray-500 dark:text-gray-400">
-            Product Limit
-          </label>
-          <span className="text-xs font-bold text-[#e94560]">
-            {settings.limit || 8}
-          </span>
-        </div>
-        <input
-          type="range"
-          min="2"
-          max="24"
-          step="2"
-          value={settings.limit || 8}
-          onChange={e => handleSettingsChange('limit', parseInt(e.target.value))}
-          className="w-full accent-[#e94560]"
-        />
-      </div>
+      <GridLimitControl
+        value={settings.limit || 8}
+        onChange={(v) => handleSettingsChange('limit', v)}
+      />
       {/* Responsive Columns per Device (Mobile: 1-3, Tablet: 2-4, Desktop: 3-8) */}
       <ResponsiveGridColumnsControl
         label="Product Grid Columns"

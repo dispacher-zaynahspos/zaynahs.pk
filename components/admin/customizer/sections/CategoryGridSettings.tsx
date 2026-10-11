@@ -5,6 +5,7 @@ import { HomepageSection, Category } from '@/lib/types';
 import { Trash2, ChevronUp, ChevronDown } from '@/components/common/Icons';
 import { moveItemInArray } from '@/lib/utils/arrayMove';
 import ResponsiveGridColumnsControl from '../shared/ResponsiveGridColumnsControl';
+import GridGapControl from '../shared/GridGapControl';
 import SectionSpacingControls from '../shared/SectionSpacingControls';
 import { AccordionGroup } from '@/components/admin/customizer/controls';
 
@@ -99,6 +100,12 @@ export default function CategoryGridSettings({
         onChangeDesktop={(cols) => onUpdateSection({ settings: { ...section.settings, desktop_columns: cols } })}
         onChangeTablet={(cols) => onUpdateSection({ settings: { ...section.settings, tablet_columns: cols } })}
         onChangeMobile={(cols) => onUpdateSection({ settings: { ...section.settings, mobile_columns: cols } })}
+      />
+
+      {/* Grid Gap (Tight, Normal, Relaxed) — shared SSOT control */}
+      <GridGapControl
+        value={section.settings?.grid_gap || 'normal'}
+        onChange={(gap) => onUpdateSection({ settings: { ...section.settings, grid_gap: gap } })}
       />
 
       {/* Show/Hide Section Title Toggle */}
