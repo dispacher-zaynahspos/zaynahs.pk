@@ -19,8 +19,17 @@ export async function sendTemplatedEmail(
     }
 
     // 2. Retrieve settings to inject into variables and verify toggle
-    const settings = await getSettings();
-    const isEnabledInSettings = settings.email_notifications
+    let settings = data.settings as Partial<StoreSettings> | undefined;
+    if (!settings) {
+      try {
+        settings = await getSettings();
+      } catch {
+        const { supabaseAdmin } = await import('@/lib/supabase/admin');
+        const { data: s } = await supabaseAdmin.from('store_settings').select('*').limit(1).single();
+        settings = (s || {}) as Partial<StoreSettings>;
+      }
+    }
+    const isEnabledInSettings = settings?.email_notifications
       ? settings.email_notifications[emailType] !== false
       : true;
 

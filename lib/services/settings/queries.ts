@@ -71,7 +71,7 @@ export const getSettings = async (): Promise<StoreSettings> => {
       ['store-settings-v3'],
       { revalidate: 86400, tags: ['settings'] }
     );
-    return cachedFn();
+    return await cachedFn();
   } catch {
     return fetchSettings();
   }
