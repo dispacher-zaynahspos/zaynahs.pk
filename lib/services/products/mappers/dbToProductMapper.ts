@@ -56,7 +56,7 @@ export const mapProduct = (row: DBProductRow): Product => {
     updated_at: row.categories.updated_at
   } : undefined;
 
-  const product_categories: ProductCategoryRelation[] = (row.product_categories ?? []).map((pc: any) => ({
+  const product_categories: ProductCategoryRelation[] = (row.product_categories ?? []).map((pc) => ({
     product_id: pc.product_id,
     category_id: pc.category_id,
     position: typeof pc.position === 'number' ? pc.position : null,
@@ -106,15 +106,15 @@ export const mapProduct = (row: DBProductRow): Product => {
       name: row.size_guides.name,
       chart_data: Array.isArray(row.size_guides.chart_data)
         ? row.size_guides.chart_data
-        : (Array.isArray((row.size_guides.chart_data as any)?.rows) ? (row.size_guides.chart_data as any).rows : []),
-      unit: (row.size_guides as any).unit || (row.size_guides.chart_data as any)?.unit || 'INCHES',
+        : (Array.isArray(row.size_guides.chart_data?.rows) ? row.size_guides.chart_data.rows : []),
+      unit: row.size_guides.unit || (Array.isArray(row.size_guides.chart_data) ? undefined : row.size_guides.chart_data?.unit) || 'INCHES',
       image_url: row.size_guides.image_url || undefined
     } : undefined,
     frequently_bought_together_ids: row.frequently_bought_together_ids || [],
     flash_sale_enabled: row.flash_sale_enabled ?? false,
     flash_sale_start_date: row.flash_sale_start_date || undefined,
     flash_sale_end_date: row.flash_sale_end_date || undefined,
-    flash_sale_discount_type: (row.flash_sale_discount_type as any) || 'fixed',
+    flash_sale_discount_type: (row.flash_sale_discount_type as Product['flash_sale_discount_type']) || 'fixed',
     flash_sale_discount_value: row.flash_sale_discount_value ? parseFloat(row.flash_sale_discount_value.toString()) : 0,
     tags: row.tags ?? [],
     images,
@@ -122,7 +122,7 @@ export const mapProduct = (row: DBProductRow): Product => {
     modifiers,
     rating: row.rating ? parseFloat(row.rating.toString()) : undefined,
     reviews_count: row.reviews_count !== null && row.reviews_count !== undefined ? row.reviews_count : undefined,
-    meta_sync_status: row.meta_sync_status as any || 'pending',
+    meta_sync_status: (row.meta_sync_status as Product['meta_sync_status']) || 'pending',
     meta_sync_error: row.meta_sync_error || undefined,
     meta_last_synced_at: row.meta_last_synced_at || undefined,
     sort_order: row.sort_order || 0,

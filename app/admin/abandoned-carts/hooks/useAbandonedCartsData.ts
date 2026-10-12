@@ -49,7 +49,29 @@ export function useAbandonedCartsData() {
     fetchCarts();
 
     const supabase = createClient();
-    const mapRealtimeCart = (row: any): AbandonedCart => ({
+    interface AbandonedCartRow {
+      id: string;
+      session_id: string;
+      customer_name?: string | null;
+      customer_email?: string | null;
+      customer_phone?: string | null;
+      customer_address?: string | null;
+      customer_city?: string | null;
+      customer_apartment?: string | null;
+      customer_postal_code?: string | null;
+      items?: AbandonedCart['items'] | null;
+      subtotal?: number | string | null;
+      currency?: string | null;
+      email_sent?: boolean | null;
+      email_sent_at?: string | null;
+      order_placed?: boolean | null;
+      order_id?: string | null;
+      recovered_at?: string | null;
+      last_activity: string;
+      created_at: string;
+      updated_at: string;
+    }
+    const mapRealtimeCart = (row: AbandonedCartRow): AbandonedCart => ({
       id: row.id,
       sessionId: row.session_id,
       customerName: row.customer_name ?? undefined,

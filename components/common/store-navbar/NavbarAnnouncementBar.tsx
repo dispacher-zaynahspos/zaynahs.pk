@@ -1,6 +1,8 @@
 'use client';
 
 import React from 'react';
+import type { EmblaViewportRefType } from 'embla-carousel-react';
+import type { EmblaCarouselType } from 'embla-carousel';
 import type { StoreSettings } from '@/lib/types';
 import { CATALOG_SECTION_PADDING } from '@/lib/utils/responsiveGrid';
 import HeaderSocialLinks from './HeaderSocialLinks';
@@ -15,8 +17,8 @@ interface NavbarAnnouncementBarProps {
   headerBorderColor: string;
   announcementLines: string[];
   isPreview: boolean;
-  emblaRef: any;
-  emblaApi: any;
+  emblaRef: EmblaViewportRefType;
+  emblaApi: EmblaCarouselType | undefined;
   settings?: StoreSettings;
 }
 

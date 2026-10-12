@@ -4,10 +4,11 @@ import React, { useState } from 'react';
 import { Plus, Trash2, Image as ImageIcon, Loader2 } from '@/components/common/Icons';
 import { toast } from 'sonner';
 import { SocialFeedPreviewGrid } from './social-feed/SocialFeedPreviewGrid';
+import type { SocialFeedItem } from '@/components/admin/settings-form/hooks/useSettingsSocialFeed';
 
 interface SocialFeedItemsEditorProps {
-  items: any[];
-  onChangeItems: (newItems: any[]) => void;
+  items: SocialFeedItem[];
+  onChangeItems: (newItems: SocialFeedItem[]) => void;
   onSelectMedia: (onSelect: (url: string) => void) => void;
 }
 
@@ -105,7 +106,7 @@ export default function SocialFeedItemsEditor({
     setIsUserTyping(false);
   };
 
-  const handleEditItemSelect = (item: any) => {
+  const handleEditItemSelect = (item: SocialFeedItem) => {
     setEditingItemId(item.id || item.imageUrl);
     setTempFeedUsername(item.username);
     setTempFeedLink(item.link);
@@ -166,7 +167,7 @@ export default function SocialFeedItemsEditor({
 
   const handleDeleteSocialFeedItem = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    onChangeItems(items.filter((item: any) => (item.id || item.imageUrl) !== id));
+    onChangeItems(items.filter((item: SocialFeedItem) => (item.id || item.imageUrl) !== id));
     if (editingItemId === id) {
       resetForm();
     }

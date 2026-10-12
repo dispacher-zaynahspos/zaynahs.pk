@@ -12,7 +12,7 @@ import { SETTINGS_ID, mapSettings } from './mappers';
 
 export const updateSettings = async (settings: Partial<StoreSettings>): Promise<StoreSettings> => {
   try {
-    const updatePayload: Record<string, any> = {};
+    const updatePayload: Record<string, unknown> = {};
 
     if (settings.store_name !== undefined) updatePayload.store_name = settings.store_name;
     if (settings.store_url !== undefined) updatePayload.store_url = settings.store_url;
@@ -419,7 +419,7 @@ export const updateSettings = async (settings: Partial<StoreSettings>): Promise<
     if (error) throw error;
 
     // Direct sync to ai_settings table to ensure both tables are permanently in sync
-    const aiFields: Record<string, any> = {};
+    const aiFields: Record<string, unknown> = {};
     if (updatePayload.ai_enabled !== undefined) aiFields.ai_enabled = updatePayload.ai_enabled;
     if (updatePayload.ai_model_credentials !== undefined) aiFields.ai_model_credentials = updatePayload.ai_model_credentials;
     if (updatePayload.content_provider !== undefined) aiFields.content_provider = updatePayload.content_provider;
@@ -453,7 +453,7 @@ export const updateSettings = async (settings: Partial<StoreSettings>): Promise<
       table: 'store_settings',
       action: 'UPDATE'
     }, error);
-    const message = (error as any)?.message || (error as any)?.toString() || 'Failed to update settings';
+    const message = (error instanceof Error ? error.message : null) || (error != null ? String(error) : null) || 'Failed to update settings';
     throw new Error(String(message));
   }
 };

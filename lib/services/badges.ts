@@ -9,7 +9,16 @@ import {
   isSystemBadgeName
 } from './badges-constants';
 
-const mapBadge = (row: any): Badge => ({
+interface BadgeRow {
+  id: string;
+  name: string;
+  bg_color: string;
+  text_color: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+const mapBadge = (row: BadgeRow): Badge => ({
   id: row.id,
   name: row.name,
   bg_color: row.bg_color,

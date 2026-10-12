@@ -17,10 +17,11 @@ export async function GET(
     }
 
     return NextResponse.json({ success: true, template });
-  } catch (error: any) {
+  } catch (error: unknown) {
     const { type } = await params;
     console.error(`[API email-templates] GET for '${type}' failed:`, error);
-    return NextResponse.json({ success: false, error: error.message || 'Internal server error' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Internal server error';
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }
 
@@ -43,10 +44,11 @@ export async function PATCH(
     });
 
     return NextResponse.json({ success: true, template: updated });
-  } catch (error: any) {
+  } catch (error: unknown) {
     const { type } = await params;
     console.error(`[API email-templates] PATCH for '${type}' failed:`, error);
-    return NextResponse.json({ success: false, error: error.message || 'Internal server error' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Internal server error';
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }
 
@@ -68,9 +70,10 @@ export async function POST(
     }
 
     return NextResponse.json({ success: false, error: 'Unsupported action' }, { status: 400 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     const { type } = await params;
     console.error(`[API email-templates] POST action for '${type}' failed:`, error);
-    return NextResponse.json({ success: false, error: error.message || 'Internal server error' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Internal server error';
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }

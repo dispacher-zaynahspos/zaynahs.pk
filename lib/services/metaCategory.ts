@@ -16,7 +16,24 @@ export async function getMetaCategoryMappings(): Promise<MetaCategoryMapping[]> 
 
     if (error) throw error;
 
-    return (data || []).map((row: any) => ({
+    interface MetaCategoryMappingRow {
+      id: string;
+      store_category_id: string;
+      meta_category: string;
+      created_at: string;
+      categories?: {
+        id: string;
+        name: string;
+        slug: string;
+        description?: string | null;
+        image_url?: string | null;
+        sort_order?: number | null;
+        active?: boolean | null;
+        created_at: string;
+        updated_at: string;
+      } | null;
+    }
+    return ((data || []) as MetaCategoryMappingRow[]).map((row) => ({
       id: row.id,
       store_category_id: row.store_category_id,
       meta_category: row.meta_category,

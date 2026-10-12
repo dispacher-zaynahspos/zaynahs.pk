@@ -99,8 +99,8 @@ export function useCategoryManagerState({
         }
         toast.success('AI description generated successfully!');
       }
-    } catch (err: any) {
-      toast.error(err.message || 'AI generation failed');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'AI generation failed');
     } finally {
       setIsAiGenerating(false);
     }

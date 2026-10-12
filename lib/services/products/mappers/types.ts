@@ -62,6 +62,21 @@ export interface DBCategory {
   updated_at: string;
 }
 
+export interface DBBadge {
+  id: string;
+  name: string;
+  bg_color: string;
+  text_color: string;
+}
+
+export interface DBSizeGuide {
+  id: string;
+  name: string;
+  chart_data: Array<Record<string, string>> | { rows?: Array<Record<string, string>>; unit?: string } | null;
+  unit?: string | null;
+  image_url?: string | null;
+}
+
 export interface DBProductCategoryRelation {
   product_id: string;
   category_id: string;

@@ -58,8 +58,8 @@ export interface HomepageSection {
   id: string;
   section_type: 'hero_banner' | 'product_grid' | 'category_list' | 'promo_banner' | 'trust_badges' | 'recent_reviews' | 'brands_logos' | 'category_grid' | 'collections_grid' | 'social_feed' | 'ticker' | 'flash_sale' | 'image_with_text' | 'tabbed_product_grid' | 'circular_categories' | 'faq_accordion' | 'rich_text' | string;
   title?: string;
-  settings: Record<string, any>;
-  content_data: Record<string, any>;
+  settings: Record<string, unknown>;
+  content_data: Record<string, unknown>;
   sort_order: number;
   active: boolean;
   created_at?: string;
@@ -434,7 +434,7 @@ export interface StoreSettings {
   social_feeds_title?: string;
   social_feeds_subtitle?: string;
   social_feeds_desc?: string;
-  social_feeds_items?: any;
+  social_feeds_items?: unknown;
   cart_timer_message?: string;
   coupon_codes_enabled?: boolean;
   theme_preset?: string;
@@ -520,7 +520,7 @@ export interface StoreSettings {
   smtp_app_password?: string;
   smtp_from_name?: string;
   admin_notification_email?: string;
-  email_notifications?: any;
+  email_notifications?: Record<string, boolean>;
   low_stock_threshold?: number;
 
   // Abandoned Cart Email Settings

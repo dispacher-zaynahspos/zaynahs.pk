@@ -135,16 +135,23 @@ export function useProductFormState({ categories, initialProduct, aiEnabled }: U
         ]);
         setAllBadges(b);
         setSizeGuidesList(sg);
-        const allProducts: any[] = prods.data || [];
+        interface ProductListRow {
+          id: string;
+          name: string;
+          price: number;
+          sku: string | null;
+          product_images: { url: string; is_primary: boolean; sort_order: number }[];
+        }
+        const allProducts: ProductListRow[] = (prods.data as ProductListRow[] | null) || [];
         const seen = new Set<string>();
-        const unique = allProducts.filter((p: any) => {
+        const unique = allProducts.filter((p) => {
           if (p.id === initialProduct?.id) return false;
           const key = p.id;
           if (seen.has(key)) return false;
           seen.add(key);
           return true;
         });
-        setProductList(unique as any);
+        setProductList(unique as unknown as Product[]);
       } catch (err) {
         console.error('Failed to load badges, size guides or products:', err);
       }

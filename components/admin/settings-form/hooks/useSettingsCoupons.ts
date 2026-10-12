@@ -51,8 +51,8 @@ export function useSettingsCoupons() {
       setCouponMinCartAmount(0);
       setCouponActive(true);
       setEditingCouponId(null);
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to save coupon');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to save coupon');
     }
   };
 

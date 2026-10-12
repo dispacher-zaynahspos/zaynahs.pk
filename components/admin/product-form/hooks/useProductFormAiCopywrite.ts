@@ -101,11 +101,13 @@ export function useProductFormAiCopywrite({
         }
         toast.success('AI description, short description, and tags generated successfully!');
       }
-    } catch (err: any) {
-      if (err.name === 'AbortError' || err.message?.includes('abort') || err.message?.includes('aborted')) {
+    } catch (err: unknown) {
+      const name = err instanceof Error ? err.name : '';
+      const message = err instanceof Error ? err.message : '';
+      if (name === 'AbortError' || message.includes('abort') || message.includes('aborted')) {
         toast.error('AI generation timed out. Please try again or switch model provider in Settings.');
       } else {
-        toast.error(err.message || 'AI generation failed');
+        toast.error(message || 'AI generation failed');
       }
     } finally {
       setIsAiGenerating(false);

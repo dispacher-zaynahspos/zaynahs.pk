@@ -65,7 +65,7 @@ export default function HeroBannerSettings({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [section.id, contentData.slides?.length, activeSlideId]);
 
-  const handleSettingsChange = (key: string, value: any) => {
+  const handleSettingsChange = (key: string, value: unknown) => {
     onUpdateSection({
       settings: { ...settings, [key]: value }
     });

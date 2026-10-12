@@ -16,6 +16,11 @@ import { rankSearchResults, DEFAULT_SEARCH_WEIGHTS, ProductSearchResult } from '
  * as the server engine — zero extra DB load, no duplicate algorithms (RULE SSOT1).
  */
 export function productToSearchResult(product: Product): ProductSearchResult {
+  type ProductWithAge = Product & {
+    recommended_age_min_months?: number;
+    recommended_age_max_months?: number;
+    age_group?: string;
+  };
   return {
     id: product.id,
     name: product.name,
@@ -25,9 +30,9 @@ export function productToSearchResult(product: Product): ProductSearchResult {
     price: product.price,
     compare_price: product.compare_price,
     sku: product.sku,
-    images: (product.images || []) as any,
-    variants: (product.variants || []) as any,
-    category: product.category as any,
+    images: product.images || [],
+    variants: product.variants || [],
+    category: product.category,
     tags: product.tags || [],
     is_active: product.is_active,
     is_featured: product.is_featured,
@@ -42,9 +47,9 @@ export function productToSearchResult(product: Product): ProductSearchResult {
     deleted_at: product.deleted_at ?? null,
     score: 0,
     matched_fields: [],
-    recommended_age_min_months: (product as any).recommended_age_min_months,
-    recommended_age_max_months: (product as any).recommended_age_max_months,
-    age_group: (product as any).age_group,
+    recommended_age_min_months: (product as ProductWithAge).recommended_age_min_months,
+    recommended_age_max_months: (product as ProductWithAge).recommended_age_max_months,
+    age_group: (product as ProductWithAge).age_group,
   };
 }
 

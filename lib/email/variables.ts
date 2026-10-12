@@ -58,7 +58,7 @@ export function renderOrderItemsTable(items: CartItem[], currencySymbol = 'Rs.',
   }).join('');
 }
 
-interface EmailVariableData {
+export interface EmailVariableData {
   settings?: Partial<StoreSettings>;
   customer?: { name?: string; email?: string; phone?: string };
   user?: { name?: string; email?: string };

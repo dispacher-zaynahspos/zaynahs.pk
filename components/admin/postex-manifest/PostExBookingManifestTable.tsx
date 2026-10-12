@@ -62,7 +62,7 @@ export default function PostExBookingManifestTable({ orders, settings, onGoBack 
     setSelectAll(true);
   }, [orders, cities, settings]);
 
-  const updateRow = useCallback((id: string, field: keyof EditableRow, value: any) => {
+  const updateRow = useCallback((id: string, field: keyof EditableRow, value: EditableRow[keyof EditableRow]) => {
     setRows(prev => ({ ...prev, [id]: { ...prev[id], [field]: value } }));
   }, []);
 
@@ -111,10 +111,10 @@ export default function PostExBookingManifestTable({ orders, settings, onGoBack 
           ...prev,
           [id]: { success: data.success, tracking: data.trackingNumber, error: data.error },
         }));
-      } catch (err: any) {
+      } catch (err: unknown) {
         setResults(prev => ({
           ...prev,
-          [id]: { success: false, error: err.message },
+          [id]: { success: false, error: err instanceof Error ? err.message : 'Request failed' },
         }));
       }
     }

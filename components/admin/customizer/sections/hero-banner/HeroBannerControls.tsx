@@ -191,13 +191,13 @@ export function ButtonGroupControl({
 }
 
 // Helper functions for parsing CSS unit strings cleanly
-export const parsePxValue = (val: any, defaultVal: number): number => {
+export const parsePxValue = (val: string | number | null | undefined, defaultVal: number): number => {
   if (val === undefined || val === null) return defaultVal;
   const num = parseInt(val.toString().replace('px', '').trim(), 10);
   return isNaN(num) ? defaultVal : num;
 };
 
-export const parsePercentValue = (val: any, defaultVal: number): number => {
+export const parsePercentValue = (val: string | number | null | undefined, defaultVal: number): number => {
   if (val === undefined || val === null) return defaultVal;
   const num = parseInt(val.toString().replace('%', '').trim(), 10);
   return isNaN(num) ? defaultVal : num;

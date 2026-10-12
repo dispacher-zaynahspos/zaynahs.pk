@@ -2,10 +2,11 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Product } from '@/lib/types';
+import { Product, ProductImage, ProductVariant, ProductModifier } from '@/lib/types';
 import { createProductSafe, updateProductSafe } from '@/lib/services/products/actions';
 import { toast } from 'sonner';
 import { buildVariantCombinations } from './useProductVariantsState';
+import type { VariantAxis } from '../variants-section';
 import { slugify } from '@/lib/utils/slugify';
 
 interface ProductSubmitPayloadParams {
@@ -40,10 +41,10 @@ interface ProductSubmitPayloadParams {
   reviewsCount: string;
   isEdit: boolean;
   initialProduct?: Product | null;
-  images: any[];
-  variants: any[];
-  modifiers: any[];
-  variantAxes: any[];
+  images: Omit<ProductImage, 'id' | 'product_id' | 'created_at'>[];
+  variants: Omit<ProductVariant, 'id' | 'product_id'>[];
+  modifiers: Omit<ProductModifier, 'id' | 'product_id'>[];
+  variantAxes: VariantAxis[];
 }
 
 export function useProductFormSubmit() {
@@ -72,7 +73,7 @@ export function useProductFormSubmit() {
       let finalVariants = [...(params.variants || [])];
 
       if (params.hasVariants) {
-        const validAxes = (params.variantAxes || []).filter((a: any) => a.values && a.values.length > 0);
+        const validAxes = (params.variantAxes || []).filter((a) => a.values && a.values.length > 0);
 
         // Auto-generate combinations if merchant added attribute values but didn't press Generate All Combinations
         if (finalVariants.length === 0 && validAxes.length > 0) {
@@ -138,7 +139,7 @@ export function useProductFormSubmit() {
         short_description: params.shortDescription.trim() || undefined,
         rating: parseFloat(params.rating) || 5.0,
         reviews_count: parseInt(params.reviewsCount) || 0,
-        variation_order: params.variantAxes.map((a: any) => a.type),
+        variation_order: params.variantAxes.map((a) => a.type),
       };
 
       if (params.isEdit && params.initialProduct) {

@@ -111,7 +111,7 @@ export default function SpinWheelModal({
     };
 
     drawWheel();
-    (canvas as any).drawWheel = drawWheel;
+    (canvas as HTMLCanvasElement & { drawWheel?: () => void }).drawWheel = drawWheel;
   }, [canvasRef, rotationRef, settings.spin_wheel_segments]);
 
   const getCouponCodeForSegment = (prize: string | null) => {

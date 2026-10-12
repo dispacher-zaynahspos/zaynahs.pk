@@ -1,4 +1,4 @@
-export function wrapLayout(content: string, vars: Record<string, any>, title: string): string {
+export function wrapLayout(content: string, vars: Record<string, string>, title: string): string {
   const brandName = vars.brand_name || process.env.NEXT_PUBLIC_BRAND_NAME || 'Your Store';
   const siteUrl = vars.site_url || '';
   const logoHtml = vars.logo_url 
@@ -58,7 +58,7 @@ export function getCTAButton(text: string, url: string): string {
   `;
 }
 
-export function getOrderSummary(vars: Record<string, any>): string {
+export function getOrderSummary(vars: Record<string, string>): string {
   return `
     <h3 style="margin-top: 32px; color: #1a1a2e; border-bottom: 2px solid #f3f4f6; padding-bottom: 8px;">Order Details</h3>
     <table width="100%" border="0" cellspacing="0" cellpadding="0" style="border-collapse: collapse; margin-top: 16px;">

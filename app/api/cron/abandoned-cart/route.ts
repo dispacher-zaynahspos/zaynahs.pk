@@ -60,10 +60,13 @@ export async function GET(req: NextRequest) {
           customer_name: cart.customerName || 'Customer',
           checkout_url: checkoutUrl,
           order: {
-            items: cart.items.map((i: any) => ({
-              ...i,
-              total: i.price * i.quantity
-            }))
+            items: cart.items.map((i) => {
+              const item = i as { price?: number; quantity?: number; [key: string]: unknown };
+              return {
+                ...item,
+                total: (item.price ?? 0) * (item.quantity ?? 0)
+              };
+            })
           },
           order_subtotal: `${settings.currency_symbol || 'Rs.'}${cart.subtotal.toLocaleString()}`,
           order_total: `${settings.currency_symbol || 'Rs.'}${cart.subtotal.toLocaleString()}`,
@@ -96,8 +99,8 @@ export async function GET(req: NextRequest) {
 
     console.log(`[abandoned-cart cron] Processed ${pendingCarts.length} carts: ${sent} sent, ${failed} failed`);
     return NextResponse.json({ processed: pendingCarts.length, sent, failed });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('[abandoned-cart cron] Fatal error:', err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({ error: err instanceof Error ? err.message : 'Internal Server Error' }, { status: 500 });
   }
 }

@@ -64,7 +64,7 @@ export async function trackOrder(orderNumber: string, phone: string): Promise<Tr
     }
 
     return { ok: true, order: mapOrder(row) };
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('[trackOrder] failed:', err);
     return { ok: false, error: 'Something went wrong. Please try again.' };
   }

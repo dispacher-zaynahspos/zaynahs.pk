@@ -108,9 +108,10 @@ export default function ReviewForm({ productId, onReviewSubmitted }: ReviewFormP
       if (onReviewSubmitted) {
         onReviewSubmitted();
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to submit review:', err);
-      toast.error(err?.message || 'Something went wrong. Please try again.');
+      const message = err instanceof Error ? err.message : 'Something went wrong. Please try again.';
+      toast.error(message);
     } finally {
       setSubmitting(false);
       setUploadStatus('');

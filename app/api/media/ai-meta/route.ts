@@ -64,8 +64,9 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({ success: true, data: meta, provider: result.provider, model: result.model });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[AI Media Meta] Vision analysis failed:', error);
-    return NextResponse.json({ error: error.message || 'Vision analysis process failed' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Vision analysis process failed';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

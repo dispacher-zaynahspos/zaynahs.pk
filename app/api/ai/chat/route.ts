@@ -15,7 +15,10 @@ export async function POST(req: NextRequest) {
   const _denied = await requireAdmin(req);
   if (_denied) return _denied;
   try {
-    const { messages, provider: forcedProvider } = await req.json();
+    const { messages, provider: forcedProvider } = (await req.json()) as {
+      messages?: unknown;
+      provider?: string;
+    };
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return NextResponse.json({ error: 'Messages array is required' }, { status: 400 });
@@ -24,10 +27,13 @@ export async function POST(req: NextRequest) {
     const settings = await getAISettings();
     const keys = extractKeys(settings);
 
+    type ChatMessage = { role: string; content: string };
+    const typedMessages = messages as ChatMessage[];
+
     // Build prompt from message history
-    const systemMsg = messages.find((m: any) => m.role === 'system');
-    const historyMsgs = messages.filter((m: any) => m.role !== 'system');
-    const conversation = historyMsgs.map((m: any) => `${m.role}: ${m.content}`).join('\n');
+    const systemMsg = typedMessages.find((m) => m.role === 'system');
+    const historyMsgs = typedMessages.filter((m) => m.role !== 'system');
+    const conversation = historyMsgs.map((m) => `${m.role}: ${m.content}`).join('\n');
     const prompt = conversation;
     const systemPrompt = systemMsg?.content || 'You are a helpful e-commerce assistant.';
 
@@ -44,11 +50,16 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json(result);
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('[Chat API]', err);
+    const message = err instanceof Error ? err.message : 'Chat failed';
+    const status =
+      typeof err === 'object' && err !== null && 'status' in err && typeof (err as { status: unknown }).status === 'number'
+        ? (err as { status: number }).status
+        : 500;
     return NextResponse.json(
-      { error: err.message || 'Chat failed' },
-      { status: err.status || 500 },
+      { error: message },
+      { status },
     );
   }
 }

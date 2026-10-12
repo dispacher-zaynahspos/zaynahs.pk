@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { ShoppingCart, Search, Heart, User } from '@/components/common/Icons';
+import type { CustomerSession } from '@/lib/utils/customer-auth';
 
 interface NavbarActionsProps {
   isAdmin: boolean;
@@ -12,7 +13,7 @@ interface NavbarActionsProps {
   mounted: boolean;
   wishlistCount: number;
   totalItems: number;
-  customerSession: any;
+  customerSession: CustomerSession | null;
 }
 
 export function NavSearchButton({

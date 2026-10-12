@@ -90,7 +90,7 @@ export default function NavigationTab({
           <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">Desktop Menu Alignment</label>
           <select
             value={headerDesktopMenuAlign}
-            onChange={(e) => setHeaderDesktopMenuAlign(e.target.value as any)}
+            onChange={(e) => setHeaderDesktopMenuAlign(e.target.value as 'left' | 'center' | 'right' | 'hidden')}
             className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f0f1b] px-4 py-2.5 text-sm focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
           >
             <option value="left">Left Aligned</option>

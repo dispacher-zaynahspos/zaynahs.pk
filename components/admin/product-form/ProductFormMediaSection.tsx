@@ -8,14 +8,22 @@ import {
   MeasuringStrategy,
   type DragStartEvent,
   type DragEndEvent,
+  type SensorDescriptor,
+  type SensorOptions,
 } from '@dnd-kit/core';
 import { SortableContext, rectSortingStrategy } from '@dnd-kit/sortable';
 import { SortableImageItem } from './SortableImageItem';
 
+interface ProductFormImage {
+  url: string;
+  alt?: string;
+  [key: string]: unknown;
+}
+
 interface ProductFormMediaSectionProps {
-  images: any[];
+  images: ProductFormImage[];
   setIsMediaModalOpen: (val: boolean) => void;
-  sensors: any;
+  sensors: SensorDescriptor<SensorOptions>[];
   handleDragStartImages: (event: DragStartEvent) => void;
   handleDragCancelImages: () => void;
   handleDragEndImages: (event: DragEndEvent) => void;

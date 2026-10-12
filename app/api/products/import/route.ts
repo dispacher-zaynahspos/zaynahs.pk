@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     const stream = new ReadableStream({
       async start(controller) {
         // Helper to send progress chunks
-        const sendProgress = (result: any) => {
+        const sendProgress = (result: unknown) => {
           controller.enqueue(encoder.encode(JSON.stringify(result) + '\n'));
         };
 
@@ -70,10 +70,11 @@ export async function POST(request: NextRequest) {
       }
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[Import API] Import process crashed:', error);
+    const message = error instanceof Error ? error.message : 'Import failed';
     return NextResponse.json(
-      { error: error.message || 'Import failed' },
+      { error: message },
       { status: 500 }
     );
   }

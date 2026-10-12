@@ -63,14 +63,24 @@ export default function TrafficPanel() {
     document.addEventListener('visibilitychange', onVisibilityChange);
 
     // Pusher real-time subscription (optional)
-    let pusher: any = null;
+    interface PusherLike {
+      subscribe: (channel: string) => { bind: (event: string, cb: (incoming: TrafficUpdate) => void) => void };
+      unsubscribe: (channel: string) => void;
+      disconnect: () => void;
+    }
+    interface TrafficUpdate {
+      liveCount: number;
+      totalVisitors: number;
+      totalPageviews: number;
+    }
+    let pusher: PusherLike | null = null;
     const pusherKey = process.env.NEXT_PUBLIC_PUSHER_KEY;
     const pusherCluster = process.env.NEXT_PUBLIC_PUSHER_CLUSTER;
     if (pusherKey && pusherCluster && typeof window !== 'undefined') {
       import('pusher-js').then(({ default: Pusher }) => {
-        pusher = new Pusher(pusherKey, { cluster: pusherCluster });
+        pusher = new Pusher(pusherKey, { cluster: pusherCluster }) as unknown as PusherLike;
         const channel = pusher.subscribe('traffic-channel');
-        channel.bind('traffic-update', (incoming: any) => {
+        channel.bind('traffic-update', (incoming: TrafficUpdate) => {
           setData((prev) => prev ? { ...prev, liveCount: incoming.liveCount, totalVisitors: incoming.totalVisitors, totalPageviews: incoming.totalPageviews } : prev);
           setLastUpdated(new Date());
         });

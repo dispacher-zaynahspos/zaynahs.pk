@@ -6,7 +6,7 @@ import { getContentWidthClass, CATALOG_SECTION_PADDING } from '@/lib/utils/respo
 interface SectionWrapperProps {
   section: {
     id: string;
-    settings?: Record<string, any>;
+    settings?: Record<string, unknown>;
   };
   children: React.ReactNode;
   /** override default max-w class e.g. 'max-w-full' for full-bleed sections */
@@ -34,9 +34,9 @@ export function SectionWrapper({
   const s = section.settings || {};
   const ptVal = Number(s.padding_top ?? 20);
   const pbVal = Number(s.padding_bottom ?? 20);
-  const bgColor = s.section_bg_color || '';
+  const bgColor = typeof s.section_bg_color === 'string' ? s.section_bg_color : '';
   // Explicit override wins; otherwise resolve from the shared content-width setting.
-  const widthClass = maxWidthClass || getContentWidthClass(s.content_width);
+  const widthClass = maxWidthClass || getContentWidthClass(typeof s.content_width === 'string' ? s.content_width : undefined);
 
   return (
     <div

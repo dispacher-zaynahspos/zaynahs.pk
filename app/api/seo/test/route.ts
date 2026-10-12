@@ -9,14 +9,19 @@ import { notifyGoogleIndexing } from '@/lib/googleIndexing';
  * Tests SEO setup: sitemap, robots, canonical, IndexNow, Google Indexing
  */
 export async function GET() {
-  const results: Record<string, any> = {};
+  interface SeoCheck {
+    status: string;
+    error?: string;
+    [key: string]: unknown;
+  }
+  const results: Record<string, SeoCheck> = {};
 
   // 1. Check settings
   try {
     const settings = await getSettings();
     results.settings = { status: 'ok', storeUrl: settings.store_url, storeName: settings.store_name };
-  } catch (e: any) {
-    results.settings = { status: 'fail', error: e.message };
+  } catch (e: unknown) {
+    results.settings = { status: 'fail', error: e instanceof Error ? e.message : String(e) };
   }
 
   // 2. Check sitemap products count
@@ -27,8 +32,8 @@ export async function GET() {
       .is('deleted_at', null)
       .eq('is_active', true);
     results.products = { status: 'ok', activeCount: count };
-  } catch (e: any) {
-    results.products = { status: 'fail', error: e.message };
+  } catch (e: unknown) {
+    results.products = { status: 'fail', error: e instanceof Error ? e.message : String(e) };
   }
 
   // 3. Check sitemap categories count
@@ -38,8 +43,8 @@ export async function GET() {
       .select('slug', { count: 'exact', head: true })
       .eq('active', true);
     results.categories = { status: 'ok', activeCount: count };
-  } catch (e: any) {
-    results.categories = { status: 'fail', error: e.message };
+  } catch (e: unknown) {
+    results.categories = { status: 'fail', error: e instanceof Error ? e.message : String(e) };
   }
 
   // 4. Check IndexNow key
@@ -67,8 +72,8 @@ export async function GET() {
     const testUrl = results.settings?.storeUrl || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
     const indexNowResult = await pingIndexNow([`${testUrl}/`], testUrl);
     results.indexNowTest = { status: indexNowResult ? 'ok' : 'failed', note: indexNowResult ? '' : 'ping returned false (check logs)' };
-  } catch (e: any) {
-    results.indexNowTest = { status: 'fail', error: e.message };
+  } catch (e: unknown) {
+    results.indexNowTest = { status: 'fail', error: e instanceof Error ? e.message : String(e) };
   }
 
   // 8. Test Google Indexing API (only if configured)
@@ -77,10 +82,10 @@ export async function GET() {
       const testUrl = results.settings?.storeUrl || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
       results.googleIndexingTest = await notifyGoogleIndexing(`${testUrl}/`, 'URL_UPDATED').then(
         ok => ({ status: ok ? 'ok' : 'failed' }),
-        err => ({ status: 'failed', error: err.message })
+        (err: unknown) => ({ status: 'failed', error: err instanceof Error ? err.message : String(err) })
       );
-    } catch (e: any) {
-      results.googleIndexingTest = { status: 'fail', error: e.message };
+    } catch (e: unknown) {
+      results.googleIndexingTest = { status: 'fail', error: e instanceof Error ? e.message : String(e) };
     }
   } else {
     results.googleIndexingTest = { status: 'skipped', reason: 'Google Indexing not configured' };
@@ -90,10 +95,10 @@ export async function GET() {
     timestamp: new Date().toISOString(),
     results,
     summary: {
-      allPassed: Object.values(results).every((r: any) => r.status === 'ok' || r.status === 'skipped'),
+      allPassed: Object.values(results).every((r) => r.status === 'ok' || r.status === 'skipped'),
       total: Object.keys(results).length,
-      passed: Object.values(results).filter((r: any) => r.status === 'ok').length,
-      failed: Object.values(results).filter((r: any) => r.status === 'fail' || r.status === 'missing' || r.status === 'not configured').length,
+      passed: Object.values(results).filter((r) => r.status === 'ok').length,
+      failed: Object.values(results).filter((r) => r.status === 'fail' || r.status === 'missing' || r.status === 'not configured').length,
     },
   });
 }

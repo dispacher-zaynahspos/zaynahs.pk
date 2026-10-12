@@ -8,7 +8,7 @@ export const updateProductVariantFields = async (
 ): Promise<void> => {
   try {
     const supabase = staticSupabase;
-    const updatePayload: Record<string, any> = {};
+    const updatePayload: Record<string, unknown> = {};
     if (fields.stock !== undefined) updatePayload.stock = fields.stock;
     if (fields.price !== undefined) updatePayload.price = fields.price;
     if (fields.compare_price !== undefined) updatePayload.compare_price = fields.compare_price;

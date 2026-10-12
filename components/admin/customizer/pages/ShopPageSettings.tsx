@@ -175,7 +175,7 @@ export default function ShopPageSettings({
                   key={b.key}
                   label={b.label}
                   value={(settings[b.key] as boolean | undefined) !== false}
-                  onChange={(v) => onUpdateSettings({ [b.key]: v } as any)}
+                  onChange={(v) => onUpdateSettings({ [b.key]: v } as Partial<StoreSettings>)}
                 />
               ))}
             </div>

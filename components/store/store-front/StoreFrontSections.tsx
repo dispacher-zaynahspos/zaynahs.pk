@@ -10,9 +10,11 @@ import { getResponsiveGridClasses, getGridGapClass, getCatalogGridStyle, evenFil
 import SocialFeedRibbon from '../SocialFeedRibbon';
 import { SectionWrapper } from './SectionWrapper';
 import { getOptimizedImageUrl, getPresetImageUrl } from '@/lib/utils/imageUrl';
-import { resolveCardImage, buildRefLookup, type RefEntity } from '@/lib/utils/resolveCardImage';
+import { resolveCardImage, buildRefLookup, type RefEntity, type GridCardLike } from '@/lib/utils/resolveCardImage';
 import { SectionIcon } from '@/components/common/SectionIcon';
 import { Lock, Eye, Sparkles } from '@/components/common/Icons';
+
+type GridItem = GridCardLike & { imageUrl?: string };
 
 interface PromoBannerSectionProps {
   section: HomepageSection;
@@ -114,7 +116,7 @@ interface CategoryGridSectionProps {
 }
 
 export function CategoryGridSection({ section, refEntities = [] }: CategoryGridSectionProps) {
-  const items = section.content_data?.items || [];
+  const items = (section.content_data?.items || []) as GridItem[];
   const refLookup = buildRefLookup(refEntities);
   
   const defaultItems = [
@@ -124,10 +126,10 @@ export function CategoryGridSection({ section, refEntities = [] }: CategoryGridS
     { title: 'Accessories', link: '/shop', imageUrl: 'https://images.unsplash.com/photo-1509319117193-57bab727e09d?w=800&auto=format&fit=crop&q=80' }
   ];
 
-  const displayItems = items.length > 0 
+  const displayItems: GridItem[] = items.length > 0 
     ? items
-        .map((item: any) => ({ ...item, imageUrl: resolveCardImage(item, refLookup) }))
-        .filter((item: any) => item && item.imageUrl)
+        .map((item) => ({ ...item, imageUrl: resolveCardImage(item, refLookup) }))
+        .filter((item) => item && item.imageUrl)
     : defaultItems;
 
   // Tile columns (RULE DS24 FIX2). Auto mode (default) fills by a per-breakpoint
@@ -198,7 +200,7 @@ export function CategoryGridSection({ section, refEntities = [] }: CategoryGridS
 
       {/* Responsive Cards Grid on Mobile, Tablet & Desktop */}
       <div className={grid.className} data-mode={grid.mode} style={grid.style}>
-        {displayItems.map((item: any, idx: number) => (
+        {displayItems.map((item, idx: number) => (
           <Link 
             key={idx} 
             href={item.link || '/shop'}
@@ -317,8 +319,14 @@ interface TickerSectionProps {
 
 export function TickerSection({ section, activeSettings }: TickerSectionProps) {
   const enabled = activeSettings.enable_ticker && activeSettings.ticker_text;
-  const tickerBgColor = section.settings?.tickerBgColor || section.settings?.bgColor || (activeSettings as any).tickerBgColor || (activeSettings as any).ticker_bg_color || '';
-  const tickerTextColor = section.settings?.tickerTextColor || section.settings?.textColor || (activeSettings as any).tickerTextColor || (activeSettings as any).ticker_text_color || '';
+  const tickerColorSettings = activeSettings as StoreSettings & {
+    tickerBgColor?: string;
+    ticker_bg_color?: string;
+    tickerTextColor?: string;
+    ticker_text_color?: string;
+  };
+  const tickerBgColor = section.settings?.tickerBgColor || section.settings?.bgColor || tickerColorSettings.tickerBgColor || tickerColorSettings.ticker_bg_color || '';
+  const tickerTextColor = section.settings?.tickerTextColor || section.settings?.textColor || tickerColorSettings.tickerTextColor || tickerColorSettings.ticker_text_color || '';
 
   const items = React.useMemo(
     () => (activeSettings.ticker_text || '').split('\n').filter(Boolean),
@@ -400,7 +408,7 @@ export function TickerSection({ section, activeSettings }: TickerSectionProps) {
       `}</style>
       <div
         className="ticker-track items-center whitespace-nowrap"
-        style={{ ['--ticker-copies' as any]: copies, ['--ticker-dur' as any]: `${duration}s` }}
+        style={{ '--ticker-copies': copies, '--ticker-dur': `${duration}s` } as React.CSSProperties}
       >
         {Array.from({ length: copies }).map((_, loopIdx) => (
           <React.Fragment key={loopIdx}>{renderUnit(loopIdx === 0)}</React.Fragment>

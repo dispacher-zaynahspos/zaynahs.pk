@@ -10,10 +10,13 @@ import WhatsappTab from '../settings/WhatsappTab';
 import PoliciesTab from '../settings/PoliciesTab';
 import FooterTab from '../settings/FooterTab';
 import { TabId } from './index';
+import type { useSettingsFormState } from './hooks/useSettingsFormState';
+
+type SettingsFormState = ReturnType<typeof useSettingsFormState>;
 
 interface SettingsTabRendererCoreProps {
   activeTab: TabId;
-  s: any;
+  s: SettingsFormState;
 }
 
 export function SettingsTabRendererCore({ activeTab, s }: SettingsTabRendererCoreProps) {

@@ -1,13 +1,14 @@
 import { getEmailTemplate } from '@/lib/services/emailTemplates';
 import { getSettings } from '@/lib/services/settings';
-import { buildVariables, replaceVariables, renderOrderItemsTable } from './variables';
+import { buildVariables, replaceVariables, renderOrderItemsTable, type EmailVariableData } from './variables';
 import { getDefaultTemplate } from './defaults/getDefaultTemplate';
 import { sendEmail } from './sendEmail';
+import type { CartItem } from '@/lib/types';
 
 export async function sendTemplatedEmail(
   emailType: string,
   to: string,
-  data: Record<string, any>
+  data: Omit<EmailVariableData, 'settings'>
 ): Promise<{ success: boolean; skipped?: boolean; error?: string }> {
   try {
     // 1. Fetch template from database
@@ -28,14 +29,14 @@ export async function sendTemplatedEmail(
       return { success: false, skipped: true };
     }
 
-    const mergedData = { ...data, settings };
+    const mergedData: EmailVariableData = { ...data, settings };
 
     // 4. Build variable mappings
     const variables = await buildVariables(emailType, mergedData);
 
     // 5. Pre-render order items table if items are present
     if (data.order?.items) {
-      variables.order_items_html = renderOrderItemsTable(data.order.items, settings.currency_symbol, variables.site_url);
+      variables.order_items_html = renderOrderItemsTable(data.order.items as CartItem[], settings.currency_symbol, variables.site_url);
     }
 
     // 6. Resolve Subject Line
@@ -51,8 +52,8 @@ export async function sendTemplatedEmail(
 
     // 8. Dispatch via core sender
     return await sendEmail({ to, subject, html });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error(`[Email] sendTemplatedEmail failed for '${emailType}':`, error);
-    return { success: false, error: error.message || 'Templated send failed' };
+    return { success: false, error: error instanceof Error ? error.message : 'Templated send failed' };
   }
 }

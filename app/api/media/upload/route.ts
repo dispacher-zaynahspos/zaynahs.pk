@@ -64,7 +64,14 @@ export async function POST(request: Request) {
     const isVideo = file.type.startsWith('video/') || 
                     ['mp4', 'mov', 'webm', 'ogg'].includes(file.name.split('.').pop()?.toLowerCase() || '');
 
-    let meta: any = null;
+    type MediaMeta = {
+      alt_text?: string;
+      seo_filename?: string;
+      title?: string;
+      description?: string;
+      caption?: string;
+    };
+    let meta: MediaMeta | null = null;
     let aiProvider = '';
     let aiError: string | null = null;
     try {
@@ -90,7 +97,7 @@ export async function POST(request: Request) {
           let cleanJson = result.result.trim();
           if (cleanJson.includes('```json')) cleanJson = cleanJson.split('```json')[1].split('```')[0].trim();
           else if (cleanJson.includes('```')) cleanJson = cleanJson.split('```')[1].split('```')[0].trim();
-          meta = JSON.parse(cleanJson);
+          meta = JSON.parse(cleanJson) as MediaMeta;
 
           if (meta) {
             await supabaseAdmin
@@ -111,9 +118,10 @@ export async function POST(request: Request) {
           console.warn('[Media Upload API] Auto vision enabled but no vision API keys configured');
         }
       }
-    } catch (aiErr: any) {
-      console.error('[Media Upload API] Auto Vision generation failed:', aiErr.message || aiErr);
-      aiError = aiErr?.message || 'AI vision analysis failed';
+    } catch (aiErr: unknown) {
+      const aiMsg = aiErr instanceof Error ? aiErr.message : 'AI vision analysis failed';
+      console.error('[Media Upload API] Auto Vision generation failed:', aiMsg);
+      aiError = aiMsg;
     }
 
     return NextResponse.json({
@@ -131,9 +139,10 @@ export async function POST(request: Request) {
         caption: mediaRecord.caption,
       }
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[Media Upload API] Upload failed:', error);
-    return NextResponse.json({ error: error.message || 'Image upload failed' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Image upload failed';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 export const dynamic = 'force-dynamic';

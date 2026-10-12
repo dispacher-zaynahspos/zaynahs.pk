@@ -48,7 +48,7 @@ export const fetchSettings = async (): Promise<StoreSettings> => {
       .select('*')
       .eq('id', SETTINGS_ID)
       .maybeSingle();
-    return mapSettings(fresh ?? ({ id: SETTINGS_ID, updated_at: new Date().toISOString() } as any));
+    return mapSettings(fresh ?? { id: SETTINGS_ID, updated_at: new Date().toISOString() });
   } catch (err) {
     logDbError({
       file: 'lib/services/settings/queries.ts',
@@ -56,7 +56,7 @@ export const fetchSettings = async (): Promise<StoreSettings> => {
       table: 'store_settings_public',
       action: 'SELECT'
     }, err);
-    return mapSettings({ id: SETTINGS_ID, updated_at: new Date().toISOString() } as any);
+    return mapSettings({ id: SETTINGS_ID, updated_at: new Date().toISOString() });
   }
 };
 

@@ -3,8 +3,8 @@
 import React from 'react';
 
 interface TileLabelControlsProps {
-  settings: Record<string, any>;
-  onChange: (key: string, value: any) => void;
+  settings: Record<string, string | number | boolean | undefined>;
+  onChange: (key: string, value: string | number | boolean) => void;
 }
 
 /**

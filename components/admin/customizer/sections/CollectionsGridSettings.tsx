@@ -25,6 +25,15 @@ interface CollectionsGridSettingsProps {
   ) => void;
 }
 
+interface CollectionGridItem {
+  title?: string;
+  link?: string;
+  imageUrl?: string;
+  ref_type?: 'collection';
+  ref_id?: string;
+  image_mode?: 'auto' | 'custom';
+}
+
 export default function CollectionsGridSettings({
   section,
   collections = [],
@@ -34,7 +43,7 @@ export default function CollectionsGridSettings({
   onSelectMedia
 }: CollectionsGridSettingsProps) {
   const contentData = section.content_data || {};
-  const items = contentData.items || [];
+  const items: CollectionGridItem[] = (contentData.items as CollectionGridItem[] | undefined) || [];
   
   const [showBulkAdd, setShowBulkAdd] = useState(false);
   const [selectedBulkIds, setSelectedBulkIds] = useState<string[]>([]);
@@ -44,7 +53,7 @@ export default function CollectionsGridSettings({
     c.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleItemsChange = (updatedItems: any[]) => {
+  const handleItemsChange = (updatedItems: CollectionGridItem[]) => {
     onUpdateSection({
       content_data: { ...contentData, items: updatedItems }
     });
@@ -432,8 +441,8 @@ export default function CollectionsGridSettings({
         )}
 
         <div className="space-y-3">
-          {items.map((item: any, index: number) => {
-            const updateItem = (patch: any) => {
+          {items.map((item, index: number) => {
+            const updateItem = (patch: Partial<CollectionGridItem>) => {
               const newItems = [...items];
               newItems[index] = { ...item, ...patch };
               handleItemsChange(newItems);

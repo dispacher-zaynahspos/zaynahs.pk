@@ -1708,5 +1708,5 @@ export const customCss = `
 `;
 
 export const ProductCardStyleInjector: React.FC = () => (
-  <style dangerouslySetInnerHTML={{ __html: customCss }} />
+  <style href="product-card-styles" precedence="default" dangerouslySetInnerHTML={{ __html: customCss }} />
 );

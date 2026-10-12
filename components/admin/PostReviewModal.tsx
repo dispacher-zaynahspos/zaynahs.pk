@@ -267,7 +267,7 @@ export default function PostReviewModal({ isOpen, onClose, onSuccess, editProof 
               {/* Source Type */}
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">Source Type</label>
-                <select value={proofSourceType} onChange={(e) => setProofSourceType(e.target.value as any)} className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-[#0f0f1b]/50 px-4 py-2.5 text-sm font-medium text-gray-900 dark:text-white focus:border-[#e94560] focus:outline-none transition-all">
+                <select value={proofSourceType} onChange={(e) => setProofSourceType(e.target.value as 'whatsapp' | 'instagram' | 'facebook' | 'manual')} className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-[#0f0f1b]/50 px-4 py-2.5 text-sm font-medium text-gray-900 dark:text-white focus:border-[#e94560] focus:outline-none transition-all">
                   <option value="whatsapp">WhatsApp</option>
                   <option value="instagram">Instagram DM</option>
                   <option value="facebook">Facebook</option>

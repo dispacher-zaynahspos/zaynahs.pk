@@ -35,9 +35,14 @@ export async function attachLinkedProducts(proofs: SocialProof[]): Promise<Socia
 
     if (!junctionRows) return proofs;
 
-    const productsByProofId: Record<string, any[]> = {};
+    const productsByProofId: Record<string, Array<{ id: string; name: string; slug: string }>> = {};
     const allProductIds = new Set<string>();
-    for (const row of junctionRows as any[]) {
+    type JunctionRow = {
+      social_proof_id: string;
+      product_id: string;
+      products?: { id: string; name: string; slug: string } | null;
+    };
+    for (const row of junctionRows as JunctionRow[]) {
       if (!productsByProofId[row.social_proof_id]) productsByProofId[row.social_proof_id] = [];
       if (row.products) {
         const p = row.products;

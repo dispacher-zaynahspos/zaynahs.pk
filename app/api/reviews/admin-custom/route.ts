@@ -31,9 +31,9 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({ success: true, data: review });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[API] POST /api/reviews/admin-custom failed:', error);
-    return NextResponse.json({ error: error.message || 'Failed to submit' }, { status: 500 });
+    return NextResponse.json({ error: error instanceof Error ? error.message : 'Failed to submit' }, { status: 500 });
   }
 }
 
@@ -55,8 +55,8 @@ export async function PUT(request: NextRequest) {
     }
 
     return NextResponse.json({ error: 'Invalid update request' }, { status: 400 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[API] PUT /api/reviews/admin-custom failed:', error);
-    return NextResponse.json({ error: error.message || 'Failed to update' }, { status: 500 });
+    return NextResponse.json({ error: error instanceof Error ? error.message : 'Failed to update' }, { status: 500 });
   }
 }

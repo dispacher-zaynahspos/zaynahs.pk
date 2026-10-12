@@ -57,8 +57,8 @@ export default function TemplateEditorPage() {
       } else {
         toast.error('Failed to load template details');
       }
-    } catch (err: any) {
-      toast.error(err.message || 'Error occurred while loading template');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Error occurred while loading template');
     } finally {
       setLoading(false);
     }
@@ -105,8 +105,8 @@ export default function TemplateEditorPage() {
       } else {
         toast.error(data.error || 'Failed to save template');
       }
-    } catch (err: any) {
-      toast.error(err.message || 'Error saving template');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Error saving template');
     } finally {
       setSaving(false);
     }
@@ -135,8 +135,8 @@ export default function TemplateEditorPage() {
       } else {
         toast.error(data.error || 'Failed to reset template');
       }
-    } catch (err: any) {
-      toast.error(err.message || 'Error resetting template');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Error resetting template');
     } finally {
       setSaving(false);
     }
@@ -165,8 +165,8 @@ export default function TemplateEditorPage() {
         toast.error(data.error || 'Failed to load preview');
         setShowPreviewModal(false);
       }
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to load preview');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to load preview');
       setShowPreviewModal(false);
     } finally {
       setPreviewLoading(false);
@@ -193,8 +193,8 @@ export default function TemplateEditorPage() {
       } else {
         toast.error(data.error || 'Failed to send test email');
       }
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to send test email');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to send test email');
     } finally {
       setSendingTest(false);
     }

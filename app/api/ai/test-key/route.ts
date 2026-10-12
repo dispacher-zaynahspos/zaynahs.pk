@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth/requireAdmin';
 
-const PROVIDER_ENDPOINTS: Record<string, { url: string; headers: Record<string, string>; method?: string; body?: any }> = {
+const PROVIDER_ENDPOINTS: Record<string, { url: string; headers: Record<string, string>; method?: string; body?: Record<string, unknown> }> = {
   groq: { url: 'https://api.groq.com/openai/v1/models', headers: {} },
   gemini: { url: 'https://generativelanguage.googleapis.com/v1beta/models', headers: {} },
   openai: { url: 'https://api.openai.com/v1/models', headers: {} },
@@ -73,10 +73,12 @@ export async function POST(request: Request) {
       valid: false,
       error: `API returned ${response.status}: ${errorText || response.statusText}`,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const isAbort = error instanceof Error && error.name === 'AbortError';
+    const message = error instanceof Error ? error.message : 'Request failed';
     return NextResponse.json({
       valid: false,
-      error: error.name === 'AbortError' ? 'Request timed out (10s)' : error.message,
+      error: isAbort ? 'Request timed out (10s)' : message,
     });
   }
 }

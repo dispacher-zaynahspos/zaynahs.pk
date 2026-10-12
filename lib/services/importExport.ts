@@ -1,4 +1,15 @@
-import { ExportBundle } from '@/lib/types';
+import { ExportBundle, ExportedProduct } from '@/lib/types';
+
+export interface ImportProgressUpdate {
+  type?: 'start';
+  total?: number;
+  success?: boolean;
+  productName?: string;
+  status?: 'skipped' | 'overwritten' | 'imported' | 'error';
+  message?: string;
+  error?: string;
+  categoryCache?: Record<string, string>;
+}
 
 /**
  * Initiates product export for the selected product IDs.
@@ -54,13 +65,13 @@ const isRetryableStatus = (status: number) =>
 
 interface ImportItemOutcome {
   ok: boolean;
-  result?: any;
+  result?: ImportProgressUpdate;
   error?: string;
 }
 
 /** Fires a single /item request with a hard timeout. */
 const importOneItemRequest = async (
-  product: any,
+  product: ExportedProduct,
   strategy: string,
   categoryCache: Record<string, string>,
 ): Promise<{ res: Response | null; aborted: boolean; networkError?: string }> => {
@@ -74,9 +85,11 @@ const importOneItemRequest = async (
       signal: controller.signal,
     });
     return { res, aborted: false };
-  } catch (err: any) {
-    if (err?.name === 'AbortError') return { res: null, aborted: true };
-    return { res: null, aborted: false, networkError: err?.message || 'Network error during import' };
+  } catch (err: unknown) {
+    const name = err instanceof Error ? err.name : '';
+    if (name === 'AbortError') return { res: null, aborted: true };
+    const message = err instanceof Error ? err.message : 'Network error during import';
+    return { res: null, aborted: false, networkError: message };
   } finally {
     clearTimeout(timer);
   }
@@ -84,7 +97,7 @@ const importOneItemRequest = async (
 
 /** Imports a single product with timeout + retry/backoff resilience. */
 const importOneItemResilient = async (
-  product: any,
+  product: ExportedProduct,
   strategy: string,
   categoryCache: Record<string, string>,
 ): Promise<ImportItemOutcome> => {
@@ -124,9 +137,9 @@ const importOneItemResilient = async (
 };
 
 export const importProductsBatchClient = async (
-  products: any[],
+  products: ExportedProduct[],
   strategy: 'skip' | 'overwrite' | 'rename',
-  onProgress: (progress: any) => void
+  onProgress: (progress: ImportProgressUpdate) => void
 ): Promise<void> => {
   onProgress({ type: 'start', total: products.length });
 
@@ -167,7 +180,7 @@ export const importProductsBatchClient = async (
 export const importProductsStream = async (
   file: File,
   strategy: 'skip' | 'overwrite' | 'rename',
-  onProgress: (progress: any) => void
+  onProgress: (progress: ImportProgressUpdate) => void
 ): Promise<void> => {
   const formData = new FormData();
   formData.append('file', file);

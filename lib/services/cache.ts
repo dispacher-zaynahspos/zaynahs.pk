@@ -68,8 +68,9 @@ export const purgeAllCache = async () => {
             const errorMsg = data.errors?.[0]?.message || 'Unknown Cloudflare API Error';
             errors.push(`[${config.name || config.zoneId}] ${errorMsg}`);
           }
-        } catch (err: any) {
-          errors.push(`[${config.name || config.zoneId}] ${err.message || 'Fetch failed'}`);
+        } catch (err: unknown) {
+          const msg = err instanceof Error ? err.message : 'Fetch failed';
+          errors.push(`[${config.name || config.zoneId}] ${msg}`);
         }
       }
 

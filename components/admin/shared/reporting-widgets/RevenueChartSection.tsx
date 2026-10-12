@@ -41,7 +41,7 @@ export default function RevenueChartSection({
               <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#9ca3af' }} angle={-15} textAnchor="end" height={45} stroke="#9ca3af" strokeOpacity={0.2} />
               <YAxis tick={{ fontSize: 10, fill: '#9ca3af' }} tickFormatter={(v) => formatPrice(v, '')} stroke="#9ca3af" strokeOpacity={0.2} />
               <Tooltip
-                formatter={(value: any) => [formatPrice(Number(value), currencySymbol), '']}
+                formatter={(value: number | string) => [formatPrice(Number(value), currencySymbol), '']}
                 contentStyle={{
                   backgroundColor: 'rgba(22, 22, 42, 0.95)',
                   backdropFilter: 'blur(8px)',

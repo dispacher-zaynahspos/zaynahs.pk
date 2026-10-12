@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { searchProductsServer } from '@/lib/services/product-search/server-search';
+import type { ProductSearchFilters } from '@/lib/services/product-search/types';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -13,7 +14,7 @@ export async function GET(req: NextRequest) {
     const includeDraft = searchParams.get('includeDraft') === 'true';
     const includeInactive = searchParams.get('includeInactive') === 'true';
 
-    const filters: Record<string, any> = {};
+    const filters: ProductSearchFilters = {};
     
     const categoryId = searchParams.get('categoryId');
     if (categoryId) filters.categoryId = categoryId;

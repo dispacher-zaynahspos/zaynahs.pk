@@ -32,7 +32,11 @@ export async function callOpenRouter(
 ): Promise<string> {
   const url = 'https://openrouter.ai/api/v1/chat/completions';
 
-  let userContent: any = prompt;
+  type TextContent = { type: 'text'; text: string };
+  type ImageContent = { type: 'image_url'; image_url: { url: string } };
+  type UserContent = string | Array<TextContent | ImageContent>;
+
+  let userContent: UserContent = prompt;
   if (isVision && base64Data) {
     userContent = [
       { type: 'text', text: prompt },
@@ -42,7 +46,13 @@ export async function callOpenRouter(
 
   const wantsJson = /json|\{|\}/i.test(prompt) || /json/i.test(systemPrompt);
 
-  const body: any = {
+  interface OpenRouterBody {
+    model: string;
+    messages: Array<{ role: string; content: UserContent }>;
+    response_format?: { type: string };
+  }
+
+  const body: OpenRouterBody = {
     model,
     messages: [
       { role: 'system', content: systemPrompt },
@@ -66,12 +76,12 @@ export async function callOpenRouter(
   });
 
   if (!res.ok) {
-    const err = new Error(`OpenRouter API error ${res.status}`);
-    (err as any).status = res.status;
+    const err = new Error(`OpenRouter API error ${res.status}`) as Error & { status?: number };
+    err.status = res.status;
     throw err;
   }
 
-  const json = await res.json();
+  const json = await res.json() as { choices?: Array<{ message?: { content?: string } }> };
   const text = json?.choices?.[0]?.message?.content;
   if (!text) throw new Error('Empty response from OpenRouter API');
   return text;

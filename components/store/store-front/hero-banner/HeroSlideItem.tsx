@@ -2,20 +2,22 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { HomepageSection, StoreSettings } from '@/lib/types';
 import { HeroSlide } from './types';
 import { parseVideoUrl } from './parseVideoUrl';
 import { getPresetImageUrl } from '@/lib/utils/imageUrl';
+import type { useHeroBannerStyles } from './useHeroBannerStyles';
 
 interface HeroSlideItemProps {
   slide: HeroSlide;
   idx: number;
-  section: any;
-  settings: any;
+  section: HomepageSection;
+  settings: StoreSettings;
   bannerUrl: string;
   isSlideActive: boolean;
   loadedMedia: Record<string, boolean>;
   setLoadedMedia: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
-  styles: any;
+  styles: ReturnType<typeof useHeroBannerStyles>;
 }
 
 export function HeroSlideItem({

@@ -45,8 +45,8 @@ export default function EmailTemplatesPage() {
       } else {
         setError(data.error || 'Failed to fetch templates');
       }
-    } catch (err: any) {
-      setError(err.message || 'An error occurred while loading templates');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'An error occurred while loading templates');
     } finally {
       setLoading(false);
     }
@@ -77,9 +77,9 @@ export default function EmailTemplatesPage() {
       } else {
         toast.success(`Template ${!currentStatus ? 'enabled' : 'disabled'} successfully`);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       setTemplates(prevTemplates);
-      toast.error(err.message || 'Failed to update status');
+      toast.error(err instanceof Error ? err.message : 'Failed to update status');
     }
   };
 
@@ -106,8 +106,8 @@ export default function EmailTemplatesPage() {
         toast.error(data.error || 'Failed to generate preview');
         setPreviewTemplate(null);
       }
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to generate preview');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to generate preview');
       setPreviewTemplate(null);
     } finally {
       setPreviewLoading(false);
@@ -132,8 +132,8 @@ export default function EmailTemplatesPage() {
       } else {
         toast.error(data.error || 'Failed to send test email');
       }
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to send test email');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to send test email');
     } finally {
       setSendingTest(false);
     }

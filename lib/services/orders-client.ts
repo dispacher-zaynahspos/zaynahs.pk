@@ -12,7 +12,31 @@ export const getOrdersClient = async (): Promise<Order[]> => {
 
     if (error) throw error;
     
-    return (data ?? []).map((row: any) => ({
+    type OrderRow = {
+      id: string;
+      order_number: string;
+      customer_name?: string | null;
+      customer_phone?: string | null;
+      customer_id?: string | null;
+      items: unknown;
+      subtotal?: number | string | null;
+      total?: number | string | null;
+      status: string;
+      notes?: string | null;
+      staff_notes?: string | null;
+      status_logs: unknown;
+      review_email_pending?: boolean | null;
+      delivered_at?: string | null;
+      tracking_number?: string | null;
+      courier_name?: string | null;
+      tracking_url?: string | null;
+      cancel_reason?: string | null;
+      refund_amount?: number | string | null;
+      created_at: string;
+      updated_at: string;
+    };
+
+    return ((data ?? []) as OrderRow[]).map((row) => ({
       id: row.id,
       order_number: row.order_number,
       customer_name: row.customer_name || undefined,

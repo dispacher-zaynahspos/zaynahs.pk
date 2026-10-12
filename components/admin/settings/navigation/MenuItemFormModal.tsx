@@ -120,7 +120,7 @@ export default function MenuItemFormModal({
             <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5">Link Destination Type</label>
             <select
               value={menuItemLinkType}
-              onChange={(e) => setMenuItemLinkType(e.target.value as any)}
+              onChange={(e) => setMenuItemLinkType(e.target.value as 'custom' | 'category' | 'product' | 'system')}
               className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-[#0f0f1b] px-4 py-2.5 text-sm focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
             >
               <option value="custom">Custom URL Address</option>
@@ -285,7 +285,7 @@ export default function MenuItemFormModal({
                 value={menuItemSystemPage}
                 onChange={(e) => {
                   const val = e.target.value;
-                  setMenuItemSystemPage(val as any);
+                  setMenuItemSystemPage(val as 'home' | 'shop' | 'cart' | 'wishlist');
                   const pageNames: Record<string, string> = {
                     home: 'Home',
                     shop: 'Shop',

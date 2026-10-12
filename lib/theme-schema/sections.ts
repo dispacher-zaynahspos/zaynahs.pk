@@ -263,12 +263,12 @@ export function resolveDefaultTitle(
  * local-add and server-insert produce identical shapes.
  */
 export function buildSectionDefaults(sectionType: string): {
-  settings: Record<string, any>;
-  content_data: Record<string, any>;
+  settings: Record<string, unknown>;
+  content_data: Record<string, unknown>;
 } {
   const def = getSectionDef(sectionType);
-  let settings: Record<string, any> = def?.defaultSettings ? { ...def.defaultSettings } : {};
-  let content_data: Record<string, any> = def?.defaultContent ? { ...def.defaultContent } : {};
+  let settings: Record<string, unknown> = def?.defaultSettings ? { ...def.defaultSettings } : {};
+  let content_data: Record<string, unknown> = def?.defaultContent ? { ...def.defaultContent } : {};
 
   if (sectionType === 'product_grid') {
     settings = { limit: 8, columns_desktop: 4, columns_mobile: 2, source: 'all', ...settings };

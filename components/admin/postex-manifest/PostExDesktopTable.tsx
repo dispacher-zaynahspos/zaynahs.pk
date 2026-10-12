@@ -11,7 +11,7 @@ interface PostExDesktopTableProps {
   results: Record<string, { success: boolean; tracking?: string; error?: string }>;
   selectAll: boolean;
   toggleSelectAll: () => void;
-  updateRow: (id: string, field: keyof EditableRow, value: any) => void;
+  updateRow: (id: string, field: keyof EditableRow, value: EditableRow[keyof EditableRow]) => void;
   cities: string[];
   citiesLoading: boolean;
   setDetailRowId: (id: string | null) => void;

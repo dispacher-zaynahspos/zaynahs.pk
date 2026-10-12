@@ -4,6 +4,7 @@ import React from 'react';
 import { Layers, RefreshCw, Trash2 } from '@/components/common/Icons';
 import { VariantPreset } from '@/lib/types';
 import EmptyState from '@/components/common/EmptyState';
+import type { ConfirmDeleteState } from './TrashConfirmModals';
 
 interface TrashPresetsTableProps {
   variantPresets: VariantPreset[];
@@ -11,7 +12,7 @@ interface TrashPresetsTableProps {
   selectedIds: string[];
   toggleSelect: (id: string) => void;
   handleRestore: (id: string, type: 'variant_presets') => void;
-  setConfirmDelete: (val: any) => void;
+  setConfirmDelete: (val: ConfirmDeleteState | null) => void;
   isPending: boolean;
 }
 

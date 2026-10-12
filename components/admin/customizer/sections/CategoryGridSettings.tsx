@@ -11,6 +11,15 @@ import TileLabelControls from '../shared/TileLabelControls';
 import SectionSpacingControls from '../shared/SectionSpacingControls';
 import { AccordionGroup } from '@/components/admin/customizer/controls';
 
+interface CategoryGridItem {
+  title?: string;
+  link?: string;
+  imageUrl?: string;
+  ref_type?: 'category' | 'collection' | string;
+  ref_id?: string;
+  image_mode?: 'auto' | 'custom';
+}
+
 interface CategoryGridSettingsProps {
   section: HomepageSection;
   categories: Category[];
@@ -32,14 +41,14 @@ export default function CategoryGridSettings({
   onSelectMedia
 }: CategoryGridSettingsProps) {
   const contentData = section.content_data || {};
-  const items = contentData.items || [];
+  const items = (contentData.items || []) as CategoryGridItem[];
   
   const [showBulkAdd, setShowBulkAdd] = useState(false);
   const [selectedBulkIds, setSelectedBulkIds] = useState<string[]>([]);
 
   const displayCategories = (categories || []).filter(c => c.slug !== 'shop');
 
-  const handleItemsChange = (updatedItems: any[]) => {
+  const handleItemsChange = (updatedItems: CategoryGridItem[]) => {
     onUpdateSection({
       content_data: { ...contentData, items: updatedItems }
     });
@@ -236,8 +245,8 @@ export default function CategoryGridSettings({
         <p className="text-xs text-gray-500">No cards added yet. Use "Quick Add" or "Add Empty Card" to start.</p>
       ) : (
         <div className="space-y-3">
-          {items.map((item: any, idx: number) => {
-            const updateGridItem = (itemUpdates: any) => {
+          {items.map((item: CategoryGridItem, idx: number) => {
+            const updateGridItem = (itemUpdates: Partial<CategoryGridItem>) => {
               const updatedItems = [...items];
               updatedItems[idx] = { ...item, ...itemUpdates };
               handleItemsChange(updatedItems);

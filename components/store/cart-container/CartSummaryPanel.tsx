@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Tag, Truck, CheckCircle2, Shield } from '@/components/common/Icons';
-import { CartItem, StoreSettings } from '@/lib/types';
+import { CartItem, StoreSettings, Coupon } from '@/lib/types';
 import { isFeatureEnabled } from '@/lib/features/premium';
 import { formatPrice } from '@/lib/utils/whatsapp';
 import PaymentBadges from '@/components/common/PaymentBadges';
@@ -16,8 +16,8 @@ interface CartSummaryPanelProps {
   itemCount: number;
   shippingCost: number;
   loadingMethods: boolean;
-  appliedCoupon: any;
-  applyCoupon: (coupon: any) => void;
+  appliedCoupon: Coupon | null;
+  applyCoupon: (coupon: Coupon | null) => void;
   discountCode: string;
   setDiscountCode: (code: string) => void;
   couponError: string;

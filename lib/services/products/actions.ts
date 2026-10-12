@@ -234,7 +234,7 @@ export async function updateProductAction(
   try {
     const supabase = supabaseAdmin;
 
-    const updatePayload: Record<string, any> = {};
+    const updatePayload: Record<string, unknown> = {};
     if (product.name !== undefined) updatePayload.name = product.name;
     if (product.slug !== undefined) updatePayload.slug = cleanProductSlug(product.slug, product.name ?? undefined, id);
     if (product.description !== undefined) updatePayload.description = product.description;
@@ -417,7 +417,7 @@ export async function updateProductFieldsAction(
 ): Promise<void> {
   try {
     const supabase = supabaseAdmin;
-    const updatePayload: Record<string, any> = {};
+    const updatePayload: Record<string, unknown> = {};
     if (fields.name !== undefined) updatePayload.name = fields.name;
     if (fields.slug !== undefined) updatePayload.slug = cleanProductSlug(fields.slug, fields.name ?? undefined, id);
     if (fields.description !== undefined) updatePayload.description = fields.description;
@@ -537,7 +537,7 @@ export async function updateProductVariantFieldsAction(
 ): Promise<void> {
   try {
     const supabase = supabaseAdmin;
-    const updatePayload: Record<string, any> = {};
+    const updatePayload: Record<string, unknown> = {};
     if (fields.stock !== undefined) updatePayload.stock = fields.stock;
     if (fields.price !== undefined) updatePayload.price = fields.price;
     if (fields.compare_price !== undefined) updatePayload.compare_price = fields.compare_price;
@@ -584,7 +584,7 @@ function extractErrorMessage(err: unknown, fallback: string): string {
   if (typeof err === 'string' && err.trim().length > 0) return err.trim();
   if (err instanceof Error && err.message && err.message.trim().length > 0) return err.message.trim();
   if (typeof err === 'object') {
-    const record = err as Record<string, any>;
+    const record = err as Record<string, unknown>;
     if (typeof record.message === 'string' && record.message.trim().length > 0) return record.message.trim();
     if (typeof record.error_description === 'string' && record.error_description.trim().length > 0) return record.error_description.trim();
     if (typeof record.details === 'string' && record.details.trim().length > 0) return record.details.trim();
@@ -601,10 +601,10 @@ function extractErrorMessage(err: unknown, fallback: string): string {
 
 // Aliases for seamless drop-in backwards compatibility with safeAction call sites
 export async function createProductSafe(
-  productPayload: any,
-  images: any[],
-  variants: any[],
-  modifiers: any[]
+  productPayload: Parameters<typeof createProductAction>[0],
+  images: Parameters<typeof createProductAction>[1] = [],
+  variants: Parameters<typeof createProductAction>[2] = [],
+  modifiers: Parameters<typeof createProductAction>[3] = []
 ) {
   try {
     const data = await createProductAction(productPayload, images, variants, modifiers);
@@ -617,10 +617,10 @@ export async function createProductSafe(
 
 export async function updateProductSafe(
   productId: string,
-  productPayload: any,
-  images: any[],
-  variants: any[],
-  modifiers: any[]
+  productPayload: Parameters<typeof updateProductAction>[1],
+  images: Parameters<typeof updateProductAction>[2] = [],
+  variants: Parameters<typeof updateProductAction>[3] = [],
+  modifiers: Parameters<typeof updateProductAction>[4] = []
 ) {
   try {
     const data = await updateProductAction(productId, productPayload, images, variants, modifiers);

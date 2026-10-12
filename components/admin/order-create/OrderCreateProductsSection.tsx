@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Search, Loader2, X, Trash2 } from '@/components/common/Icons';
-import { Product, CartItem, StoreSettings } from '@/lib/types';
+import { Product, CartItem, StoreSettings, ProductImage } from '@/lib/types';
 import { formatPrice } from '@/lib/utils/whatsapp';
 
 interface OrderCreateProductsSectionProps {
@@ -152,7 +152,7 @@ export function OrderCreateProductsSection({
                   <div className="py-3 text-center text-gray-400">No products found</div>
                 ) : (
                   filteredProducts.map(prod => {
-                    const primaryImage = prod.images?.find((img: any) => img.isPrimary) || prod.images?.[0];
+                    const primaryImage = prod.images?.find((img: ProductImage & { isPrimary?: boolean }) => img.isPrimary) || prod.images?.[0];
                     return (
                       <div
                         key={prod.id}

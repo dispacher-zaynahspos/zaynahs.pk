@@ -4,6 +4,8 @@ import React from 'react';
 import { toast } from 'sonner';
 import * as CentralIcons from '@/components/common/Icons';
 
+type IconComponentType = React.ComponentType<{ className?: string }>;
+
 interface BadgeCardItemProps {
   cardNumber: number;
   enabled: boolean;
@@ -27,7 +29,7 @@ function BadgeCardItem({
   icon,
   setIcon,
 }: BadgeCardItemProps) {
-  const IconComponent = (CentralIcons as any)[icon];
+  const IconComponent = (CentralIcons as Record<string, IconComponentType | undefined>)[icon];
 
   return (
     <div

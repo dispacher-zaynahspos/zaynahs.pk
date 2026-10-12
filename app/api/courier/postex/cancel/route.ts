@@ -64,7 +64,8 @@ export async function POST(req: NextRequest) {
       details: data,
     }, { status: 200 });
 
-  } catch (err: any) {
-    return NextResponse.json({ success: false, error: err.message || 'Cancel failed' }, { status: 200 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Cancel failed';
+    return NextResponse.json({ success: false, error: message }, { status: 200 });
   }
 }

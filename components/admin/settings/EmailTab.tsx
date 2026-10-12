@@ -100,8 +100,8 @@ export default function EmailTab({
       } else {
         toast.error(data.error || 'Failed to send test email.', { id: 'test-email' });
       }
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to send test email.', { id: 'test-email' });
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to send test email.', { id: 'test-email' });
     } finally {
       setTesting(false);
     }

@@ -21,10 +21,9 @@ import {
  * `.catalog-grid` CSS actually renders.
  */
 export function useCatalogColumns(cfg: CatalogGridConfig | null | undefined) {
-  // Default to a desktop-ish width during SSR / first paint to avoid layout jump.
-  const [width, setWidth] = useState<number>(() =>
-    typeof window !== 'undefined' ? window.innerWidth : 1280,
-  );
+  // Default to a desktop-ish width (1280) during SSR and initial client hydration
+  // so the initial client render matches the server-rendered HTML exactly (no hydration mismatch).
+  const [width, setWidth] = useState<number>(1280);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;

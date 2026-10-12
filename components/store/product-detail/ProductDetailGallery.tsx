@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import { ChevronLeft, ChevronRight, ZoomIn, X } from '@/components/common/Icons';
 import { StoreSettings, Product, ProductVariant } from '@/lib/types';

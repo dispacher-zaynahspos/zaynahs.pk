@@ -4,6 +4,7 @@ import React from 'react';
 import { ClipboardList, RefreshCw, Trash2 } from '@/components/common/Icons';
 import { Order } from '@/lib/types';
 import EmptyState from '@/components/common/EmptyState';
+import type { ConfirmDeleteState } from './TrashConfirmModals';
 
 interface TrashOrdersTableProps {
   orders: Order[];
@@ -11,7 +12,7 @@ interface TrashOrdersTableProps {
   selectedIds: string[];
   toggleSelect: (id: string) => void;
   handleRestore: (id: string, type: 'orders') => void;
-  setConfirmDelete: (val: any) => void;
+  setConfirmDelete: (val: ConfirmDeleteState | null) => void;
   isPending: boolean;
 }
 

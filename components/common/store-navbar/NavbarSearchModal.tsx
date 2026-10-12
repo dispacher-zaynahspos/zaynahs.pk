@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Search, X } from '@/components/common/Icons';
 import { Product, StoreSettings, NavigationItem } from '@/lib/types';
 import { Modal } from '@/components/common/Modal';
+import type { useRouter } from 'next/navigation';
 
 interface NavbarSearchModalProps {
   mounted: boolean;
@@ -22,7 +23,7 @@ interface NavbarSearchModalProps {
   searchInputRef: React.RefObject<HTMLInputElement | null>;
   containerRef: React.RefObject<HTMLDivElement | null>;
   settings?: StoreSettings;
-  router: any;
+  router: ReturnType<typeof useRouter>;
 }
 
 /** Flatten the navigation menu into a single list of collection/category entries. */

@@ -50,11 +50,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // 3. Add products
   if (products) {
     products.forEach((p) => {
-      const imgs = Array.isArray((p as any).product_images) ? (p as any).product_images : [];
-      const sorted = [...imgs].sort((a: any, b: any) => (b.is_primary ? 1 : 0) - (a.is_primary ? 1 : 0) || (a.sort_order ?? 0) - (b.sort_order ?? 0));
+      const row = p as { product_images?: Array<{ url?: string; is_primary?: boolean | null; sort_order?: number | null }> };
+      const imgs = Array.isArray(row.product_images) ? row.product_images : [];
+      const sorted = [...imgs].sort((a, b) => (b.is_primary ? 1 : 0) - (a.is_primary ? 1 : 0) || (a.sort_order ?? 0) - (b.sort_order ?? 0));
       const imageUrls = sorted
-        .map((i: any) => i.url)
-        .filter((u: any): u is string => typeof u === 'string' && u.length > 0)
+        .map((i) => i.url)
+        .filter((u): u is string => typeof u === 'string' && u.length > 0)
         .slice(0, 5);
       routes.push({
         url: `${siteUrl}/product/${p.slug}`,

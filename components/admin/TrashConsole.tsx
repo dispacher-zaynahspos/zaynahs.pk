@@ -3,6 +3,7 @@
 import React from 'react';
 import { Product, Category, Review, Order, WhatsAppSubscriber, EmailSubscriber, SizeGuide, VariantPreset } from '@/lib/types';
 import { TrashedMedia } from '@/lib/services/media';
+import type { TrashedCustomer } from '@/lib/services/customers';
 
 import { TrashConsoleNavigation } from './trash-console/TrashConsoleNavigation';
 import { TrashConfirmModals } from './trash-console/TrashConfirmModals';
@@ -22,7 +23,7 @@ interface TrashConsoleProps {
   initialCategories: Category[];
   initialReviews: (Review & { productName?: string })[];
   initialOrders: Order[];
-  initialCustomers: any[];
+  initialCustomers: TrashedCustomer[];
   initialMedia: TrashedMedia[];
   initialWhatsAppSubscribers: WhatsAppSubscriber[];
   initialEmailSubscribers: EmailSubscriber[];

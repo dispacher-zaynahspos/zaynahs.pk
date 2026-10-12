@@ -90,7 +90,7 @@ export const updateOrderStatus = async (id: string, status: Order['status']): Pr
             await supabaseAdmin.rpc('restore_stock_on_cancel', {
               p_order_id: id,
               p_items: JSON.stringify(
-                fullOrder.items.map((i: any) => ({
+                (fullOrder.items as Array<{ product?: { id?: string }; product_id?: string; selected_variant?: { id?: string }; variant_id?: string; quantity?: number }>).map((i) => ({
                   product_id:  i.product?.id ?? i.product_id ?? null,
                   variant_id:  i.selected_variant?.id ?? i.variant_id ?? null,
                   quantity:    -(i.quantity ?? 1), // negative = deduct
@@ -210,7 +210,7 @@ export const updateOrderDetails = async (
     const oldTracking = currentOrder?.tracking_number;
     const oldItems    = currentOrder?.items ?? [];
 
-    const payload: any = {};
+    const payload: Record<string, unknown> = {};
     if (updates.items !== undefined) payload.items = updates.items;
     if (updates.subtotal !== undefined) payload.subtotal = updates.subtotal;
     if (updates.total !== undefined) payload.total = updates.total;

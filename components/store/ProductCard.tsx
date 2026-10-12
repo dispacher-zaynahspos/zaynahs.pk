@@ -270,7 +270,7 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
   };
 
   const aspectClass = getSharedAspectClass(settings?.image_aspect_ratio);
-  const rawTitleLimit = (settings as any)?.title_line_limit ?? settings?.title_line_limit ?? '2';
+  const rawTitleLimit = settings?.title_line_limit ?? '2';
   const titleClampClass = getSharedTitleClampClass(rawTitleLimit);
 
   const hasSecondImage = product.images?.length > 1;

@@ -103,9 +103,14 @@ export const useCartStore = create<CartStore>()(
       version: 1,
       // Fool-proof migration: existing browsers have camelCase cart items in localStorage.
       // Convert them to snake_case on load so NO cart is ever wiped (RULE D13 + no data loss).
-      migrate: (persisted: any, _version: number) => {
-        if (persisted && Array.isArray(persisted.items)) {
-          persisted.items = persisted.items.map((i: any) => ({
+      migrate: (persisted: unknown, _version: number) => {
+        if (
+          persisted &&
+          typeof persisted === 'object' &&
+          Array.isArray((persisted as { items?: unknown }).items)
+        ) {
+          const state = persisted as { items: Array<Record<string, unknown>> };
+          state.items = state.items.map((i) => ({
             ...i,
             selected_variant: i.selected_variant ?? i.selectedVariant,
             selected_modifiers: i.selected_modifiers ?? i.selectedModifiers ?? [],
@@ -117,7 +122,7 @@ export const useCartStore = create<CartStore>()(
             added_later: i.added_later ?? i.addedLater,
           }));
         }
-        return persisted;
+        return persisted as CartStore;
       },
     }
   )

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, User, ShoppingBag, Heart, ShoppingCart } from '@/components/common/Icons';
 import { useCart } from '@/lib/hooks/useCart';
+import type { CustomerSession } from '@/lib/utils/customer-auth';
 
 export interface MobileBottomNavItem {
   key: 'home' | 'shop' | 'wishlist' | 'cart' | 'account' | string;
@@ -13,7 +14,7 @@ export interface MobileBottomNavItem {
 }
 
 // Canonical registry — the ONLY place item key -> icon/href/badge is defined (SSOT).
-const NAV_ITEM_REGISTRY: Record<string, { defaultLabel: string; icon: any; href: (loggedIn: boolean) => string; badge?: 'wishlist' | 'cart' }> = {
+const NAV_ITEM_REGISTRY: Record<string, { defaultLabel: string; icon: React.ComponentType<{ className?: string }>; href: (loggedIn: boolean) => string; badge?: 'wishlist' | 'cart' }> = {
   home: { defaultLabel: 'Home', icon: Home, href: () => '/' },
   shop: { defaultLabel: 'Shop', icon: ShoppingBag, href: () => '/shop' },
   wishlist: { defaultLabel: 'Wishlist', icon: Heart, href: () => '/wishlist', badge: 'wishlist' },
@@ -43,7 +44,7 @@ export default function MobileBottomNav({
   const totalItems = useCart((state) => state.totalItems());
   const [mounted, setMounted] = useState(false);
   const [wishlistCount, setWishlistCount] = useState(0);
-  const [customerSession, setCustomerSession] = useState<any>(null);
+  const [customerSession, setCustomerSession] = useState<CustomerSession | null>(null);
 
   useEffect(() => {
     setMounted(true);

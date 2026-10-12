@@ -1,5 +1,14 @@
 import { getSettings } from '@/lib/services/settings';
 import { sendTemplatedEmail } from '../sendTemplatedEmail';
+import { Review, Product } from '@/lib/types';
+
+/** Review shape as received by email triggers. Accepts the real `Review` plus
+ * any loose extra fields some callers include. */
+type TriggerReview = Review & Record<string, unknown>;
+
+/** Product shape as received by email triggers. Accepts the real `Product`
+ * plus any loose extra fields some callers include. */
+type TriggerProduct = Product & Record<string, unknown>;
 
 async function getAdminEmail(): Promise<string> {
   const settings = await getSettings();
@@ -7,7 +16,7 @@ async function getAdminEmail(): Promise<string> {
 }
 
 // 10. New product review trigger
-export async function onNewReview(review: any, product: any) {
+export async function onNewReview(review: TriggerReview, product: TriggerProduct) {
   try {
     const adminEmail = await getAdminEmail();
     if (adminEmail) {

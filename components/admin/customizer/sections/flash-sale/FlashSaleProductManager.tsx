@@ -10,18 +10,23 @@ interface FlashSaleProductManagerProps {
   onUpdateSection: (updates: Partial<HomepageSection>) => void;
 }
 
+interface FlashSaleEntry {
+  productId: string;
+  discountValue: number;
+}
+
 export default function FlashSaleProductManager({
   section,
   products,
   onUpdateSection,
 }: FlashSaleProductManagerProps) {
   const contentData = section.content_data || {};
-  const fsProducts = contentData.products || [];
+  const fsProducts: FlashSaleEntry[] = (contentData.products as FlashSaleEntry[] | undefined) || [];
 
   const [selectedProductId, setSelectedProductId] = useState('');
   const [discountValue, setDiscountValue] = useState('');
 
-  const handleProductsChange = (updatedProducts: any[]) => {
+  const handleProductsChange = (updatedProducts: FlashSaleEntry[]) => {
     onUpdateSection({
       content_data: { ...contentData, products: updatedProducts }
     });
@@ -32,7 +37,7 @@ export default function FlashSaleProductManager({
     const prod = products.find(p => p.id === selectedProductId);
     if (!prod) return;
 
-    if (fsProducts.some((p: any) => p.productId === selectedProductId)) {
+    if (fsProducts.some((p) => p.productId === selectedProductId)) {
       return;
     }
 
@@ -51,14 +56,14 @@ export default function FlashSaleProductManager({
   };
 
   const handleUpdateProductPrice = (productId: string, val: number) => {
-    const updated = fsProducts.map((p: any) =>
+    const updated = fsProducts.map((p) =>
       p.productId === productId ? { ...p, discountValue: val } : p
     );
     handleProductsChange(updated);
   };
 
   const handleRemoveProduct = (productId: string) => {
-    const updated = fsProducts.filter((p: any) => p.productId !== productId);
+    const updated = fsProducts.filter((p) => p.productId !== productId);
     handleProductsChange(updated);
   };
 
@@ -69,7 +74,7 @@ export default function FlashSaleProductManager({
   };
 
   const availableProducts = products.filter(
-    p => !fsProducts.some((fsp: any) => fsp.productId === p.id)
+    p => !fsProducts.some((fsp) => fsp.productId === p.id)
   );
 
   return (
@@ -127,7 +132,7 @@ export default function FlashSaleProductManager({
           <p className="text-xs text-gray-500">No products added to flash sale yet.</p>
         ) : (
           <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
-            {fsProducts.map((fsp: any, idx: number) => {
+            {fsProducts.map((fsp, idx: number) => {
               const prod = products.find(p => p.id === fsp.productId);
               if (!prod) return null;
 

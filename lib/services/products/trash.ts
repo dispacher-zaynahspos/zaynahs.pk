@@ -1,6 +1,7 @@
 import { Product } from '@/lib/types';
 import { revalidateProduct, revalidateTagSafe, revalidateAfterResponse } from '@/lib/revalidate';
 import { staticSupabase, mapProduct } from './mappers';
+import type { DBProductRow } from './mappers/types';
 import { getProductById } from './queries';
 
 export const deleteProduct = async (id: string): Promise<void> => {
@@ -34,8 +35,9 @@ export const deleteProduct = async (id: string): Promise<void> => {
       const { syncProductToMeta } = await import('@/lib/meta/syncProduct');
       const fullProduct = await getProductById(id);
       if (fullProduct) {
-        syncProductToMeta(fullProduct, 'DELETE').catch((metaErr: any) => {
-          console.warn('[products] Meta DELETE sync failed for product:', id, metaErr?.message);
+        syncProductToMeta(fullProduct, 'DELETE').catch((metaErr: unknown) => {
+          const msg = metaErr instanceof Error ? metaErr.message : String(metaErr);
+          console.warn('[products] Meta DELETE sync failed for product:', id, msg);
         });
       }
     } catch {
@@ -59,7 +61,7 @@ export const getDeletedProducts = async (): Promise<Product[]> => {
     if (error) throw error;
     // Supabase infers a non-DBProductRow union for this multi-relation select
     // (badges/size_guides embeds); mapProduct correctly maps the runtime rows.
-    return ((data ?? []) as any[]).map(mapProduct);
+    return ((data ?? []) as unknown as DBProductRow[]).map(mapProduct);
   } catch (error) {
     console.error('[products] getDeletedProducts failed:', error);
     throw error;

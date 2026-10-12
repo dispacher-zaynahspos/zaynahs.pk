@@ -3,6 +3,40 @@ import { isOwnStorageUrl } from '@/lib/services/storage';
 
 const IMAGE_FETCH_TIMEOUT_MS = 15000;
 
+interface ImportImage {
+  originalUrl?: string;
+  fileName?: string;
+  alt?: string;
+  title?: string;
+  description?: string;
+  caption?: string;
+  aiGenerated?: boolean;
+  aiEnabled?: boolean;
+  fileSize?: number;
+  mimeType?: string;
+  sortOrder?: number;
+  isPrimary?: boolean;
+}
+
+interface ImportVariant {
+  imageUrl?: string;
+  color?: string;
+  size?: string;
+  material?: string;
+  customOption?: string;
+  customValue?: string;
+  colorHex?: string;
+  price?: number;
+  comparePrice?: number;
+  stock?: number;
+  sku?: string;
+  showImageSwatch?: boolean;
+  active?: boolean;
+  sortOrder?: number;
+  aiGenerated?: boolean;
+  aiEnabled?: boolean;
+}
+
 export async function fetchWithTimeout(url: string, timeoutMs: number = IMAGE_FETCH_TIMEOUT_MS): Promise<Response> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -18,7 +52,7 @@ export async function processProductImages(
   productId: string,
   finalName: string,
   slug: string,
-  images: any[]
+  images: ImportImage[]
 ): Promise<Record<string, string>> {
   const uploadedUrlsMap: Record<string, string> = {};
 
@@ -130,7 +164,7 @@ export async function processProductVariants(
   productId: string,
   finalName: string,
   slug: string,
-  variants: any[],
+  variants: ImportVariant[],
   uploadedUrlsMap: Record<string, string>
 ) {
   for (const v of (variants || [])) {

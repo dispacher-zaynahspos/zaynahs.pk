@@ -4,14 +4,15 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Package } from '@/components/common/Icons';
-import { StoreSettings } from '@/lib/types';
+import { StoreSettings, ProductImage, ProductModifier } from '@/lib/types';
 import { formatPrice } from '@/lib/utils/whatsapp';
 import { getSharedAspectClass } from '@/lib/utils/styles';
 import { getPresetImageUrl } from '@/lib/utils/imageUrl';
 import { getPaymentMethodIcon } from '@/components/common/PaymentBadges';
+import type { PlacedOrder } from './hooks/useCheckoutFormState';
 
 interface CartSuccessViewProps {
-  placedOrder: any;
+  placedOrder: PlacedOrder | null;
   settings: StoreSettings;
   onContinueShopping: () => void;
 }
@@ -98,8 +99,8 @@ export default function CartSuccessView({ placedOrder, settings, onContinueShopp
         <div className="space-y-4">
           <h3 className="text-lg font-black text-gray-900 dark:text-white tracking-tight border-b border-gray-100 dark:border-gray-800 pb-2">Order details</h3>
           <div className="divide-y divide-gray-100 dark:divide-gray-800">
-            {placedOrder.items.map((item: any) => {
-              const img = getPresetImageUrl(item.product.images?.find((i: any) => i.is_primary)?.url || item.product.images?.[0]?.url || '', 'micro');
+            {placedOrder.items.map((item) => {
+              const img = getPresetImageUrl(item.product.images?.find((i: ProductImage) => i.is_primary)?.url || item.product.images?.[0]?.url || '', 'micro');
               const parts: string[] = [];
               if (item.selected_variant?.color) parts.push(item.selected_variant.color);
               if (item.selected_variant?.size) parts.push(item.selected_variant.size);
@@ -124,7 +125,7 @@ export default function CartSuccessView({ placedOrder, settings, onContinueShopp
                       )}
                       {item.selected_modifiers && item.selected_modifiers.length > 0 && (
                         <span className="text-xs text-gray-400 dark:text-gray-500 block font-semibold">
-                          + {item.selected_modifiers.map((m: any) => m.name).join(', ')}
+                          + {item.selected_modifiers.map((m: ProductModifier) => m.name).join(', ')}
                         </span>
                       )}
                       <span className="text-xs text-gray-400 font-bold block mt-0.5">Qty: {item.quantity}</span>

@@ -10,10 +10,12 @@ export async function safeAction<T>(promise: Promise<T>): Promise<SafeResult<T>>
   try {
     const data = await promise;
     return { success: true, data };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[safeAction error]:', error);
     // Extract meaningful error message
-    const message = error?.message || (typeof error === 'string' ? error : 'An unexpected server error occurred.');
+    const message = error instanceof Error
+      ? error.message
+      : (typeof error === 'string' ? error : 'An unexpected server error occurred.');
     return { success: false, error: message };
   }
 }

@@ -11,6 +11,17 @@ import {
 import { normalizePhone } from './types';
 import { normalizePkPhone, isValidPkMobile } from '@/lib/phone';
 
+/** Row shape from the `customers` table (snake_case columns only). */
+interface CustomerRow {
+  id: string;
+  name: string | null;
+  email: string | null;
+  phone: string | null;
+  password_hash: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
 /**
  * Links previous orders to this customer based on phone and/or email matching
  */
@@ -94,7 +105,7 @@ export async function customerSignup(data: {
     const passwordHash = hashPassword(password);
 
     // 1. Look up any existing record by email
-    let existingByEmail: any = null;
+    let existingByEmail: CustomerRow | null = null;
     if (email) {
       const { data } = await supabaseAdmin
         .from('customers')
@@ -105,7 +116,7 @@ export async function customerSignup(data: {
     }
 
     // 2. Look up any existing record by phone
-    let existingByPhone: any = null;
+    let existingByPhone: CustomerRow | null = null;
     if (phone) {
       const { data } = await supabaseAdmin
         .from('customers')
@@ -126,7 +137,7 @@ export async function customerSignup(data: {
       }
     }
 
-    let customer: any = null;
+    let customer: CustomerRow | null = null;
 
     // SCENARIO 1: Both email and phone match existing row(s)
     if (existingByEmail && existingByPhone) {
@@ -256,7 +267,7 @@ export async function customerSignup(data: {
     // Set cookie session
     await setCustomerSessionCookie({
       id: customer.id,
-      name: customer.name,
+      name: customer.name || '',
       email: customer.email,
       phone: customer.phone
     });
@@ -264,16 +275,16 @@ export async function customerSignup(data: {
     if (customer.email) {
       try {
         const { onUserRegister } = await import('@/lib/email/triggers');
-        await onUserRegister({ name: customer.name, email: customer.email });
+        await onUserRegister({ name: customer.name || '', email: customer.email });
       } catch (err) {
         console.error('[Email Trigger] failed in customerSignup:', err);
       }
     }
 
     return { success: true, customer };
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('customerSignup failed:', err);
-    const msg = err?.message || '';
+    const msg = err instanceof Error ? err.message : '';
     if (msg.includes('duplicate key') || msg.includes('customers_phone_key')) {
       return { success: false, error: 'This phone number is already registered. Please log in instead.' };
     }
@@ -303,8 +314,8 @@ export async function customerLogin(data: {
     // string interpolation into .or() — that allowed PostgREST filter injection).
     // Phone is normalized to canonical national form to match stored values.
     const isEmail = credential.includes('@');
-    let customer: any = null;
-    let error: any = null;
+    let customer: CustomerRow | null = null;
+    let error: unknown = null;
 
     if (isEmail) {
       const res = await supabaseAdmin
@@ -337,7 +348,7 @@ export async function customerLogin(data: {
     }
 
     // Verify password hash
-    const isValid = verifyPassword(password, customer.password_hash);
+    const isValid = verifyPassword(password, customer.password_hash || '');
     if (!isValid) {
       return { success: false, error: 'Invalid email, phone number, or password.' };
     }
@@ -348,7 +359,7 @@ export async function customerLogin(data: {
     // Set cookie session
     await setCustomerSessionCookie({
       id: customer.id,
-      name: customer.name,
+      name: customer.name || '',
       email: customer.email,
       phone: customer.phone
     });

@@ -89,7 +89,7 @@ export async function updatePaymentMethod(
 ): Promise<PaymentMethod> {
   const supabase = await createClient();
 
-  const updatePayload: any = {};
+  const updatePayload: Record<string, unknown> = {};
   if (data.name !== undefined) updatePayload.name = data.name;
   if (data.code !== undefined) updatePayload.code = data.code.toLowerCase().trim();
   if (data.active !== undefined) updatePayload.active = data.active;

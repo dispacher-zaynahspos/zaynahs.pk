@@ -1,7 +1,7 @@
 'use server';
 
 import { Review } from '@/lib/types';
-import { mapReview, GlobalReviewFilters } from './types';
+import { mapReview, GlobalReviewFilters, DBReview } from './types';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { revalidateTagSafe } from '@/lib/revalidate';
@@ -181,7 +181,7 @@ const fetchTopReviews = async (limit: number = 8): Promise<(Review & { productNa
       .limit(limit);
 
     if (error) throw error;
-    const reviews = (data ?? []).map((row: any) => mapReview(row));
+    const reviews = (data ?? []).map((row: DBReview) => mapReview(row));
 
     const productIds = reviews.map(r => r.product_id).filter(Boolean) as string[];
     if (productIds.length > 0) {
@@ -202,7 +202,7 @@ const fetchTopReviews = async (limit: number = 8): Promise<(Review & { productNa
       }));
     }
 
-    return reviews as any;
+    return reviews;
   } catch (error) {
     console.error('[reviews] fetchTopReviews failed, returning empty fallback list:', error);
     return [];
@@ -276,7 +276,7 @@ export const getGlobalReviews = async (filters: GlobalReviewFilters = {}): Promi
 
     if (error) throw error;
 
-    const reviews = (data ?? []).map((row: any) => mapReview(row));
+    const reviews = (data ?? []).map((row: DBReview) => mapReview(row));
 
     // Batch fetch product names, slugs, and images
     const productIds = reviews.map(r => r.product_id).filter(Boolean) as string[];
@@ -313,7 +313,7 @@ export const getGlobalReviews = async (filters: GlobalReviewFilters = {}): Promi
     }
 
     return {
-      reviews: reviews as any,
+      reviews,
       total: count ?? 0,
       page,
       totalPages: Math.ceil((count ?? 0) / limit)

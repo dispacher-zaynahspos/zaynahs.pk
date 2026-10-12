@@ -12,11 +12,18 @@ interface ErrorContext {
   action?: 'SELECT' | 'INSERT' | 'UPDATE' | 'DELETE' | 'UPSERT' | 'RPC';
 }
 
-export function logDbError(context: ErrorContext, error: any) {
-  const errCode = error?.code || (error as any)?.statusCode || 'UNKNOWN_CODE';
-  const errMsg = error?.message || (error as any)?.details || String(error);
-  const errHint = error?.hint || '';
-  const errDetails = error?.details || '';
+export function logDbError(context: ErrorContext, error: unknown) {
+  const err = (error ?? {}) as {
+    code?: string;
+    statusCode?: string;
+    message?: string;
+    details?: string;
+    hint?: string;
+  };
+  const errCode = err.code || err.statusCode || 'UNKNOWN_CODE';
+  const errMsg = err.message || err.details || String(error);
+  const errHint = err.hint || '';
+  const errDetails = err.details || '';
 
   // Detect specific PostgreSQL / Supabase issues and generate diagnostic suggestions
   let diagnosticTip = 'Check database logs, RLS policies, or connection parameters.';

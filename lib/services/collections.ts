@@ -29,11 +29,40 @@ export const fetchCollections = async (): Promise<Collection[]> => {
 
     if (error) throw error;
 
-    return (data || []).map((row: any) => {
+    type CollectionCategoryRow = {
+      sort_order?: number;
+      categories?: {
+        id: string;
+        name: string;
+        slug: string;
+        description?: string | null;
+        image_url?: string | null;
+        active?: boolean | null;
+        active_sort_preference?: string | null;
+        deleted_at?: string | null;
+        created_at: string;
+        updated_at: string;
+      } | null;
+    };
+    type CollectionRow = {
+      id: string;
+      name: string;
+      slug: string;
+      description?: string | null;
+      image_url?: string | null;
+      sort_order?: number;
+      active?: boolean | null;
+      deleted_at?: string | null;
+      created_at: string;
+      updated_at: string;
+      collection_categories?: CollectionCategoryRow[];
+    };
+
+    return ((data || []) as CollectionRow[]).map((row) => {
       // Map collection categories, sort them, and map to Category array
       const mappedCategories = (row.collection_categories || [])
-        .sort((a: any, b: any) => (a.sort_order || 0) - (b.sort_order || 0))
-        .map((cc: any) => {
+        .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+        .map((cc) => {
           const c = cc.categories;
           if (!c) return null;
           return {
@@ -117,7 +146,7 @@ export const createCollection = async (collection: { name: string; slug: string;
 export const updateCollection = async (id: string, collection: { name?: string; slug?: string; description?: string | null; imageUrl?: string | null; sortOrder?: number; active?: boolean }): Promise<Collection> => {
   const supabase = staticSupabase;
   
-  const updatePayload: any = {};
+  const updatePayload: Record<string, unknown> = {};
   if (collection.name !== undefined) updatePayload.name = collection.name;
   if (collection.slug !== undefined) updatePayload.slug = collection.slug;
   if (collection.description !== undefined) updatePayload.description = collection.description ? collection.description.trim() : null;

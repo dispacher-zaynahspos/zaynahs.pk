@@ -92,8 +92,8 @@ export const applyFlashSaleDiscounts = async (products: Product[]): Promise<Prod
       }
 
       for (const fs of activeFlashSales) {
-        const fsProducts = fs.content_data?.products || [];
-        const fsProd = fsProducts.find((p: any) => p?.productId === product.id);
+        const fsProducts = (fs.content_data?.products || []) as Array<{ productId?: string; discountValue?: number | string }>;
+        const fsProd = fsProducts.find((p) => p?.productId === product.id);
 
         if (fsProd) {
           const currentPrice = product.price;
@@ -186,11 +186,11 @@ export const applyFlashSaleDiscounts = async (products: Product[]): Promise<Prod
       }
 
       for (const fs of activeFlashSales) {
-        const categoryDiscounts = fs.content_data?.categoryDiscounts || [];
-        const fsCat = categoryDiscounts.find((c: any) => c?.categoryId === product.category_id);
+        const categoryDiscounts = (fs.content_data?.categoryDiscounts || []) as Array<{ categoryId?: string; discountValue?: number | string; discountType?: 'percentage' | 'fixed' }>;
+        const fsCat = categoryDiscounts.find((c) => c?.categoryId === product.category_id);
 
         if (fsCat) {
-          const discountVal = parseFloat(fsCat.discountValue) || 0;
+          const discountVal = parseFloat(String(fsCat.discountValue)) || 0;
           if (discountVal > 0) {
             const currentPrice = product.price;
             const baseComparePrice = product.compare_price || product.price;

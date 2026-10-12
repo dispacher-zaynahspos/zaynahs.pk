@@ -2,27 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Product, StoreSettings, HomepageSection } from '@/lib/types';
+import { Product, StoreSettings, HomepageSection, ProductCategoryRelation } from '@/lib/types';
 import { isFeatureEnabled } from '@/lib/features/premium';
 import ProductGrid from '../ProductGrid';
-import { getContentWidthClass, CATALOG_SECTION_PADDING, resolveActiveColumns, resolveLimit, applyFillRows } from '@/lib/utils/responsiveGrid';
+import { getContentWidthClass, CATALOG_SECTION_PADDING } from '@/lib/utils/responsiveGrid';
+import { useCatalogColumns } from '@/lib/hooks/useCatalogColumns';
 import { Tag } from '@/components/common/Icons';
-
-/**
- * Fill-rows helper for Flash Sale (which has an early return before hooks can run,
- * so it reads window width directly). Rounds the visible count up to a full row
- * when more products exist; shows the remainder when the catalog is exhausted.
- */
-function fillCatalogRows(
-  desired: number,
-  available: number,
-  fillRows: boolean,
-  cfg?: Parameters<typeof resolveActiveColumns>[0],
-): number {
-  const width = typeof window !== 'undefined' ? window.innerWidth : 1280;
-  const cols = resolveActiveColumns(cfg ?? null, width);
-  return applyFillRows(desired, cols, available, fillRows);
-}
 
 interface FlashSaleSectionProps {
   section: HomepageSection;
@@ -41,6 +26,16 @@ export function FlashSaleSection({ section, products, currencySymbol, settings, 
 
   const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0, seconds: 0, expired: true, isIncoming: false, isInfinite: false });
   const [mounted, setMounted] = useState(false);
+
+  const gridCfg = {
+    mode: section.settings?.columns_mode || 'manual',
+    mobile: Number(section.settings?.columns_mobile) || 2,
+    tablet: Number(section.settings?.columns_tablet) || 3,
+    desktop: Number(section.settings?.columns_desktop) || 4,
+    wide: section.settings?.columns_wide,
+    minDesktop: section.settings?.min_card_desktop,
+  };
+  const { fill, limit } = useCatalogColumns(gridCfg);
 
   useEffect(() => {
     if (!featureOn) return;
@@ -97,26 +92,31 @@ export function FlashSaleSection({ section, products, currencySymbol, settings, 
 
   if (!featureOn || !mounted || timeLeft.expired) return null;
 
-  const fsProducts = section.content_data?.products || [];
-  const categoryDiscounts = section.content_data?.categoryDiscounts || [];
+  const fsProducts = (section.content_data?.products || []) as Array<{ productId: string }>;
+  const categoryDiscounts = (section.content_data?.categoryDiscounts || []) as Array<{ categoryId: string }>;
   
   const sortMethod = section.settings?.sortMethod || 'default';
 
+  const matchesCategoryRelation = (pc: ProductCategoryRelation, cd: { categoryId: string }) => {
+    const rel = pc as ProductCategoryRelation & { categoryId?: string };
+    return rel.categoryId === cd.categoryId || pc.category?.slug === cd.categoryId;
+  };
+
   const allMatchedProducts = products
     .filter(p => 
-      fsProducts.some((fsp: any) => fsp.productId === p.id) ||
-      categoryDiscounts.some((cd: any) => 
+      fsProducts.some((fsp) => fsp.productId === p.id) ||
+      categoryDiscounts.some((cd) => 
         cd.categoryId === p.category_id || 
         cd.categoryId === p.category?.slug || 
         cd.categoryId === 'shop' || 
         p.category?.id === cd.categoryId ||
-        p.product_categories?.some((pc: any) => pc.categoryId === cd.categoryId || pc.category?.slug === cd.categoryId)
+        p.product_categories?.some((pc) => matchesCategoryRelation(pc, cd))
       )
     )
       .sort((a, b) => {
         // Priority sorting: Manual Additions first
-        const idxA = fsProducts.findIndex((fsp: any) => fsp.productId === a.id);
-        const idxB = fsProducts.findIndex((fsp: any) => fsp.productId === b.id);
+        const idxA = fsProducts.findIndex((fsp) => fsp.productId === a.id);
+        const idxB = fsProducts.findIndex((fsp) => fsp.productId === b.id);
         
         if (idxA !== -1 && idxB !== -1) return idxA - idxB;
         if (idxA !== -1) return -1;
@@ -124,11 +124,11 @@ export function FlashSaleSection({ section, products, currencySymbol, settings, 
 
         // Category Order Sort
         if (sortMethod === 'category') {
-          const catIdxA = categoryDiscounts.findIndex((cd: any) => 
-            cd.categoryId === a.category_id || cd.categoryId === a.category?.slug || cd.categoryId === 'shop' || a.category?.id === cd.categoryId || a.product_categories?.some((pc: any) => pc.categoryId === cd.categoryId || pc.category?.slug === cd.categoryId)
+          const catIdxA = categoryDiscounts.findIndex((cd) => 
+            cd.categoryId === a.category_id || cd.categoryId === a.category?.slug || cd.categoryId === 'shop' || a.category?.id === cd.categoryId || a.product_categories?.some((pc) => matchesCategoryRelation(pc, cd))
           );
-          const catIdxB = categoryDiscounts.findIndex((cd: any) => 
-            cd.categoryId === b.category_id || cd.categoryId === b.category?.slug || cd.categoryId === 'shop' || b.category?.id === cd.categoryId || b.product_categories?.some((pc: any) => pc.categoryId === cd.categoryId || pc.category?.slug === cd.categoryId)
+          const catIdxB = categoryDiscounts.findIndex((cd) => 
+            cd.categoryId === b.category_id || cd.categoryId === b.category?.slug || cd.categoryId === 'shop' || b.category?.id === cd.categoryId || b.product_categories?.some((pc) => matchesCategoryRelation(pc, cd))
           );
           if (catIdxA !== -1 && catIdxB !== -1 && catIdxA !== catIdxB) {
             return catIdxA - catIdxB;
@@ -156,27 +156,18 @@ export function FlashSaleSection({ section, products, currencySymbol, settings, 
   // Fill-rows + per-layout auto/manual limit (RULE DS24). Columns-aware so the
   // visible count follows the chosen columns (auto = cols × rows) and the last
   // row is never half-empty when more products exist. Defaults keep old behavior.
-  const gridCfg = {
-    mode: section.settings?.columns_mode || 'manual',
-    mobile: Number(section.settings?.columns_mobile) || 2,
-    tablet: Number(section.settings?.columns_tablet) || 3,
-    desktop: Number(section.settings?.columns_desktop) || 4,
-    wide: section.settings?.columns_wide,
-    minDesktop: section.settings?.min_card_desktop,
-  };
   const limitCfg = {
     mode: section.settings?.limit_mode || 'manual',
     manual: section.settings?.limit || 8,
     rows: section.settings?.limit_rows,
   };
-  const activeCols = resolveActiveColumns(gridCfg, typeof window !== 'undefined' ? window.innerWidth : 1280);
-  const baseLimit = resolveLimit(limitCfg, activeCols, 8);
+  const baseLimit = limit(limitCfg, allMatchedProducts.length, false, 8);
   const effectiveLimit = loadMoreLimit || baseLimit;
   const bottomEnableViewAll = section.settings?.bottomEnableViewAll === true;
   const bottomEnableLoadMore = section.settings?.bottomEnableLoadMore === true;
 
   const fillRowsEnabled = section.settings?.fill_rows !== false;
-  const visibleCount = fillCatalogRows(effectiveLimit, allMatchedProducts.length, fillRowsEnabled, gridCfg);
+  const visibleCount = fill(effectiveLimit, allMatchedProducts.length, fillRowsEnabled);
   const displayProducts = allMatchedProducts.slice(0, visibleCount);
   const hasMore = displayProducts.length < allMatchedProducts.length;
 

@@ -224,7 +224,20 @@ export function useOrderCreateCanvasState({ isOpen, onClose, onOrderCreated, set
         updated_at: new Date().toISOString()
       };
 
-      let newRow: any;
+      type InsertedOrderRow = {
+        id: string;
+        order_number?: string;
+        customer_name: string;
+        customer_phone: string;
+        items?: Order['items'];
+        subtotal: number | string;
+        total: number | string;
+        status: Order['status'];
+        notes?: string;
+        created_at: string;
+        updated_at: string;
+      };
+      let newRow: InsertedOrderRow | undefined;
       let insertAttempt = 0;
       const MAX_ATTEMPTS = 3;
       while (insertAttempt < MAX_ATTEMPTS) {
@@ -235,7 +248,7 @@ export function useOrderCreateCanvasState({ isOpen, onClose, onOrderCreated, set
           .select('*')
           .single();
         if (err) {
-          const pgCode = (err as any)?.code;
+          const pgCode = (err as { code?: string })?.code;
           if (pgCode === '23505' && insertAttempt < MAX_ATTEMPTS) {
             console.warn(`[OrderCreate] 23505 duplicate order_number, retry ${insertAttempt}/${MAX_ATTEMPTS}`);
             await new Promise(r => setTimeout(r, 150));
@@ -243,8 +256,12 @@ export function useOrderCreateCanvasState({ isOpen, onClose, onOrderCreated, set
           }
           throw err;
         }
-        newRow = result;
+        newRow = result as InsertedOrderRow;
         break;
+      }
+
+      if (!newRow) {
+        throw new Error('Failed to create order');
       }
 
       // Update Stock Levels
@@ -281,9 +298,9 @@ export function useOrderCreateCanvasState({ isOpen, onClose, onOrderCreated, set
       onOrderCreated(formattedOrder);
       toast.success(`Order ${formattedOrder.order_number} created successfully!`);
       onClose();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      toast.error(err.message || 'Failed to create order');
+      toast.error(err instanceof Error ? err.message : 'Failed to create order');
     } finally {
       setIsSaving(false);
     }

@@ -10,7 +10,7 @@ export const updateProductFields = async (
 ): Promise<void> => {
   try {
     const supabase = supabaseAdmin;
-    const updatePayload: Record<string, any> = {};
+    const updatePayload: Record<string, unknown> = {};
     if (fields.name !== undefined) updatePayload.name = fields.name;
     // Write-boundary slug sanitize (SSOT) — never store spaces/caps/pipes.
     if (fields.slug !== undefined) {

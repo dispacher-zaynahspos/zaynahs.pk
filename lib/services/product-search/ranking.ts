@@ -101,7 +101,7 @@ export function calculateSearchScore(
   }
 
   // Age matching bonus
-  const productAge = extractProductAgeRange(product as any);
+  const productAge = extractProductAgeRange(product);
   if (productAge) {
     const ageMatch = ageMatchesQuery(productAge.min, productAge.max, parsedAge);
     if (ageMatch.exact) {
@@ -148,7 +148,22 @@ function escapeRegExp(string: string): string {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-export function buildSearchTsVector(product: any): string {
+export function buildSearchTsVector(product: {
+  name?: string;
+  short_description?: string;
+  description?: string;
+  sku?: string;
+  tags?: string[];
+  category?: { name?: string };
+  variants?: Array<{
+    active?: boolean;
+    color?: string;
+    size?: string;
+    material?: string;
+    custom_value?: string;
+    sku?: string;
+  }>;
+}): string {
   const parts: string[] = [];
   
   if (product.name) parts.push(product.name);
@@ -160,8 +175,8 @@ export function buildSearchTsVector(product: any): string {
   
   if (product.variants?.length) {
     const variantParts = product.variants
-      .filter((v: any) => v.active)
-      .map((v: any) => [v.color, v.size, v.material, v.custom_value, v.sku].filter(Boolean).join(' '))
+      .filter((v) => v.active)
+      .map((v) => [v.color, v.size, v.material, v.custom_value, v.sku].filter(Boolean).join(' '))
       .join(' ');
     if (variantParts) parts.push(variantParts);
   }

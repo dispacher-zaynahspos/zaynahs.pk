@@ -88,7 +88,7 @@ export const updateHomepageSection = async (
 ): Promise<HomepageSection> => {
   try {
     const supabase = supabaseAdmin;
-    const updatePayload: Record<string, any> = {
+    const updatePayload: Record<string, unknown> = {
       updated_at: new Date().toISOString()
     };
     if (updates.title !== undefined) updatePayload.title = updates.title;

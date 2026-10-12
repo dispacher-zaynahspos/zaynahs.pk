@@ -9,10 +9,13 @@ import AITab from '../settings/AITab';
 import EmailTab from '../settings/EmailTab';
 import MetaSyncTab from '../settings/MetaSyncTab';
 import { TabId } from './index';
+import type { useSettingsFormState } from './hooks/useSettingsFormState';
+
+type SettingsFormState = ReturnType<typeof useSettingsFormState>;
 
 interface SettingsTabRendererAdvancedProps {
   activeTab: TabId;
-  s: any;
+  s: SettingsFormState;
 }
 
 export function SettingsTabRendererAdvanced({ activeTab, s }: SettingsTabRendererAdvancedProps) {

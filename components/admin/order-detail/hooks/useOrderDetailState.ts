@@ -17,7 +17,7 @@ export function useOrderDetailState(initialOrder: Order) {
   const [isUpdating, setIsUpdating] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isEditingOrder, setIsEditingOrder] = useState(false);
-  const [allProducts, setAllProducts] = useState<any[]>([]);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [isFulfillDropdownOpen, setIsFulfillDropdownOpen] = useState(false);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
 

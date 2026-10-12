@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Search, X, CornerDownLeft, ArrowUpDown } from '@/components/common/Icons';
 import { NavSection, SETTINGS_TAB_SHORTCUTS } from './adminNavSections';
 import { Modal } from '@/components/common/Modal';
+import type { LucideIcon } from 'lucide-react';
 
 interface AdminCommandPaletteProps {
   isOpen: boolean;
@@ -17,7 +18,7 @@ interface FlatItem {
   id: string;
   label: string;
   href: string;
-  icon: any;
+  icon: LucideIcon;
   groupLabel: string;
   badgeCount?: number;
   keywords?: string[];

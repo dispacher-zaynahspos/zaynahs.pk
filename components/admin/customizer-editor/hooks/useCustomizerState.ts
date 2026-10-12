@@ -282,8 +282,8 @@ export function useCustomizerState({
     if (!section) return;
 
     if (isSlide && slideId) {
-      const slides = section.content_data?.slides || [];
-      const updatedSlides = slides.map((s: any) => s.id === slideId ? { ...s, [fieldKey]: url } : s);
+      const slides = (section.content_data?.slides || []) as Array<{ id?: string; [key: string]: unknown }>;
+      const updatedSlides = slides.map((s) => s.id === slideId ? { ...s, [fieldKey]: url } : s);
       handleUpdateSection(sectionId, {
         content_data: {
           ...section.content_data,
@@ -379,9 +379,9 @@ export function useCustomizerState({
         } catch {
           toast.success('Customizer settings saved successfully.');
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('[useCustomizerState] handleSaveLayout failed:', err);
-        const msg = err?.message || (typeof err === 'string' ? err : 'Failed to save layout adjustments and settings');
+        const msg = err instanceof Error ? err.message : (typeof err === 'string' ? err : 'Failed to save layout adjustments and settings');
         toast.error(msg);
       }
     });

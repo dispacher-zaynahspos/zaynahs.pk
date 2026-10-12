@@ -44,7 +44,9 @@ export default function ChunkErrorListener() {
       }
       // 2. Check for ErrorEvent message or error
       if ('message' in event) {
-        handleChunkError((event as ErrorEvent).message || (event as any).error?.message || (event as any).error?.toString?.());
+        const errorEvent = event as ErrorEvent;
+        const errObj = errorEvent.error as { message?: string; toString?: () => string } | undefined;
+        handleChunkError(errorEvent.message || errObj?.message || errObj?.toString?.());
       }
     };
 

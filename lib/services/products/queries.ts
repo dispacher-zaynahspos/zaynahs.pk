@@ -170,7 +170,7 @@ export const getProductById = async (id: string): Promise<Product | null> => {
 
     if (!logsError && logs && logs.length > 0) {
       const latestLog = logs[0];
-      product.meta_sync_status = latestLog.status as any;
+      product.meta_sync_status = latestLog.status as Product['meta_sync_status'];
       product.meta_sync_error = latestLog.error || undefined;
       product.meta_last_synced_at = latestLog.created_at;
     } else {
@@ -220,7 +220,7 @@ export const getAllProductsAdmin = async (): Promise<Product[]> => {
         products.forEach(p => {
           const log = latestLogs[p.id];
           if (log) {
-            p.meta_sync_status = log.status as any;
+            p.meta_sync_status = log.status as Product['meta_sync_status'];
             p.meta_sync_error = log.error || undefined;
             p.meta_last_synced_at = log.created_at;
           } else {
@@ -251,7 +251,7 @@ export const getProductsByCategoryId = async (categoryId: string): Promise<Produ
     const relProductIds = (catRelations || []).map(r => r.product_id);
     // per-category manual order position map (SSOT; decoupled from global sort_order)
     const positionMap = new Map<string, number | null>(
-      (catRelations || []).map(r => [r.product_id, (r as any).position ?? null])
+      (catRelations || []).map((r): [string, number | null] => [r.product_id, r.position ?? null])
     );
 
     let query = staticSupabase

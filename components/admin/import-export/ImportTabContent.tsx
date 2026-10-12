@@ -17,7 +17,12 @@ interface ImportTabContentProps {
     productCount: number;
     exportedAt: string;
   } | null;
-  setImportMeta: (meta: any) => void;
+  setImportMeta: (meta: {
+    version: string;
+    storeName: string;
+    productCount: number;
+    exportedAt: string;
+  } | null) => void;
   conflictStrategy: 'skip' | 'overwrite' | 'rename';
   setConflictStrategy: (val: 'skip' | 'overwrite' | 'rename') => void;
   isImporting: boolean;

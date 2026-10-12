@@ -59,7 +59,7 @@ export const updateSocialProof = async (id: string, updates: {
   productIds?: string[];
 }): Promise<SocialProof> => {
   try {
-    const updateData: Record<string, any> = {};
+    const updateData: Record<string, unknown> = {};
     if (updates.imageUrl !== undefined) updateData.image_url = updates.imageUrl;
     if (updates.caption !== undefined) updateData.caption = updates.caption;
     if (updates.sourceType !== undefined) updateData.source_type = updates.sourceType;

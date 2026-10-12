@@ -4,6 +4,7 @@ import React from 'react';
 import { ShoppingBag, RefreshCw, Trash2 } from '@/components/common/Icons';
 import { Product } from '@/lib/types';
 import EmptyState from '@/components/common/EmptyState';
+import type { ConfirmDeleteState } from './TrashConfirmModals';
 
 interface TrashProductsTableProps {
   products: Product[];
@@ -11,7 +12,7 @@ interface TrashProductsTableProps {
   selectedIds: string[];
   toggleSelect: (id: string) => void;
   handleRestore: (id: string, type: 'products') => void;
-  setConfirmDelete: (val: any) => void;
+  setConfirmDelete: (val: ConfirmDeleteState | null) => void;
   isPending: boolean;
 }
 

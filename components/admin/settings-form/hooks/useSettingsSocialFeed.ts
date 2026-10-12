@@ -12,6 +12,7 @@ export interface SocialFeedItem {
   caption?: string;
   videoUrl?: string;
   videoAutoplay?: boolean;
+  platform?: string;
 }
 
 interface UseSettingsSocialFeedProps {

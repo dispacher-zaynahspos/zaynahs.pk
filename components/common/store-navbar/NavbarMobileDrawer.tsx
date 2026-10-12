@@ -8,6 +8,7 @@ import { cleanWhatsAppPhone } from '@/lib/utils/whatsapp';
 import { formatPrice } from '@/lib/utils/whatsapp';
 import { NavigationItem, StoreSettings, Product } from '@/lib/types';
 import { Modal } from '@/components/common/Modal';
+import type { CustomerSession } from '@/lib/utils/customer-auth';
 
 // Session-level cache so opening the menu doesn't refetch the catalog every time.
 let cachedFeatured: Product[] | null = null;
@@ -18,7 +19,7 @@ interface NavbarMobileDrawerProps {
   setMobileMenuOpen: (open: boolean) => void;
   isAdmin: boolean;
   navItems: NavigationItem[];
-  customerSession: any;
+  customerSession: CustomerSession | null;
   totalItems: number;
   wishlistCount: number;
   settings?: StoreSettings;

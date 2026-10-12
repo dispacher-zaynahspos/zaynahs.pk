@@ -114,7 +114,7 @@ export default function ProductCardSettings({
             </label>
             <select
               value={activeStyle}
-              onChange={(e) => onUpdateSettings({ card_style: e.target.value as any })}
+              onChange={(e) => onUpdateSettings({ card_style: e.target.value as NonNullable<StoreSettings['card_style']> })}
               className="w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-[#f8f8f8] dark:bg-[#0f0f1b] px-3 py-2 text-xs font-bold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
             >
               <optgroup label="Base Store Themes (Protected — Never Touch)">
@@ -148,7 +148,7 @@ export default function ProductCardSettings({
             </label>
             <select
               value={settings.card_icon_style || 'pill'}
-              onChange={(e) => onUpdateSettings({ card_icon_style: e.target.value as any })}
+              onChange={(e) => onUpdateSettings({ card_icon_style: e.target.value as NonNullable<StoreSettings['card_icon_style']> })}
               className="w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-[#f8f8f8] dark:bg-[#0f0f1b] px-3 py-2 text-xs font-bold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
             >
               {CARD_ICON_STYLE_OPTIONS.map(opt => (
@@ -169,7 +169,7 @@ export default function ProductCardSettings({
             </label>
             <select
               value={settings.image_hover_style || DEFAULT_IMAGE_HOVER_STYLE}
-              onChange={(e) => onUpdateSettings({ image_hover_style: e.target.value as any })}
+              onChange={(e) => onUpdateSettings({ image_hover_style: e.target.value as NonNullable<StoreSettings['image_hover_style']> })}
               className="w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-[#f8f8f8] dark:bg-[#0f0f1b] px-3 py-2 text-xs font-bold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
             >
               {IMAGE_HOVER_STYLE_OPTIONS.map(o => (
@@ -270,7 +270,7 @@ export default function ProductCardSettings({
             </label>
             <select
               value={settings.title_line_limit || DEFAULT_TITLE_LINE_LIMIT}
-              onChange={(e) => onUpdateSettings({ title_line_limit: e.target.value as any })}
+              onChange={(e) => onUpdateSettings({ title_line_limit: e.target.value as NonNullable<StoreSettings['title_line_limit']> })}
               className="w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-[#f8f8f8] dark:bg-[#0f0f1b] px-3 py-2 text-xs font-bold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
             >
               {TITLE_LINE_LIMIT_OPTIONS.map(o => (
@@ -287,7 +287,7 @@ export default function ProductCardSettings({
             <SegmentedControl
               label="Card Shadow"
               value={settings.card_shadow ?? 'sm'}
-              onChange={(v) => onUpdateSettings({ card_shadow: v as any })}
+              onChange={(v) => onUpdateSettings({ card_shadow: v as NonNullable<StoreSettings['card_shadow']> })}
               options={[
                 { label: 'None', value: 'none' },
                 { label: 'Small', value: 'sm' },
@@ -309,7 +309,7 @@ export default function ProductCardSettings({
             <SegmentedControl
               label="Image Fit"
               value={settings.card_image_fit ?? 'contain'}
-              onChange={(v) => onUpdateSettings({ card_image_fit: v as any })}
+              onChange={(v) => onUpdateSettings({ card_image_fit: v as NonNullable<StoreSettings['card_image_fit']> })}
               options={[
                 { label: 'Contain', value: 'contain' },
                 { label: 'Cover', value: 'cover' },
@@ -341,7 +341,7 @@ export default function ProductCardSettings({
                   <button
                     key={align}
                     type="button"
-                    onClick={() => onUpdateSettings({ card_alignment: align as any })}
+                    onClick={() => onUpdateSettings({ card_alignment: align as NonNullable<StoreSettings['card_alignment']> })}
                     className={`py-2 text-center rounded-xl border text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${isActive
                       ? 'border-[#e94560] bg-[#e94560]/5 text-[#e94560]'
                       : 'border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] hover:border-gray-300 dark:hover:border-gray-700 text-gray-600 dark:text-gray-400'

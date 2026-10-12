@@ -35,7 +35,7 @@ export function NavbarMobileNavItem({
 }: NavbarMobileNavItemProps) {
   const hasChildren = item.children && item.children.length > 0;
   const isAccOpen = mobileAccordionOpen[item.id];
-  const labelText = item.label || (item as any).title || '';
+  const labelText = item.label || (item as NavigationItem & { title?: string }).title || '';
 
   // Reference-style typographic rows: large, bold, uppercase, one line, no boxes/pills/badges.
   // Top-level rows are largest; nested children step down in size for a clear hierarchy.

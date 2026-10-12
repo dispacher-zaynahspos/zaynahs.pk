@@ -149,7 +149,7 @@ export default function OrderEditor({ order: initialOrder, settings, products, o
     try {
       setIsSaving(true);
 
-      const newLogs: any[] = [];
+      const newLogs: StatusLogItem[] = [];
       const now = new Date().toISOString();
 
       const addedItems = items.filter(i => i._isNew);
@@ -159,7 +159,7 @@ export default function OrderEditor({ order: initialOrder, settings, products, o
           type: 'status_change',
           message: 'Items added to order',
           notes: addedItems.map(i => `+ ${i.product.name} (x${i.quantity})`).join('\n'),
-          createdAt: now
+          created_at: now
         });
       }
 
@@ -172,7 +172,7 @@ export default function OrderEditor({ order: initialOrder, settings, products, o
           type: 'status_change',
           message: 'Items removed from order',
           notes: removedItems.map(i => `- ${i.product.name} (x${i.quantity})`).join('\n'),
-          createdAt: now
+          created_at: now
         });
       }
 
@@ -190,7 +190,7 @@ export default function OrderEditor({ order: initialOrder, settings, products, o
           type: 'status_change',
           message: 'Item quantities updated',
           notes: qtyChanges.join('\n'),
-          createdAt: now
+          created_at: now
         });
       }
 

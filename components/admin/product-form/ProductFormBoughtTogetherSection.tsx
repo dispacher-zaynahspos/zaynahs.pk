@@ -2,9 +2,11 @@
 
 import React from 'react';
 import { Trash2, Search, Image as ImageIcon } from '@/components/common/Icons';
-import { Product } from '@/lib/types';
+import { Product, ProductImage } from '@/lib/types';
 import { toast } from 'sonner';
 import { rankProducts } from '@/lib/services/product-search/useInMemoryProductSearch';
+
+type ProductWithImages = Product & { product_images?: ProductImage[] };
 
 interface ProductFormBoughtTogetherSectionProps {
   frequentlyBoughtTogetherIds: string[];
@@ -36,13 +38,13 @@ export const ProductFormBoughtTogetherSection: React.FC<ProductFormBoughtTogethe
       {frequentlyBoughtTogetherIds.length > 0 && (
         <div className="flex flex-col gap-1.5 mb-2">
           {frequentlyBoughtTogetherIds.map((id) => {
-            const product = productList.find(p => p.id === id);
+            const product = productList.find(p => p.id === id) as ProductWithImages | undefined;
             if (!product) return null;
             return (
               <div key={id} className="flex items-center gap-2.5 p-2 bg-gray-50/70 dark:bg-white/5 border border-gray-200 dark:border-gray-800 rounded-xl">
                 <div className="h-9 w-9 shrink-0 rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden bg-white dark:bg-[#0f0f1b]">
-                  {(product as any).product_images && (product as any).product_images.length > 0 ? (
-                    <img src={((product as any).product_images as any[]).find((img: any) => img.is_primary)?.url || (product as any).product_images[0].url} alt={product.name} className="h-full w-full object-cover" />
+                  {product.product_images && product.product_images.length > 0 ? (
+                    <img src={product.product_images.find((img) => img.is_primary)?.url || product.product_images[0].url} alt={product.name} className="h-full w-full object-cover" />
                   ) : (
                     <div className="h-full w-full flex items-center justify-center bg-gray-100 dark:bg-gray-800"><ImageIcon className="h-3.5 w-3.5 text-gray-400" /></div>
                   )}
@@ -95,6 +97,7 @@ export const ProductFormBoughtTogetherSection: React.FC<ProductFormBoughtTogethe
           return (
             <>
               {visibleItems.map((product) => {
+                const prod = product as ProductWithImages;
                 const isChecked = frequentlyBoughtTogetherIds.includes(product.id);
                 return (
                   <label
@@ -121,10 +124,10 @@ export const ProductFormBoughtTogetherSection: React.FC<ProductFormBoughtTogethe
                       }}
                       className="shrink-0 rounded border-gray-300 text-[#e94560] focus:ring-[#e94560] h-3.5 w-3.5 cursor-pointer disabled:cursor-not-allowed"
                     />
-                    {(product as any).product_images && (product as any).product_images.length > 0 ? (
+                    {prod.product_images && prod.product_images.length > 0 ? (
                       <div className="h-7 w-7 shrink-0 rounded border border-gray-200 dark:border-gray-800 overflow-hidden bg-white dark:bg-[#0f0f1b]">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={((product as any).product_images as any[]).find((img: any) => img.is_primary)?.url || (product as any).product_images[0].url} alt={product.name} className="h-full w-full object-cover" />
+                        <img src={prod.product_images.find((img) => img.is_primary)?.url || prod.product_images[0].url} alt={product.name} className="h-full w-full object-cover" />
                       </div>
                     ) : (
                       <div className="h-7 w-7 shrink-0 rounded border border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-[#0f0f1b] flex items-center justify-center">
