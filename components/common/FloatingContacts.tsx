@@ -70,7 +70,8 @@ export default function FloatingContacts({ settings }: FloatingContactsProps) {
   const isTickerEnabled = isFeatureEnabled(settings, 'recent_buyers');
   const isSpinWheelEnabled = isFeatureEnabled(settings, 'spin_wheel');
   const needsStacking = (position === 'left' && isTickerEnabled) || (position === 'right' && isSpinWheelEnabled);
-  const baseOffset = settings.floating_contacts_bottom_mobile ?? 80;
+  const isReviewsPage = pathname === '/reviews';
+  const baseOffset = (settings.floating_contacts_bottom_mobile ?? 80) + (isReviewsPage ? 20 : 0);
 
   const bottomOffset = isMobile 
     ? (needsStacking 
@@ -83,7 +84,7 @@ export default function FloatingContacts({ settings }: FloatingContactsProps) {
     ? (settings.floating_contacts_side_mobile ?? 16) 
     : (settings.floating_contacts_side_desktop ?? 24);
 
-  const scale = settings.floating_contacts_scale ?? 1.0;
+  const scale = (settings.floating_contacts_scale ?? 1.0) * (isReviewsPage && isMobile ? 0.9 : 1.0);
 
   const containerStyle: React.CSSProperties = {
     position: 'fixed',

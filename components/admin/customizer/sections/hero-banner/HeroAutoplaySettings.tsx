@@ -2,8 +2,8 @@ import React from 'react';
 import { NumberSliderControl } from './HeroBannerControls';
 
 interface HeroAutoplaySettingsProps {
-  settings: Record<string, any>;
-  handleSettingsChange: (key: string, value: any) => void;
+  settings: Record<string, unknown>;
+  handleSettingsChange: (key: string, value: unknown) => void;
 }
 
 export function HeroAutoplaySettings({ settings, handleSettingsChange }: HeroAutoplaySettingsProps) {
@@ -12,7 +12,7 @@ export function HeroAutoplaySettings({ settings, handleSettingsChange }: HeroAut
       <label className="flex items-center gap-2.5 cursor-pointer select-none">
         <input
           type="checkbox"
-          checked={settings.autoplay ?? true}
+          checked={(settings.autoplay as boolean | undefined) ?? true}
           onChange={e => handleSettingsChange('autoplay', e.target.checked)}
           className="rounded border-gray-300 dark:border-gray-700 text-[#e94560] focus:ring-[#e94560] h-4 w-4 cursor-pointer"
         />
@@ -21,11 +21,11 @@ export function HeroAutoplaySettings({ settings, handleSettingsChange }: HeroAut
         </span>
       </label>
 
-      {(settings.autoplay ?? true) && (
+      {((settings.autoplay as boolean | undefined) ?? true) && (
         <div className="pt-1 border-t border-gray-200 dark:border-gray-800/60">
           <NumberSliderControl
             label="Autoplay Speed"
-            value={Math.round((settings.autoplay_speed ?? 5000) / 1000)}
+            value={Math.round(((settings.autoplay_speed as number | undefined) ?? 5000) / 1000)}
             min={3}
             max={15}
             step={1}

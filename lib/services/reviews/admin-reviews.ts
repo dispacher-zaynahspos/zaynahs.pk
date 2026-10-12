@@ -142,6 +142,26 @@ export const hideShowReview = async (id: string, hidden: boolean): Promise<Revie
   }
 };
 
+// 8b. Store reply to a review (public reply shown under the review). Pass '' to clear.
+export const replyToReview = async (id: string, reply: string): Promise<Review> => {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('reviews')
+      .update({ store_reply: reply.trim() || null })
+      .eq('id', id)
+      .select('*')
+      .single();
+
+    if (error) throw error;
+
+    await revalidateStorefrontEdge('reviews', 'products');
+    return mapReview(data);
+  } catch (error) {
+    console.error('[reviews] replyToReview failed:', error);
+    throw error;
+  }
+};
+
 // 5. Delete a review (admin)
 export const deleteReview = async (id: string): Promise<void> => {
   try {
@@ -285,7 +305,8 @@ export const hardDeleteReview = async (id: string): Promise<void> => {
   }
 };
 
-// 10. Submit an admin custom review (with optional screenshot)
+// 10. Submit an admin custom review (manual upload). Supports photos/videos,
+//     backdated date, verified/source flags. Used by the admin "Add Review" form.
 export const submitAdminCustomReview = async (review: {
   productId?: string | null;
   customerName: string;
@@ -294,21 +315,33 @@ export const submitAdminCustomReview = async (review: {
   rating: number;
   comment?: string;
   screenshotUrl?: string;
+  images?: string[];
+  createdAt?: string;
+  isVerified?: boolean;
+  storeReply?: string;
 }): Promise<Review> => {
   try {
+    const insertRow: Record<string, any> = {
+      product_id: review.productId || null,
+      customer_name: review.customerName,
+      customer_phone: review.customerPhone || null,
+      customer_email: review.customerEmail || null,
+      rating: Math.min(5, Math.max(1, Math.round(review.rating))),
+      comment: review.comment || null,
+      screenshot_url: review.screenshotUrl || null,
+      images: Array.isArray(review.images) ? review.images.filter(Boolean) : undefined,
+      is_manual: true,
+      approved: true,
+      is_verified_purchase: review.isVerified ?? false,
+      store_reply: review.storeReply?.trim() || null,
+    };
+    if (review.createdAt) insertRow.created_at = review.createdAt;
+    // Drop undefined keys so DB defaults apply.
+    Object.keys(insertRow).forEach((k) => insertRow[k] === undefined && delete insertRow[k]);
+
     const { data, error } = await supabaseAdmin
       .from('reviews')
-      .insert({
-        product_id: review.productId || null,
-        customer_name: review.customerName,
-        customer_phone: review.customerPhone || null,
-        customer_email: review.customerEmail || null,
-        rating: review.rating,
-        comment: review.comment || null,
-        screenshot_url: review.screenshotUrl || null,
-        is_manual: true,
-        approved: true
-      })
+      .insert(insertRow)
       .select('*')
       .single();
 
@@ -321,4 +354,62 @@ export const submitAdminCustomReview = async (review: {
     console.error('[reviews] submitAdminCustomReview failed:', error);
     throw error;
   }
+};
+
+// 11. Bulk import reviews (CSV). Each row is validated; invalid rows are skipped
+//     and reported. All valid rows are inserted in one batch, then one revalidate.
+export interface BulkReviewRow {
+  productId?: string | null;
+  customerName: string;
+  rating: number;
+  comment?: string;
+  createdAt?: string;
+  isVerified?: boolean;
+}
+
+export const bulkImportReviews = async (
+  rows: BulkReviewRow[],
+): Promise<{ inserted: number; skipped: number; errors: string[] }> => {
+  const errors: string[] = [];
+  const valid: Record<string, any>[] = [];
+
+  rows.forEach((r, i) => {
+    const line = i + 1;
+    if (!r.customerName || !r.customerName.trim()) {
+      errors.push(`Row ${line}: missing customer name`);
+      return;
+    }
+    const rating = Math.round(Number(r.rating));
+    if (!Number.isFinite(rating) || rating < 1 || rating > 5) {
+      errors.push(`Row ${line}: rating must be 1–5`);
+      return;
+    }
+    const row: Record<string, any> = {
+      product_id: r.productId || null,
+      customer_name: r.customerName.trim(),
+      rating,
+      comment: r.comment?.trim() || null,
+      is_manual: true,
+      approved: true,
+      is_verified_purchase: r.isVerified ?? false,
+    };
+    if (r.createdAt) {
+      const d = new Date(r.createdAt);
+      if (!isNaN(d.getTime())) row.created_at = d.toISOString();
+    }
+    valid.push(row);
+  });
+
+  if (valid.length === 0) {
+    return { inserted: 0, skipped: rows.length, errors };
+  }
+
+  const { error } = await supabaseAdmin.from('reviews').insert(valid);
+  if (error) {
+    console.error('[reviews] bulkImportReviews failed:', error);
+    throw error;
+  }
+
+  await revalidateStorefrontEdge('reviews', 'products');
+  return { inserted: valid.length, skipped: rows.length - valid.length, errors };
 };

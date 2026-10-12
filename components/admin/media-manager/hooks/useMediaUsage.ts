@@ -4,9 +4,14 @@ import { useState, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { MediaItem, normalizeUrl } from './useMediaManagerData';
 
+interface HomepageSectionUsageRow {
+  settings: Record<string, unknown> | null;
+  content_data: Record<string, unknown> | null;
+}
+
 export function useMediaUsage() {
   const [usedNormUrls, setUsedNormUrls] = useState<Set<string>>(new Set());
-  const [sectionsData, setSectionsData] = useState<any[]>([]);
+  const [sectionsData, setSectionsData] = useState<HomepageSectionUsageRow[]>([]);
   const [usageLoading, setUsageLoading] = useState(true);
 
   const loadUsageCrossReferences = async () => {

@@ -2,6 +2,13 @@
 
 import { StoreSettings } from '@/lib/types';
 import { cleanWhatsAppPhone } from '@/lib/utils/whatsapp';
+import type { useSettingsTrustAndProducts } from './useSettingsTrustAndProducts';
+import type { useSettingsHeaderFooter } from './useSettingsHeaderFooter';
+import type { useSettingsNavigation } from './useSettingsNavigation';
+import type { useSettingsPopupsAndPixels } from './useSettingsPopupsAndPixels';
+import type { useSettingsMediaUploads } from './useSettingsMediaUploads';
+import type { useSettingsSocialFeed } from './useSettingsSocialFeed';
+import type { useSettingsAIAndEmails } from './useSettingsAIAndEmails';
 
 export function buildSettingsPayload(data: {
   storeName: string;
@@ -30,13 +37,13 @@ export function buildSettingsPayload(data: {
   socialInstagram: string;
   socialWhatsapp: string;
   socialYoutube: string;
-  trustProducts: any;
-  headerFooter: any;
-  navigation: any;
-  popupsPixels: any;
-  mediaUploads: any;
-  socialFeed: any;
-  aiEmails: any;
+  trustProducts: ReturnType<typeof useSettingsTrustAndProducts>;
+  headerFooter: ReturnType<typeof useSettingsHeaderFooter>;
+  navigation: ReturnType<typeof useSettingsNavigation>;
+  popupsPixels: ReturnType<typeof useSettingsPopupsAndPixels>;
+  mediaUploads: ReturnType<typeof useSettingsMediaUploads>;
+  socialFeed: ReturnType<typeof useSettingsSocialFeed>;
+  aiEmails: ReturnType<typeof useSettingsAIAndEmails>;
 }): Partial<StoreSettings> {
   const {
     storeName,
@@ -157,6 +164,8 @@ export function buildSettingsPayload(data: {
     header_top_bar_phone: headerFooter.headerTopBarPhone,
     header_top_bar_email: headerFooter.headerTopBarEmail,
     header_show_newsletter: headerFooter.headerShowNewsletter,
+    header_social_enabled: headerFooter.headerSocialEnabled,
+    header_social_show_mobile: headerFooter.headerSocialShowMobile,
     header_newsletter_text: headerFooter.headerNewsletterText,
     header_top_bar_bg: headerFooter.headerTopBarBg,
     header_top_bar_text_color: headerFooter.headerTopBarTextColor,

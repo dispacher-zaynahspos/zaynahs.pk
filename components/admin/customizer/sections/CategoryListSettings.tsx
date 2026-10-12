@@ -16,7 +16,7 @@ export default function CategoryListSettings({
 }: CategoryListSettingsProps) {
   const settings = section.settings || {};
 
-  const handleSettingsChange = (key: string, value: any) => {
+  const handleSettingsChange = (key: string, value: unknown) => {
     onUpdateSection({
       settings: { ...settings, [key]: value }
     });

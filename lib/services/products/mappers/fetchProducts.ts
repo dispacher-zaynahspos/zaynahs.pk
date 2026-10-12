@@ -1,5 +1,5 @@
 import { Product } from '@/lib/types';
-import { staticSupabase } from './types';
+import { staticSupabase, type DBProductRow } from './types';
 import { mapProduct } from './dbToProductMapper';
 import { applyFlashSaleDiscounts } from './flashSaleDiscounts';
 
@@ -60,7 +60,7 @@ export const fetchProducts = async (categoryId?: string, limit?: number, light =
       console.error('[Products Error Debug] fetchProducts failed:', error);
       throw error;
     }
-    const products = (data ?? []).map((r: any) => mapProduct(r));
+    const products = (data ?? []).map((r) => mapProduct(r as unknown as DBProductRow));
     return applyFlashSaleDiscounts(products);
   } catch (err) {
     try {
@@ -84,7 +84,7 @@ export const fetchProducts = async (categoryId?: string, limit?: number, light =
 
       const { data, error } = await finalQuery;
       if (error) throw error;
-      const products = (data ?? []).map((r: any) => mapProduct(r));
+      const products = (data ?? []).map((r) => mapProduct(r as unknown as DBProductRow));
       return applyFlashSaleDiscounts(products);
     } catch (fallbackErr) {
       console.error('[Products Error Debug] fetchProducts caught error, returning empty fallback list:', err);

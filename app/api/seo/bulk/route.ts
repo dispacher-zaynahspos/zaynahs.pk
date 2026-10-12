@@ -45,8 +45,8 @@ export async function POST(request: Request) {
         } else {
           failed.push({ item, error: data.error || 'Unknown error' });
         }
-      } catch (err: any) {
-        failed.push({ item, error: err.message || 'Network error' });
+      } catch (err: unknown) {
+        failed.push({ item, error: err instanceof Error ? err.message : 'Network error' });
       }
 
       // Safe delay between requests to avoid rate limits
@@ -63,8 +63,8 @@ export async function POST(request: Request) {
         failedItems: failed
       }
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[Bulk SEO] Bulk process error:', error);
-    return NextResponse.json({ error: error.message || 'Bulk process failed' }, { status: 500 });
+    return NextResponse.json({ error: error instanceof Error ? error.message : 'Bulk process failed' }, { status: 500 });
   }
 }

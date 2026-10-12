@@ -19,6 +19,10 @@ interface StickyAndTopBarSettingsProps {
   setHeaderTopBarEmail: (val: string) => void;
   headerNewsletterText: string;
   setHeaderNewsletterText: (val: string) => void;
+  headerSocialEnabled?: boolean;
+  setHeaderSocialEnabled?: (val: boolean) => void;
+  headerSocialShowMobile?: boolean;
+  setHeaderSocialShowMobile?: (val: boolean) => void;
 }
 
 export default function StickyAndTopBarSettings({
@@ -36,6 +40,10 @@ export default function StickyAndTopBarSettings({
   setHeaderTopBarEmail,
   headerNewsletterText,
   setHeaderNewsletterText,
+  headerSocialEnabled,
+  setHeaderSocialEnabled,
+  headerSocialShowMobile,
+  setHeaderSocialShowMobile,
 }: StickyAndTopBarSettingsProps) {
   // Adapter → the shared SSOT component works in snake_case store_settings keys;
   // map them onto this tab's individual setters (Settings manual-save tree).
@@ -45,6 +53,8 @@ export default function StickyAndTopBarSettings({
     header_top_bar_phone: headerTopBarPhone,
     header_top_bar_email: headerTopBarEmail,
     header_newsletter_text: headerNewsletterText,
+    header_social_enabled: headerSocialEnabled ?? true,
+    header_social_show_mobile: headerSocialShowMobile ?? false,
   };
   const onAnnouncementUpdate = (updates: Partial<StoreSettings>) => {
     if (updates.header_show_top_bar !== undefined) setHeaderShowTopBar(updates.header_show_top_bar);
@@ -52,6 +62,8 @@ export default function StickyAndTopBarSettings({
     if (updates.header_top_bar_phone !== undefined) setHeaderTopBarPhone(updates.header_top_bar_phone);
     if (updates.header_top_bar_email !== undefined) setHeaderTopBarEmail(updates.header_top_bar_email);
     if (updates.header_newsletter_text !== undefined) setHeaderNewsletterText(updates.header_newsletter_text);
+    if (updates.header_social_enabled !== undefined) setHeaderSocialEnabled?.(updates.header_social_enabled);
+    if (updates.header_social_show_mobile !== undefined) setHeaderSocialShowMobile?.(updates.header_social_show_mobile);
   };
 
   return (

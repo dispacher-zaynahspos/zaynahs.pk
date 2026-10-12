@@ -2,6 +2,28 @@
 
 import { useState, useEffect } from 'react';
 import { useAbandonedCartTracker } from '@/lib/hooks/useAbandonedCartTracker';
+import type { CartItem } from '@/lib/types';
+
+export interface PlacedOrder {
+  orderNumber: string;
+  createdAt: string;
+  total: number;
+  items: CartItem[];
+  customerName: string;
+  phone: string;
+  address: string;
+  apartment: string;
+  city: string;
+  postalCode: string;
+  emailOrPhone: string;
+  shippingMethodName: string;
+  shippingCost: number;
+  subtotal: number;
+  discountAmount: number;
+  paymentMethodName: string;
+  paymentInstructions?: string;
+  orderTrackUrl?: string;
+}
 
 export function useCheckoutFormState(
   currency: string,
@@ -20,7 +42,7 @@ export function useCheckoutFormState(
   const { updateContact, markOrdered } = useAbandonedCartTracker(currency || 'PKR');
   const [saveInfo, setSaveInfo] = useState(true);
   const [notes, setNotes] = useState('');
-  const [placedOrder, setPlacedOrder] = useState<any>(null);
+  const [placedOrder, setPlacedOrder] = useState<PlacedOrder | null>(null);
   const [coordinates, setCoordinates] = useState('');
 
   useEffect(() => {

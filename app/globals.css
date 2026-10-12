@@ -1059,4 +1059,61 @@ input[type="number"] {
 @keyframes atcBurst { 0% { opacity: 1; transform: scale(0.3); } 100% { opacity: 0; transform: scale(1.2); } }
 @keyframes atcPop { 0% { transform: scale(1); } 40% { transform: scale(1.35) rotate(-10deg); } 100% { transform: scale(1); } }
 
+/* ──────────────────────────────────────────────────────────────────────────
+   SSOT catalog grid (RULE DS24 / RULE SSOT-CATALOG-LAYOUTS).
+   Columns + gap are driven by inline CSS variables set by getCatalogGridStyle()
+   so the exact chosen value ALWAYS applies (Tailwind cannot purge CSS vars).
+
+   MANUAL mode  → fixed column count per device (mobile <640, tablet 640–1023,
+                  desktop 1024–1535, large desktop 1536+).
+   AUTO mode    → columns derived from available container width using a minimum
+                  card width, so cards never look squeezed and big screens fill well.
+
+   Defaults (unset variables) reproduce the previous 2/3/4 look so existing
+   stores stay visually unchanged until a merchant edits the controls.
+   -------------------------------------------------------------------------- */
+.catalog-grid {
+  display: grid;
+  width: 100%;
+  gap: var(--cat-gap-m, 14px);
+  grid-template-columns: repeat(var(--cat-cols-m, 2), minmax(0, 1fr));
+}
+.catalog-grid[data-mode="auto"] {
+  grid-template-columns: repeat(auto-fill, minmax(min(var(--cat-min-m, 160px), 100%), 1fr));
+}
+@media (min-width: 640px) {
+  .catalog-grid {
+    gap: var(--cat-gap-t, 16px);
+    grid-template-columns: repeat(var(--cat-cols-t, 3), minmax(0, 1fr));
+  }
+  .catalog-grid[data-mode="auto"] {
+    grid-template-columns: repeat(auto-fill, minmax(min(var(--cat-min-t, 200px), 100%), 1fr));
+  }
+}
+@media (min-width: 1024px) {
+  .catalog-grid {
+    gap: var(--cat-gap-d, 20px);
+    grid-template-columns: repeat(var(--cat-cols-d, 4), minmax(0, 1fr));
+  }
+  .catalog-grid[data-mode="auto"] {
+    grid-template-columns: repeat(auto-fill, minmax(min(var(--cat-min-d, 220px), 100%), 1fr));
+  }
+}
+@media (min-width: 1440px) {
+  /* Auto mode uses a larger min tile width on big laptops/desktops so tiles grow. */
+  .catalog-grid[data-mode="auto"] {
+    grid-template-columns: repeat(auto-fill, minmax(min(var(--cat-min-xl, var(--cat-min-d, 240px)), 100%), 1fr));
+  }
+}
+@media (min-width: 1536px) {
+  .catalog-grid {
+    grid-template-columns: repeat(var(--cat-cols-w, var(--cat-cols-d, 4)), minmax(0, 1fr));
+  }
+  /* auto mode keeps filling by the large-screen min card width */
+}
+@media (min-width: 1920px) {
+  .catalog-grid[data-mode="auto"] {
+    grid-template-columns: repeat(auto-fill, minmax(min(var(--cat-min-xxl, var(--cat-min-xl, 320px)), 100%), 1fr));
+  }
+}
 

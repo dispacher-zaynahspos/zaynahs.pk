@@ -4,6 +4,7 @@ import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Product, Category, StoreSettings, Review, HomepageSection, Collection } from '@/lib/types';
 import CategoryFilter from './CategoryFilter';
 import ProductGrid from './ProductGrid';
+import { getContentWidthClass, CATALOG_SECTION_PADDING } from '@/lib/utils/responsiveGrid';
 import { useSearchStore } from '@/store/searchStore';
 import { useScrollRestoration } from '@/lib/hooks/useScrollRestoration';
 import { useSettings } from '@/lib/hooks/useSettings';
@@ -113,9 +114,12 @@ export default function StoreFront({
   }, [loadMoreLimits]);
 
   const handleLoadMore = useCallback((sectionId: string, baseLimit: number) => {
+    // Grow by one batch (baseLimit = the layout's computed per-batch target, which
+    // is already columns-aware so each batch stays full rows).
+    const step = baseLimit && baseLimit > 0 ? baseLimit : 8;
     setLoadMoreLimits((prev) => ({
       ...prev,
-      [sectionId]: (prev[sectionId] || baseLimit) + 8,
+      [sectionId]: (prev[sectionId] || step) + step,
     }));
   }, []);
 
@@ -164,7 +168,7 @@ export default function StoreFront({
 
   const renderCategoryList = (section: HomepageSection) => {
     return (
-      <div key={section.id} className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-4">
+      <div key={section.id} className={`mx-auto ${getContentWidthClass(section.settings?.content_width ?? activeSettings?.shop_content_width)} ${CATALOG_SECTION_PADDING} pt-4`}>
         {section.title && section.settings?.show_title !== false && (
           <h3 className="text-xs font-extrabold uppercase tracking-wider text-gray-500 mb-3 text-center md:text-left">
             {section.title}
@@ -199,11 +203,22 @@ export default function StoreFront({
 
   if (searchQuery) {
     return (
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 space-y-6 min-h-screen">
+      <div className={`mx-auto ${getContentWidthClass(activeSettings?.shop_content_width)} ${CATALOG_SECTION_PADDING} py-8 space-y-6 min-h-screen`}>
         <h2 className="text-xl font-bold text-gray-900 dark:text-white">
           Search Results for: <span className="text-[#e94560]">&quot;{searchQuery}&quot;</span> ({filteredProducts.length} items)
         </h2>
-        <ProductGrid products={filteredProducts} currencySymbol={activeSettings.currency_symbol} settings={activeSettings} />
+        <ProductGrid
+          products={filteredProducts}
+          currencySymbol={activeSettings.currency_symbol}
+          settings={activeSettings}
+          columnsMode={activeSettings?.shop_columns_mode || 'manual'}
+          columnsDesktop={activeSettings?.shop_columns_desktop}
+          columnsTablet={activeSettings?.shop_columns_tablet}
+          columnsMobile={activeSettings?.shop_columns_mobile}
+          columnsWide={activeSettings?.shop_columns_wide}
+          minCardDesktop={activeSettings?.shop_min_card_desktop}
+          gridGap={activeSettings?.shop_grid_gap}
+        />
       </div>
     );
   }

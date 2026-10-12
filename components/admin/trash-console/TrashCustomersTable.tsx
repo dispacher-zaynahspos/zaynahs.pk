@@ -3,14 +3,16 @@
 import React from 'react';
 import { Users, RefreshCw, Trash2 } from '@/components/common/Icons';
 import EmptyState from '@/components/common/EmptyState';
+import type { TrashedCustomer } from '@/lib/services/customers';
+import type { ConfirmDeleteState } from './TrashConfirmModals';
 
 interface TrashCustomersTableProps {
-  customers: any[];
+  customers: TrashedCustomer[];
   searchTerm: string;
   selectedIds: string[];
   toggleSelect: (id: string) => void;
   handleRestore: (id: string, type: 'customers') => void;
-  setConfirmDelete: (val: any) => void;
+  setConfirmDelete: (val: ConfirmDeleteState | null) => void;
   isPending: boolean;
 }
 

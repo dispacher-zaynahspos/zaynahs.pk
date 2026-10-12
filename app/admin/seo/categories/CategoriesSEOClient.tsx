@@ -141,7 +141,7 @@ export default function CategoriesSEOClient() {
 
       const metasMap = new Map(metasData?.map(m => [m.entity_id, m]) || []);
 
-      const formattedData = items.map((c: any) => ({
+      const formattedData = items.map((c) => ({
         id: c.id,
         name: c.name,
         slug: c.slug,
@@ -150,7 +150,7 @@ export default function CategoriesSEOClient() {
 
       setCategories(formattedData);
       setTotalCount(count || 0);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('[Categories SEO] Fetch failed:', err);
       toast.error('Failed to load categories');
     } finally {
@@ -176,8 +176,8 @@ export default function CategoriesSEOClient() {
         toast.success('Category SEO overrides generated!');
         fetchCategories();
       }
-    } catch (err: any) {
-      toast.error(err.message || 'Optimization failed');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Optimization failed');
     } finally {
       setOptimizingId(null);
     }
@@ -201,8 +201,8 @@ export default function CategoriesSEOClient() {
       toast.success(`Bulk optimize finished! Success: ${resData.success}, Failed: ${resData.failed}`);
       setSelectedIds([]);
       fetchCategories();
-    } catch (err: any) {
-      toast.error(err.message || 'Bulk optimize failed');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Bulk optimize failed');
     } finally {
       setBulkOptimizing(false);
     }

@@ -5,7 +5,24 @@ import Link from 'next/link';
 import { Product, StoreSettings, HomepageSection } from '@/lib/types';
 import { isFeatureEnabled } from '@/lib/features/premium';
 import ProductGrid from '../ProductGrid';
+import { getContentWidthClass, CATALOG_SECTION_PADDING, resolveActiveColumns, resolveLimit, applyFillRows } from '@/lib/utils/responsiveGrid';
 import { Tag } from '@/components/common/Icons';
+
+/**
+ * Fill-rows helper for Flash Sale (which has an early return before hooks can run,
+ * so it reads window width directly). Rounds the visible count up to a full row
+ * when more products exist; shows the remainder when the catalog is exhausted.
+ */
+function fillCatalogRows(
+  desired: number,
+  available: number,
+  fillRows: boolean,
+  cfg?: Parameters<typeof resolveActiveColumns>[0],
+): number {
+  const width = typeof window !== 'undefined' ? window.innerWidth : 1280;
+  const cols = resolveActiveColumns(cfg ?? null, width);
+  return applyFillRows(desired, cols, available, fillRows);
+}
 
 interface FlashSaleSectionProps {
   section: HomepageSection;
@@ -18,7 +35,7 @@ interface FlashSaleSectionProps {
 }
 
 export function FlashSaleSection({ section, products, currencySymbol, settings, isPreview, loadMoreLimit, onLoadMore }: FlashSaleSectionProps) {
-  if (!isFeatureEnabled(settings, 'flash_sale')) return null;
+  const featureOn = isFeatureEnabled(settings, 'flash_sale');
   const startTimeStr = section.settings?.startTime;
   const endTimeStr = section.settings?.endTime;
 
@@ -26,6 +43,7 @@ export function FlashSaleSection({ section, products, currencySymbol, settings, 
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    if (!featureOn) return;
     setMounted(true);
     if (!startTimeStr && !endTimeStr) {
       setTimeLeft({ hours: 0, minutes: 0, seconds: 0, expired: false, isIncoming: false, isInfinite: true });
@@ -77,7 +95,7 @@ export function FlashSaleSection({ section, products, currencySymbol, settings, 
     return () => clearInterval(interval);
   }, [startTimeStr, endTimeStr]);
 
-  if (!mounted || timeLeft.expired) return null;
+  if (!featureOn || !mounted || timeLeft.expired) return null;
 
   const fsProducts = section.content_data?.products || [];
   const categoryDiscounts = section.content_data?.categoryDiscounts || [];
@@ -135,15 +153,32 @@ export function FlashSaleSection({ section, products, currencySymbol, settings, 
         return (b.created_at || '').localeCompare(a.created_at || '');
       });
 
-  const baseLimit = section.settings?.limit || 8;
+  // Fill-rows + per-layout auto/manual limit (RULE DS24). Columns-aware so the
+  // visible count follows the chosen columns (auto = cols × rows) and the last
+  // row is never half-empty when more products exist. Defaults keep old behavior.
+  const gridCfg = {
+    mode: section.settings?.columns_mode || 'manual',
+    mobile: Number(section.settings?.columns_mobile) || 2,
+    tablet: Number(section.settings?.columns_tablet) || 3,
+    desktop: Number(section.settings?.columns_desktop) || 4,
+    wide: section.settings?.columns_wide,
+    minDesktop: section.settings?.min_card_desktop,
+  };
+  const limitCfg = {
+    mode: section.settings?.limit_mode || 'manual',
+    manual: section.settings?.limit || 8,
+    rows: section.settings?.limit_rows,
+  };
+  const activeCols = resolveActiveColumns(gridCfg, typeof window !== 'undefined' ? window.innerWidth : 1280);
+  const baseLimit = resolveLimit(limitCfg, activeCols, 8);
   const effectiveLimit = loadMoreLimit || baseLimit;
   const bottomEnableViewAll = section.settings?.bottomEnableViewAll === true;
   const bottomEnableLoadMore = section.settings?.bottomEnableLoadMore === true;
 
-  // STRICT LIMIT (RULE SSOT-CATALOG-LAYOUTS Phase 3): show EXACTLY the configured
-  // limit — never round up to a full-row multiple.
-  const displayProducts = allMatchedProducts.slice(0, effectiveLimit);
-  const hasMore = displayProducts.length < allMatchedProducts.length && displayProducts.length >= effectiveLimit;
+  const fillRowsEnabled = section.settings?.fill_rows !== false;
+  const visibleCount = fillCatalogRows(effectiveLimit, allMatchedProducts.length, fillRowsEnabled, gridCfg);
+  const displayProducts = allMatchedProducts.slice(0, visibleCount);
+  const hasMore = displayProducts.length < allMatchedProducts.length;
 
   if (displayProducts.length === 0) {
     if (isPreview) {
@@ -162,7 +197,7 @@ export function FlashSaleSection({ section, products, currencySymbol, settings, 
   const viewAllText = section.settings?.viewAllText || 'View All';
 
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 bg-[#1a1a2e]/5 dark:bg-[#16162a]/30 rounded-3xl border border-gray-200 dark:border-gray-800 mb-6">
+    <div className={`mx-auto ${getContentWidthClass(section.settings?.content_width)} ${CATALOG_SECTION_PADDING} py-8 bg-[#1a1a2e]/5 dark:bg-[#16162a]/30 rounded-3xl border border-gray-200 dark:border-gray-800 mb-6`}>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-200 dark:border-gray-800 pb-4 mb-6 gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
@@ -216,9 +251,12 @@ export function FlashSaleSection({ section, products, currencySymbol, settings, 
         products={displayProducts} 
         currencySymbol={currencySymbol} 
         settings={settings}
+        columnsMode={section.settings?.columns_mode || 'manual'}
         columnsDesktop={Number(section.settings?.columns_desktop) || 4}
         columnsTablet={Number(section.settings?.columns_tablet) || 3}
         columnsMobile={Number(section.settings?.columns_mobile) || 2}
+        columnsWide={section.settings?.columns_wide ? Number(section.settings.columns_wide) : undefined}
+        minCardDesktop={section.settings?.min_card_desktop ? Number(section.settings.min_card_desktop) : undefined}
         gridGap={section.settings?.grid_gap || 'normal'}
       />
 

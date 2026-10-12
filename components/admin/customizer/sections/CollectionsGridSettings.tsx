@@ -6,6 +6,8 @@ import { Trash2, ChevronUp, ChevronDown } from '@/components/common/Icons';
 import { moveItemInArray } from '@/lib/utils/arrayMove';
 import ResponsiveGridColumnsControl from '../shared/ResponsiveGridColumnsControl';
 import GridGapControl from '../shared/GridGapControl';
+import ContentWidthControl from '../shared/ContentWidthControl';
+import TileLabelControls from '../shared/TileLabelControls';
 import SectionSpacingControls from '../shared/SectionSpacingControls';
 import { AccordionGroup } from '@/components/admin/customizer/controls';
 
@@ -185,10 +187,14 @@ export default function CollectionsGridSettings({
         </select>
       </div>
 
-      {/* Responsive Columns per Device (Mobile: 1-3, Tablet: 2-4, Desktop: 3-8) */}
+      {/* Responsive Columns per Device (Mobile: 1-3, Tablet: 2-4, Desktop: 2-8) */}
       <ResponsiveGridColumnsControl
         label="Collections Grid Columns"
         viewportMode={viewportMode}
+        mode={section.settings?.columns_mode || 'manual'}
+        onChangeMode={(m) => onUpdateSection({ settings: { ...section.settings, columns_mode: m } })}
+        minCardDesktop={Number(section.settings?.min_card_desktop) || 220}
+        onChangeMinCardDesktop={(px) => onUpdateSection({ settings: { ...section.settings, min_card_desktop: px } })}
         desktopCols={Number(section.settings?.desktop_columns) || 4}
         tabletCols={Number(section.settings?.tablet_columns) || 3}
         mobileCols={Number(section.settings?.mobile_columns) || 2}
@@ -201,6 +207,18 @@ export default function CollectionsGridSettings({
       <GridGapControl
         value={section.settings?.grid_gap || 'normal'}
         onChange={(gap) => onUpdateSection({ settings: { ...section.settings, grid_gap: gap } })}
+      />
+
+      {/* Content Width (Boxed, Wide, Full) */}
+      <ContentWidthControl
+        value={section.settings?.content_width || 'wide'}
+        onChange={(w) => onUpdateSection({ settings: { ...section.settings, content_width: w } })}
+      />
+
+      {/* Tile Labels & Text — shared SSOT control */}
+      <TileLabelControls
+        settings={section.settings || {}}
+        onChange={(key, value) => onUpdateSection({ settings: { ...section.settings, [key]: value } })}
       />
 
       {/* Bottom View All Button */}

@@ -3,14 +3,16 @@
 import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { X, Save, Loader2 } from '@/components/common/Icons';
+import { Modal } from '@/components/common/Modal';
 import { toast } from 'sonner';
+import type { SEOMetaData } from '@/app/admin/seo/components/types';
 
 interface EditSEOModalProps {
   isOpen: boolean;
   onClose: () => void;
   entity_type: 'product' | 'category' | 'page';
   entity_id: string;
-  seoData: any;
+  seoData: SEOMetaData | null;
 }
 
 export function EditSEOModal({ isOpen, onClose, entity_type, entity_id, seoData }: EditSEOModalProps) {
@@ -30,8 +32,6 @@ export function EditSEOModal({ isOpen, onClose, entity_type, entity_id, seoData 
     pinterest_description: seoData?.pinterest_description || '',
     faq_schema: seoData?.faq_schema || []
   });
-
-  if (!isOpen) return null;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -100,17 +100,26 @@ export function EditSEOModal({ isOpen, onClose, entity_type, entity_id, seoData 
 
       toast.success('SEO metadata saved successfully!');
       onClose();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('[Edit SEO Modal] Save failed:', err);
-      toast.error(err.message || 'Failed to save overrides');
+      toast.error(err instanceof Error ? err.message : 'Failed to save overrides');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 ">
-      <div className="bg-white dark:bg-[#16162a] rounded-2xl max-w-3xl w-full border border-gray-100 dark:border-gray-800 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <Modal
+      open={isOpen}
+      onClose={onClose}
+      variant="center"
+      size="md"
+      showClose={false}
+      ariaLabel="Edit SEO Copy overrides"
+      zIndexClassName="z-50"
+      className="!bg-transparent !border-0 !shadow-none !rounded-none !overflow-visible"
+    >
+      <div className="w-full max-w-3xl mx-auto bg-white dark:bg-[#16162a] rounded-2xl border border-gray-100 dark:border-gray-800 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header */}
         <div className="flex justify-between items-center p-4 border-b border-gray-100 dark:border-gray-800">
           <div>
@@ -326,6 +335,6 @@ export function EditSEOModal({ isOpen, onClose, entity_type, entity_id, seoData 
           </div>
         </form>
       </div>
-    </div>
+    </Modal>
   );
 }

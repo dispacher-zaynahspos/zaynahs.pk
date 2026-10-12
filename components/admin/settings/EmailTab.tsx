@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { toast } from 'sonner';
 import { ExternalLink } from '@/components/common/Icons';
 
@@ -116,12 +117,12 @@ export default function EmailTab({
             Customize HTML/subjects, load templates variables, reset defaults, and run email previews.
           </p>
         </div>
-        <a
+        <Link
           href="/admin/settings/email/templates"
           className="rounded-xl bg-[#1a1a2e] dark:bg-[#e94560] hover:opacity-90 active:scale-95 text-white px-5 py-3 text-xs font-bold text-center transition-all cursor-pointer shadow-md inline-block whitespace-nowrap"
         >
           🎨 Customizer Templates
-        </a>
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

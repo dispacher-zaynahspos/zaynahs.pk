@@ -8,7 +8,7 @@ import { HeroDesktopSettings } from './HeroDesktopSettings';
 import { HeroColorSettings } from './HeroColorSettings';
 
 interface HeroGlobalSettingsProps {
-  settings: Record<string, any>;
+  settings: Record<string, unknown>;
   viewportMode: 'desktop' | 'tablet' | 'mobile';
   heightDesktop: number;
   heightTablet: number;
@@ -16,8 +16,8 @@ interface HeroGlobalSettingsProps {
   widthDesktop: number;
   widthTablet: number;
   widthMobile: number;
-  handleSettingsChange: (key: string, value: any) => void;
-  onUpdateSection: (updates: Record<string, any>) => void;
+  handleSettingsChange: (key: string, value: unknown) => void;
+  onUpdateSection: (updates: Record<string, unknown>) => void;
 }
 
 export function HeroGlobalSettings({

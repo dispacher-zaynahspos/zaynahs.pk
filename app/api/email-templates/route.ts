@@ -19,8 +19,8 @@ export async function GET() {
     }, {} as Record<string, typeof templates>);
 
     return NextResponse.json({ success: true, templates: grouped });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[API email-templates] GET failed:', error);
-    return NextResponse.json({ success: false, error: error.message || 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ success: false, error: error instanceof Error ? error.message : 'Internal server error' }, { status: 500 });
   }
 }

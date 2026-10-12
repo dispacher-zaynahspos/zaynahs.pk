@@ -7,6 +7,13 @@ import { decryptSecret } from '@/lib/utils/secret-crypto';
 const POSTEX_BASE = 'https://api.postex.pk/services/integration/api';
 const POSTEX_STAGING = 'https://staging-api.postex.pk/services/integration/api';
 
+interface MerchantAddress {
+  addressCode?: string;
+  addressType?: string;
+  cityName?: string;
+  address?: string;
+}
+
 function cleanPhone(phone: string): string {
   let digits = phone.replace(/\D/g, '');
   if (digits.startsWith('92') && digits.length === 12) {
@@ -33,14 +40,14 @@ function toInternationalPhone(phone: string): string {
   return clean;
 }
 
-async function getMerchantAddresses(token: string, baseUrl: string) {
+async function getMerchantAddresses(token: string, baseUrl: string): Promise<MerchantAddress[]> {
   try {
     const res = await fetch(`${baseUrl}/order/v1/get-merchant-address`, {
       headers: { token, 'Content-Type': 'application/json' },
     });
     const data = await res.json();
     if ((data.statusCode === 200 || data.statusCode === '0200') && data.dist) {
-      return data.dist;
+      return data.dist as MerchantAddress[];
     }
   } catch {}
   return [];
@@ -140,9 +147,9 @@ export async function POST(req: NextRequest) {
     try {
       const lists = await getMerchantAddresses(token, baseUrl);
       if (Array.isArray(lists) && lists.length > 0) {
-        const retMatched = lists.find((a: any) => a.addressCode === s.postex_return_address)
-          || lists.find((a: any) => a.addressCode === s.postex_pickup_address)
-          || lists.find((a: any) => a.addressType === 'Return Address')
+        const retMatched = lists.find((a) => a.addressCode === s.postex_return_address)
+          || lists.find((a) => a.addressCode === s.postex_pickup_address)
+          || lists.find((a) => a.addressType === 'Return Address')
           || lists[0];
 
         if (retMatched) {
@@ -152,7 +159,7 @@ export async function POST(req: NextRequest) {
           returnText = retMatched.address || returnText;
         }
 
-        const pickMatched = lists.find((a: any) => a.addressCode === s.postex_pickup_address);
+        const pickMatched = lists.find((a) => a.addressCode === s.postex_pickup_address);
         if (pickMatched) {
           pickupText = pickMatched.address || pickupText;
         }
@@ -181,7 +188,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Build PostEx v3 create-order payload (matching Zaynahs postexApi.ts)
-    const payload: Record<string, any> = {
+    const payload: Record<string, string | number> = {
       cityName: shippingCity || 'Karachi',
       customerName,
       customerPhone,
@@ -281,7 +288,7 @@ export async function POST(req: NextRequest) {
       waSent,
       response: responseData,
     });
-  } catch (err: any) {
-    return NextResponse.json({ success: false, error: err.message || 'Dispatch failed' }, { status: 200 });
+  } catch (err: unknown) {
+    return NextResponse.json({ success: false, error: err instanceof Error ? err.message : 'Dispatch failed' }, { status: 200 });
   }
 }

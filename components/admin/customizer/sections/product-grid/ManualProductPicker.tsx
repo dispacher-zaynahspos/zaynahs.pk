@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { Product } from '@/lib/types';
+import type { ProductCategoryRelation } from '@/lib/types';
 import { Trash2, Search, X } from '@/components/common/Icons';
 import Image from 'next/image';
 import { rankProducts } from '@/lib/services/product-search/useInMemoryProductSearch';
@@ -39,7 +40,7 @@ export default function ManualProductPicker({
           p.category?.slug === settingsSource ||
           p.category?.id === settingsSource ||
           p.product_categories?.some(
-            (pc: any) => pc.category_id === settingsSource || pc.category?.slug === settingsSource
+            (pc: ProductCategoryRelation) => pc.category_id === settingsSource || pc.category?.slug === settingsSource
           )
       );
     }

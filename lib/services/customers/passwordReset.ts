@@ -124,9 +124,9 @@ export async function requestCustomerPasswordReset(email: string): Promise<{ suc
     }
 
     return { success: true };
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('[requestCustomerPasswordReset] general error:', err);
-    return { success: false, error: err.message || 'An unexpected error occurred.' };
+    return { success: false, error: err instanceof Error ? err.message : 'An unexpected error occurred.' };
   }
 }
 
@@ -186,8 +186,8 @@ export async function resetCustomerPasswordWithToken(token: string, newPassword:
     }
 
     return { success: true };
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('[resetCustomerPasswordWithToken] general error:', err);
-    return { success: false, error: err.message || 'An unexpected error occurred.' };
+    return { success: false, error: err instanceof Error ? err.message : 'An unexpected error occurred.' };
   }
 }

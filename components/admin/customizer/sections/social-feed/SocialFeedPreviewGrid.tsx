@@ -2,11 +2,12 @@
 
 import React from 'react';
 import { Trash2, Play } from '@/components/common/Icons';
+import type { SocialFeedItem } from '@/components/admin/settings-form/hooks/useSettingsSocialFeed';
 
 interface SocialFeedPreviewGridProps {
-  items: any[];
+  items: SocialFeedItem[];
   editingItemId: string | null;
-  onEditItemSelect: (item: any) => void;
+  onEditItemSelect: (item: SocialFeedItem) => void;
   onDeleteItem: (id: string, e: React.MouseEvent) => void;
 }
 

@@ -14,24 +14,26 @@ function headers(token: string) {
 }
 
 /** Extract addresses array from PostEx API response — handles both `dist` and `data` field names */
-function extractAddresses(body: any): any[] | null {
-  if (Array.isArray(body.dist) && body.dist.length > 0) return body.dist;
-  if (Array.isArray(body.data) && body.data.length > 0) return body.data;
+function extractAddresses(body: Record<string, unknown>): unknown[] | null {
+  const dist = body.dist;
+  const data = body.data;
+  if (Array.isArray(dist) && dist.length > 0) return dist;
+  if (Array.isArray(data) && data.length > 0) return data;
   // Single address object wrapped in an envelope
-  if (body.dist && typeof body.dist === 'object' && body.dist.addressCode) return [body.dist];
-  if (body.data && typeof body.data === 'object' && body.data.addressCode) return [body.data];
+  if (dist && typeof dist === 'object' && (dist as Record<string, unknown>).addressCode) return [dist];
+  if (data && typeof data === 'object' && (data as Record<string, unknown>).addressCode) return [data];
   return null;
 }
 
 /** Extract string array from PostEx list endpoint */
-function extractList(body: any): string[] | null {
-  if (Array.isArray(body.dist)) return body.dist;
-  if (Array.isArray(body.data)) return body.data;
+function extractList(body: Record<string, unknown>): string[] | null {
+  if (Array.isArray(body.dist)) return body.dist as string[];
+  if (Array.isArray(body.data)) return body.data as string[];
   return null;
 }
 
 /** Check whether PostEx response indicates success */
-function isSuccess(body: any): boolean {
+function isSuccess(body: Record<string, unknown>): boolean {
   const code = body.statusCode;
   return code === 200 || code === '200' || code === '0200';
 }
@@ -52,7 +54,7 @@ export async function POST(req: NextRequest) {
       headers: headers(apiToken),
     });
 
-    const addrData = await addrRes.json();
+    const addrData = await addrRes.json() as Record<string, unknown>;
 
     if (!isSuccess(addrData) && !extractAddresses(addrData)) {
       return NextResponse.json({
@@ -79,7 +81,7 @@ export async function POST(req: NextRequest) {
         method: 'GET',
         headers: headers(apiToken),
       });
-      const typesData = await typesRes.json();
+      const typesData = await typesRes.json() as Record<string, unknown>;
       const list = extractList(typesData);
       if (list) orderTypes = list;
     } catch {
@@ -92,10 +94,10 @@ export async function POST(req: NextRequest) {
       orderTypes,
       message: addrData.statusMessage || addrData.message || 'Token valid',
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     return NextResponse.json({
       success: false,
-      error: err.message || 'Could not reach PostEx API',
+      error: err instanceof Error ? err.message : 'Could not reach PostEx API',
     }, { status: 200 });
   }
 }

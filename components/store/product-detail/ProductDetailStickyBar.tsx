@@ -52,7 +52,7 @@ export function ProductDetailStickyBar({
 
   return (
     <div
-      className="fixed left-3 right-3 max-w-md mx-auto z-[var(--z-sticky-cta)] md:hidden bg-white/98 dark:bg-[#16162a]/98 backdrop-blur-2xl backdrop-saturate-150 border border-gray-200/90 dark:border-white/15 px-3 py-2 rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.18)] transition-all duration-300 animate-in fade-in slide-in-from-bottom-3"
+      className="fixed left-3 right-3 max-w-md mx-auto z-[var(--z-sticky-cta)] md:hidden bg-white dark:bg-[#16162a] border border-gray-200/90 dark:border-white/15 px-3 py-2 rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.18)] transition-all duration-300 animate-in fade-in slide-in-from-bottom-3"
       style={{ bottom: 'var(--offset-cart-bar)' }}
     >
       <div className="flex items-center justify-between gap-3">
@@ -98,6 +98,7 @@ export function ProductDetailStickyBar({
             variant="icon"
             animation={animation}
             isOutOfStock={stockAvailable <= 0}
+            disabled={stockAvailable <= 0 || Boolean(product.has_variants && product.variants?.length && !selectedVariant)}
             isFaded={Boolean(product.has_variants && product.variants?.length && !selectedVariant)}
             onAddToCart={onAddToCart}
             title={stockAvailable <= 0 ? 'Out of Stock' : (!selectedVariant && product.has_variants ? 'Select an Option' : 'Add to Bag')}

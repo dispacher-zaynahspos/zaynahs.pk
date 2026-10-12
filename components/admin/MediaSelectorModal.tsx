@@ -1,10 +1,9 @@
 'use client';
 
 import React from 'react';
-import { createPortal } from 'react-dom';
 import { X } from '@/components/common/Icons';
+import { Modal } from '@/components/common/Modal';
 import MediaManager from './MediaManager';
-import { useBodyScrollLock } from '@/lib/hooks/useBodyScrollLock';
 
 interface MediaSelectorModalProps {
   isOpen: boolean;
@@ -14,26 +13,9 @@ interface MediaSelectorModalProps {
 }
 
 export default function MediaSelectorModal({ isOpen, onClose, onSelect, multiple = false }: MediaSelectorModalProps) {
-  useBodyScrollLock(isOpen);
-
-  if (!isOpen) return null;
-
-  if (typeof document === 'undefined') return null;
-
-  return createPortal(
-    <div
-      className="fixed inset-0 z-[110] flex items-center justify-center p-3 sm:p-6 bg-black/60 animate-in fade-in duration-200"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
-      <div
-        role="dialog"
-        aria-modal="true"
-        className="relative bg-white dark:bg-[#16162a] rounded-2xl max-w-4xl w-full max-h-[90dvh] flex flex-col border border-gray-200 dark:border-gray-800 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200"
-      >
-        
-        {/* Modal Header */}
+  return (
+    <Modal open={isOpen} onClose={onClose} showClose={false} size="lg" zIndexClassName="z-[110]">
+      {/* Modal Header */}
         <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
           <div>
             <h3 className="text-lg font-black text-gray-900 dark:text-white">Media Library</h3>
@@ -57,9 +39,6 @@ export default function MediaSelectorModal({ isOpen, onClose, onSelect, multiple
           multiple={multiple}
           onClose={onClose}
         />
-
-      </div>
-    </div>,
-    document.body
+    </Modal>
   );
 }

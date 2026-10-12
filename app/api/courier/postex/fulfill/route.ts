@@ -35,7 +35,14 @@ function toInternationalPhone(phone: string): string {
   return clean;
 }
 
-async function getMerchantAddresses(token: string, baseUrl: string) {
+interface PostExMerchantAddress {
+  addressCode?: string;
+  addressType?: string;
+  cityName?: string;
+  address?: string;
+}
+
+async function getMerchantAddresses(token: string, baseUrl: string): Promise<PostExMerchantAddress[]> {
   try {
     const res = await fetch(`${baseUrl}/order/v1/get-merchant-address`, {
       headers: { token, 'Content-Type': 'application/json' },
@@ -162,9 +169,9 @@ export async function POST(req: NextRequest) {
     try {
       const lists = await getMerchantAddresses(token, baseUrl);
       if (Array.isArray(lists) && lists.length > 0) {
-        const retMatched = lists.find((a: any) => a.addressCode === s.postex_return_address)
-          || lists.find((a: any) => a.addressCode === s.postex_pickup_address)
-          || lists.find((a: any) => a.addressType === 'Return Address')
+        const retMatched = lists.find((a: PostExMerchantAddress) => a.addressCode === s.postex_return_address)
+          || lists.find((a: PostExMerchantAddress) => a.addressCode === s.postex_pickup_address)
+          || lists.find((a: PostExMerchantAddress) => a.addressType === 'Return Address')
           || lists[0];
 
         if (retMatched) {
@@ -174,7 +181,7 @@ export async function POST(req: NextRequest) {
           returnText = retMatched.address || returnText;
         }
 
-        const pickMatched = lists.find((a: any) => a.addressCode === s.postex_pickup_address);
+        const pickMatched = lists.find((a: PostExMerchantAddress) => a.addressCode === s.postex_pickup_address);
         if (pickMatched) {
           pickupText = pickMatched.address || pickupText;
         }
@@ -196,7 +203,7 @@ export async function POST(req: NextRequest) {
       orderDetail = `${deliveryDetail} (${itemSku})`;
     }
 
-    const payload: Record<string, any> = {
+    const payload: Record<string, string | number> = {
       cityName: shippingCity || 'Karachi',
       customerName,
       customerPhone,
@@ -338,7 +345,7 @@ export async function POST(req: NextRequest) {
       waLink,
       response: responseData,
     });
-  } catch (err: any) {
-    return NextResponse.json({ success: false, error: err.message || 'Fulfillment failed' }, { status: 200 });
+  } catch (err: unknown) {
+    return NextResponse.json({ success: false, error: err instanceof Error ? err.message : 'Fulfillment failed' }, { status: 200 });
   }
 }

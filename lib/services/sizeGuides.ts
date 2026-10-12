@@ -10,10 +10,15 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholde
 
 const staticSupabase = createSupabaseClient(supabaseUrl, supabaseAnonKey, { auth: { persistSession: false, autoRefreshToken: false }, global: { fetch: (url, init) => fetch(url, { ...init, cache: 'no-store' }) } });
 
+interface SizeGuideChartData {
+  rows?: Array<Record<string, string>>;
+  unit?: string;
+}
+
 interface SizeGuideRow {
   id: string;
   name: string;
-  chart_data: any;
+  chart_data: SizeGuideChartData | Array<Record<string, string>> | null;
   unit?: string | null;
   image_url?: string | null;
   created_at: string;
@@ -21,7 +26,7 @@ interface SizeGuideRow {
   deleted_at?: string | null;
 }
 
-function parseSizeGuideChartData(chartData: any): { rows: Array<Record<string, string>>; unit: string } {
+function parseSizeGuideChartData(chartData: SizeGuideRow['chart_data']): { rows: Array<Record<string, string>>; unit: string } {
   if (!chartData) return { rows: [], unit: 'INCHES' };
   if (Array.isArray(chartData)) {
     return { rows: chartData, unit: 'INCHES' };
@@ -113,7 +118,7 @@ export const updateSizeGuide = async (
 ): Promise<SizeGuide> => {
   try {
     const supabase = await createClient();
-    const updatePayload: Record<string, any> = {};
+    const updatePayload: Record<string, unknown> = {};
     if (guide.name !== undefined) updatePayload.name = guide.name;
     if (guide.image_url !== undefined) updatePayload.image_url = guide.image_url;
 
@@ -166,7 +171,7 @@ export const getDeletedSizeGuides = async (): Promise<SizeGuide[]> => {
       .not('deleted_at', 'is', null)
       .order('deleted_at', { ascending: false });
     if (error) throw error;
-    return (data ?? []).map((row: any) => mapSizeGuide(row));
+    return (data ?? []).map((row) => mapSizeGuide(row as SizeGuideRow));
   } catch (error) {
     console.error('[sizeGuides] getDeletedSizeGuides failed:', error);
     return [];

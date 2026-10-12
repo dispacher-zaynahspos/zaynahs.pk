@@ -3,7 +3,22 @@ import { getProductById } from '@/lib/services/products';
 import { updateOrderDetails } from '@/lib/services/orders';
 import { sendTemplatedEmail } from '../sendTemplatedEmail';
 import { supabaseAdmin } from '@/lib/supabase/admin';
-import { CartItem } from '@/lib/types';
+import { CartItem, Order } from '@/lib/types';
+
+/** Order shape as received by email triggers. Accepts the real `Order` plus the
+ * legacy/camelCase fields some callers include. */
+type TriggerOrder = Order & {
+  customerId?: string;
+  shipping_address?: { email?: string } | null;
+};
+
+/** Loosely-typed customer shape used when composing trigger emails. */
+interface TriggerCustomer {
+  email?: string;
+  name?: string;
+  phone?: string;
+  [key: string]: unknown;
+}
 
 async function getAdminEmail(): Promise<string> {
   const settings = await getSettings();
@@ -11,7 +26,7 @@ async function getAdminEmail(): Promise<string> {
 }
 
 // 5. Order Placed (checkout success) trigger
-export async function onOrderPlaced(order: any, customer: any) {
+export async function onOrderPlaced(order: TriggerOrder, customer: TriggerCustomer) {
   try {
     let customerEmail = customer?.email || order?.shipping_address?.email;
     let resolvedCustomer = customer || {};
@@ -60,7 +75,7 @@ export async function onOrderPlaced(order: any, customer: any) {
 }
 
 // 6. Admin notification on new order
-export async function notifyAdminNewOrder(order: any, customer: any) {
+export async function notifyAdminNewOrder(order: TriggerOrder, customer: TriggerCustomer) {
   try {
     const adminEmail = await getAdminEmail();
     if (adminEmail) {
@@ -72,7 +87,7 @@ export async function notifyAdminNewOrder(order: any, customer: any) {
 }
 
 // 7. Order Status Changed trigger
-export async function onOrderStatusChange(order: any, customer: any, newStatus: string) {
+export async function onOrderStatusChange(order: TriggerOrder, customer: TriggerCustomer, newStatus: string) {
   try {
     let customerEmail = customer?.email || order?.shipping_address?.email;
     let resolvedCustomer = customer || {};
@@ -144,7 +159,7 @@ export async function onOrderStatusChange(order: any, customer: any, newStatus: 
 }
 
 // 8. Admin alert when order is cancelled
-export async function notifyAdminOrderCancelled(order: any, customer: any) {
+export async function notifyAdminOrderCancelled(order: TriggerOrder, customer: TriggerCustomer) {
   try {
     const adminEmail = await getAdminEmail();
     if (adminEmail) {

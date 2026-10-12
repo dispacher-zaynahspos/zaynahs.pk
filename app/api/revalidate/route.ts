@@ -126,10 +126,10 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ revalidated: true, table, type });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[Webhook Revalidate] Revalidation endpoint internal error:', error);
     return NextResponse.json(
-      { error: error.message || 'Internal Server Error' },
+      { error: error instanceof Error ? error.message : 'Internal Server Error' },
       { status: 500 }
     );
   }

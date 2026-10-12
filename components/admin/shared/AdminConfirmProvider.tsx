@@ -1,9 +1,10 @@
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { AlertCircle, Trash2, X } from '@/components/common/Icons';
+import { AlertCircle, Trash2 } from '@/components/common/Icons';
+import { Modal } from '@/components/common/Modal';
 
-interface ConfirmOptions {
+export interface ConfirmOptions {
   title: string;
   message: string;
   confirmText?: string;
@@ -51,13 +52,17 @@ export function AdminConfirmProvider({ children }: { children: ReactNode }) {
   return (
     <ConfirmContext.Provider value={{ confirm }}>
       {children}
-      {isOpen && options && (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/60 p-4">
-          <div 
-            className="w-full max-w-sm bg-white dark:bg-[#16162a] rounded-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200"
-            role="dialog"
-            aria-modal="true"
-          >
+      {/* Shared overlay system (RULE MODAL1) — smooth open/close + scroll-lock + ESC. */}
+      <Modal
+        open={isOpen && !!options}
+        onClose={handleCancel}
+        variant="center"
+        size="sm"
+        showClose={false}
+        ariaLabel={options?.title}
+      >
+        {options && (
+          <>
             <div className="p-6 text-center space-y-4">
               <div className={`mx-auto flex h-12 w-12 items-center justify-center rounded-full ${
                 options.variant === 'danger' ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-500' :
@@ -79,8 +84,8 @@ export function AdminConfirmProvider({ children }: { children: ReactNode }) {
                 </p>
               </div>
             </div>
-            
-            <div className="bg-gray-50 dark:bg-[#0f0f1b] px-6 py-4 flex items-center justify-end gap-3 rounded-b-2xl border-t border-gray-100 dark:border-gray-800">
+
+            <div className="bg-gray-50 dark:bg-[#0f0f1b] px-6 py-4 flex items-center justify-end gap-3 border-t border-gray-100 dark:border-gray-800">
               <button
                 type="button"
                 onClick={handleCancel}
@@ -100,9 +105,9 @@ export function AdminConfirmProvider({ children }: { children: ReactNode }) {
                 {options.confirmText || 'Confirm'}
               </button>
             </div>
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </Modal>
     </ConfirmContext.Provider>
   );
 }

@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { 
   Calendar, ShoppingBag, ChevronDown, ChevronUp, Package, MapPin, Truck 
 } from '@/components/common/Icons';
-import { Order } from '@/lib/types';
+import { Order, ProductImage } from '@/lib/types';
 import { formatPrice } from '@/lib/utils/whatsapp';
 
 interface AccountOrdersListProps {
@@ -122,7 +122,7 @@ export function AccountOrdersList({ orders }: AccountOrdersListProps) {
                       <h4 className="text-xs font-black uppercase tracking-wider text-gray-400 dark:text-gray-500">Ordered Items</h4>
                       <div className="divide-y divide-gray-100 dark:divide-gray-800/50">
                         {order.items.map((item, idx) => {
-                          const img = item.product.images?.find((i: any) => i.isPrimary)?.url || item.product.images?.[0]?.url || '';
+                          const img = item.product.images?.find((i: ProductImage & { isPrimary?: boolean }) => i.isPrimary)?.url || item.product.images?.[0]?.url || '';
                           const parts = [];
                           if (item.selected_variant?.color) parts.push(item.selected_variant.color);
                           if (item.selected_variant?.size) parts.push(item.selected_variant.size);

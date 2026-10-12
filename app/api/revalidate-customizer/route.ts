@@ -54,8 +54,9 @@ export async function POST(req: NextRequest) {
     }
     
     return NextResponse.json({ success: true, message: 'Cloudflare and Next.js cache purged successfully' });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[Revalidate Customizer] Error purging cache:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Failed to purge cache';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

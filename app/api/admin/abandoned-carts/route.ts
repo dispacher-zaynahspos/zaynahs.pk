@@ -12,8 +12,8 @@ export async function GET() {
   try {
     const carts = await getAllAbandonedCarts();
     return NextResponse.json({ carts });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) }, { status: 500 });
   }
 }
 
@@ -31,7 +31,7 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ success: true, count: res.count });
     }
     return NextResponse.json({ error: 'Missing ids or all flag' }, { status: 400 });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) }, { status: 500 });
   }
 }

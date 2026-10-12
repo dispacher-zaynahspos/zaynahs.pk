@@ -141,16 +141,16 @@ export default function ProductsSEOClient() {
 
       const metasMap = new Map(metasData?.map(m => [m.entity_id, m]) || []);
 
-      const formattedData = items.map((p: any) => ({
+      const formattedData: SEOEntityItem[] = items.map((p: { id: string; name: string; slug: string }) => ({
         id: p.id,
         name: p.name,
         slug: p.slug,
-        seo_meta: metasMap.get(p.id) || null
+        seo_meta: (metasMap.get(p.id) as SEOEntityItem['seo_meta']) || null
       }));
 
       setProducts(formattedData);
       setTotalCount(count || 0);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('[Products SEO] Fetch failed:', err);
       toast.error('Failed to load products');
     } finally {
@@ -176,8 +176,8 @@ export default function ProductsSEOClient() {
         toast.success('Product SEO copywriting generated!');
         fetchProducts();
       }
-    } catch (err: any) {
-      toast.error(err.message || 'Optimization failed');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Optimization failed');
     } finally {
       setOptimizingId(null);
     }
@@ -201,8 +201,8 @@ export default function ProductsSEOClient() {
       toast.success(`Bulk optimize finished! Success: ${resData.success}, Failed: ${resData.failed}`);
       setSelectedIds([]);
       fetchProducts();
-    } catch (err: any) {
-      toast.error(err.message || 'Bulk optimize failed');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Bulk optimize failed');
     } finally {
       setBulkOptimizing(false);
     }

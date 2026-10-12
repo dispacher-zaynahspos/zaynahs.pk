@@ -472,6 +472,10 @@ CREATE TABLE IF NOT EXISTS reviews (
   is_verified_purchase BOOLEAN DEFAULT false,
   screenshot_url TEXT,
   images TEXT[] DEFAULT '{}'::text[],
+  store_reply TEXT,
+  is_featured BOOLEAN DEFAULT false,
+  sort_order INTEGER DEFAULT 0,
+  helpful_count INTEGER DEFAULT 0,
   deleted_at TIMESTAMPTZ DEFAULT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -479,6 +483,8 @@ CREATE TABLE IF NOT EXISTS reviews (
 CREATE INDEX IF NOT EXISTS idx_reviews_product ON reviews (product_id);
 CREATE INDEX IF NOT EXISTS idx_reviews_approved ON reviews (approved);
 CREATE INDEX IF NOT EXISTS idx_reviews_hidden ON reviews (hidden);
+CREATE INDEX IF NOT EXISTS idx_reviews_featured ON reviews (is_featured) WHERE is_featured = true;
+CREATE INDEX IF NOT EXISTS idx_reviews_status_created ON reviews (approved, hidden, created_at DESC);
 
 -- ============================================================
 -- SOCIAL PROOF (Global Reviews Hub)
@@ -619,6 +625,8 @@ CREATE TABLE IF NOT EXISTS store_settings (
   header_top_bar_email TEXT DEFAULT '',
   header_show_newsletter BOOLEAN DEFAULT true,
   header_newsletter_text TEXT DEFAULT 'Summer sale discount off 50%. Shop Sale',
+  header_social_enabled BOOLEAN DEFAULT true,
+  header_social_show_mobile BOOLEAN DEFAULT false,
 
   header_top_bar_bg TEXT DEFAULT '#d97706',
   header_top_bar_text_color TEXT DEFAULT '#ffffff',
@@ -731,6 +739,11 @@ CREATE TABLE IF NOT EXISTS store_settings (
   recently_viewed_columns_desktop INTEGER DEFAULT 4,
   recently_viewed_columns_tablet INTEGER DEFAULT 3,
   recently_viewed_columns_mobile INTEGER DEFAULT 2,
+  recently_viewed_columns_wide INTEGER,
+  recently_viewed_columns_mode TEXT DEFAULT 'manual',
+  recently_viewed_min_card_desktop INTEGER,
+  recently_viewed_content_width TEXT DEFAULT 'wide',
+  recently_viewed_fill_rows BOOLEAN DEFAULT true,
   recently_viewed_title TEXT DEFAULT 'Recently Viewed',
   recently_viewed_subtitle TEXT DEFAULT 'Products you have recently browsed',
   related_products_enabled BOOLEAN DEFAULT true,
@@ -740,10 +753,19 @@ CREATE TABLE IF NOT EXISTS store_settings (
   related_columns_desktop INTEGER DEFAULT 4,
   related_columns_tablet INTEGER DEFAULT 3,
   related_columns_mobile INTEGER DEFAULT 2,
+  related_columns_wide INTEGER,
+  related_columns_mode TEXT DEFAULT 'manual',
+  related_min_card_desktop INTEGER,
+  related_content_width TEXT DEFAULT 'wide',
+  related_fill_rows BOOLEAN DEFAULT true,
   shop_columns_desktop INTEGER DEFAULT 4,
   shop_columns_tablet INTEGER DEFAULT 3,
   shop_columns_mobile INTEGER DEFAULT 2,
-  shop_products_per_page INTEGER DEFAULT 12,
+  shop_columns_wide INTEGER,
+  shop_columns_mode TEXT DEFAULT 'manual',
+  shop_min_card_desktop INTEGER,
+  shop_content_width TEXT DEFAULT 'wide',
+  shop_fill_rows BOOLEAN DEFAULT true,  shop_products_per_page INTEGER DEFAULT 12,
   shop_products_per_page_desktop INTEGER DEFAULT 12,
   shop_products_per_page_tablet INTEGER DEFAULT 9,
   shop_products_per_page_mobile INTEGER DEFAULT 6,
@@ -763,6 +785,14 @@ CREATE TABLE IF NOT EXISTS store_settings (
   related_grid_gap TEXT DEFAULT 'normal',
   recently_viewed_grid_gap TEXT DEFAULT 'normal',
   shop_show_breadcrumbs BOOLEAN DEFAULT true,
+  shop_sidebar_position TEXT DEFAULT 'left',
+  shop_sidebar_sticky BOOLEAN DEFAULT true,
+  shop_sidebar_default_collapsed BOOLEAN DEFAULT false,
+  shop_filter_show_categories BOOLEAN DEFAULT true,
+  shop_filter_show_availability BOOLEAN DEFAULT true,
+  shop_filter_show_price BOOLEAN DEFAULT true,
+  shop_filter_show_variations BOOLEAN DEFAULT true,
+  shop_filter_show_featured BOOLEAN DEFAULT true,
   recent_buyers_enabled BOOLEAN DEFAULT true,
   cookie_consent_enabled BOOLEAN DEFAULT true,
   free_shipping_bar_enabled BOOLEAN DEFAULT true,

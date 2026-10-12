@@ -133,7 +133,7 @@ export function useMediaManagerData({ mode, multiple, onSelect, onClose }: UseMe
         const totalDeletedBytes = (deletedData || []).reduce((sum, item) => sum + (item.file_size || 0), 0);
         setDeletedBytes(totalDeletedBytes);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('[Media Manager] Load error:', err);
       toast.error('Failed to load media files');
     } finally {

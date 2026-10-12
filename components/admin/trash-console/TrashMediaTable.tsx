@@ -4,6 +4,7 @@ import React from 'react';
 import { Images, RefreshCw, Trash2 } from '@/components/common/Icons';
 import { TrashedMedia } from '@/lib/services/media';
 import EmptyState from '@/components/common/EmptyState';
+import type { ConfirmDeleteState } from './TrashConfirmModals';
 
 interface TrashMediaTableProps {
   media: TrashedMedia[];
@@ -11,7 +12,7 @@ interface TrashMediaTableProps {
   selectedIds: string[];
   toggleSelect: (id: string) => void;
   handleRestore: (id: string, type: 'media') => void;
-  setConfirmDelete: (val: any) => void;
+  setConfirmDelete: (val: ConfirmDeleteState | null) => void;
   isPending: boolean;
 }
 

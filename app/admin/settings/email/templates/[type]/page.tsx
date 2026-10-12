@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { ChevronLeft } from '@/components/common/Icons';
 import { useConfirm } from '@/components/admin/shared/AdminConfirmProvider';
@@ -212,9 +213,9 @@ export default function TemplateEditorPage() {
     return (
       <div className="text-center py-12 max-w-5xl">
         <h2 className="text-sm font-bold text-red-[#e94560]">Template Not Found</h2>
-        <a href="/admin/settings/email/templates" className="mt-4 inline-block text-xs font-bold text-[#e94560] hover:underline">
+        <Link href="/admin/settings/email/templates" className="mt-4 inline-block text-xs font-bold text-[#e94560] hover:underline">
           Return to templates list
-        </a>
+        </Link>
       </div>
     );
   }
@@ -226,9 +227,9 @@ export default function TemplateEditorPage() {
       {/* Header */}
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <a href="/admin/settings/email/templates" className="p-2 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-gray-800 rounded-xl hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
+          <Link href="/admin/settings/email/templates" className="p-2 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-gray-800 rounded-xl hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
             <ChevronLeft className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-          </a>
+          </Link>
           <div>
             <h1 className="text-xl font-bold text-gray-900 dark:text-white">Edit: {template.label}</h1>
             <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">{template.description}</p>

@@ -9,6 +9,7 @@ import { formatPrice } from '@/lib/utils/whatsapp';
 import { getSharedAspectClass } from '@/lib/utils/styles';
 import { getSwatchStyle } from '@/lib/utils/swatch';
 import { SidebarVariantFilters } from './sidebar/SidebarVariantFilters';
+import PriceRangeSlider from './sidebar/PriceRangeSlider';
 
 interface ShopPageSidebarProps {
   allProductsCount: number;
@@ -78,9 +79,16 @@ export default function ShopPageSidebar({
   featuredProducts,
   settings,
 }: ShopPageSidebarProps) {
+  const showCategories = settings.shop_filter_show_categories !== false;
+  const showAvailability = settings.shop_filter_show_availability !== false;
+  const showPrice = settings.shop_filter_show_price !== false;
+  const showVariations = settings.shop_filter_show_variations !== false;
+  const showFeatured = settings.shop_filter_show_featured !== false;
+
   return (
     <div className="space-y-6">
       {/* Category List Accordion */}
+      {showCategories && (
       <div className="space-y-3">
         <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider block">Products Category</span>
         <div className="space-y-1.5 md:max-h-60 md:overflow-y-auto pr-1">
@@ -120,10 +128,14 @@ export default function ShopPageSidebar({
           })}
         </div>
       </div>
+      )}
 
-      <hr className="border-gray-200 dark:border-gray-800" />
+      {showCategories && (showAvailability || showPrice || showVariations) && (
+        <hr className="border-gray-200 dark:border-gray-800" />
+      )}
 
       {/* Availability check boxes */}
+      {showAvailability && (
       <div className="space-y-3">
         <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider block">Availability</span>
         <div className="space-y-2.5">
@@ -159,76 +171,43 @@ export default function ShopPageSidebar({
           </label>
         </div>
       </div>
+      )}
 
-      <hr className="border-gray-200 dark:border-gray-800" />
+      {showAvailability && (showPrice || showVariations) && (
+        <hr className="border-gray-200 dark:border-gray-800" />
+      )}
 
-      {/* Price filter double range & inputs */}
+      {/* Price filter — shared dual-handle slider (step 50, Rs formatting, debounced, reset) */}
+      {showPrice && (
       <div className="space-y-3">
         <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider block">Price Range</span>
-
-        {/* Min/Max Text inputs */}
-        <div className="grid grid-cols-2 gap-2">
-          <div>
-            <label className="text-[9px] font-black text-gray-400 uppercase tracking-wider block mb-1">Min Price</label>
-            <div className="relative">
-              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-semibold">Rs</span>
-              <input
-                type="number"
-                value={priceMin}
-                onChange={(e) => {
-                  priceDirtyRef.current = true;
-                  const val = Number(e.target.value);
-                  setPriceMin(val >= 0 ? val : 0);
-                }}
-                className="w-full pl-7 pr-2 py-1.5 text-xs font-semibold border border-gray-200 dark:border-gray-800 rounded-lg bg-gray-50/50 dark:bg-gray-900 focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
-              />
-            </div>
-          </div>
-          <div>
-            <label className="text-[9px] font-black text-gray-400 uppercase tracking-wider block mb-1">Max Price</label>
-            <div className="relative">
-              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-semibold">Rs</span>
-              <input
-                type="number"
-                value={priceMax}
-                onChange={(e) => {
-                  priceDirtyRef.current = true;
-                  const val = Number(e.target.value);
-                  setPriceMax(val >= 0 ? val : 0);
-                }}
-                className="w-full pl-7 pr-2 py-1.5 text-xs font-semibold border border-gray-200 dark:border-gray-800 rounded-lg bg-gray-50/50 dark:bg-gray-900 focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Double Range Slider UI */}
-        <div className="pt-3 px-1">
-          <input
-            ref={sliderRef}
-            type="range"
-            min={priceLimits.min}
-            max={priceLimits.max}
-            value={priceMax}
-            onChange={(e) => {
-              priceDirtyRef.current = true;
-              const val = Number(e.target.value);
-              if (val >= priceMin) {
-                setPriceMax(val);
-              }
-            }}
-            style={{ accentColor: 'var(--color-primary, #C2185B)' }}
-            className="w-full h-1 bg-gray-200 dark:bg-gray-800 rounded-lg cursor-pointer appearance-none"
-          />
-          <div className="flex items-center justify-between text-[10px] text-gray-400 font-bold mt-1.5 uppercase">
-            <span>Price: {formatPrice(priceMin, settings.currency_symbol)} — {formatPrice(priceMax, settings.currency_symbol)}</span>
-          </div>
-        </div>
+        <PriceRangeSlider
+          min={priceLimits.min}
+          max={priceLimits.max}
+          valueMin={priceMin}
+          valueMax={priceMax}
+          step={50}
+          currencySymbol={settings.currency_symbol}
+          onChange={(lo, hi) => {
+            priceDirtyRef.current = true;
+            setPriceMin(lo);
+            setPriceMax(hi);
+          }}
+          onReset={() => {
+            priceDirtyRef.current = false;
+            setPriceMin(priceLimits.min);
+            setPriceMax(priceLimits.max);
+          }}
+        />
       </div>
+      )}
 
-      <hr className="border-gray-200 dark:border-gray-800" />
+      {showPrice && showVariations && (
+        <hr className="border-gray-200 dark:border-gray-800" />
+      )}
 
       {/* Variant Filters (Colors, Sizes, Materials) */}
+      {showVariations && (
       <SidebarVariantFilters
         usedVariants={usedVariants}
         selectedColors={selectedColors}
@@ -244,9 +223,10 @@ export default function ShopPageSidebar({
         showAllMaterials={showAllMaterials}
         setShowAllMaterials={setShowAllMaterials}
       />
+      )}
 
       {/* Featured Products visual mini sidebar items */}
-      {featuredProducts.length > 0 && (
+      {showFeatured && featuredProducts.length > 0 && (
         <div className="space-y-4">
           <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider block">Featured Products</span>
           <div className="space-y-3.5">

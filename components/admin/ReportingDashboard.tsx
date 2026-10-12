@@ -223,7 +223,7 @@ export default function ReportingDashboard({ orders, settings, products = [] }: 
         customerName: o.customer_name ?? '—',
         total:        o.total,
         status:       o.status as 'cancelled' | 'refunded',
-        cancelReason: (o as any).cancel_reason,
+        cancelReason: o.cancel_reason,
         refundAmount: o.refund_amount,
         createdAt:    o.created_at,
       })).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),

@@ -6,7 +6,7 @@ import { ProductVariant } from '@/lib/types';
 interface UseVariantSelectorStateProps {
   variants: ProductVariant[];
   selectedVariant?: ProductVariant;
-  onChangeSelectedVariant: (variant: ProductVariant) => void;
+  onChangeSelectedVariant: (variant?: ProductVariant) => void;
 }
 
 export function useVariantSelectorState({
@@ -43,7 +43,13 @@ export function useVariantSelectorState({
     const sizeOk = !sizes.length || !!selectedSize;
     const materialOk = !materials.length || !!selectedMaterial;
     const customOk = !customValues.length || !!selectedCustomValue;
-    if (!colorOk || !sizeOk || !materialOk || !customOk) return;
+
+    if (!colorOk || !sizeOk || !materialOk || !customOk) {
+      if (selectedVariant) {
+        onChangeSelectedVariant(undefined);
+      }
+      return;
+    }
 
     const match = activeVariants.find(v => {
       const colorMatch = !colors.length || v.color === selectedColor;
@@ -52,8 +58,15 @@ export function useVariantSelectorState({
       const customMatch = !customValues.length || v.custom_value === selectedCustomValue;
       return colorMatch && sizeMatch && materialMatch && customMatch;
     });
-    if (match && (!selectedVariant || match.id !== selectedVariant.id)) {
-      onChangeSelectedVariant(match);
+
+    if (match) {
+      if (!selectedVariant || match.id !== selectedVariant.id) {
+        onChangeSelectedVariant(match);
+      }
+    } else {
+      if (selectedVariant) {
+        onChangeSelectedVariant(undefined);
+      }
     }
   }, [selectedColor, selectedSize, selectedMaterial, selectedCustomValue, activeVariants, colors.length, sizes.length, materials.length, customValues.length, selectedVariant, onChangeSelectedVariant]);
 

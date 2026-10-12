@@ -18,7 +18,17 @@ export async function POST(request: Request) {
     }
 
     // 1. Fetch entity details from DB for context if entity_data not provided
-    let entityData: any = {};
+    interface SeoEntityData {
+      name?: string;
+      title?: string;
+      description?: string;
+      price?: number | string;
+      category?: string;
+      stock?: number;
+      currency?: string;
+      slug?: string;
+    }
+    let entityData: SeoEntityData = {};
     let slug = '';
 
     if (entity_data) {
@@ -142,7 +152,22 @@ export async function POST(request: Request) {
       }
     }
 
-    let seoData: any;
+    interface SeoData {
+      seo_title?: string;
+      meta_description?: string;
+      focus_keyword?: string;
+      secondary_keywords?: string;
+      lsi_tags?: string;
+      og_title?: string;
+      og_description?: string;
+      twitter_title?: string;
+      twitter_description?: string;
+      image_alt?: string;
+      long_description?: string;
+      faq_schema?: unknown[];
+      pinterest_description?: string;
+    }
+    let seoData: SeoData;
     try {
       seoData = JSON.parse(cleanJsonStr);
     } catch (parseError) {
@@ -277,8 +302,8 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({ success: true, data: seoData });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[SEO Optimize] Optimization failed:', error);
-    return NextResponse.json({ success: false, error: error.message || 'Optimization process failed' }, { status: 200 });
+    return NextResponse.json({ success: false, error: error instanceof Error ? error.message : 'Optimization process failed' }, { status: 200 });
   }
 }

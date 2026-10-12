@@ -18,7 +18,7 @@ interface CartItemCardProps {
 }
 
 export default function CartItemCard({ item, compact = false, settings, removeItem, updateQuantity }: CartItemCardProps) {
-  const img = getPresetImageUrl(item.product.images?.find((i: any) => i.isPrimary)?.url || item.product.images?.[0]?.url || '', 'micro');
+  const img = getPresetImageUrl(item.product.images?.find((i: { isPrimary?: boolean; url?: string }) => i.isPrimary)?.url || item.product.images?.[0]?.url || '', 'micro');
   const parts: string[] = [];
   if (item.selected_variant?.color) parts.push(item.selected_variant.color);
   if (item.selected_variant?.size) parts.push(item.selected_variant.size);
@@ -64,7 +64,7 @@ export default function CartItemCard({ item, compact = false, settings, removeIt
             )}
             {item.selected_modifiers?.length > 0 && (
               <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">
-                + {item.selected_modifiers.map((m: any) => m.name).join(', ')}
+                + {item.selected_modifiers.map((m: { name: string }) => m.name).join(', ')}
               </p>
             )}
           </div>

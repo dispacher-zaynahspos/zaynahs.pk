@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { createPortal } from 'react-dom';
 import { StoreSettings } from '@/lib/types';
 import { isFeatureEnabled } from '@/lib/features/premium';
 import { addWhatsAppSubscriberAction } from '@/lib/services/sections/subscribe-actions';
@@ -149,9 +148,9 @@ export default function PremiumFeaturesProvider({ settings }: PremiumFeaturesPro
       const easeOut = 1 - Math.pow(1 - t, 4);
       rotationRef.current = easeOut * finalRotVal;
 
-      const canvas = canvasRef.current;
-      if (canvas && (canvas as any).drawWheel) {
-        (canvas as any).drawWheel();
+      const canvas = canvasRef.current as (HTMLCanvasElement & { drawWheel?: () => void }) | null;
+      if (canvas && canvas.drawWheel) {
+        canvas.drawWheel();
       }
 
       if (t < 1) {
@@ -201,23 +200,21 @@ export default function PremiumFeaturesProvider({ settings }: PremiumFeaturesPro
 
   return (
     <>
-      {/* 1. EXIT INTENT POPUP */}
-      {showExitIntent && createPortal(
-        <ExitIntentModal
-          settings={settings}
-          subscribed={exitSubscribed}
-          name={exitName}
-          setName={setExitName}
-          email={exitEmail}
-          setEmail={setExitEmail}
-          phone={exitPhone}
-          setPhone={setExitPhone}
-          onSubmit={handleExitSubmit}
-          onClose={() => setShowExitIntent(false)}
-          onCopyCoupon={copyToClipboard}
-        />,
-        document.body
-      )}
+      {/* 1. EXIT INTENT POPUP — shared overlay (RULE MODAL1) handles portal/motion */}
+      <ExitIntentModal
+        open={showExitIntent}
+        settings={settings}
+        subscribed={exitSubscribed}
+        name={exitName}
+        setName={setExitName}
+        email={exitEmail}
+        setEmail={setExitEmail}
+        phone={exitPhone}
+        setPhone={setExitPhone}
+        onSubmit={handleExitSubmit}
+        onClose={() => setShowExitIntent(false)}
+        onCopyCoupon={copyToClipboard}
+      />
 
       {/* 2. SPIN TO WIN TRIGGER & MODAL */}
       {isFeatureEnabled(settings, 'spin_wheel') && !showSpinWheel && !hasSpun && (
@@ -231,26 +228,24 @@ export default function PremiumFeaturesProvider({ settings }: PremiumFeaturesPro
         </button>
       )}
 
-      {showSpinWheel && createPortal(
-        <SpinWheelModal
-          settings={settings}
-          isSpinning={isSpinning}
-          hasSpun={hasSpun}
-          spinName={spinName}
-          setSpinName={setSpinName}
-          spinEmail={spinEmail}
-          setSpinEmail={setSpinEmail}
-          spinPhone={spinPhone}
-          setSpinPhone={setSpinPhone}
-          spinResult={spinResult}
-          onStartSpin={startSpin}
-          onClose={() => { if (!isSpinning) setShowSpinWheel(false); }}
-          onCopyCoupon={copyToClipboard}
-          rotationRef={rotationRef}
-          canvasRef={canvasRef}
-        />,
-        document.body
-      )}
+      <SpinWheelModal
+        open={showSpinWheel}
+        settings={settings}
+        isSpinning={isSpinning}
+        hasSpun={hasSpun}
+        spinName={spinName}
+        setSpinName={setSpinName}
+        spinEmail={spinEmail}
+        setSpinEmail={setSpinEmail}
+        spinPhone={spinPhone}
+        setSpinPhone={setSpinPhone}
+        spinResult={spinResult}
+        onStartSpin={startSpin}
+        onClose={() => { if (!isSpinning) setShowSpinWheel(false); }}
+        onCopyCoupon={copyToClipboard}
+        rotationRef={rotationRef}
+        canvasRef={canvasRef}
+      />
 
       {/* 3. VERIFIED RECENT BUYERS TICKER */}
       {showTicker && isFeatureEnabled(settings, 'recent_buyers') && (!isCheckout || settings.recent_buyers_show_on_checkout) && tickerProduct && tickerBuyer && (

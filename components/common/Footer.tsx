@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { StoreSettings } from '@/lib/types';
 import PaymentBadges from './PaymentBadges';
 import { NewsletterForm, FooterSocialLinks, FooterQuickLinks } from './store-footer';
+import { getContentWidthClass, CATALOG_SECTION_PADDING } from '@/lib/utils/responsiveGrid';
 
 interface FooterProps {
   settings: StoreSettings;
@@ -101,7 +102,7 @@ export default function Footer({ settings, brandName }: FooterProps) {
       style={footerStyle}
     >
       <div
-        className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8"
+        className={`mx-auto ${getContentWidthClass(settings.footer_content_width ?? settings.shop_content_width)} ${CATALOG_SECTION_PADDING} py-12`}
         style={{
           ...(settings.footer_align === 'center' ? { textAlign: 'center' } : {}),
           ...(settings.footer_padding ? { paddingTop: settings.footer_padding, paddingBottom: settings.footer_padding } : {}),

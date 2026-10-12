@@ -2,10 +2,71 @@ import { bulkSyncProductsToMeta } from '@/lib/meta/syncProduct';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
+import type { Product } from '@/lib/types';
+
+interface DbImageRow {
+  id: string;
+  product_id: string;
+  url: string;
+  alt?: string | null;
+  sort_order?: number | null;
+  is_primary?: boolean | null;
+  created_at: string;
+}
+
+interface DbVariantRow {
+  id: string;
+  product_id: string;
+  color?: string | null;
+  size?: string | null;
+  material?: string | null;
+  custom_option?: string | null;
+  custom_value?: string | null;
+  price?: number | string | null;
+  compare_price?: number | string | null;
+  stock?: number | null;
+  sku?: string | null;
+  image_url?: string | null;
+  active?: boolean | null;
+  sort_order?: number | null;
+}
+
+interface DbCategoryRow {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string | null;
+  image_url?: string | null;
+  sort_order?: number | null;
+  active?: boolean | null;
+  created_at: string;
+  updated_at: string;
+}
+
+interface DbProductRow {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string | null;
+  price?: number | string | null;
+  compare_price?: number | string | null;
+  category_id?: string | null;
+  categories?: DbCategoryRow | null;
+  stock?: number | null;
+  has_variants?: boolean | null;
+  is_service?: boolean | null;
+  is_featured?: boolean | null;
+  active?: boolean | null;
+  tags?: string[] | null;
+  product_images?: DbImageRow[] | null;
+  product_variants?: DbVariantRow[] | null;
+  created_at: string;
+  updated_at: string;
+}
 
 // Map database product row to Product interface
-const mapProduct = (row: any): any => {
-  const images = (row.product_images ?? []).map((img: any) => ({
+const mapProduct = (row: DbProductRow) => {
+  const images = (row.product_images ?? []).map((img) => ({
     id: img.id,
     productId: img.product_id,
     url: img.url,
@@ -13,9 +74,9 @@ const mapProduct = (row: any): any => {
     sortOrder: img.sort_order || 0,
     isPrimary: img.is_primary ?? false,
     createdAt: img.created_at
-  })).sort((a: any, b: any) => a.sortOrder - b.sortOrder);
+  })).sort((a, b) => a.sortOrder - b.sortOrder);
 
-  const variants = (row.product_variants ?? []).map((v: any) => ({
+  const variants = (row.product_variants ?? []).map((v) => ({
     id: v.id,
     productId: v.product_id,
     color: v.color || undefined,
@@ -30,7 +91,7 @@ const mapProduct = (row: any): any => {
     imageUrl: v.image_url || undefined,
     active: v.active ?? true,
     sortOrder: v.sort_order || 0
-  })).sort((a: any, b: any) => a.sortOrder - b.sortOrder);
+  })).sort((a, b) => a.sortOrder - b.sortOrder);
 
   const category = row.categories ? {
     id: row.categories.id,
@@ -140,18 +201,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true, message: 'No products found to sync.', totalSynced: 0 });
     }
 
-    const products = rows.map(mapProduct);
+    const products = (rows as unknown as DbProductRow[]).map(mapProduct);
 
     console.log(`[MetaSync API] Bulk syncing ${products.length} products (mode: ${mode}).`);
-    const result = await bulkSyncProductsToMeta(products, 'UPDATE');
+    const result = await bulkSyncProductsToMeta(products as unknown as Product[], 'UPDATE');
 
     return NextResponse.json({
       success: result.success,
       totalSynced: result.totalSynced,
       errors: result.errors
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('[MetaSync API] Bulk sync route error:', err);
-    return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: err instanceof Error ? err.message : 'Internal Server Error' }, { status: 500 });
   }
 }

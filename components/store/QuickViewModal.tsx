@@ -1,14 +1,11 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { createPortal } from 'react-dom';
+import React, { useState, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEmblaGallery } from '@/components/store/product-card/hooks/useEmblaGallery';
-import { useBodyScrollLock } from '@/lib/hooks/useBodyScrollLock';
+import { Modal } from '@/components/common/Modal';
 import {
-  X,
-  ShoppingCart,
   Plus,
   Minus,
   ChevronLeft,
@@ -34,6 +31,15 @@ interface QuickViewModalProps {
 
 export default function QuickViewModal({ product, settings, onClose }: QuickViewModalProps) {
   const addItem = useCartStore(state => state.addItem);
+
+  // Internal open state so the shared Modal can play its exit animation BEFORE
+  // the parent unmounts us. `requestClose` flips open→false, then calls the
+  // parent's onClose after the exit finishes (keeps motion smooth everywhere).
+  const [open, setOpen] = useState(true);
+  const requestClose = useCallback(() => {
+    setOpen(false);
+    setTimeout(onClose, 180);
+  }, [onClose]);
 
   const images = React.useMemo(() => {
     return product.images.length > 0
@@ -64,7 +70,8 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
   const fallbackPlaceholder = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%23f3f4f6'/%3E%3C/svg%3E";
 
   // ── Image sync on variant change ─────────────────────────────────────────
-  const applyVariant = useCallback((v: ProductVariant) => {
+  const applyVariant = useCallback((v?: ProductVariant) => {
+    if (!v) return;
     setSelectedVariant(v);
     if (v.image_url) {
       const idx = images.findIndex(img => img.url === v.image_url);
@@ -107,61 +114,23 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
     const anim = settings?.add_to_cart_animation || 'none';
     const isAnimated = anim !== 'none' && anim !== 'default';
     setTimeout(() => {
-      onClose();
+      requestClose();
     }, isAnimated ? 1200 : 700);
   };
 
-  // ── Escape + body scroll lock ─────────────────────────────────────────────
-  // Background page scroll is locked via the shared SSOT hook (iOS-safe, ref-counted,
-  // restores scroll position on close). See lib/hooks/useBodyScrollLock.ts.
-  useBodyScrollLock(true);
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
-    document.addEventListener('keydown', handler);
-    return () => {
-      document.removeEventListener('keydown', handler);
-    };
-  }, [onClose]);
-
   // ── Render ────────────────────────────────────────────────────────────────
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) return null;
-
-  return createPortal(
-    <div
-      className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/75 animate-fade-in p-0 sm:p-4"
-      onClick={onClose}
+  return (
+    <Modal
+      open={open}
+      onClose={requestClose}
+      variant="sheet"
+      size="lg"
+      showClose
+      ariaLabel={`Quick view: ${product.name}`}
+      zIndexClassName="z-[1000]"
+      fitHeight={false}
     >
-      <div
-        className="relative w-full sm:max-w-2xl bg-white dark:bg-[#16162a] rounded-t-3xl sm:rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-800 overflow-hidden max-h-[92dvh] sm:max-h-[85dvh] flex flex-col"
-        onClick={e => e.stopPropagation()}
-      >
-        {/* Close */}
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute top-3 right-3 z-10 w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 text-gray-600 dark:text-gray-300 transition-colors cursor-pointer"
-          aria-label="Close Quick View"
-        >
-          <X className="w-4.5 h-4.5" />
-        </button>
-
-        {/* Drag handle (mobile) */}
-        <div className="sm:hidden flex justify-center pt-3 pb-1 flex-shrink-0">
-          <div className="w-10 h-1 rounded-full bg-gray-300 dark:bg-gray-700" />
-        </div>
-
-        {/* Scrollable body */}
-        {/* min-h-0 is REQUIRED: a flex child defaults to min-height:auto, which refuses to
-            shrink below its content and silently kills overflow scrolling (root cause of the
-            "sometimes scrolls, sometimes doesn't" bug). overscroll-contain stops scroll chaining
-            to the locked background. */}
-        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
-          <div className="grid grid-cols-1 sm:grid-cols-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2">
 
             {/* ── Image Gallery ─────────────────────────────────────────── */}
             <div className="relative bg-gray-50 dark:bg-black/20">
@@ -253,9 +222,15 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
                     {product.category.name}
                   </span>
                 )}
-                <h2 className="text-lg sm:text-xl md:text-2xl font-heading font-medium text-gray-900 dark:text-white leading-snug tracking-tight break-words [text-wrap:balance]">
-                  {product.name}
-                </h2>
+                <Link
+                  href={`/product/${product.slug}`}
+                  onClick={requestClose}
+                  className="block hover:text-[#e94560] transition-colors cursor-pointer"
+                >
+                  <h2 className="text-lg sm:text-xl md:text-2xl font-heading font-medium text-gray-900 dark:text-white leading-snug tracking-tight break-words [text-wrap:balance]">
+                    {product.name}
+                  </h2>
+                </Link>
               </div>
 
               {/* Price */}
@@ -345,8 +320,9 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
                 </div>
               )}
 
-              {/* Qty + Add to Cart */}
-              <div className="flex gap-3 items-center mt-auto pt-2">
+              {/* Qty + Add to Cart — sticky to bottom so it stays reachable while scrolling.
+                  Solid bg (no backdrop-blur) per RULE M10b. */}
+              <div className="sticky bottom-0 -mx-5 px-5 py-3 mt-auto bg-white dark:bg-[#16162a] border-t border-gray-100 dark:border-gray-800 flex gap-3 items-center">
                 <div className="flex items-center border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden bg-white dark:bg-[#1a1a2e]">
                   <button
                     type="button"
@@ -373,6 +349,7 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
                   <AddToCartButton
                     animation={settings?.add_to_cart_animation || 'none'}
                     isOutOfStock={stockAvailable <= 0}
+                    disabled={stockAvailable <= 0 || Boolean(product.has_variants && activeVariants.length > 0 && !selectedVariant)}
                     isFaded={Boolean(product.has_variants && activeVariants.length > 0 && !selectedVariant)}
                     label={Boolean(product.has_variants && activeVariants.length > 0 && !selectedVariant) ? 'Select an Option' : 'Add to Cart'}
                     onAddToCart={handleAddToCart}
@@ -384,7 +361,7 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
               {/* Full details link */}
               <Link
                 href={`/product/${product.slug}`}
-                onClick={onClose}
+                onClick={requestClose}
                 className="flex items-center justify-center gap-1.5 text-xs font-bold text-gray-400 hover:text-[#e94560] dark:hover:text-[#e94560] transition-colors py-1"
               >
                 <ExternalLink className="w-3.5 h-3.5" />
@@ -392,9 +369,6 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
               </Link>
             </div>
           </div>
-        </div>
-      </div>
-    </div>,
-    document.body
+    </Modal>
   );
 }

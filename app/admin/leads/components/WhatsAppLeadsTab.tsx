@@ -14,7 +14,7 @@ interface WhatsAppLeadsTabProps {
   loading: boolean;
   searchQuery: string;
   timeFilter: 'all' | 'today' | 'yesterday' | 'week' | 'month';
-  setTimeFilter: (val: any) => void;
+  setTimeFilter: (val: 'all' | 'today' | 'yesterday' | 'week' | 'month') => void;
   sourceFilter: 'all' | 'wheel' | 'exit_intent';
   setSourceFilter: (val: 'all' | 'wheel' | 'exit_intent') => void;
   handleDeleteWhatsAppLead: (id: string) => void;
@@ -51,7 +51,7 @@ export default function WhatsAppLeadsTab({
         </div>
         <AdminDateFilter
           value={timeFilter}
-          onChange={(val: any) => setTimeFilter(val)}
+          onChange={(val) => setTimeFilter(val as 'all' | 'today' | 'yesterday' | 'week' | 'month')}
           options={[
             { value: 'today', label: 'Today' },
             { value: 'yesterday', label: 'Yesterday' },

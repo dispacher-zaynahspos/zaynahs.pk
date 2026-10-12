@@ -143,8 +143,9 @@ export async function routeVision(
       const tokenEstimate = prompt.length + systemPrompt.length + result.length;
       await recordUsage(step.provider, tokenEstimate);
       return { result, provider: step.provider, model: step.model };
-    } catch (err: any) {
-      if (err.status === 429 || err.status === 503) continue;
+    } catch (err: unknown) {
+      const status = (err as { status?: unknown })?.status;
+      if (status === 429 || status === 503) continue;
       throw err;
     }
   }
@@ -203,8 +204,9 @@ export async function routeText(
       const tokenEstimate = prompt.length + systemPrompt.length + result.length;
       await recordUsage(step.provider, tokenEstimate);
       return { result, provider: step.provider, model: step.model };
-    } catch (err: any) {
-      if (err.status === 429 || err.status === 503) continue;
+    } catch (err: unknown) {
+      const status = (err as { status?: unknown })?.status;
+      if (status === 429 || status === 503) continue;
       throw err;
     }
   }

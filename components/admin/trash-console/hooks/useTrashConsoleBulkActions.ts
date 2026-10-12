@@ -3,6 +3,8 @@
 import { toast } from 'sonner';
 import { Product, Category, Review, Order, WhatsAppSubscriber, EmailSubscriber, SizeGuide, VariantPreset } from '@/lib/types';
 import { TrashedMedia } from '@/lib/services/media';
+import type { TrashedCustomer } from '@/lib/services/customers';
+import type { useTrashConsoleFilters } from './useTrashConsoleFilters';
 import {
   bulkRestoreProducts,
   bulkHardDeleteProducts,
@@ -33,8 +35,8 @@ interface UseTrashConsoleBulkActionsProps {
   setReviews: React.Dispatch<React.SetStateAction<(Review & { productName?: string })[]>>;
   orders: Order[];
   setOrders: React.Dispatch<React.SetStateAction<Order[]>>;
-  customers: any[];
-  setCustomers: React.Dispatch<React.SetStateAction<any[]>>;
+  customers: TrashedCustomer[];
+  setCustomers: React.Dispatch<React.SetStateAction<TrashedCustomer[]>>;
   media: TrashedMedia[];
   setMedia: React.Dispatch<React.SetStateAction<TrashedMedia[]>>;
   whatsappSubscribers: WhatsAppSubscriber[];
@@ -45,7 +47,7 @@ interface UseTrashConsoleBulkActionsProps {
   setSizeGuides: React.Dispatch<React.SetStateAction<SizeGuide[]>>;
   variantPresets: VariantPreset[];
   setVariantPresets: React.Dispatch<React.SetStateAction<VariantPreset[]>>;
-  filters: any;
+  filters: ReturnType<typeof useTrashConsoleFilters>;
   setConfirmBulkDelete: (val: boolean) => void;
   setConfirmEmptyTab: (val: boolean) => void;
   setConfirmEmptyCompleteTrash: (val: boolean) => void;
@@ -103,8 +105,8 @@ export function useTrashConsoleBulkActions({
           await bulkRestoreMedia(idsToRestore);
           setMedia(prev => prev.filter(m => !idsToRestore.includes(m.id)));
         } else if (filters.activeTab === 'leads') {
-          const whatsappIds = idsToRestore.filter(id => filters.combinedLeads.find((l: any) => l.id === id)?.type === 'whatsapp');
-          const emailIds = idsToRestore.filter(id => filters.combinedLeads.find((l: any) => l.id === id)?.type === 'email');
+          const whatsappIds = idsToRestore.filter(id => filters.combinedLeads.find((l) => l.id === id)?.type === 'whatsapp');
+          const emailIds = idsToRestore.filter(id => filters.combinedLeads.find((l) => l.id === id)?.type === 'email');
           await bulkRestoreLeads(whatsappIds, emailIds);
           setWhatsappSubscribers(prev => prev.filter(s => !whatsappIds.includes(s.id)));
           setEmailSubscribers(prev => prev.filter(s => !emailIds.includes(s.id)));
@@ -152,8 +154,8 @@ export function useTrashConsoleBulkActions({
           await bulkHardDeleteMedia(mediaItems);
           setMedia(prev => prev.filter(m => !idsToDelete.includes(m.id)));
         } else if (filters.activeTab === 'leads') {
-          const whatsappIds = idsToDelete.filter(id => filters.combinedLeads.find((l: any) => l.id === id)?.type === 'whatsapp');
-          const emailIds = idsToDelete.filter(id => filters.combinedLeads.find((l: any) => l.id === id)?.type === 'email');
+          const whatsappIds = idsToDelete.filter(id => filters.combinedLeads.find((l) => l.id === id)?.type === 'whatsapp');
+          const emailIds = idsToDelete.filter(id => filters.combinedLeads.find((l) => l.id === id)?.type === 'email');
           await bulkHardDeleteLeads(whatsappIds, emailIds);
           setWhatsappSubscribers(prev => prev.filter(s => !whatsappIds.includes(s.id)));
           setEmailSubscribers(prev => prev.filter(s => !emailIds.includes(s.id)));
@@ -179,7 +181,7 @@ export function useTrashConsoleBulkActions({
     if (items.length === 0) return;
     startTransition(async () => {
       try {
-        const idsToDelete = items.map((x: any) => x.id);
+        const idsToDelete = items.map((x) => x.id);
         if (filters.activeTab === 'products') {
           await bulkHardDeleteProducts(idsToDelete);
           setProducts(prev => prev.filter(p => !idsToDelete.includes(p.id)));
@@ -203,8 +205,8 @@ export function useTrashConsoleBulkActions({
           await bulkHardDeleteMedia(mediaItems);
           setMedia(prev => prev.filter(m => !idsToDelete.includes(m.id)));
         } else if (filters.activeTab === 'leads') {
-          const whatsappIds = idsToDelete.filter((id: string) => filters.combinedLeads.find((l: any) => l.id === id)?.type === 'whatsapp');
-          const emailIds = idsToDelete.filter((id: string) => filters.combinedLeads.find((l: any) => l.id === id)?.type === 'email');
+          const whatsappIds = idsToDelete.filter((id: string) => filters.combinedLeads.find((l) => l.id === id)?.type === 'whatsapp');
+          const emailIds = idsToDelete.filter((id: string) => filters.combinedLeads.find((l) => l.id === id)?.type === 'email');
           await bulkHardDeleteLeads(whatsappIds, emailIds);
           setWhatsappSubscribers(prev => prev.filter(s => !whatsappIds.includes(s.id)));
           setEmailSubscribers(prev => prev.filter(s => !emailIds.includes(s.id)));

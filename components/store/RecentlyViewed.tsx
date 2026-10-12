@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Product, StoreSettings } from '@/lib/types';
 import ProductCard from './ProductCard';
 import { getProductsByIdsClient } from '@/lib/services/products-client';
-import { getResponsiveGridClasses, getGridGapClass } from '@/lib/utils/responsiveGrid';
+import { getCatalogGridStyle, getContentWidthClass, CATALOG_SECTION_PADDING } from '@/lib/utils/responsiveGrid';
 
 interface RecentlyViewedProps {
   products?: Product[];
@@ -75,14 +75,18 @@ export default function RecentlyViewed({ products, settings, currentProductId }:
 
   if (recentProducts.length === 0) return null;
 
-  const recentCols = getResponsiveGridClasses({
+  const grid = getCatalogGridStyle({
+    mode: settings?.recently_viewed_columns_mode || 'manual',
     mobile: settings?.recently_viewed_columns_mobile || (settings?.card_mobile_columns === 1 ? 1 : 2),
     tablet: settings?.recently_viewed_columns_tablet || 3,
     desktop: settings?.recently_viewed_columns_desktop || 4,
+    wide: settings?.recently_viewed_columns_wide,
+    minDesktop: settings?.recently_viewed_min_card_desktop,
+    gap: settings?.recently_viewed_grid_gap,
   });
 
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 border-t border-gray-200 dark:border-gray-800 pt-10 animate-fade-in">
+    <div className={`mx-auto ${getContentWidthClass(settings?.recently_viewed_content_width)} ${CATALOG_SECTION_PADDING} border-t border-gray-200 dark:border-gray-800 pt-10 animate-fade-in`}>
       <div className="text-center md:text-left mb-8">
         <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
           {settings?.recently_viewed_title || 'Recently Viewed'}
@@ -91,7 +95,7 @@ export default function RecentlyViewed({ products, settings, currentProductId }:
           {settings?.recently_viewed_subtitle || 'Products you have recently browsed'}
         </p>
       </div>
-      <div className={`grid ${getGridGapClass(settings?.recently_viewed_grid_gap)} ${recentCols}`}>
+      <div className={grid.className} data-mode={grid.mode} style={grid.style}>
         {recentProducts.map((prod, index) => (
           <ProductCard key={prod.id} product={prod} currencySymbol={settings.currency_symbol} settings={settings} priority={index < 4} />
         ))}

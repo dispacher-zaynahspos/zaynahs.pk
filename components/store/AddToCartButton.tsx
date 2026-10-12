@@ -69,7 +69,7 @@ export function AddToCartButton({
   const timerRefs = useRef<NodeJS.Timeout[]>([]);
 
   const isDisabled = disabled || isOutOfStock;
-  const fadedClass = isFaded ? 'opacity-40 grayscale-[20%] saturate-50 hover:opacity-60 transition-all duration-300' : 'transition-all duration-300';
+  const fadedClass = isFaded && !isDisabled ? 'opacity-60 saturate-75 hover:opacity-80 transition-all duration-300' : 'transition-all duration-300';
 
   const clearTimers = useCallback(() => {
     timerRefs.current.forEach(t => clearTimeout(t));
@@ -229,11 +229,11 @@ export function AddToCartButton({
         title={title || displayText}
         aria-label={title || displayText}
         style={{
-          backgroundColor: isOutOfStock ? undefined : 'var(--btn-primary-bg, var(--color-primary, #C2185B))',
+          backgroundColor: 'var(--btn-primary-bg, var(--color-primary, #C2185B))',
           color: 'var(--btn-primary-text, #ffffff)',
           ...style,
         }}
-        className={`relative flex h-10 w-10 items-center justify-center rounded-full text-white shadow-md active:scale-90 transition-all cursor-pointer flex-shrink-0 disabled:bg-gray-300 dark:disabled:bg-gray-800 disabled:cursor-not-allowed ${
+        className={`relative flex h-10 w-10 items-center justify-center rounded-full text-white shadow-md active:scale-90 transition-all cursor-pointer flex-shrink-0 disabled:opacity-60 disabled:cursor-not-allowed ${
           active ? 'scale-110' : ''
         } ${fadedClass} ${className}`}
       >
@@ -587,12 +587,12 @@ export function AddToCartButton({
       disabled={isDisabled}
       onClick={handleClick}
       style={{
-        backgroundColor: isDisabled ? undefined : 'var(--btn-primary-bg, var(--color-primary, #C2185B))',
+        backgroundColor: 'var(--btn-primary-bg, var(--color-primary, #C2185B))',
         color: 'var(--btn-primary-text, #ffffff)',
         borderRadius: 'var(--border-radius-btn, 12px)',
         ...style,
       }}
-      className={`atc-btn shadow-md active:scale-95 disabled:bg-gray-300 dark:disabled:bg-gray-800 disabled:cursor-not-allowed hover:brightness-110 ${fadedClass} ${className}`}
+      className={`atc-btn shadow-md active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed hover:brightness-110 ${fadedClass} ${className}`}
     >
       {icon || <ShoppingCart className="h-5 w-5" />}
       <span>{displayText}</span>

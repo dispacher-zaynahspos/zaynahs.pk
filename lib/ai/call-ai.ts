@@ -1,6 +1,25 @@
 import { getAISettings } from './settings';
 import { normalizeGoogleModel, DEFAULT_GOOGLE_MODEL, GOOGLE_FALLBACK_MODEL } from './google';
 
+/** Error augmented with an HTTP status code for provider rotation logic. */
+interface StatusError extends Error {
+  status?: number;
+  statusCode?: number;
+}
+
+function getErrorStatus(err: unknown): number | undefined {
+  if (err && typeof err === 'object') {
+    const e = err as { status?: unknown; statusCode?: unknown };
+    if (typeof e.status === 'number') return e.status;
+    if (typeof e.statusCode === 'number') return e.statusCode;
+  }
+  return undefined;
+}
+
+function getErrorMessage(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
+}
+
 /**
  * Downloads an image from a URL and converts it to a base64 string
  */
@@ -90,9 +109,9 @@ export async function callAI(
     const apiKey = keys[i];
     try {
       return await executeRequest(provider, model, apiKey, prompt, systemPrompt, isVision, imageUrl);
-    } catch (err: any) {
-      console.warn(`[aiEngine] Key ${i} failed for provider ${provider}:`, err.message || err);
-      const status = err.status || err.statusCode;
+    } catch (err: unknown) {
+      console.warn(`[aiEngine] Key ${i} failed for provider ${provider}:`, getErrorMessage(err));
+      const status = getErrorStatus(err);
       if (status === 429 || status === 503 || status === 402 || status === 500) {
         continue;
       }
@@ -119,7 +138,7 @@ async function executeRequest(
   let headers: Record<string, string> = {
     'Content-Type': 'application/json'
   };
-  let body: any = {};
+  let body: Record<string, unknown> = {};
 
   let base64Data = '';
   let mimeType = 'image/webp';
@@ -142,7 +161,7 @@ async function executeRequest(
       ]));
       const wantsJson = /json|\{|\}/i.test(prompt) || /json/i.test(systemPrompt);
 
-      const parts: any[] = [];
+      const parts: Array<Record<string, unknown>> = [];
       if (isVision && base64Data) {
         parts.push({
           inlineData: {
@@ -153,7 +172,7 @@ async function executeRequest(
       }
       parts.push({ text: prompt });
 
-      const bodyData: any = {
+      const bodyData: Record<string, unknown> = {
         contents: [
           {
             role: 'user',
@@ -174,7 +193,7 @@ async function executeRequest(
         };
       }
 
-      let lastError: any = null;
+      let lastError: unknown = null;
       for (let idx = 0; idx < modelsToTry.length; idx++) {
         const currentModel = modelsToTry[idx];
         url = `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent?key=${apiKey}`;
@@ -182,10 +201,10 @@ async function executeRequest(
 
         // Disable thinking tokens on non-lite models to accelerate responses from 14s down to 1.5s
         // Note: Flash-Lite models reject thinkingConfig with 400 error, so only apply to non-lite gemini models.
-        const modelBody = { ...bodyData };
+        const modelBody: Record<string, unknown> = { ...bodyData };
         if (currentModel.startsWith('gemini-') && !currentModel.includes('lite')) {
           modelBody.generationConfig = {
-            ...(modelBody.generationConfig || {}),
+            ...((modelBody.generationConfig as Record<string, unknown>) || {}),
             thinkingConfig: { thinkingBudget: 0 }
           };
         }
@@ -193,17 +212,17 @@ async function executeRequest(
         try {
           const res = await makeFetch(url, headers, modelBody, 14000);
           const json = JSON.parse(res);
-          const parts = json?.candidates?.[0]?.content?.parts || [];
-          const nonThought = parts.filter((p: any) => !p.thought);
+          const parts: Array<{ thought?: boolean; text?: string }> = json?.candidates?.[0]?.content?.parts || [];
+          const nonThought = parts.filter((p) => !p.thought);
           const text = (nonThought.length > 0 ? nonThought : parts)
-            .map((p: any) => p.text || '')
+            .map((p) => p.text || '')
             .join('')
             .trim();
           if (!text) throw new Error('Empty response from Gemini API');
           return text;
-        } catch (fetchErr: any) {
+        } catch (fetchErr: unknown) {
           lastError = fetchErr;
-          const status = fetchErr.status || fetchErr.statusCode;
+          const status = getErrorStatus(fetchErr);
           if (status === 503 || status === 500 || status === 404 || status === 429) {
             console.warn(`[callAI] Gemini model ${currentModel} returned ${status}. Retrying fallback...`);
             await new Promise((r) => setTimeout(r, 50));
@@ -225,7 +244,7 @@ async function executeRequest(
         'anthropic-dangerous-direct-browser-access': 'true'
       };
 
-      let content: any = prompt;
+      let content: string | Array<Record<string, unknown>> = prompt;
       if (isVision && base64Data) {
         content = [
           {
@@ -312,7 +331,7 @@ async function executeRequest(
         'Content-Type': 'application/json'
       };
 
-      let userContent: any = prompt;
+      let userContent: string | Array<Record<string, unknown>> = prompt;
       if (isVision && base64Data) {
         userContent = [
           { type: 'text', text: prompt },
@@ -353,7 +372,7 @@ async function executeRequest(
   }
 }
 
-async function makeFetch(url: string, headers: Record<string, string>, body: any, timeoutMs: number = 45000): Promise<string> {
+async function makeFetch(url: string, headers: Record<string, string>, body: Record<string, unknown>, timeoutMs: number = 45000): Promise<string> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
 
@@ -367,15 +386,15 @@ async function makeFetch(url: string, headers: Record<string, string>, body: any
 
     if (!response.ok) {
       const errText = await response.text();
-      const error: any = new Error(`API Error ${response.status}: ${errText}`);
+      const error: StatusError = new Error(`API Error ${response.status}: ${errText}`);
       error.status = response.status;
       throw error;
     }
 
     return response.text();
-  } catch (err: any) {
-    if (err.name === 'AbortError' || err.message?.includes('aborted')) {
-      const timeoutErr: any = new Error(`Request timed out after ${timeoutMs / 1000}s`);
+  } catch (err: unknown) {
+    if (err instanceof Error && (err.name === 'AbortError' || err.message?.includes('aborted'))) {
+      const timeoutErr: StatusError = new Error(`Request timed out after ${timeoutMs / 1000}s`);
       timeoutErr.status = 503;
       throw timeoutErr;
     }

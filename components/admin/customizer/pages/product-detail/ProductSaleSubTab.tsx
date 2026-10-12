@@ -93,7 +93,7 @@ export default function ProductSaleSubTab({
                 value={discountType}
                 onChange={(e) =>
                   onUpdateProduct(currentProduct.id, {
-                    flash_sale_discount_type: e.target.value as any,
+                    flash_sale_discount_type: e.target.value as 'percentage' | 'fixed',
                   })
                 }
                 className="w-full px-2.5 py-2 bg-white dark:bg-[#16162a] border border-gray-200 dark:border-gray-800 rounded-lg text-xs text-gray-900 dark:text-white"

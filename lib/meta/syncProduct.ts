@@ -1,7 +1,20 @@
-import { mapProductToMeta } from './mapProduct';
+import { mapProductToMeta, type MetaCatalogItem } from './mapProduct';
 import { getSettings } from '@/lib/services/settings';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { Product } from '@/lib/types';
+
+interface MetaBatchRequest {
+  method: 'UPDATE' | 'DELETE';
+  retailer_id: string;
+  data?: MetaCatalogItem;
+}
+
+interface MetaSyncLogRow {
+  product_id: string;
+  status: 'synced' | 'error' | 'skipped';
+  action: 'UPDATE' | 'DELETE';
+  error?: string;
+}
 
 // ---------------------------------------------------------------------------
 // In-memory cache — avoids 84k+ repeated DB fetches for near-static data
@@ -69,7 +82,7 @@ async function logSyncResult(
 export async function syncProductToMeta(
   product: Product,
   action: 'UPDATE' | 'DELETE' = 'UPDATE'
-): Promise<{ success: boolean; error?: any }> {
+): Promise<{ success: boolean; error?: unknown }> {
   try {
     if (process.env.DISABLE_META_SYNC === 'true') {
       console.log('[MetaSync] Meta sync is temporarily disabled via env variable.');
@@ -98,7 +111,7 @@ export async function syncProductToMeta(
     }
 
     // 3. Build requests payload
-    let requests: any[] = [];
+    let requests: MetaBatchRequest[] = [];
 
     if (action === 'DELETE') {
       if (product.has_variants && product.variants && product.variants.length > 0) {
@@ -158,9 +171,9 @@ export async function syncProductToMeta(
     console.log(`[MetaSync] Product ${product.id} synced successfully.`);
     return { success: true };
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error(`[MetaSync] Failed to sync product ${product.id}:`, error);
-    await logSyncResult(product.id, 'error', action, error.message || 'Unknown error occurred during sync.');
+    await logSyncResult(product.id, 'error', action, error instanceof Error ? error.message : 'Unknown error occurred during sync.');
     return { success: false, error };
   }
 }
@@ -199,14 +212,14 @@ export async function bulkSyncProductsToMeta(
     }
 
     // 3. Build all requests + track which productId maps to what
-    const allRequests: any[] = [];
+    const allRequests: MetaBatchRequest[] = [];
     const productIdForChunk: string[] = [];
     const errorProductIds = new Set<string>();
     const validationErrors: Record<string, string> = {};
 
     for (const product of products) {
       try {
-        let requests: any[] = [];
+        let requests: MetaBatchRequest[] = [];
         if (action === 'DELETE' || product.deleted_at) {
           if (product.has_variants && product.variants && product.variants.length > 0) {
             requests = product.variants.map(v => ({ method: 'DELETE', retailer_id: v.id }));
@@ -223,8 +236,8 @@ export async function bulkSyncProductsToMeta(
         }
         requests.forEach(() => productIdForChunk.push(product.id));
         allRequests.push(...requests);
-      } catch (err: any) {
-        const errMsg = err.message || 'Validation failed';
+      } catch (err: unknown) {
+        const errMsg = err instanceof Error ? err.message : 'Validation failed';
         console.error(`[MetaSync] Skipped product ${product.id} during mapping:`, errMsg);
         errorProductIds.add(product.id);
         validationErrors[product.id] = errMsg;
@@ -266,7 +279,7 @@ export async function bulkSyncProductsToMeta(
     }
 
     // 5. ✅ Write results ONLY to meta_sync_log — NOT to products table
-    const logRows: any[] = [];
+    const logRows: MetaSyncLogRow[] = [];
     successProductIds.forEach(id => {
       // Don't double-log as error
       if (!errorProductIds.has(id)) {
@@ -283,8 +296,8 @@ export async function bulkSyncProductsToMeta(
     }
 
     return { success: errors.length === 0, totalSynced, errors };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[MetaSync] Bulk sync failed:', error);
-    return { success: false, totalSynced: 0, errors: [error.message || 'Unknown error'] };
+    return { success: false, totalSynced: 0, errors: [error instanceof Error ? error.message : 'Unknown error'] };
   }
 }

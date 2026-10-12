@@ -5,25 +5,31 @@ import { Order, CartItem, StatusLogItem } from '@/lib/types';
 // break and no data is lost. Once a DB backfill migration runs, these become no-ops.
 export function normalizeCartItems(raw: unknown): CartItem[] {
   if (!Array.isArray(raw)) return [];
-  return raw.map((i: any) => ({
-    ...i,
-    selected_variant: i.selected_variant ?? i.selectedVariant,
-    selected_modifiers: i.selected_modifiers ?? i.selectedModifiers ?? [],
-    unit_price: i.unit_price ?? i.unitPrice,
-    total: i.total,
-    discount_amount: i.discount_amount ?? i.discountAmount,
-    discount_type: i.discount_type ?? i.discountType,
-    discount_value: i.discount_value ?? i.discountValue,
-    added_later: i.added_later ?? i.addedLater,
-  })) as CartItem[];
+  return raw.map((item) => {
+    const i = item as Record<string, unknown>;
+    return {
+      ...i,
+      selected_variant: i.selected_variant ?? i.selectedVariant,
+      selected_modifiers: i.selected_modifiers ?? i.selectedModifiers ?? [],
+      unit_price: i.unit_price ?? i.unitPrice,
+      total: i.total,
+      discount_amount: i.discount_amount ?? i.discountAmount,
+      discount_type: i.discount_type ?? i.discountType,
+      discount_value: i.discount_value ?? i.discountValue,
+      added_later: i.added_later ?? i.addedLater,
+    };
+  }) as CartItem[];
 }
 
 export function normalizeStatusLogs(raw: unknown): StatusLogItem[] {
   if (!Array.isArray(raw)) return [];
-  return raw.map((l: any) => ({
-    ...l,
-    created_at: l.created_at ?? l.createdAt,
-  })) as StatusLogItem[];
+  return raw.map((log) => {
+    const l = log as Record<string, unknown>;
+    return {
+      ...l,
+      created_at: l.created_at ?? l.createdAt,
+    };
+  }) as StatusLogItem[];
 }
 
 export interface OrderRow {

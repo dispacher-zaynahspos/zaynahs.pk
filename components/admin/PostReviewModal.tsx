@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
 import { X, Image, Plus, Package, Send, Check, Search } from '@/components/common/Icons';
+import { Modal } from '@/components/common/Modal';
 import { submitAdminCustomReview } from '@/lib/services/reviews';
 import { submitSocialProof, updateSocialProof } from '@/lib/services/social-proof';
 import { getAllProductsAdmin } from '@/lib/services/products';
@@ -20,7 +20,6 @@ interface PostReviewModalProps {
 }
 
 export default function PostReviewModal({ isOpen, onClose, onSuccess, editProof }: PostReviewModalProps) {
-  const [mounted, setMounted] = useState(false);
   const [postType, setPostType] = useState<'review' | 'social_proof'>('social_proof');
   const [products, setProducts] = useState<Product[]>([]);
   const [showMediaSelector, setShowMediaSelector] = useState(false);
@@ -44,8 +43,6 @@ export default function PostReviewModal({ isOpen, onClose, onSuccess, editProof 
 
   const isEditing = !!editProof;
 
-  useEffect(() => { setMounted(true); }, []);
-
   useEffect(() => {
     if (!isOpen) return;
     getAllProductsAdmin().then(setProducts).catch(() => {});
@@ -57,12 +54,6 @@ export default function PostReviewModal({ isOpen, onClose, onSuccess, editProof 
       setSelectedProductIds(editProof.product_ids || []);
     }
   }, [isOpen, editProof]);
-
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
-    document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
-  }, [onClose]);
 
   const resetForm = () => {
     setCustomerName('');
@@ -155,13 +146,9 @@ export default function PostReviewModal({ isOpen, onClose, onSuccess, editProof 
     setShowMediaSelector(false);
   };
 
-  if (!mounted || !isOpen) return null;
-
-  return createPortal(
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 animate-fade-in overscroll-contain" onClick={onClose}>
-      <div className="bg-white dark:bg-[#16162a] rounded-2xl max-w-2xl w-full max-h-[90vh] flex flex-col border border-gray-200 dark:border-gray-800 shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
-
-        {/* Header */}
+  return (
+    <Modal open={isOpen} onClose={onClose} showClose={false} size="md" className="!max-h-[90vh]">
+      {/* Header */}
         <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between flex-shrink-0">
           <div>
             <h3 className="text-lg font-black text-gray-900 dark:text-white">
@@ -367,8 +354,6 @@ export default function PostReviewModal({ isOpen, onClose, onSuccess, editProof 
             multiple={false}
           />
         )}
-      </div>
-    </div>,
-    document.body
+    </Modal>
   );
 }

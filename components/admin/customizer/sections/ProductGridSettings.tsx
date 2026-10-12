@@ -7,6 +7,9 @@ import ManualProductPicker from './product-grid/ManualProductPicker';
 import BottomGridActions from './product-grid/BottomGridActions';
 import ResponsiveGridColumnsControl from '../shared/ResponsiveGridColumnsControl';
 import GridGapControl from '../shared/GridGapControl';
+import ContentWidthControl from '../shared/ContentWidthControl';
+import FillRowsControl from '../shared/FillRowsControl';
+import CatalogLimitControl from '../shared/CatalogLimitControl';
 import GridLimitControl from '../shared/GridLimitControl';
 import SectionSpacingControls from '../shared/SectionSpacingControls';
 import { AccordionGroup } from '@/components/admin/customizer/controls';
@@ -115,14 +118,23 @@ export default function ProductGridSettings({
         />
       )}
 
-      <GridLimitControl
-        value={settings.limit || 8}
-        onChange={(v) => handleSettingsChange('limit', v)}
+      <CatalogLimitControl
+        mode={settings.limit_mode || 'manual'}
+        onChangeMode={(m) => handleSettingsChange('limit_mode', m)}
+        rows={Number(settings.limit_rows) || 2}
+        onChangeRows={(r) => handleSettingsChange('limit_rows', r)}
+        manual={Number(settings.limit) || 8}
+        onChangeManual={(v) => handleSettingsChange('limit', v)}
+        previewColumns={Number(settings.columns_desktop) || 4}
       />
-      {/* Responsive Columns per Device (Mobile: 1-3, Tablet: 2-4, Desktop: 3-8) */}
+      {/* Responsive Columns per Device (Mobile: 1-3, Tablet: 2-4, Desktop: 2-8) */}
       <ResponsiveGridColumnsControl
         label="Product Grid Columns"
         viewportMode={viewportMode}
+        mode={settings.columns_mode || 'manual'}
+        onChangeMode={(m) => handleSettingsChange('columns_mode', m)}
+        minCardDesktop={Number(settings.min_card_desktop) || 220}
+        onChangeMinCardDesktop={(px) => handleSettingsChange('min_card_desktop', px)}
         desktopCols={Number(settings.columns_desktop) || 4}
         tabletCols={Number(settings.columns_tablet) || 3}
         mobileCols={Number(settings.columns_mobile) || 2}
@@ -135,6 +147,18 @@ export default function ProductGridSettings({
       <GridGapControl
         value={settings.grid_gap || 'normal'}
         onChange={(gap) => handleSettingsChange('grid_gap', gap)}
+      />
+
+      {/* Content Width (Boxed, Wide, Full) */}
+      <ContentWidthControl
+        value={settings.content_width || 'wide'}
+        onChange={(w) => handleSettingsChange('content_width', w)}
+      />
+
+      {/* Fill Rows (round up to a full row) */}
+      <FillRowsControl
+        value={settings.fill_rows !== false}
+        onChange={(v) => handleSettingsChange('fill_rows', v)}
       />
 
       {/* Display Mode: Grid vs Carousel/Slider */}

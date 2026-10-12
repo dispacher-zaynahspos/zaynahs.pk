@@ -2,7 +2,7 @@ import { wrapLayout } from './layout';
 import { getCustomerTemplate } from './customerTemplates';
 import { getAdminTemplate } from './adminTemplates';
 
-export function getDefaultTemplate(emailType: string, vars: Record<string, any>): string {
+export function getDefaultTemplate(emailType: string, vars: Record<string, string>): string {
   const customerRes = getCustomerTemplate(emailType, vars);
   if (customerRes) {
     return wrapLayout(customerRes.content, vars, customerRes.title);

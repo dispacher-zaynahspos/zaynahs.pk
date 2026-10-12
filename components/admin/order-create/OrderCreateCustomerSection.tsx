@@ -3,15 +3,22 @@
 import React from 'react';
 import { Search, Loader2 } from '@/components/common/Icons';
 
+export interface CustomerSearchResult {
+  id?: string;
+  name?: string;
+  phone?: string;
+  email?: string;
+}
+
 interface OrderCreateCustomerSectionProps {
   customerSearchQuery: string;
   setCustomerSearchQuery: (v: string) => void;
   searchCustomer: (query: string) => void;
   isCustomerDropdownOpen: boolean;
   setIsCustomerDropdownOpen: (v: boolean) => void;
-  customerResults: any[];
+  customerResults: CustomerSearchResult[];
   isSearchingCustomer: boolean;
-  handleCustomerSelect: (c: any) => void;
+  handleCustomerSelect: (c: CustomerSearchResult) => void;
   customerName: string;
   setCustomerName: (v: string) => void;
   customerPhone: string;

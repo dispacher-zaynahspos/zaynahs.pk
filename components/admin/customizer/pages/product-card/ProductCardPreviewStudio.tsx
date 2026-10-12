@@ -43,7 +43,7 @@ export function ProductCardPreviewStudio({ settings, onUpdateSettings }: Product
 
   const handleSelectStyle = (key: string) => {
     if (onUpdateSettings) {
-      onUpdateSettings({ image_hover_style: key as any });
+      onUpdateSettings({ image_hover_style: key as NonNullable<StoreSettings['image_hover_style']> });
     }
     // Briefly pulse simulation so user sees animation immediately
     setIsSimulatedFocus(true);

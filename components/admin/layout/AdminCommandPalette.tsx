@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, X, CornerDownLeft, ArrowUpDown } from '@/components/common/Icons';
 import { NavSection, SETTINGS_TAB_SHORTCUTS } from './adminNavSections';
-import { useBodyScrollLock } from '@/lib/hooks/useBodyScrollLock';
+import { Modal } from '@/components/common/Modal';
 
 interface AdminCommandPaletteProps {
   isOpen: boolean;
@@ -34,8 +34,6 @@ export function AdminCommandPalette({
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
-
-  useBodyScrollLock(isOpen);
 
   // Flatten all items from navSections + settings shortcuts
   const allItems = useMemo<FlatItem[]>(() => {
@@ -104,17 +102,11 @@ export function AdminCommandPalette({
     setSelectedIndex(0);
   }, [query]);
 
-  // Handle keyboard navigation
+  // Handle keyboard navigation (ESC is handled by the shared Modal)
   useEffect(() => {
     if (!isOpen) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        onClose();
-        return;
-      }
-
       if (filteredItems.length === 0) return;
 
       if (e.key === 'ArrowDown') {
@@ -146,23 +138,17 @@ export function AdminCommandPalette({
     }
   }, [selectedIndex]);
 
-  if (!isOpen) return null;
-
+  // Shared overlay system (RULE MODAL1) — spotlight dialog, top-aligned, smooth motion.
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-label="Navigation Command Palette"
-      className="fixed inset-0 z-50 flex items-start justify-center pt-14 sm:pt-20 px-3 sm:px-4"
+    <Modal
+      open={isOpen}
+      onClose={onClose}
+      variant="center"
+      size="md"
+      showClose={false}
+      ariaLabel="Navigation Command Palette"
+      className="self-start mt-14 sm:mt-20 !max-h-[75vh]"
     >
-      {/* Backdrop */}
-      <div
-        onClick={onClose}
-        className="fixed inset-0 bg-black/60 transition-opacity animate-in fade-in duration-200"
-      />
-
-      {/* Palette Modal Box */}
-      <div className="relative w-full max-w-xl bg-white dark:bg-[#16162a] rounded-2xl shadow-2xl border border-gray-200/90 dark:border-gray-800/90 overflow-hidden flex flex-col max-h-[75vh] z-10 transition-all transform animate-in fade-in zoom-in-95 duration-200">
         {/* Search Input Bar */}
         <div className="relative flex items-center px-4 py-3.5 border-b border-gray-100 dark:border-gray-800/80 bg-gray-50/50 dark:bg-black/20">
           <Search className="h-5 w-5 text-gray-400 dark:text-gray-500 shrink-0 mr-3" />
@@ -279,7 +265,6 @@ export function AdminCommandPalette({
           </div>
           <span>{filteredItems.length} results</span>
         </div>
-      </div>
-    </div>
+    </Modal>
   );
 }

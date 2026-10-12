@@ -61,8 +61,8 @@ export default function CollectionManager({ initialCollections, categories, aiEn
       if (!result.success) throw new Error(result.error);
       setCollections(prev => prev.filter(c => c.id !== id));
       toast.success('Collection moved to Trash');
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to delete collection');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to delete collection');
     }
   };
 

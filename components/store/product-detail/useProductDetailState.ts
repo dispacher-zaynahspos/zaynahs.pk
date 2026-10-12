@@ -28,9 +28,9 @@ export function useProductDetailState({ product, settings }: UseProductDetailSta
   const [activeDetailTab, setActiveDetailTab] = useState<'description' | 'faq' | 'returns'>('description');
   const [isDescExpanded, setIsDescExpanded] = useState(false);
 
-  const handleVariantChange = useCallback((v: ProductVariant) => {
+  const handleVariantChange = useCallback((v?: ProductVariant) => {
     setSelectedVariant(v);
-    if (v.image_url) {
+    if (v?.image_url) {
       const idx = images.findIndex(img => img.url === v.image_url);
       if (idx !== -1) {
         setActiveImageIndex(idx);

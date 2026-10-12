@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import type { CustomerSearchResult } from '../OrderCreateCustomerSection';
 
 export function useOrderCreateCustomer() {
   const [customerName, setCustomerName] = useState('');
@@ -11,7 +12,7 @@ export function useOrderCreateCustomer() {
 
   // Customer search states
   const [customerSearchQuery, setCustomerSearchQuery] = useState('');
-  const [customerResults, setCustomerResults] = useState<any[]>([]);
+  const [customerResults, setCustomerResults] = useState<CustomerSearchResult[]>([]);
   const [isCustomerDropdownOpen, setIsCustomerDropdownOpen] = useState(false);
   const [isSearchingCustomer, setIsSearchingCustomer] = useState(false);
 
@@ -39,7 +40,7 @@ export function useOrderCreateCustomer() {
     }
   };
 
-  const handleCustomerSelect = async (c: any) => {
+  const handleCustomerSelect = async (c: CustomerSearchResult) => {
     setCustomerName(c.name || '');
     setCustomerPhone(c.phone || '');
     try {

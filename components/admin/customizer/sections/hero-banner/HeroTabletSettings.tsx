@@ -2,10 +2,10 @@ import React from 'react';
 import { NumberSliderControl, ButtonGroupControl } from './HeroBannerControls';
 
 interface HeroTabletSettingsProps {
-  settings: Record<string, any>;
+  settings: Record<string, unknown>;
   heightTablet: number;
   widthTablet: number;
-  handleSettingsChange: (key: string, value: any) => void;
+  handleSettingsChange: (key: string, value: unknown) => void;
 }
 
 export function HeroTabletSettings({
@@ -141,7 +141,7 @@ export function HeroTabletSettings({
         <div className="grid grid-cols-2 gap-3">
           <ButtonGroupControl
             label="Position (Horiz)"
-            value={settings.content_position_tablet_x || 'center'}
+            value={(settings.content_position_tablet_x as string) || 'center'}
             options={[
               { label: 'Left', value: 'left' },
               { label: 'Center', value: 'center' },
@@ -151,7 +151,7 @@ export function HeroTabletSettings({
           />
           <ButtonGroupControl
             label="Position (Vert)"
-            value={settings.content_position_tablet_y || 'middle'}
+            value={(settings.content_position_tablet_y as string) || 'middle'}
             options={[
               { label: 'Top', value: 'top' },
               { label: 'Middle', value: 'middle' },
@@ -162,7 +162,7 @@ export function HeroTabletSettings({
         </div>
         <ButtonGroupControl
           label="Text Align"
-          value={settings.text_align_tablet || 'center'}
+          value={(settings.text_align_tablet as string) || 'center'}
           options={[
             { label: 'Left', value: 'left' },
             { label: 'Center', value: 'center' },
@@ -177,7 +177,7 @@ export function HeroTabletSettings({
         
         <NumberSliderControl
           label="Zoom Scale"
-          value={settings.image_scale_tablet ?? 100}
+          value={(settings.image_scale_tablet as number | undefined) ?? 100}
           min={100}
           max={200}
           step={5}
@@ -187,7 +187,7 @@ export function HeroTabletSettings({
         
         <NumberSliderControl
           label="Left/Right Shift"
-          value={settings.image_focal_x_tablet ?? 50}
+          value={(settings.image_focal_x_tablet as number | undefined) ?? 50}
           min={0}
           max={100}
           step={5}
@@ -197,7 +197,7 @@ export function HeroTabletSettings({
         
         <NumberSliderControl
           label="Up/Down Shift"
-          value={settings.image_focal_y_tablet ?? 50}
+          value={(settings.image_focal_y_tablet as number | undefined) ?? 50}
           min={0}
           max={100}
           step={5}
@@ -209,7 +209,7 @@ export function HeroTabletSettings({
       <div className="space-y-1.5 p-3.5 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-200 dark:border-gray-800">
         <ButtonGroupControl
           label="Tablet Heading Size"
-          value={settings.heading_size_tablet || '3xl'}
+          value={(settings.heading_size_tablet as string) || '3xl'}
           options={[
             { label: 'S (xl)', value: 'xl' },
             { label: 'M (2xl)', value: '2xl' },

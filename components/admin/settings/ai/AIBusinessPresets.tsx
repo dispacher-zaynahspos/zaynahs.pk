@@ -3,15 +3,17 @@
 import React, { useState } from 'react';
 import { BUSINESS_PRESETS, BusinessPreset } from './aiModelsData';
 
+interface AIPersonaConfig {
+  tone: string;
+  language: string;
+  customInstructions: string;
+  targetAudiences: string[];
+  productTypes: string[];
+}
+
 interface AIBusinessPresetsProps {
-  aiPersonaConfig: {
-    tone: string;
-    language: string;
-    customInstructions: string;
-    targetAudiences: string[];
-    productTypes: string[];
-  };
-  setAiPersonaConfig: (val: any) => void;
+  aiPersonaConfig: AIPersonaConfig;
+  setAiPersonaConfig: (val: AIPersonaConfig) => void;
   setCategoryDescriptionPrompt: (val: string) => void;
   setCategoryDescriptionLimit: (val: number) => void;
   setProductDescriptionPrompt: (val: string) => void;

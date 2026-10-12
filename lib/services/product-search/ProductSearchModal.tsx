@@ -1,12 +1,11 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
-import Link from 'next/link';
 import { Search, X, ChevronRight, Package, Tag } from '@/components/common/Icons';
 import { ProductSearchResult, ProductSearchConfig } from './types';
 import { formatPrice } from '@/lib/utils/whatsapp';
 import { highlightMatch } from './normalization';
+import { Modal } from '@/components/common/Modal';
 
 interface ProductSearchModalProps {
   isOpen: boolean;
@@ -81,26 +80,6 @@ export default function ProductSearchModal({
       inputRef.current.focus();
     }
   }, [isOpen]);
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
-        onClose();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        // Don't close on outside click for modal - use X button or Escape
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
   const executeSearch = async (searchQuery: string, isLoadMore = false) => {
     if (abortControllerRef.current) {
@@ -228,11 +207,18 @@ export default function ProductSearchModal({
   };
 
   const modalContent = (
-    <div className="fixed inset-0 z-[100] bg-black/60 flex items-start justify-center pt-20 px-4 transition-all duration-300 animate-fade-in overscroll-contain">
-      <div
-        ref={containerRef}
-        className={`bg-white dark:bg-[#16162a] w-full max-w-2xl rounded-3xl border border-gray-200 dark:border-gray-800 shadow-2xl overflow-hidden ${className}`}
-      >
+    <Modal
+      open={isOpen}
+      onClose={onClose}
+      variant="center"
+      size="md"
+      showClose={false}
+      closeOnOverlay={false}
+      ariaLabel={title}
+      zIndexClassName="z-[100]"
+      className={`self-start mt-20 ${className}`}
+    >
+      <div ref={containerRef}>
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800 sticky top-0 bg-white dark:bg-[#16162a] z-10">
           <div>
@@ -414,8 +400,8 @@ export default function ProductSearchModal({
           )}
         </div>
       </div>
-    </div>
+    </Modal>
   );
 
-  return createPortal(modalContent, document.body);
+  return modalContent;
 }

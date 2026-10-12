@@ -2,7 +2,10 @@ import React from 'react';
 import { HomepageSection } from '@/lib/types';
 import ResponsiveGridColumnsControl from '@/components/admin/customizer/shared/ResponsiveGridColumnsControl';
 import GridGapControl from '@/components/admin/customizer/shared/GridGapControl';
+import ContentWidthControl from '@/components/admin/customizer/shared/ContentWidthControl';
+import FillRowsControl from '@/components/admin/customizer/shared/FillRowsControl';
 import GridLimitControl from '@/components/admin/customizer/shared/GridLimitControl';
+import CatalogLimitControl from '@/components/admin/customizer/shared/CatalogLimitControl';
 import BottomGridActions from '@/components/admin/customizer/sections/product-grid/BottomGridActions';
 
 interface FlashSaleGeneralConfigProps {
@@ -16,7 +19,7 @@ export default function FlashSaleGeneralConfig({
 }: FlashSaleGeneralConfigProps) {
   const settings = section.settings || {};
 
-  const handleSettingsChange = (key: string, value: any) => {
+  const handleSettingsChange = (key: string, value: unknown) => {
     onUpdateSection({
       settings: { ...settings, [key]: value }
     });
@@ -100,13 +103,22 @@ export default function FlashSaleGeneralConfig({
       </div>
 
       {/* PRODUCT LIMIT AND PAGINATION SETTINGS */}
-      <GridLimitControl
-        value={settings.limit || 8}
-        onChange={(v) => handleSettingsChange('limit', v)}
+      <CatalogLimitControl
+        mode={settings.limit_mode || 'manual'}
+        onChangeMode={(m) => handleSettingsChange('limit_mode', m)}
+        rows={Number(settings.limit_rows) || 2}
+        onChangeRows={(r) => handleSettingsChange('limit_rows', r)}
+        manual={Number(settings.limit) || 8}
+        onChangeManual={(v) => handleSettingsChange('limit', v)}
+        previewColumns={Number(settings.columns_desktop) || 4}
       />
 
       <ResponsiveGridColumnsControl
         label="Flash Sale Grid Columns"
+        mode={settings.columns_mode || 'manual'}
+        onChangeMode={(m) => handleSettingsChange('columns_mode', m)}
+        minCardDesktop={Number(settings.min_card_desktop) || 220}
+        onChangeMinCardDesktop={(px) => handleSettingsChange('min_card_desktop', px)}
         desktopCols={Number(settings.columns_desktop) || 4}
         tabletCols={Number(settings.columns_tablet) || 3}
         mobileCols={Number(settings.columns_mobile) || 2}
@@ -119,6 +131,18 @@ export default function FlashSaleGeneralConfig({
       <GridGapControl
         value={settings.grid_gap || 'normal'}
         onChange={(gap) => handleSettingsChange('grid_gap', gap)}
+      />
+
+      {/* Content Width (Boxed, Wide, Full) — shared SSOT control */}
+      <ContentWidthControl
+        value={settings.content_width || 'wide'}
+        onChange={(w) => handleSettingsChange('content_width', w)}
+      />
+
+      {/* Fill Rows (round up to a full row) — shared SSOT control */}
+      <FillRowsControl
+        value={settings.fill_rows !== false}
+        onChange={(v) => handleSettingsChange('fill_rows', v)}
       />
 
       <hr className="border-gray-200 dark:border-gray-800" />

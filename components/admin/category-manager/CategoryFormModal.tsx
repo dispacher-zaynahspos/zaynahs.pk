@@ -1,10 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
 import { Plus, X, Image as ImageIcon, Zap, Loader2, RefreshCw } from '@/components/common/Icons';
 import RichTextEditor from '@/components/admin/RichTextEditor';
-import { useBodyScrollLock } from '@/lib/hooks/useBodyScrollLock';
+import { Modal } from '@/components/common/Modal';
 import { slugify } from '@/lib/utils/slugify';
 
 interface CategoryFormModalProps {
@@ -54,12 +53,7 @@ export default function CategoryFormModal({
   onAICopywrite,
   onOpenMediaModal,
 }: CategoryFormModalProps) {
-  const [mounted, setMounted] = useState(false);
   const [isSlugTouched, setIsSlugTouched] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -67,22 +61,22 @@ export default function CategoryFormModal({
     }
   }, [isOpen, editId]);
 
-  useBodyScrollLock(isOpen);
-
-  if (!isOpen || !mounted) return null;
-
-  return createPortal(
-    <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 bg-black/60 animate-in fade-in duration-200"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
+  return (
+    <Modal
+      open={isOpen}
+      onClose={onClose}
+      variant="center"
+      size="md"
+      showClose={false}
+      ariaLabel={editId ? 'Edit Category' : 'Create New Category'}
+      zIndexClassName="z-[100]"
+      className="!bg-transparent !border-0 !shadow-none !rounded-none !overflow-visible"
     >
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="category-form-modal-title"
-        className="relative w-full max-w-3xl bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 shadow-2xl flex flex-col max-h-[90dvh] overflow-hidden animate-in zoom-in-95 duration-200 text-gray-900 dark:text-white"
+        className="relative w-full max-w-3xl mx-auto bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 shadow-2xl flex flex-col max-h-[90dvh] overflow-hidden text-gray-900 dark:text-white"
       >
         
         {/* Sticky Header */}
@@ -319,7 +313,6 @@ export default function CategoryFormModal({
           </div>
         </form>
       </div>
-    </div>,
-    document.body
+    </Modal>
   );
 }

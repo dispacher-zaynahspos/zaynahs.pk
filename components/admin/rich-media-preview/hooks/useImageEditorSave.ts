@@ -175,9 +175,9 @@ export function useImageEditorSave({
         toast.dismiss(toastId);
         toast.success('Image saved as a new copy in Media Library!');
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('[Image Editor] Failed to save edited image:', err);
-      toast.error(`Failed to save image edits: ${err.message}`);
+      toast.error(`Failed to save image edits: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setIsSavingEdits(false);
     }

@@ -82,19 +82,23 @@ export async function callGoogle(
 
   const wantsJson = /json|\{|\}/i.test(prompt) || /json/i.test(systemPrompt);
 
-  let lastError: any = null;
+  let lastError: unknown = null;
 
   for (let idx = 0; idx < modelsToTry.length; idx++) {
     const currentModel = modelsToTry[idx];
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent?key=${apiKey}`;
 
-    const parts: any[] = [];
+    const parts: Array<{ text?: string; thought?: boolean; inlineData?: { mimeType: string; data: string } }> = [];
     if (isVision && base64Data) {
       parts.push({ inlineData: { mimeType: mimeType || 'image/webp', data: base64Data } });
     }
     parts.push({ text: prompt });
 
-    const body: any = {
+    const body: {
+      contents: Array<{ role: string; parts: typeof parts }>;
+      systemInstruction?: { parts: Array<{ text: string }> };
+      generationConfig?: { responseMimeType?: string; thinkingConfig?: { thinkingBudget: number } };
+    } = {
       contents: [{ role: 'user', parts }],
     };
 
@@ -129,8 +133,8 @@ export async function callGoogle(
       if (!res.ok) {
         const errJson = await res.json().catch(() => ({}));
         const errMsg = errJson?.error?.message || `Google API error ${res.status}`;
-        const err = new Error(errMsg);
-        (err as any).status = res.status;
+        const err = new Error(errMsg) as Error & { status?: number };
+        (err).status = res.status;
         lastError = err;
 
         // Auto-failover immediately if high-demand (503), rate-limited (429), or error
@@ -143,26 +147,27 @@ export async function callGoogle(
       }
 
       const json = await res.json();
-      const parts = json?.candidates?.[0]?.content?.parts || [];
-      const nonThought = parts.filter((p: any) => !p.thought);
-      const text = (nonThought.length > 0 ? nonThought : parts)
-        .map((p: any) => p.text || '')
+      const responseParts: Array<{ text?: string; thought?: boolean }> = json?.candidates?.[0]?.content?.parts || [];
+      const nonThought = responseParts.filter((p) => !p.thought);
+      const text = (nonThought.length > 0 ? nonThought : responseParts)
+        .map((p) => p.text || '')
         .join('')
         .trim();
       if (!text) {
         throw new Error('Empty response from Google Gemini API');
       }
       return text;
-    } catch (fetchErr: any) {
+    } catch (fetchErr: unknown) {
       lastError = fetchErr;
+      const errObj = fetchErr as { status?: number; name?: string; message?: string };
       if (
-        fetchErr.status === 503 ||
-        fetchErr.status === 500 ||
-        fetchErr.status === 404 ||
-        fetchErr.status === 429 ||
-        fetchErr.name === 'AbortError'
+        errObj.status === 503 ||
+        errObj.status === 500 ||
+        errObj.status === 404 ||
+        errObj.status === 429 ||
+        errObj.name === 'AbortError'
       ) {
-        console.warn(`[callGoogle] ${currentModel} failed (${fetchErr.message}). Retrying fallback...`);
+        console.warn(`[callGoogle] ${currentModel} failed (${errObj.message}). Retrying fallback...`);
         await new Promise((r) => setTimeout(r, 50));
         continue;
       }

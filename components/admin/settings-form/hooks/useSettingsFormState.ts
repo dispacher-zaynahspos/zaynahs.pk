@@ -168,9 +168,9 @@ export function useSettingsFormState({ initialSettings }: UseSettingsFormStatePr
       toast.success('Settings saved successfully!');
       setNextOrderSequenceDirty(false);
       router.refresh();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      toast.error(`Save failed: ${err.message || 'Unknown error'}`);
+      toast.error(`Save failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
     } finally {
       setIsSubmitting(false);
     }

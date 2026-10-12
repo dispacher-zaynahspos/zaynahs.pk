@@ -11,9 +11,10 @@ export async function GET() {
       theme_preset: settings.theme_preset || 'classic_white',
       theme_config: settings.theme_config || null,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[API Theme GET] failed:', error);
-    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Internal server error';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -38,8 +39,9 @@ export async function POST(request: Request) {
       theme_preset: updated.theme_preset,
       theme_config: updated.theme_config,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[API Theme POST] failed:', error);
-    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Internal server error';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

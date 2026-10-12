@@ -6,6 +6,38 @@ import { toast } from 'sonner';
 import { createClient } from '@/lib/supabase/client';
 import { rankProducts } from '@/lib/services/product-search/useInMemoryProductSearch';
 
+interface ProductImageRow {
+  id: string;
+  url: string;
+  sort_order?: number;
+  is_primary?: boolean;
+}
+
+interface ProductVariantRow {
+  id: string;
+  color?: string | null;
+  size?: string | null;
+  stock?: number | null;
+  price?: number | string | null;
+  sku?: string | null;
+  active?: boolean;
+}
+
+interface ProductRow {
+  id: string;
+  name: string;
+  slug: string;
+  price?: number | string | null;
+  compare_price?: number | string | null;
+  sku?: string | null;
+  stock?: number | null;
+  has_variants?: boolean;
+  images?: ProductImageRow[];
+  variants?: ProductVariantRow[];
+  created_at?: string;
+  updated_at?: string;
+}
+
 export function useOrderCreateProducts(isOpen: boolean) {
   const [dbProducts, setDbProducts] = useState<Product[]>([]);
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
@@ -43,7 +75,7 @@ export function useOrderCreateProducts(isOpen: boolean) {
         if (error) throw error;
 
         if (data) {
-          const mapped: Product[] = data.map((p: any) => ({
+          const mapped: Product[] = (data as ProductRow[]).map((p) => ({
             id: p.id,
             name: p.name,
             slug: p.slug,
@@ -58,14 +90,15 @@ export function useOrderCreateProducts(isOpen: boolean) {
             enable_swatches: false,
             show_swatches_on_archive: false,
             tags: [],
-            images: (p.images || []).map((img: any) => ({
+            images: (p.images || []).map((img) => ({
               id: img.id,
               product_id: p.id,
               url: img.url,
               sort_order: img.sort_order || 0,
-              is_primary: img.is_primary || false
+              is_primary: img.is_primary || false,
+              created_at: new Date().toISOString()
             })),
-            variants: (p.variants || []).filter((v: any) => v.active).map((v: any) => ({
+            variants: (p.variants || []).filter((v) => v.active).map((v) => ({
               id: v.id,
               product_id: p.id,
               color: v.color || undefined,

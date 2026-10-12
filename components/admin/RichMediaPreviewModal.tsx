@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useEffect } from 'react';
-import { createPortal } from 'react-dom';
+import React from 'react';
 import { X, Sliders, Loader2, ZoomIn, ZoomOut, Maximize2 } from '@/components/common/Icons';
+import { Modal } from '@/components/common/Modal';
 import ReactCrop from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import { 
@@ -23,18 +23,11 @@ export default function RichMediaPreviewModal({ url, item: initialItem, onClose,
   const zoomActive = isImage && !state.showEditor;
   const zoom = useZoomPan({ min: 1, max: 4, doubleTapScale: 2.5, resetDeps: [state.previewItem?.file_url, state.showEditor] });
 
-  // Esc closes the modal (accessibility).
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
+  const hasContent = !(!state.mounted || (!state.previewItem && !state.loading));
 
-  if (!state.mounted || (!state.previewItem && !state.loading)) return null;
-
-  return createPortal(
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/85 animate-in fade-in duration-200">
-      <div className="bg-white dark:bg-[#16162a] rounded-3xl max-w-5xl w-full border border-gray-200 dark:border-gray-800 shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[90vh] md:max-h-[85vh] will-change-transform">
+  return (
+    <Modal open={hasContent} onClose={onClose} variant="lightbox" showClose={false}>
+      <div className="bg-white dark:bg-[#16162a] rounded-3xl max-w-5xl w-[calc(100%-2rem)] border border-gray-200 dark:border-gray-800 shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[90vh] md:max-h-[85vh] will-change-transform">
         
         {/* Left/Center: Image Viewport */}
         <div className="flex-1 bg-gray-950 flex items-center justify-center p-6 relative overflow-hidden group select-none min-h-[300px]">
@@ -230,7 +223,6 @@ export default function RichMediaPreviewModal({ url, item: initialItem, onClose,
         </div>
 
       </div>
-    </div>,
-    document.body
+    </Modal>
   );
 }

@@ -2,6 +2,7 @@ import React from 'react';
 import Image from 'next/image';
 import { ShoppingBag, X, Package, Calendar, ChevronUp, ChevronDown, MapPin, Truck } from '@/components/common/Icons';
 import EmptyState from '@/components/common/EmptyState';
+import { Modal } from '@/components/common/Modal';
 import { Order } from '@/lib/types';
 import { formatPrice } from '@/lib/utils/whatsapp';
 import { CustomerRecord } from './types';
@@ -35,12 +36,16 @@ export default function CustomerOrdersModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/60 " onClick={onClose} />
-
+    <Modal
+      open={true}
+      onClose={onClose}
+      variant="center"
+      size="md"
+      showClose={false}
+      className="!bg-transparent !border-0 !shadow-none !rounded-none !overflow-visible"
+    >
       {/* Modal Panel */}
-      <div className="relative w-full sm:max-w-2xl max-h-[80vh] flex flex-col bg-gray-50 dark:bg-[#0f0f1b] sm:rounded-3xl rounded-2xl shadow-2xl overflow-hidden">
+      <div className="relative w-full max-h-[80vh] flex flex-col bg-gray-50 dark:bg-[#0f0f1b] sm:rounded-3xl rounded-2xl shadow-2xl overflow-hidden">
         
         {/* Modal Header */}
         <div className="flex-shrink-0 px-5 pt-5 pb-4 bg-white dark:bg-[#16162a] border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
@@ -218,6 +223,6 @@ export default function CustomerOrdersModal({
           )}
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }

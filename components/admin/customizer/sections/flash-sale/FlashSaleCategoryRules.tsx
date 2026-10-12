@@ -16,7 +16,12 @@ export default function FlashSaleCategoryRules({
   onUpdateSection,
 }: FlashSaleCategoryRulesProps) {
   const contentData = section.content_data || {};
-  const categoryDiscounts = contentData.categoryDiscounts || [];
+  interface CategoryDiscount {
+    categoryId: string;
+    discountType: 'percentage' | 'fixed';
+    discountValue: number;
+  }
+  const categoryDiscounts: CategoryDiscount[] = contentData.categoryDiscounts || [];
 
   const [selectedCatId, setSelectedCatId] = useState('');
   const [catDiscountType, setCatDiscountType] = useState<'percentage' | 'fixed'>('percentage');
@@ -25,7 +30,7 @@ export default function FlashSaleCategoryRules({
   const handleAddCategoryDiscount = () => {
     if (!selectedCatId || !catDiscountValue) return;
 
-    if (categoryDiscounts.some((c: any) => c.categoryId === selectedCatId)) {
+    if (categoryDiscounts.some((c) => c.categoryId === selectedCatId)) {
       toast.error('This category discount rule already exists.');
       return;
     }
@@ -47,7 +52,7 @@ export default function FlashSaleCategoryRules({
   };
 
   const handleRemoveCategoryDiscount = (categoryId: string) => {
-    const updated = categoryDiscounts.filter((c: any) => c.categoryId !== categoryId);
+    const updated = categoryDiscounts.filter((c) => c.categoryId !== categoryId);
     onUpdateSection({
       content_data: { ...contentData, categoryDiscounts: updated }
     });
@@ -120,7 +125,7 @@ export default function FlashSaleCategoryRules({
         <div className="space-y-1.5 pt-2 border-t border-gray-200 dark:border-gray-800">
           <span className="text-[9px] font-bold text-gray-450 uppercase block">Active Category Sales</span>
           <div className="space-y-1.5">
-            {categoryDiscounts.map((cd: any, index: number) => {
+            {categoryDiscounts.map((cd, index: number) => {
               const catObj = categories.find(c => c.id === cd.categoryId);
               if (!catObj) return null;
               return (

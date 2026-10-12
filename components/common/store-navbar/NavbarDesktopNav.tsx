@@ -37,6 +37,11 @@ export function NavbarDesktopNav({
   setDesktopHoverOpen,
   hoverTimerRef,
 }: NavbarDesktopNavProps) {
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
   if (isAdmin || navItems.length === 0) return null;
 
   const handleMouseEnter = (itemId: string) => {
@@ -87,11 +92,6 @@ export function NavbarDesktopNav({
       </div>
     );
   };
-
-  const [mounted, setMounted] = React.useState(false);
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const effectiveVisibleCount = mounted ? visibleCount : navItems.length;
   const visibleItems = navItems.slice(0, Math.min(navItems.length, effectiveVisibleCount));

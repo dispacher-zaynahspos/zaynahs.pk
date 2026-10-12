@@ -2,11 +2,12 @@
 
 import React from 'react';
 import { Trash2, Plus, ChevronDown, ChevronUp, Search } from '@/components/common/Icons';
-import { ProductVariant, VariantPreset } from '@/lib/types';
+import { ProductVariant, VariantPreset, ProductImage } from '@/lib/types';
 import { VariantBulkBar } from './VariantBulkBar';
 import { VariantTableRow } from './VariantTableRow';
 import { VariantMobileCard } from './VariantMobileCard';
 import { VariantAxisCard, VariantAxis, AxisValue } from './VariantAxisCard';
+import type { ConfirmOptions } from '@/components/admin/shared/AdminConfirmProvider';
 
 export type { AxisValue, VariantAxis };
 
@@ -37,7 +38,7 @@ export interface ProductFormVariantsSectionProps {
   filteredVariants: Omit<ProductVariant, 'id' | 'product_id'>[];
   price: string;
   comparePrice: string;
-  images: any[];
+  images: Omit<ProductImage, 'id' | 'product_id' | 'created_at'>[];
   activeImageSelector: { axisIdx: number; valIdx: number } | null;
   setActiveImageSelector: React.Dispatch<React.SetStateAction<{ axisIdx: number; valIdx: number } | null>>;
   handleMoveAxisUp: (idx: number) => void;
@@ -53,7 +54,7 @@ export interface ProductFormVariantsSectionProps {
   handleBulkUpdateSku: (skuPrefix: string) => void;
   handleBulkUpdateThreshold: (threshold: number) => void;
   handleBulkUpdateActive: (active: boolean) => void;
-  confirm: (opts: any) => Promise<boolean>;
+  confirm: (opts: ConfirmOptions) => Promise<boolean>;
 }
 
 export const ProductFormVariantsSection: React.FC<ProductFormVariantsSectionProps> = (props) => {

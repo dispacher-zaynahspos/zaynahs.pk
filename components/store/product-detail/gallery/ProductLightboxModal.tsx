@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useEffect } from 'react';
-import { createPortal } from 'react-dom';
+import React from 'react';
 import Image from 'next/image';
-import { ChevronLeft, ChevronRight, X } from '@/components/common/Icons';
+import { ChevronLeft, ChevronRight } from '@/components/common/Icons';
+import { Modal } from '@/components/common/Modal';
 import { useZoomPan } from '@/lib/hooks/useZoomPan';
 
 export interface ImageItem {
@@ -52,33 +52,18 @@ export function ProductLightboxModal({
     },
   });
 
-  // Esc to close
-  useEffect(() => {
-    if (!lightboxOpen) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setLightboxOpen(false); };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [lightboxOpen, setLightboxOpen]);
-
-  if (!mounted || !lightboxOpen) return null;
+  if (!mounted) return null;
 
   const activeAlt = images[activeImageIndex]?.alt || productName;
 
-  return createPortal(
-    <div
-      className="fixed inset-0 z-[150] flex flex-col items-center justify-center bg-black/95 animate-fade-in touch-none select-none"
-      onClick={() => setLightboxOpen(false)}
+  // Shared overlay system (RULE MODAL1) — smooth open/close + scroll-lock + ESC.
+  return (
+    <Modal
+      open={lightboxOpen}
+      onClose={() => setLightboxOpen(false)}
+      variant="lightbox"
+      ariaLabel={activeAlt}
     >
-      {/* Close button at top-right */}
-      <button
-        type="button"
-        onClick={() => setLightboxOpen(false)}
-        className="absolute top-4 right-4 z-20 w-11 h-11 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer shadow-md"
-        aria-label="Close lightbox"
-      >
-        <X className="w-5 h-5" />
-      </button>
-
       {/* Prev arrow */}
       {images.length > 1 && !zoom.isZoomed && (
         <button
@@ -141,7 +126,6 @@ export function ProductLightboxModal({
           ))}
         </div>
       )}
-    </div>,
-    document.body
+    </Modal>
   );
 }

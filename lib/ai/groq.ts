@@ -27,7 +27,7 @@ export async function callGroq(
 ): Promise<string> {
   const url = 'https://api.groq.com/openai/v1/chat/completions';
 
-  let userContent: any = prompt;
+  let userContent: string | Array<Record<string, unknown>> = prompt;
   if (isVision && base64Data) {
     userContent = [
       { type: 'text', text: prompt },
@@ -55,8 +55,8 @@ export async function callGroq(
   });
 
   if (!res.ok) {
-    const err = new Error(`Groq API error ${res.status}`);
-    (err as any).status = res.status;
+    const err: Error & { status?: number } = new Error(`Groq API error ${res.status}`);
+    err.status = res.status;
     throw err;
   }
 

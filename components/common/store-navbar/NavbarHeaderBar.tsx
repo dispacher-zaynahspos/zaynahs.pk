@@ -5,6 +5,12 @@ import Link from 'next/link';
 import { ChevronDown } from '@/components/common/Icons';
 import { NavbarDesktopNav } from './NavbarDesktopNav';
 import { NavigationItem } from '@/lib/types';
+import { CATALOG_SECTION_PADDING } from '@/lib/utils/responsiveGrid';
+
+/** Shared wide header container so the header aligns with the content sections
+ * and the nav gets all the free space between logo and icons on big screens
+ * (Shopify-style). Matches the sections' 'wide' content width. */
+const HEADER_CONTAINER = `max-w-[1920px] ${CATALOG_SECTION_PADDING}`;
 
 interface NavbarHeaderBarProps {
   stickyClass: string;
@@ -159,7 +165,7 @@ export function NavbarHeaderBar({
       }}
     >
       {/* Desktop Header Layout */}
-      <div className="mx-auto hidden md:flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8 gap-3">
+      <div className={`mx-auto hidden md:flex h-16 lg:h-16 xl:h-[72px] 2xl:h-20 ${HEADER_CONTAINER} items-center justify-between gap-3 lg:gap-4 xl:gap-6`}>
         <div className="flex items-center gap-3 justify-start shrink-0">{desktopLeftElements}</div>
         <div className="flex items-center justify-center flex-1 min-w-0 overflow-visible">
           {desktopCenterElements}
@@ -176,7 +182,7 @@ export function NavbarHeaderBar({
           }}
         >
           <nav
-            className={`mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-wrap items-center gap-1 py-1.5 ${
+            className={`mx-auto ${HEADER_CONTAINER} flex flex-wrap items-center gap-1 py-1.5 ${
               headerDesktopMenuAlign === 'center'
                 ? 'justify-center'
                 : headerDesktopMenuAlign === 'right'
@@ -213,7 +219,7 @@ export function NavbarHeaderBar({
                     }`}
                     style={customTextColorStyle}
                   >
-                    <span>{item.label || (item as any).title}</span>
+                    <span>{item.label || (item as { title?: string }).title}</span>
                     {hasChildren && (
                       <ChevronDown
                         className={`h-3.5 w-3.5 text-gray-400 transition-transform duration-200 ${
@@ -248,7 +254,7 @@ export function NavbarHeaderBar({
                           className="group/link flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-[13px] font-semibold text-gray-600 dark:text-gray-300 hover:bg-[var(--color-primary,#C2185B)]/8 hover:text-[var(--color-primary,#C2185B)] transition-all duration-150"
                         >
                           <span className="h-1.5 w-1.5 rounded-full bg-gray-300 dark:bg-gray-600 group-hover/link:bg-[var(--color-primary,#C2185B)] transition-colors shrink-0" />
-                          <span className="truncate">{child.label || (child as any).title}</span>
+                          <span className="truncate">{child.label || (child as { title?: string }).title}</span>
                         </Link>
                       ))}
                     </div>

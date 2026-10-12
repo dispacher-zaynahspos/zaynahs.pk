@@ -2,12 +2,13 @@
 
 import { useEffect, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 
 export function useOrderNotification() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
   const playedOrderIds = useRef<Set<string>>(new Set());
-  const channelRef = useRef<any>(null);
+  const channelRef = useRef<RealtimeChannel | null>(null);
 
   useEffect(() => {
     const supabase = createClient();
@@ -22,7 +23,7 @@ export function useOrderNotification() {
       if (unlocked) return;
       unlocked = true;
       try {
-        const ACtor = window.AudioContext || (window as any).webkitAudioContext;
+        const ACtor = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
         const ctx = new ACtor();
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
@@ -85,7 +86,7 @@ export function useOrderNotification() {
               try {
                 const suffix = orderNumber ? ` #${orderNumber}` : '';
                 const title = 'New Order';
-                const opts: any = {
+                const opts: NotificationOptions & { renotify?: boolean } = {
                   body: `A new order has been received${suffix}`,
                   icon: '/icons/icon-192x192.png',
                   badge: '/icons/icon-192x192.png',

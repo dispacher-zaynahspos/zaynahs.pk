@@ -116,8 +116,8 @@ export default function CourierManager({ settings: initialSettings }: CourierMan
       if (Array.isArray(data.orderTypes)) {
         setOrderTypes(data.orderTypes);
       }
-    } catch (e: any) {
-      setTestResult({ ok: false, message: e.message || 'Network error.' });
+    } catch (e: unknown) {
+      setTestResult({ ok: false, message: e instanceof Error ? e.message : 'Network error.' });
     } finally {
       setTesting(false);
     }

@@ -4,9 +4,19 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import { StoreSettings } from '@/lib/types';
 import { isFeatureEnabled } from '@/lib/features/premium';
-import { getResponsiveGridClasses } from '@/lib/utils/responsiveGrid';
+import { getResponsiveGridClasses, getContentWidthClass, CATALOG_SECTION_PADDING } from '@/lib/utils/responsiveGrid';
 import { getOptimizedImageUrl, getPresetImageUrl } from '@/lib/utils/imageUrl';
 import { Play, YoutubeIcon, InstagramIcon, FacebookIcon, TiktokIcon, VimeoIcon } from '@/components/common/Icons';
+
+interface SocialFeedItem {
+  id?: string;
+  imageUrl?: string;
+  videoUrl?: string;
+  link?: string;
+  username?: string;
+  caption?: string;
+  platform?: string;
+}
 
 interface SocialFeedRibbonProps {
   settings: StoreSettings;
@@ -15,7 +25,7 @@ interface SocialFeedRibbonProps {
   desc?: string;
   limit?: number;
   isHomepage?: boolean;
-  items?: any[];
+  items?: SocialFeedItem[];
   columnsDesktop?: number;
   columnsTablet?: number;
   columnsMobile?: number;
@@ -199,7 +209,7 @@ export default function SocialFeedRibbon({
     };
   }, []);
 
-  const parsedFeeds = useMemo(() => {
+  const parsedFeeds = useMemo<SocialFeedItem[]>(() => {
     if (items && items.length > 0) return items;
     const fallbackItems = settings.social_feeds_items;
     if (!fallbackItems) return [];
@@ -226,7 +236,7 @@ export default function SocialFeedRibbon({
     return (
       <div
         ref={containerRef}
-        className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 border-t border-gray-200 dark:border-gray-800 pt-10 h-[120px] flex items-center justify-center opacity-40"
+        className={`mx-auto ${getContentWidthClass(settings.shop_content_width)} ${CATALOG_SECTION_PADDING} border-t border-gray-200 dark:border-gray-800 pt-10 h-[120px] flex items-center justify-center opacity-40`}
       >
         <span className="text-[10px] uppercase tracking-widest text-gray-400 font-bold animate-pulse">Loading Feed...</span>
       </div>
@@ -243,7 +253,7 @@ export default function SocialFeedRibbon({
 
   return (
     <div
-      className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 border-t border-gray-200 dark:border-gray-800 pt-10 animate-fade-in"
+      className={`mx-auto ${getContentWidthClass(settings.shop_content_width)} ${CATALOG_SECTION_PADDING} border-t border-gray-200 dark:border-gray-800 pt-10 animate-fade-in`}
       style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 600px' } as React.CSSProperties}
     >
       <div className="text-center space-y-2 mb-8">
@@ -289,7 +299,7 @@ export default function SocialFeedRibbon({
               className="relative aspect-[9/16] bg-gray-100 dark:bg-gray-800 rounded-2xl overflow-hidden group border border-gray-100 dark:border-gray-800 block cursor-pointer"
             >
               <Image
-                src={getPresetImageUrl(feed.imageUrl, 'card')}
+                src={getPresetImageUrl(feed.imageUrl || '', 'card')}
                 alt={feed.caption || `Social post by @${feed.username}`}
                 fill
                 sizes="(max-width: 768px) 50vw, 25vw"

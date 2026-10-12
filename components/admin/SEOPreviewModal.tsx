@@ -2,14 +2,16 @@
 
 import { useState } from 'react';
 import { X, Search } from '@/components/common/Icons';
+import { Modal } from '@/components/common/Modal';
 import { getClientSiteUrl } from '@/lib/site-url';
+import type { SEOMetaData } from '@/app/admin/seo/components/types';
 
 interface SEOPreviewModalProps {
   isOpen: boolean;
   onClose: () => void;
   entity_type: 'product' | 'category' | 'page';
   entity_name: string;
-  seoData: any;
+  seoData: SEOMetaData | null;
   storeUrl?: string;
   storeName?: string;
 }
@@ -17,7 +19,7 @@ interface SEOPreviewModalProps {
 export function SEOPreviewModal({ isOpen, onClose, entity_type, entity_name, seoData, storeUrl, storeName }: SEOPreviewModalProps) {
   const [activeTab, setActiveTab] = useState<'google' | 'facebook' | 'twitter' | 'whatsapp'>('google');
 
-  if (!isOpen || !seoData) return null;
+  if (!seoData) return null;
 
   const siteUrl = storeUrl
     ? storeUrl.replace(/^https?:\/\//i, '').replace(/\/$/, '')
@@ -41,8 +43,17 @@ export function SEOPreviewModal({ isOpen, onClose, entity_type, entity_name, seo
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 ">
-      <div className="bg-white dark:bg-[#16162a] rounded-2xl max-w-2xl w-full border border-gray-100 dark:border-gray-800 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <Modal
+      open={isOpen}
+      onClose={onClose}
+      variant="center"
+      size="md"
+      showClose={false}
+      ariaLabel="SEO & Social Snippet Preview"
+      zIndexClassName="z-50"
+      className="!bg-transparent !border-0 !shadow-none !rounded-none !overflow-visible"
+    >
+      <div className="w-full max-w-2xl mx-auto bg-white dark:bg-[#16162a] rounded-2xl border border-gray-100 dark:border-gray-800 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header */}
         <div className="flex justify-between items-center p-4 border-b border-gray-100 dark:border-gray-800">
           <div>
@@ -155,6 +166,6 @@ export function SEOPreviewModal({ isOpen, onClose, entity_type, entity_name, seo
           )}
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }

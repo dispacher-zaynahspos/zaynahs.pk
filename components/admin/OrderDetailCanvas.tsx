@@ -15,6 +15,7 @@ import {
 } from '@/components/common/Icons';
 import { Order, StoreSettings } from '@/lib/types';
 import { formatPrice } from '@/lib/utils/whatsapp';
+import { Modal } from '@/components/common/Modal';
 import OrderEditor from './OrderEditor';
 import { useOrderDetailState, OrderCustomerCard } from './order-detail';
 
@@ -436,11 +437,16 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
       </div>
       )}
 
-      {lightboxImage && (
-        <div className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4" onClick={() => setLightboxImage(null)}>
+      <Modal
+        variant="lightbox"
+        open={!!lightboxImage}
+        onClose={() => setLightboxImage(null)}
+        showClose
+      >
+        {lightboxImage && (
           <img src={lightboxImage} alt="" className="max-w-full max-h-[90vh] object-contain rounded-xl" />
-        </div>
-      )}
+        )}
+      </Modal>
     </div>
   );
 }

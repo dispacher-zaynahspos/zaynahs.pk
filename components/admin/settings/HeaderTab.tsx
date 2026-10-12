@@ -19,6 +19,10 @@ interface HeaderTabProps {
   setHeaderShowTopBar: (val: boolean) => void;
   headerShowNewsletter: boolean;
   setHeaderShowNewsletter: (val: boolean) => void;
+  headerSocialEnabled?: boolean;
+  setHeaderSocialEnabled?: (val: boolean) => void;
+  headerSocialShowMobile?: boolean;
+  setHeaderSocialShowMobile?: (val: boolean) => void;
   headerTopBarPhone: string;
   setHeaderTopBarPhone: (val: string) => void;
   headerTopBarEmail: string;
@@ -73,6 +77,10 @@ export default function HeaderTab({
   setHeaderShowTopBar,
   headerShowNewsletter,
   setHeaderShowNewsletter,
+  headerSocialEnabled,
+  setHeaderSocialEnabled,
+  headerSocialShowMobile,
+  setHeaderSocialShowMobile,
   headerTopBarPhone,
   setHeaderTopBarPhone,
   headerTopBarEmail,
@@ -129,6 +137,10 @@ export default function HeaderTab({
           setHeaderShowTopBar={setHeaderShowTopBar}
           headerShowNewsletter={headerShowNewsletter}
           setHeaderShowNewsletter={setHeaderShowNewsletter}
+          headerSocialEnabled={headerSocialEnabled}
+          setHeaderSocialEnabled={setHeaderSocialEnabled}
+          headerSocialShowMobile={headerSocialShowMobile}
+          setHeaderSocialShowMobile={setHeaderSocialShowMobile}
           headerTopBarPhone={headerTopBarPhone}
           setHeaderTopBarPhone={setHeaderTopBarPhone}
           headerTopBarEmail={headerTopBarEmail}

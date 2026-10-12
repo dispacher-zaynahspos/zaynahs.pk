@@ -241,23 +241,42 @@ export default function Navbar({
 
     const availableWidth = container.offsetWidth;
     if (availableWidth <= 0) return;
-    const MORE_BTN_WIDTH = 80;
-    const children = Array.from(measureRow.children) as HTMLElement[];
-    itemWidthsRef.current = children.map((el) => el.offsetWidth);
 
+    const children = Array.from(measureRow.children) as HTMLElement[];
+    const n = children.length;
+    if (n === 0) {
+      setVisibleCount(0);
+      return;
+    }
+    // Real item widths + the row gap (gap-1 = 4px) between adjacent items.
+    const widths = children.map((el) => el.offsetWidth);
+    itemWidthsRef.current = widths;
+    const GAP = 4;
+    const MORE_BTN_WIDTH = 92; // More pill incl. its leading gap, measured generously
+    const EPS = 1; // sub-pixel tolerance so the last item is not pushed out early
+
+    // Total width if EVERYTHING shows inline (no MORE button).
+    const totalAll = widths.reduce((s, w) => s + w, 0) + GAP * (n - 1);
+    if (totalAll <= availableWidth + EPS) {
+      // Everything fits — show all, hide MORE completely.
+      setVisibleCount(n);
+      return;
+    }
+
+    // Not everything fits: reserve space for the MORE button and pack items.
+    const budget = availableWidth - MORE_BTN_WIDTH;
     let used = 0;
     let count = 0;
-    for (let i = 0; i < itemWidthsRef.current.length; i++) {
-      const willNeedMore = i < itemWidthsRef.current.length - 1;
-      const budget = willNeedMore ? availableWidth - MORE_BTN_WIDTH : availableWidth;
-      if (used + itemWidthsRef.current[i] <= budget) {
-        used += itemWidthsRef.current[i];
+    for (let i = 0; i < n; i++) {
+      const add = widths[i] + (i > 0 ? GAP : 0);
+      if (used + add <= budget + EPS) {
+        used += add;
         count++;
       } else {
         break;
       }
     }
-    setVisibleCount(count);
+    setVisibleCount(Math.max(0, count));
   }, [navItems]);
 
   useEffect(() => {
@@ -266,6 +285,11 @@ export default function Navbar({
     const ro = new ResizeObserver(() => recalcVisibleCount());
     ro.observe(container);
     const t = setTimeout(recalcVisibleCount, 60);
+    // Re-measure once web fonts finish loading (item widths change with the font).
+    const fontsReady = (document as Document & { fonts?: { ready?: Promise<unknown> } })?.fonts?.ready;
+    if (fontsReady && typeof fontsReady.then === 'function') {
+      fontsReady.then(() => recalcVisibleCount()).catch(() => {});
+    }
     return () => { ro.disconnect(); clearTimeout(t); };
   }, [recalcVisibleCount]);
 
@@ -310,6 +334,7 @@ export default function Navbar({
         isPreview={isPreview}
         emblaRef={emblaRef}
         emblaApi={emblaApi}
+        settings={settings}
       />
 
       {/* Main Header */}

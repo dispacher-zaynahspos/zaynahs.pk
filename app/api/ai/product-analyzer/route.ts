@@ -56,11 +56,13 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json(result);
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('[Product Analyzer]', err);
+    const message = err instanceof Error ? err.message : 'Product analysis failed';
+    const status = typeof (err as { status?: unknown })?.status === 'number' ? (err as { status: number }).status : 500;
     return NextResponse.json(
-      { error: err.message || 'Product analysis failed' },
-      { status: err.status || 500 },
+      { error: message },
+      { status },
     );
   }
 }

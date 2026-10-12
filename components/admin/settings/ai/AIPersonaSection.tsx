@@ -3,15 +3,17 @@
 import React, { useState } from 'react';
 import { AI_TONES, AI_LANGUAGES, AUDIENCE_PRESETS, TYPE_PRESETS } from './aiModelsData';
 
+interface AIPersonaConfig {
+  tone: string;
+  language: string;
+  customInstructions: string;
+  targetAudiences: string[];
+  productTypes: string[];
+}
+
 interface AIPersonaSectionProps {
-  aiPersonaConfig: {
-    tone: string;
-    language: string;
-    customInstructions: string;
-    targetAudiences: string[];
-    productTypes: string[];
-  };
-  setAiPersonaConfig: (val: any) => void;
+  aiPersonaConfig: AIPersonaConfig;
+  setAiPersonaConfig: (val: AIPersonaConfig) => void;
   autoContentSeo: boolean;
   setAutoContentSeo: (val: boolean) => void;
   autoMediaAi: boolean;

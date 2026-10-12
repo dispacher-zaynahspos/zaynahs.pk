@@ -49,11 +49,15 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json(result);
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('[Vision API]', err);
+    const message = err instanceof Error ? err.message : 'Vision analysis failed';
+    const status = typeof (err as { status?: unknown })?.status === 'number'
+      ? (err as { status: number }).status
+      : 500;
     return NextResponse.json(
-      { error: err.message || 'Vision analysis failed' },
-      { status: err.status || 500 },
+      { error: message },
+      { status },
     );
   }
 }

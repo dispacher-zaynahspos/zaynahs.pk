@@ -30,7 +30,9 @@ export async function callMistral(
 ): Promise<string> {
   const url = 'https://api.mistral.ai/v1/chat/completions';
 
-  let userContent: any = prompt;
+  type MistralTextPart = { type: 'text'; text: string };
+  type MistralImagePart = { type: 'image_url'; image_url: { url: string } };
+  let userContent: string | Array<MistralTextPart | MistralImagePart> = prompt;
   if (isVision && base64Data) {
     userContent = [
       { type: 'text', text: prompt },
@@ -58,8 +60,8 @@ export async function callMistral(
   });
 
   if (!res.ok) {
-    const err = new Error(`Mistral API error ${res.status}`);
-    (err as any).status = res.status;
+    const err = new Error(`Mistral API error ${res.status}`) as Error & { status?: number };
+    (err).status = res.status;
     throw err;
   }
 

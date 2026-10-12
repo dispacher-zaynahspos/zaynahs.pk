@@ -11,7 +11,7 @@ import { Product } from '@/lib/types';
 import { isFeatureEnabled } from '@/lib/features/premium';
 import RecentlyViewed from '@/components/store/RecentlyViewed';
 import SocialFeedRibbon from '@/components/store/SocialFeedRibbon';
-import { getResponsiveGridClasses, getGridGapClass } from '@/lib/utils/responsiveGrid';
+import { getCatalogGridStyle, getContentWidthClass, CATALOG_SECTION_PADDING } from '@/lib/utils/responsiveGrid';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { cleanLocalhostUrls } from '@/lib/site-url';
 import { getDomainBrand, cleanBrandName } from '@/lib/utils/getDomainBrand';
@@ -317,15 +317,19 @@ export default async function ProductPage({ params }: PageProps) {
           }
           if (block === 'related') {
             if (!isFeatureEnabled(settings, 'related_products') || relatedProducts.length === 0) return null;
-            const relatedCols = getResponsiveGridClasses({
+            const relatedGrid = getCatalogGridStyle({
+              mode: settings.related_columns_mode || 'manual',
               mobile: settings.related_columns_mobile || 2,
               tablet: settings.related_columns_tablet || 3,
               desktop: settings.related_columns_desktop || 4,
+              wide: settings.related_columns_wide,
+              minDesktop: settings.related_min_card_desktop,
+              gap: settings.related_grid_gap,
             });
             const displayRelated = relatedProducts.slice(0, settings.related_products_limit || 4);
 
             return (
-              <div key="related" className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 border-t border-gray-200 dark:border-gray-800 pt-10">
+              <div key="related" className={`mx-auto ${getContentWidthClass(settings.related_content_width)} ${CATALOG_SECTION_PADDING} border-t border-gray-200 dark:border-gray-800 pt-10`}>
                 <div className="text-center md:text-left mb-8">
                   <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
                     {settings.related_products_title || 'Related Products'}
@@ -334,7 +338,7 @@ export default async function ProductPage({ params }: PageProps) {
                     {settings.related_products_subtitle || 'You might also like these handpicked recommendations'}
                   </p>
                 </div>
-                <div className={`grid ${getGridGapClass(settings.related_grid_gap)} ${relatedCols}`}>
+                <div className={relatedGrid.className} data-mode={relatedGrid.mode} style={relatedGrid.style}>
                   {displayRelated.map((prod: Product) => (
                     <ProductCard key={prod.id} product={prod} currencySymbol={settings.currency_symbol} settings={settings} />
                   ))}

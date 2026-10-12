@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { getContentWidthClass, CATALOG_SECTION_PADDING } from '@/lib/utils/responsiveGrid';
 
 interface SectionWrapperProps {
   section: {
@@ -19,12 +20,14 @@ interface SectionWrapperProps {
  * SSOT1 — Shared outer wrapper for all homepage sections.
  * Reads `section.settings.padding_top`, `section.settings.padding_bottom`,
  * `section.settings.section_bg_color` and applies them uniformly.
- * Default: pt-5 pb-5, no custom bg.
+ * Content width (Boxed/Wide/Full) comes from `section.settings.content_width`
+ * (shared SSOT) so big screens are not forced into a narrow container.
+ * Default: pt-5 pb-5, boxed (max-w-7xl), no custom bg.
  */
 export function SectionWrapper({
   section,
   children,
-  maxWidthClass = 'max-w-7xl',
+  maxWidthClass,
   fullBleed = false,
   className = '',
 }: SectionWrapperProps) {
@@ -32,6 +35,8 @@ export function SectionWrapper({
   const ptVal = Number(s.padding_top ?? 20);
   const pbVal = Number(s.padding_bottom ?? 20);
   const bgColor = s.section_bg_color || '';
+  // Explicit override wins; otherwise resolve from the shared content-width setting.
+  const widthClass = maxWidthClass || getContentWidthClass(s.content_width);
 
   return (
     <div
@@ -46,7 +51,7 @@ export function SectionWrapper({
       {fullBleed ? (
         children
       ) : (
-        <div className={`mx-auto ${maxWidthClass} px-4 sm:px-6 lg:px-8`}>
+        <div className={`mx-auto ${widthClass} ${CATALOG_SECTION_PADDING}`}>
           {children}
         </div>
       )}

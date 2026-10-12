@@ -20,10 +20,18 @@ interface AISettings {
   collection_description_limit?: number;
 }
 
+interface SeoStoreSettings {
+  store_url?: string;
+  store_name?: string;
+  address?: string;
+  whatsapp_number?: string;
+  tagline?: string;
+}
+
 /**
  * Builds the system prompt for the SEO Copywriter AI agent based on store settings
  */
-export function buildSystemPrompt(settings: AISettings, storeSettings?: any, siteUrl?: string): string {
+export function buildSystemPrompt(settings: AISettings, storeSettings?: SeoStoreSettings | null, siteUrl?: string): string {
   const resolvedUrl = siteUrl || storeSettings?.store_url || process.env.NEXT_PUBLIC_SITE_URL || '';
 
   // Build brand info block
@@ -113,10 +121,21 @@ STRICT SEO & COPYWRITING INSTRUCTIONS:
 6. You must output ONLY a valid, parseable JSON object fitting the requested schema. Do not output any thinking tags, markdown wrapper blocks (like \`\`\`json), or conversational text. Return only raw JSON.`;
 }
 
+interface SeoEntityData {
+  name?: string;
+  title?: string;
+  description?: string;
+  price?: number | string;
+  category?: string;
+  stock?: number;
+  currency?: string;
+  slug?: string;
+}
+
 /**
  * Builds the user prompt detailing the entity data and requested JSON schema
  */
-export function buildSEOPrompt(type: 'product' | 'category' | 'collection' | 'page', data: any, settings?: AISettings): string {
+export function buildSEOPrompt(type: 'product' | 'category' | 'collection' | 'page', data: SeoEntityData, settings?: AISettings): string {
   const basePrompt = `Generate complete, premium SEO and copywriting metadata for this ${type}.`;
 
   let metaDescInstruction = 'Exactly 150-160 characters. Must contain the primary keyword and end with a compelling call-to-action (CTA).';
@@ -161,7 +180,7 @@ Product Details:
 - Original Description: ${data.description || 'Not provided'}
 - Price: PKR ${data.price}
 - Category: ${data.category || 'General'}
-- Status: ${data.stock > 0 ? 'In Stock' : 'Out of Stock'}
+- Status: ${(data.stock ?? 0) > 0 ? 'In Stock' : 'Out of Stock'}
 `;
   } else if (type === 'category') {
     contextInfo = `

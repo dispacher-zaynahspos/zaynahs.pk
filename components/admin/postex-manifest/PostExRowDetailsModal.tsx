@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { StoreSettings } from '@/lib/types';
 import { X, Save } from '@/components/common/Icons';
+import { Modal } from '@/components/common/Modal';
 import { ManifestOrder, EditableRow } from './types';
 
 interface PostExRowDetailsModalProps {
@@ -31,9 +32,8 @@ export default function PostExRowDetailsModal({
   });
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-4">
-      <div className="w-full max-w-lg bg-white dark:bg-[#16162a] rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-800 max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-5 border-b border-gray-200 dark:border-gray-800">
+    <Modal open onClose={onClose} showClose={false} size="md">
+      <div className="flex items-center justify-between p-5 border-b border-gray-200 dark:border-gray-800">
           <div>
             <h2 className="text-base font-bold text-gray-900 dark:text-white">
               Order {order.orderNumber} Details
@@ -138,7 +138,6 @@ export default function PostExRowDetailsModal({
             Cancel
           </button>
         </div>
-      </div>
-    </div>
+    </Modal>
   );
 }

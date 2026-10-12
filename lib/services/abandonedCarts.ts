@@ -23,7 +23,7 @@ export interface AbandonedCart {
   customerCity?: string;
   customerApartment?: string;
   customerPostalCode?: string;
-  items: any[];
+  items: unknown[];
   subtotal: number;
   currency: string;
   checkoutUrl?: string;
@@ -37,7 +37,31 @@ export interface AbandonedCart {
   updatedAt: string;
 }
 
-function mapCart(row: any): AbandonedCart {
+interface AbandonedCartRow {
+  id: string;
+  session_id: string;
+  customer_name?: string | null;
+  customer_email?: string | null;
+  customer_phone?: string | null;
+  customer_address?: string | null;
+  customer_city?: string | null;
+  customer_apartment?: string | null;
+  customer_postal_code?: string | null;
+  items?: unknown[] | null;
+  subtotal?: string | number | null;
+  currency?: string | null;
+  checkout_url?: string | null;
+  email_sent?: boolean | null;
+  email_sent_at?: string | null;
+  order_placed?: boolean | null;
+  order_id?: string | null;
+  recovered_at?: string | null;
+  last_activity: string;
+  created_at: string;
+  updated_at: string;
+}
+
+function mapCart(row: AbandonedCartRow): AbandonedCart {
   return {
     id: row.id,
     sessionId: row.session_id,
@@ -49,7 +73,7 @@ function mapCart(row: any): AbandonedCart {
     customerApartment: row.customer_apartment ?? undefined,
     customerPostalCode: row.customer_postal_code ?? undefined,
     items: row.items ?? [],
-    subtotal: parseFloat(row.subtotal ?? '0'),
+    subtotal: parseFloat(String(row.subtotal ?? '0')),
     currency: row.currency ?? 'PKR',
     checkoutUrl: row.checkout_url ?? undefined,
     emailSent: row.email_sent ?? false,
@@ -73,7 +97,7 @@ export async function upsertAbandonedCart(data: {
   customerCity?: string;
   customerApartment?: string;
   customerPostalCode?: string;
-  items: any[];
+  items: unknown[];
   subtotal: number;
   currency?: string;
   checkoutUrl?: string;

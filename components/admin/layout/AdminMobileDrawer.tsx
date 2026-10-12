@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef } from 'react';
 import Link from 'next/link';
 import {
   Store,
@@ -8,12 +8,11 @@ import {
   LogOut,
   ChevronDown,
   Search,
-  ExternalLink,
   User,
 } from '@/components/common/Icons';
 import { NavSection } from './adminNavSections';
 import { SmartNavScrollbar } from './SmartNavScrollbar';
-import { useBodyScrollLock } from '@/lib/hooks/useBodyScrollLock';
+import { Modal } from '@/components/common/Modal';
 
 interface AdminMobileDrawerProps {
   isMobileMenuOpen: boolean;
@@ -45,42 +44,6 @@ export function AdminMobileDrawer({
   adminEmail,
 }: AdminMobileDrawerProps) {
   const navRef = useRef<HTMLElement>(null);
-  const touchStartX = useRef<number | null>(null);
-
-  // Lock background scroll when drawer is open
-  useBodyScrollLock(isMobileMenuOpen);
-
-  // Close on Escape key
-  useEffect(() => {
-    if (!isMobileMenuOpen) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setIsMobileMenuOpen(false);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isMobileMenuOpen, setIsMobileMenuOpen]);
-
-  // Touch handlers for swipe-left to close
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (touchStartX.current === null) return;
-    const currentX = e.touches[0].clientX;
-    const diff = currentX - touchStartX.current;
-    if (diff < -50) {
-      // Swiped left > 50px
-      setIsMobileMenuOpen(false);
-      touchStartX.current = null;
-    }
-  };
-
-  const handleTouchEnd = () => {
-    touchStartX.current = null;
-  };
 
   const getItemBadge = (badgeKey?: string) => {
     if (!badgeKey) return null;
@@ -89,32 +52,22 @@ export function AdminMobileDrawer({
     return count > 99 ? '99+' : count;
   };
 
+  // Shared overlay system (RULE MODAL1) — smooth slide-in/out + scroll-lock + ESC + swipe.
   return (
-    <>
-      {/* 📱 Mobile Drawer Backdrop (overlay) */}
+    <Modal
+      open={isMobileMenuOpen}
+      onClose={() => setIsMobileMenuOpen(false)}
+      variant="drawer-left"
+      ariaLabel="Navigation Menu"
+      showClose={false}
+      className="lg:hidden !w-[86vw] !max-w-[340px] !bg-transparent !border-0"
+    >
       <div
-        onClick={() => setIsMobileMenuOpen(false)}
-        aria-hidden="true"
-        className={`fixed inset-0 bg-black/65 z-40 lg:hidden transition-opacity duration-300 ${
-          isMobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-        }`}
-      />
-
-      {/* 📱 Mobile Drawer Container */}
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-label="Navigation Menu"
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
         style={{
           background:
             'linear-gradient(180deg, var(--color-primary, #C2185B) 0%, var(--color-secondary, #880E4F) 100%)',
         }}
-        className={`fixed inset-y-0 left-0 w-[86vw] max-w-[340px] text-white z-50 transform transition-transform duration-300 ease-out lg:hidden flex flex-col h-full border-r border-white/10 shadow-2xl pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)] ${
-          isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        className="text-white flex flex-col h-full border-r border-white/10 pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)]"
       >
         {/* Drawer Header */}
         <div className="h-16 flex items-center justify-between px-4 border-b border-white/15 flex-shrink-0 bg-black/10">
@@ -294,6 +247,6 @@ export function AdminMobileDrawer({
           </button>
         </div>
       </div>
-    </>
+    </Modal>
   );
 }

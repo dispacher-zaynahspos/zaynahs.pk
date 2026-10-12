@@ -2,6 +2,17 @@ import React from 'react';
 import { Product, StoreSettings, HomepageSection } from '@/lib/types';
 import { isFeatureEnabled } from '@/lib/features/premium';
 
+interface FlashSaleProductEntry {
+  productId?: string;
+  discountValue?: string | number;
+}
+
+interface FlashSaleCategoryEntry {
+  categoryId?: string;
+  discountValue?: string | number;
+  discountType?: string;
+}
+
 export function useLiveProducts(
   productsList: Product[],
   sections: HomepageSection[],
@@ -27,8 +38,8 @@ export function useLiveProducts(
     return productsList.map(product => {
       // 1. Homepage manual products overrides (highest priority)
       if (isFsActive && fsSection) {
-        const fsProducts = fsSection.content_data?.products || [];
-        const fsProd = fsProducts.find((p: any) => p?.productId === product.id);
+        const fsProducts: FlashSaleProductEntry[] = fsSection.content_data?.products || [];
+        const fsProd = fsProducts.find((p) => p?.productId === product.id);
         
         if (fsProd) {
           const basePrice = product.compare_price || product.price;
@@ -116,12 +127,12 @@ export function useLiveProducts(
 
       // 3. Homepage Category Discounts (lowest priority)
       if (isFsActive && fsSection) {
-        const categoryDiscounts = fsSection.content_data?.categoryDiscounts || [];
-        const fsCat = categoryDiscounts.find((c: any) => c?.categoryId === product.category_id);
+        const categoryDiscounts: FlashSaleCategoryEntry[] = fsSection.content_data?.categoryDiscounts || [];
+        const fsCat = categoryDiscounts.find((c) => c?.categoryId === product.category_id);
 
         if (fsCat) {
           const basePrice = product.compare_price || product.price;
-          const discountVal = parseFloat(fsCat.discountValue) || 0;
+          const discountVal = parseFloat(String(fsCat.discountValue ?? '')) || 0;
           let discountPrice = product.price;
 
           if (fsCat.discountType === 'percentage') {

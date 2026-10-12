@@ -46,8 +46,9 @@ export async function POST(req: NextRequest) {
       total: batch.length,
       results,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('[Indexing Batch API]', err);
-    return NextResponse.json({ success: 0, failed: 0, error: err.message }, { status: 500 });
+    const message = err instanceof Error ? err.message : 'Indexing batch failed';
+    return NextResponse.json({ success: 0, failed: 0, error: message }, { status: 500 });
   }
 }

@@ -156,6 +156,8 @@ export interface StoreSettings {
     | string;
   /** Universal thumbnail flight into top header cart bucket with anticipation dip and bounce on cart adds. */
   enable_fly_to_cart?: boolean;
+  /** Whether to show a direct Buy Now button alongside Add to Cart on PDP and Quick View. */
+  show_buy_now?: boolean;
   product_page_layout?: string[];
   /** Blocks that are hidden (kept in layout order but not rendered). Reversible. */
   product_page_hidden_blocks?: string[];
@@ -174,6 +176,10 @@ export interface StoreSettings {
   header_top_bar_email?: string;
   header_show_newsletter?: boolean;
   header_newsletter_text?: string;
+  /** Announcement bar: show the enabled social icons on the right (shared with footer). Default ON. */
+  header_social_enabled?: boolean;
+  /** Also show the announcement-bar social icons on mobile. Default OFF. */
+  header_social_show_mobile?: boolean;
 
   header_top_bar_bg?: string;
   header_top_bar_text_color?: string;
@@ -293,6 +299,11 @@ export interface StoreSettings {
   recently_viewed_columns_desktop?: number;
   recently_viewed_columns_tablet?: number;
   recently_viewed_columns_mobile?: number;
+  recently_viewed_columns_wide?: number;
+  recently_viewed_columns_mode?: 'auto' | 'manual';
+  recently_viewed_min_card_desktop?: number;
+  recently_viewed_content_width?: 'boxed' | 'wide' | 'full';
+  recently_viewed_fill_rows?: boolean;
   related_products_enabled?: boolean;
   premium_themes_enabled?: boolean;
   related_products_title?: string;
@@ -301,11 +312,22 @@ export interface StoreSettings {
   related_columns_desktop?: number;
   related_columns_tablet?: number;
   related_columns_mobile?: number;
+  related_columns_wide?: number;
+  related_columns_mode?: 'auto' | 'manual';
+  related_min_card_desktop?: number;
+  related_content_width?: 'boxed' | 'wide' | 'full';
+  related_fill_rows?: boolean;
   recently_viewed_title?: string;
   recently_viewed_subtitle?: string;
   shop_columns_desktop?: number;
   shop_columns_tablet?: number;
   shop_columns_mobile?: number;
+  shop_columns_wide?: number;
+  shop_columns_mode?: 'auto' | 'manual';
+  shop_min_card_desktop?: number;
+  shop_content_width?: 'boxed' | 'wide' | 'full';
+  shop_fill_rows?: boolean;
+  footer_content_width?: 'boxed' | 'wide' | 'full';
   shop_products_per_page?: number;
   shop_products_per_page_desktop?: number;
   shop_products_per_page_tablet?: number;
@@ -327,6 +349,15 @@ export interface StoreSettings {
   related_grid_gap?: 'tight' | 'normal' | 'relaxed';
   recently_viewed_grid_gap?: 'tight' | 'normal' | 'relaxed';
   shop_show_breadcrumbs?: boolean;
+  // Shop sidebar (filters) controls
+  shop_sidebar_position?: 'left' | 'right' | 'drawer';
+  shop_sidebar_sticky?: boolean;
+  shop_sidebar_default_collapsed?: boolean;
+  shop_filter_show_categories?: boolean;
+  shop_filter_show_availability?: boolean;
+  shop_filter_show_price?: boolean;
+  shop_filter_show_variations?: boolean;
+  shop_filter_show_featured?: boolean;
   recent_buyers_enabled?: boolean;
   cookie_consent_enabled?: boolean;
   free_shipping_bar_enabled?: boolean;

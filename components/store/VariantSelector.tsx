@@ -10,10 +10,11 @@ import { getSwatchClasses } from './variant-selector/swatchStyles';
 interface VariantSelectorProps {
   variants: ProductVariant[];
   selectedVariant?: ProductVariant;
-  onChangeSelectedVariant: (variant: ProductVariant) => void;
+  onChangeSelectedVariant: (variant?: ProductVariant) => void;
   enableSwatches?: boolean;
   settings?: StoreSettings | null;
   variationOrder?: string[];
+  onPreviewImage?: (url: string) => void;
 }
 
 const DEFAULT_AXIS_ORDER = ['color', 'size', 'material', 'custom'];
@@ -25,7 +26,8 @@ export default function VariantSelector({
   onChangeSelectedVariant,
   enableSwatches,
   settings,
-  variationOrder
+  variationOrder,
+  onPreviewImage,
 }: VariantSelectorProps) {
   const {
     activeVariants,
@@ -78,26 +80,65 @@ export default function VariantSelector({
     ${alignDesk === 'center' ? 'lg:text-center' : alignDesk === 'right' ? 'lg:text-right' : 'lg:text-left'}
   `.trim();
 
-  // Helper: pick a color variant by color name click
+  // Helper: manual axis selection handlers without auto-selection fallbacks
   const handleColorClick = (color: string) => {
     setSelectedColor(color);
-    const match = activeVariants.find(v => {
-      return v.color === color &&
-        (!sizes.length || v.size === selectedSize) &&
+
+    // If a size was already selected, check if valid combination exists with this new color
+    if (selectedSize && sizes.length > 0) {
+      const exists = activeVariants.some(v =>
+        v.color === color &&
+        v.size === selectedSize &&
         (!materials.length || v.material === selectedMaterial) &&
-        (!customValues.length || v.custom_value === selectedCustomValue);
-    });
-    if (match) {
-      onChangeSelectedVariant(match);
-    } else {
-      const fallback = activeVariants.find(v => v.color === color);
-      if (fallback) {
-        if (fallback.size) setSelectedSize(fallback.size);
-        if (fallback.material) setSelectedMaterial(fallback.material);
-        if (fallback.custom_value) setSelectedCustomValue(fallback.custom_value);
-        onChangeSelectedVariant(fallback);
+        (!customValues.length || v.custom_value === selectedCustomValue)
+      );
+      if (!exists) {
+        setSelectedSize(undefined);
       }
     }
+
+    if (onPreviewImage) {
+      const imgVar = activeVariants.find(v => v.color === color && v.image_url);
+      if (imgVar?.image_url) {
+        onPreviewImage(imgVar.image_url);
+      }
+    }
+  };
+
+  const handleSizeClick = (size: string) => {
+    setSelectedSize(size);
+
+    // If a color was already selected, check if valid combination exists with this new size
+    if (selectedColor && colors.length > 0) {
+      const exists = activeVariants.some(v =>
+        v.color === selectedColor &&
+        v.size === size &&
+        (!materials.length || v.material === selectedMaterial) &&
+        (!customValues.length || v.custom_value === selectedCustomValue)
+      );
+      if (!exists) {
+        setSelectedColor(undefined);
+      }
+    }
+  };
+
+  const handleMaterialClick = (mat: string) => {
+    setSelectedMaterial(mat);
+    if (selectedSize && sizes.length > 0) {
+      const exists = activeVariants.some(v =>
+        (!colors.length || v.color === selectedColor) &&
+        v.size === selectedSize &&
+        v.material === mat &&
+        (!customValues.length || v.custom_value === selectedCustomValue)
+      );
+      if (!exists) {
+        setSelectedSize(undefined);
+      }
+    }
+  };
+
+  const handleCustomClick = (val: string) => {
+    setSelectedCustomValue(val);
   };
 
   const order = variationOrder || DEFAULT_AXIS_ORDER;
@@ -114,6 +155,12 @@ export default function VariantSelector({
             const isSelected = selectedColor === color;
             const resolvedHex = matchVar?.color_hex || (color ? extractColorsFromName(color) : undefined);
 
+            const isColorAvailable = !selectedSize || activeVariants.some(v => v.size === selectedSize && v.color === color);
+            const isColorInStock = selectedSize
+              ? activeVariants.some(v => v.size === selectedSize && v.color === color && v.stock > 0)
+              : activeVariants.some(v => v.color === color && v.stock > 0);
+            const colorTitle = !isColorAvailable ? `${color} (Unavailable)` : !isColorInStock ? `${color} (Out of Stock)` : color;
+
             if (showSwatches && matchVar && (resolvedHex || matchVar.image_url)) {
               const sSizeClass = getSwatchClasses('color', responsiveSwatchSizes, '');
               const isImageSwatch = Boolean(
@@ -127,12 +174,13 @@ export default function VariantSelector({
                   key={color}
                   type="button"
                   onClick={() => handleColorClick(color)}
-                  title={color}
-                  aria-label={color}
+                  title={colorTitle}
+                  aria-label={colorTitle}
                   className={`
                     relative flex items-center justify-center cursor-pointer border transition-all duration-200 swatch-btn
                     ${sSizeClass} ${shapeClass}
                     ${isSelected ? 'scale-110 shadow-md' : 'hover:scale-105'}
+                    ${!isColorAvailable || !isColorInStock ? 'opacity-40' : ''}
                     overflow-hidden
                   `}
                   style={{
@@ -165,7 +213,8 @@ export default function VariantSelector({
                 key={color}
                 type="button"
                 onClick={() => handleColorClick(color)}
-                className="px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 border cursor-pointer"
+                title={colorTitle}
+                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 border cursor-pointer ${!isColorAvailable || !isColorInStock ? 'opacity-40' : ''}`}
                 style={{
                   backgroundColor: isSelected ? 'var(--btn-primary-bg)' : 'var(--color-surface)',
                   color: isSelected ? 'var(--btn-primary-text)' : 'var(--color-text-primary)',
@@ -188,35 +237,25 @@ export default function VariantSelector({
           {sizes.map(size => {
             const isSelected = selectedSize === size;
             const sSizeClass = getSwatchClasses('text', responsiveSwatchSizes, size);
+
+            const isSizeAvailable = !selectedColor || activeVariants.some(v => v.color === selectedColor && v.size === size);
+            const isSizeInStock = selectedColor
+              ? activeVariants.some(v => v.color === selectedColor && v.size === size && v.stock > 0)
+              : activeVariants.some(v => v.size === size && v.stock > 0);
+            const sizeTitle = !isSizeAvailable ? `${size} (Unavailable)` : !isSizeInStock ? `${size} (Out of Stock)` : size;
+
             return (
               <button
                 key={size}
                 type="button"
-                onClick={() => {
-                  setSelectedSize(size);
-                  const match = activeVariants.find(v =>
-                    (!colors.length || v.color === selectedColor) &&
-                    v.size === size &&
-                    (!materials.length || v.material === selectedMaterial) &&
-                    (!customValues.length || v.custom_value === selectedCustomValue)
-                  );
-                  if (match) {
-                    onChangeSelectedVariant(match);
-                  } else {
-                    const fallback = activeVariants.find(v => v.size === size);
-                    if (fallback) {
-                      if (fallback.color) setSelectedColor(fallback.color);
-                      if (fallback.material) setSelectedMaterial(fallback.material);
-                      if (fallback.custom_value) setSelectedCustomValue(fallback.custom_value);
-                      onChangeSelectedVariant(fallback);
-                    }
-                  }
-                }}
+                onClick={() => handleSizeClick(size)}
+                title={sizeTitle}
                 className={showSwatches ? `
                   relative flex items-center justify-center font-bold border transition-all duration-200 cursor-pointer overflow-hidden select-none swatch-btn
                   ${sSizeClass} ${shapeClass}
                   ${isSelected ? 'scale-105 shadow-sm font-black' : 'hover:scale-105'}
-                ` : `min-w-[52px] py-2.5 px-3 text-center rounded-xl text-sm font-semibold transition-all duration-200 border cursor-pointer`}
+                  ${!isSizeAvailable || !isSizeInStock ? 'opacity-40' : ''}
+                ` : `min-w-[52px] py-2.5 px-3 text-center rounded-xl text-sm font-semibold transition-all duration-200 border cursor-pointer ${!isSizeAvailable || !isSizeInStock ? 'opacity-40' : ''}`}
                 style={showSwatches ? {
                   borderColor: isSelected ? 'var(--color-accent)' : UNSELECTED_SWATCH_BORDER,
                   color: isSelected ? 'var(--color-text-accent)' : 'var(--color-text-primary)',
@@ -229,7 +268,7 @@ export default function VariantSelector({
                   boxShadow: isSelected ? '0 0 0 2px var(--btn-primary-bg)' : 'none'
                 }}
               >
-                <span className="whitespace-nowrap leading-none text-center">{size}</span>
+                <span className={`whitespace-nowrap leading-none text-center ${!isSizeAvailable || !isSizeInStock ? 'line-through decoration-red-400' : ''}`}>{size}</span>
               </button>
             );
           })}
@@ -249,26 +288,7 @@ export default function VariantSelector({
               <button
                 key={mat}
                 type="button"
-                onClick={() => {
-                  setSelectedMaterial(mat);
-                  const match = activeVariants.find(v =>
-                    (!colors.length || v.color === selectedColor) &&
-                    (!sizes.length || v.size === selectedSize) &&
-                    v.material === mat &&
-                    (!customValues.length || v.custom_value === selectedCustomValue)
-                  );
-                  if (match) {
-                    onChangeSelectedVariant(match);
-                  } else {
-                    const fallback = activeVariants.find(v => v.material === mat);
-                    if (fallback) {
-                      if (fallback.color) setSelectedColor(fallback.color);
-                      if (fallback.size) setSelectedSize(fallback.size);
-                      if (fallback.custom_value) setSelectedCustomValue(fallback.custom_value);
-                      onChangeSelectedVariant(fallback);
-                    }
-                  }
-                }}
+                onClick={() => handleMaterialClick(mat)}
                 className={showSwatches ? `
                   relative flex items-center justify-center font-bold border transition-all duration-200 cursor-pointer overflow-hidden select-none swatch-btn
                   ${sSizeClass} ${shapeClass}
@@ -306,26 +326,7 @@ export default function VariantSelector({
               <button
                 key={val}
                 type="button"
-                onClick={() => {
-                  setSelectedCustomValue(val);
-                  const match = activeVariants.find(v =>
-                    (!colors.length || v.color === selectedColor) &&
-                    (!sizes.length || v.size === selectedSize) &&
-                    (!materials.length || v.material === selectedMaterial) &&
-                    v.custom_value === val
-                  );
-                  if (match) {
-                    onChangeSelectedVariant(match);
-                  } else {
-                    const fallback = activeVariants.find(v => v.custom_value === val);
-                    if (fallback) {
-                      if (fallback.color) setSelectedColor(fallback.color);
-                      if (fallback.size) setSelectedSize(fallback.size);
-                      if (fallback.material) setSelectedMaterial(fallback.material);
-                      onChangeSelectedVariant(fallback);
-                    }
-                  }
-                }}
+                onClick={() => handleCustomClick(val)}
                 className={showSwatches ? `
                   relative flex items-center justify-center font-bold border transition-all duration-200 cursor-pointer overflow-hidden select-none swatch-btn
                   ${sSizeClass} ${shapeClass}

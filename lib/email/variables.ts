@@ -1,6 +1,6 @@
 import { getSiteUrl } from '@/lib/site-url-server';
 import { formatPrice } from '@/lib/utils/whatsapp';
-import { CartItem } from '@/lib/types';
+import { CartItem, StoreSettings } from '@/lib/types';
 
 export function renderOrderItemsTable(items: CartItem[], currencySymbol = 'Rs.', siteUrl = ''): string {
   if (!items || items.length === 0) return '';
@@ -42,7 +42,7 @@ export function renderOrderItemsTable(items: CartItem[], currencySymbol = 'Rs.',
           ${productUrl
             ? `<a href="${productUrl}" target="_blank" style="color: #1a1a1a; text-decoration: none; font-weight: 600; font-size: 14px; display: block;">${item.product.name}</a>`
             : `<span style="font-weight: 600; color: #1a1a1a; font-size: 14px;">${item.product.name}</span>`}
-          ${(item as any).added_later ? `<span style="display: inline-block; background-color: #fef2f2; color: #ef4444; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-top: 4px; border: 1px solid #fecaca;">Added Later</span>` : ''}
+          ${item.added_later ? `<span style="display: inline-block; background-color: #fef2f2; color: #ef4444; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-top: 4px; border: 1px solid #fecaca;">Added Later</span>` : ''}
           ${variantDetails ? `<p style="margin: 4px 0 0; color: #666; font-size: 12px;">${variantDetails}</p>` : ''}
           ${modifierDetails ? `<p style="margin: 2px 0 0; color: #10b981; font-size: 12px;">+ ${modifierDetails}</p>` : ''}
         </td>
@@ -58,14 +58,57 @@ export function renderOrderItemsTable(items: CartItem[], currencySymbol = 'Rs.',
   }).join('');
 }
 
-export async function buildVariables(emailType: string, data: Record<string, any>): Promise<Record<string, any>> {
+interface EmailVariableData {
+  settings?: Partial<StoreSettings>;
+  customer?: { name?: string; email?: string; phone?: string };
+  user?: { name?: string; email?: string };
+  order?: Record<string, unknown> & {
+    id?: string;
+    orderNumber?: string;
+    createdAt?: string;
+    total?: number;
+    subtotal?: number;
+    discount_amount?: number;
+    discountAmount?: number;
+    shipping_amount?: number;
+    shippingAmount?: number;
+    status?: string;
+    notes?: string;
+    customerName?: string;
+    customerPhone?: string;
+    shipping_address?: Record<string, unknown> & {
+      name?: string;
+      street?: string;
+      address?: string;
+      city?: string;
+      postalCode?: string;
+      phone?: string;
+      full?: string;
+    };
+    trackingNumber?: string;
+    courierName?: string;
+    trackingUrl?: string;
+    estimatedDelivery?: string;
+    cancelReason?: string;
+    refundAmount?: number;
+  };
+  resetLink?: string;
+  product?: { name?: string; stock?: number };
+  review?: { rating?: number; comment?: string; customerName?: string };
+  contact?: { name?: string; subject?: string; message?: string };
+  last_activity?: string;
+  checkout_url?: string;
+  postex_remarks?: string;
+}
+
+export async function buildVariables(emailType: string, data: EmailVariableData): Promise<Record<string, string>> {
   const settings = data.settings || {};
   const currencySymbol = settings.currency_symbol || 'Rs.';
 
   // Start with standard variables
-  const vars: Record<string, any> = {
+  const vars: Record<string, string> = {
     brand_name: settings.store_name || process.env.NEXT_PUBLIC_BRAND_NAME || 'Your Store',
-    site_url: await getSiteUrl(settings),
+    site_url: await getSiteUrl({ store_url: typeof settings.store_url === 'string' ? settings.store_url : undefined }),
     customer_name: data.customer?.name || data.user?.name || 'Customer',
     customer_email: data.customer?.email || data.user?.email || '',
     contact_email: settings.header_top_bar_email || settings.smtp_email || '',
@@ -76,7 +119,7 @@ export async function buildVariables(emailType: string, data: Record<string, any
   // If order details exist, populate order-related variables
   if (data.order) {
     const order = data.order;
-    vars.order_id = order.orderNumber || order.id;
+    vars.order_id = order.orderNumber || order.id || '';
     vars.order_date = order.createdAt ? new Date(order.createdAt).toLocaleDateString() : new Date().toLocaleDateString();
     vars.order_total = formatPrice(order.total, currencySymbol);
     vars.order_subtotal = formatPrice(order.subtotal || order.total, currencySymbol);
@@ -87,14 +130,17 @@ export async function buildVariables(emailType: string, data: Record<string, any
     
     const shippingAmount = order.shipping_amount || order.shippingAmount || 0;
     vars.order_shipping_fee = formatPrice(shippingAmount, currencySymbol);
-    vars.order_status = order.status;
+    vars.order_status = order.status || '';
 
     // Default payment method
     vars.order_payment_method = 'Cash on delivery';
 
     // Address
-    const address = order.shipping_address || data.customer || {};
-    let addressName = order.customerName || address.name || data.customer?.name || data.user?.name || 'Customer';
+    const address: Record<string, unknown> & {
+      name?: string; street?: string; address?: string; city?: string;
+      postalCode?: string; phone?: string; full?: string;
+    } = order.shipping_address || data.customer || {};
+    const addressName = order.customerName || address.name || data.customer?.name || data.user?.name || 'Customer';
     let street = address.street || address.address || '';
     let city = address.city || '';
     let postalCode = address.postalCode || '';
@@ -126,7 +172,7 @@ export async function buildVariables(emailType: string, data: Record<string, any
     vars['shipping_address.street'] = street;
     vars['shipping_address.city'] = city;
     vars['shipping_address.postal_code'] = postalCode;
-    vars['shipping_address.full'] = address.full || 
+    vars['shipping_address.full'] = address.full ||
       [addressName, street, city, postalCode, phone].filter(Boolean).join(', ');
 
     // Shipping
@@ -179,11 +225,16 @@ export async function buildVariables(emailType: string, data: Record<string, any
   return vars;
 }
 
-export function replaceVariables(text: string, variables: Record<string, any>): string {
+export function replaceVariables(text: string, variables: Record<string, string>): string {
   if (!text) return '';
   return text.replace(/\{\{([a-zA-Z0-9_\.]+)\}\}/g, (match, key) => {
     // Check direct key or dotted path
-    const value = key.split('.').reduce((obj: any, k: string) => obj?.[k], variables);
+    const value = key.split('.').reduce((obj: unknown, k: string) => {
+      if (obj && typeof obj === 'object') {
+        return (obj as Record<string, unknown>)[k];
+      }
+      return undefined;
+    }, variables as unknown);
     // If not found in variables, check direct dotted key in the flat variables object (e.g. 'shipping_address.full')
     if (value !== undefined) {
       return String(value);

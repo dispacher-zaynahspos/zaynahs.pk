@@ -8,6 +8,8 @@ import ProductSocialFeedSubTab from './product-detail/ProductSocialFeedSubTab';
 import ProductLayoutSubTab from './product-detail/ProductLayoutSubTab';
 import ResponsiveGridColumnsControl from '@/components/admin/customizer/shared/ResponsiveGridColumnsControl';
 import GridGapControl from '@/components/admin/customizer/shared/GridGapControl';
+import ContentWidthControl from '@/components/admin/customizer/shared/ContentWidthControl';
+import FillRowsControl from '@/components/admin/customizer/shared/FillRowsControl';
 import GridLimitControl from '@/components/admin/customizer/shared/GridLimitControl';
 import { ResponsiveProductDetailSwatchControl } from '@/components/admin/customizer/shared/ResponsiveSwatchControls';
 import { ATC_ANIMATION_OPTIONS } from '@/lib/constants/productCardOptions';
@@ -199,6 +201,10 @@ export default function ProductDetailPageSettings({
         <ResponsiveGridColumnsControl
           label="Related Grid Columns"
           viewportMode={viewportMode}
+          mode={settings.related_columns_mode || 'manual'}
+          onChangeMode={(m) => onUpdateSettings({ related_columns_mode: m })}
+          minCardDesktop={settings.related_min_card_desktop || 220}
+          onChangeMinCardDesktop={(px) => onUpdateSettings({ related_min_card_desktop: px })}
           desktopCols={settings.related_columns_desktop || 4}
           tabletCols={settings.related_columns_tablet || 3}
           mobileCols={settings.related_columns_mobile || 2}
@@ -211,6 +217,18 @@ export default function ProductDetailPageSettings({
         <GridGapControl
           value={settings.related_grid_gap || 'normal'}
           onChange={(gap) => onUpdateSettings({ related_grid_gap: gap })}
+        />
+
+        {/* Content Width */}
+        <ContentWidthControl
+          value={settings.related_content_width || 'wide'}
+          onChange={(w) => onUpdateSettings({ related_content_width: w })}
+        />
+
+        {/* Fill Rows */}
+        <FillRowsControl
+          value={settings.related_fill_rows !== false}
+          onChange={(v) => onUpdateSettings({ related_fill_rows: v })}
         />
       </div>
     );
@@ -278,6 +296,10 @@ export default function ProductDetailPageSettings({
             <ResponsiveGridColumnsControl
               label="Recently Viewed Grid Columns"
               viewportMode={viewportMode}
+              mode={settings.recently_viewed_columns_mode || 'manual'}
+              onChangeMode={(m) => onUpdateSettings({ recently_viewed_columns_mode: m })}
+              minCardDesktop={settings.recently_viewed_min_card_desktop || 220}
+              onChangeMinCardDesktop={(px) => onUpdateSettings({ recently_viewed_min_card_desktop: px })}
               desktopCols={settings.recently_viewed_columns_desktop || 4}
               tabletCols={settings.recently_viewed_columns_tablet || 3}
               mobileCols={settings.recently_viewed_columns_mobile || 2}
@@ -290,6 +312,18 @@ export default function ProductDetailPageSettings({
             <GridGapControl
               value={settings.recently_viewed_grid_gap || 'normal'}
               onChange={(gap) => onUpdateSettings({ recently_viewed_grid_gap: gap })}
+            />
+
+            {/* Content Width */}
+            <ContentWidthControl
+              value={settings.recently_viewed_content_width || 'wide'}
+              onChange={(w) => onUpdateSettings({ recently_viewed_content_width: w })}
+            />
+
+            {/* Fill Rows */}
+            <FillRowsControl
+              value={settings.recently_viewed_fill_rows !== false}
+              onChange={(v) => onUpdateSettings({ recently_viewed_fill_rows: v })}
             />
           </div>
         )}

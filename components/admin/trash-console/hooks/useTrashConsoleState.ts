@@ -37,6 +37,8 @@ import {
 } from '@/lib/services/trash';
 
 import { TabType } from '../TrashConsoleNavigation';
+import type { ConfirmDeleteState } from '../TrashConfirmModals';
+import type { TrashedCustomer } from '@/lib/services/customers';
 import { useTrashConsoleFilters } from './useTrashConsoleFilters';
 
 interface UseTrashConsoleStateProps {
@@ -44,7 +46,7 @@ interface UseTrashConsoleStateProps {
   initialCategories: Category[];
   initialReviews: (Review & { productName?: string })[];
   initialOrders: Order[];
-  initialCustomers: any[];
+  initialCustomers: TrashedCustomer[];
   initialMedia: TrashedMedia[];
   initialWhatsAppSubscribers: WhatsAppSubscriber[];
   initialEmailSubscribers: EmailSubscriber[];
@@ -70,7 +72,7 @@ export function useTrashConsoleState({
   const [categories, setCategories] = useState<Category[]>(initialCategories);
   const [reviews, setReviews] = useState<(Review & { productName?: string })[]>(initialReviews);
   const [orders, setOrders] = useState<Order[]>(initialOrders);
-  const [customers, setCustomers] = useState<any[]>(initialCustomers);
+  const [customers, setCustomers] = useState<TrashedCustomer[]>(initialCustomers);
   const [media, setMedia] = useState<TrashedMedia[]>(initialMedia);
   const [whatsappSubscribers, setWhatsappSubscribers] = useState<WhatsAppSubscriber[]>(initialWhatsAppSubscribers);
   const [emailSubscribers, setEmailSubscribers] = useState<EmailSubscriber[]>(initialEmailSubscribers);
@@ -90,12 +92,7 @@ export function useTrashConsoleState({
     variantPresets,
   });
 
-  const [confirmDelete, setConfirmDelete] = useState<{
-    id: string;
-    type: TabType;
-    name: string;
-    extraInfo?: any;
-  } | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<ConfirmDeleteState | null>(null);
 
   const [confirmBulkDelete, setConfirmBulkDelete] = useState<boolean>(false);
   const [confirmEmptyTab, setConfirmEmptyTab] = useState<boolean>(false);

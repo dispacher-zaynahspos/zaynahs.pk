@@ -16,6 +16,7 @@ import {
   User as UserIcon, 
   ExternalLink 
 } from '@/components/common/Icons';
+import { Modal } from '@/components/common/Modal';
 import { formatPrice } from '@/lib/utils/whatsapp';
 import { AbandonedCart } from './AbandonedCartTypes';
 
@@ -49,15 +50,15 @@ export default function AbandonedCartDetailDrawer({
   if (!selectedCart) return null;
 
   return (
-    <>
-      {/* Backdrop */}
-      <div 
-        className="fixed inset-0 bg-black/50 z-45 transition-opacity animate-fade-in"
-        onClick={() => setSelectedCartId(null)}
-      />
-
+    <Modal
+      open={true}
+      onClose={() => setSelectedCartId(null)}
+      variant="drawer-right"
+      showClose={false}
+      className="!max-w-4xl w-full !bg-gray-50 dark:!bg-[#0f0f1e] border-l border-gray-200 dark:border-gray-800"
+    >
       {/* Drawer Panel */}
-      <div className="fixed right-0 top-0 bottom-0 w-full max-w-4xl bg-gray-50 dark:bg-[#0f0f1e] shadow-2xl z-50 flex flex-col border-l border-gray-200 dark:border-gray-800 transition-transform duration-300 translate-x-0 overflow-hidden">
+      <div className="w-full h-full flex flex-col overflow-hidden">
         
         {/* Header */}
         <div className="px-4 sm:px-6 py-3 sm:py-4 bg-white dark:bg-[#16162a] border-b border-gray-200 dark:border-gray-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 flex-shrink-0">
@@ -150,7 +151,7 @@ export default function AbandonedCartDetailDrawer({
                     const imgUrl = item.product?.images?.[0]?.url || '';
 
                     return (
-                      <div key={idx} className="py-4 flex gap-4 items-start animate-fade-in">
+                      <div key={idx} className="py-4 flex gap-4 items-start">
                         {/* Product Thumbnail */}
                         <div className="h-14 w-14 rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 overflow-hidden flex-shrink-0 relative">
                           {imgUrl ? (
@@ -372,6 +373,6 @@ export default function AbandonedCartDetailDrawer({
           </div>
         </div>
       </div>
-    </>
+    </Modal>
   );
 }

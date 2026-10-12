@@ -5,6 +5,8 @@ import { SlidersHorizontal, X, ChevronDown } from '@/components/common/Icons';
 import { Product, Category, Collection, StoreSettings } from '@/lib/types';
 import ProductCard from './ProductCard';
 import EmptyState from '../common/EmptyState';
+import Pagination from '@/components/common/Pagination';
+import { Modal } from '@/components/common/Modal';
 import {
   ShopProductListCard,
   ShopPageHeader,
@@ -13,7 +15,7 @@ import {
   useShopPageFilters,
   getSortLabel,
 } from './shop-page';
-import { getResponsiveGridClasses, getGridGapClass } from '@/lib/utils/responsiveGrid';
+import { getCatalogGridStyle, getContentWidthClass, CATALOG_SECTION_PADDING } from '@/lib/utils/responsiveGrid';
 import { useScrollRestoration } from '@/lib/hooks/useScrollRestoration';
 
 interface ShopPageProps {
@@ -46,6 +48,7 @@ export default function ShopPage({
     viewMode,
     setViewMode,
     desktopColsOverride,
+    tabletColsOverride,
     isCollectionDescExpanded,
     setIsCollectionDescExpanded,
     isCategoryDescExpanded,
@@ -88,6 +91,8 @@ export default function ShopPage({
   });
 
   const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+  // Mobile filter drawer scroll-lock is handled by the shared Modal (RULE MODAL1).
 
   const CATEGORY_LIMIT = 8;
   const [moreCategoriesOpen, setMoreCategoriesOpen] = useState(false);
@@ -133,11 +138,21 @@ export default function ShopPage({
     return () => observer.disconnect();
   }, [paginationMode, hasMore, handleLoadMore]);
 
-  // SSOT: shared gap classes (RULE SSOT-CATALOG-LAYOUTS / DS24) — never hardcode.
-  const gridGapClass = getGridGapClass(activeSettings?.shop_grid_gap);
+  // SSOT: shared catalog grid (RULE DS24 / RULE SSOT-CATALOG-LAYOUTS) — never hardcode columns/gap.
+  const sidebarPosition = activeSettings?.shop_sidebar_position || 'left';
+  const sidebarSticky = activeSettings?.shop_sidebar_sticky !== false;
+  const shopGrid = getCatalogGridStyle({
+    mode: activeSettings?.shop_columns_mode || 'manual',
+    mobile: activeSettings?.shop_columns_mobile || (activeSettings?.card_mobile_columns === 1 ? 1 : 2),
+    tablet: tabletColsOverride ?? activeSettings?.shop_columns_tablet ?? 3,
+    desktop: desktopColsOverride ?? activeSettings?.shop_columns_desktop ?? 4,
+    wide: activeSettings?.shop_columns_wide,
+    minDesktop: activeSettings?.shop_min_card_desktop,
+    gap: activeSettings?.shop_grid_gap,
+  });
 
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8 transition-colors duration-200">
+    <div className={`mx-auto ${getContentWidthClass(activeSettings?.shop_content_width)} ${CATALOG_SECTION_PADDING} py-6 sm:py-8 transition-colors duration-200`}>
       {/* Header Banner & Breadcrumbs */}
       <ShopPageHeader
         activeCategory={activeCategory}
@@ -150,15 +165,19 @@ export default function ShopPage({
         showBreadcrumbs={activeSettings?.shop_show_breadcrumbs !== false}
       />
 
-      {/* Main Grid: Sidebar + List Content */}
-      <div className="flex flex-col md:flex-row gap-8">
-        {/* Desktop Sidebar with independent scroll & sticky position */}
-        <aside className="hidden md:block w-64 shrink-0 bg-white dark:bg-[#16162a] p-5 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm self-start sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto overscroll-contain transition-colors pr-2.5 scrollbar-thin">
-          <ShopPageSidebar {...sidebarProps} />
-        </aside>
+      {/* Main Grid: Sidebar + List Content. Sidebar position (left/right/drawer),
+          sticky, and which blocks show are all Customizer-controlled. */}
+      <div className={`flex flex-col md:flex-row gap-6 lg:gap-8 ${sidebarPosition === 'right' ? 'md:flex-row-reverse' : ''}`}>
+        {/* Desktop Sidebar — FIXED width (never a %), optional sticky, grid fills the rest.
+            Hidden entirely in 'drawer' mode (filters open via the Filters button). */}
+        {sidebarPosition !== 'drawer' && (
+          <aside className={`hidden md:block w-60 lg:w-64 xl:w-72 shrink-0 bg-white dark:bg-[#16162a] p-5 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm self-start overflow-y-auto overscroll-contain transition-colors pr-2.5 pb-24 scrollbar-thin ${sidebarSticky ? 'sticky top-24 max-h-[calc(100vh-7rem)]' : ''}`}>
+            <ShopPageSidebar {...sidebarProps} />
+          </aside>
+        )}
 
-        {/* Right Main Content */}
-        <div className="flex-1 space-y-4">
+        {/* Right Main Content — min-w-0 so the grid never gets cut off by the flex row */}
+        <div className="flex-1 min-w-0 space-y-4">
           {/* Quick Category Chips Bar */}
           {activeSettings?.shop_category_chips_enabled !== false && displayCategories.length > 0 && (
             <div className="flex items-center gap-2 py-1 overflow-x-auto md:flex-wrap scrollbar-none [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -261,6 +280,7 @@ export default function ShopPage({
             hasSortParam={searchParams.has('sort')}
             getSortLabel={getSortLabel}
             defaultSort={defaultSort}
+            showDesktopFilterButton={sidebarPosition === 'drawer'}
           />
 
           {/* Catalog Listing */}
@@ -291,13 +311,7 @@ export default function ShopPage({
               ))}
             </div>
           ) : (
-            <div
-              className={`grid ${gridGapClass} ${getResponsiveGridClasses({
-                mobile: activeSettings?.shop_columns_mobile || (activeSettings?.card_mobile_columns === 1 ? 1 : 2),
-                tablet: viewMode === 'grid-3' ? 2 : (activeSettings?.shop_columns_tablet || 3),
-                desktop: viewMode === 'grid-3' ? 3 : viewMode === 'grid-4' ? 4 : (desktopColsOverride ?? activeSettings?.shop_columns_desktop ?? 4),
-              })}`}
-            >
+            <div className={shopGrid.className} data-mode={shopGrid.mode} style={shopGrid.style}>
               {displayProducts.map((product: Product | import('@/lib/services/product-search').ProductSearchResult, index: number) => (
                 <ProductCard
                   key={product.id}
@@ -343,53 +357,14 @@ export default function ShopPage({
 
           {/* Numbered pagination */}
           {paginationMode === 'numbered' && totalPages > 1 && (
-            <div className="w-full flex flex-wrap items-center justify-center gap-1.5 mt-8">
-              <button
-                type="button"
-                disabled={currentPage <= 1}
-                onClick={() => handleGoToPage(currentPage - 1)}
-                className="px-3 py-2 rounded-lg text-xs font-bold border border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-300 disabled:opacity-30 disabled:cursor-not-allowed hover:border-[#e94560] cursor-pointer"
-              >
-                Prev
-              </button>
-              {Array.from({ length: totalPages }, (_, i) => i + 1)
-                .filter((p) => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 2)
-                .reduce<number[]>((acc, p) => {
-                  if (acc.length && p - acc[acc.length - 1] > 1) acc.push(-1); // gap marker
-                  acc.push(p);
-                  return acc;
-                }, [])
-                .map((p, idx) =>
-                  p === -1 ? (
-                    <span key={`gap-${idx}`} className="px-2 text-gray-400">…</span>
-                  ) : (
-                    <button
-                      key={p}
-                      type="button"
-                      onClick={() => handleGoToPage(p)}
-                      aria-current={p === currentPage ? 'page' : undefined}
-                      style={p === currentPage ? {
-                        backgroundColor: activeSettings?.shop_load_more_bg || 'var(--btn-primary-bg, var(--color-primary, #0F2A5E))',
-                        color: activeSettings?.shop_load_more_text_color || '#ffffff',
-                      } : undefined}
-                      className={`min-w-[36px] px-3 py-2 rounded-lg text-xs font-bold border transition-all cursor-pointer ${
-                        p === currentPage
-                          ? 'border-transparent'
-                          : 'border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 hover:border-[#e94560]'
-                      }`}
-                    >
-                      {p}
-                    </button>
-                  )
-                )}
-              <button
-                type="button"
-                disabled={currentPage >= totalPages}
-                onClick={() => handleGoToPage(currentPage + 1)}
-                className="px-3 py-2 rounded-lg text-xs font-bold border border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-300 disabled:opacity-30 disabled:cursor-not-allowed hover:border-[#e94560] cursor-pointer"
-              >
-                Next
-              </button>
+            <div className="w-full mt-8">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handleGoToPage}
+                activeBg={activeSettings?.shop_load_more_bg}
+                activeTextColor={activeSettings?.shop_load_more_text_color}
+              />
             </div>
           )}
 
@@ -419,52 +394,57 @@ export default function ShopPage({
         </div>
       </div>
 
-      {/* MOBILE FILTER DRAWER SHEET */}
-      {mobileFilterOpen && (
-        <div
-          className="fixed inset-0 z-50 bg-black/60 flex justify-end transition-all duration-300 animate-fade-in"
-          onClick={() => setMobileFilterOpen(false)}
-        >
-          <div
-            className="bg-white dark:bg-[#16162a] w-4/5 max-w-xs h-[100dvh] shadow-2xl relative flex flex-col overflow-hidden scale-up duration-200"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-gray-100 dark:border-gray-800 shrink-0">
-              <span className="font-black text-gray-900 dark:text-white uppercase tracking-wider text-sm flex items-center gap-1.5">
-                <SlidersHorizontal className="h-4 w-4 text-[#e94560]" />
-                <span>Filters</span>
-              </span>
-              <button
-                type="button"
-                onClick={() => setMobileFilterOpen(false)}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors cursor-pointer p-1"
-                title="Close Filters"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto overscroll-contain touch-pan-y px-5 py-4">
-              <ShopPageSidebar {...sidebarProps} />
-            </div>
-
-            <div className="px-5 pb-5 pt-3 border-t border-gray-100 dark:border-gray-800 shrink-0">
-              <button
-                type="button"
-                onClick={() => setMobileFilterOpen(false)}
-                style={{
-                  backgroundColor: 'var(--btn-primary-bg, var(--color-primary, #C2185B))',
-                  color: 'var(--btn-primary-text, #ffffff)',
-                  borderRadius: 'var(--border-radius-btn, 12px)',
-                }}
-                className="w-full text-center py-3.5 text-xs font-black uppercase tracking-wider transition-transform active:scale-95 shadow-md cursor-pointer"
-              >
-                Apply Filters
-              </button>
-            </div>
+      {/* MOBILE FILTER DRAWER SHEET — shared overlay system (RULE MODAL1) */}
+      <Modal
+        open={mobileFilterOpen}
+        onClose={() => setMobileFilterOpen(false)}
+        variant="drawer-left"
+        ariaLabel="Product filters"
+        showClose={false}
+        footer={
+          <div className="flex items-center gap-2.5">
+            <button
+              type="button"
+              onClick={() => { handleClearFilters(); }}
+              className="shrink-0 px-4 py-3.5 text-xs font-black uppercase tracking-wider rounded-xl border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors active:scale-95 cursor-pointer min-h-11"
+            >
+              Clear
+            </button>
+            <button
+              type="button"
+              onClick={() => setMobileFilterOpen(false)}
+              style={{
+                backgroundColor: 'var(--btn-primary-bg, var(--color-primary, #C2185B))',
+                color: 'var(--btn-primary-text, #ffffff)',
+                borderRadius: 'var(--border-radius-btn, 12px)',
+              }}
+              className="flex-1 text-center py-3.5 text-xs font-black uppercase tracking-wider transition-transform active:scale-95 shadow-md cursor-pointer min-h-11"
+            >
+              Show {totalResults} {totalResults === 1 ? 'result' : 'results'}
+            </button>
           </div>
+        }
+      >
+        <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-gray-100 dark:border-gray-800 shrink-0">
+          <span className="font-black text-gray-900 dark:text-white uppercase tracking-wider text-sm flex items-center gap-1.5">
+            <SlidersHorizontal className="h-4 w-4 text-[#e94560]" />
+            <span>Filters</span>
+          </span>
+          <button
+            type="button"
+            onClick={() => setMobileFilterOpen(false)}
+            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors cursor-pointer p-1 min-h-11 min-w-11 flex items-center justify-center"
+            title="Close Filters"
+            aria-label="Close filters"
+          >
+            <X className="h-5 w-5" />
+          </button>
         </div>
-      )}
+
+        <div className="px-5 py-4 touch-pan-y">
+          <ShopPageSidebar {...sidebarProps} />
+        </div>
+      </Modal>
     </div>
   );
 }

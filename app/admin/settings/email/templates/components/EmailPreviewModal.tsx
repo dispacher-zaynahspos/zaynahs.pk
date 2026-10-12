@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { X, Mail } from '@/components/common/Icons';
+import { Modal } from '@/components/common/Modal';
 import { EmailTemplate } from './types';
 
 interface EmailPreviewModalProps {
@@ -23,11 +24,16 @@ export default function EmailPreviewModal({
   sendingTest,
   handleSendTest,
 }: EmailPreviewModalProps) {
-  if (!showPreviewModal) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
-      <div className="bg-white dark:bg-[#16162a] w-full max-w-3xl rounded-2xl border border-gray-200 dark:border-gray-800 shadow-2xl flex flex-col max-h-[85vh] overflow-hidden transition-all">
+    <Modal
+      open={showPreviewModal}
+      onClose={() => setShowPreviewModal(false)}
+      variant="center"
+      size="lg"
+      showClose={false}
+      className="!bg-transparent !border-0 !shadow-none !rounded-none !overflow-visible"
+    >
+      <div className="bg-white dark:bg-[#16162a] w-full rounded-2xl border border-gray-200 dark:border-gray-800 shadow-2xl flex flex-col max-h-[85vh] overflow-hidden">
         {/* Modal Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-800">
           <div>
@@ -86,6 +92,6 @@ export default function EmailPreviewModal({
           </button>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }

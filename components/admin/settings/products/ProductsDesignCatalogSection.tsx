@@ -10,7 +10,7 @@ import {
 
 interface ProductsDesignCatalogSectionProps {
   imageHoverStyle: 'second_image' | 'zoom' | 'slide_left' | 'zoom_swap' | 'fade_up' | 'blur_crossfade' | 'flip_3d' | 'none';
-  setImageHoverStyle: (val: any) => void;
+  setImageHoverStyle: (val: 'second_image' | 'zoom' | 'slide_left' | 'zoom_swap' | 'fade_up' | 'blur_crossfade' | 'flip_3d' | 'none') => void;
   imageAspectRatio: string;
   setImageAspectRatio: (val: string) => void;
   titleLineLimit: '1' | '2' | 'none';
@@ -52,7 +52,7 @@ export function ProductsDesignCatalogSection({
           <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">Image Hover Style</label>
           <select
             value={imageHoverStyle}
-            onChange={(e) => setImageHoverStyle(e.target.value as any)}
+            onChange={(e) => setImageHoverStyle(e.target.value as 'second_image' | 'zoom' | 'slide_left' | 'zoom_swap' | 'fade_up' | 'blur_crossfade' | 'flip_3d' | 'none')}
             className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f0f1b] px-4 py-2.5 text-sm focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
           >
             {IMAGE_HOVER_STYLE_OPTIONS.map(o => (
@@ -80,7 +80,7 @@ export function ProductsDesignCatalogSection({
           <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">Archive Title Line Limit</label>
           <select
             value={titleLineLimit}
-            onChange={(e) => setTitleLineLimit(e.target.value as any)}
+            onChange={(e) => setTitleLineLimit(e.target.value as '1' | '2' | 'none')}
             className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f0f1b] px-4 py-2.5 text-sm focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
           >
             {TITLE_LINE_LIMIT_OPTIONS.map(o => (

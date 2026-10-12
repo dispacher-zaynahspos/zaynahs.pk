@@ -177,11 +177,15 @@ function escapeRegExp(string: string): string {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-export function extractProductAgeRange(product: any): { min?: number; max?: number } | null {
+export function extractProductAgeRange(product: {
+  recommended_age_min_months?: number | null;
+  recommended_age_max_months?: number | null;
+  age_group?: string | null;
+}): { min?: number; max?: number } | null {
   if (product.recommended_age_min_months != null || product.recommended_age_max_months != null) {
     return {
-      min: product.recommended_age_min_months,
-      max: product.recommended_age_max_months,
+      min: product.recommended_age_min_months ?? undefined,
+      max: product.recommended_age_max_months ?? undefined,
     };
   }
   if (product.age_group) {

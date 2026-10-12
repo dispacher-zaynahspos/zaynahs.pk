@@ -3,14 +3,23 @@
 import React from 'react';
 import { Phone, Mail, RefreshCw, Trash2 } from '@/components/common/Icons';
 import EmptyState from '@/components/common/EmptyState';
+import type { ConfirmDeleteState } from './TrashConfirmModals';
+
+interface TrashLead {
+  id: string;
+  type: 'whatsapp' | 'email';
+  name: string;
+  contact: string;
+  source?: string;
+}
 
 interface TrashLeadsTableProps {
-  leads: any[];
+  leads: TrashLead[];
   searchTerm: string;
   selectedIds: string[];
   toggleSelect: (id: string) => void;
-  handleRestore: (id: string, type: 'leads', extraInfo?: any) => void;
-  setConfirmDelete: (val: any) => void;
+  handleRestore: (id: string, type: 'leads', extraInfo?: { leadType?: 'whatsapp' | 'email' }) => void;
+  setConfirmDelete: (val: ConfirmDeleteState | null) => void;
   isPending: boolean;
 }
 

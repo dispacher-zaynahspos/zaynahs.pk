@@ -74,6 +74,10 @@ export function SettingsTabRendererCore({ activeTab, s }: SettingsTabRendererCor
           setHeaderShowTopBar={s.setHeaderShowTopBar}
           headerShowNewsletter={s.headerShowNewsletter}
           setHeaderShowNewsletter={s.setHeaderShowNewsletter}
+          headerSocialEnabled={s.headerSocialEnabled}
+          setHeaderSocialEnabled={s.setHeaderSocialEnabled}
+          headerSocialShowMobile={s.headerSocialShowMobile}
+          setHeaderSocialShowMobile={s.setHeaderSocialShowMobile}
           headerTopBarPhone={s.headerTopBarPhone}
           setHeaderTopBarPhone={s.setHeaderTopBarPhone}
           headerTopBarEmail={s.headerTopBarEmail}

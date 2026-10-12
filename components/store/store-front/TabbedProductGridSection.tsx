@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 import { HomepageSection, Product, StoreSettings } from '@/lib/types';
 import ProductGrid from '../ProductGrid';
 import { SectionWrapper } from './SectionWrapper';
+import { useCatalogColumns } from '@/lib/hooks/useCatalogColumns';
 
 interface Tab {
   id: string;
@@ -31,6 +32,22 @@ export function TabbedProductGridSection({ section, allProducts, activeSettings 
 
   const activeTab = tabs.find((t) => t.id === activeTabId) || tabs[0];
 
+  // Fill-rows + per-layout auto/manual limit (RULE DS24). Columns-aware.
+  const fillRowsEnabled = s.fill_rows !== false;
+  const { fill, limit } = useCatalogColumns({
+    mode: s.columns_mode || 'manual',
+    mobile: Number(s.columns_mobile) || 2,
+    tablet: Number(s.columns_tablet) || 3,
+    desktop: Number(s.columns_desktop) || 4,
+    wide: s.columns_wide,
+    minDesktop: s.min_card_desktop,
+  });
+  const limitCfg = {
+    mode: s.limit_mode || 'manual',
+    manual: limitPerTab,
+    rows: s.limit_rows,
+  };
+
   const tabProducts = useMemo(() => {
     if (!activeTab) return [];
     let list = [...allProducts];
@@ -51,8 +68,10 @@ export function TabbedProductGridSection({ section, allProducts, activeSettings 
       );
     }
 
-    return list.slice(0, limitPerTab);
-  }, [allProducts, activeTab, limitPerTab]);
+    const visible = limit(limitCfg, list.length, fillRowsEnabled, limitPerTab);
+    return list.slice(0, visible);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allProducts, activeTab, limitPerTab, limit, fillRowsEnabled, s.limit_mode, s.limit_rows]);
 
   return (
     <SectionWrapper section={section}>
@@ -96,9 +115,12 @@ export function TabbedProductGridSection({ section, allProducts, activeSettings 
           products={tabProducts}
           currencySymbol={activeSettings.currency_symbol}
           settings={activeSettings}
+          columnsMode={s.columns_mode || 'manual'}
           columnsDesktop={Number(s.columns_desktop) || 4}
           columnsTablet={Number(s.columns_tablet) || 3}
           columnsMobile={Number(s.columns_mobile) || 2}
+          columnsWide={s.columns_wide ? Number(s.columns_wide) : undefined}
+          minCardDesktop={s.min_card_desktop ? Number(s.min_card_desktop) : undefined}
           gridGap={s.grid_gap || 'normal'}
         />
       ) : (

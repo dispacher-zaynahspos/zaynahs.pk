@@ -3,8 +3,8 @@
 import React from 'react';
 
 interface BottomGridActionsProps {
-  settings: Record<string, any>;
-  handleSettingsChange: (key: string, value: any) => void;
+  settings: Record<string, string | number | boolean | undefined>;
+  handleSettingsChange: (key: string, value: string | number | boolean) => void;
 }
 
 export default function BottomGridActions({
@@ -34,7 +34,7 @@ export default function BottomGridActions({
         <div className="space-y-2 pl-2 border-l-2 border-[#e94560]/30">
           <input
             type="text"
-            value={settings.bottomViewAllText || ''}
+            value={typeof settings.bottomViewAllText === 'string' ? settings.bottomViewAllText : ''}
             onChange={(e) => handleSettingsChange('bottomViewAllText', e.target.value)}
             placeholder="Grid View All"
             className="w-full px-3 py-2 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-gray-800 rounded-xl text-xs font-semibold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
@@ -44,7 +44,7 @@ export default function BottomGridActions({
             <div className="flex items-center gap-1.5">
               <input
                 type="color"
-                value={settings.bottomViewAllBgColor || '#0F2A5E'}
+                value={typeof settings.bottomViewAllBgColor === 'string' && settings.bottomViewAllBgColor ? settings.bottomViewAllBgColor : '#0F2A5E'}
                 onChange={(e) => handleSettingsChange('bottomViewAllBgColor', e.target.value)}
                 className="w-7 h-7 rounded-lg border border-gray-200 dark:border-gray-700 cursor-pointer"
               />
@@ -63,7 +63,7 @@ export default function BottomGridActions({
             <div className="flex items-center gap-1.5">
               <input
                 type="color"
-                value={settings.bottomViewAllTextColor || '#ffffff'}
+                value={typeof settings.bottomViewAllTextColor === 'string' && settings.bottomViewAllTextColor ? settings.bottomViewAllTextColor : '#ffffff'}
                 onChange={(e) => handleSettingsChange('bottomViewAllTextColor', e.target.value)}
                 className="w-7 h-7 rounded-lg border border-gray-200 dark:border-gray-700 cursor-pointer"
               />
@@ -120,7 +120,7 @@ export default function BottomGridActions({
         <div className="space-y-2 pl-2 border-l-2 border-[#e94560]/30">
           <input
             type="text"
-            value={settings.bottomLoadMoreText || ''}
+            value={typeof settings.bottomLoadMoreText === 'string' ? settings.bottomLoadMoreText : ''}
             onChange={(e) => handleSettingsChange('bottomLoadMoreText', e.target.value)}
             placeholder="Load More"
             className="w-full px-3 py-2 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-gray-800 rounded-xl text-xs font-semibold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
@@ -130,7 +130,7 @@ export default function BottomGridActions({
             <div className="flex items-center gap-1.5">
               <input
                 type="color"
-                value={settings.bottomLoadMoreBgColor || '#f1f5f9'}
+                value={typeof settings.bottomLoadMoreBgColor === 'string' && settings.bottomLoadMoreBgColor ? settings.bottomLoadMoreBgColor : '#f1f5f9'}
                 onChange={(e) => handleSettingsChange('bottomLoadMoreBgColor', e.target.value)}
                 className="w-7 h-7 rounded-lg border border-gray-200 dark:border-gray-700 cursor-pointer"
               />
@@ -148,7 +148,7 @@ export default function BottomGridActions({
             <div className="flex items-center gap-1.5">
               <input
                 type="color"
-                value={settings.bottomLoadMoreTextColor || '#1e293b'}
+                value={typeof settings.bottomLoadMoreTextColor === 'string' && settings.bottomLoadMoreTextColor ? settings.bottomLoadMoreTextColor : '#1e293b'}
                 onChange={(e) => handleSettingsChange('bottomLoadMoreTextColor', e.target.value)}
                 className="w-7 h-7 rounded-lg border border-gray-200 dark:border-gray-700 cursor-pointer"
               />

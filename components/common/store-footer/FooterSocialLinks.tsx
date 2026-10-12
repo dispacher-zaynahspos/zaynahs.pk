@@ -2,30 +2,11 @@
 
 import React from 'react';
 import { StoreSettings } from '@/lib/types';
-import { cleanWhatsAppPhone } from '@/lib/utils/whatsapp';
-import {
-  FacebookIcon,
-  InstagramIcon,
-  YoutubeIcon,
-  TiktokIcon,
-  SnapchatIcon,
-  TwitterIcon,
-  WhatsAppIcon,
-} from '@/components/common/Icons';
+import { getSocialLinks } from '@/lib/utils/socialLinks';
 
 interface FooterSocialLinksProps {
   settings: StoreSettings;
 }
-
-type SocialItem = {
-  key: string;
-  href: string;
-  label: string;
-  Icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
-  /** per-brand hover bg (WhatsApp = green); falls back to shared hover bg */
-  hoverBg?: string;
-  hoverColor?: string;
-};
 
 /**
  * Footer social links.
@@ -35,24 +16,12 @@ type SocialItem = {
  * a scoped <style>), and `:active` gives touch feedback — so icons never
  * disappear or get stuck-hovered on mobile. Colors are editable + shared with
  * the Customizer via footer_social_* keys.
+ *
+ * Social URLs come from the shared SSOT `getSocialLinks(settings)` so the footer
+ * and header announcement bar always show the same enabled icons.
  */
 export function FooterSocialLinks({ settings }: FooterSocialLinksProps) {
-  const items: SocialItem[] = [
-    { key: 'facebook', href: settings.social_facebook || '', label: 'Facebook', Icon: FacebookIcon, hoverBg: '#1877F2', hoverColor: '#ffffff' },
-    { key: 'instagram', href: settings.social_instagram || '', label: 'Instagram', Icon: InstagramIcon, hoverBg: '#E1306C', hoverColor: '#ffffff' },
-    { key: 'tiktok', href: settings.social_tiktok || '', label: 'TikTok', Icon: TiktokIcon, hoverBg: '#000000', hoverColor: '#ffffff' },
-    { key: 'snapchat', href: settings.social_snapchat || '', label: 'Snapchat', Icon: SnapchatIcon, hoverBg: '#FFFC00', hoverColor: '#000000' },
-    { key: 'twitter', href: settings.social_twitter || '', label: 'Twitter (X)', Icon: TwitterIcon, hoverBg: '#000000', hoverColor: '#ffffff' },
-    { key: 'youtube', href: settings.social_youtube || '', label: 'YouTube', Icon: YoutubeIcon, hoverBg: '#FF0000', hoverColor: '#ffffff' },
-    {
-      key: 'whatsapp',
-      href: settings.social_whatsapp ? `https://wa.me/${cleanWhatsAppPhone(settings.social_whatsapp)}` : '',
-      label: 'WhatsApp',
-      Icon: WhatsAppIcon,
-      hoverBg: '#25D366',
-      hoverColor: '#ffffff',
-    },
-  ].filter((it) => it.href); // hide icons whose link is empty
+  const items = getSocialLinks(settings);
 
   if (items.length === 0) return null;
 

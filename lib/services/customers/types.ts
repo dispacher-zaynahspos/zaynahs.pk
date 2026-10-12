@@ -19,7 +19,7 @@ export const mapOrder = (row: OrderRow): Order => ({
   order_number: row.order_number,
   customer_name: row.customer_name || undefined,
   customer_phone: row.customer_phone || undefined,
-  items: (row.items || []) as any[],
+  items: (row.items || []) as Order['items'],
   subtotal: row.subtotal ? parseFloat(row.subtotal.toString()) : 0,
   total: row.total ? parseFloat(row.total.toString()) : 0,
   status: row.status as Order['status'],
@@ -29,4 +29,15 @@ export const mapOrder = (row: OrderRow): Order => ({
 
 export function normalizePhone(phone: string): string {
   return phone.replace(/\D/g, '');
+}
+
+export interface TrashedCustomer {
+  id: string;
+  name: string | null;
+  email: string | null;
+  phone: string | null;
+  createdAt: string;
+  deletedAt: string;
+  ordersCount: number;
+  totalSpent: number;
 }

@@ -9,7 +9,7 @@ export interface ManifestOrder {
   shippingCity: string;
   notes: string;
   total: number;
-  items: any[];
+  items: unknown[];
 }
 
 export interface EditableRow {

@@ -7,6 +7,7 @@ import { ShoppingBag, Heart, User, X, Search, Truck, ChevronRight, WhatsAppIcon 
 import { cleanWhatsAppPhone } from '@/lib/utils/whatsapp';
 import { formatPrice } from '@/lib/utils/whatsapp';
 import { NavigationItem, StoreSettings, Product } from '@/lib/types';
+import { Modal } from '@/components/common/Modal';
 
 // Session-level cache so opening the menu doesn't refetch the catalog every time.
 let cachedFeatured: Product[] | null = null;
@@ -64,7 +65,7 @@ export function NavbarMobileDrawer({
     return () => { cancelled = true; };
   }, [mobileMenuOpen, isAdmin]);
 
-  if (!mounted || !mobileMenuOpen) return null;
+  if (!mounted) return null;
 
   const whatsappNumber = settings?.whatsapp_number || settings?.floating_whatsapp_number || topBarPhone;
   const whatsappUrl = whatsappNumber
@@ -78,16 +79,17 @@ export function NavbarMobileDrawer({
     if (onOpenSearch) onOpenSearch();
   };
 
+  // Shared overlay system (RULE MODAL1) — smooth slide-in/out + scroll-lock + ESC.
   return (
-    <div className="fixed inset-0 z-[999] flex md:hidden">
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black/50 transition-opacity duration-300 animate-in fade-in"
-        onClick={() => setMobileMenuOpen(false)}
-      />
-
-      {/* Drawer Container — clean white panel, sharp edge, rounded bottom-right */}
-      <div className="relative flex w-[87%] max-w-[400px] flex-1 flex-col bg-white dark:bg-[#0c0c16] text-gray-900 dark:text-white shadow-2xl h-full transition-transform duration-300 ease-in-out rounded-br-3xl animate-in slide-in-from-left duration-300 select-none">
+    <Modal
+      open={mobileMenuOpen}
+      onClose={() => setMobileMenuOpen(false)}
+      variant="drawer-left"
+      ariaLabel="Menu"
+      showClose={false}
+      className="md:hidden !w-[87%] !max-w-[400px] rounded-br-3xl select-none"
+    >
+      <div className="relative flex flex-1 flex-col bg-white dark:bg-[#0c0c16] text-gray-900 dark:text-white h-full">
 
         {/* Drawer Header — brand wordmark (from General settings) next to logo, small clean close */}
         <div className="flex items-center justify-between px-6 pt-6 pb-3">
@@ -284,6 +286,6 @@ export function NavbarMobileDrawer({
           )}
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }

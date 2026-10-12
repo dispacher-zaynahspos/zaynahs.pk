@@ -47,7 +47,7 @@ export type TabId = typeof TABS[number]['id'];
 
 interface SettingsTabBarProps {
   activeTab: string;
-  setActiveTab?: (tab: any) => void;
+  setActiveTab?: (tab: TabId) => void;
   metaSyncEnabled?: boolean;
 }
 

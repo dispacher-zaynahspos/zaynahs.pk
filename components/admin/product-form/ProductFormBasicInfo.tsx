@@ -1,7 +1,9 @@
 import React from 'react';
 import { Search, Zap, Loader2 } from '@/components/common/Icons';
-import { SizeGuide } from '@/lib/types';
+import { SizeGuide, Category } from '@/lib/types';
 import { ProductDescriptionEditor } from './ProductDescriptionEditor';
+
+type FlattenedCategory = Category & { _level: number };
 
 interface ProductFormBasicInfoProps {
   name: string;
@@ -12,7 +14,7 @@ interface ProductFormBasicInfoProps {
   setSku: (val: string) => void;
   categorySearchQuery: string;
   setCategorySearchQuery: (val: string) => void;
-  flattenedCategories: any[];
+  flattenedCategories: FlattenedCategory[];
   selectedCategoryIds: string[];
   setSelectedCategoryIds: React.Dispatch<React.SetStateAction<string[]>>;
   visibleCategoryCount: number;

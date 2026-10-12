@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { StoreSettings } from '@/lib/types';
 import ResponsiveGridColumnsControl from '@/components/admin/customizer/shared/ResponsiveGridColumnsControl';
 import GridGapControl from '@/components/admin/customizer/shared/GridGapControl';
+import ContentWidthControl from '@/components/admin/customizer/shared/ContentWidthControl';
+import FillRowsControl from '@/components/admin/customizer/shared/FillRowsControl';
 import { Monitor, Tablet, Smartphone, Palette } from '@/components/common/Icons';
 import { AccordionGroup } from '@/components/admin/customizer/controls';
 import { SegmentedControl, ToggleControl } from '@/components/admin/customizer/controls';
@@ -81,6 +83,10 @@ export default function ShopPageSettings({
           <ResponsiveGridColumnsControl
             label="Shop Catalog Grid Columns"
             viewportMode={viewportMode}
+            mode={settings.shop_columns_mode || 'manual'}
+            onChangeMode={(m) => onUpdateSettings({ shop_columns_mode: m })}
+            minCardDesktop={settings.shop_min_card_desktop || 220}
+            onChangeMinCardDesktop={(px) => onUpdateSettings({ shop_min_card_desktop: px })}
             desktopCols={settings.shop_columns_desktop || 4}
             tabletCols={settings.shop_columns_tablet || 3}
             mobileCols={settings.shop_columns_mobile || 2}
@@ -94,12 +100,86 @@ export default function ShopPageSettings({
             onChange={(v) => onUpdateSettings({ shop_grid_gap: v })}
           />
 
+          <ContentWidthControl
+            value={settings.shop_content_width ?? 'wide'}
+            onChange={(w) => onUpdateSettings({ shop_content_width: w })}
+          />
+
+          <FillRowsControl
+            value={settings.shop_fill_rows !== false}
+            onChange={(v) => onUpdateSettings({ shop_fill_rows: v })}
+          />
+
           <ToggleControl
             label="Show Breadcrumbs"
             help="Category/collection breadcrumb trail above the shop header."
             value={settings.shop_show_breadcrumbs ?? true}
             onChange={(v) => onUpdateSettings({ shop_show_breadcrumbs: v })}
           />
+
+          {/* Filter Sidebar controls */}
+          <div className="space-y-3 p-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-white/[0.02]">
+            <span className="text-[11px] font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider block">
+              Filter Sidebar
+            </span>
+
+            {/* Position */}
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 block uppercase tracking-wider">Position</label>
+              <div className="grid grid-cols-3 gap-1.5">
+                {([
+                  { key: 'left', label: 'Left' },
+                  { key: 'right', label: 'Right' },
+                  { key: 'drawer', label: 'Drawer' },
+                ] as const).map((p) => {
+                  const active = (settings.shop_sidebar_position || 'left') === p.key;
+                  return (
+                    <button
+                      key={p.key}
+                      type="button"
+                      onClick={() => onUpdateSettings({ shop_sidebar_position: p.key })}
+                      className={`px-2 py-1.5 rounded-lg border text-[11px] font-bold transition-all cursor-pointer ${
+                        active
+                          ? 'border-[#e94560] bg-[#e94560]/5 text-[#e94560]'
+                          : 'border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-300 hover:border-gray-300'
+                      }`}
+                    >
+                      {p.label}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="text-[10px] text-gray-400 leading-normal">
+                Drawer = no desktop sidebar; filters open via a Filters button (grid uses full width).
+              </p>
+            </div>
+
+            <ToggleControl
+              label="Sticky Sidebar"
+              help="Sidebar stays in view while the product grid scrolls (left/right positions)."
+              value={settings.shop_sidebar_sticky !== false}
+              onChange={(v) => onUpdateSettings({ shop_sidebar_sticky: v })}
+            />
+
+            {/* Which filter blocks show */}
+            <div className="pt-1 space-y-2.5">
+              <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 block uppercase tracking-wider">Show Filter Blocks</span>
+              {([
+                { key: 'shop_filter_show_categories', label: 'Categories' },
+                { key: 'shop_filter_show_availability', label: 'Availability' },
+                { key: 'shop_filter_show_price', label: 'Price Range' },
+                { key: 'shop_filter_show_variations', label: 'Variations (color/size/material)' },
+                { key: 'shop_filter_show_featured', label: 'Featured Products' },
+              ] as const).map((b) => (
+                <ToggleControl
+                  key={b.key}
+                  label={b.label}
+                  value={(settings[b.key] as boolean | undefined) !== false}
+                  onChange={(v) => onUpdateSettings({ [b.key]: v } as any)}
+                />
+              ))}
+            </div>
+          </div>
         </div>
       )}
 

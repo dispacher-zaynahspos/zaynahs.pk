@@ -35,7 +35,7 @@ export default function DesktopPlacementSettings({
           <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5">Logo</label>
           <select
             value={headerDesktopLogoAlign}
-            onChange={(e) => setHeaderDesktopLogoAlign(e.target.value as any)}
+            onChange={(e) => setHeaderDesktopLogoAlign(e.target.value as 'left' | 'center' | 'right')}
             className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f0f1b] px-3 py-2 text-xs focus:outline-none focus:border-[#e94560] text-gray-950 dark:text-white"
           >
             <option value="left">Left</option>
@@ -48,7 +48,7 @@ export default function DesktopPlacementSettings({
           <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5">Search Icon</label>
           <select
             value={headerDesktopSearchAlign}
-            onChange={(e) => setHeaderDesktopSearchAlign(e.target.value as any)}
+            onChange={(e) => setHeaderDesktopSearchAlign(e.target.value as 'left' | 'right' | 'hidden')}
             className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f0f1b] px-3 py-2 text-xs focus:outline-none focus:border-[#e94560] text-gray-955 dark:text-white"
           >
             <option value="left">Left</option>
@@ -62,7 +62,7 @@ export default function DesktopPlacementSettings({
           <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5">Wishlist Icon</label>
           <select
             value={headerDesktopWishlistAlign}
-            onChange={(e) => setHeaderDesktopWishlistAlign(e.target.value as any)}
+            onChange={(e) => setHeaderDesktopWishlistAlign(e.target.value as 'left' | 'right' | 'hidden')}
             className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f0f1b] px-3 py-2 text-xs focus:outline-none focus:border-[#e94560] text-gray-955 dark:text-white"
           >
             <option value="left">Left</option>
@@ -76,7 +76,7 @@ export default function DesktopPlacementSettings({
           <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5">Cart Icon</label>
           <select
             value={headerDesktopCartAlign}
-            onChange={(e) => setHeaderDesktopCartAlign(e.target.value as any)}
+            onChange={(e) => setHeaderDesktopCartAlign(e.target.value as 'left' | 'right' | 'hidden')}
             className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f0f1b] px-3 py-2 text-xs focus:outline-none focus:border-[#e94560] text-gray-955 dark:text-white"
           >
             <option value="left">Left</option>
@@ -90,7 +90,7 @@ export default function DesktopPlacementSettings({
           <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5">Theme Toggle</label>
           <select
             value={headerDesktopThemeAlign}
-            onChange={(e) => setHeaderDesktopThemeAlign(e.target.value as any)}
+            onChange={(e) => setHeaderDesktopThemeAlign(e.target.value as 'left' | 'right' | 'hidden')}
             className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f0f1b] px-3 py-2 text-xs focus:outline-none focus:border-[#e94560] text-gray-955 dark:text-white"
           >
             <option value="left">Left</option>

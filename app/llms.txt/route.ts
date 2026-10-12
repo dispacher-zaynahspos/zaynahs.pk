@@ -99,7 +99,7 @@ export async function GET() {
         'Cache-Control': 's-maxage=3600, stale-while-revalidate=86400',
       },
     });
-  } catch (error: any) {
-    return new Response(`Error: ${error.message}`, { status: 500 });
+  } catch (error: unknown) {
+    return new Response(`Error: ${error instanceof Error ? error.message : String(error)}`, { status: 500 });
   }
 }

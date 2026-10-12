@@ -35,6 +35,8 @@ interface ShopPageControlsProps {
   hasSortParam: boolean;
   getSortLabel: (val: string) => string;
   defaultSort?: string;
+  /** when sidebar is in drawer mode, show the Filters button on desktop too */
+  showDesktopFilterButton?: boolean;
 }
 
 export default function ShopPageControls({
@@ -67,6 +69,7 @@ export default function ShopPageControls({
   hasSortParam,
   getSortLabel,
   defaultSort = 'manual',
+  showDesktopFilterButton = false,
 }: ShopPageControlsProps) {
   const showActivePills =
     selectedCategoryId ||
@@ -95,7 +98,7 @@ export default function ShopPageControls({
               color: 'var(--btn-primary-text, #ffffff)',
               borderRadius: 'var(--border-radius-btn, 12px)'
             }}
-            className="md:hidden flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-bold transition-all shadow-xs hover:brightness-110 active:scale-95 shrink-0"
+            className={`${showDesktopFilterButton ? 'flex' : 'md:hidden flex'} items-center justify-center gap-1.5 px-4 py-2 text-xs font-bold transition-all shadow-xs hover:brightness-110 active:scale-95 shrink-0`}
           >
             <SlidersHorizontal className="h-4 w-4" />
             <span>Filter</span>

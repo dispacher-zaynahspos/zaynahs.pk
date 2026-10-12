@@ -69,7 +69,7 @@ export const createCoupon = async (coupon: Omit<Coupon, 'id' | 'created_at' | 'u
 export const updateCoupon = async (id: string, coupon: Partial<Coupon>): Promise<Coupon> => {
   try {
     const supabase = await createClient();
-    const updatePayload: any = {};
+    const updatePayload: Partial<CouponRow> = {};
     if (coupon.code !== undefined) updatePayload.code = coupon.code.trim().toUpperCase();
     if (coupon.discount_type !== undefined) updatePayload.discount_type = coupon.discount_type;
     if (coupon.value !== undefined) updatePayload.value = coupon.value;
@@ -127,7 +127,7 @@ export const validateCouponCode = async (code: string, subtotal: number): Promis
     }
 
     return { coupon };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[coupons] validateCouponCode failed:', error);
     return { error: 'Failed to validate coupon. Please try again.' };
   }

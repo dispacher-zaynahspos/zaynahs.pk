@@ -21,13 +21,13 @@ export default function SocialFeedSettings({
   const settings = section.settings || {};
   const contentData = section.content_data || {};
 
-  const handleSettingsChange = (key: string, value: any) => {
+  const handleSettingsChange = (key: string, value: unknown) => {
     onUpdateSection({
       settings: { ...settings, [key]: value }
     });
   };
 
-  const handleContentChange = (key: string, value: any) => {
+  const handleContentChange = (key: string, value: unknown) => {
     onUpdateSection({
       content_data: { ...contentData, [key]: value }
     });

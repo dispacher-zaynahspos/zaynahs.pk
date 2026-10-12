@@ -15,12 +15,12 @@ export async function triggerMetaSync(productId: string): Promise<{ success: boo
     
     const result = await syncProductToMeta(product, 'UPDATE');
     if (!result.success) {
-      return { success: false, error: result.error || 'Failed to synchronize with Meta' };
+      return { success: false, error: (typeof result.error === 'string' ? result.error : undefined) || 'Failed to synchronize with Meta' };
     }
     
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[metaSyncAction] triggerMetaSync failed:', error);
-    return { success: false, error: error.message || 'Unknown error occurred during manual sync.' };
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error occurred during manual sync.' };
   }
 }

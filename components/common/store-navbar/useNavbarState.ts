@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { useBodyScrollLock } from '@/lib/hooks/useBodyScrollLock';
+import type { CustomerSession } from '@/lib/utils/customer-auth';
 
 export function useNavbarState(
   mobileMenuOpen: boolean,
@@ -11,7 +12,7 @@ export function useNavbarState(
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
   const [wishlistCount, setWishlistCount] = useState(0);
-  const [customerSession, setCustomerSession] = useState<any>(null);
+  const [customerSession, setCustomerSession] = useState<CustomerSession | null>(null);
   const [isPreview, setIsPreview] = useState(false);
   const moreOpenRef = useRef(false);
   const [moreDropdownOpen, setMoreDropdownOpen] = useState(false);

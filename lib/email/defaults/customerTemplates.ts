@@ -1,6 +1,6 @@
 import { getCTAButton, getOrderSummary } from './layout';
 
-export function getCustomerTemplate(emailType: string, vars: Record<string, any>): { title: string; content: string } | null {
+export function getCustomerTemplate(emailType: string, vars: Record<string, string>): { title: string; content: string } | null {
   switch (emailType) {
     case 'welcome':
       return {

@@ -164,7 +164,7 @@ export function HeroActiveSlideForm({
           </label>
           <select
             value={activeSlide.image_fit || 'cover'}
-            onChange={(e) => handleSlideChange(activeSlide.id, { image_fit: e.target.value as any })}
+            onChange={(e) => handleSlideChange(activeSlide.id, { image_fit: e.target.value as 'cover' | 'contain' | 'fill' })}
             className="px-2.5 py-1 bg-white dark:bg-[#0f0f1b]/50 border border-gray-200 dark:border-gray-800 rounded-lg text-xs font-semibold text-gray-900 dark:text-white"
           >
             <option value="cover">Cover (Full Bleed - recommended)</option>

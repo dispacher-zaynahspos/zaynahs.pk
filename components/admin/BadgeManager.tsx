@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Plus, Edit, Trash2, X } from '@/components/common/Icons';
+import { Modal } from '@/components/common/Modal';
 import { useConfirm } from '@/components/admin/shared/AdminConfirmProvider';
 import { Badge } from '@/lib/types';
 import { createBadge, updateBadge, deleteBadge } from '@/lib/services/badges';
@@ -194,9 +195,16 @@ export default function BadgeManager({ initialBadges }: BadgeManagerProps) {
       )}
 
       {/* modal overlay */}
-      {isOpen && (
-        <div className="fixed inset-0 z-55 flex items-center justify-center bg-black/60 p-4">
-          <div className="bg-white dark:bg-[#16162a] w-full max-w-md rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xl overflow-hidden animate-scale-in text-gray-900 dark:text-white will-change-transform">
+      <Modal
+        open={isOpen}
+        onClose={() => setIsOpen(false)}
+        variant="center"
+        size="sm"
+        showClose={false}
+        zIndexClassName="z-[1055]"
+        className="!bg-transparent !border-0 !shadow-none !rounded-none !overflow-visible"
+      >
+        <div className="bg-white dark:bg-[#16162a] w-full rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xl overflow-hidden text-gray-900 dark:text-white will-change-transform">
             <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100 dark:border-gray-800">
               <h3 className="text-base font-bold text-gray-900 dark:text-white">
                 {editId ? 'Edit Badge' : 'Create New Badge'}
@@ -333,8 +341,7 @@ export default function BadgeManager({ initialBadges }: BadgeManagerProps) {
               </div>
             </form>
           </div>
-        </div>
-      )}
+      </Modal>
     </div>
   );
 }

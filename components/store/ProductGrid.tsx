@@ -3,7 +3,7 @@ import { Product, StoreSettings } from '@/lib/types';
 import { getEllaCardVariant, toCardProduct, EllaProductGrid } from '@/components/product-cards';
 import ProductCard from './ProductCard';
 import EmptyState from '../common/EmptyState';
-import { getResponsiveGridClasses, getGridGapClass, GridGapOption } from '@/lib/utils/responsiveGrid';
+import { getCatalogGridStyle, GridGapOption, CatalogColumnsMode } from '@/lib/utils/responsiveGrid';
 
 interface ProductGridProps {
   products: Product[];
@@ -12,6 +12,9 @@ interface ProductGridProps {
   columnsDesktop?: number;
   columnsTablet?: number;
   columnsMobile?: number;
+  columnsWide?: number;
+  columnsMode?: CatalogColumnsMode;
+  minCardDesktop?: number;
   gridGap?: GridGapOption;
 }
 
@@ -22,6 +25,9 @@ export default function ProductGrid({
   columnsDesktop,
   columnsTablet,
   columnsMobile,
+  columnsWide,
+  columnsMode,
+  minCardDesktop,
   gridGap,
 }: ProductGridProps) {
   if (products.length === 0) {
@@ -38,6 +44,14 @@ export default function ProductGrid({
         products={products.map((product) => toCardProduct(product, settings))}
         settings={settings}
         currencySymbol={currencySymbol}
+        cols={{
+          mode: columnsMode,
+          desktop: columnsDesktop,
+          tablet: columnsTablet,
+          mobile: columnsMobile,
+          wide: columnsWide,
+          minDesktop: minCardDesktop,
+        }}
         renderProduct={(cardProduct) => {
           const product = products.find((item) => item.id === cardProduct.id) || products[0];
           return product ? (
@@ -54,16 +68,18 @@ export default function ProductGrid({
     );
   }
 
-  const gridClasses = getResponsiveGridClasses({
+  const grid = getCatalogGridStyle({
+    mode: columnsMode,
     mobile: columnsMobile ?? (settings?.card_mobile_columns === 1 ? 1 : 2),
     tablet: columnsTablet ?? 3,
     desktop: columnsDesktop ?? 4,
+    wide: columnsWide,
+    minDesktop: minCardDesktop,
+    gap: effectiveGap,
   });
 
-  const gapClass = getGridGapClass(effectiveGap);
-
   return (
-    <div className={`grid ${gapClass} ${gridClasses}`}>
+    <div className={grid.className} data-mode={grid.mode} style={grid.style}>
       {products.map((product, index) => (
         <ProductCard key={product.id} product={product} currencySymbol={currencySymbol} settings={settings} priority={index < 6} />
       ))}

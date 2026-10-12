@@ -5,8 +5,9 @@ import { buildVariables, replaceVariables, renderOrderItemsTable } from '@/lib/e
 import { getDefaultTemplate } from '@/lib/email/defaults/getDefaultTemplate';
 import { sendEmail } from '@/lib/email/sendEmail';
 import { getSiteUrl } from '@/lib/site-url-server';
+import type { CartItem } from '@/lib/types';
 
-const mockData: Record<string, any> = {
+const mockData: Record<string, unknown> = {
   customer: {
     name: 'Test Customer',
     email: 'customer@example.com',
@@ -123,8 +124,9 @@ export async function POST(
     // Build variable values
     const variables = await buildVariables(type, mergedData);
     
-    if (mockData.order?.items) {
-      variables.order_items_html = renderOrderItemsTable(mockData.order.items, settings.currency_symbol);
+    if (mockData.order && typeof mockData.order === 'object' && 'items' in mockData.order) {
+      const orderItems = (mockData.order as { items: CartItem[] }).items;
+      variables.order_items_html = renderOrderItemsTable(orderItems, settings.currency_symbol);
     }
 
     // Resolve Subject and Body
@@ -149,9 +151,10 @@ export async function POST(
     }
 
     return NextResponse.json({ success: true, message: `Test email sent successfully to ${to}` });
-  } catch (error: any) {
+  } catch (error: unknown) {
     const { type } = await params;
     console.error(`[API email-templates/send-test] POST for '${type}' failed:`, error);
-    return NextResponse.json({ success: false, error: error.message || 'Internal server error' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Internal server error';
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }

@@ -6,7 +6,10 @@ import { Trash2, Plus } from '@/components/common/Icons';
 import { AccordionGroup } from '@/components/admin/customizer/controls';
 import ResponsiveGridColumnsControl from '../shared/ResponsiveGridColumnsControl';
 import GridGapControl from '../shared/GridGapControl';
+import ContentWidthControl from '../shared/ContentWidthControl';
+import FillRowsControl from '../shared/FillRowsControl';
 import GridLimitControl from '../shared/GridLimitControl';
+import CatalogLimitControl from '../shared/CatalogLimitControl';
 import SectionSpacingControls from '../shared/SectionSpacingControls';
 
 interface Tab {
@@ -94,16 +97,23 @@ export default function TabbedProductGridSettings({
       {/* Grid Layout */}
       <AccordionGroup id={`tpg-${section.id}-layout`} title="Grid Layout" defaultOpen={false}>
         <div className="space-y-4 pt-2">
-          <GridLimitControl
+          <CatalogLimitControl
             label="Products per Tab"
-            value={s.limit_per_tab || 8}
-            onChange={(v) => setSetting('limit_per_tab', v)}
-            min={4}
-            step={4}
+            mode={s.limit_mode || 'manual'}
+            onChangeMode={(m) => setSetting('limit_mode', m)}
+            rows={Number(s.limit_rows) || 2}
+            onChangeRows={(r) => setSetting('limit_rows', r)}
+            manual={Number(s.limit_per_tab) || 8}
+            onChangeManual={(v) => setSetting('limit_per_tab', v)}
+            previewColumns={Number(s.columns_desktop) || 4}
           />
           <ResponsiveGridColumnsControl
             label="Columns per Row"
             viewportMode={viewportMode}
+            mode={s.columns_mode || 'manual'}
+            onChangeMode={(m) => setSetting('columns_mode', m)}
+            minCardDesktop={Number(s.min_card_desktop) || 220}
+            onChangeMinCardDesktop={(px) => setSetting('min_card_desktop', px)}
             desktopCols={Number(s.columns_desktop) || 4}
             tabletCols={Number(s.columns_tablet) || 3}
             mobileCols={Number(s.columns_mobile) || 2}
@@ -114,6 +124,14 @@ export default function TabbedProductGridSettings({
           <GridGapControl
             value={s.grid_gap || 'normal'}
             onChange={(gap) => setSetting('grid_gap', gap)}
+          />
+          <ContentWidthControl
+            value={s.content_width || 'wide'}
+            onChange={(w) => setSetting('content_width', w)}
+          />
+          <FillRowsControl
+            value={s.fill_rows !== false}
+            onChange={(v) => setSetting('fill_rows', v)}
           />
         </div>
       </AccordionGroup>

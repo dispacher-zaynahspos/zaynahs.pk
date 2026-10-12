@@ -2,6 +2,22 @@
 
 import { supabaseAdmin } from '@/lib/supabase/admin';
 
+interface CustomerOrderRow {
+  id: string;
+  total: number | string | null;
+  status: string | null;
+}
+
+interface CustomerWithOrdersRow {
+  id: string;
+  name: string | null;
+  email: string | null;
+  phone: string | null;
+  created_at: string;
+  deleted_at?: string | null;
+  orders?: CustomerOrderRow[] | null;
+}
+
 /**
  * Get all customers for the admin portal dashboard
  */
@@ -17,14 +33,14 @@ export async function getAdminCustomers() {
 
     if (error) throw error;
 
-    return (data || []).map((c: any) => {
+    return (data || []).map((c: CustomerWithOrdersRow) => {
       const orders = c.orders || [];
-      const validOrders = orders.filter((o: any) => o.status !== 'cancelled');
-      const totalSpent = validOrders.reduce((sum: number, o: any) => sum + Number(o.total || 0), 0);
+      const validOrders = orders.filter((o) => o.status !== 'cancelled');
+      const totalSpent = validOrders.reduce((sum: number, o) => sum + Number(o.total || 0), 0);
 
       return {
         id: c.id,
-        name: c.name,
+        name: c.name || '',
         email: c.email || null,
         phone: c.phone || null,
         createdAt: c.created_at,
@@ -48,14 +64,14 @@ export async function getDeletedCustomers() {
 
     if (error) throw error;
 
-    return (data || []).map((c: any) => {
+    return (data || []).map((c: CustomerWithOrdersRow) => {
       const orders = c.orders || [];
-      const validOrders = orders.filter((o: any) => o.status !== 'cancelled');
-      const totalSpent = validOrders.reduce((sum: number, o: any) => sum + Number(o.total || 0), 0);
+      const validOrders = orders.filter((o) => o.status !== 'cancelled');
+      const totalSpent = validOrders.reduce((sum: number, o) => sum + Number(o.total || 0), 0);
 
       return {
         id: c.id,
-        name: c.name,
+        name: c.name || '',
         email: c.email || null,
         phone: c.phone || null,
         createdAt: c.created_at,

@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { createPortal } from 'react-dom';
 import { toast } from 'sonner';
 import { X, Sparkles, Loader2 } from '@/components/common/Icons';
+import { Modal } from '@/components/common/Modal';
 import type { MediaItem } from './hooks/useMediaManagerData';
 
 interface EditMetadataModalProps {
@@ -34,8 +34,6 @@ export default function EditMetadataModal({
   onSave,
 }: EditMetadataModalProps) {
   const [generating, setGenerating] = useState<GenTarget | null>(null);
-
-  if (typeof document === 'undefined') return null;
 
   const isImage = !editingItem.mime_type || editingItem.mime_type.startsWith('image/');
   const altLength = (editingItem.alt_text || '').length;
@@ -89,10 +87,9 @@ Rules:
     }
   };
 
-  return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
-      <div className="bg-white dark:bg-[#16162a] rounded-2xl max-w-md w-full border border-gray-200 dark:border-gray-800 shadow-2xl overflow-hidden">
-        <div className="flex justify-between items-center p-4 border-b border-gray-100 dark:border-gray-800">
+  return (
+    <Modal open onClose={() => setEditingItem(null)} showClose={false} size="sm">
+      <div className="flex justify-between items-center p-4 border-b border-gray-100 dark:border-gray-800">
           <h3 className="font-bold text-gray-900 dark:text-white">Edit Image Metadata</h3>
           <button
             type="button"
@@ -188,8 +185,6 @@ Rules:
             </button>
           </div>
         </form>
-      </div>
-    </div>,
-    document.body
+    </Modal>
   );
 }

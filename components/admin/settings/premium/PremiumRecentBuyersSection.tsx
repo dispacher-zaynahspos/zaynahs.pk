@@ -228,7 +228,7 @@ export function PremiumRecentBuyersSection({
         <label className="text-xs font-bold text-gray-700 dark:text-gray-300 block">Product Notification Pool</label>
         <select
           value={recentBuyersProductPool}
-          onChange={(e) => setRecentBuyersProductPool(e.target.value as any)}
+          onChange={(e) => setRecentBuyersProductPool(e.target.value as 'any' | 'featured' | 'sale' | 'recent' | 'custom')}
           className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f0f1b] text-gray-955 dark:text-gray-50 focus:outline-none focus:ring-2 focus:ring-[#e94560]"
         >
           <option value="any">Any Active Storefront Product</option>

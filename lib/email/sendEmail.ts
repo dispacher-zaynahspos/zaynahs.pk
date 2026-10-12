@@ -93,8 +93,8 @@ export async function sendEmail({
 
     console.log(`[Email] Message sent successfully: ${info.messageId}`);
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[Email] Failed to send email via SMTP transporter:', error);
-    return { success: false, error: error.message || 'SMTP delivery failed' };
+    return { success: false, error: error instanceof Error ? error.message : 'SMTP delivery failed' };
   }
 }

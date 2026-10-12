@@ -9,6 +9,7 @@ import { trackEvent } from '@/lib/trackEvent';
 import { useSettings } from '@/lib/hooks/useSettings';
 import { SORT_OPTIONS, getSortLabel, toNumber, extractUsedVariants, filterProductsList } from './shopFilterUtils';
 import { useShopUrlParamsSync } from './hooks/useShopUrlParamsSync';
+import { useCatalogColumns } from '@/lib/hooks/useCatalogColumns';
 
 export { SORT_OPTIONS, getSortLabel };
 
@@ -69,11 +70,16 @@ export function useShopPageFilters({
     urlSortParam && SORT_OPTIONS.some((o) => o.value === urlSortParam) ? urlSortParam : defaultSort
   );
   const [viewMode, setViewModeRaw] = useState<'grid-3' | 'grid-4' | 'list'>('grid-4');
+  // null = use the configured shop_columns_* settings. A number = explicit view-mode override
+  // (set only when the user clicks the 3-up / 4-up quick toggles). This keeps the merchant's
+  // saved desktop/tablet columns authoritative until the user explicitly overrides them.
   const [desktopColsOverride, setDesktopColsOverride] = useState<number | null>(null);
+  const [tabletColsOverride, setTabletColsOverride] = useState<number | null>(null);
   const setViewMode = (mode: 'grid-3' | 'grid-4' | 'list') => {
     setViewModeRaw(mode);
-    if (mode === 'grid-3') setDesktopColsOverride(3);
-    else if (mode === 'grid-4') setDesktopColsOverride(4);
+    if (mode === 'grid-3') { setDesktopColsOverride(3); setTabletColsOverride(2); }
+    else if (mode === 'grid-4') { setDesktopColsOverride(4); setTabletColsOverride(null); }
+    else { setDesktopColsOverride(null); setTabletColsOverride(null); }
   };
   const [isCollectionDescExpanded, setIsCollectionDescExpanded] = useState(false);
   const [isCategoryDescExpanded, setIsCategoryDescExpanded] = useState(false);
@@ -226,15 +232,28 @@ export function useShopPageFilters({
   const totalPages = Math.max(1, Math.ceil(totalResults / PAGE_SIZE));
   const numberedPage = Math.min(pageFromUrl, totalPages);
 
+  // Fill-rows (RULE DS24): round the cumulative visible count up to a full row so
+  // the last row is never half-empty when more products exist. Default ON.
+  const fillRowsEnabled = activeSettings?.shop_fill_rows !== false;
+  const { fill } = useCatalogColumns({
+    mode: activeSettings?.shop_columns_mode || 'manual',
+    mobile: activeSettings?.shop_columns_mobile || 2,
+    tablet: tabletColsOverride ?? activeSettings?.shop_columns_tablet ?? 3,
+    desktop: desktopColsOverride ?? activeSettings?.shop_columns_desktop ?? 4,
+    wide: activeSettings?.shop_columns_wide,
+    minDesktop: activeSettings?.shop_min_card_desktop,
+  });
+
   const displayProducts = useMemo(() => {
     if (paginationMode === 'numbered') {
       // Show ONLY the current page slice (classic 1 2 3 pagination)
       const start = (numberedPage - 1) * PAGE_SIZE;
       return filteredProducts.slice(start, start + PAGE_SIZE);
     }
-    // infinite / load_more: cumulative slice
-    return filteredProducts.slice(0, loadMoreLimit);
-  }, [filteredProducts, loadMoreLimit, paginationMode, numberedPage, PAGE_SIZE]);
+    // infinite / load_more: cumulative slice, rounded up to a full row
+    const visible = fill(loadMoreLimit, filteredProducts.length, fillRowsEnabled);
+    return filteredProducts.slice(0, visible);
+  }, [filteredProducts, loadMoreLimit, paginationMode, numberedPage, PAGE_SIZE, fill, fillRowsEnabled]);
 
   // hasMore only applies to infinite + load_more (numbered uses page buttons)
   const hasMore = paginationMode !== 'numbered' && displayProducts.length < totalResults;
@@ -334,6 +353,7 @@ export function useShopPageFilters({
     viewMode,
     setViewMode,
     desktopColsOverride,
+    tabletColsOverride,
     isCollectionDescExpanded,
     setIsCollectionDescExpanded,
     isCategoryDescExpanded,

@@ -2,12 +2,14 @@
 
 import { useTransition } from 'react';
 import { toast } from 'sonner';
+import type { useTrashConsoleFilters } from './useTrashConsoleFilters';
 import { Product, Category, Review, Order, WhatsAppSubscriber, EmailSubscriber, SizeGuide, VariantPreset } from '@/lib/types';
 import { restoreProduct, hardDeleteProduct } from '@/lib/services/products';
 import { restoreCategory, hardDeleteCategory } from '@/lib/services/categories';
 import { restoreReview, hardDeleteReview } from '@/lib/services/reviews';
 import { restoreOrder, hardDeleteOrder } from '@/lib/services/orders';
 import { restoreCustomer, hardDeleteCustomer } from '@/lib/services/customers';
+import type { TrashedCustomer } from '@/lib/services/customers';
 import { restoreMedia, hardDeleteMedia, TrashedMedia } from '@/lib/services/media';
 import {
   restoreWhatsAppSubscriber,
@@ -19,6 +21,7 @@ import { restoreSizeGuide, hardDeleteSizeGuide } from '@/lib/services/sizeGuides
 import { restoreVariantPreset, hardDeleteVariantPreset } from '@/lib/services/variantPresets';
 import { useTrashConsoleBulkActions } from './useTrashConsoleBulkActions';
 import { TabType } from '../TrashConsoleNavigation';
+import type { ConfirmDeleteState, ConfirmDeleteExtraInfo } from '../TrashConfirmModals';
 
 interface UseTrashConsoleActionsProps {
   products: Product[];
@@ -29,8 +32,8 @@ interface UseTrashConsoleActionsProps {
   setReviews: React.Dispatch<React.SetStateAction<(Review & { productName?: string })[]>>;
   orders: Order[];
   setOrders: React.Dispatch<React.SetStateAction<Order[]>>;
-  customers: any[];
-  setCustomers: React.Dispatch<React.SetStateAction<any[]>>;
+  customers: TrashedCustomer[];
+  setCustomers: React.Dispatch<React.SetStateAction<TrashedCustomer[]>>;
   media: TrashedMedia[];
   setMedia: React.Dispatch<React.SetStateAction<TrashedMedia[]>>;
   whatsappSubscribers: WhatsAppSubscriber[];
@@ -41,9 +44,9 @@ interface UseTrashConsoleActionsProps {
   setSizeGuides: React.Dispatch<React.SetStateAction<SizeGuide[]>>;
   variantPresets: VariantPreset[];
   setVariantPresets: React.Dispatch<React.SetStateAction<VariantPreset[]>>;
-  filters: any;
-  confirmDelete: { id: string; type: TabType; name: string; extraInfo?: any } | null;
-  setConfirmDelete: (val: any) => void;
+  filters: ReturnType<typeof useTrashConsoleFilters>;
+  confirmDelete: ConfirmDeleteState | null;
+  setConfirmDelete: (val: ConfirmDeleteState | null) => void;
   setConfirmBulkDelete: (val: boolean) => void;
   setConfirmEmptyTab: (val: boolean) => void;
   setConfirmEmptyCompleteTrash: (val: boolean) => void;
@@ -79,7 +82,7 @@ export function useTrashConsoleActions({
 }: UseTrashConsoleActionsProps) {
   const [isPending, startTransition] = useTransition();
 
-  const handleRestore = async (id: string, type: TabType, extraInfo?: any) => {
+  const handleRestore = async (id: string, type: TabType, extraInfo?: ConfirmDeleteExtraInfo) => {
     startTransition(async () => {
       try {
         if (type === 'products') {

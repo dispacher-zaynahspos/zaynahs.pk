@@ -25,7 +25,7 @@ interface ProductDetailInfoProps {
   product: Product;
   settings: StoreSettings;
   selectedVariant?: ProductVariant;
-  onVariantChange: (v: ProductVariant) => void;
+  onVariantChange: (v?: ProductVariant) => void;
   selectedModifiers: ProductModifier[];
   onModifierToggle: (m: ProductModifier) => void;
   quantity: number;
@@ -45,6 +45,7 @@ interface ProductDetailInfoProps {
   onOpenShareModal: () => void;
   onOpenSizeGuide: () => void;
   whatsappUrl: string;
+  onPreviewImage?: (url: string) => void;
 }
 
 export default function ProductDetailInfo({
@@ -71,6 +72,7 @@ export default function ProductDetailInfo({
   onOpenShareModal,
   onOpenSizeGuide,
   whatsappUrl,
+  onPreviewImage,
 }: ProductDetailInfoProps) {
   const [mounted, setMounted] = useState(false);
   const sizeGuide = product.size_guide;
@@ -184,6 +186,7 @@ export default function ProductDetailInfo({
               enableSwatches={product.enable_swatches}
               settings={settings}
               variationOrder={product.variation_order}
+              onPreviewImage={onPreviewImage}
             />
           </div>
         )}
@@ -287,6 +290,7 @@ export default function ProductDetailInfo({
             <AddToCartButton
               animation={settings.add_to_cart_animation || 'none'}
               isOutOfStock={stockAvailable <= 0}
+              disabled={stockAvailable <= 0 || Boolean(product.has_variants && product.variants?.length && !selectedVariant)}
               isFaded={Boolean(product.has_variants && product.variants?.length && !selectedVariant)}
               label={Boolean(product.has_variants && product.variants?.length && !selectedVariant) ? 'Select an Option' : 'Add to Cart'}
               onAddToCart={onAddToCart}

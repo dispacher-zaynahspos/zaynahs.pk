@@ -24,6 +24,8 @@ export default function HeaderAnnouncementFields({
 }: HeaderAnnouncementFieldsProps) {
   const showTopBar = settings.header_show_top_bar ?? D.header_show_top_bar;
   const showNewsletter = settings.header_show_newsletter ?? D.header_show_newsletter;
+  const socialEnabled = settings.header_social_enabled !== false;
+  const socialOnMobile = settings.header_social_show_mobile === true;
 
   const Toggle = ({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) =>
     variant === 'checkbox' ? (
@@ -89,6 +91,25 @@ export default function HeaderAnnouncementFields({
             placeholder={L.newsletterPlaceholder}
             className="w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#0f0f1b] px-3 py-2 text-xs font-semibold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white resize-none"
           />
+        </div>
+      )}
+
+      {/* Social icons on the announcement bar (shared SSOT with footer socials) */}
+      <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-800 pb-2 pt-1">
+        <div>
+          <span className="text-xs font-bold text-gray-700 dark:text-gray-300 block">Show Social Icons</span>
+          <span className="text-[10px] text-gray-400">Right side of the bar — uses your Footer social links</span>
+        </div>
+        <Toggle checked={socialEnabled} onChange={(v) => onUpdate({ header_social_enabled: v })} />
+      </div>
+
+      {socialEnabled && (
+        <div className="flex justify-between items-center pl-2 border-l-2 border-[#e94560]/30">
+          <div>
+            <span className="text-xs font-bold text-gray-700 dark:text-gray-300 block">Show on Mobile</span>
+            <span className="text-[10px] text-gray-400">Also show the icons on small screens</span>
+          </div>
+          <Toggle checked={socialOnMobile} onChange={(v) => onUpdate({ header_social_show_mobile: v })} />
         </div>
       )}
     </div>

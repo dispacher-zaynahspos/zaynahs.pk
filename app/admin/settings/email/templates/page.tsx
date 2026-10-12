@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, Edit, Eye, Check, X, Mail } from '@/components/common/Icons';
+import { Modal } from '@/components/common/Modal';
 import { toast } from 'sonner';
 
 interface EmailTemplate {
@@ -270,8 +271,15 @@ export default function EmailTemplatesPage() {
 
       {/* Preview Modal */}
       {previewTemplate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 ">
-          <div className="bg-white dark:bg-[#16162a] w-full max-w-3xl rounded-2xl border border-gray-200 dark:border-gray-800 shadow-2xl flex flex-col max-h-[85vh] overflow-hidden transition-all">
+        <Modal
+          open={true}
+          onClose={() => setPreviewTemplate(null)}
+          variant="center"
+          size="lg"
+          showClose={false}
+          className="!bg-transparent !border-0 !shadow-none !rounded-none !overflow-visible"
+        >
+          <div className="bg-white dark:bg-[#16162a] w-full rounded-2xl border border-gray-200 dark:border-gray-800 shadow-2xl flex flex-col max-h-[85vh] overflow-hidden">
             
             {/* Modal Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-800">
@@ -332,7 +340,7 @@ export default function EmailTemplatesPage() {
             </div>
 
           </div>
-        </div>
+        </Modal>
       )}
     </div>
   );

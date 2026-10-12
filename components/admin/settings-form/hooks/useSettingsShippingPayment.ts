@@ -180,7 +180,7 @@ export function useSettingsShippingPayment() {
       const updated = await updatePaymentMethod(id, {
         name: editPayName.trim(),
         code: editPayCode.trim(),
-        instructions: (editPayInstructions.trim() || null) as any,
+        instructions: (editPayInstructions.trim() || null) as unknown as string | undefined,
       });
       setPaymentMethods((prev) => prev.map((item) => (item.id === id ? updated : item)));
       setEditingPayId(null);

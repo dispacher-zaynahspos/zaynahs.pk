@@ -13,6 +13,14 @@ interface Stats {
   media: { total: number; optimized: number };
 }
 
+interface BulkPendingItem {
+  id: string;
+  name?: string;
+  original_filename?: string;
+  file_name?: string;
+  file_url?: string;
+}
+
 export default function BulkConsoleClient() {
   const [loading, setLoading] = useState(true);
   const [aiEnabled, setAiEnabled] = useState(false);
@@ -113,7 +121,7 @@ export default function BulkConsoleClient() {
     addLog(`Starting bulk run for ${type.toUpperCase()}...`);
 
     const supabase = createClient();
-    let pendingItems: any[] = [];
+    let pendingItems: BulkPendingItem[] = [];
 
     try {
       if (type === 'products') {
@@ -207,16 +215,16 @@ export default function BulkConsoleClient() {
           } else {
             addLog(`❌ Failed for "${label}": ${data.error || 'Server returned error.'}`);
           }
-        } catch (err: any) {
-          addLog(`❌ Connection Error for "${label}": ${err.message || err}`);
+        } catch (err: unknown) {
+          addLog(`❌ Connection Error for "${label}": ${err instanceof Error ? err.message : String(err)}`);
         }
 
         await new Promise((resolve) => setTimeout(resolve, 800));
       }
 
       addLog('Bulk run complete.');
-    } catch (err: any) {
-      addLog(`❌ Bulk process crashed: ${err.message || err}`);
+    } catch (err: unknown) {
+      addLog(`❌ Bulk process crashed: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setRunning(false);
       setCurrentType(null);

@@ -6,6 +6,7 @@ import { Product, Category, StoreSettings, HomepageSection } from '@/lib/types';
 import ProductGrid from '../ProductGrid';
 import ProductCard from '../ProductCard';
 import { SectionWrapper } from './SectionWrapper';
+import { useCatalogColumns } from '@/lib/hooks/useCatalogColumns';
 
 interface StoreFrontProductGridSectionProps {
   section: HomepageSection;
@@ -28,15 +29,40 @@ export function StoreFrontProductGridSection({
   activeSettings,
   getValidCategoryIds,
 }: StoreFrontProductGridSectionProps) {
-  const baseLimit = section.settings?.limit ?? 8;
   const source = section.settings?.source ?? 'all';
   const sortMethod = section.settings?.sortMethod || (source === 'featured' ? 'featured' : 'all');
   const manualProductIds: string[] = section.settings?.manualProductIds || [];
-  const effectiveLimit = loadMoreLimits[section.id] || baseLimit;
   const bottomEnableViewAll = section.settings?.bottomEnableViewAll === true;
   const bottomEnableLoadMore = section.settings?.bottomEnableLoadMore === true;
   const bottomEnableInfiniteScroll = section.settings?.bottomEnableInfiniteScroll === true;
   const displayMode = section.settings?.display_mode || 'grid';
+
+  // Fill-rows + per-layout auto/manual limit (RULE DS24). Columns-aware so the
+  // visible count follows the chosen columns (auto = cols × rows) and the last
+  // row is never half-empty when more products exist. Defaults keep the old
+  // behavior (manual limit 8, fill ON).
+  const fillRowsEnabled = section.settings?.fill_rows !== false;
+  const { columns, fill, limit } = useCatalogColumns({
+    mode: section.settings?.columns_mode || 'manual',
+    mobile: Number(section.settings?.columns_mobile) || 2,
+    tablet: Number(section.settings?.columns_tablet) || 3,
+    desktop: Number(section.settings?.columns_desktop) || 4,
+    wide: section.settings?.columns_wide,
+    minDesktop: section.settings?.min_card_desktop,
+  });
+  const baseLimit = section.settings?.limit ?? 8;
+  const limitCfg = {
+    mode: section.settings?.limit_mode || 'manual',
+    manual: baseLimit,
+    rows: section.settings?.limit_rows,
+  };
+  // Base per-batch target for this layout (before cumulative load-more).
+  const batchTarget = React.useMemo(
+    () => limit(limitCfg, Number.MAX_SAFE_INTEGER, false),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [columns, section.settings?.limit_mode, section.settings?.limit_rows, baseLimit],
+  );
+  const effectiveLimit = loadMoreLimits[section.id] || batchTarget;
 
 
   const sectionProducts = React.useMemo(() => {
@@ -97,8 +123,10 @@ export function StoreFrontProductGridSection({
   }, [filteredProducts, sortMethod, manualProductIds, source, selectedCategoryId, getValidCategoryIds]);
 
   const displayProducts = React.useMemo(() => {
-    return sectionProducts.slice(0, effectiveLimit);
-  }, [sectionProducts, effectiveLimit]);
+    // Round the visible count up to a full row when more products exist (fill-rows).
+    const visible = fill(effectiveLimit, sectionProducts.length, fillRowsEnabled);
+    return sectionProducts.slice(0, visible);
+  }, [sectionProducts, effectiveLimit, fill, fillRowsEnabled]);
 
   const viewAllLink = (() => {
     if (section.settings?.viewAllUrl) {
@@ -133,7 +161,7 @@ export function StoreFrontProductGridSection({
       (entries) => {
         if (entries[0].isIntersecting && !isTriggeringRef.current && typeof onLoadMore === 'function' && section?.id) {
           isTriggeringRef.current = true;
-          onLoadMore(section.id, baseLimit);
+          onLoadMore(section.id, batchTarget);
         }
       },
       { rootMargin: '250px' }
@@ -141,7 +169,7 @@ export function StoreFrontProductGridSection({
 
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [bottomEnableInfiniteScroll, hasMore, onLoadMore, section?.id, baseLimit]);
+  }, [bottomEnableInfiniteScroll, hasMore, onLoadMore, section?.id, batchTarget]);
 
   return (
     <SectionWrapper section={section}>
@@ -189,9 +217,12 @@ export function StoreFrontProductGridSection({
           products={displayProducts}
           currencySymbol={activeSettings.currency_symbol}
           settings={activeSettings}
+          columnsMode={section.settings?.columns_mode || 'manual'}
           columnsDesktop={Number(section.settings?.columns_desktop) || 4}
           columnsTablet={Number(section.settings?.columns_tablet) || 3}
           columnsMobile={Number(section.settings?.columns_mobile) || 2}
+          columnsWide={section.settings?.columns_wide ? Number(section.settings.columns_wide) : undefined}
+          minCardDesktop={section.settings?.min_card_desktop ? Number(section.settings.min_card_desktop) : undefined}
           gridGap={section.settings?.grid_gap || 'normal'}
         />
       )}
@@ -211,7 +242,7 @@ export function StoreFrontProductGridSection({
               type="button"
               onClick={(e) => {
                 e.preventDefault();
-                onLoadMore(section.id, baseLimit);
+                onLoadMore(section.id, batchTarget);
               }}
               className="px-5 py-2.5 text-xs md:text-sm font-semibold tracking-wide uppercase rounded-full transition-all duration-200 shadow-sm active:scale-95 hover:brightness-90 cursor-pointer select-none touch-manipulation relative z-10"
               style={{

@@ -190,6 +190,15 @@ export default function ProductDetail({ product, settings, averageRating, social
 
   const whatsappUrl = `https://wa.me/${cleanWhatsAppPhone(settings.whatsapp_number)}?text=${encodeURIComponent(`Hello, I have a question about ${product.name}: ${productUrl}`)}`;
 
+  const handlePreviewImage = React.useCallback((imageUrl: string) => {
+    const idx = images.findIndex(img => img.url === imageUrl);
+    if (idx !== -1) {
+      setActiveImageIndex(idx);
+    } else {
+      setActiveImage(imageUrl);
+    }
+  }, [images, setActiveImageIndex, setActiveImage]);
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 space-y-6">
       {/* Back button */}
@@ -246,6 +255,7 @@ export default function ProductDetail({ product, settings, averageRating, social
           onOpenShareModal={() => setIsShareOpen(true)}
           onOpenSizeGuide={() => setShowSizeGuide(true)}
           whatsappUrl={whatsappUrl}
+          onPreviewImage={handlePreviewImage}
         />
       </div>
 

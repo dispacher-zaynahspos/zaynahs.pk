@@ -46,6 +46,8 @@ export interface Review {
   is_verified_purchase?: boolean;
   screenshot_url?: string;
   images?: string[];
+  /** Public store reply shown under the review on the storefront. */
+  store_reply?: string | null;
   deleted_at?: string | null;
   created_at: string;
 }

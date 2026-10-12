@@ -23,7 +23,7 @@ const Svg = ({ d }: { d: string }) => <svg viewBox="0 0 24 24" fill="none" strok
 const D = { heart: 'M12 20.5s-8-4.9-9-10C2.4 7 4.5 4.5 7.3 4.5c1.9 0 3.5 1 4.7 2.7 1.2-1.7 2.8-2.7 4.7-2.7 2.8 0 4.9 2.5 4.3 6-1 5.1-9 10-9 10z', eye: 'M1.5 12S5.5 5 12 5s10.5 7 10.5 7-4 7-10.5 7S1.5 12 1.5 12zM12 9a3 3 0 100 6 3 3 0 000-6z', bag: 'M5 8h14l1 13H4zM8.5 8V6a3.5 3.5 0 017 0v2' };
 
 export function ProductCard({ product: p, variant, limit, currencySymbol, cardMobileActivation = 'scroll', settings, originalSettings, onWishlist, onQuickView, onAddToCart }: {
-  product: CardProduct; variant: CardVariant; limit: number; currencySymbol?: string; cardMobileActivation?: 'scroll' | 'touch' | 'off'; settings?: { title_line_limit?: string } & Record<string, any> | null; originalSettings?: StoreSettings | null;
+  product: CardProduct; variant: CardVariant; limit: number; currencySymbol?: string; cardMobileActivation?: 'scroll' | 'touch' | 'off'; settings?: { title_line_limit?: string } | null; originalSettings?: StoreSettings | null;
   onWishlist?: (e: React.MouseEvent, p: CardProduct) => void; onQuickView?: (p: CardProduct) => void; onAddToCart?: (e: React.MouseEvent, p: CardProduct) => void;
 }) {
   const v = variants[variant];

@@ -4,10 +4,13 @@ import React from 'react';
 import { TabId } from './index';
 import { SettingsTabRendererCore } from './SettingsTabRendererCore';
 import { SettingsTabRendererAdvanced } from './SettingsTabRendererAdvanced';
+import type { useSettingsFormState } from './hooks/useSettingsFormState';
+
+type SettingsFormState = ReturnType<typeof useSettingsFormState>;
 
 interface SettingsFormTabRendererProps {
   activeTab: TabId;
-  s: any;
+  s: SettingsFormState;
 }
 
 export function SettingsFormTabRenderer({ activeTab, s }: SettingsFormTabRendererProps) {

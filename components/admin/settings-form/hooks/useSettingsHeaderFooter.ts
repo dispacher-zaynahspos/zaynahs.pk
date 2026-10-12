@@ -56,6 +56,8 @@ export function useSettingsHeaderFooter({ initialSettings }: UseSettingsHeaderFo
   const [headerTopBarPhone, setHeaderTopBarPhone] = useState(initialSettings.header_top_bar_phone ?? '');
   const [headerTopBarEmail, setHeaderTopBarEmail] = useState(initialSettings.header_top_bar_email ?? 'contact@store.com');
   const [headerShowNewsletter, setHeaderShowNewsletter] = useState(initialSettings.header_show_newsletter ?? true);
+  const [headerSocialEnabled, setHeaderSocialEnabled] = useState(initialSettings.header_social_enabled ?? true);
+  const [headerSocialShowMobile, setHeaderSocialShowMobile] = useState(initialSettings.header_social_show_mobile ?? false);
 
   // Floating Contacts States
   const [floatingSnapchatEnabled, setFloatingSnapchatEnabled] = useState(initialSettings.floating_snapchat_enabled ?? false);
@@ -215,6 +217,10 @@ export function useSettingsHeaderFooter({ initialSettings }: UseSettingsHeaderFo
     setHeaderTopBarEmail,
     headerShowNewsletter,
     setHeaderShowNewsletter,
+    headerSocialEnabled,
+    setHeaderSocialEnabled,
+    headerSocialShowMobile,
+    setHeaderSocialShowMobile,
     floatingSnapchatEnabled,
     setFloatingSnapchatEnabled,
     floatingTwitterEnabled,

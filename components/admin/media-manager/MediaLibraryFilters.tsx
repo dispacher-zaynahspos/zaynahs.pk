@@ -21,8 +21,8 @@ interface MediaLibraryFiltersProps {
   setSearch: (v: string) => void;
   typeFilter: 'all' | 'image' | 'video';
   setTypeFilter: (v: 'all' | 'image' | 'video') => void;
-  sortBy: string;
-  setSortBy: (v: any) => void;
+  sortBy: 'newest' | 'oldest' | 'size-desc' | 'size-asc';
+  setSortBy: (v: 'newest' | 'oldest' | 'size-desc' | 'size-asc') => void;
   uploading: boolean;
   handleFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
@@ -110,7 +110,7 @@ export function MediaLibraryFilters({
               <input type="file" multiple={multiple} accept="image/*,video/*" onChange={handleFileUpload} className="hidden" />
             </label>
           )}
-          <select value={sortBy} onChange={e => setSortBy(e.target.value as any)}
+          <select value={sortBy} onChange={e => setSortBy(e.target.value as 'newest' | 'oldest' | 'size-desc' | 'size-asc')}
             className="w-full sm:w-44 px-3.5 py-2 text-sm bg-white dark:bg-[#16162a] border border-gray-200 dark:border-gray-800 rounded-xl text-gray-700 dark:text-gray-300 focus:outline-none focus:border-blue-500 min-h-[44px] cursor-pointer">
             <option value="newest">Newest First</option>
             <option value="oldest">Oldest First</option>

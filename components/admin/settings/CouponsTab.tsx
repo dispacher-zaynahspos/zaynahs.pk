@@ -142,7 +142,7 @@ export default function CouponsTab({
               <label className="text-xs font-bold text-gray-755 dark:text-gray-300 block">Discount Type</label>
               <select
                 value={couponDiscountType}
-                onChange={(e) => setCouponDiscountType(e.target.value as any)}
+                onChange={(e) => setCouponDiscountType(e.target.value as 'percentage' | 'fixed')}
                 className="w-full px-3 py-2.5 text-xs rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f0f1b] text-gray-955 dark:text-gray-50 focus:outline-none focus:ring-2 focus:ring-[#e94560]"
               >
                 <option value="percentage">Percentage (%)</option>

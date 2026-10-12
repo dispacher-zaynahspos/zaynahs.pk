@@ -66,7 +66,7 @@ function getAgeGroup(title: string, description: string, categoryPath: string): 
   return 'adult';
 }
 
-interface MetaCatalogItem {
+export interface MetaCatalogItem {
   id: string;
   item_group_id?: string;
   title: string;

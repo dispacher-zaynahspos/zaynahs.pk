@@ -51,8 +51,8 @@ export function useMediaAI() {
       }
       toast.success(`AI alt tags written for: ${item.original_filename}`);
       onRefresh();
-    } catch (err: any) {
-      toast.error(err.message || 'AI metadata write failed');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'AI metadata write failed');
     } finally {
       setGeneratingId(null);
     }

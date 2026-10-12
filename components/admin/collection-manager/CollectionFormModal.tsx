@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
 import { Plus, X, Image as ImageIcon, Loader2, Zap, RefreshCw } from '@/components/common/Icons';
 import { Category, Collection } from '@/lib/types';
 import { toast } from 'sonner';
 import MediaSelectorModal from '../MediaSelectorModal';
 import RichTextEditor from '../RichTextEditor';
 import CategoryAssignmentInput from './CategoryAssignmentInput';
-import { useBodyScrollLock } from '@/lib/hooks/useBodyScrollLock';
+import { Modal } from '@/components/common/Modal';
 import { slugify } from '@/lib/utils/slugify';
 
 interface CollectionFormModalProps {
@@ -39,8 +38,6 @@ export default function CollectionFormModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [aiConfigured] = useState<boolean>(aiEnabled ?? false);
   const [isSlugTouched, setIsSlugTouched] = useState(false);
-
-  useBodyScrollLock(true);
 
   // Auto-fill slug when name changes (unless manually edited)
   useEffect(() => {
@@ -115,25 +112,24 @@ export default function CollectionFormModal({
     }
   };
 
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const modalContent = (
-    <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 bg-black/60 animate-in fade-in duration-200"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="collection-form-modal-title"
-        className="relative w-full max-w-3xl bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 shadow-2xl flex flex-col max-h-[90dvh] overflow-hidden animate-in zoom-in-95 duration-200 text-gray-900 dark:text-white"
+  return (
+    <>
+      <Modal
+        open
+        onClose={onClose}
+        variant="center"
+        size="md"
+        showClose={false}
+        ariaLabel={editId ? 'Edit Collection' : 'Create Collection'}
+        zIndexClassName="z-[100]"
+        className="!bg-transparent !border-0 !shadow-none !rounded-none !overflow-visible"
       >
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="collection-form-modal-title"
+          className="relative w-full max-w-3xl mx-auto bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 shadow-2xl flex flex-col max-h-[90dvh] overflow-hidden text-gray-900 dark:text-white"
+        >
           
           {/* Sticky Header */}
           <div className="flex justify-between items-center px-5 sm:px-6 py-4 border-b border-gray-150 dark:border-gray-800 shrink-0 bg-white dark:bg-[#16162a]">
@@ -374,14 +370,7 @@ export default function CollectionFormModal({
             </div>
           </form>
         </div>
-      </div>
-  );
-
-  if (!mounted) return null;
-
-  return (
-    <>
-      {createPortal(modalContent, document.body)}
+      </Modal>
 
       {isMediaModalOpen && (
         <MediaSelectorModal

@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
+import React from 'react';
 import Image from 'next/image';
-import { X, ZoomIn, ZoomOut } from '@/components/common/Icons';
+import { ZoomIn, ZoomOut } from '@/components/common/Icons';
+import { Modal } from '@/components/common/Modal';
 import { useZoomPan } from '@/lib/hooks/useZoomPan';
 
 interface ReviewImageZoomModalProps {
@@ -19,39 +19,19 @@ export default function ReviewImageZoomModal({
   alt,
   onClose,
 }: ReviewImageZoomModalProps) {
-  const [mounted, setMounted] = useState(false);
   // Shared zoom/pan engine (RULE SSOT1).
   const zoom = useZoomPan({ min: 1, max: 4, doubleTapScale: 2.5, resetDeps: [imageUrl, isOpen] });
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  if (!imageUrl) return null;
 
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
-
-  if (!mounted || !isOpen || !imageUrl) return null;
-
-  return createPortal(
-    <div
-      className="fixed inset-0 z-[150] flex flex-col items-center justify-center bg-black/95 animate-fade-in touch-none select-none"
-      onClick={onClose}
+  // Shared overlay system (RULE MODAL1) — smooth open/close + scroll-lock + ESC.
+  return (
+    <Modal
+      open={isOpen}
+      onClose={onClose}
+      variant="lightbox"
+      ariaLabel={alt || 'Customer feedback'}
     >
-      <button
-        type="button"
-        onClick={(e) => { e.stopPropagation(); onClose(); }}
-        className="absolute top-4 right-4 z-20 w-11 h-11 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer shadow-md"
-        aria-label="Close lightbox"
-      >
-        <X className="w-5 h-5" />
-      </button>
-
       {zoom.isZoomed && (
         <div className="absolute top-4 left-4 z-20 flex gap-2">
           <button
@@ -95,7 +75,6 @@ export default function ReviewImageZoomModal({
           />
         </div>
       </div>
-    </div>,
-    document.body
+    </Modal>
   );
 }

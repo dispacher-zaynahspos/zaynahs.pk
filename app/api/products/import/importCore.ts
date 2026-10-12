@@ -11,12 +11,56 @@ export interface ImportProductResult {
   categoryCache?: Record<string, string>;
 }
 
+interface ImportCategoryData {
+  name?: string;
+  slug?: string;
+  description?: string | null;
+  image_url?: string | null;
+  active?: boolean;
+  sort_order?: number;
+}
+
+interface ImportModifier {
+  name: string;
+  price: number;
+  active?: boolean;
+  sort_order?: number;
+}
+
+export interface ImportProduct {
+  name: string;
+  slug: string;
+  description?: string | null;
+  short_description?: string | null;
+  price: number;
+  compare_price?: number | null;
+  cost?: number | null;
+  sku?: string | null;
+  stock?: number;
+  has_variants?: boolean;
+  is_service?: boolean;
+  is_featured?: boolean;
+  isActive?: boolean;
+  active?: boolean;
+  enable_swatches?: boolean;
+  show_swatches_on_archive?: boolean;
+  tags?: string[];
+  category_id?: string | null;
+  category_slug?: string;
+  category_name?: string;
+  category_data?: ImportCategoryData;
+  categories?: ImportCategoryData[];
+  images?: unknown[];
+  variants?: unknown[];
+  modifiers?: ImportModifier[];
+}
+
 /**
  * Core atomic function to import a single product, including images, variants, modifiers, and categories.
  * RULE D15: Atomic write and overwrite rollback if anything fails.
  */
 export async function importSingleProductCore(
-  p: any,
+  p: ImportProduct,
   strategy: 'skip' | 'overwrite' | 'rename',
   categoryCache: Record<string, string> = {}
 ): Promise<ImportProductResult> {
@@ -139,7 +183,7 @@ export async function importSingleProductCore(
             has_variants: p.has_variants,
             is_service: p.is_service,
             is_featured: p.is_featured,
-            is_active: (p as any).isActive ?? p.active ?? true,
+            is_active: p.isActive ?? p.active ?? true,
             enable_swatches: p.enable_swatches,
             show_swatches_on_archive: p.show_swatches_on_archive,
             tags: p.tags,
@@ -181,7 +225,7 @@ export async function importSingleProductCore(
             has_variants: p.has_variants,
             is_service: p.is_service,
             is_featured: p.is_featured,
-            is_active: (p as any).isActive ?? p.active ?? true,
+            is_active: p.isActive ?? p.active ?? true,
             enable_swatches: p.enable_swatches,
             show_swatches_on_archive: p.show_swatches_on_archive,
             tags: p.tags,
@@ -210,7 +254,7 @@ export async function importSingleProductCore(
           has_variants: p.has_variants,
           is_service: p.is_service,
           is_featured: p.is_featured,
-          is_active: (p as any).isActive ?? p.active ?? true,
+          is_active: p.isActive ?? p.active ?? true,
           enable_swatches: p.enable_swatches,
           show_swatches_on_archive: p.show_swatches_on_archive,
           tags: p.tags,
@@ -319,7 +363,7 @@ export async function importSingleProductCore(
       categoryCache: updatedCategoryCache
     };
 
-  } catch (prodErr: any) {
+  } catch (prodErr: unknown) {
     console.error(`[Import API] Failed to import product "${p.name}":`, prodErr);
     if (overwriteSnapshot) {
       try {
@@ -340,7 +384,7 @@ export async function importSingleProductCore(
       success: false,
       productName: p.name,
       status: 'error',
-      error: prodErr.message || 'Unknown database write error',
+      error: prodErr instanceof Error ? prodErr.message : 'Unknown database write error',
       categoryCache: updatedCategoryCache
     };
   }

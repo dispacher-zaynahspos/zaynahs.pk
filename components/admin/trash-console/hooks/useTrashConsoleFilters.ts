@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useAdminTab } from '@/lib/hooks/useAdminTab';
 import { Product, Category, Review, Order, WhatsAppSubscriber, EmailSubscriber, SizeGuide, VariantPreset } from '@/lib/types';
 import { TrashedMedia } from '@/lib/services/media';
+import { TrashedCustomer } from '@/lib/services/customers';
 import { TabType } from '../TrashConsoleNavigation';
 
 interface UseTrashConsoleFiltersProps {
@@ -11,7 +12,7 @@ interface UseTrashConsoleFiltersProps {
   categories: Category[];
   reviews: (Review & { productName?: string })[];
   orders: Order[];
-  customers: any[];
+  customers: TrashedCustomer[];
   media: TrashedMedia[];
   whatsappSubscribers: WhatsAppSubscriber[];
   emailSubscribers: EmailSubscriber[];

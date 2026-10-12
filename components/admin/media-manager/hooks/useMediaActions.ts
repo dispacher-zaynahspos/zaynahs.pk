@@ -52,7 +52,7 @@ export function useMediaActions(
         n.delete(id);
         return n;
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       logDbError(
         {
           file: 'components/admin/MediaManager.tsx',
@@ -62,7 +62,7 @@ export function useMediaActions(
         },
         err
       );
-      toast.error(`Failed to move to Trash: ${err?.message || err}`);
+      toast.error(`Failed to move to Trash: ${err instanceof Error ? err.message : String(err)}`);
     }
   };
 
@@ -96,7 +96,7 @@ export function useMediaActions(
       setCleanerUnusedSelected(new Set());
       fetchMedia();
       loadUsageCrossReferences();
-    } catch (err: any) {
+    } catch (err: unknown) {
       logDbError(
         {
           file: 'components/admin/MediaManager.tsx',
@@ -106,7 +106,7 @@ export function useMediaActions(
         },
         err
       );
-      toast.error(`Bulk move to Trash failed: ${err?.message || err}`);
+      toast.error(`Bulk move to Trash failed: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setIsBulkDeleting(false);
     }
@@ -141,7 +141,7 @@ export function useMediaActions(
       setSelectedIds([]);
       fetchMedia();
       loadUsageCrossReferences();
-    } catch (err: any) {
+    } catch (err: unknown) {
       logDbError(
         {
           file: 'components/admin/MediaManager.tsx',
@@ -151,7 +151,7 @@ export function useMediaActions(
         },
         err
       );
-      toast.error(`Bulk move to Trash failed: ${err?.message || err}`);
+      toast.error(`Bulk move to Trash failed: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setIsBulkDeleting(false);
     }
@@ -202,8 +202,8 @@ export function useMediaActions(
       URL.revokeObjectURL(url);
 
       toast.success(`Downloaded ${items.length} file(s) as ${zipName}.zip`, { id: toastId });
-    } catch (err: any) {
-      toast.error(`ZIP download failed: ${err.message}`);
+    } catch (err: unknown) {
+      toast.error(`ZIP download failed: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setIsDownloadingZip(false);
     }

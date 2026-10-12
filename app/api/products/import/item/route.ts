@@ -18,14 +18,14 @@ export async function POST(request: NextRequest) {
 
     const result = await importSingleProductCore(product, strategy, categoryCache);
     return NextResponse.json(result);
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('[Import Item API] Error:', err);
     return NextResponse.json(
       {
         success: false,
         productName: 'Unknown',
         status: 'error',
-        error: err.message || 'Import failed'
+        error: err instanceof Error ? err.message : 'Import failed'
       },
       { status: 500 }
     );

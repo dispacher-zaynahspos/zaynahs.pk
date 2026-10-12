@@ -3,13 +3,13 @@ import type { Metadata } from 'next';
 import { getGlobalReviews } from '@/lib/services/reviews';
 import { getSocialProofs } from '@/lib/services/social-proof';
 import { getSettings } from '@/lib/services/settings';
-import { getSiteUrl } from '@/lib/site-url-server';
 import { getDomainConfig } from '@/lib/config/domains';
 import { getDomainBrand } from '@/lib/utils/getDomainBrand';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 import ReviewsPageClient from './ReviewsPageClient';
 
 interface PageProps {
-  searchParams: Promise<{ search?: string; rating?: string; sort?: string; page?: string }>;
+  searchParams: Promise<{ search?: string; rating?: string; sort?: string; page?: string; tab?: string }>;
 }
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -62,7 +62,7 @@ export default async function ReviewsPage({ searchParams }: PageProps) {
   const { reviews, total } = await getGlobalReviews({
     search: sp.search,
     rating: sp.rating ? parseInt(sp.rating) : undefined,
-    sort: (sp.sort as any) || 'newest',
+    sort: (sp.sort as 'newest' | 'oldest' | 'highest' | 'lowest') || 'newest',
     page: parseInt(sp.page || '1'),
     limit: 20,
   });
@@ -72,6 +72,46 @@ export default async function ReviewsPage({ searchParams }: PageProps) {
   const storeName = getDomainConfig(siteUrl || 'localhost:3000').name;
 
   const combinedTotal = total + socialProofs.length;
+
+  // Rating distribution calculation from approved reviews
+  const distribution: Record<number, number> = { 5: socialProofs.length, 4: 0, 3: 0, 2: 0, 1: 0 };
+  try {
+    const { data: ratingRows } = await supabaseAdmin
+      .from('reviews')
+      .select('rating')
+      .eq('approved', true)
+      .eq('hidden', false)
+      .is('deleted_at', null);
+
+    if (ratingRows) {
+      for (const row of ratingRows) {
+        const r = Math.round(row.rating);
+        if (r >= 1 && r <= 5) {
+          distribution[r] = (distribution[r] || 0) + 1;
+        }
+      }
+    }
+  } catch (err) {
+    console.error('Error fetching rating distribution:', err);
+  }
+
+  // Active products for Write Review modal product picker
+  let activeProducts: { id: string; name: string; slug: string }[] = [];
+  try {
+    const { data: productsData } = await supabaseAdmin
+      .from('products')
+      .select('id, name, slug')
+      .eq('is_active', true)
+      .is('deleted_at', null)
+      .order('sort_order', { ascending: true })
+      .limit(60);
+
+    if (productsData) {
+      activeProducts = productsData;
+    }
+  } catch (err) {
+    console.error('Error fetching active products:', err);
+  }
 
   // Generate JSON-LD aggregate schema
   const aggregateRating = reviews.length + socialProofs.length > 0
@@ -107,6 +147,8 @@ export default async function ReviewsPage({ searchParams }: PageProps) {
         initialTotal={total}
         initialSocialProofs={socialProofs}
         storeUrl={siteUrl}
+        ratingDistribution={distribution}
+        products={activeProducts}
       />
     </>
   );

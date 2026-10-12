@@ -20,6 +20,7 @@ import {
   MediaLibraryHeader,
   type MediaItem,
 } from './media-manager';
+import type { UploadTask } from './media-manager/hooks/useMediaManagerData';
 import { useMediaDragAndDropUpload } from './media-manager/hooks/useMediaDragAndDropUpload';
 import { MediaLibraryFilters } from './media-manager/MediaLibraryFilters';
 import UploadTileCard from './media-manager/UploadTileCard';
@@ -99,7 +100,7 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
     toggleCleanerUnused,
     toggleSelectAllUnused,
     toggleGlobalAi,
-  } = data as any;
+  } = data;
 
   const {
     handleFileUpload,
@@ -125,14 +126,14 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
     },
   });
 
-  const removeUploadTask = (task: any) =>
-    setUploadTasks((prev: any) => prev.filter((t: any) => t.id !== task.id));
+  const removeUploadTask = (task: UploadTask) =>
+    setUploadTasks((prev: UploadTask[]) => prev.filter((t) => t.id !== task.id));
   const clearFinishedTasks = () =>
-    setUploadTasks((prev: any) => prev.filter((t: any) => t.status === 'uploading'));
+    setUploadTasks((prev: UploadTask[]) => prev.filter((t) => t.status === 'uploading'));
 
   // Warn before leaving while uploads run
   React.useEffect(() => {
-    const hasActive = uploadTasks.some((t: any) => t.status === 'uploading');
+    const hasActive = uploadTasks.some((t: UploadTask) => t.status === 'uploading');
     if (!hasActive) return;
     const handler = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = ''; };
     window.addEventListener('beforeunload', handler);
@@ -156,14 +157,14 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
       toast.success('Image details updated successfully');
       setEditingItem(null);
       fetchMedia();
-    } catch (err: any) {
+    } catch (err: unknown) {
       logDbError({
         file: 'components/admin/MediaManager.tsx',
         functionName: 'handleUpdateItem',
         table: 'media_library',
         action: 'UPDATE'
       }, err);
-      toast.error(`Failed to update image details: ${err?.message || 'Unknown error'}`);
+      toast.error(`Failed to update image details: ${err instanceof Error ? err.message : 'Unknown error'}`);
     }
   };
 
@@ -274,7 +275,7 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-              {uploadTasks.filter((t: any) => t.status === 'uploading' || t.status === 'failed').map((t: any) => (
+              {uploadTasks.filter((t: UploadTask) => t.status === 'uploading' || t.status === 'failed').map((t: UploadTask) => (
                 <UploadTileCard key={t.id} task={t} onRetry={retryTask} onRemove={removeUploadTask} />
               ))}
               {paginatedMedia.map((item: MediaItem, idx: number) => (

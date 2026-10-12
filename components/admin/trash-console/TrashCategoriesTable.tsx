@@ -4,6 +4,7 @@ import React from 'react';
 import { FolderOpen, RefreshCw, Trash2 } from '@/components/common/Icons';
 import { Category } from '@/lib/types';
 import EmptyState from '@/components/common/EmptyState';
+import type { ConfirmDeleteState } from './TrashConfirmModals';
 
 interface TrashCategoriesTableProps {
   categories: Category[];
@@ -11,7 +12,7 @@ interface TrashCategoriesTableProps {
   selectedIds: string[];
   toggleSelect: (id: string) => void;
   handleRestore: (id: string, type: 'categories') => void;
-  setConfirmDelete: (val: any) => void;
+  setConfirmDelete: (val: ConfirmDeleteState | null) => void;
   isPending: boolean;
 }
 

@@ -7,7 +7,7 @@ import ProductDetail from '@/components/store/ProductDetail';
 import ProductReviews from '@/components/store/ProductReviews';
 import ProductCard from '@/components/store/ProductCard';
 import SocialFeedRibbon from '@/components/store/SocialFeedRibbon';
-import { getResponsiveGridClasses, getGridGapClass } from '@/lib/utils/responsiveGrid';
+import { getCatalogGridStyle, getContentWidthClass } from '@/lib/utils/responsiveGrid';
 
 interface ProductPageBlocksProps {
   currentProduct: Product;
@@ -24,16 +24,24 @@ export default function ProductPageBlocks({
   const blocks = (settings.product_page_layout || ['details', 'ticker', 'reviews', 'related', 'recently_viewed', 'social_feed'])
     .filter((b: string) => !hiddenBlocks.includes(b));
 
-  const relatedCols = getResponsiveGridClasses({
+  const relatedGrid = getCatalogGridStyle({
+    mode: settings.related_columns_mode || 'manual',
     mobile: settings.related_columns_mobile || 2,
     tablet: settings.related_columns_tablet || 3,
     desktop: settings.related_columns_desktop || 4,
+    wide: settings.related_columns_wide,
+    minDesktop: settings.related_min_card_desktop,
+    gap: settings.related_grid_gap,
   });
 
-  const recentCols = getResponsiveGridClasses({
+  const recentGrid = getCatalogGridStyle({
+    mode: settings.recently_viewed_columns_mode || 'manual',
     mobile: settings.recently_viewed_columns_mobile || 2,
     tablet: settings.recently_viewed_columns_tablet || 3,
     desktop: settings.recently_viewed_columns_desktop || 4,
+    wide: settings.recently_viewed_columns_wide,
+    minDesktop: settings.recently_viewed_min_card_desktop,
+    gap: settings.recently_viewed_grid_gap,
   });
 
   return (
@@ -139,7 +147,7 @@ export default function ProductPageBlocks({
                   {settings.related_products_subtitle || 'You might also like these handpicked recommendations'}
                 </p>
               </div>
-              <div className={`grid ${getGridGapClass(settings.related_grid_gap)} ${relatedCols}`}>
+              <div className={relatedGrid.className} data-mode={relatedGrid.mode} style={relatedGrid.style}>
                 {products.slice(0, settings.related_products_limit || 4).map(prod => (
                   <ProductCard key={prod.id} product={prod} currencySymbol={settings.currency_symbol} settings={settings} />
                 ))}
@@ -171,7 +179,7 @@ export default function ProductPageBlocks({
                   {settings.recently_viewed_subtitle || 'Products you have recently browsed'}
                 </p>
               </div>
-              <div className={`grid ${getGridGapClass(settings.recently_viewed_grid_gap)} ${recentCols}`}>
+              <div className={recentGrid.className} data-mode={recentGrid.mode} style={recentGrid.style}>
                 {products.slice(1, 1 + (settings.recently_viewed_limit || 4)).map(prod => (
                   <ProductCard key={prod.id} product={prod} currencySymbol={settings.currency_symbol} settings={settings} />
                 ))}

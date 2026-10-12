@@ -1,11 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
+import React from 'react';
 import Image from 'next/image';
 import { Product, Category } from '@/lib/types';
 import { Search, Loader2, Plus, X } from '@/components/common/Icons';
-import { useBodyScrollLock } from '@/lib/hooks/useBodyScrollLock';
+import { Modal } from '@/components/common/Modal';
 
 interface CategoryAddProductsModalProps {
   isOpen: boolean;
@@ -36,28 +35,22 @@ export function CategoryAddProductsModal({
   onBulkAddProducts,
   onClose,
 }: CategoryAddProductsModalProps) {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useBodyScrollLock(isOpen);
-
-  if (!isOpen || !mounted) return null;
-
-  const modalContent = (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/60 animate-in fade-in duration-200"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
+  return (
+    <Modal
+      open={isOpen}
+      onClose={onClose}
+      variant="center"
+      size="lg"
+      showClose={false}
+      ariaLabel={`Add products to ${category.name}`}
+      zIndexClassName="z-50"
+      className="!bg-transparent !border-0 !shadow-none !rounded-none !overflow-visible"
     >
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="add-products-modal-title"
-        className="relative w-full max-w-2xl bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 shadow-2xl flex flex-col max-h-[90dvh] overflow-hidden animate-in zoom-in-95 duration-200"
+        className="relative w-full max-w-2xl mx-auto bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 shadow-2xl flex flex-col max-h-[90dvh] overflow-hidden"
       >
         <div className="flex items-center justify-between p-4 sm:p-5 border-b border-gray-150 dark:border-gray-800 shrink-0">
           <h3 id="add-products-modal-title" className="text-base sm:text-lg font-black text-gray-900 dark:text-white tracking-tight">
@@ -191,8 +184,6 @@ export function CategoryAddProductsModal({
           )}
         </div>
       </div>
-    </div>
+    </Modal>
   );
-
-  return createPortal(modalContent, document.body);
 }

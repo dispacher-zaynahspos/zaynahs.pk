@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { createPortal } from 'react-dom';
 import Image from 'next/image';
+import { Modal } from '@/components/common/Modal';
 import { Review, Product } from '@/lib/types';
 import StarRating from '@/components/store/StarRating';
 import { formatDistanceToNow, parseISO } from 'date-fns';
@@ -31,14 +31,15 @@ interface ReviewDetailSheetProps {
 
 export default function ReviewDetailSheet({ review, onClose, onApprove, onHide, onDelete, onAssignProduct, storeUrl, storeName }: ReviewDetailSheetProps) {
   const { confirm } = useConfirm();
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => { setMounted(true); }, []);
 
   // Orphan-review product assignment
   const [products, setProducts] = useState<Product[]>([]);
   const [showAssign, setShowAssign] = useState(false);
   const [productSearch, setProductSearch] = useState('');
   const [assigning, setAssigning] = useState(false);
+  // Store reply
+  const [replyText, setReplyText] = useState(review.store_reply || '');
+  const [savingReply, setSavingReply] = useState(false);
 
   useEffect(() => {
     if (!showAssign || products.length > 0) return;
@@ -61,17 +62,6 @@ export default function ReviewDetailSheet({ review, onClose, onApprove, onHide, 
       setAssigning(false);
     }
   }, [review.id, products, onAssignProduct, onClose]);
-
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
-    document.addEventListener('keydown', handler);
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.removeEventListener('keydown', handler);
-      document.body.style.overflow = '';
-    };
-  }, [onClose]);
-
 
   const formatDate = (dateStr: string) => {
     try { return formatDistanceToNow(parseISO(dateStr), { addSuffix: true }); }
@@ -98,22 +88,20 @@ export default function ReviewDetailSheet({ review, onClose, onApprove, onHide, 
 
   const reviewId = `#ZE-REV-${review.id.slice(0, 4).toUpperCase()}`;
 
-  const handleWheel = useCallback((e: React.WheelEvent) => {
-    e.stopPropagation();
-  }, []);
-
-  if (!mounted) return null;
-
-  return createPortal(
-    <div
-      className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 p-3 sm:p-4"
-      onClick={onClose}
-      onTouchMove={(e) => { if (e.target === e.currentTarget) e.preventDefault(); }}
+  return (
+    <Modal
+      open
+      onClose={onClose}
+      variant="center"
+      size="lg"
+      showClose={false}
+      fitHeight
+      ariaLabel="Review profile panel"
+      zIndexClassName="z-[200]"
+      className="!bg-transparent !border-0 !shadow-none !rounded-none !overflow-visible"
     >
       <div
-        className="relative w-full max-w-lg bg-white dark:bg-[#16162a] rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-800 flex flex-col max-h-[90dvh] sm:max-h-[85vh] overflow-hidden"
-        onClick={e => e.stopPropagation()}
-        onWheel={handleWheel}
+        className="relative w-full max-w-lg mx-auto bg-white dark:bg-[#16162a] rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-800 flex flex-col max-h-[90dvh] sm:max-h-[85vh] overflow-hidden"
       >
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100 dark:border-gray-800 flex-shrink-0 bg-white dark:bg-[#16162a]">
@@ -357,6 +345,61 @@ export default function ReviewDetailSheet({ review, onClose, onApprove, onHide, 
               </section>
             );
           })()}
+
+          {/* Store Reply (public reply shown under the review) */}
+          <section className="space-y-2">
+            <h3 className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Store Reply (public)</h3>
+            <textarea
+              rows={3}
+              value={replyText}
+              onChange={(e) => setReplyText(e.target.value)}
+              placeholder="Write a public reply shown under this review on the store…"
+              className="w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#0f0f1b] px-3 py-2 text-xs font-medium focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white resize-none"
+            />
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                disabled={savingReply}
+                onClick={async () => {
+                  try {
+                    setSavingReply(true);
+                    const { replyToReview } = await import('@/lib/services/reviews');
+                    await replyToReview(review.id, replyText);
+                    toast.success('Reply saved');
+                  } catch {
+                    toast.error('Failed to save reply');
+                  } finally {
+                    setSavingReply(false);
+                  }
+                }}
+                className="px-3.5 py-2 rounded-xl bg-[#1a1a2e] hover:bg-[#e94560] text-white text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
+              >
+                {savingReply ? 'Saving…' : 'Save Reply'}
+              </button>
+              {review.store_reply && (
+                <button
+                  type="button"
+                  disabled={savingReply}
+                  onClick={async () => {
+                    try {
+                      setSavingReply(true);
+                      const { replyToReview } = await import('@/lib/services/reviews');
+                      await replyToReview(review.id, '');
+                      setReplyText('');
+                      toast.success('Reply removed');
+                    } catch {
+                      toast.error('Failed to remove reply');
+                    } finally {
+                      setSavingReply(false);
+                    }
+                  }}
+                  className="px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 text-xs font-bold hover:text-red-500 transition-all cursor-pointer disabled:opacity-50"
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+          </section>
         </div>
 
         {/* Footer — Moderation Flow Actions */}
@@ -403,7 +446,6 @@ export default function ReviewDetailSheet({ review, onClose, onApprove, onHide, 
           </button>
         </div>
       </div>
-    </div>,
-    document.body
+    </Modal>
   );
 }

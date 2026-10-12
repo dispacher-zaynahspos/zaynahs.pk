@@ -4,12 +4,22 @@ import { useState } from 'react';
 import { uploadImage } from '@/lib/uploadImage';
 import { toast } from 'sonner';
 
+export interface SocialFeedItem {
+  id?: string;
+  imageUrl: string;
+  username: string;
+  link: string;
+  caption?: string;
+  videoUrl?: string;
+  videoAutoplay?: boolean;
+}
+
 interface UseSettingsSocialFeedProps {
-  initialItems?: any[];
+  initialItems?: SocialFeedItem[];
 }
 
 export function useSettingsSocialFeed({ initialItems = [] }: UseSettingsSocialFeedProps = {}) {
-  const [socialFeedsItems, setSocialFeedsItems] = useState<any[]>(initialItems);
+  const [socialFeedsItems, setSocialFeedsItems] = useState<SocialFeedItem[]>(initialItems);
 
   // Social feed temp items
   const [tempFeedUsername, setTempFeedUsername] = useState('');
@@ -29,9 +39,9 @@ export function useSettingsSocialFeed({ initialItems = [] }: UseSettingsSocialFe
       const url = await uploadImage(file, 'product-images');
       setTempFeedImageUrl(url);
       toast.success('Social post image uploaded successfully!');
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      toast.error(err.message || 'Failed to upload image');
+      toast.error(err instanceof Error ? err.message : 'Failed to upload image');
     } finally {
       setUploadingFeedImage(false);
     }
@@ -63,7 +73,7 @@ export function useSettingsSocialFeed({ initialItems = [] }: UseSettingsSocialFe
   };
 
   const handleDeleteSocialFeedItem = (id: string) => {
-    setSocialFeedsItems((prev) => prev.filter((item: any) => (item.id || item.imageUrl) !== id));
+    setSocialFeedsItems((prev) => prev.filter((item) => (item.id || item.imageUrl) !== id));
     toast.success('Social post item removed!');
   };
 

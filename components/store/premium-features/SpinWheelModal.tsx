@@ -3,8 +3,10 @@
 import React, { useEffect, useRef } from 'react';
 import { StoreSettings } from '@/lib/types';
 import { X } from '@/components/common/Icons';
+import { Modal } from '@/components/common/Modal';
 
 interface SpinWheelModalProps {
+  open: boolean;
   settings: StoreSettings;
   isSpinning: boolean;
   hasSpun: boolean;
@@ -23,6 +25,7 @@ interface SpinWheelModalProps {
 }
 
 export default function SpinWheelModal({
+  open,
   settings,
   isSpinning,
   spinName,
@@ -131,13 +134,19 @@ export default function SpinWheelModal({
   };
 
   return (
-    <div 
-      className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 p-4 overflow-y-auto overscroll-contain animate-fade-in touch-none"
-      onClick={() => { if (!isSpinning) onClose(); }}
+    <Modal
+      open={open}
+      onClose={() => { if (!isSpinning) onClose(); }}
+      variant="center"
+      size="md"
+      showClose={false}
+      closeOnOverlay={!isSpinning}
+      closeOnEsc={!isSpinning}
+      ariaLabel="Spin to win"
+      className="!bg-transparent !border-0 !shadow-none !rounded-none !overflow-visible"
     >
-      <div 
-        className="relative w-full max-w-lg bg-white dark:bg-[#16162a] border border-gray-100 dark:border-gray-800 rounded-3xl p-6 shadow-2xl transition-all my-8 scale-up duration-200"
-        onClick={(e) => e.stopPropagation()}
+      <div
+        className="relative w-full bg-white dark:bg-[#16162a] border border-gray-100 dark:border-gray-800 rounded-3xl p-6 shadow-2xl"
       >
         <button
           onClick={onClose}
@@ -251,6 +260,6 @@ export default function SpinWheelModal({
           </div>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }

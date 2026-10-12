@@ -9,7 +9,7 @@ interface PostExMobileCardsProps {
   orders: ManifestOrder[];
   rows: Record<string, EditableRow>;
   results: Record<string, { success: boolean; tracking?: string; error?: string }>;
-  updateRow: (id: string, field: keyof EditableRow, value: any) => void;
+  updateRow: (id: string, field: keyof EditableRow, value: string | boolean) => void;
   cities: string[];
   citiesLoading: boolean;
   setDetailRowId: (id: string | null) => void;

@@ -6,7 +6,15 @@ import { Order, CartItem, StatusLogItem } from '@/lib/types';
 import { getCustomerSession } from '@/lib/utils/customer-auth';
 import { setCustomerSessionCookie } from '@/lib/utils/customer-auth';
 import { isValidPkMobile, normalizePkPhone } from '@/lib/phone';
-import { mapOrder } from './types';
+import { mapOrder, OrderRow } from './types';
+
+/** Minimal customer row shape used during guest customer resolution. */
+interface CustomerLookupRow {
+  id: string;
+  phone?: string | null;
+  email?: string | null;
+  password_hash?: string | null;
+}
 
 export const createOrder = async (order: {
   customerName?: string;
@@ -53,7 +61,7 @@ export const createOrder = async (order: {
         const orderEmail = order.customerEmail ? order.customerEmail.trim().toLowerCase() : null;
         const orderPhone = order.customerPhone ? normalizePkPhone(order.customerPhone) : null;
 
-        let byEmail: any = null;
+        let byEmail: CustomerLookupRow | null = null;
         if (orderEmail) {
           const { data } = await supabaseAdmin
             .from('customers')
@@ -63,7 +71,7 @@ export const createOrder = async (order: {
           byEmail = data;
         }
 
-        let byPhone: any = null;
+        let byPhone: CustomerLookupRow | null = null;
         if (orderPhone) {
           const { data } = await supabaseAdmin
             .from('customers')
@@ -166,7 +174,7 @@ export const createOrder = async (order: {
     }
 
     // Retry up to 3 times on 23505 (duplicate order_number)
-    let data: any;
+    let data: OrderRow | undefined;
     let insertAttempt = 0;
     const MAX_ATTEMPTS = 3;
     // Unguessable public handle for /order/[token] (64 hex chars).
@@ -193,7 +201,7 @@ export const createOrder = async (order: {
         .single();
 
       if (insertError) {
-        const pgCode = (insertError as any)?.code;
+        const pgCode = (insertError as { code?: string })?.code;
         if (pgCode === '23505' && insertAttempt < MAX_ATTEMPTS) {
           console.warn(`[orders] 23505 duplicate order_number, retry ${insertAttempt}/${MAX_ATTEMPTS}`);
           await new Promise(r => setTimeout(r, 150));
@@ -205,6 +213,11 @@ export const createOrder = async (order: {
       break;
     }
 
+    if (!data) {
+      throw new Error('[orders] Failed to create order after retries');
+    }
+    let orderRow: OrderRow = data;
+
     // Set access_token via a fault-tolerant follow-up update. Kept separate from the
     // base insert so an unmigrated DB (column not yet added) never blocks order creation —
     // the /order/[token] page simply won't resolve until migration 20260928150000 is applied.
@@ -212,30 +225,39 @@ export const createOrder = async (order: {
       const { data: updated } = await supabaseAdmin
         .from('orders')
         .update({ access_token: accessToken })
-        .eq('id', data.id)
+        .eq('id', orderRow.id)
         .select('*')
         .single();
-      if (updated) data = updated;
+      if (updated) orderRow = updated;
     } catch (tokErr) {
       console.error('[orders] access_token update skipped (run migration 20260928150000):', tokErr);
     }
-    const mapped = mapOrder(data);
+    const mapped = mapOrder(orderRow);
     // Ensure the in-memory order always carries the token for the success/WhatsApp flow.
     if (!mapped.access_token) mapped.access_token = accessToken;
 
     // Structured line-items + address (additive; failures never block the order).
     try {
-      const itemRows = (order.items || []).map((it: any) => {
+      const itemRows = (order.items || []).map((item) => {
+        const it = item as CartItem & {
+          price?: number;
+          product_id?: string;
+          variant_id?: string;
+          name?: string;
+          sku?: string;
+          image_url?: string;
+          discountAmount?: number;
+        };
         const qty = it.quantity ?? 1;
         const unit = Number(it.unit_price ?? it.price ?? it.product?.price ?? 0);
         return {
-          order_id: data.id,
+          order_id: orderRow.id,
           product_id: it.product?.id ?? it.product_id ?? null,
           variant_id: it.selected_variant?.id ?? it.variant_id ?? null,
           name: it.product?.name ?? it.name ?? null,
           sku: it.selected_variant?.sku ?? it.sku ?? null,
           image_url: it.product?.images?.[0]?.url ?? it.image_url ?? null,
-          variant_label: it.selected_variant?.name ?? null,
+          variant_label: it.selected_variant?.custom_value ?? null,
           unit_price: unit,
           quantity: qty,
           item_discount: Number(it.discountAmount ?? 0),
@@ -247,7 +269,7 @@ export const createOrder = async (order: {
       const a = order.shippingAddress;
       if (a && (a.address1 || a.city || a.phone)) {
         await supabaseAdmin.from('order_addresses').insert({
-          order_id: data.id,
+          order_id: orderRow.id,
           type: 'shipping',
           name: a.name ?? order.customerName ?? null,
           phone: a.phone ?? order.customerPhone ?? null,

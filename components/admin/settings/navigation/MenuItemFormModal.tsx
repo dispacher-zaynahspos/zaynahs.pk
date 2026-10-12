@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { X, ChevronDown, Search } from '@/components/common/Icons';
+import { Modal } from '@/components/common/Modal';
 import { Category, Product, NavigationItem } from '@/lib/types';
 import { rankProducts } from '@/lib/services/product-search/useInMemoryProductSearch';
 
@@ -87,8 +88,8 @@ export default function MenuItemFormModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-[#16162a] w-full max-w-md rounded-2xl border border-gray-200 dark:border-gray-800 shadow-2xl p-6 relative scale-up">
+    <Modal open={isOpen} onClose={onClose} showClose={false} size="sm">
+      <div className="p-6 relative">
         <div className="flex items-center justify-between mb-4 border-b border-gray-200 dark:border-gray-800 pb-2">
           <h3 className="text-sm font-bold uppercase tracking-wider text-gray-900 dark:text-white">
             {editingMenuItemId ? 'Edit Menu Item' : 'Add Menu Item'}
@@ -323,6 +324,6 @@ export default function MenuItemFormModal({
           </div>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }

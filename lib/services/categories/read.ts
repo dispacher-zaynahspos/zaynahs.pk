@@ -3,7 +3,7 @@
 import { Category } from '@/lib/types';
 import { SHOP_CATEGORY_ID } from '@/lib/config/singleton-ids';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
-import { mapCategory } from './types';
+import { mapCategory, CategoryRow } from './types';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder';
@@ -154,7 +154,7 @@ export const getDeletedCategories = async (): Promise<Category[]> => {
       .order('deleted_at', { ascending: false });
 
     if (error) throw error;
-    return ((data as any) ?? []).map(mapCategory);
+    return ((data as CategoryRow[] | null) ?? []).map(mapCategory);
   } catch (error) {
     console.error('[categories] getDeletedCategories failed:', error);
     throw error;

@@ -3,20 +3,26 @@ import { STORE_SETTINGS_ID } from '@/lib/config/singleton-ids';
 import { notifyGoogleIndexing } from '@/lib/googleIndexing';
 import { pingIndexNow } from '@/lib/indexNow';
 
-async function getCacheMethods() {
+type RevalidateTagFn = (tag: string) => void;
+type RevalidatePathFn = (path: string, type?: 'layout' | 'page') => void;
+
+async function getCacheMethods(): Promise<{ revalidateTag: RevalidateTagFn; revalidatePath: RevalidatePathFn }> {
   if (typeof window !== 'undefined') {
     return {
-      revalidateTag: (_tag: string) => {},
-      revalidatePath: (_path: string, _type?: 'layout' | 'page') => {},
+      revalidateTag: () => {},
+      revalidatePath: () => {},
     };
   }
   try {
-    const { revalidateTag, revalidatePath } = await import('next/cache');
-    return { revalidateTag, revalidatePath };
+    const mod = await import('next/cache');
+    return {
+      revalidateTag: mod.revalidateTag as RevalidateTagFn,
+      revalidatePath: mod.revalidatePath as RevalidatePathFn,
+    };
   } catch {
     return {
-      revalidateTag: (_tag: string) => {},
-      revalidatePath: (_path: string, _type?: 'layout' | 'page') => {},
+      revalidateTag: () => {},
+      revalidatePath: () => {},
     };
   }
 }
@@ -101,16 +107,16 @@ async function purgeCloudflareEverything() {
 export async function revalidateProduct(slug: string, action: 'UPDATED' | 'DELETED' = 'UPDATED') {
   try {
     const { revalidateTag, revalidatePath } = await getCacheMethods();
-    (revalidateTag as any)(`product-${slug}`);
-    (revalidateTag as any)('products');
-    (revalidateTag as any)('homepage');
-    (revalidateTag as any)('reviews');
+    revalidateTag(`product-${slug}`);
+    revalidateTag('products');
+    revalidateTag('homepage');
+    revalidateTag('reviews');
 
     revalidatePath('/');
-    (revalidatePath as any)('/', 'page');
-    (revalidatePath as any)('/', 'layout');
-    (revalidatePath as any)('/(store)', 'layout');
-    (revalidatePath as any)('/(store)', 'page');
+    revalidatePath('/', 'page');
+    revalidatePath('/', 'layout');
+    revalidatePath('/(store)', 'layout');
+    revalidatePath('/(store)', 'page');
     revalidatePath('/shop');
     revalidatePath('/admin', 'layout');
     if (action !== 'DELETED') revalidatePath(`/product/${slug}`);
@@ -136,18 +142,18 @@ export async function revalidateProduct(slug: string, action: 'UPDATED' | 'DELET
 export async function revalidateBanner() {
   try {
     const { revalidateTag, revalidatePath } = await getCacheMethods();
-    (revalidateTag as any)('banners');
-    (revalidateTag as any)('homepage');
-    (revalidateTag as any)('homepage_sections');
-    (revalidateTag as any)('products');
-    (revalidateTag as any)('verticals');
+    revalidateTag('banners');
+    revalidateTag('homepage');
+    revalidateTag('homepage_sections');
+    revalidateTag('products');
+    revalidateTag('verticals');
 
     // Purge page routing cache
     revalidatePath('/');
-    (revalidatePath as any)('/', 'page');
-    (revalidatePath as any)('/', 'layout');
-    (revalidatePath as any)('/(store)', 'layout');
-    (revalidatePath as any)('/(store)', 'page');
+    revalidatePath('/', 'page');
+    revalidatePath('/', 'layout');
+    revalidatePath('/(store)', 'layout');
+    revalidatePath('/(store)', 'page');
     revalidatePath('/shop');
     revalidatePath('/store', 'layout');
     revalidatePath('/admin', 'layout');
@@ -163,9 +169,9 @@ export async function revalidateBanner() {
 export async function revalidateCategory(slug: string, action: 'UPDATED' | 'DELETED' = 'UPDATED') {
   try {
     const { revalidateTag, revalidatePath } = await getCacheMethods();
-    (revalidateTag as any)(`category-${slug}`);
-    (revalidateTag as any)('categories');
-    (revalidateTag as any)('products');
+    revalidateTag(`category-${slug}`);
+    revalidateTag('categories');
+    revalidateTag('products');
 
     revalidatePath('/');
     revalidatePath('/shop');
@@ -192,15 +198,15 @@ export async function revalidateCategory(slug: string, action: 'UPDATED' | 'DELE
 export async function revalidateHomepage() {
   try {
     const { revalidateTag, revalidatePath } = await getCacheMethods();
-    (revalidateTag as any)('homepage');
-    (revalidateTag as any)('products');
-    (revalidateTag as any)('verticals');
+    revalidateTag('homepage');
+    revalidateTag('products');
+    revalidateTag('verticals');
 
     revalidatePath('/');
-    (revalidatePath as any)('/', 'page');
-    (revalidatePath as any)('/', 'layout');
-    (revalidatePath as any)('/(store)', 'layout');
-    (revalidatePath as any)('/(store)', 'page');
+    revalidatePath('/', 'page');
+    revalidatePath('/', 'layout');
+    revalidatePath('/(store)', 'layout');
+    revalidatePath('/(store)', 'page');
     revalidatePath('/shop');
     revalidatePath('/store', 'layout');
     revalidatePath('/admin', 'layout');
@@ -225,10 +231,10 @@ export async function revalidateHomepage() {
 export async function revalidateVertical(slug: string) {
   try {
     const { revalidateTag, revalidatePath } = await getCacheMethods();
-    (revalidateTag as any)('verticals');
-    (revalidateTag as any)('homepage');
-    (revalidateTag as any)('products');
-    (revalidateTag as any)('homepage_sections');
+    revalidateTag('verticals');
+    revalidateTag('homepage');
+    revalidateTag('products');
+    revalidateTag('homepage_sections');
 
     revalidatePath('/store');
     revalidatePath(`/store/${slug}`);
@@ -246,7 +252,7 @@ export async function revalidateVertical(slug: string) {
 export async function revalidateTagSafe(tag: string) {
   try {
     const { revalidateTag } = await getCacheMethods();
-    (revalidateTag as any)(tag);
+    revalidateTag(tag);
   } catch (error) {
     console.error(`Error in revalidateTagSafe for tag ${tag}:`, error);
   }
@@ -270,7 +276,7 @@ export async function revalidateTagSafe(tag: string) {
 export async function revalidateStorefrontEdge(...tags: string[]): Promise<void> {
   try {
     const { revalidateTag, revalidatePath } = await getCacheMethods();
-    for (const tag of tags) (revalidateTag as any)(tag);
+    for (const tag of tags) revalidateTag(tag);
     revalidatePath('/', 'layout');
     revalidatePath('/shop');
     revalidatePath('/admin', 'layout');
@@ -284,14 +290,14 @@ export async function revalidateStorefrontEdge(...tags: string[]): Promise<void>
 export async function revalidateSettings() {
   try {
     const { revalidateTag, revalidatePath } = await getCacheMethods();
-    (revalidateTag as any)('settings');
-    (revalidateTag as any)('homepage');
-    (revalidateTag as any)('homepage_sections');
-    (revalidateTag as any)('products');
-    (revalidateTag as any)('categories');
-    (revalidateTag as any)('banners');
-    (revalidateTag as any)('verticals');
-    (revalidateTag as any)('collections');
+    revalidateTag('settings');
+    revalidateTag('homepage');
+    revalidateTag('homepage_sections');
+    revalidateTag('products');
+    revalidateTag('categories');
+    revalidateTag('banners');
+    revalidateTag('verticals');
+    revalidateTag('collections');
 
     // Revalidate the entire site (including layout metadata, favicon, titles)
     revalidatePath('/', 'layout');

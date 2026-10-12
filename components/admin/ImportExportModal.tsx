@@ -10,6 +10,7 @@ import {
   FileUp,
   PackageOpen
 } from '@/components/common/Icons';
+import { Modal } from '@/components/common/Modal';
 import { ExportTabContent, ImportTabContent } from './import-export';
 
 interface ImportExportModalProps {
@@ -136,9 +137,9 @@ export default function ImportExportModal({
 
       toast.success('Products exported successfully!', { id: toastId });
       onClose();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      toast.error(err.message || 'Export failed', { id: toastId });
+      toast.error(err instanceof Error ? err.message : 'Export failed', { id: toastId });
     } finally {
       setIsExporting(false);
     }
@@ -170,8 +171,8 @@ export default function ImportExportModal({
       });
       setImportLogs([]);
       setImportProgress(null);
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to read export file');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to read export file');
       setImportFile(null);
       setImportMeta(null);
     }
@@ -232,9 +233,9 @@ export default function ImportExportModal({
       });
 
       toast.success('Import process completed!', { id: toastId });
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      toast.error(err.message || 'Import failed midway', { id: toastId });
+      toast.error(err instanceof Error ? err.message : 'Import failed midway', { id: toastId });
     } finally {
       setIsImporting(false);
     }
@@ -250,11 +251,8 @@ export default function ImportExportModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 md:p-6 overflow-y-auto">
-      <div 
-        className="relative flex flex-col bg-white dark:bg-[#121224] w-full max-w-4xl h-[90vh] md:h-[85vh] rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-800/80 overflow-hidden"
-        onClick={e => e.stopPropagation()}
-      >
+    <Modal open={isOpen} onClose={onClose} showClose={false} size="lg" className="h-[90vh] md:h-[85vh] !max-h-[90vh]">
+      <div className="relative flex flex-col h-full overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-gray-150 dark:border-gray-800/80 px-6 py-4">
           <div>
@@ -347,6 +345,6 @@ export default function ImportExportModal({
           )}
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }

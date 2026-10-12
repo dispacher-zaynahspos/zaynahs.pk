@@ -5,7 +5,7 @@ import { buildVariables, replaceVariables, renderOrderItemsTable } from '@/lib/e
 import { getDefaultTemplate } from '@/lib/email/defaults/getDefaultTemplate';
 import { getSiteUrl } from '@/lib/site-url-server';
 
-const mockData: Record<string, any> = {
+const mockData: Record<string, unknown> = {
   customer: {
     name: 'Test Customer',
     email: 'customer@example.com',
@@ -116,8 +116,9 @@ export async function POST(
     // Build variable values
     const variables = await buildVariables(type, mergedData);
     
-    if (mockData.order?.items) {
-      variables.order_items_html = renderOrderItemsTable(mockData.order.items, settings.currency_symbol);
+    const order = mockData.order as { items?: unknown[] } | undefined;
+    if (order?.items) {
+      variables.order_items_html = renderOrderItemsTable(order.items as Parameters<typeof renderOrderItemsTable>[0], settings.currency_symbol);
     }
 
     // Resolve Subject and Body
@@ -135,9 +136,9 @@ export async function POST(
       subject: resolvedSubject,
       html: resolvedHtml
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     const { type } = await params;
     console.error(`[API email-templates/preview] POST for '${type}' failed:`, error);
-    return NextResponse.json({ success: false, error: error.message || 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ success: false, error: error instanceof Error ? error.message : 'Internal server error' }, { status: 500 });
   }
 }

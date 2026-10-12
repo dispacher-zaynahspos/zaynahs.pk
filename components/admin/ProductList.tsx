@@ -106,8 +106,8 @@ export default function ProductList({ initialProducts, settings }: ProductListPr
         try {
           const res = await triggerMetaSync(id);
           return { id, success: res.success, error: res.error };
-        } catch (e: any) {
-          return { id, success: false, error: e.message || 'Unknown error' };
+        } catch (e: unknown) {
+          return { id, success: false, error: e instanceof Error ? e.message : 'Unknown error' };
         }
       }));
       

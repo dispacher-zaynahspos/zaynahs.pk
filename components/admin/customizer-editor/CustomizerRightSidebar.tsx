@@ -29,6 +29,16 @@ import ProductCardSettings from '../customizer/pages/ProductCardSettings';
 import { AnnouncementBarSettings } from './sidebar/AnnouncementBarSettings';
 import { TickerSectionSettings } from './sidebar/TickerSectionSettings';
 
+interface MediaUploadTarget {
+  sectionId: string;
+  fieldPath: 'settings' | 'content_data';
+  fieldKey: string;
+  isGridItem?: boolean;
+  gridIndex?: number;
+  isSlide?: boolean;
+  slideId?: string;
+}
+
 interface CustomizerRightSidebarProps {
   mobileTab: 'preview' | 'sections' | 'settings';
   setMobileTab: (tab: 'preview' | 'sections' | 'settings') => void;
@@ -43,9 +53,9 @@ interface CustomizerRightSidebarProps {
   collections: Collection[];
   reviews: Review[];
   handleUpdateSection: (id: string, updates: Partial<HomepageSection>) => void;
-  setMediaUploadTarget: (target: any) => void;
+  setMediaUploadTarget: (target: MediaUploadTarget) => void;
   setIsMediaModalOpen: (open: boolean) => void;
-  setMediaSelectCallback: (cb: any) => void;
+  setMediaSelectCallback: React.Dispatch<React.SetStateAction<((url: string) => void) | null>>;
   activeSubTab: string;
   currentProduct?: Product | null;
   handleUpdateProductSale: (id: string, updates: Partial<Product>) => void;
@@ -366,7 +376,7 @@ export function CustomizerRightSidebar({
             settings={storeSettings}
             viewportMode={viewportMode}
             onUpdateSettings={(updates) => setStoreSettings(prev => ({ ...prev, ...updates }))}
-            subTab={activeSubTab as any}
+            subTab={activeSubTab}
             currentProduct={currentProduct}
             onUpdateProduct={handleUpdateProductSale}
             onSelectMedia={(onSelect) => {

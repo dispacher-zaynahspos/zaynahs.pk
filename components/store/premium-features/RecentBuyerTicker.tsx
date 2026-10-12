@@ -37,7 +37,7 @@ export default function RecentBuyerTicker({
   return (
     <aside
       aria-label="Recent purchase notification"
-      className="fixed left-3 sm:left-6 z-[var(--z-toast)] w-[calc(100vw-1.5rem)] max-w-[316px] sm:max-w-[340px] bg-white/[0.97] dark:bg-[#0c0c16]/[0.96] backdrop-blur-2xl backdrop-saturate-[180%] [-webkit-backdrop-filter:blur(32px)_saturate(180%)] border border-white/90 dark:border-white/15 ring-1 ring-black/[0.08] dark:ring-white/[0.08] rounded-2xl shadow-[0_16px_40px_-10px_rgba(0,0,0,0.18),0_4px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.7)] transition-all duration-300 animate-in fade-in slide-in-from-bottom-3 group overflow-hidden before:absolute before:inset-0 before:pointer-events-none before:rounded-2xl before:bg-gradient-to-b before:from-white/70 before:via-white/10 before:to-transparent dark:before:from-white/10 dark:before:to-transparent"
+      className="fixed left-3 sm:left-6 z-[var(--z-toast)] w-[calc(100vw-1.5rem)] max-w-[316px] sm:max-w-[340px] bg-white dark:bg-[#0c0c16] border border-gray-200/90 dark:border-white/15 ring-1 ring-black/[0.08] dark:ring-white/[0.08] rounded-2xl shadow-[0_16px_40px_-10px_rgba(0,0,0,0.18),0_4px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.7)] transition-all duration-300 animate-in fade-in slide-in-from-bottom-3 group overflow-hidden before:absolute before:inset-0 before:pointer-events-none before:rounded-2xl before:bg-gradient-to-b before:from-white/70 before:via-white/10 before:to-transparent dark:before:from-white/10 dark:before:to-transparent"
       style={{
         bottom: isCartBarVisible ? 'var(--offset-above-cart)' : 'var(--offset-above-nav)',
       }}

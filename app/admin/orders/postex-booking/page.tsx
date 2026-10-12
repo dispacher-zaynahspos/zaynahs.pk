@@ -72,7 +72,7 @@ export default async function PostExBookingPage({
       shippingCity: cleanCity,
       notes: notes,
       total: parseFloat(o.total?.toString() || '0'),
-      items: (o.items || []) as any[],
+      items: (o.items || []) as unknown[],
     };
   });
 

@@ -2,11 +2,11 @@ import React from 'react';
 import { NumberSliderControl, ButtonGroupControl } from './HeroBannerControls';
 
 interface HeroDesktopSettingsProps {
-  settings: Record<string, any>;
+  settings: Record<string, unknown>;
   heightDesktop: number;
   widthDesktop: number;
-  handleSettingsChange: (key: string, value: any) => void;
-  onUpdateSection: (updates: Record<string, any>) => void;
+  handleSettingsChange: (key: string, value: unknown) => void;
+  onUpdateSection: (updates: Record<string, unknown>) => void;
 }
 
 export function HeroDesktopSettings({
@@ -144,7 +144,7 @@ export function HeroDesktopSettings({
         <div className="grid grid-cols-2 gap-3">
           <ButtonGroupControl
             label="Position (Horiz)"
-            value={settings.content_position_desktop_x || settings.content_position_desktop || 'center'}
+            value={(settings.content_position_desktop_x as string) || (settings.content_position_desktop as string) || 'center'}
             options={[
               { label: 'Left', value: 'left' },
               { label: 'Center', value: 'center' },
@@ -162,7 +162,7 @@ export function HeroDesktopSettings({
           />
           <ButtonGroupControl
             label="Position (Vert)"
-            value={settings.content_position_desktop_y || 'middle'}
+            value={(settings.content_position_desktop_y as string) || 'middle'}
             options={[
               { label: 'Top', value: 'top' },
               { label: 'Middle', value: 'middle' },
@@ -173,7 +173,7 @@ export function HeroDesktopSettings({
         </div>
         <ButtonGroupControl
           label="Text Align"
-          value={settings.text_align_desktop || 'center'}
+          value={(settings.text_align_desktop as string) || 'center'}
           options={[
             { label: 'Left', value: 'left' },
             { label: 'Center', value: 'center' },
@@ -188,7 +188,7 @@ export function HeroDesktopSettings({
         
         <NumberSliderControl
           label="Zoom Scale"
-          value={settings.image_scale_desktop ?? 100}
+          value={(settings.image_scale_desktop as number | undefined) ?? 100}
           min={100}
           max={200}
           step={5}
@@ -198,7 +198,7 @@ export function HeroDesktopSettings({
         
         <NumberSliderControl
           label="Left/Right Shift"
-          value={settings.image_focal_x_desktop ?? 50}
+          value={(settings.image_focal_x_desktop as number | undefined) ?? 50}
           min={0}
           max={100}
           step={5}
@@ -208,7 +208,7 @@ export function HeroDesktopSettings({
         
         <NumberSliderControl
           label="Up/Down Shift"
-          value={settings.image_focal_y_desktop ?? 50}
+          value={(settings.image_focal_y_desktop as number | undefined) ?? 50}
           min={0}
           max={100}
           step={5}
@@ -220,7 +220,7 @@ export function HeroDesktopSettings({
       <div className="space-y-1.5 p-3.5 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-200 dark:border-gray-800">
         <ButtonGroupControl
           label="Desktop Heading Size"
-          value={settings.heading_size_desktop || '5xl'}
+          value={(settings.heading_size_desktop as string) || '5xl'}
           options={[
             { label: 'S (2xl)', value: '2xl' },
             { label: 'M (3xl)', value: '3xl' },
