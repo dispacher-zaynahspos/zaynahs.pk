@@ -3,6 +3,7 @@
 import React from 'react';
 import { Ruler, RefreshCw, Trash2 } from '@/components/common/Icons';
 import { SizeGuide } from '@/lib/types';
+import type { ConfirmDeleteState } from './TrashConfirmModals';
 import EmptyState from '@/components/common/EmptyState';
 
 interface TrashSizeGuidesTableProps {
@@ -11,9 +12,15 @@ interface TrashSizeGuidesTableProps {
   selectedIds: string[];
   toggleSelect: (id: string) => void;
   handleRestore: (id: string, type: 'size_guides') => void;
-  setConfirmDelete: (val: any) => void;
+  setConfirmDelete: (val: ConfirmDeleteState | null) => void;
   isPending: boolean;
 }
+
+const getColumnsLabel = (sg: SizeGuide): string => {
+  const columns = (sg as SizeGuide & { columns?: string[] }).columns;
+  if (columns) return columns.join(', ');
+  return sg.chart_data?.[0] ? Object.keys(sg.chart_data[0]).join(', ') : '—';
+};
 
 export const TrashSizeGuidesTable: React.FC<TrashSizeGuidesTableProps> = ({
   sizeGuides,
@@ -58,7 +65,7 @@ export const TrashSizeGuidesTable: React.FC<TrashSizeGuidesTableProps> = ({
                 </div>
                 <div className="min-w-0 flex-1">
                   <h4 className="font-bold text-gray-900 dark:text-white truncate">{sg.name}</h4>
-                  <p className="text-xs text-gray-500 font-mono truncate">{(sg as any).columns ? (sg as any).columns.join(', ') : (sg.chart_data?.[0] ? Object.keys(sg.chart_data[0]).join(', ') : '—')}</p>
+                  <p className="text-xs text-gray-500 font-mono truncate">{getColumnsLabel(sg)}</p>
                 </div>
               </div>
               <div className="flex gap-2 justify-end pt-2 border-t border-gray-50 dark:border-gray-800/50">
@@ -118,7 +125,7 @@ export const TrashSizeGuidesTable: React.FC<TrashSizeGuidesTableProps> = ({
                     />
                   </td>
                   <td className="p-4 font-bold text-gray-900 dark:text-white">{sg.name}</td>
-                  <td className="p-4 text-gray-500 font-mono text-xs">{(sg as any).columns ? (sg as any).columns.join(', ') : (sg.chart_data?.[0] ? Object.keys(sg.chart_data[0]).join(', ') : '—')}</td>
+                  <td className="p-4 text-gray-500 font-mono text-xs">{getColumnsLabel(sg)}</td>
                   <td className="p-4 text-right space-x-2">
                     <button
                       onClick={() => handleRestore(sg.id, 'size_guides')}

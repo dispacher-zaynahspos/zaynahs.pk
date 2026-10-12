@@ -32,7 +32,7 @@ export function AppearanceCustomizePanel({ settings, onUpdateSettings }: Appeara
   const updateConfigField = <T extends keyof ThemeConfig>(
     section: T,
     field: keyof ThemeConfig[T],
-    value: any
+    value: ThemeConfig[T][keyof ThemeConfig[T]]
   ) => {
     const updatedConfig = {
       ...themeConfig,
@@ -119,14 +119,14 @@ export function AppearanceCustomizePanel({ settings, onUpdateSettings }: Appeara
     <div className="space-y-6 select-none pb-6">
       {/* Sub tabs selector */}
       <div className="flex bg-gray-50 dark:bg-white/4 p-0.5 rounded-xl border border-gray-100 dark:border-gray-800">
-        {[
+        {([
           { id: 'colors', label: 'Colors' },
           { id: 'fonts', label: 'Fonts & Sizes' },
           { id: 'elements', label: 'Borders & Buttons' }
-        ].map(tab => (
+        ] as const).map(tab => (
           <button
             key={tab.id}
-            onClick={() => setActiveCustomizeTab(tab.id as any)}
+            onClick={() => setActiveCustomizeTab(tab.id)}
             className={`flex-1 py-1.5 rounded-lg text-[10px] font-extrabold uppercase tracking-wider transition-all cursor-pointer ${
               activeCustomizeTab === tab.id
                 ? 'bg-[#e94560] text-white shadow-sm'

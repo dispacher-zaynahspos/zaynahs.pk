@@ -8,7 +8,7 @@ export interface AbandonedCart {
   customerCity?: string;
   customerApartment?: string;
   customerPostalCode?: string;
-  items: any[];
+  items: unknown[];
   subtotal: number;
   currency: string;
   emailSent: boolean;

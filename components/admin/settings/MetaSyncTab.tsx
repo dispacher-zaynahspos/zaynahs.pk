@@ -87,8 +87,8 @@ export default function MetaSyncTab() {
 
       await Promise.all(promises);
       toast.success('Meta category mappings saved successfully');
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to save mappings');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to save mappings');
       console.error(err);
     } finally {
       setSaving(false);

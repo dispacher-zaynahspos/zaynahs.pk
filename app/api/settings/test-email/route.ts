@@ -32,8 +32,9 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true, message: `Test email dispatched successfully to ${adminEmail}` });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[API test-email] POST failed:', error);
-    return NextResponse.json({ success: false, error: error.message || 'Internal server error' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Internal server error';
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }

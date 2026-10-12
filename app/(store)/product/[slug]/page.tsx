@@ -156,7 +156,7 @@ export default async function ProductPage({ params }: PageProps) {
   const schemaBrandName = brand.name || settings?.store_name || 'Store';
   const siteUrl = settings?.store_url?.replace(/\/+$/, '') || `${brand.protocol}://${brand.domain}`;
 
-  const productSchema: any = {
+  const productSchema: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "Product",
     "name": product.name,
@@ -214,7 +214,7 @@ export default async function ProductPage({ params }: PageProps) {
   }
 
   if (reviews && reviews.length > 0) {
-    productSchema.review = reviews.map((r: any) => ({
+    productSchema.review = reviews.map((r) => ({
       "@type": "Review",
       "author": {
         "@type": "Person",
@@ -234,7 +234,7 @@ export default async function ProductPage({ params }: PageProps) {
   const faqSchema = seoMeta?.faq_schema && Array.isArray(seoMeta.faq_schema) && seoMeta.faq_schema.length > 0 ? {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    "mainEntity": seoMeta.faq_schema.map((item: any) => ({
+    "mainEntity": (seoMeta.faq_schema as Array<{ q: string; a: string }>).map((item) => ({
       "@type": "Question",
       "name": item.q,
       "acceptedAnswer": {

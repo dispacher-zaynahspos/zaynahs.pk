@@ -1,12 +1,39 @@
-import { Order } from '@/lib/types';
+import { Order, CartItem, StatusLogItem } from '@/lib/types';
 
-export const mapOrderRow = (row: any): Order => ({
+interface OrderRow {
+  id: string;
+  order_number: string;
+  customer_name?: string | null;
+  customer_phone?: string | null;
+  customer_id?: string | null;
+  items?: CartItem[] | null;
+  subtotal?: number | string | null;
+  total?: number | string | null;
+  status: string;
+  payment_status?: string | null;
+  fulfillment_status?: string | null;
+  tags?: string[] | null;
+  notes?: string | null;
+  staff_notes?: string | null;
+  status_logs?: StatusLogItem[] | null;
+  review_email_pending?: boolean | null;
+  delivered_at?: string | null;
+  tracking_number?: string | null;
+  courier_name?: string | null;
+  tracking_url?: string | null;
+  cancel_reason?: string | null;
+  refund_amount?: number | string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export const mapOrderRow = (row: OrderRow): Order => ({
   id: row.id,
   order_number: row.order_number,
   customer_name: row.customer_name || undefined,
   customer_phone: row.customer_phone || undefined,
   customer_id: row.customer_id || undefined,
-  items: (row.items || []) as any[],
+  items: (row.items || []) as CartItem[],
   subtotal: row.subtotal ? parseFloat(row.subtotal.toString()) : 0,
   total: row.total ? parseFloat(row.total.toString()) : 0,
   status: row.status as Order['status'],
@@ -15,7 +42,7 @@ export const mapOrderRow = (row: any): Order => ({
   tags: row.tags || [],
   notes: row.notes || undefined,
   staff_notes: row.staff_notes || undefined,
-  status_logs: (row.status_logs || []) as any[],
+  status_logs: (row.status_logs || []) as StatusLogItem[],
   review_email_pending: row.review_email_pending ?? false,
   delivered_at: row.delivered_at || undefined,
   tracking_number: row.tracking_number || undefined,

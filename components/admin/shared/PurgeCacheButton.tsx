@@ -48,8 +48,8 @@ export default function PurgeCacheButton({ className, label = 'Purge Cache', var
         );
         console.log('[PurgeCacheButton] Success:', result);
       }
-    } catch (err: any) {
-      toast.error(err.message || 'An error occurred while purging cache');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'An error occurred while purging cache');
       console.error('[PurgeCacheButton] Error:', err);
     } finally {
       setIsPurging(false);

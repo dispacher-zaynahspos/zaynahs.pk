@@ -3,7 +3,16 @@
 import { createClient } from '@/lib/supabase/server';
 import { VariantPreset, VariantPresetValue } from '@/lib/types';
 
-const mapPreset = (row: any): VariantPreset => ({
+interface VariantPresetRow {
+  id: string;
+  name: string;
+  attribute: VariantPreset['attribute'];
+  values: VariantPresetValue[];
+  created_at: string;
+  deleted_at?: string | null;
+}
+
+const mapPreset = (row: VariantPresetRow): VariantPreset => ({
   id: row.id,
   name: row.name,
   attribute: row.attribute,

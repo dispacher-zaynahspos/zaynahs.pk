@@ -11,7 +11,7 @@ export function SortableImageItem({
   handleRemoveImage,
   onPreviewImage,
 }: {
-  img: any;
+  img: { url: string; isPrimary?: boolean };
   index: number;
   handleRemoveImage: (idx: number, url: string) => void;
   onPreviewImage: (url: string) => void;

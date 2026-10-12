@@ -102,7 +102,7 @@ export default async function StoreShopPage({ searchParams }: PageProps) {
 
   const siteUrl = `${brand.protocol}://${brand.domain}`;
 
-  let faqSchema: any = null;
+  let faqSchema: Record<string, unknown> | null = null;
   if (categorySlug) {
     const category = categories.find(c => c.slug === categorySlug);
     if (category) {
@@ -117,7 +117,7 @@ export default async function StoreShopPage({ searchParams }: PageProps) {
         faqSchema = {
           "@context": "https://schema.org",
           "@type": "FAQPage",
-          "mainEntity": seoMeta.faq_schema.map((item: any) => ({
+          "mainEntity": (seoMeta.faq_schema as Array<{ q: string; a: string }>).map((item) => ({
             "@type": "Question",
             "name": item.q,
             "acceptedAnswer": {

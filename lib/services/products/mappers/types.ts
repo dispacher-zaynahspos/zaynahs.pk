@@ -62,6 +62,28 @@ export interface DBCategory {
   updated_at: string;
 }
 
+export interface DBProductCategoryRelation {
+  product_id: string;
+  category_id: string;
+  position?: number | null;
+  categories?: DBCategory | null;
+}
+
+export interface DBBadge {
+  id: string;
+  name: string;
+  bg_color: string;
+  text_color: string;
+}
+
+export interface DBSizeGuide {
+  id: string;
+  name: string;
+  chart_data?: unknown;
+  unit?: string | null;
+  image_url?: string | null;
+}
+
 export interface DBProductRow {
   id: string;
   name: string;
@@ -89,9 +111,9 @@ export interface DBProductRow {
   product_modifiers?: DBProductModifier[] | null;
   custom_badge_id?: string | null;
   badge_enabled?: boolean | null;
-  badges?: any | null;
+  badges?: DBBadge | null;
   size_guide_id?: string | null;
-  size_guides?: any | null;
+  size_guides?: DBSizeGuide | null;
   frequently_bought_together_ids?: string[] | null;
   flash_sale_enabled?: boolean | null;
   flash_sale_start_date?: string | null;
@@ -104,7 +126,7 @@ export interface DBProductRow {
   meta_last_synced_at?: string | null;
   inventory_threshold?: number | null;
   variation_order?: string[] | null;
-  product_categories?: any[] | null;
+  product_categories?: DBProductCategoryRelation[] | null;
   deleted_at?: string | null;
   created_at: string;
   updated_at: string;

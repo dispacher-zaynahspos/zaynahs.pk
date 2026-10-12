@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Heart, ShoppingCart } from '@/components/common/Icons';
 import { CardWishlistIcon, CardCartIcon } from '@/components/store/product-card/ProductCardActions';
-import { Product, StoreSettings } from '@/lib/types';
+import { Product, ProductVariant, ProductModifier, StoreSettings } from '@/lib/types';
 import { formatPrice } from '@/lib/utils/whatsapp';
 import { toast } from 'sonner';
 import { flyToCart } from '@/lib/utils/flyAnimation';
@@ -18,7 +18,7 @@ import { ProductCardBadges } from '@/components/store/product-card/ProductCardBa
 interface ShopProductListCardProps {
   product: Product;
   settings: StoreSettings;
-  addItem: (product: Product, selectedVariant: any, selectedModifiers: any[], quantity: number) => void;
+  addItem: (product: Product, selectedVariant: ProductVariant | undefined, selectedModifiers: ProductModifier[], quantity: number) => void;
 }
 
 export default function ShopProductListCard({ product, settings, addItem }: ShopProductListCardProps) {

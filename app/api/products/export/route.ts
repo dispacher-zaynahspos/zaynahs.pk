@@ -4,6 +4,95 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
 import { requireAdmin } from '@/lib/auth/requireAdmin';
 import { ExportBundle, ExportedProduct } from '@/lib/types';
 
+interface ProductImageRow {
+  url: string;
+  alt?: string | null;
+  sort_order?: number | null;
+  is_primary?: boolean | null;
+}
+
+interface ProductVariantRow {
+  color?: string | null;
+  size?: string | null;
+  material?: string | null;
+  custom_option?: string | null;
+  custom_value?: string | null;
+  color_hex?: string | null;
+  price?: number | string | null;
+  compare_price?: number | string | null;
+  stock?: number | null;
+  sku?: string | null;
+  image_url?: string | null;
+  show_image_swatch?: boolean | null;
+  active?: boolean | null;
+  sort_order?: number | null;
+}
+
+interface ProductModifierRow {
+  name: string;
+  price?: number | string | null;
+  active?: boolean | null;
+  sort_order?: number | null;
+}
+
+interface ProductExportRow {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string | null;
+  short_description?: string | null;
+  price?: number | string | null;
+  compare_price?: number | string | null;
+  cost?: number | string | null;
+  sku?: string | null;
+  category_id?: string | null;
+  stock?: number | null;
+  has_variants?: boolean | null;
+  is_service?: boolean | null;
+  is_featured?: boolean | null;
+  is_active?: boolean | null;
+  enable_swatches?: boolean | null;
+  show_swatches_on_archive?: boolean | null;
+  tags?: string[] | null;
+  product_images?: ProductImageRow[] | null;
+  product_variants?: ProductVariantRow[] | null;
+  product_modifiers?: ProductModifierRow[] | null;
+}
+
+interface CategoryRow {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string | null;
+  image_url?: string | null;
+  sort_order?: number | null;
+  active?: boolean | null;
+}
+
+interface MappedCategory {
+  name: string;
+  slug: string;
+  description?: string;
+  imageUrl?: string | null;
+  sortOrder?: number | null;
+  active?: boolean | null;
+}
+
+interface ProductCategoryJunctionRow {
+  product_id: string;
+  category_id: string;
+  categories?: CategoryRow | null;
+}
+
+interface MappedJunctionCategory {
+  name: string;
+  slug: string;
+  description?: string;
+  imageUrl?: string;
+  sortOrder: number;
+  active: boolean;
+}
+
 export async function POST(request: NextRequest) {
   try {
     // Authenticate admin (session + admin-email allow-list — single source of truth)
@@ -43,19 +132,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No products found' }, { status: 404 });
     }
 
+    const products = (productsData || []) as ProductExportRow[];
+
     // Pre-fetch categories for all products in one batch query (primary category_id)
-    const categoryIds = [...new Set(productsData.map((p: any) => p.category_id).filter(Boolean))];
-    const categoryMap: Record<string, any> = {};
+    const categoryIds = [...new Set(products.map((p) => p.category_id).filter(Boolean))];
+    const categoryMap: Record<string, MappedCategory> = {};
     if (categoryIds.length > 0) {
       const { data: catsData } = await supabaseAdmin
         .from('categories')
         .select('*')
         .in('id', categoryIds);
-      (catsData || []).forEach((cat: any) => {
+      ((catsData || []) as CategoryRow[]).forEach((cat) => {
         categoryMap[cat.id] = {
           name: cat.name,
           slug: cat.slug,
-          description: cat.description,
+          description: cat.description || undefined,
           imageUrl: cat.image_url,
           sortOrder: cat.sort_order,
           active: cat.active
@@ -64,15 +155,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Pre-fetch ALL product_categories junction records for exported products
-    const allProductIds = productsData.map((p: any) => p.id);
-    const productCategoriesMap: Record<string, any[]> = {};
+    const allProductIds = products.map((p) => p.id);
+    const productCategoriesMap: Record<string, MappedJunctionCategory[]> = {};
     if (allProductIds.length > 0) {
       const { data: pcData } = await supabaseAdmin
         .from('product_categories')
         .select('product_id, category_id, categories(*)')
         .in('product_id', allProductIds);
       
-      (pcData || []).forEach((pc: any) => {
+      ((pcData || []) as unknown as ProductCategoryJunctionRow[]).forEach((pc) => {
         if (!productCategoriesMap[pc.product_id]) {
           productCategoriesMap[pc.product_id] = [];
         }
@@ -91,10 +182,10 @@ export async function POST(request: NextRequest) {
 
     const exportedProducts: ExportedProduct[] = [];
 
-    for (const product of productsData) {
+    for (const product of products) {
       // 1. Process product images (No Base64 to keep JSON small)
       const images = await Promise.all(
-        (product.product_images || []).map(async (img: any) => {
+        ((product.product_images || []) as ProductImageRow[]).map(async (img) => {
           let mimeType = 'image/webp';
           let fileSize = 0;
           let originalFilename = img.url.split('/').pop() || 'image.webp';
@@ -152,7 +243,7 @@ export async function POST(request: NextRequest) {
 
       // 2. Process product variants
       const variants = await Promise.all(
-        (product.product_variants || []).map(async (v: any) => {
+        ((product.product_variants || []) as ProductVariantRow[]).map(async (v) => {
           let imageMimeType = 'image/webp';
           let aiGenerated = false;
           let aiEnabled = true;
@@ -202,7 +293,7 @@ export async function POST(request: NextRequest) {
       );
 
       // 3. Process modifiers
-      const modifiers = (product.product_modifiers || []).map((m: any) => ({
+      const modifiers = ((product.product_modifiers || []) as ProductModifierRow[]).map((m) => ({
         name: m.name,
         price: m.price ? parseFloat(m.price.toString()) : 0,
         active: m.active ?? true,
@@ -217,7 +308,7 @@ export async function POST(request: NextRequest) {
 
       // 5. Resolve all multi-category assignments from junction table
       const allCategories = (productCategoriesMap[product.id] || [])
-        .filter((c: any) => c.slug !== 'shop'); // Exclude system category from export
+        .filter((c) => c.slug !== 'shop'); // Exclude system category from export
 
       exportedProducts.push({
         name: product.name,
@@ -238,11 +329,11 @@ export async function POST(request: NextRequest) {
         tags: product.tags || [],
         category_name: categoryName,
         category_slug: categorySlug,
-        category_data: categoryData,
-        categories: allCategories.length > 0 ? allCategories : undefined,
-        images: validImages,
-        variants,
-        modifiers
+        category_data: categoryData as unknown as ExportedProduct['category_data'],
+        categories: (allCategories.length > 0 ? allCategories : undefined) as unknown as ExportedProduct['categories'],
+        images: validImages as unknown as ExportedProduct['images'],
+        variants: variants as unknown as ExportedProduct['variants'],
+        modifiers: modifiers as unknown as ExportedProduct['modifiers']
       });
     }
 
@@ -254,10 +345,11 @@ export async function POST(request: NextRequest) {
     };
 
     return NextResponse.json(bundle);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[Export API] Failed to export products:', error);
+    const message = error instanceof Error ? error.message : 'Export failed';
     return NextResponse.json(
-      { error: error.message || 'Export failed' },
+      { error: message },
       { status: 500 }
     );
   }

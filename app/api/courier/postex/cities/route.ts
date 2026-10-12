@@ -44,10 +44,10 @@ async function fetchPostexCities(token: string, baseUrl: string): Promise<string
       const res = await fetch(url, {
         headers: { token, 'Content-Type': 'application/json' },
       });
-      const data = await res.json();
+      const data = (await res.json()) as { dist?: unknown };
       if (Array.isArray(data.dist) && data.dist.length > 0) {
-        const names = data.dist
-          .map((c: any) => {
+        const names = (data.dist as Array<Record<string, unknown>>)
+          .map((c) => {
             const name = c.operationalCityName || c.cityName || '';
             return typeof name === 'string' ? name.trim().toUpperCase() : '';
           })
@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
       }
     }
     return NextResponse.json({ success: true, cities: FALLBACK_CITIES, source: 'fallback' });
-  } catch (err: any) {
+  } catch {
     return NextResponse.json({ success: true, cities: FALLBACK_CITIES, source: 'fallback' });
   }
 }

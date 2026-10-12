@@ -277,13 +277,13 @@ export function Modal({
         >
           {/* Mobile drag handle for bottom sheet */}
           {isSheet && (
-            <div className="sm:hidden flex justify-center pt-2 pb-1 shrink-0">
+            <div className={`sm:hidden flex justify-center shrink-0 ${!title ? 'pt-2 pb-1.5' : 'pt-2 pb-1'}`}>
               <span className="h-1.5 w-10 rounded-full bg-gray-300 dark:bg-gray-700" />
             </div>
           )}
 
-          {/* Header */}
-          {(title || showClose) && !isLightbox && (
+          {/* Header (when title is provided) */}
+          {title && !isLightbox && (
             <div className="flex items-center justify-between gap-3 px-4 sm:px-5 py-3 border-b border-gray-100 dark:border-gray-800 shrink-0">
               <div className="min-w-0 font-black text-gray-900 dark:text-white text-sm sm:text-base truncate">
                 {title}
@@ -299,6 +299,18 @@ export function Modal({
                 </button>
               )}
             </div>
+          )}
+
+          {/* Floating close button (when no title is provided, e.g. Quick View) */}
+          {!title && showClose && !isLightbox && (
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close"
+              className="absolute top-2.5 right-2.5 sm:top-3 sm:right-3 z-[35] w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-full bg-white/90 dark:bg-black/70 backdrop-blur-sm shadow text-gray-700 dark:text-white hover:bg-white dark:hover:bg-black transition-all cursor-pointer border border-black/5 dark:border-white/10"
+            >
+              <X className="h-4 w-4 sm:h-5 sm:w-5" />
+            </button>
           )}
 
           {/* Lightbox close (floating) */}

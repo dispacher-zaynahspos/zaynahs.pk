@@ -6,11 +6,18 @@
  * 
  * Supported events: PageView, ViewContent, AddToCart, InitiateCheckout, Purchase, Search
  */
-export function trackEvent(eventName: string, params: Record<string, any> = {}) {
+export function trackEvent(eventName: string, params: Record<string, unknown> = {}) {
   if (typeof window === 'undefined') return;
 
   try {
-    const w = window as any;
+    const w = window as unknown as {
+      fbq?: (...args: unknown[]) => void;
+      gtag?: (...args: unknown[]) => void;
+      ttq?: { track?: (...args: unknown[]) => void };
+      snaptr?: (...args: unknown[]) => void;
+      pintrk?: (...args: unknown[]) => void;
+      twq?: (...args: unknown[]) => void;
+    };
 
     // 1. Meta Pixel (Facebook)
     if (typeof w.fbq === 'function') {

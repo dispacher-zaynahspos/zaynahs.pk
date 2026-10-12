@@ -2,10 +2,10 @@ import React from 'react';
 import { NumberSliderControl, ButtonGroupControl } from './HeroBannerControls';
 
 interface HeroMobileSettingsProps {
-  settings: Record<string, any>;
+  settings: Record<string, unknown>;
   heightMobile: number;
   widthMobile: number;
-  handleSettingsChange: (key: string, value: any) => void;
+  handleSettingsChange: (key: string, value: unknown) => void;
 }
 
 export function HeroMobileSettings({
@@ -151,7 +151,7 @@ export function HeroMobileSettings({
         <div className="grid grid-cols-2 gap-3">
           <ButtonGroupControl
             label="Position (Horiz)"
-            value={settings.content_position_mobile_x || 'center'}
+            value={(settings.content_position_mobile_x as string) || 'center'}
             options={[
               { label: 'Left', value: 'left' },
               { label: 'Center', value: 'center' },
@@ -161,7 +161,7 @@ export function HeroMobileSettings({
           />
           <ButtonGroupControl
             label="Position (Vert)"
-            value={settings.content_position_mobile_y || 'middle'}
+            value={(settings.content_position_mobile_y as string) || 'middle'}
             options={[
               { label: 'Top', value: 'top' },
               { label: 'Middle', value: 'middle' },
@@ -172,7 +172,7 @@ export function HeroMobileSettings({
         </div>
         <ButtonGroupControl
           label="Text Align"
-          value={settings.text_align_mobile || 'center'}
+          value={(settings.text_align_mobile as string) || 'center'}
           options={[
             { label: 'Left', value: 'left' },
             { label: 'Center', value: 'center' },
@@ -187,7 +187,7 @@ export function HeroMobileSettings({
         
         <NumberSliderControl
           label="Zoom Scale"
-          value={settings.image_scale_mobile ?? 100}
+          value={(settings.image_scale_mobile as number) ?? 100}
           min={100}
           max={200}
           step={5}
@@ -197,7 +197,7 @@ export function HeroMobileSettings({
         
         <NumberSliderControl
           label="Left/Right Shift"
-          value={settings.image_focal_x_mobile ?? 50}
+          value={(settings.image_focal_x_mobile as number) ?? 50}
           min={0}
           max={100}
           step={5}
@@ -207,7 +207,7 @@ export function HeroMobileSettings({
         
         <NumberSliderControl
           label="Up/Down Shift"
-          value={settings.image_focal_y_mobile ?? 50}
+          value={(settings.image_focal_y_mobile as number) ?? 50}
           min={0}
           max={100}
           step={5}
@@ -219,7 +219,7 @@ export function HeroMobileSettings({
       <div className="space-y-1.5 p-3.5 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-200 dark:border-gray-800">
         <ButtonGroupControl
           label="Mobile Heading Size"
-          value={settings.heading_size_mobile || '2xl'}
+          value={(settings.heading_size_mobile as string) || '2xl'}
           options={[
             { label: 'S (lg)', value: 'lg' },
             { label: 'M (xl)', value: 'xl' },

@@ -73,9 +73,10 @@ export async function POST(request: Request) {
         createdAt: data.created_at
       }
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[Submit Review API Error]:', error);
-    return NextResponse.json({ error: error.message || 'Failed to submit review' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Failed to submit review';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 

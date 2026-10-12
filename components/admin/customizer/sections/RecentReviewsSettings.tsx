@@ -19,14 +19,14 @@ export default function RecentReviewsSettings({
 }: RecentReviewsSettingsProps) {
   const settings = section.settings || {};
 
-  const handleSettingsChange = (key: string, value: any) => {
+  const handleSettingsChange = (key: string, value: unknown) => {
     onUpdateSection({
       settings: { ...settings, [key]: value }
     });
   };
 
-  const sortMethod = settings.sortMethod || 'newest';
-  const manualReviewIds: string[] = settings.manualReviewIds || [];
+  const sortMethod = (settings.sortMethod as string) || 'newest';
+  const manualReviewIds: string[] = (settings.manualReviewIds as string[]) || [];
 
   const [pickerSearch, setPickerSearch] = useState('');
   const [draggingId, setDraggingId] = useState<string | null>(null);

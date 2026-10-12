@@ -2,7 +2,19 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
 import { EmailTemplate } from '@/lib/types';
 import { revalidateTagSafe } from '@/lib/revalidate';
 
-const mapTemplate = (row: any): EmailTemplate => ({
+interface EmailTemplateRow {
+  id: string;
+  email_type: string;
+  category: 'customer' | 'admin';
+  label: string;
+  description?: string | null;
+  enabled?: boolean | null;
+  subject: string;
+  custom_html?: string | null;
+  updated_at: string;
+}
+
+const mapTemplate = (row: EmailTemplateRow): EmailTemplate => ({
   id: row.id,
   email_type: row.email_type,
   emailType: row.email_type,
@@ -54,7 +66,12 @@ export const updateEmailTemplate = async (
   updates: Partial<Omit<EmailTemplate, 'id' | 'emailType' | 'category' | 'label' | 'description' | 'updatedAt'>>
 ): Promise<EmailTemplate> => {
   try {
-    const payload: any = {};
+    const payload: {
+      subject?: string;
+      custom_html?: string;
+      enabled?: boolean;
+      updated_at: string;
+    } = { updated_at: new Date().toISOString() };
     if (updates.subject !== undefined) payload.subject = updates.subject;
     if (updates.custom_html !== undefined) {
       payload.custom_html = updates.custom_html;
@@ -62,7 +79,6 @@ export const updateEmailTemplate = async (
       payload.custom_html = updates.customHtml;
     }
     if (updates.enabled !== undefined) payload.enabled = updates.enabled;
-    payload.updated_at = new Date().toISOString();
 
     const { data, error } = await supabaseAdmin
       .from('email_templates')

@@ -34,8 +34,9 @@ export async function POST(request: NextRequest) {
     await onContactForm({ name, email, subject: subject || 'Contact Form Message', message });
 
     return NextResponse.json({ success: true, message: 'Your message has been sent. We will get back to you shortly.' });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[API Contact] Failed:', error);
-    return NextResponse.json({ success: false, error: error.message || 'Failed to send message.' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Failed to send message.';
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }

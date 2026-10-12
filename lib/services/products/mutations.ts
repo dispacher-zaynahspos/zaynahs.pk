@@ -145,7 +145,7 @@ export const updateProduct = async (
   try {
     const supabase = supabaseAdmin;
 
-    const updatePayload: Record<string, any> = {};
+    const updatePayload: Record<string, unknown> = {};
     if (product.name !== undefined) updatePayload.name = product.name;
     if (product.slug !== undefined) updatePayload.slug = cleanSlug(product.slug, product.name);
     if (product.description !== undefined) updatePayload.description = product.description;
@@ -296,17 +296,20 @@ export const updateProduct = async (
 
 export { updateProductFields } from './updateProductFields';
 
+type CreateProductArgs = Parameters<typeof createProduct>;
+type UpdateProductArgs = Parameters<typeof updateProduct>;
+
 export const createProductSafe = async (
-  productPayload: any,
-  images: any[],
-  variants: any[],
-  modifiers: any[]
+  productPayload: CreateProductArgs[0],
+  images: CreateProductArgs[1],
+  variants: CreateProductArgs[2],
+  modifiers: CreateProductArgs[3]
 ) => safeAction(createProduct(productPayload, images, variants, modifiers));
 
 export const updateProductSafe = async (
   productId: string,
-  productPayload: any,
-  images: any[],
-  variants: any[],
-  modifiers: any[]
+  productPayload: UpdateProductArgs[1],
+  images: UpdateProductArgs[2],
+  variants: UpdateProductArgs[3],
+  modifiers: UpdateProductArgs[4]
 ) => safeAction(updateProduct(productId, productPayload, images, variants, modifiers));

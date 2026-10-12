@@ -5,7 +5,21 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
 import { ShippingZone } from '@/lib/types';
 import { revalidateStorefrontEdge } from '@/lib/revalidate';
 
-function mapZone(row: any): ShippingZone {
+interface ShippingZoneRow {
+  id: string;
+  name: string;
+  cities: unknown;
+  cost: number | string | null;
+  free_threshold?: number | string | null;
+  estimated_days?: string | null;
+  is_default?: boolean | null;
+  active?: boolean | null;
+  sort_order?: number | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+function mapZone(row: ShippingZoneRow): ShippingZone {
   return {
     id: row.id,
     name: row.name,
@@ -93,7 +107,17 @@ export async function updateShippingZone(
   }>
 ): Promise<ShippingZone> {
   const supabase = await createClient();
-  const payload: any = {};
+  const payload: {
+    name?: string;
+    cities?: string[];
+    cost?: number;
+    free_threshold?: number | null;
+    estimated_days?: string;
+    is_default?: boolean;
+    active?: boolean;
+    sort_order?: number;
+    updated_at: string;
+  } = { updated_at: new Date().toISOString() };
   if (data.name !== undefined) payload.name = data.name;
   if (data.cities !== undefined) payload.cities = data.cities;
   if (data.cost !== undefined) payload.cost = data.cost;
@@ -102,7 +126,6 @@ export async function updateShippingZone(
   if (data.is_default !== undefined) payload.is_default = data.is_default;
   if (data.active !== undefined) payload.active = data.active;
   if (data.sort_order !== undefined) payload.sort_order = data.sort_order;
-  payload.updated_at = new Date().toISOString();
 
   const { data: row, error } = await supabase
     .from('shipping_zones')

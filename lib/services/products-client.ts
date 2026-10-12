@@ -1,8 +1,81 @@
 import { createClient } from '@/lib/supabase/client';
 import { Product } from '@/lib/types';
 
-const mapClientProduct = (row: any): Product => {
-  const images = (row.product_images ?? []).map((img: any) => ({
+interface ProductImageClientRow {
+  id: string;
+  product_id: string;
+  url: string;
+  alt?: string | null;
+  sort_order?: number | null;
+  is_primary?: boolean | null;
+  created_at: string;
+}
+
+interface ProductVariantClientRow {
+  id: string;
+  product_id: string;
+  color?: string | null;
+  size?: string | null;
+  material?: string | null;
+  custom_option?: string | null;
+  custom_value?: string | null;
+  color_hex?: string | null;
+  price?: number | string | null;
+  compare_price?: number | string | null;
+  stock?: number | null;
+  sku?: string | null;
+  image_url?: string | null;
+  show_image_swatch?: boolean | null;
+  active?: boolean | null;
+  sort_order?: number | null;
+  inventory_threshold?: number | null;
+}
+
+interface CategoryClientRow {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string | null;
+  image_url?: string | null;
+  sort_order?: number | null;
+  active?: boolean | null;
+  created_at: string;
+  updated_at: string;
+}
+
+interface ProductClientRow {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string | null;
+  short_description?: string | null;
+  price: number | string;
+  compare_price?: number | string | null;
+  cost?: number | string | null;
+  sku?: string | null;
+  category_id?: string | null;
+  categories?: CategoryClientRow | null;
+  stock?: number | null;
+  has_variants?: boolean | null;
+  is_service?: boolean | null;
+  is_featured?: boolean | null;
+  is_active?: boolean | null;
+  enable_swatches?: boolean | null;
+  show_swatches_on_archive?: boolean | null;
+  custom_badge_id?: string | null;
+  badge_enabled?: boolean | null;
+  tags?: string[] | null;
+  product_images?: ProductImageClientRow[] | null;
+  product_variants?: ProductVariantClientRow[] | null;
+  rating?: number | string | null;
+  reviews_count?: number | null;
+  sort_order?: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
+const mapClientProduct = (row: ProductClientRow): Product => {
+  const images = (row.product_images ?? []).map((img) => ({
     id: img.id,
     product_id: img.product_id,
     url: img.url,
@@ -10,9 +83,9 @@ const mapClientProduct = (row: any): Product => {
     sort_order: img.sort_order || 0,
     is_primary: img.is_primary ?? false,
     created_at: img.created_at
-  })).sort((a: any, b: any) => a.sort_order - b.sort_order);
+  })).sort((a, b) => a.sort_order - b.sort_order);
 
-  const variants = (row.product_variants ?? []).map((v: any) => ({
+  const variants = (row.product_variants ?? []).map((v) => ({
     id: v.id,
     product_id: v.product_id,
     color: v.color || undefined,
@@ -30,7 +103,7 @@ const mapClientProduct = (row: any): Product => {
     active: v.active ?? true,
     sort_order: v.sort_order || 0,
     inventory_threshold: v.inventory_threshold || 0
-  })).sort((a: any, b: any) => a.sort_order - b.sort_order);
+  })).sort((a, b) => a.sort_order - b.sort_order);
 
   const category = row.categories ? {
     id: row.categories.id,

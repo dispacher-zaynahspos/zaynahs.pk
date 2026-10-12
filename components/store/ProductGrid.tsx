@@ -34,7 +34,7 @@ export default function ProductGrid({
     return <EmptyState />;
   }
 
-  const effectiveGap = gridGap || (settings as any)?.shop_grid_gap || 'normal';
+  const effectiveGap = gridGap || settings?.shop_grid_gap || 'normal';
 
   const ellaVariant = getEllaCardVariant(settings?.card_style);
   if (ellaVariant) {

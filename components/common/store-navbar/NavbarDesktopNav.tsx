@@ -77,7 +77,7 @@ export function NavbarDesktopNav({
               >
                 <span className="flex items-center gap-2.5 min-w-0">
                   <span className="h-1.5 w-1.5 rounded-full bg-gray-300 dark:bg-gray-600 group-hover/link:bg-[var(--color-primary,#C2185B)] transition-colors shrink-0" />
-                  <span className="truncate">{child.label || (child as any).title}</span>
+                  <span className="truncate">{child.label || (child as NavigationItem & { title?: string }).title}</span>
                 </span>
                 {hasChildChildren && <ChevronDown className="h-3.5 w-3.5 -rotate-90 text-gray-400 group-hover/link:text-[var(--color-primary,#C2185B)] shrink-0" />}
               </Link>
@@ -121,7 +121,7 @@ export function NavbarDesktopNav({
             key={item.id}
             className="flex items-center gap-1 px-3 py-2 text-sm font-semibold whitespace-nowrap shrink-0"
           >
-            <span>{item.label || (item as any).title}</span>
+            <span>{item.label || (item as NavigationItem & { title?: string }).title}</span>
             {item.children && item.children.length > 0 && <ChevronDown className="h-3.5 w-3.5" />}
           </div>
         ))}
@@ -150,7 +150,7 @@ export function NavbarDesktopNav({
                 }`}
                 style={customTextColorStyle}
               >
-                <span>{item.label || (item as any).title}</span>
+                <span>{item.label || (item as NavigationItem & { title?: string }).title}</span>
                 {hasChildren && (
                   <ChevronDown
                     className={`h-3.5 w-3.5 text-gray-400 transition-transform duration-200 ${

@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { Review } from '@/lib/types';
-import { mapReview } from './types';
+import { mapReview, DBReview } from './types';
 import { revalidateStorefrontEdge } from '@/lib/revalidate';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 
@@ -18,7 +18,7 @@ export const getAllReviews = async (): Promise<(Review & { productName?: string;
 
     if (error) throw error;
     
-    const reviews = (data ?? []).map((row: any) => mapReview(row));
+    const reviews = (data ?? []).map((row) => mapReview(row as DBReview));
 
     // Batch fetch product names, slugs, and images
     const productIds = reviews.map(r => r.product_id).filter(Boolean) as string[];
@@ -49,7 +49,7 @@ export const getAllReviews = async (): Promise<(Review & { productName?: string;
       }));
     }
 
-    return reviews as any;
+    return reviews;
   } catch (error) {
     console.error('[reviews] getAllReviews failed:', error);
     throw error;
@@ -235,7 +235,7 @@ export const getDeletedReviews = async (): Promise<(Review & { productName?: str
       .order('deleted_at', { ascending: false });
 
     if (error) throw error;
-    const reviews = (data ?? []).map((row: any) => mapReview(row));
+    const reviews = (data ?? []).map((row) => mapReview(row as DBReview));
 
     const productIds = reviews.map(r => r.product_id).filter(Boolean) as string[];
     if (productIds.length > 0) {
@@ -264,7 +264,7 @@ export const getDeletedReviews = async (): Promise<(Review & { productName?: str
       }));
     }
 
-    return reviews as any;
+    return reviews;
   } catch (error) {
     console.error('[reviews] getDeletedReviews failed:', error);
     throw error;
@@ -321,7 +321,7 @@ export const submitAdminCustomReview = async (review: {
   storeReply?: string;
 }): Promise<Review> => {
   try {
-    const insertRow: Record<string, any> = {
+    const insertRow: Record<string, unknown> = {
       product_id: review.productId || null,
       customer_name: review.customerName,
       customer_phone: review.customerPhone || null,
@@ -371,7 +371,7 @@ export const bulkImportReviews = async (
   rows: BulkReviewRow[],
 ): Promise<{ inserted: number; skipped: number; errors: string[] }> => {
   const errors: string[] = [];
-  const valid: Record<string, any>[] = [];
+  const valid: Record<string, unknown>[] = [];
 
   rows.forEach((r, i) => {
     const line = i + 1;
@@ -384,7 +384,7 @@ export const bulkImportReviews = async (
       errors.push(`Row ${line}: rating must be 1–5`);
       return;
     }
-    const row: Record<string, any> = {
+    const row: Record<string, unknown> = {
       product_id: r.productId || null,
       customer_name: r.customerName.trim(),
       rating,

@@ -82,8 +82,8 @@ export default function CollectionFormModal({
         }
         toast.success('AI description generated successfully!');
       }
-    } catch (err: any) {
-      toast.error(err.message || 'AI generation failed');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'AI generation failed');
     } finally {
       setIsAiGenerating(false);
     }
@@ -105,8 +105,8 @@ export default function CollectionFormModal({
         active
       };
       await onSubmitSuccess(payload as Collection, assignedCategories);
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to save collection');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to save collection');
     } finally {
       setIsSubmitting(false);
     }

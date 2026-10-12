@@ -3,6 +3,39 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
 
 export const dynamic = 'force-dynamic';
 
+interface ShippingMethodRow {
+  id: string;
+  name: string;
+  cost: number | string | null;
+  estimated_days?: string | null;
+  active: boolean;
+  sort_order?: number | null;
+  created_at: string;
+}
+
+interface PaymentMethodRow {
+  id: string;
+  name: string;
+  code: string;
+  active: boolean;
+  instructions?: string | null;
+  sort_order?: number | null;
+  created_at: string;
+}
+
+interface ShippingZoneRow {
+  id: string;
+  name: string;
+  cities: unknown;
+  cost: number | string | null;
+  free_threshold?: number | string | null;
+  estimated_days?: string | null;
+  is_default?: boolean | null;
+  active?: boolean | null;
+  sort_order?: number | null;
+  created_at: string;
+}
+
 export async function GET() {
   try {
     const [shipRes, payRes, zoneRes] = await Promise.all([
@@ -23,7 +56,7 @@ export async function GET() {
         .order('sort_order', { ascending: true }),
     ]);
 
-    const shippingMethods = (shipRes.data || []).map((r: any) => ({
+    const shippingMethods = ((shipRes.data || []) as ShippingMethodRow[]).map((r) => ({
       id: r.id,
       name: r.name,
       cost: Number(r.cost) || 0,
@@ -33,7 +66,7 @@ export async function GET() {
       created_at: r.created_at,
     }));
 
-    const paymentMethods = (payRes.data || []).map((r: any) => ({
+    const paymentMethods = ((payRes.data || []) as PaymentMethodRow[]).map((r) => ({
       id: r.id,
       name: r.name,
       code: r.code,
@@ -43,7 +76,7 @@ export async function GET() {
       created_at: r.created_at,
     }));
 
-    const shippingZones = (zoneRes.data || []).map((r: any) => ({
+    const shippingZones = ((zoneRes.data || []) as ShippingZoneRow[]).map((r) => ({
       id: r.id,
       name: r.name,
       cities: Array.isArray(r.cities) ? r.cities : [],

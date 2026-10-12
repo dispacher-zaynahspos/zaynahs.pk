@@ -5,6 +5,11 @@ import Link from 'next/link';
 import { Menu, Search, ClipboardList, ExternalLink, Download } from '@/components/common/Icons';
 import PurgeCacheButton from '@/components/admin/shared/PurgeCacheButton';
 
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
+}
+
 interface AdminHeaderProps {
   pageTitle: string;
   setIsMobileMenuOpen: (open: boolean) => void;
@@ -18,19 +23,20 @@ export function AdminHeader({
   onOpenCommandPalette,
   pendingOrdersCount = 0,
 }: AdminHeaderProps) {
-  const [installPrompt, setInstallPrompt] = useState<any>(null);
+  const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    if (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone) {
+    const nav = window.navigator as Navigator & { standalone?: boolean };
+    if (window.matchMedia('(display-mode: standalone)').matches || nav.standalone) {
       setIsInstalled(true);
       return;
     }
 
     const handleBeforeInstall = (e: Event) => {
       e.preventDefault();
-      setInstallPrompt(e);
+      setInstallPrompt(e as BeforeInstallPromptEvent);
     };
 
     const handleAppInstalled = () => {

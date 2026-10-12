@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { Order } from '@/lib/types';
-import { mapOrder } from './types';
+import { mapOrder, OrderRow } from './types';
 
 export const getOrders = async (): Promise<Order[]> => {
   try {
@@ -64,7 +64,7 @@ export const getDeletedOrders = async (): Promise<Order[]> => {
       .order('deleted_at', { ascending: false });
 
     if (error) throw error;
-    return ((data as any) ?? []).map(mapOrder);
+    return ((data as OrderRow[]) ?? []).map(mapOrder);
   } catch (error) {
     console.error('[orders] getDeletedOrders failed:', error);
     throw error;
@@ -83,7 +83,7 @@ export const getOrderById = async (id: string): Promise<Order | null> => {
     if (!data) return null;
 
     // Single source of truth — use the shared mapper (avoids field drift).
-    return mapOrder(data as any);
+    return mapOrder(data as OrderRow);
   } catch (error) {
     console.error('[orders] getOrderById failed:', error);
     return null;

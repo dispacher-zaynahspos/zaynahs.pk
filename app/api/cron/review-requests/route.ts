@@ -101,8 +101,9 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true, processed: pendingOrders.length, sentCount: successCount });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[Cron Review Request] GET handler failed:', error);
-    return NextResponse.json({ success: false, error: error.message || 'Internal server error' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Internal server error';
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }

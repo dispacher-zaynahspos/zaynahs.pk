@@ -14,8 +14,9 @@ export async function POST(request: NextRequest) {
     await revalidateHomepage();
 
     return NextResponse.json({ success: true });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.warn('[Import Finish API] Cache purge error:', err);
-    return NextResponse.json({ success: true, warning: err.message });
+    const warning = err instanceof Error ? err.message : 'Cache purge error';
+    return NextResponse.json({ success: true, warning });
   }
 }

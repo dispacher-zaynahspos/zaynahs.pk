@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { getOrderById } from '@/lib/services/orders';
 import { getAllProductsAdmin } from '@/lib/services/products';
-import { Order } from '@/lib/types';
+import { Order, Product } from '@/lib/types';
 import { useOrderCustomerEditing } from './useOrderCustomerEditing';
 import { useOrderActions } from './useOrderActions';
 

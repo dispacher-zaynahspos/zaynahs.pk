@@ -22,7 +22,7 @@ interface VariantAxisCardProps {
   presets: VariantPreset[];
   axisOrderChanged: boolean;
   setVariants: React.Dispatch<React.SetStateAction<Omit<ProductVariant, 'id' | 'product_id'>[]>>;
-  images: any[];
+  images: { url: string; alt?: string }[];
   activeImageSelector: { axisIdx: number; valIdx: number } | null;
   setActiveImageSelector: React.Dispatch<React.SetStateAction<{ axisIdx: number; valIdx: number } | null>>;
   handleMoveAxisUp: (idx: number) => void;
@@ -178,7 +178,7 @@ export const VariantAxisCard: React.FC<VariantAxisCardProps> = ({
                   {axis.type === 'color' && (
                     <span
                       className="flex-shrink-0 h-3.5 w-3.5 rounded-full border border-gray-300 dark:border-gray-600 shadow-sm"
-                      style={getSwatchStyle((val as any).hex || '#ccc')}
+                      style={getSwatchStyle(val.hex || '#ccc')}
                     />
                   )}
                   <span className="whitespace-nowrap">{val.label}</span>

@@ -70,7 +70,7 @@ export const uploadImage = async (file: File | Blob, bucket: string, customName?
           const webpBuffer = await sharp(buffer)
             .webp({ quality: 80 })
             .toBuffer();
-          webpFile = new Blob([webpBuffer as any], { type: 'image/webp' });
+          webpFile = new Blob([new Uint8Array(webpBuffer)], { type: 'image/webp' });
           fileExtension = 'webp';
         } catch (err) {
           console.warn('[uploadImage] Server side sharp compression failed, using original:', err);
@@ -137,9 +137,9 @@ export const uploadImage = async (file: File | Blob, bucket: string, customName?
     }
 
     return fileUrl;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[uploadImage] Image upload process failed:', error);
-    throw new Error(error.message || 'Image upload failed');
+    throw new Error(error instanceof Error ? error.message : 'Image upload failed');
   }
 };
 
@@ -213,8 +213,8 @@ export const uploadReviewImage = async (file: File): Promise<string> => {
     }
 
     return data.publicUrl;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[uploadReviewImage] Failed to upload review photo:', error);
-    throw new Error(error.message || 'Review photo upload failed');
+    throw new Error(error instanceof Error ? error.message : 'Review photo upload failed');
   }
 };

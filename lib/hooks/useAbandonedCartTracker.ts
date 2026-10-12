@@ -16,6 +16,17 @@ function getOrCreateSessionId(): string {
   return sid;
 }
 
+interface AbandonedCartItem {
+  product: {
+    id: string;
+    name: string;
+    images?: { url: string }[];
+  };
+  quantity: number;
+  price: number;
+  selectedVariant?: unknown;
+}
+
 interface AbandonedCartData {
   sessionId: string;
   customerName?: string;
@@ -25,7 +36,7 @@ interface AbandonedCartData {
   customerCity?: string;
   customerApartment?: string;
   customerPostalCode?: string;
-  items: any[];
+  items: AbandonedCartItem[];
   subtotal: number;
   currency: string;
 }

@@ -23,7 +23,7 @@ import { CSS } from '@dnd-kit/utilities';
 
 interface SortableItem {
   id: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface HorizontalSortableListProps<T extends SortableItem> {

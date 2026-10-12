@@ -1,8 +1,8 @@
 import { HomepageSection } from '@/lib/types';
 
-export function formatCssDimension(val: any, defaultVal: string): string {
+export function formatCssDimension(val: unknown, defaultVal: string): string {
   if (val === undefined || val === null || val === '') return defaultVal;
-  const valStr = val.toString().trim();
+  const valStr = (val as string | number).toString().trim();
   if (/^\d+$/.test(valStr)) {
     return `${valStr}px`;
   }
@@ -10,7 +10,7 @@ export function formatCssDimension(val: any, defaultVal: string): string {
 }
 
 export function resolveBannerHeightCss(
-  val: any,
+  val: unknown,
   defaultVal: string,
   fallbackRatio: string = '16/9'
 ): {
@@ -21,7 +21,7 @@ export function resolveBannerHeightCss(
   if (val === undefined || val === null || val === '') {
     val = defaultVal;
   }
-  const raw = val.toString().trim().toLowerCase();
+  const raw = (val as string | number).toString().trim().toLowerCase();
 
   // Aspect ratio forms: "16:9", "16/9", "21:9", "21/9", "4:3", "4/3", "1:1", "3:4", "3/4", "9:16", "9/16"
   const aspectMatch = raw.match(/^(\d+)\s*[:/]\s*(\d+)$/);

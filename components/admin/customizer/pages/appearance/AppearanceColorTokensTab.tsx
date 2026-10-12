@@ -8,7 +8,7 @@ interface AppearanceColorTokensTabProps {
   updateConfigField: <T extends keyof ThemeConfig>(
     section: T,
     field: keyof ThemeConfig[T],
-    value: any
+    value: ThemeConfig[T][keyof ThemeConfig[T]]
   ) => void;
 }
 
@@ -77,14 +77,14 @@ export function AppearanceColorTokensTab({ colors, updateConfigField }: Appearan
                 <input
                   type="color"
                   value={val}
-                  onChange={e => updateConfigField('colors', item.key as any, e.target.value)}
+                  onChange={e => updateConfigField('colors', item.key as keyof ThemeConfig['colors'], e.target.value)}
                   className="w-5 h-5 rounded border border-gray-200 cursor-pointer overflow-hidden p-0 bg-transparent"
                 />
               </div>
               <input
                 type="text"
                 value={val}
-                onChange={e => updateConfigField('colors', item.key as any, e.target.value)}
+                onChange={e => updateConfigField('colors', item.key as keyof ThemeConfig['colors'], e.target.value)}
                 className="w-full mt-1.5 px-2 py-1 bg-white dark:bg-[#0f0f1b] border border-gray-200 dark:border-gray-800 rounded-md text-[10px] uppercase font-bold text-center"
               />
               <span className="text-[8px] text-gray-400 dark:text-gray-500 font-semibold block leading-tight mt-1 truncate">{item.desc}</span>
