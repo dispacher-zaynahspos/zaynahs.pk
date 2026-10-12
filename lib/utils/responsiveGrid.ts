@@ -106,6 +106,10 @@ export interface CatalogGridConfig {
   /** Auto-mode min width on 1920+ (large desktop). Falls back to minXl/minDesktop. */
   minXxl?: number | string | null;
   gap?: GridGapOption | string | null;
+  /** Total tiles count — used to center incomplete rows while keeping tile size */
+  tileCount?: number | null;
+  /** If true, centers tiles when tileCount < columns, preserving exact column width */
+  centerIncomplete?: boolean;
 }
 
 /** Safe per-device clamps (match the shared ResponsiveGridColumnsControl ranges; desktop extended to 8). */
@@ -151,11 +155,67 @@ export function getCatalogGridStyle(cfg?: CatalogGridConfig | null): {
 
   const g = gapVars(cfg?.gap);
 
-  const style = {
-    '--cat-cols-m': m,
-    '--cat-cols-t': t,
-    '--cat-cols-d': d,
-    '--cat-cols-w': w,
+  const tileCount = cfg?.tileCount != null ? Math.max(1, Math.floor(Number(cfg.tileCount))) : null;
+  const centerTiles = Boolean(cfg?.centerIncomplete && tileCount !== null);
+
+  // Target columns for baseline card width sizing:
+  // Desktop standard card width is based on at least 4 columns (or merchant preference if >= 3).
+  // If merchant selected 2 columns with 2 tiles, baseline to 4 so tiles stay standard card size
+  // (~285px) and center neatly in the container instead of bloating to 50% width (~600px).
+  const targetD = d <= 2 && (tileCount ?? 0) <= 2 ? 4 : d;
+  const targetW = w <= 2 && (tileCount ?? 0) <= 2 ? 4 : w;
+  const targetT = Math.max(t, 3);
+  const targetM = Math.max(m, 2);
+
+  let activeD = d;
+  let activeW = w;
+  let activeT = t;
+  let activeM = m;
+  let maxWD: string | undefined;
+  let maxWW: string | undefined;
+  let maxWT: string | undefined;
+  let maxWM: string | undefined;
+
+  let effectiveMode: CatalogColumnsMode = mode;
+
+  if (centerTiles && tileCount !== null) {
+    if (tileCount < targetD) {
+      activeD = Math.max(1, tileCount);
+      const frac = activeD / targetD;
+      const rem = (targetD - activeD) / targetD;
+      maxWD = `calc(${frac * 100}% - ${rem} * var(--cat-gap-d))`;
+    }
+    if (tileCount < targetW) {
+      activeW = Math.max(1, tileCount);
+      const frac = activeW / targetW;
+      const rem = (targetW - activeW) / targetW;
+      maxWW = `calc(${frac * 100}% - ${rem} * var(--cat-gap-d))`;
+    }
+    if (tileCount < targetT) {
+      activeT = Math.max(1, tileCount);
+      const frac = activeT / targetT;
+      const rem = (targetT - activeT) / targetT;
+      maxWT = `calc(${frac * 100}% - ${rem} * var(--cat-gap-t))`;
+    }
+    if (tileCount < targetM) {
+      activeM = Math.max(1, tileCount);
+      const frac = activeM / targetM;
+      const rem = (targetM - activeM) / targetM;
+      maxWM = `calc(${frac * 100}% - ${rem} * var(--cat-gap-m))`;
+    }
+
+    // When tiles are fewer than target columns, enforce exact active column count
+    // so auto-fill doesn't generate empty tracks on the right.
+    if (tileCount < targetD) {
+      effectiveMode = 'manual';
+    }
+  }
+
+  const style: Record<string, string | number> = {
+    '--cat-cols-m': activeM,
+    '--cat-cols-t': activeT,
+    '--cat-cols-d': activeD,
+    '--cat-cols-w': activeW,
     '--cat-min-m': `${minM}px`,
     '--cat-min-t': `${minT}px`,
     '--cat-min-d': `${minD}px`,
@@ -164,9 +224,14 @@ export function getCatalogGridStyle(cfg?: CatalogGridConfig | null): {
     '--cat-gap-m': `${g.m}px`,
     '--cat-gap-t': `${g.t}px`,
     '--cat-gap-d': `${g.d}px`,
-  } as React.CSSProperties;
+  };
 
-  return { className: 'catalog-grid', mode, style };
+  if (maxWM) style['--cat-max-w-m'] = maxWM;
+  if (maxWT) style['--cat-max-w-t'] = maxWT;
+  if (maxWD) style['--cat-max-w-d'] = maxWD;
+  if (maxWW) style['--cat-max-w-w'] = maxWW;
+
+  return { className: 'catalog-grid', mode: effectiveMode, style: style as React.CSSProperties };
 }
 
 /**

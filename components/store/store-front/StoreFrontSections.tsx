@@ -138,11 +138,11 @@ export function CategoryGridSection({ section, refEntities = [] }: CategoryGridS
   // honors the merchant's exact per-device column counts, picking an even divisor
   // of the tile count so rows never leave a lonely half row (6 → 6/3/2, not 4+2).
   const tileCount = displayItems.length;
-  const prefDesktop = Number(section.settings?.desktop_columns) || Math.min(tileCount || 4, 6);
+  const prefDesktop = Number(section.settings?.desktop_columns) || 4;
   const prefTablet = Number(section.settings?.tablet_columns) || 3;
   const prefMobile = Number(section.settings?.mobile_columns) || 2;
-  // Tiles default to AUTO (min-width fill) unless the merchant explicitly chose manual.
-  const tileMode: 'auto' | 'manual' = section.settings?.columns_mode === 'manual' ? 'manual' : 'auto';
+  // Tiles default to manual matching the customizer editor default (CollectionsGridSettings / CategoryGridSettings).
+  const tileMode: 'auto' | 'manual' = section.settings?.columns_mode === 'auto' ? 'auto' : 'manual';
   const grid = getCatalogGridStyle({
     mode: tileMode,
     mobile: tileMode === 'auto' ? prefMobile : evenFillColumns(prefMobile, tileCount, 3),
@@ -157,6 +157,8 @@ export function CategoryGridSection({ section, refEntities = [] }: CategoryGridS
     minXl: section.settings?.min_tile_xl || 280,
     minXxl: section.settings?.min_tile_xxl || 320,
     gap: section.settings?.grid_gap || 'normal',
+    tileCount,
+    centerIncomplete: true,
   });
 
   // Shared tile label/text controls (merchant-configurable).
