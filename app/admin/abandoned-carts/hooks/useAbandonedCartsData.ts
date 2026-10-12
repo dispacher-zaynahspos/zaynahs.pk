@@ -101,13 +101,13 @@ export function useAbandonedCartsData() {
         { event: '*', schema: 'public', table: 'abandoned_carts' },
         (payload) => {
           if (payload.eventType === 'INSERT') {
-            const newCart = mapRealtimeCart(payload.new);
+            const newCart = mapRealtimeCart(payload.new as AbandonedCartRow);
             setCarts(prev => {
               if (prev.some(c => c.id === newCart.id)) return prev;
               return [newCart, ...prev];
             });
           } else if (payload.eventType === 'UPDATE') {
-            const updatedCart = mapRealtimeCart(payload.new);
+            const updatedCart = mapRealtimeCart(payload.new as AbandonedCartRow);
             setCarts(prev => prev.map(c => c.id === updatedCart.id ? updatedCart : c));
           } else if (payload.eventType === 'DELETE') {
             setCarts(prev => prev.filter(c => c.id !== payload.old.id));
@@ -250,10 +250,10 @@ export function useAbandonedCartsData() {
   const handleCopyDetails = (cart: AbandonedCart) => {
     const itemsText = cart.items.map(item => {
       const variantParts = [];
-      if ((item.selected_variant ?? item.selectedVariant)?.color) variantParts.push((item.selected_variant ?? item.selectedVariant).color);
-      if ((item.selected_variant ?? item.selectedVariant)?.size) variantParts.push((item.selected_variant ?? item.selectedVariant).size);
+      if ((item.selected_variant ?? item.selectedVariant)?.color) variantParts.push((item.selected_variant ?? item.selectedVariant)?.color);
+      if ((item.selected_variant ?? item.selectedVariant)?.size) variantParts.push((item.selected_variant ?? item.selectedVariant)?.size);
       const variantStr = variantParts.length ? ` (${variantParts.join(', ')})` : '';
-      return `• ${item.product.name}${variantStr} x${item.quantity} = ${formatPrice(item.price * item.quantity)}`;
+      return `• ${item.product?.name || item.name || 'Product'}${variantParts.length ? ` (${variantParts.join(', ')})` : ''} x${item.quantity ?? 1} = ${formatPrice((item.price ?? 0) * (item.quantity ?? 1))}`;
     }).join('\n');
 
     const addressParts = [

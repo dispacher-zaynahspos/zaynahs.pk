@@ -310,7 +310,7 @@ export async function POST(req: NextRequest) {
           tracking_url: trackingUrl,
           postex_remarks: finalRemarks,
           order: { items },
-          order_total: orderTotal,
+          order_total: Number(orderTotal),
         });
         console.log(`[PostEx Fulfill] Shipped email sent to customer: ${customerEmail}`);
       } catch (mailErr) {
@@ -328,7 +328,7 @@ export async function POST(req: NextRequest) {
           customer_phone: customerPhone,
           tracking_number: trackingNumber,
           tracking_url: trackingUrl,
-          order_total: formatPrice(totalAmount, currencySymbol),
+          order_total: Number(formatPrice(totalAmount, currencySymbol).replace(/[^0-9.]/g, '')),
           order: { items }
         });
         console.log(`[PostEx Fulfill] Shipped notification sent to admin: ${adminEmail}`);

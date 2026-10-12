@@ -75,7 +75,7 @@ export async function getDeletedCustomers() {
         email: c.email || null,
         phone: c.phone || null,
         createdAt: c.created_at,
-        deletedAt: c.deleted_at,
+        deletedAt: c.deleted_at || '',
         ordersCount: validOrders.length,
         totalSpent
       };

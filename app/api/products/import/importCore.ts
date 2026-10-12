@@ -268,10 +268,10 @@ export async function importSingleProductCore(
     }
 
     // 2. Upload Product-level images
-    const uploadedUrlsMap = await processProductImages(productId, finalName, p.slug, p.images || []);
+    const uploadedUrlsMap = await processProductImages(productId, finalName, p.slug, p.images as any[] || []);
 
     // 3. Upload variant images & Insert Variants
-    await processProductVariants(productId, finalName, p.slug, p.variants || [], uploadedUrlsMap);
+    await processProductVariants(productId, finalName, p.slug, p.variants as any[] || [], uploadedUrlsMap);
 
     // 4. Insert Modifiers
     for (const m of (p.modifiers || [])) {

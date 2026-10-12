@@ -110,7 +110,7 @@ export const submitReview = async (review: {
       const product = await getProductById(review.productId);
       if (product) {
         const { onNewReview } = await import('@/lib/email/triggers');
-        await onNewReview(savedReview, product);
+        await onNewReview(savedReview as import('@/lib/email/triggers').TriggerReview, product);
       }
     } catch (err) {
       console.error('[Email Trigger] failed in submitReview trigger:', err);

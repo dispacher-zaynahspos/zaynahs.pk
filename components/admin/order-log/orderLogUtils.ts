@@ -1,6 +1,6 @@
 import { Order, CartItem, StatusLogItem } from '@/lib/types';
 
-interface OrderRow {
+export interface OrderRow {
   id: string;
   order_number: string;
   customer_name?: string | null;

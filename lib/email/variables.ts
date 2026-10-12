@@ -99,6 +99,14 @@ export interface EmailVariableData {
   last_activity?: string;
   checkout_url?: string;
   postex_remarks?: string;
+  order_id?: string;
+  customer_name?: string;
+  customer_email?: string;
+  customer_phone?: string;
+  tracking_number?: string;
+  tracking_url?: string;
+  order_total?: number;
+  order_subtotal?: number;
 }
 
 export async function buildVariables(emailType: string, data: EmailVariableData): Promise<Record<string, string>> {

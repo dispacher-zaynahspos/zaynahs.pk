@@ -208,7 +208,7 @@ export function CategoryGridSection({ section, refEntities = [] }: CategoryGridS
             className={`group relative block overflow-hidden border border-gray-200 dark:border-gray-800 shadow-xs hover:shadow-md cursor-pointer bg-gray-100 dark:bg-gray-900 ${aspectClass}`}
           >
             <Image
-              src={item.imageUrl}
+              src={item.imageUrl || ''}
               alt={item.title || 'Category'}
               fill
               sizes="(max-width: 768px) 50vw, 25vw"

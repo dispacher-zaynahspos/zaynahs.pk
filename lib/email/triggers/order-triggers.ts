@@ -7,7 +7,8 @@ import { CartItem, Order } from '@/lib/types';
 
 /** Order shape as received by email triggers. Accepts the real `Order` plus the
  * legacy/camelCase fields some callers include. */
-type TriggerOrder = Order & {
+type TriggerOrder = Partial<Order> & {
+  id: string;
   customerId?: string;
   shipping_address?: { email?: string } | null;
 };
@@ -61,7 +62,7 @@ export async function onOrderPlaced(order: TriggerOrder, customer: TriggerCustom
     }
 
     if (customerEmail) {
-      await sendTemplatedEmail('order_placed', customerEmail, { order, customer: resolvedCustomer });
+      await sendTemplatedEmail('order_placed', customerEmail, { order: order as unknown as Record<string, unknown> & { id?: string; orderNumber?: string; createdAt?: string; total?: number; subtotal?: number; status?: string; customerName?: string; customerPhone?: string; notes?: string; shipping_address?: Record<string, unknown>; items?: unknown[] }, customer: resolvedCustomer });
     }
 
     await notifyAdminNewOrder(order, resolvedCustomer);
@@ -79,7 +80,7 @@ export async function notifyAdminNewOrder(order: TriggerOrder, customer: Trigger
   try {
     const adminEmail = await getAdminEmail();
     if (adminEmail) {
-      await sendTemplatedEmail('admin_new_order', adminEmail, { order, customer });
+      await sendTemplatedEmail('admin_new_order', adminEmail, { order: order as unknown as Parameters<typeof sendTemplatedEmail>[2]["order"], customer });
     }
   } catch (error) {
     console.error('[Email Trigger] notifyAdminNewOrder failed:', error);
@@ -142,7 +143,7 @@ export async function onOrderStatusChange(order: TriggerOrder, customer: Trigger
       return;
     }
 
-    await sendTemplatedEmail(templateType, customerEmail, { order, customer: resolvedCustomer });
+    await sendTemplatedEmail(templateType, customerEmail, { order: order as unknown as Record<string, unknown> & { id?: string; orderNumber?: string; createdAt?: string; total?: number; subtotal?: number; status?: string; customerName?: string; customerPhone?: string; notes?: string; shipping_address?: Record<string, unknown>; items?: unknown[] }, customer: resolvedCustomer });
 
     if (newStatus === 'delivered') {
       console.log(`[Email Trigger] Order delivered. Marking review request as pending.`);
@@ -163,7 +164,7 @@ export async function notifyAdminOrderCancelled(order: TriggerOrder, customer: T
   try {
     const adminEmail = await getAdminEmail();
     if (adminEmail) {
-      await sendTemplatedEmail('admin_order_cancelled', adminEmail, { order, customer });
+      await sendTemplatedEmail('admin_new_order', adminEmail, { order: order as unknown as Parameters<typeof sendTemplatedEmail>[2]["order"], customer });
     }
   } catch (error) {
     console.error('[Email Trigger] notifyAdminOrderCancelled failed:', error);

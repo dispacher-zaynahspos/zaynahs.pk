@@ -9,7 +9,7 @@ import {
 import { Order, StoreSettings } from '@/lib/types';
 import { toast } from 'sonner';
 import { createClient } from '@/lib/supabase/client';
-import { mapOrderRow, isOrderPaid } from '../orderLogUtils';
+import { mapOrderRow, isOrderPaid, OrderRow } from '../orderLogUtils';
 import { useOrderLogBulkActions } from './useOrderLogBulkActions';
 
 interface UseOrderLogStateProps {
@@ -210,14 +210,14 @@ export function useOrderLogState({ initialOrders, settings }: UseOrderLogStatePr
         { event: '*', schema: 'public', table: 'orders' },
         (payload) => {
           if (payload.eventType === 'INSERT') {
-            const newOrder = mapOrderRow(payload.new);
+            const newOrder = mapOrderRow(payload.new as unknown as OrderRow);
             setOrders(prev => {
               if (prev.some(o => o.id === newOrder.id)) return prev;
               return [newOrder, ...prev];
             });
             toast.info(`New Order received: ${newOrder.order_number}`);
           } else if (payload.eventType === 'UPDATE') {
-            const updatedOrder = mapOrderRow(payload.new);
+            const updatedOrder = mapOrderRow(payload.new as unknown as OrderRow);
             setOrders(prev => prev.map(o => o.id === updatedOrder.id ? updatedOrder : o));
           } else if (payload.eventType === 'DELETE') {
             setOrders(prev => prev.filter(o => o.id !== payload.old.id));

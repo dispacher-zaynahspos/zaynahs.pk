@@ -144,8 +144,8 @@ export default function AbandonedCartDetailDrawer({
                 <div className="divide-y divide-gray-100 dark:divide-gray-800/60 px-5">
                   {selectedCart.items.map((item, idx) => {
                     const variantParts = [];
-                    if ((item.selected_variant ?? item.selectedVariant)?.color) variantParts.push((item.selected_variant ?? item.selectedVariant).color);
-                    if ((item.selected_variant ?? item.selectedVariant)?.size) variantParts.push((item.selected_variant ?? item.selectedVariant).size);
+                    if ((item.selected_variant ?? item.selectedVariant)?.color) variantParts.push((item.selected_variant ?? item.selectedVariant)?.color);
+                    if ((item.selected_variant ?? item.selectedVariant)?.size) variantParts.push((item.selected_variant ?? item.selectedVariant)?.size);
                     const variantStr = variantParts.join(', ');
                     
                     const imgUrl = item.product?.images?.[0]?.url || '';
@@ -179,14 +179,14 @@ export default function AbandonedCartDetailDrawer({
                             </p>
                           )}
                           <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 font-semibold">
-                            {formatPrice(item.price || item.product?.price || 0)} × {item.quantity}
+                            {formatPrice(item.price || item.product?.price || 0)} × {item.quantity ?? 1}
                           </p>
                         </div>
 
                         {/* Line Total */}
                         <div className="text-right">
                           <span className="text-xs font-black text-gray-900 dark:text-white">
-                            {formatPrice((item.price || item.product?.price || 0) * item.quantity)}
+                            {formatPrice((item.price || item.product?.price || 0) * (item.quantity ?? 1))}
                           </span>
                         </div>
                       </div>

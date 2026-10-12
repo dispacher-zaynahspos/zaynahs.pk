@@ -42,7 +42,7 @@ export async function attachLinkedProducts(proofs: SocialProof[]): Promise<Socia
       product_id: string;
       products?: { id: string; name: string; slug: string } | null;
     };
-    for (const row of junctionRows as JunctionRow[]) {
+    for (const row of junctionRows as unknown as JunctionRow[]) {
       if (!productsByProofId[row.social_proof_id]) productsByProofId[row.social_proof_id] = [];
       if (row.products) {
         const p = row.products;

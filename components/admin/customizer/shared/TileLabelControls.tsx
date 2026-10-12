@@ -33,13 +33,13 @@ export default function TileLabelControls({ settings, onChange }: TileLabelContr
       <div className="flex items-center gap-1.5">
         <input
           type="color"
-          value={settings[keyName] || placeholder || '#ffffff'}
+          value={(typeof settings[keyName] === 'string' && settings[keyName]) || placeholder || '#ffffff'}
           onChange={(e) => onChange(keyName, e.target.value)}
           className="w-7 h-7 rounded-lg border border-gray-200 dark:border-gray-700 cursor-pointer overflow-hidden p-0 bg-transparent shrink-0"
         />
         <input
           type="text"
-          value={settings[keyName] || ''}
+          value={typeof settings[keyName] === 'string' ? settings[keyName] : ''}
           onChange={(e) => onChange(keyName, e.target.value)}
           placeholder={placeholder || 'theme default'}
           className="w-full px-2 py-1 bg-white dark:bg-[#0f0f1b] border border-gray-200 dark:border-gray-800 rounded-lg text-xs font-mono font-semibold"
@@ -107,7 +107,7 @@ export default function TileLabelControls({ settings, onChange }: TileLabelContr
               <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 block uppercase tracking-wider">Shop Now Text</label>
               <input
                 type="text"
-                value={settings.shop_now_text || ''}
+                value={typeof settings.shop_now_text === 'string' ? settings.shop_now_text : ''}
                 onChange={(e) => onChange('shop_now_text', e.target.value)}
                 placeholder="Shop Now"
                 className="w-full px-3 py-1.5 bg-white dark:bg-[#0f0f1b] border border-gray-200 dark:border-gray-800 rounded-lg text-xs font-semibold focus:outline-none focus:border-[#e94560]"
@@ -126,7 +126,7 @@ export default function TileLabelControls({ settings, onChange }: TileLabelContr
             <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 block uppercase tracking-wider">Label Font (optional)</label>
             <input
               type="text"
-              value={settings.label_font || ''}
+              value={typeof settings.label_font === 'string' ? settings.label_font : ''}
               onChange={(e) => onChange('label_font', e.target.value)}
               placeholder="inherit (theme font)"
               className="w-full px-3 py-1.5 bg-white dark:bg-[#0f0f1b] border border-gray-200 dark:border-gray-800 rounded-lg text-xs font-semibold focus:outline-none focus:border-[#e94560]"

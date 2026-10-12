@@ -63,7 +63,8 @@ export async function POST(req: NextRequest) {
   const _denied = await requireAdmin(req);
   if (_denied) return _denied;
   try {
-    const { apiToken } = await req.json();
+    const body = await req.json().catch(() => ({}));
+    const apiToken = (body.apiToken || body.token || '').trim();
 
     if (apiToken) {
       const liveCities = await fetchPostexCities(apiToken, POSTEX_BASE);

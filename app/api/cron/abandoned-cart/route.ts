@@ -68,8 +68,8 @@ export async function GET(req: NextRequest) {
               };
             })
           },
-          order_subtotal: `${settings.currency_symbol || 'Rs.'}${cart.subtotal.toLocaleString()}`,
-          order_total: `${settings.currency_symbol || 'Rs.'}${cart.subtotal.toLocaleString()}`,
+          order_subtotal: Number(cart.subtotal),
+          order_total: Number(cart.subtotal),
         });
 
         if (result.success) {
@@ -81,9 +81,9 @@ export async function GET(req: NextRequest) {
           if (adminEmail && settings.abandoned_cart_admin_notify !== false) {
             await sendTemplatedEmail('admin_abandoned_cart', adminEmail, {
               customer_name: cart.customerName || 'Unknown',
-              customer_email: cart.customerEmail,
+              customer_email: String(cart.customerEmail || ''),
               customer_phone: cart.customerPhone || '—',
-              order_total: `${settings.currency_symbol || 'Rs.'}${cart.subtotal.toLocaleString()}`,
+              order_total: Number(cart.subtotal),
               last_activity: new Date(cart.lastActivity).toLocaleString()
             }).catch(e => console.error('[abandoned-cart cron] Admin notify failed:', e));
           }

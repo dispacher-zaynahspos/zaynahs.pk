@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { Product, CartItem, ProductVariant, StoreSettings, Order } from '@/lib/types';
+import { Product, CartItem, ProductVariant, StoreSettings, Order, StatusLogItem } from '@/lib/types';
 import { Package, Check } from '@/components/common/Icons';
 import { updateOrderDetailsSafe } from '@/lib/services/orders';
 import { toast } from 'sonner';

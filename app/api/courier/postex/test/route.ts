@@ -42,7 +42,8 @@ export async function POST(req: NextRequest) {
   const _denied = await requireAdmin(req);
   if (_denied) return _denied;
   try {
-    const { apiToken } = await req.json();
+    const body = await req.json().catch(() => ({}));
+    const apiToken = (body.apiToken || body.token || '').trim();
 
     if (!apiToken) {
       return NextResponse.json({ success: false, error: 'API token is required' }, { status: 400 });
@@ -61,7 +62,7 @@ export async function POST(req: NextRequest) {
         success: false,
         error: addrData.statusMessage || addrData.message || addrData.error || 'Invalid token or API error',
         details: addrData,
-      }, { status: 200 });
+      }, { status: 400 });
     }
 
     const addresses = extractAddresses(addrData);
@@ -71,7 +72,7 @@ export async function POST(req: NextRequest) {
         success: false,
         error: addrData.statusMessage || addrData.message || 'No addresses returned — token may be invalid',
         details: addrData,
-      }, { status: 200 });
+      }, { status: 400 });
     }
 
     // Try to fetch order types
@@ -91,6 +92,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       addresses,
+      addressCount: addresses.length,
       orderTypes,
       message: addrData.statusMessage || addrData.message || 'Token valid',
     });

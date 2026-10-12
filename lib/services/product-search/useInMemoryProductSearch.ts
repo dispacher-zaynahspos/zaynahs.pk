@@ -32,7 +32,7 @@ export function productToSearchResult(product: Product): ProductSearchResult {
     sku: product.sku,
     images: product.images || [],
     variants: product.variants || [],
-    category: product.category,
+    category: product.category!,
     tags: product.tags || [],
     is_active: product.is_active,
     is_featured: product.is_featured,

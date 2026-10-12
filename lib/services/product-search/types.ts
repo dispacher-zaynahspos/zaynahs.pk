@@ -47,7 +47,7 @@ export interface ProductSearchResult {
     active: boolean;
     sort_order: number;
   }>;
-  category?: { id: string; name: string; slug: string; sort_order: number; active: boolean; created_at: string; updated_at: string; parent_id?: string | null; description?: string; image_url?: string; meta_title?: string; meta_description?: string; deleted_at?: string | null };
+  category?: { id: string; name: string; slug: string; sort_order: number; active: boolean; created_at: string; updated_at: string; parent_id?: string | null; description?: string | null; image_url?: string | null; meta_title?: string; meta_description?: string; deleted_at?: string | null };
   tags: string[];
   is_active: boolean;
   is_featured: boolean;

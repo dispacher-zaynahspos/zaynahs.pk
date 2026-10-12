@@ -4,11 +4,11 @@ import { Review, Product } from '@/lib/types';
 
 /** Review shape as received by email triggers. Accepts the real `Review` plus
  * any loose extra fields some callers include. */
-type TriggerReview = Review & Record<string, unknown>;
+export type TriggerReview = Review & Record<string, unknown>;
 
 /** Product shape as received by email triggers. Accepts the real `Product`
  * plus any loose extra fields some callers include. */
-type TriggerProduct = Product & Record<string, unknown>;
+export type TriggerProduct = Product | (Product & Record<string, unknown>);
 
 async function getAdminEmail(): Promise<string> {
   const settings = await getSettings();

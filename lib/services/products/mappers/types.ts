@@ -84,21 +84,6 @@ export interface DBProductCategoryRelation {
   categories?: DBCategory | null;
 }
 
-export interface DBBadge {
-  id: string;
-  name: string;
-  bg_color: string;
-  text_color: string;
-}
-
-export interface DBSizeGuide {
-  id: string;
-  name: string;
-  chart_data?: unknown;
-  unit?: string | null;
-  image_url?: string | null;
-}
-
 export interface DBProductRow {
   id: string;
   name: string;

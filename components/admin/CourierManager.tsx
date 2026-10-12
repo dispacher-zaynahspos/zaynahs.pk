@@ -99,10 +99,10 @@ export default function CourierManager({ settings: initialSettings }: CourierMan
       const res = await fetch('/api/courier/postex/test', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: apiToken, mode }),
+        body: JSON.stringify({ apiToken, token: apiToken, mode }),
       });
       const data = await res.json();
-      if (!res.ok) {
+      if (!res.ok || !data.success) {
         setTestResult({ ok: false, message: data.error || 'Connection failed.' });
         return;
       }

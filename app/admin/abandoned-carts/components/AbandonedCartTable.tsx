@@ -147,8 +147,8 @@ export default function AbandonedCartTable({
                         <div className="space-y-0.5">
                           {cart.items.map((item, idx) => {
                             const variantParts = [];
-                            if ((item.selected_variant ?? item.selectedVariant)?.color) variantParts.push((item.selected_variant ?? item.selectedVariant).color);
-                            if ((item.selected_variant ?? item.selectedVariant)?.size) variantParts.push((item.selected_variant ?? item.selectedVariant).size);
+                            if ((item.selected_variant ?? item.selectedVariant)?.color) variantParts.push((item.selected_variant ?? item.selectedVariant)?.color);
+                            if ((item.selected_variant ?? item.selectedVariant)?.size) variantParts.push((item.selected_variant ?? item.selectedVariant)?.size);
                             const variantStr = variantParts.length ? ` (${variantParts.join(', ')})` : '';
                             return (
                               <div key={idx} className="text-[11px] font-semibold text-gray-600 dark:text-gray-400 line-clamp-1">

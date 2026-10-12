@@ -222,13 +222,13 @@ export default function ImportExportModal({
 
       await importProductsBatchClient(bundle.products, conflictStrategy, (progress) => {
         if (progress.type === 'start') {
-          setImportProgress({ current: 0, total: progress.total });
+          setImportProgress({ current: 0, total: progress.total ?? 0 });
         } else {
           setImportProgress(prev => {
             if (!prev) return null;
             return { ...prev, current: prev.current + 1 };
           });
-          setImportLogs(prev => [...prev, progress]);
+          setImportLogs(prev => [...prev, progress as unknown as ImportProgressLog]);
         }
       });
 

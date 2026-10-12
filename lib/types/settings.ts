@@ -58,8 +58,11 @@ export interface HomepageSection {
   id: string;
   section_type: 'hero_banner' | 'product_grid' | 'category_list' | 'promo_banner' | 'trust_badges' | 'recent_reviews' | 'brands_logos' | 'category_grid' | 'collections_grid' | 'social_feed' | 'ticker' | 'flash_sale' | 'image_with_text' | 'tabbed_product_grid' | 'circular_categories' | 'faq_accordion' | 'rich_text' | string;
   title?: string;
-  settings: Record<string, unknown>;
-  content_data: Record<string, unknown>;
+  // Dynamic per-section JSON blobs (documented JSONB exception — RULE D13).
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  settings: Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  content_data: Record<string, any>;
   sort_order: number;
   active: boolean;
   created_at?: string;

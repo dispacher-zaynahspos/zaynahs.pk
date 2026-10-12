@@ -70,7 +70,7 @@ export async function GET() {
   // 7. Test IndexNow ping
   try {
     const testUrl = results.settings?.storeUrl || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-    const indexNowResult = await pingIndexNow([`${testUrl}/`], testUrl);
+    const indexNowResult = await pingIndexNow([`${testUrl}/`], String(testUrl));
     results.indexNowTest = { status: indexNowResult ? 'ok' : 'failed', note: indexNowResult ? '' : 'ping returned false (check logs)' };
   } catch (e: unknown) {
     results.indexNowTest = { status: 'fail', error: e instanceof Error ? e.message : String(e) };

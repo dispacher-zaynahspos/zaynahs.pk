@@ -258,30 +258,33 @@ export async function customerSignup(data: {
         .single();
 
       if (error || !newCustomer) throw error || new Error('Signup failed to create record');
-      customer = newCustomer;
+      const customerRecord = newCustomer;
+      if (!customerRecord) throw new Error('Signup failed to create record');
+      customer = customerRecord;
     }
 
     // Auto-link previous orders matching this customer's phone or email
-    await linkPreviousOrders(customer.id, phone, email);
+    const customerRecord: CustomerRow = customer ?? (() => { throw new Error('Signup failed: no customer record created'); })();
+    await linkPreviousOrders(customerRecord.id, phone, email);
 
     // Set cookie session
     await setCustomerSessionCookie({
-      id: customer.id,
-      name: customer.name || '',
-      email: customer.email,
-      phone: customer.phone
+      id: customerRecord.id,
+      name: customerRecord.name || '',
+      email: customerRecord.email,
+      phone: customerRecord.phone
     });
 
-    if (customer.email) {
+    if (customerRecord.email) {
       try {
         const { onUserRegister } = await import('@/lib/email/triggers');
-        await onUserRegister({ name: customer.name || '', email: customer.email });
+        await onUserRegister({ name: customerRecord.name || '', email: customerRecord.email });
       } catch (err) {
         console.error('[Email Trigger] failed in customerSignup:', err);
       }
     }
 
-    return { success: true, customer };
+    return { success: true, customer: customerRecord };
   } catch (err: unknown) {
     console.error('customerSignup failed:', err);
     const msg = err instanceof Error ? err.message : '';
