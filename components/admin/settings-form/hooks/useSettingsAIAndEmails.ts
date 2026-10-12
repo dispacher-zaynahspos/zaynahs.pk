@@ -7,23 +7,31 @@ interface UseSettingsAIAndEmailsProps {
   initialSettings: StoreSettings;
 }
 
-const defaultEmailNotifications = {
-  welcome: true,
-  password_reset: true,
-  password_changed: true,
+const defaultEmailNotifications: Record<string, boolean> = {
+  // Customer notifications (default: enabled)
   order_placed: true,
   order_confirmed: true,
+  order_processing: true,
   order_shipped: true,
+  postex_shipped: true,
+  order_out_for_delivery: true,
   order_delivered: true,
   order_cancelled: true,
   order_refunded: true,
   review_request: true,
-  admin_new_order: true,
-  admin_order_cancelled: true,
-  admin_low_stock: true,
-  admin_new_customer: true,
-  admin_new_review: true,
-  admin_contact_form: true,
+  welcome: true,
+  password_reset: true,
+  password_changed: true,
+
+  // Admin notifications (default: disabled per store policy, toggleable in settings)
+  admin_postex_shipped: false,
+  admin_new_order: false,
+  admin_order_cancelled: false,
+  admin_low_stock: false,
+  admin_new_customer: false,
+  admin_new_review: false,
+  admin_contact_form: false,
+  admin_abandoned_cart: false,
 };
 
 export function useSettingsAIAndEmails({ initialSettings }: UseSettingsAIAndEmailsProps) {

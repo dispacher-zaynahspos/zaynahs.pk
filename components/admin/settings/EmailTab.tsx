@@ -30,25 +30,30 @@ interface EmailTabProps {
 }
 
 const CUSTOMER_EMAILS = [
-  { key: 'welcome', label: 'Welcome Email (on register)' },
-  { key: 'password_reset', label: 'Password Reset Request' },
-  { key: 'password_changed', label: 'Password Changed Confirmation' },
   { key: 'order_placed', label: 'Order Placed Confirmation' },
   { key: 'order_confirmed', label: 'Order Confirmed (admin approved)' },
+  { key: 'order_processing', label: 'Order Processing Notification' },
   { key: 'order_shipped', label: 'Order Shipped + Tracking Info' },
+  { key: 'postex_shipped', label: 'Order Dispatched via PostEx' },
+  { key: 'order_out_for_delivery', label: 'Order Out for Delivery' },
   { key: 'order_delivered', label: 'Order Delivered Confirmation' },
   { key: 'order_cancelled', label: 'Order Cancelled Notification' },
   { key: 'order_refunded', label: 'Order Refunded Notification' },
   { key: 'review_request', label: 'Review Request (after delivery)' },
+  { key: 'welcome', label: 'Welcome Email (on register)' },
+  { key: 'password_reset', label: 'Password Reset Request' },
+  { key: 'password_changed', label: 'Password Changed Confirmation' },
 ];
 
 const ADMIN_EMAILS = [
+  { key: 'admin_postex_shipped', label: 'PostEx Order Fulfillment Alert' },
   { key: 'admin_new_order', label: 'New Order Placed Alert' },
   { key: 'admin_order_cancelled', label: 'Order Cancelled Alert' },
   { key: 'admin_low_stock', label: 'Low Stock Alert Notification' },
   { key: 'admin_new_customer', label: 'New Customer Registered Alert' },
   { key: 'admin_new_review', label: 'New Review Submitted Notification' },
   { key: 'admin_contact_form', label: 'Contact Form Submission Alert' },
+  { key: 'admin_abandoned_cart', label: 'Abandoned Cart Admin Alert' },
 ];
 
 export default function EmailTab({
@@ -81,6 +86,26 @@ export default function EmailTab({
       ...prev,
       [key]: !prev[key]
     }));
+  };
+
+  const handleSetAllCustomer = (enabled: boolean) => {
+    setEmailNotifications(prev => {
+      const updated = { ...prev };
+      CUSTOMER_EMAILS.forEach(item => {
+        updated[item.key] = enabled;
+      });
+      return updated;
+    });
+  };
+
+  const handleSetAllAdmin = (enabled: boolean) => {
+    setEmailNotifications(prev => {
+      const updated = { ...prev };
+      ADMIN_EMAILS.forEach(item => {
+        updated[item.key] = enabled;
+      });
+      return updated;
+    });
   };
 
   const handleSendTestEmail = async () => {
@@ -311,7 +336,26 @@ export default function EmailTab({
           
           {/* Customer Notifications */}
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-[#e94560] mb-2.5">Customer Templates</h4>
+            <div className="flex items-center justify-between mb-2.5">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-[#e94560]">Customer Templates</h4>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleSetAllCustomer(true)}
+                  className="text-[11px] font-semibold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 hover:underline cursor-pointer"
+                >
+                  Enable All
+                </button>
+                <span className="text-gray-300 dark:text-gray-700">|</span>
+                <button
+                  type="button"
+                  onClick={() => handleSetAllCustomer(false)}
+                  className="text-[11px] font-semibold text-rose-500 hover:text-rose-600 dark:text-rose-400 hover:underline cursor-pointer"
+                >
+                  Disable All
+                </button>
+              </div>
+            </div>
             <div className="space-y-2.5 max-h-56 overflow-y-auto pr-2">
               {CUSTOMER_EMAILS.map((item) => (
                 <label key={item.key} className="flex items-center gap-3 cursor-pointer select-none">
@@ -331,7 +375,31 @@ export default function EmailTab({
 
           {/* Admin Notifications */}
           <div className="pt-2 border-t border-gray-150 dark:border-gray-850">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-[#e94560] mb-2.5">Admin Alerts</h4>
+            <div className="flex items-center justify-between mb-2.5">
+              <div className="flex items-center gap-2">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-[#e94560]">Admin Alerts</h4>
+                <span className="text-[10px] font-medium bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 px-2 py-0.5 rounded-full">
+                  Default: OFF
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleSetAllAdmin(true)}
+                  className="text-[11px] font-semibold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 hover:underline cursor-pointer"
+                >
+                  Enable All
+                </button>
+                <span className="text-gray-300 dark:text-gray-700">|</span>
+                <button
+                  type="button"
+                  onClick={() => handleSetAllAdmin(false)}
+                  className="text-[11px] font-semibold text-rose-500 hover:text-rose-600 dark:text-rose-400 hover:underline cursor-pointer"
+                >
+                  Disable All
+                </button>
+              </div>
+            </div>
             <div className="space-y-2.5">
               {ADMIN_EMAILS.map((item) => (
                 <label key={item.key} className="flex items-center gap-3 cursor-pointer select-none">

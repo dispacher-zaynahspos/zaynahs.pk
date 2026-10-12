@@ -83,6 +83,36 @@ export default function EmailTemplatesPage() {
     }
   };
 
+  const handleBulkToggleCategory = async (category: string, enable: boolean) => {
+    const list = templates[category] || [];
+    if (list.length === 0) return;
+
+    // Optimistic UI update
+    const prevTemplates = { ...templates };
+    const updated = {
+      ...templates,
+      [category]: list.map(t => ({ ...t, enabled: enable }))
+    };
+    setTemplates(updated);
+
+    try {
+      const promises = list.map(t => {
+        const type = t.email_type || t.emailType;
+        if (!type) return Promise.resolve();
+        return fetch(`/api/email-templates/${type}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ enabled: enable })
+        });
+      });
+      await Promise.all(promises);
+      toast.success(`All ${category === 'customer' ? 'Customer' : 'Admin'} templates ${enable ? 'enabled' : 'disabled'}`);
+    } catch (err: unknown) {
+      setTemplates(prevTemplates);
+      toast.error('Failed to update templates');
+    }
+  };
+
   const handleOpenPreview = async (template: EmailTemplate) => {
     const type = template.email_type || template.emailType || '';
     if (!type) {
@@ -209,9 +239,33 @@ export default function EmailTemplatesPage() {
         if (list.length === 0) return null;
         return (
           <div key={category} className="bg-white dark:bg-[#16162a] p-6 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm space-y-4 transition-colors">
-            <h2 className="text-sm font-black text-[#e94560] uppercase tracking-wider">
-              {category === 'customer' ? 'Customer Emails' : 'Admin Alerts'}
-            </h2>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <h2 className="text-sm font-black text-[#e94560] uppercase tracking-wider">
+                  {category === 'customer' ? 'Customer Emails' : 'Admin Alerts'}
+                </h2>
+                {category === 'admin' && (
+                  <span className="text-[10px] font-medium bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 px-2 py-0.5 rounded-full">
+                    Default: OFF
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => handleBulkToggleCategory(category, true)}
+                  className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 hover:underline cursor-pointer"
+                >
+                  Enable All
+                </button>
+                <span className="text-gray-300 dark:text-gray-700">|</span>
+                <button
+                  onClick={() => handleBulkToggleCategory(category, false)}
+                  className="text-xs font-semibold text-rose-500 hover:text-rose-600 dark:text-rose-400 hover:underline cursor-pointer"
+                >
+                  Disable All
+                </button>
+              </div>
+            </div>
             <div className="divide-y divide-gray-150 dark:divide-gray-800">
               {list.map((template) => {
                 const type = template.email_type || template.emailType || '';

@@ -3,12 +3,12 @@ import { getSettings } from '@/lib/services/settings';
 import { buildVariables, replaceVariables, renderOrderItemsTable, type EmailVariableData } from './variables';
 import { getDefaultTemplate } from './defaults/getDefaultTemplate';
 import { sendEmail } from './sendEmail';
-import type { CartItem } from '@/lib/types';
+import type { CartItem, StoreSettings } from '@/lib/types';
 
 export async function sendTemplatedEmail(
   emailType: string,
   to: string,
-  data: Omit<EmailVariableData, 'settings'>
+  data: Omit<EmailVariableData, 'settings'> & { settings?: Partial<StoreSettings> }
 ): Promise<{ success: boolean; skipped?: boolean; error?: string }> {
   try {
     // 1. Fetch template from database
@@ -19,7 +19,7 @@ export async function sendTemplatedEmail(
     }
 
     // 2. Retrieve settings to inject into variables and verify toggle
-    let settings = data.settings as Partial<StoreSettings> | undefined;
+    let settings = data.settings;
     if (!settings) {
       try {
         settings = await getSettings();
@@ -29,9 +29,9 @@ export async function sendTemplatedEmail(
         settings = (s || {}) as Partial<StoreSettings>;
       }
     }
-    const isEnabledInSettings = settings?.email_notifications
-      ? settings.email_notifications[emailType] !== false
-      : true;
+    const isEnabledInSettings = settings?.email_notifications && (emailType in settings.email_notifications)
+      ? settings.email_notifications[emailType] === true
+      : !emailType.startsWith('admin_');
 
     if (!template.enabled || !isEnabledInSettings) {
       console.log(`[Email] Notification type '${emailType}' is disabled (template: ${template.enabled}, settings: ${isEnabledInSettings}). Skipping.`);
