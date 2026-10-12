@@ -12,27 +12,37 @@ export function wrapLayout(content: string, vars: Record<string, string>, title:
         <meta charset="utf-8">
         <title>${title}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+          @media only screen and (max-width: 600px) {
+            .email-outer-table { padding: 12px 6px !important; }
+            .email-container-table { width: 100% !important; border-radius: 12px !important; }
+            .email-header-cell { padding: 20px 16px 16px 16px !important; }
+            .email-content-cell { padding: 20px 16px !important; }
+            .email-footer-cell { padding: 20px 16px !important; }
+            .summary-col { display: block !important; width: 100% !important; padding: 10px 0 !important; border-left: none !important; }
+          }
+        </style>
       </head>
       <body style="margin: 0; padding: 0; background-color: #f8f8f8; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
-        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f8f8f8; padding: 40px 0;">
+        <table width="100%" border="0" cellspacing="0" cellpadding="0" class="email-outer-table" style="background-color: #f8f8f8; padding: 40px 0;">
           <tr>
             <td align="center">
-              <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; background-color: #ffffff; border-radius: 16px; border: 1px solid #e5e7eb; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); margin: 0 auto;">
+              <table width="100%" border="0" cellspacing="0" cellpadding="0" class="email-container-table" style="max-width: 600px; background-color: #ffffff; border-radius: 16px; border: 1px solid #e5e7eb; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); margin: 0 auto;">
                 <!-- Header -->
                 <tr>
-                  <td style="padding: 32px 24px 24px 24px; border-bottom: 1px solid #f3f4f6; text-align: center;">
+                  <td class="email-header-cell" style="padding: 32px 24px 24px 24px; border-bottom: 1px solid #f3f4f6; text-align: center;">
                     ${logoHtml}
                   </td>
                 </tr>
                 <!-- Content -->
                 <tr>
-                  <td style="padding: 32px 24px; color: #1a1a1a; font-size: 16px; line-height: 1.5; text-align: left;">
+                  <td class="email-content-cell" style="padding: 32px 24px; color: #1a1a1a; font-size: 16px; line-height: 1.5; text-align: left;">
                     ${content}
                   </td>
                 </tr>
                 <!-- Footer -->
                 <tr>
-                  <td style="padding: 24px 24px 32px 24px; border-top: 1px solid #f3f4f6; background-color: #f9fafb; text-align: center; color: #6b7280; font-size: 13px;">
+                  <td class="email-footer-cell" style="padding: 24px 24px 32px 24px; border-top: 1px solid #f3f4f6; background-color: #f9fafb; text-align: center; color: #6b7280; font-size: 13px;">
                     <p style="margin: 0 0 8px 0; font-weight: 600; color: #1a1a2e;">${brandName}</p>
                     <p style="margin: 0 0 12px 0;">${siteUrl ? `<a href="${siteUrl}" target="_blank" style="color: #e94560; text-decoration: underline; font-weight: 600;">Visit Store →</a>` : ''}</p>
                     <p style="margin: 0 0 16px 0;">If you have any questions, contact us at <a href="mailto:${vars.contact_email}" style="color: #e94560; text-decoration: none;">${vars.contact_email}</a></p>
@@ -96,13 +106,13 @@ export function getOrderSummary(vars: Record<string, string>): string {
 
     <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-top: 24px; border-top: 2px solid #f3f4f6; padding-top: 16px;">
       <tr>
-        <td width="50%" valign="top" style="padding-right: 16px;">
+        <td width="50%" valign="top" style="padding-right: 16px;" class="summary-col">
           <h3 style="margin: 0 0 8px 0; color: #1a1a2e; font-size: 14px;">Shipping Address</h3>
           <p style="margin: 0; color: #4b5563; font-size: 13px; line-height: 1.6;">
             ${vars['shipping_address.full'] || ''}
           </p>
         </td>
-        <td width="50%" valign="top" style="padding-left: 16px; border-left: 1px solid #f3f4f6;">
+        <td width="50%" valign="top" style="padding-left: 16px; border-left: 1px solid #f3f4f6;" class="summary-col">
           <h3 style="margin: 0 0 8px 0; color: #1a1a2e; font-size: 14px;">Payment Method</h3>
           <p style="margin: 0; color: #4b5563; font-size: 13px; line-height: 1.6;">
             ${vars.order_payment_method || 'Cash on delivery'}

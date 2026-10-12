@@ -100,12 +100,54 @@ export function getAdminTemplate(emailType: string, vars: Record<string, string>
       return {
         title: 'Admin Alert: Order Fulfilled via PostEx #' + vars.order_id,
         content: `
-          <h2 style="color: #1a1a2e; margin-top: 0;">Order Fulfilled via PostEx</h2>
-          <p><strong>Order:</strong> ${vars.order_id}</p>
-          <p><strong>Customer:</strong> ${vars.customer_name} (${vars.customer_phone})</p>
-          <p><strong>Tracking CN:</strong> ${vars.tracking_number}</p>
-          <p><strong>Tracking Link:</strong> <a href="${vars.tracking_url}">${vars.tracking_url}</a></p>
-          <p><strong>COD Amount:</strong> ${vars.order_total}</p>
+          <h2 style="color: #0f172a; margin-top: 0; font-size: 20px; font-weight: 800;">Order Fulfilled via PostEx</h2>
+          <p style="margin: 0 0 16px 0; color: #475569; font-size: 14px;">
+            Order <strong>#${vars.order_id}</strong> has been successfully booked with PostEx courier.
+          </p>
+
+          <div style="background-color: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 18px 20px; margin: 0 0 20px 0;">
+            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="font-size: 14px; color: #334155; line-height: 1.6;">
+              <tr>
+                <td style="padding: 6px 0; color: #64748b; width: 35%; vertical-align: top;">Order ID</td>
+                <td style="padding: 6px 0; font-weight: 700; color: #0f172a;">#${vars.order_id}</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; color: #64748b; vertical-align: top;">Customer</td>
+                <td style="padding: 6px 0; font-weight: 600; color: #0f172a;">${vars.customer_name}</td>
+              </tr>
+              ${vars.customer_phone ? `
+              <tr>
+                <td style="padding: 6px 0; color: #64748b; vertical-align: top;">Phone</td>
+                <td style="padding: 6px 0; color: #0f172a;">
+                  <a href="tel:${vars.customer_phone}" style="color: #0284c7; text-decoration: none; font-weight: 600;">${vars.customer_phone}</a>
+                </td>
+              </tr>` : ''}
+              <tr>
+                <td style="padding: 6px 0; color: #64748b; vertical-align: top;">Tracking CN</td>
+                <td style="padding: 6px 0; font-weight: 700; color: #0f172a; font-family: monospace; font-size: 15px;">${vars.tracking_number || '—'}</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; color: #64748b; vertical-align: top;">COD Amount</td>
+                <td style="padding: 6px 0; font-weight: 700; color: #059669; font-size: 15px;">${vars.order_total}</td>
+              </tr>
+              ${vars.postex_remarks ? `
+              <tr>
+                <td style="padding: 6px 0; color: #64748b; vertical-align: top;">Remarks</td>
+                <td style="padding: 6px 0; color: #334155;">${vars.postex_remarks}</td>
+              </tr>` : ''}
+            </table>
+          </div>
+
+          ${vars.tracking_url ? `
+          <div style="text-align: center; margin: 20px 0 16px 0;">
+            <a href="${vars.tracking_url}" target="_blank" style="background-color: #0f172a; color: #ffffff; padding: 12px 28px; border-radius: 8px; font-weight: 700; text-decoration: none; display: inline-block; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.08);">
+              Track Parcel on PostEx →
+            </a>
+            <div style="margin-top: 8px; font-size: 12px; color: #64748b; word-break: break-all;">
+              <a href="${vars.tracking_url}" target="_blank" style="color: #0284c7; text-decoration: underline;">${vars.tracking_url}</a>
+            </div>
+          </div>` : ''}
+
           ${getCTAButton('View in Dashboard', vars.admin_panel_url + '/orders')}
         `
       };

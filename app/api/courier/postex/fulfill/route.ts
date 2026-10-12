@@ -89,7 +89,13 @@ export async function POST(req: NextRequest) {
 
     const customerName = reqName || order.customer_name || order.customers?.name || '';
     const customerPhone = cleanPhone(reqPhone || order.customer_phone || order.customers?.phone || '');
-    const customerEmail = order.customer_email || order.customers?.email || '';
+    let customerEmail = order.customer_email || order.customers?.email || '';
+    if (!customerEmail && order.notes) {
+      const emailMatch = order.notes.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+      if (emailMatch) {
+        customerEmail = emailMatch[0].trim();
+      }
+    }
     const orderItems = Array.isArray(order.items) ? order.items : [];
     const firstItem = orderItems[0] || {};
     const itemName = firstItem.name || s.postex_default_product || '';
@@ -294,24 +300,59 @@ export async function POST(req: NextRequest) {
       .eq('id', orderId);
 
     // ── Email Notification (Rich product details, tracking, carrier info) ──
-    const storeUrl = s.store_url || '';
     const currencySymbol = s.currency_symbol || 'Rs.';
-
     const items = Array.isArray(order.items) ? order.items : [];
-    const orderTotal = formatPrice(parseFloat(order.total) || 0, currencySymbol);
+    const formattedOrderNumber = order.order_number || orderId.slice(0, 8);
+
+    const emailOrderData = {
+      ...order,
+      id: order.id,
+      orderNumber: formattedOrderNumber,
+      order_number: formattedOrderNumber,
+      total: totalAmount,
+      subtotal: parseFloat(order.subtotal) || totalAmount,
+      discount_amount: parseFloat(order.discount_amount) || 0,
+      shipping_amount: parseFloat(order.shipping_amount) || 0,
+      trackingNumber,
+      tracking_number: trackingNumber,
+      courierName: 'PostEx',
+      courier_name: 'PostEx',
+      trackingUrl,
+      tracking_url: trackingUrl,
+      customerName,
+      customer_name: customerName,
+      customerPhone,
+      customer_phone: customerPhone,
+      customerEmail,
+      customer_email: customerEmail,
+      shipping_address: {
+        name: customerName,
+        phone: customerPhone,
+        street: shippingAddr,
+        city: shippingCity,
+        full: [customerName, shippingAddr, shippingCity, customerPhone].filter(Boolean).join(', '),
+      },
+      items,
+      notes: finalRemarks || order.notes || '',
+    };
+
+    const emailPayload = {
+      order_id: formattedOrderNumber,
+      customer_name: customerName,
+      customer_phone: customerPhone,
+      customer_email: customerEmail,
+      tracking_number: trackingNumber,
+      tracking_url: trackingUrl,
+      courier_name: 'PostEx',
+      postex_remarks: finalRemarks,
+      order_total: totalAmount,
+      order: emailOrderData,
+    };
 
     // Send to customer if email exists
     if (customerEmail) {
       try {
-        await sendTemplatedEmail('postex_shipped', customerEmail, {
-          order_id: order.order_number || orderId.slice(0, 8),
-          customer_name: customerName,
-          tracking_number: trackingNumber,
-          tracking_url: trackingUrl,
-          postex_remarks: finalRemarks,
-          order: { items },
-          order_total: Number(orderTotal),
-        });
+        await sendTemplatedEmail('postex_shipped', customerEmail, emailPayload);
         console.log(`[PostEx Fulfill] Shipped email sent to customer: ${customerEmail}`);
       } catch (mailErr) {
         console.error('[PostEx Fulfill] Failed to send email to customer:', mailErr);
@@ -322,15 +363,7 @@ export async function POST(req: NextRequest) {
     try {
       const adminEmail = s.smtp_email || '';
       if (adminEmail) {
-        await sendTemplatedEmail('admin_postex_shipped', adminEmail, {
-          order_id: order.order_number || orderId.slice(0, 8),
-          customer_name: customerName,
-          customer_phone: customerPhone,
-          tracking_number: trackingNumber,
-          tracking_url: trackingUrl,
-          order_total: Number(formatPrice(totalAmount, currencySymbol).replace(/[^0-9.]/g, '')),
-          order: { items }
-        });
+        await sendTemplatedEmail('admin_postex_shipped', adminEmail, emailPayload);
         console.log(`[PostEx Fulfill] Shipped notification sent to admin: ${adminEmail}`);
       }
     } catch (adminMailErr) {

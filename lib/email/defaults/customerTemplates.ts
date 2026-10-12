@@ -77,17 +77,51 @@ export function getCustomerTemplate(emailType: string, vars: Record<string, stri
       return {
         title: `Order Shipped #${vars.order_id}`,
         content: `
-          <h2 style="color: #1a1a2e; margin-top: 0;">Your order has shipped!</h2>
-          <p>Hi ${vars.customer_name},</p>
-          <p>Good news! Your order <strong>#${vars.order_id}</strong> has been shipped and is on its way to you.</p>
-          
-          <div style="background-color: #f3f4f6; border-radius: 8px; padding: 16px; margin: 24px 0; font-size: 14px;">
-            <p style="margin: 0 0 8px 0;"><strong>Courier:</strong> ${vars.courier_name}</p>
-            <p style="margin: 0 0 8px 0;"><strong>Tracking Number:</strong> ${vars.tracking_number}</p>
-            ${vars.estimated_delivery ? `<p style="margin: 0;"><strong>Estimated Delivery:</strong> ${vars.estimated_delivery}</p>` : ''}
+          <h2 style="color: #0f172a; margin-top: 0; font-size: 22px; font-weight: 800; letter-spacing: -0.3px;">Your order has shipped! 🚀</h2>
+          <p style="margin: 0 0 14px 0; color: #334155; font-size: 15px; line-height: 1.6;">Hi <strong>${vars.customer_name}</strong>,</p>
+          <p style="margin: 0 0 18px 0; color: #475569; font-size: 14px; line-height: 1.6;">
+            Good news! Your order <strong>#${vars.order_id}</strong> has been shipped via <strong>${vars.courier_name || 'Courier'}</strong> and is on its way to you.
+          </p>
+
+          <div style="background-color: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 20px 0; text-align: center;">
+            <p style="margin: 0 0 6px 0; color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700;">
+              ${vars.courier_name || 'Courier'} Tracking Consignment # (CN)
+            </p>
+            <p style="margin: 0 0 14px 0; font-size: 24px; font-weight: 800; color: #0f172a; letter-spacing: 2.5px; font-family: monospace;">
+              ${vars.tracking_number || 'Pending'}
+            </p>
+            ${vars.tracking_url ? `
+            <div style="margin: 12px 0 8px 0;">
+              <a href="${vars.tracking_url}" target="_blank" style="display: inline-block; background-color: #0f172a; color: #ffffff; text-decoration: none; padding: 12px 30px; border-radius: 8px; font-weight: 700; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                Track Your Order →
+              </a>
+            </div>
+            <p style="margin: 8px 0 0 0; font-size: 12px; color: #64748b; word-break: break-all;">
+              Direct Link: <a href="${vars.tracking_url}" target="_blank" style="color: #0284c7; text-decoration: underline;">${vars.tracking_url}</a>
+            </p>
+            ` : ''}
           </div>
-          
-          ${vars.tracking_url ? getCTAButton('Track Your Order', vars.tracking_url) : ''}
+
+          <!-- Delivery & WhatsApp Support Notice -->
+          <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 18px 20px; margin: 20px 0; text-align: left;">
+            <p style="margin: 0 0 6px 0; font-size: 14px; font-weight: 700; color: #166534;">
+              📦 Delivery & Support Notice
+            </p>
+            <p style="margin: 0 0 10px 0; font-size: 13px; color: #15803d; line-height: 1.6;">
+              Dear Customer, please keep tracking your parcel using the tracking link above. Delivery takes <strong>3–5 working days</strong>. If you do not receive your parcel within 3–5 working days, please reach out to our WhatsApp support team with your <strong>Order ID (#${vars.order_id})</strong>. We will happily assist you!
+            </p>
+            ${vars.whatsapp_url ? `
+            <div style="margin-top: 12px;">
+              <a href="${vars.whatsapp_url}" target="_blank" style="display: inline-block; background-color: #25D366; color: #ffffff; padding: 10px 22px; border-radius: 8px; font-weight: 700; font-size: 13px; text-decoration: none;">
+                💬 Contact Support on WhatsApp →
+              </a>
+            </div>` : ''}
+          </div>
+
+          <div style="background: #fffbeb; border: 1px solid #fef3c7; border-radius: 8px; padding: 12px 16px; margin: 16px 0; font-size: 12px; color: #92400e; line-height: 1.5;">
+            <strong>💡 Delivery Reminder:</strong> Please keep your phone (${vars.customer_phone || 'provided phone'}) active. The delivery rider will call before arriving. Kindly keep <strong>${vars.order_total}</strong> ready.
+          </div>
+
           ${getOrderSummary(vars)}
         `
       };
@@ -170,23 +204,58 @@ export function getCustomerTemplate(emailType: string, vars: Record<string, stri
       return {
         title: 'Order Shipped via PostEx #' + vars.order_id,
         content: `
-          <h2 style="color: #1a1a2e; margin-top: 0;">Your order has been dispatched!</h2>
-          <p>Hi ${vars.customer_name},</p>
-          <p>Your order <strong>#${vars.order_id}</strong> has been handed over to <strong>PostEx Logistics</strong> and is on its way. Please allow <strong>2-5 working days</strong> for delivery. Keep your provided phone number active for the rider to reach you.</p>
-          
-          <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin: 24px 0; text-align: center;">
-            <p style="margin: 0 0 6px; color: #166534; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; font-weight: 700;">Tracking Consignment Number (CN)</p>
-            <p style="margin: 0 0 12px; font-size: 24px; font-weight: 800; color: #1a1a2e; letter-spacing: 3px;">${vars.tracking_number}</p>
-            ${vars.tracking_url ? '<a href="' + vars.tracking_url + '" target="_blank" style="display: inline-block; background: #e94560; color: #fff; text-decoration: none; padding: 12px 32px; border-radius: 8px; font-weight: 700; font-size: 14px;">Track Your Parcel →</a>' : ''}
+          <h2 style="color: #0f172a; margin-top: 0; font-size: 22px; font-weight: 800; letter-spacing: -0.3px;">Your order has been dispatched! 🚀</h2>
+          <p style="margin: 0 0 14px 0; color: #334155; font-size: 15px; line-height: 1.6;">Hi <strong>${vars.customer_name}</strong>,</p>
+          <p style="margin: 0 0 18px 0; color: #475569; font-size: 14px; line-height: 1.6;">
+            Great news! Your order <strong>#${vars.order_id}</strong> has been handed over to <strong>PostEx Logistics</strong> and is on its way to you.
+          </p>
+
+          <!-- Tracking Card -->
+          <div style="background-color: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 20px 0; text-align: center;">
+            <p style="margin: 0 0 6px 0; color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700;">
+              PostEx Consignment Tracking # (CN)
+            </p>
+            <p style="margin: 0 0 14px 0; font-size: 24px; font-weight: 800; color: #0f172a; letter-spacing: 2.5px; font-family: monospace;">
+              ${vars.tracking_number || 'Pending'}
+            </p>
+            ${vars.tracking_url ? `
+            <div style="margin: 12px 0 8px 0;">
+              <a href="${vars.tracking_url}" target="_blank" style="display: inline-block; background-color: #0f172a; color: #ffffff; text-decoration: none; padding: 12px 30px; border-radius: 8px; font-weight: 700; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                Track Your Parcel →
+              </a>
+            </div>
+            <p style="margin: 8px 0 0 0; font-size: 12px; color: #64748b; word-break: break-all;">
+              Direct Link: <a href="${vars.tracking_url}" target="_blank" style="color: #0284c7; text-decoration: underline;">${vars.tracking_url}</a>
+            </p>
+            ` : ''}
           </div>
-          
-          ${vars.postex_remarks ? '<p style="background: #fff7ed; border: 1px solid #fed7aa; border-radius: 6px; padding: 10px 14px; color: #9a3412; font-size: 13px; line-height: 1.5;"><strong>Note:</strong> ' + vars.postex_remarks + '</p>' : ''}
-          
+
+          <!-- Friendly Delivery & Support Note (English, short, happily assist) -->
+          <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 18px 20px; margin: 20px 0; text-align: left;">
+            <p style="margin: 0 0 6px 0; font-size: 14px; font-weight: 700; color: #166534;">
+              📦 Delivery & Support Notice
+            </p>
+            <p style="margin: 0 0 10px 0; font-size: 13px; color: #15803d; line-height: 1.6;">
+              Dear Customer, please keep tracking your parcel using the tracking link above. Expected delivery time is <strong>3–5 working days</strong>. If you do not receive your parcel within 3–5 working days, please reach out to our WhatsApp support team with your <strong>Order ID (#${vars.order_id})</strong>. We will happily assist you!
+            </p>
+            ${vars.whatsapp_url ? `
+            <div style="margin-top: 12px;">
+              <a href="${vars.whatsapp_url}" target="_blank" style="display: inline-block; background-color: #25D366; color: #ffffff; padding: 10px 22px; border-radius: 8px; font-weight: 700; font-size: 13px; text-decoration: none;">
+                💬 Contact Support on WhatsApp →
+              </a>
+            </div>` : ''}
+          </div>
+
+          ${vars.postex_remarks ? `
+          <div style="background: #fff7ed; border: 1px solid #fed7aa; border-radius: 8px; padding: 12px 16px; margin: 16px 0; color: #9a3412; font-size: 13px; line-height: 1.5;">
+            <strong>Delivery Note:</strong> ${vars.postex_remarks}
+          </div>` : ''}
+
+          <div style="background: #fffbeb; border: 1px solid #fef3c7; border-radius: 8px; padding: 12px 16px; margin: 16px 0; font-size: 12px; color: #92400e; line-height: 1.5;">
+            <strong>💡 Rider & COD Reminder:</strong> Please ensure your contact number (${vars.customer_phone || 'provided phone'}) remains active and reachable. The courier rider will call before delivery. Kindly keep the COD amount of <strong>${vars.order_total}</strong> ready.
+          </div>
+
           ${getOrderSummary(vars)}
-          
-          <div style="margin-top: 16px; padding: 12px; background: #fefce8; border: 1px solid #fde68a; border-radius: 6px; font-size: 12px; color: #92400e; line-height: 1.5;">
-            <strong>⚠️ Important:</strong> Orders take <strong>2-5 working days</strong> for delivery. Please ensure the provided phone number remains active and switched on. The rider may call you before delivery.
-          </div>
         `
       };
 

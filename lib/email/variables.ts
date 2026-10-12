@@ -1,5 +1,5 @@
 import { getSiteUrl } from '@/lib/site-url-server';
-import { formatPrice } from '@/lib/utils/whatsapp';
+import { formatPrice, cleanWhatsAppPhone } from '@/lib/utils/whatsapp';
 import { CartItem, StoreSettings } from '@/lib/types';
 
 export function renderOrderItemsTable(items: CartItem[], currencySymbol = 'Rs.', siteUrl = ''): string {
@@ -65,7 +65,9 @@ export interface EmailVariableData {
   order?: Record<string, unknown> & {
     id?: string;
     orderNumber?: string;
+    order_number?: string;
     createdAt?: string;
+    created_at?: string;
     total?: number;
     subtotal?: number;
     discount_amount?: number;
@@ -75,7 +77,11 @@ export interface EmailVariableData {
     status?: string;
     notes?: string;
     customerName?: string;
+    customer_name?: string;
     customerPhone?: string;
+    customer_phone?: string;
+    customerEmail?: string;
+    customer_email?: string;
     shipping_address?: Record<string, unknown> & {
       name?: string;
       street?: string;
@@ -86,11 +92,15 @@ export interface EmailVariableData {
       full?: string;
     };
     trackingNumber?: string;
+    tracking_number?: string;
     courierName?: string;
+    courier_name?: string;
     trackingUrl?: string;
+    tracking_url?: string;
     estimatedDelivery?: string;
     cancelReason?: string;
     refundAmount?: number;
+    items?: unknown[];
   };
   resetLink?: string;
   product?: { name?: string; stock?: number };
@@ -104,58 +114,157 @@ export interface EmailVariableData {
   customer_email?: string;
   customer_phone?: string;
   tracking_number?: string;
+  courier_name?: string;
   tracking_url?: string;
   order_total?: number;
   order_subtotal?: number;
+  whatsapp_number?: string;
+  whatsapp_url?: string;
 }
 
 export async function buildVariables(emailType: string, data: EmailVariableData): Promise<Record<string, string>> {
   const settings = data.settings || {};
   const currencySymbol = settings.currency_symbol || 'Rs.';
 
+  const brandName = settings.store_name || process.env.NEXT_PUBLIC_BRAND_NAME || 'Your Store';
+  const siteUrl = await getSiteUrl({ store_url: typeof settings.store_url === 'string' ? settings.store_url : undefined });
+  const rawWa = settings.whatsapp_number || settings.floating_whatsapp_number || '';
+  const cleanWa = cleanWhatsAppPhone(rawWa);
+
+  const order = data.order;
+
+  // Resolve Order ID
+  const orderId = String(
+    data.order_id ||
+    order?.orderNumber ||
+    order?.order_number ||
+    order?.id ||
+    ''
+  ).trim();
+
+  // Resolve Customer Info
+  const customerName = String(
+    data.customer_name ||
+    data.customer?.name ||
+    order?.customerName ||
+    order?.customer_name ||
+    data.user?.name ||
+    'Customer'
+  ).trim();
+
+  const customerPhone = String(
+    data.customer_phone ||
+    data.customer?.phone ||
+    order?.customerPhone ||
+    order?.customer_phone ||
+    ''
+  ).trim();
+
+  const customerEmail = String(
+    data.customer_email ||
+    data.customer?.email ||
+    order?.customerEmail ||
+    order?.customer_email ||
+    data.user?.email ||
+    ''
+  ).trim();
+
+  // Resolve Tracking Info
+  const trackingNumber = String(
+    data.tracking_number ||
+    order?.trackingNumber ||
+    order?.tracking_number ||
+    ''
+  ).trim();
+
+  const courierName = String(
+    data.courier_name ||
+    order?.courierName ||
+    order?.courier_name ||
+    'PostEx'
+  ).trim();
+
+  // Determine Tracking URL
+  let trackingUrl = String(
+    data.tracking_url ||
+    order?.trackingUrl ||
+    order?.tracking_url ||
+    ''
+  ).trim();
+
+  if (!trackingUrl && trackingNumber) {
+    if (courierName.toLowerCase().includes('postex') || !courierName) {
+      trackingUrl = `https://postex.pk/tracking?cn=${encodeURIComponent(trackingNumber)}`;
+    }
+  }
+
+  // Build WhatsApp Support URL
+  let whatsappUrl = '';
+  if (cleanWa) {
+    const waText = orderId
+      ? `Hello, I need assistance regarding my Order #${orderId}`
+      : 'Hello, I need assistance regarding my order';
+    whatsappUrl = `https://wa.me/${cleanWa}?text=${encodeURIComponent(waText)}`;
+  }
+
+  // Resolve Order Total
+  const rawTotal = data.order_total !== undefined ? data.order_total : order?.total;
+  const numTotal = typeof rawTotal === 'number' ? rawTotal : parseFloat(String(rawTotal || 0)) || 0;
+  const orderTotalFormatted = formatPrice(numTotal, currencySymbol);
+
+  // Resolve Order Subtotal
+  const rawSubtotal = data.order_subtotal !== undefined ? data.order_subtotal : (order?.subtotal !== undefined ? order?.subtotal : rawTotal);
+  const numSubtotal = typeof rawSubtotal === 'number' ? rawSubtotal : parseFloat(String(rawSubtotal || 0)) || numTotal;
+  const orderSubtotalFormatted = formatPrice(numSubtotal, currencySymbol);
+
+  const postexRemarks = String(data.postex_remarks || (typeof order?.notes === 'string' ? order.notes : '') || '').trim();
+
   // Start with standard variables
   const vars: Record<string, string> = {
-    brand_name: settings.store_name || process.env.NEXT_PUBLIC_BRAND_NAME || 'Your Store',
-    site_url: await getSiteUrl({ store_url: typeof settings.store_url === 'string' ? settings.store_url : undefined }),
-    customer_name: data.customer?.name || data.user?.name || 'Customer',
-    customer_email: data.customer?.email || data.user?.email || '',
+    brand_name: brandName,
+    site_url: siteUrl,
+    customer_name: customerName,
+    customer_email: customerEmail,
+    customer_phone: customerPhone,
     contact_email: settings.header_top_bar_email || settings.smtp_email || '',
     currency: currencySymbol,
-    current_year: new Date().getFullYear().toString()
+    current_year: new Date().getFullYear().toString(),
+    order_id: orderId,
+    order_total: orderTotalFormatted,
+    order_subtotal: orderSubtotalFormatted,
+    tracking_number: trackingNumber,
+    tracking_url: trackingUrl,
+    courier_name: courierName,
+    whatsapp_number: cleanWa,
+    whatsapp_url: whatsappUrl,
+    postex_remarks: postexRemarks,
   };
 
   // If order details exist, populate order-related variables
-  if (data.order) {
-    const order = data.order;
-    vars.order_id = order.orderNumber || order.id || '';
-    vars.order_date = order.createdAt ? new Date(order.createdAt).toLocaleDateString() : new Date().toLocaleDateString();
-    vars.order_total = formatPrice(order.total, currencySymbol);
-    vars.order_subtotal = formatPrice(order.subtotal || order.total, currencySymbol);
-    
-    // Webhook payload comes from Supabase so fields are snake_case: discount_amount, shipping_amount
-    const discountAmount = order.discount_amount || order.discountAmount || 0;
-    vars.order_discount_fee = discountAmount > 0 ? `-${formatPrice(discountAmount, currencySymbol)}` : '';
-    
-    const shippingAmount = order.shipping_amount || order.shippingAmount || 0;
-    vars.order_shipping_fee = formatPrice(shippingAmount, currencySymbol);
-    vars.order_status = order.status || '';
+  if (order) {
+    vars.order_date = (order.createdAt || order.created_at)
+      ? new Date(String(order.createdAt || order.created_at)).toLocaleDateString()
+      : new Date().toLocaleDateString();
 
-    // Default payment method
+    const discountAmount = Number(order.discount_amount || order.discountAmount || 0);
+    vars.order_discount_fee = discountAmount > 0 ? `-${formatPrice(discountAmount, currencySymbol)}` : '';
+
+    const shippingAmount = Number(order.shipping_amount || order.shippingAmount || 0);
+    vars.order_shipping_fee = formatPrice(shippingAmount, currencySymbol);
+
+    vars.order_status = String(order.status || '');
     vars.order_payment_method = 'Cash on delivery';
 
     // Address
-    const address: Record<string, unknown> & {
-      name?: string; street?: string; address?: string; city?: string;
-      postalCode?: string; phone?: string; full?: string;
-    } = order.shipping_address || data.customer || {};
-    const addressName = order.customerName || address.name || data.customer?.name || data.user?.name || 'Customer';
-    let street = address.street || address.address || '';
-    let city = address.city || '';
-    let postalCode = address.postalCode || '';
-    let phone = address.phone || order.customerPhone || data.customer?.phone || '';
+    const address = (order.shipping_address as Record<string, unknown>) || data.customer || {};
+    const addressName = customerName || (address.name as string) || 'Customer';
+    let street = (address.street as string) || (address.address as string) || '';
+    let city = (address.city as string) || '';
+    let postalCode = (address.postalCode as string) || '';
+    let phone = customerPhone || (address.phone as string) || '';
 
     // Parse specific address fields from formatted notes if present
-    if (order.notes) {
+    if (order.notes && typeof order.notes === 'string') {
       const addressMatch = order.notes.match(/Address:\s*(.+)/i);
       const aptMatch = order.notes.match(/Apt\/Suite:\s*(.+)/i);
       const cityMatch = order.notes.match(/City:\s*(.+)/i);
@@ -180,18 +289,12 @@ export async function buildVariables(emailType: string, data: EmailVariableData)
     vars['shipping_address.street'] = street;
     vars['shipping_address.city'] = city;
     vars['shipping_address.postal_code'] = postalCode;
-    vars['shipping_address.full'] = address.full ||
+    vars['shipping_address.full'] = (address.full as string) ||
       [addressName, street, city, postalCode, phone].filter(Boolean).join(', ');
 
-    // Shipping
-    vars.tracking_number = order.trackingNumber || '';
-    vars.courier_name = order.courierName || '';
-    vars.tracking_url = order.trackingUrl || '';
-    vars.estimated_delivery = order.estimatedDelivery || '';
-
-    // Cancel/Refund
-    vars.cancel_reason = order.cancelReason || '';
-    vars.refund_amount = order.refundAmount ? formatPrice(order.refundAmount, currencySymbol) : '';
+    vars.estimated_delivery = String(order.estimatedDelivery || '3-5 working days');
+    vars.cancel_reason = String(order.cancelReason || '');
+    vars.refund_amount = order.refundAmount ? formatPrice(Number(order.refundAmount), currencySymbol) : '';
   }
 
   // Auth reset
@@ -201,12 +304,12 @@ export async function buildVariables(emailType: string, data: EmailVariableData)
 
   // Admin and other custom variables
   vars.admin_panel_url = `${vars.site_url}/admin`;
-  
+
   if (data.product) {
     vars.product_name = data.product.name || '';
     vars.product_stock = data.product.stock !== undefined ? data.product.stock.toString() : '0';
   }
-  
+
   if (data.review) {
     vars.review_rating = '★'.repeat(data.review.rating || 0) + '☆'.repeat(5 - (data.review.rating || 0));
     vars.review_text = data.review.comment || '';

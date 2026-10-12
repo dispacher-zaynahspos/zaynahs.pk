@@ -53,6 +53,14 @@ export const VARIABLES_BY_TYPE: Record<string, string[]> = {
   ],
   admin_low_stock: ['brand_name', 'site_url', 'product_name', 'product_stock', 'admin_panel_url', 'current_year'],
   admin_new_customer: ['brand_name', 'site_url', 'customer_name', 'customer_email', 'admin_panel_url', 'current_year'],
-  admin_new_review: ['brand_name', 'site_url', 'product_name', 'review_rating', 'review_text', 'review_author', 'admin_panel_url', 'current_year'],
-  admin_contact_form: ['brand_name', 'site_url', 'customer_name', 'customer_email', 'contact_name', 'contact_subject', 'contact_message', 'current_year']
+  admin_contact_form: ['brand_name', 'site_url', 'customer_name', 'customer_email', 'contact_name', 'contact_subject', 'contact_message', 'current_year'],
+  postex_shipped: [
+    'brand_name', 'site_url', 'customer_name', 'customer_email', 'customer_phone', 'contact_email', 'currency', 'current_year',
+    'order_id', 'order_total', 'order_subtotal', 'order_shipping_fee', 'tracking_number', 'tracking_url',
+    'postex_remarks', 'whatsapp_number', 'whatsapp_url', 'order_items_html', 'shipping_address.full'
+  ],
+  admin_postex_shipped: [
+    'brand_name', 'site_url', 'customer_name', 'customer_phone', 'customer_email', 'currency', 'current_year',
+    'order_id', 'order_total', 'tracking_number', 'tracking_url', 'postex_remarks', 'admin_panel_url'
+  ]
 };
