@@ -61,7 +61,7 @@ const fetchRelatedProducts = async (productId: string, categoryId?: string, limi
     return applyFlashSaleDiscounts(products);
   } catch (err) {
     console.error('[Products Error Debug] fetchRelatedProducts caught error:', err);
-    throw err;
+    return [];
   }
 };
 
