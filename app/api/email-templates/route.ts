@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth/requireAdmin';
-import { getEmailTemplates } from '@/lib/services/emailTemplates';
+import { getEmailTemplates, resetAllEmailTemplates } from '@/lib/services/emailTemplates';
 
 export async function GET() {
   const _denied = await requireAdmin();
@@ -21,6 +21,26 @@ export async function GET() {
     return NextResponse.json({ success: true, templates: grouped });
   } catch (error: unknown) {
     console.error('[API email-templates] GET failed:', error);
+    return NextResponse.json({ success: false, error: error instanceof Error ? error.message : 'Internal server error' }, { status: 500 });
+  }
+}
+
+export async function POST(request: NextRequest) {
+  const _denied = await requireAdmin(request);
+  if (_denied) return _denied;
+  try {
+    const body = await request.json().catch(() => ({}));
+    if (body.action === 'reset-all') {
+      const resetTemplates = await resetAllEmailTemplates(body.category);
+      return NextResponse.json({
+        success: true,
+        message: body.category ? `All ${body.category} templates reset to default` : 'All email templates reset to defaults',
+        templates: resetTemplates
+      });
+    }
+    return NextResponse.json({ success: false, error: 'Invalid action' }, { status: 400 });
+  } catch (error: unknown) {
+    console.error('[API email-templates] POST failed:', error);
     return NextResponse.json({ success: false, error: error instanceof Error ? error.message : 'Internal server error' }, { status: 500 });
   }
 }

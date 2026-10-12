@@ -2,6 +2,31 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
 import { EmailTemplate } from '@/lib/types';
 import { revalidateTagSafe } from '@/lib/revalidate';
 
+export const DEFAULT_TEMPLATE_SUBJECTS: Record<string, string> = {
+  welcome: 'Welcome to {{brand_name}}! 🎉',
+  password_reset: 'Reset your {{brand_name}} password',
+  password_changed: 'Your password was changed',
+  order_placed: 'Order Confirmation #{{order_id}}',
+  order_confirmed: 'Your order #{{order_id}} is confirmed',
+  order_processing: 'Your order #{{order_id}} is being prepared',
+  order_shipped: 'Your order #{{order_id}} has shipped! 🚀',
+  order_out_for_delivery: 'Your order #{{order_id}} is out for delivery today',
+  order_delivered: 'Your order #{{order_id}} has been delivered',
+  order_cancelled: 'Your order #{{order_id}} was cancelled',
+  order_refunded: 'Refund processed for order #{{order_id}}',
+  review_request: 'How was your order from {{brand_name}}?',
+  abandoned_cart: 'You left something behind at {{brand_name}}!',
+  postex_shipped: 'Your order is on the way via PostEx!',
+  admin_new_order: 'New Order #{{order_id}} - {{order_total}}',
+  admin_order_cancelled: 'Order #{{order_id}} was cancelled',
+  admin_low_stock: 'Low Stock: {{product_name}}',
+  admin_new_customer: 'New customer: {{customer_name}}',
+  admin_new_review: 'New review on {{product_name}}',
+  admin_contact_form: 'Contact Form: {{contact_subject}}',
+  admin_abandoned_cart: 'Abandoned Cart - {{customer_name}}',
+  admin_postex_shipped: 'Order fulfilled via PostEx: #{{order_id}}',
+};
+
 interface EmailTemplateRow {
   id: string;
   email_type: string;
@@ -68,7 +93,7 @@ export const updateEmailTemplate = async (
   try {
     const payload: {
       subject?: string;
-      custom_html?: string;
+      custom_html?: string | null;
       enabled?: boolean;
       updated_at: string;
     } = { updated_at: new Date().toISOString() };
@@ -98,9 +123,18 @@ export const updateEmailTemplate = async (
 
 export const resetEmailTemplate = async (emailType: string): Promise<EmailTemplate> => {
   try {
+    const defaultSubject = DEFAULT_TEMPLATE_SUBJECTS[emailType];
+    const payload: { custom_html: null; updated_at: string; subject?: string } = {
+      custom_html: null,
+      updated_at: new Date().toISOString()
+    };
+    if (defaultSubject) {
+      payload.subject = defaultSubject;
+    }
+
     const { data, error } = await supabaseAdmin
       .from('email_templates')
-      .update({ custom_html: null, updated_at: new Date().toISOString() })
+      .update(payload)
       .eq('email_type', emailType)
       .select('*')
       .single();
@@ -110,6 +144,28 @@ export const resetEmailTemplate = async (emailType: string): Promise<EmailTempla
     return mapTemplate(data);
   } catch (error) {
     console.error(`[emailTemplates] resetEmailTemplate(${emailType}) failed:`, error);
+    throw error;
+  }
+};
+
+export const resetAllEmailTemplates = async (category?: 'customer' | 'admin'): Promise<EmailTemplate[]> => {
+  try {
+    let query = supabaseAdmin.from('email_templates').select('email_type');
+    if (category) {
+      query = query.eq('category', category);
+    }
+    const { data: rows, error: fetchErr } = await query;
+    if (fetchErr) throw fetchErr;
+
+    const results: EmailTemplate[] = [];
+    for (const row of rows || []) {
+      const reset = await resetEmailTemplate(row.email_type);
+      results.push(reset);
+    }
+    revalidateTagSafe('email-templates');
+    return results;
+  } catch (error) {
+    console.error('[emailTemplates] resetAllEmailTemplates failed:', error);
     throw error;
   }
 };

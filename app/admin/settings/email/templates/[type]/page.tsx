@@ -130,6 +130,9 @@ export default function TemplateEditorPage() {
       if (data.success) {
         toast.success('Template reset to default successfully');
         setTemplate(data.template);
+        if (data.template?.subject) {
+          setSubject(data.template.subject);
+        }
         setCustomHtml('');
         setMode('default');
       } else {
@@ -137,6 +140,25 @@ export default function TemplateEditorPage() {
       }
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Error resetting template');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleLoadDefaultHtml = async () => {
+    try {
+      setSaving(true);
+      const res = await fetch(`/api/email-templates/${emailType}?action=default-html`);
+      const data = await res.json();
+      if (data.success && data.defaultHtml) {
+        setCustomHtml(data.defaultHtml);
+        setMode('custom');
+        toast.success('Default template HTML loaded into editor');
+      } else {
+        toast.error(data.error || 'Failed to load default template HTML');
+      }
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Error loading default HTML');
     } finally {
       setSaving(false);
     }
@@ -264,6 +286,7 @@ export default function TemplateEditorPage() {
           setCustomHtml={setCustomHtml}
           template={template}
           handleReset={handleReset}
+          handleLoadDefaultHtml={handleLoadDefaultHtml}
         />
 
         <TemplateVariablesSidebar

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth/requireAdmin';
 import { getEmailTemplate, updateEmailTemplate, resetEmailTemplate } from '@/lib/services/emailTemplates';
+import { getSettings } from '@/lib/services/settings';
+import { buildVariables } from '@/lib/email/variables';
+import { getDefaultTemplate } from '@/lib/email/defaults/getDefaultTemplate';
 
 export async function GET(
   request: NextRequest,
@@ -10,6 +13,16 @@ export async function GET(
   if (_denied) return _denied;
   try {
     const { type } = await params;
+    const url = new URL(request.url);
+    const action = url.searchParams.get('action');
+
+    if (action === 'default-html') {
+      const settings = await getSettings();
+      const placeholderVars = await buildVariables(type, { settings });
+      const defaultHtml = getDefaultTemplate(type, placeholderVars);
+      return NextResponse.json({ success: true, defaultHtml });
+    }
+
     const template = await getEmailTemplate(type);
     
     if (!template) {

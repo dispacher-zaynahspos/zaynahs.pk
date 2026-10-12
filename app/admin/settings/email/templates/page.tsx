@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, Edit, Eye, Check, X, Mail } from '@/components/common/Icons';
+import { ChevronLeft, Edit, Eye, Check, X, Mail, RotateCcw } from '@/components/common/Icons';
 import { Modal } from '@/components/common/Modal';
+import { useConfirm } from '@/components/admin/shared/AdminConfirmProvider';
 import { toast } from 'sonner';
 
 interface EmailTemplate {
@@ -21,6 +22,7 @@ interface EmailTemplate {
 }
 
 export default function EmailTemplatesPage() {
+  const { confirm } = useConfirm();
   const [templates, setTemplates] = useState<Record<string, EmailTemplate[]>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -110,6 +112,69 @@ export default function EmailTemplatesPage() {
     } catch (err: unknown) {
       setTemplates(prevTemplates);
       toast.error('Failed to update templates');
+    }
+  };
+
+  const handleResetSingleTemplate = async (type: string, label: string) => {
+    const confirmed = await confirm({
+      title: `Reset ${label}?`,
+      message: 'This will discard your custom HTML template and restore the built-in theme-linked default layout and subject. Continue?',
+      variant: 'warning',
+      confirmText: 'Reset to Default'
+    });
+    if (!confirmed) return;
+
+    try {
+      const res = await fetch(`/api/email-templates/${type}?action=reset`, {
+        method: 'POST'
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success(`${label} reset to default successfully`);
+        setTemplates(prev => {
+          const updated = { ...prev };
+          for (const cat in updated) {
+            updated[cat] = updated[cat].map(t =>
+              (t.email_type === type || t.emailType === type)
+                ? { ...t, custom_html: undefined, customHtml: undefined, subject: data.template?.subject || t.subject }
+                : t
+            );
+          }
+          return updated;
+        });
+      } else {
+        toast.error(data.error || 'Failed to reset template');
+      }
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Error resetting template');
+    }
+  };
+
+  const handleResetCategoryToDefault = async (category: string) => {
+    const catLabel = category === 'customer' ? 'Customer Templates' : 'Admin Alerts';
+    const confirmed = await confirm({
+      title: `Reset All ${catLabel}?`,
+      message: `This will reset all ${catLabel} back to their built-in default layouts and subjects. Continue?`,
+      variant: 'warning',
+      confirmText: 'Reset All'
+    });
+    if (!confirmed) return;
+
+    try {
+      const res = await fetch('/api/email-templates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'reset-all', category })
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success(data.message || `All ${catLabel} reset to default`);
+        await fetchTemplates();
+      } else {
+        toast.error(data.error || 'Failed to reset templates');
+      }
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Error resetting templates');
     }
   };
 
@@ -264,19 +329,37 @@ export default function EmailTemplatesPage() {
                 >
                   Disable All
                 </button>
+                <span className="text-gray-300 dark:text-gray-700">|</span>
+                <button
+                  onClick={() => handleResetCategoryToDefault(category)}
+                  className="text-xs font-semibold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white hover:underline cursor-pointer flex items-center gap-1"
+                >
+                  <RotateCcw className="h-3 w-3" />
+                  Reset All
+                </button>
               </div>
             </div>
             <div className="divide-y divide-gray-150 dark:divide-gray-800">
               {list.map((template) => {
                 const type = template.email_type || template.emailType || '';
+                const isCustom = Boolean(template.custom_html || template.customHtml);
                 return (
                   <div key={type || template.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-4 first:pt-0 last:pb-0 gap-4">
                     <div className="space-y-1 max-w-xl">
-                      <div className="flex items-center gap-2.5">
+                      <div className="flex flex-wrap items-center gap-2.5">
                         <span className="text-sm font-bold text-gray-900 dark:text-white">{template.label}</span>
                         <span className="text-[10px] bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full text-gray-500 dark:text-gray-400 font-bold font-mono uppercase">
                           {type}
                         </span>
+                        {isCustom ? (
+                          <span className="text-[10px] bg-purple-100 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 px-2 py-0.5 rounded-full font-bold">
+                            Custom HTML
+                          </span>
+                        ) : (
+                          <span className="text-[10px] bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded-full font-bold">
+                            Default (Theme Linked)
+                          </span>
+                        )}
                       </div>
                       <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
                         {template.description || 'No description provided'}
@@ -299,6 +382,15 @@ export default function EmailTemplatesPage() {
                       </button>
 
                       <div className="flex gap-2">
+                        {isCustom && (
+                          <button
+                            onClick={() => handleResetSingleTemplate(type, template.label)}
+                            className="flex items-center justify-center p-2 rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/40 transition-all cursor-pointer"
+                            title="Reset to default theme-linked template"
+                          >
+                            <RotateCcw className="h-4 w-4" />
+                          </button>
+                        )}
                         <button
                           onClick={() => handleOpenPreview(template)}
                           className="flex items-center justify-center p-2 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 transition-all cursor-pointer"

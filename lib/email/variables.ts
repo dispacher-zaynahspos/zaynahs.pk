@@ -1,6 +1,7 @@
 import { getSiteUrl } from '@/lib/site-url-server';
 import { formatPrice, cleanWhatsAppPhone } from '@/lib/utils/whatsapp';
 import { CartItem, StoreSettings } from '@/lib/types';
+import { THEME_PRESETS, ThemePreset } from '@/lib/theme-presets/presets';
 
 export function renderOrderItemsTable(items: CartItem[], currencySymbol = 'Rs.', siteUrl = ''): string {
   if (!items || items.length === 0) return '';
@@ -219,6 +220,20 @@ export async function buildVariables(emailType: string, data: EmailVariableData)
 
   const postexRemarks = String(data.postex_remarks || (typeof order?.notes === 'string' ? order.notes : '') || '').trim();
 
+  // Resolve Theme Colors and Active Preset (matches all project theme configs)
+  const activePresetId = settings.theme_preset || 'classic_white';
+  const defaultPreset = THEME_PRESETS.find((p: ThemePreset) => p.id === activePresetId) || THEME_PRESETS[0];
+  const themeConfig = settings.theme_config || defaultPreset?.config;
+  const colors = themeConfig?.colors || defaultPreset?.config?.colors || {};
+  const buttons = themeConfig?.buttons || defaultPreset?.config?.buttons || {};
+
+  const primaryColor = colors.primary || '#0f172a';
+  const secondaryColor = colors.secondary || '#334155';
+  const accentColor = colors.accent || colors.sale || '#e94560';
+  const buttonBgColor = buttons.primaryBg || primaryColor;
+  const buttonTextColor = buttons.primaryText || '#ffffff';
+  const logoUrl = settings.logo_url || '';
+
   // Start with standard variables
   const vars: Record<string, string> = {
     brand_name: brandName,
@@ -238,6 +253,19 @@ export async function buildVariables(emailType: string, data: EmailVariableData)
     whatsapp_number: cleanWa,
     whatsapp_url: whatsappUrl,
     postex_remarks: postexRemarks,
+    // Theme & Branding variables (linked to store styling)
+    primary_color: primaryColor,
+    secondary_color: secondaryColor,
+    accent_color: accentColor,
+    button_bg_color: buttonBgColor,
+    button_text_color: buttonTextColor,
+    logo_url: logoUrl,
+    store_logo: logoUrl,
+    store_name: brandName,
+    social_instagram: settings.social_instagram || '',
+    social_facebook: settings.social_facebook || '',
+    social_tiktok: settings.social_tiktok || '',
+    support_email: settings.header_top_bar_email || settings.smtp_email || '',
   };
 
   // If order details exist, populate order-related variables
