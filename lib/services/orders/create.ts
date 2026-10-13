@@ -33,6 +33,7 @@ export const createOrder = async (order: {
     address1?: string; address2?: string; city?: string; postalCode?: string;
     country?: string; latitude?: number | null; longitude?: number | null; paymentMethod?: string;
   };
+  idempotencyKey?: string;
 }): Promise<Order> => {
   try {
     const supabase = await createClient();
@@ -173,6 +174,19 @@ export const createOrder = async (order: {
       });
     }
 
+    // Idempotency check: if an order with this idempotency key was already created, return it
+    if (order.idempotencyKey) {
+      const { data: existing } = await supabaseAdmin
+        .from('orders')
+        .select('*')
+        .eq('idempotency_key', order.idempotencyKey)
+        .maybeSingle();
+      if (existing) {
+        console.log('[orders] Idempotent hit: order already created for key', order.idempotencyKey);
+        return mapOrder(existing);
+      }
+    }
+
     // Retry up to 3 times on 23505 (duplicate order_number)
     let data: OrderRow | undefined;
     let insertAttempt = 0;
@@ -181,7 +195,7 @@ export const createOrder = async (order: {
     const accessToken = (crypto.randomUUID() + crypto.randomUUID()).replace(/-/g, '');
     while (insertAttempt < MAX_ATTEMPTS) {
       insertAttempt++;
-      const { data: result, error: insertError } = await supabase
+      const { data: result, error: insertError } = await supabaseAdmin
         .from('orders')
         .insert({
           customer_name: order.customerName,
@@ -195,17 +209,30 @@ export const createOrder = async (order: {
           shipping_method_name: order.shippingMethodName || null,
           notes: order.notes,
           status: 'pending',
-          status_logs: initialLogs
+          status_logs: initialLogs,
+          idempotency_key: order.idempotencyKey || null,
         })
         .select('*')
         .single();
 
       if (insertError) {
         const pgCode = (insertError as { code?: string })?.code;
-        if (pgCode === '23505' && insertAttempt < MAX_ATTEMPTS) {
-          console.warn(`[orders] 23505 duplicate order_number, retry ${insertAttempt}/${MAX_ATTEMPTS}`);
-          await new Promise(r => setTimeout(r, 150));
-          continue;
+        if (pgCode === '23505') {
+          if (order.idempotencyKey) {
+            const { data: existing } = await supabaseAdmin
+              .from('orders')
+              .select('*')
+              .eq('idempotency_key', order.idempotencyKey)
+              .maybeSingle();
+            if (existing) {
+              return mapOrder(existing);
+            }
+          }
+          if (insertAttempt < MAX_ATTEMPTS) {
+            console.warn(`[orders] 23505 duplicate order_number, retry ${insertAttempt}/${MAX_ATTEMPTS}`);
+            await new Promise(r => setTimeout(r, 150));
+            continue;
+          }
         }
         throw insertError;
       }
@@ -316,6 +343,26 @@ export const createOrder = async (order: {
   } catch (error) {
     console.error('[orders] createOrder failed:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
     console.error('[orders] createOrder failed raw:', error);
+
+    try {
+      await supabaseAdmin.from('failed_order_attempts').insert({
+        customer_name: order.customerName || null,
+        customer_phone: order.customerPhone || null,
+        customer_email: order.customerEmail || null,
+        cart_items: order.items || [],
+        subtotal: order.subtotal || 0,
+        total: order.total || 0,
+        shipping_cost: order.shippingCost || 0,
+        shipping_method_name: order.shippingMethodName || null,
+        shipping_address: order.shippingAddress || null,
+        error_code: (error as { code?: string })?.code || 'ORDER_CREATE_ERROR',
+        error_message: (error as Error)?.message || String(error),
+        idempotency_key: order.idempotencyKey || null,
+      });
+    } catch (logErr) {
+      console.error('[orders] failed to log failed_order_attempt:', logErr);
+    }
+
     throw error;
   }
 };

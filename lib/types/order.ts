@@ -52,10 +52,33 @@ export interface Order {
   customer_email?: string;
   refund_amount?: number;
   access_token?: string;
+  idempotency_key?: string;
   deleted_at?: string;
   created_at: string;
   updated_at: string;
 }
+
+export interface FailedOrderAttempt {
+  id: string;
+  customer_name?: string | null;
+  customer_phone?: string | null;
+  customer_email?: string | null;
+  cart_items: CartItem[];
+  subtotal: number;
+  total: number;
+  shipping_cost: number;
+  shipping_method_name?: string | null;
+  shipping_address?: Record<string, unknown> | null;
+  payment_method_name?: string | null;
+  error_code?: string | null;
+  error_message?: string | null;
+  user_agent?: string | null;
+  idempotency_key?: string | null;
+  recovered_order_id?: string | null;
+  recovered_at?: string | null;
+  created_at: string;
+}
+
 
 export interface ShippingZone {
   id: string;

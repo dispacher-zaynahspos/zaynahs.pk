@@ -38,6 +38,7 @@ export const updateSettings = async (settings: Partial<StoreSettings>): Promise<
 
     if (settings.whatsapp_greeting !== undefined) updatePayload.whatsapp_greeting = settings.whatsapp_greeting;
     if (settings.whatsapp_footer !== undefined) updatePayload.whatsapp_footer = settings.whatsapp_footer;
+    if (settings.enable_whatsapp_redirect !== undefined) updatePayload.enable_whatsapp_redirect = settings.enable_whatsapp_redirect;
     if (settings.meta_title !== undefined) updatePayload.meta_title = settings.meta_title;
     if (settings.meta_description !== undefined) updatePayload.meta_description = settings.meta_description;
     if (settings.footer_text !== undefined) updatePayload.footer_text = settings.footer_text;

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { StoreSettings } from '@/lib/types';
 import { isFeatureEnabled } from '@/lib/features/premium';
@@ -31,6 +31,14 @@ export function useCartContainerState(
   const clearCart = useCartStore((state) => state.clearCart);
   const appliedCoupon = useCartStore((state) => state.appliedCoupon);
   const applyCoupon = useCartStore((state) => state.applyCoupon);
+
+  const [submitError, setSubmitError] = useState<{ message: string; whatsappFallbackUrl?: string } | null>(null);
+  const idempotencyKeyRef = useRef<string>('');
+  useEffect(() => {
+    if (!idempotencyKeyRef.current) {
+      idempotencyKeyRef.current = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2);
+    }
+  }, []);
 
   const timerState = useCartTimer(settings);
   const methodsState = useCartMethods();
@@ -228,6 +236,7 @@ export function useCartContainerState(
           country: 'Pakistan',
           paymentMethod: selectedPayment?.name ?? 'Cash on delivery',
         },
+        idempotencyKey: idempotencyKeyRef.current || undefined,
       });
 
       const orderTrackUrl = order.access_token
@@ -290,6 +299,8 @@ export function useCartContainerState(
         num_items: items.reduce((sum, item) => sum + item.quantity, 0),
       });
 
+      const whatsappUrl = buildWhatsAppURL(settings.whatsapp_number || '923001234567', fullMsg);
+
       const orderData = {
         orderNumber: order.order_number,
         createdAt: new Date().toISOString(),
@@ -309,10 +320,12 @@ export function useCartContainerState(
         paymentMethodName: selectedPayment?.name ?? 'Cash on delivery',
         paymentInstructions: selectedPayment?.instructions ?? undefined,
         orderTrackUrl,
+        whatsappUrl,
       };
 
       localStorage.setItem('last_placed_order', JSON.stringify(orderData));
       setPlacedOrder(orderData);
+      setSubmitError(null);
 
       try {
         await markOrdered(order.id);
@@ -324,11 +337,55 @@ export function useCartContainerState(
 
       clearCart();
       router.push('/cart?step=success');
-      window.open(buildWhatsAppURL(settings.whatsapp_number || '923001234567', fullMsg), '_blank');
-      toast.success('Order placed! Redirecting to WhatsApp...');
-    } catch (err) {
-      console.error(err);
-      toast.error('Failed to submit order. Please try again.');
+
+      // WhatsApp Redirect (safe from popup blockers via window.location.assign)
+      if (settings.enable_whatsapp_redirect !== false) {
+        toast.success('Order placed! Redirecting to WhatsApp...');
+        setTimeout(() => {
+          try {
+            window.location.assign(whatsappUrl);
+          } catch {
+            window.location.href = whatsappUrl;
+          }
+        }, 450);
+      } else {
+        toast.success('Order placed successfully! Thank you.');
+      }
+    } catch (err: unknown) {
+      console.error('[checkout] Order submit error:', err);
+      const errMsg = (err as Error)?.message || '';
+      if (errMsg.includes('Failed to find Server Action') || errMsg.includes('Server Action')) {
+        toast.error('Storefront updated. Reloading page...');
+        setTimeout(() => window.location.reload(), 800);
+        return;
+      }
+
+      const fallbackMsg = [
+        `*Order Fallback — ${settings.store_name || 'TotVogue'}*`,
+        '',
+        `• Customer: ${firstName.trim()} ${lastName.trim()}`,
+        `• Phone: ${phone.trim()}`,
+        `• Address: ${address.trim()}${apartment.trim() ? `, ${apartment.trim()}` : ''}, ${city.trim()}`,
+        `• Items:`,
+        ...items.map(
+          (it) => `  - ${it.product.name} (${it.selected_variant?.color || ''} ${it.selected_variant?.size || ''}) x${it.quantity} - Rs. ${it.unit_price * it.quantity}`
+        ),
+        `• Shipping: ${shippingMethodLabel} (Rs. ${shippingCost})`,
+        `• Total: ${formatPrice(finalTotal, settings.currency_symbol)}`,
+        `• Payment: ${selectedPayment?.name ?? 'Cash on delivery'}`,
+      ].filter(Boolean).join('\n');
+
+      const whatsappFallbackUrl = buildWhatsAppURL(
+        settings.whatsapp_number || '923001234567',
+        fallbackMsg
+      );
+
+      setSubmitError({
+        message: 'Could not submit your order automatically. Your cart is saved.',
+        whatsappFallbackUrl,
+      });
+
+      toast.error('Failed to submit order. Please try again or tap "Send on WhatsApp".');
     } finally {
       setLoading(false);
     }
@@ -408,6 +465,8 @@ export function useCartContainerState(
     loading,
     itemCount,
     handleOrderSubmit,
+    submitError,
+    clearSubmitError: () => setSubmitError(null),
     summaryProps,
     router,
   };

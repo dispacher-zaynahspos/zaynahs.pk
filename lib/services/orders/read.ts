@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
-import { Order } from '@/lib/types';
+import { Order, FailedOrderAttempt } from '@/lib/types';
 import { mapOrder, OrderRow } from './types';
 
 export const getOrders = async (): Promise<Order[]> => {
@@ -19,6 +19,25 @@ export const getOrders = async (): Promise<Order[]> => {
   } catch (error) {
     console.error('[orders] getOrders failed:', error);
     throw error;
+  }
+};
+
+export const getFailedOrderAttempts = async (limit = 50): Promise<FailedOrderAttempt[]> => {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('failed_order_attempts')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      console.warn('[orders] getFailedOrderAttempts warn:', error.message);
+      return [];
+    }
+    return (data ?? []) as FailedOrderAttempt[];
+  } catch (err) {
+    console.error('[orders] getFailedOrderAttempts error:', err);
+    return [];
   }
 };
 

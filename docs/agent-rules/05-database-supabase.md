@@ -159,6 +159,12 @@ Product slug kabhi bhi spaces, UPPERCASE, pipes `|`, ya kisi non-URL-safe char k
 - **Duplicate uniqueness:** duplicate product ka slug `slugify(base) + '-copy-' + Date.now()` (app/admin/products/new/page.tsx) — clean + unique.
 - Same approach categories/collections slugs ke liye bhi apply karo agar wahan dirty-slug risk mile.
 
+## RULE D18 — Auxiliary trigger exception isolation & SECURITY DEFINER (STRICT — checkout resilience)
+Jab bhi core business tables (`orders`, `order_items`, `customers`, `payments`) pe koi database trigger lage jo kisi secondary/auxiliary table (`abandoned_carts`, `traffic_analytics`, `marketing_logs`, `notifications`) ko update ya insert karta ho:
+1. **MANDATORY `SECURITY DEFINER`:** Trigger function ko hamesha `SECURITY DEFINER SET search_path = public` ke sath define karo taake guest/anon callers ke paas RLS permissions ki kami se trigger fail na ho.
+2. **MANDATORY EXCEPTION ISOLATION (`BEGIN ... EXCEPTION WHEN OTHERS THEN RAISE WARNING ...; END;`):** Secondary table ka failure **KABHI BHI** customer ke real money purchase order ko rollback NAHI kar sakta. Har secondary operation ko `BEGIN ... EXCEPTION WHEN OTHERS THEN RAISE WARNING ...; END;` block me wrap karo taake warning log ho jaye magar order table ka transaction safely commit ho.
+3. **Core transactions never fail on side effects:** Core checkout/payment hamesha kamyab hona chahiye chahe auxiliary table delete ho, corrupt ho, ya permission-restricted ho.
+
 ## RULE SYNC1 — Setup system har action pe sync rahe (STRICT — Definition of Done)
 Jab bhi migration create ho, feature add/remove ho, ya env/trigger change ho — **setup files usi task me update** hon. "Baad me" ka concept nahi. Ye enforce hota hai: `npm run check:setup` har `build` se pehle (`prebuild`) + optional git `pre-commit` hook (`npm run setup:hooks`) se chalta hai aur drift pe **commit/build block** kar deta hai.
 

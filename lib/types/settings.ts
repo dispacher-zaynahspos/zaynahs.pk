@@ -89,6 +89,7 @@ export interface StoreSettings {
   enable_category_filter: boolean;
   whatsapp_greeting: string;
   whatsapp_footer: string;
+  enable_whatsapp_redirect?: boolean;
   meta_title?: string;
   meta_description?: string;
   footer_text?: string;

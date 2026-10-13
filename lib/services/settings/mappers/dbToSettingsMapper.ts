@@ -30,6 +30,7 @@ export const mapSettings = (row: SettingsRow): StoreSettings => ({
 
   whatsapp_greeting: row.whatsapp_greeting ?? 'Hello! I would like to order:',
   whatsapp_footer: row.whatsapp_footer ?? 'Please confirm my order. Thank you!',
+  enable_whatsapp_redirect: row.enable_whatsapp_redirect ?? true,
   meta_title: row.meta_title || undefined,
   meta_description: row.meta_description || undefined,
   footer_text: row.footer_text || undefined,

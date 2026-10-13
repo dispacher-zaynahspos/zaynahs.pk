@@ -23,6 +23,7 @@ export interface PlacedOrder {
   paymentMethodName: string;
   paymentInstructions?: string;
   orderTrackUrl?: string;
+  whatsappUrl?: string;
 }
 
 export function useCheckoutFormState(

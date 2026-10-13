@@ -32,6 +32,11 @@ export default function FloatingContacts({ settings }: FloatingContactsProps) {
   // Check global enable toggle
   if (settings.floating_contacts_enabled === false) return null;
 
+  // Hide on /cart and /checkout so floating buttons never overlap checkout form, payment badges, or confirm button
+  if (pathname === '/cart' || pathname?.startsWith('/cart') || pathname === '/checkout' || pathname?.startsWith('/checkout')) {
+    return null;
+  }
+
   const whatsappNumber = settings.floating_whatsapp_number || settings.whatsapp_number;
   const instagramUrl = settings.social_instagram;
   const tiktokUrl = settings.social_tiktok;

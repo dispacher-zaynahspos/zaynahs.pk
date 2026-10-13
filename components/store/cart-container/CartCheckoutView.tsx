@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { ChevronLeft, ChevronRight, Truck, Lock, Send } from '@/components/common/Icons';
+import { ChevronLeft, ChevronRight, Truck, Lock, Send, AlertCircle, WhatsAppIcon } from '@/components/common/Icons';
 import { StoreSettings, ShippingMethod, PaymentMethod, CartItem, ShippingZone } from '@/lib/types';
 import { formatPrice } from '@/lib/utils/whatsapp';
 import PhoneInput from '@/components/store/PhoneInput';
@@ -44,6 +44,7 @@ interface CartCheckoutViewProps {
   onBackToCart: () => void;
   handleOrderSubmit: (e: React.FormEvent) => void;
   summaryPanel: React.ReactNode;
+  submitError?: { message: string; whatsappFallbackUrl?: string } | null;
 }
 
 export default function CartCheckoutView({
@@ -82,6 +83,7 @@ export default function CartCheckoutView({
   onBackToCart,
   handleOrderSubmit,
   summaryPanel,
+  submitError,
 }: CartCheckoutViewProps) {
   const zoneCities = shippingZones.flatMap((z) => z.cities || []);
 
@@ -328,9 +330,46 @@ export default function CartCheckoutView({
                 </div>
               )}
               <div className={`flex items-center gap-2.5 transition-opacity ${loading ? 'opacity-0' : 'opacity-100'}`}>
-                <Send className="h-5 w-5" />Confirm Order via WhatsApp
+                <Send className="h-5 w-5" />Confirm Order
               </div>
             </button>
+
+            {/* Error Fallback Card if Order Submission Fails */}
+            {submitError && (
+              <div className="p-4 rounded-2xl border-2 border-red-500/30 bg-red-50/70 dark:bg-red-950/30 space-y-3 animate-fade-in shadow-sm">
+                <div className="flex items-start gap-2.5">
+                  <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-bold text-red-900 dark:text-red-200">
+                      We could not submit your order.
+                    </p>
+                    <p className="text-xs text-red-700 dark:text-red-300 mt-0.5">
+                      Your cart is saved. You can try again or send your order directly on WhatsApp.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-2 pt-1">
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="flex-1 py-2.5 px-4 text-xs font-bold rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:opacity-90 active:scale-98 transition-all text-center cursor-pointer border-none shadow-sm"
+                  >
+                    Try again
+                  </button>
+                  {submitError.whatsappFallbackUrl && (
+                    <a
+                      href={submitError.whatsappFallbackUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 py-2.5 px-4 text-xs font-bold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white active:scale-98 transition-all text-center flex items-center justify-center gap-1.5 cursor-pointer shadow-md shadow-emerald-600/20 no-underline"
+                    >
+                      <WhatsAppIcon className="h-4 w-4" />
+                      Send my order on WhatsApp
+                    </a>
+                  )}
+                </div>
+              </div>
+            )}
 
             <p className="text-center text-xs text-gray-400 font-semibold">
               🔒 Your information is safe · We only use it to process your order

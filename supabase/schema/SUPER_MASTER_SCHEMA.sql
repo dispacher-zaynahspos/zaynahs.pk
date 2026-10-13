@@ -992,6 +992,7 @@ CREATE TABLE IF NOT EXISTS store_settings (
   postex_whatsapp_template TEXT DEFAULT 'Dear {name}, your order has been booked. You can track it here: {url}\n{note}',
   postex_whatsapp_note TEXT DEFAULT 'Thank you for shopping with us!',
   postex_auto_download_label BOOLEAN DEFAULT FALSE,
+  enable_whatsapp_redirect BOOLEAN DEFAULT true,
 
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -1045,11 +1046,13 @@ CREATE TABLE IF NOT EXISTS orders (
   cancel_reason TEXT,
   refund_amount NUMERIC(10,2),
   access_token TEXT,                        -- unguessable public handle for /order/[token] (migration 20260928150000)
+  idempotency_key TEXT,
   deleted_at TIMESTAMPTZ DEFAULT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 CREATE UNIQUE INDEX IF NOT EXISTS idx_orders_access_token ON orders(access_token);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_orders_idempotency_key ON orders(idempotency_key) WHERE idempotency_key IS NOT NULL;
 
 -- Auto increment order number
 CREATE SEQUENCE IF NOT EXISTS order_number_seq START 1;
@@ -2112,39 +2115,102 @@ CREATE TRIGGER update_abandoned_carts_updated_at
 
 -- Database trigger to automatically link a newly placed order to any active abandoned cart with a matching phone number
 CREATE OR REPLACE FUNCTION link_order_to_abandoned_cart()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER 
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
 DECLARE
   v_phone TEXT;
 BEGIN
-  -- Extract digits from customer phone to perform clean comparison
-  IF NEW.customer_phone IS NOT NULL THEN
-    v_phone := regexp_replace(NEW.customer_phone, '\D', '', 'g');
-  END IF;
+  BEGIN
+    -- Extract digits from customer phone to perform clean comparison
+    IF NEW.customer_phone IS NOT NULL THEN
+      v_phone := regexp_replace(NEW.customer_phone, '\D', '', 'g');
+    END IF;
 
-  -- Match any unrecovered abandoned cart for the customer and mark as recovered/ordered
-  IF v_phone IS NOT NULL AND v_phone <> '' THEN
-    UPDATE abandoned_carts
-    SET order_placed = true,
-        order_id = NEW.id,
-        recovered_at = NOW(),
-        updated_at = NOW()
-    WHERE order_placed = false
-      AND (
-        (customer_phone IS NOT NULL AND regexp_replace(customer_phone, '\D', '', 'g') = v_phone)
-        OR
-        (customer_phone = NEW.customer_phone)
-      );
-  END IF;
+    -- Match any unrecovered abandoned cart for the customer and mark as recovered/ordered
+    IF v_phone IS NOT NULL AND v_phone <> '' THEN
+      UPDATE abandoned_carts
+      SET order_placed = true,
+          order_id = NEW.id,
+          recovered_at = NOW(),
+          updated_at = NOW()
+      WHERE order_placed = false
+        AND (
+          (customer_phone IS NOT NULL AND regexp_replace(customer_phone, '\D', '', 'g') = v_phone)
+          OR
+          (customer_phone = NEW.customer_phone)
+        );
+    END IF;
+  EXCEPTION WHEN OTHERS THEN
+    -- Auxiliary marketing trigger must NEVER fail or rollback a customer order
+    RAISE WARNING 'link_order_to_abandoned_cart ignored exception: %', SQLERRM;
+  END;
   
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$;
+
+GRANT EXECUTE ON FUNCTION link_order_to_abandoned_cart() TO anon, authenticated, service_role;
 
 DROP TRIGGER IF EXISTS trigger_link_order_to_abandoned_cart ON orders;
 CREATE TRIGGER trigger_link_order_to_abandoned_cart
   AFTER INSERT ON orders
   FOR EACH ROW
   EXECUTE FUNCTION link_order_to_abandoned_cart();
+
+-- ============================================================
+-- FAILED ORDER ATTEMPTS (Admin visibility & customer recovery)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS failed_order_attempts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  customer_name TEXT,
+  customer_phone TEXT,
+  customer_email TEXT,
+  cart_items JSONB NOT NULL DEFAULT '[]'::jsonb,
+  subtotal NUMERIC(10,2) DEFAULT 0,
+  total NUMERIC(10,2) DEFAULT 0,
+  shipping_cost NUMERIC(10,2) DEFAULT 0,
+  shipping_method_name TEXT,
+  shipping_address JSONB,
+  payment_method_name TEXT,
+  error_code TEXT,
+  error_message TEXT,
+  user_agent TEXT,
+  idempotency_key TEXT,
+  recovered_order_id UUID REFERENCES orders(id) ON DELETE SET NULL,
+  recovered_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_failed_order_attempts_created_at 
+  ON failed_order_attempts(created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_failed_order_attempts_phone 
+  ON failed_order_attempts(customer_phone);
+
+CREATE INDEX IF NOT EXISTS idx_failed_order_attempts_idempotency 
+  ON failed_order_attempts(idempotency_key)
+  WHERE idempotency_key IS NOT NULL;
+
+ALTER TABLE failed_order_attempts ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Admin all failed_order_attempts" ON failed_order_attempts;
+CREATE POLICY "Admin all failed_order_attempts" ON failed_order_attempts
+  FOR ALL TO authenticated
+  USING (true)
+  WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Public insert failed_order_attempts" ON failed_order_attempts;
+CREATE POLICY "Public insert failed_order_attempts" ON failed_order_attempts
+  FOR INSERT TO anon, authenticated
+  WITH CHECK (true);
+
+GRANT ALL ON failed_order_attempts TO service_role;
+GRANT INSERT ON failed_order_attempts TO anon, authenticated;
+GRANT SELECT ON failed_order_attempts TO authenticated;
+
 
 -- Schedule Abandoned Carts Daily Cleanup Cron (30-day retention)
 CREATE EXTENSION IF NOT EXISTS pg_cron;

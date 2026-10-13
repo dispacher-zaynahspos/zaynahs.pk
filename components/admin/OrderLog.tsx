@@ -1,25 +1,29 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import OrderCreateCanvas from '@/components/admin/OrderCreateCanvas';
 import AdminSearchInput from '@/components/admin/shared/AdminSearchInput';
 import AdminDateFilter from '@/components/admin/shared/AdminDateFilter';
 import { Search, TrendingUp, SlidersHorizontal } from '@/components/common/Icons';
-import { Order, StoreSettings } from '@/lib/types';
+import { Order, StoreSettings, FailedOrderAttempt } from '@/lib/types';
 
 import { OrderLogStatsBar } from './order-log/OrderLogStatsBar';
 import { OrderLogBulkActions } from './order-log/OrderLogBulkActions';
 import { OrderLogTable } from './order-log/OrderLogTable';
+import { FailedAttemptsModal } from './order-log/FailedAttemptsModal';
 import { useOrderLogState } from './order-log/hooks/useOrderLogState';
 
 interface OrderLogProps {
   initialOrders: Order[];
   settings: StoreSettings;
+  initialFailedAttempts?: FailedOrderAttempt[];
 }
 
-export default function OrderLog({ initialOrders, settings }: OrderLogProps) {
+export default function OrderLog({ initialOrders, settings, initialFailedAttempts = [] }: OrderLogProps) {
   const o = useOrderLogState({ initialOrders, settings });
+  const [isFailedModalOpen, setIsFailedModalOpen] = useState(false);
+  const failedAttempts = initialFailedAttempts;
 
   return (
     <div className={`space-y-6 relative transition-all duration-300 font-sans pb-20 ${o.isFullWidth ? 'max-w-none px-4' : 'max-w-6xl mx-auto'}`}>
@@ -43,6 +47,20 @@ export default function OrderLog({ initialOrders, settings }: OrderLogProps) {
         </div>
 
         <div className="flex items-center gap-2 ml-auto">
+          {failedAttempts.length > 0 && (
+            <button
+              onClick={() => setIsFailedModalOpen(true)}
+              className="px-3 py-2 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 dark:hover:bg-rose-950/60 text-xs font-bold transition-all border border-rose-200 dark:border-rose-900/50 flex items-center gap-1.5 shadow-xs"
+              title="View customers who had errors during checkout"
+            >
+              <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+              <span>Failed Checkouts</span>
+              <span className="px-1.5 py-0.2 rounded-full bg-rose-200 dark:bg-rose-900 text-[10px] font-black">
+                {failedAttempts.length}
+              </span>
+            </button>
+          )}
+
           <button
             onClick={() => o.setIsCreateCanvasOpen(true)}
             className="px-3.5 py-2 rounded-lg bg-[#008060] hover:bg-[#006e52] text-white text-xs font-bold transition-all shadow-xs"
@@ -229,6 +247,14 @@ export default function OrderLog({ initialOrders, settings }: OrderLogProps) {
         onOrderCreated={(newOrder) => {
           // Will be refetched by realtime or callback
         }}
+        settings={settings}
+      />
+
+      {/* Failed Attempts Recovery Modal */}
+      <FailedAttemptsModal
+        open={isFailedModalOpen}
+        onClose={() => setIsFailedModalOpen(false)}
+        failedAttempts={failedAttempts}
         settings={settings}
       />
     </div>

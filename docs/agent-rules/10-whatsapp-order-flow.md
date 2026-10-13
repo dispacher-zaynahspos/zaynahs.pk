@@ -59,3 +59,26 @@ export async function middleware(request: NextRequest) {
 
 ## No customer accounts (RULE A2)
 Customers do NOT register/login. Cart lives in `localStorage` via Zustand persist. Orders go via WhatsApp only.
+
+## RULE W3 — Checkout button wording, popup-safe redirect & resilience (STRICT)
+1. **Checkout Button Copy:**
+   - The primary checkout submission button must read **"Confirm Order"** (never "Confirm Order via WhatsApp", "Submit via WhatsApp", etc.).
+2. **Popup-Block Safe Redirection:**
+   - Modern mobile browsers (iOS Safari, Android Chrome, Samsung Internet) block `window.open(url, '_blank')` if called after an asynchronous network call (`await createOrder`).
+   - On successful checkout, when WhatsApp redirection is enabled, redirect directly using `window.location.assign(whatsappUrl)` (or `window.location.href = whatsappUrl`). Never rely on `window.open('_blank')` in async handlers.
+3. **Admin Auto-Redirect Toggle (`enable_whatsapp_redirect`):**
+   - Stored in `store_settings.enable_whatsapp_redirect` (BOOLEAN, default `true`).
+   - Configurable in Admin Settings -> WhatsApp tab.
+   - When enabled: user is automatically redirected to WhatsApp upon order creation.
+   - When disabled: order is created, cart is cleared, and an inline order confirmation view is presented with a clear manual "Send Order on WhatsApp" button.
+4. **Idempotency Guarantee:**
+   - Every order submission generates a client-side UUID `idempotency_key`.
+   - Repeated taps or network retries check for this key in `orders.idempotency_key` and return the existing order without creating duplicates or double decrements.
+5. **Checkout Error Fallback & Logging:**
+   - Any order creation failure must be recorded in `failed_order_attempts` with customer name, phone, cart items, total, and error message.
+   - The checkout UI must render a dedicated retry banner with:
+     - `[Try again]` action
+     - Prefilled WhatsApp backup link `[Send my order on WhatsApp]` so the customer can complete their purchase without loss.
+6. **Floating Widget Isolation:**
+   - The floating WhatsApp / contacts widget (`FloatingContacts.tsx`) must automatically hide on `/cart` and `/checkout` paths to prevent visual overlap with checkout buttons and voucher badges.
+

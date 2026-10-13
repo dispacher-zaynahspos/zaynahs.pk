@@ -301,6 +301,8 @@ export function SettingsTabRendererCore({ activeTab, s }: SettingsTabRendererCor
           setWhatsappGreeting={s.setWhatsappGreeting}
           whatsappFooter={s.whatsappFooter}
           setWhatsappFooter={s.setWhatsappFooter}
+          enableWhatsappRedirect={s.enableWhatsappRedirect}
+          setEnableWhatsappRedirect={s.setEnableWhatsappRedirect}
         />
       );
     case 'policies':

@@ -1,3 +1,38 @@
+## [2026-10-13] Checkout "Failed to submit order" & WhatsApp Redirect Blocker — Root Cause & Permanent Fix
+
+**Symptom:**
+Guest customers on mobile attempting to place an order received red toast: *"Failed to submit order. Please try again."* Screenshot from customer Nida Ghafoor (`03233333262`, Rs. 1,350 Textured Geometric Shirt + Rs. 250 shipping = Rs. 1,600) on TotVogue at 4:07 PM PKT. WhatsApp redirection was also failing or getting blocked by mobile browsers.
+
+**Root cause (Two-Fold):**
+1. **Postgres RLS 42501 permission denied in auxiliary trigger:**
+   - On 2026-09-27, migration `20260927150000_rls_pii_hardening.sql` revoked `SELECT` on `abandoned_carts` from `anon`.
+   - The database trigger `trigger_link_order_to_abandoned_cart` on `orders` executed `link_order_to_abandoned_cart()`, which was defined without `SECURITY DEFINER` (ran in caller's security context).
+   - When a guest customer (`anon` role) submitted an order, `orders` was inserted, trigger fired `UPDATE abandoned_carts ... WHERE ...`. Postgres checked permissions on the `WHERE` clause, found `anon` lacked `SELECT` on `abandoned_carts`, and threw `ERROR 42501: permission denied for table abandoned_carts`, rolling back the entire order insertion!
+2. **Mobile Popup Blocker on Async WhatsApp Redirect:**
+   - In `useCartContainerState.ts`, WhatsApp redirect used `window.open(whatsappUrl, '_blank')` inside an asynchronous handler after `await createOrder(...)`.
+   - Modern mobile browsers (iOS Safari, Android Chrome) block `window.open` after async delays as untrusted popups.
+3. **Floating Contacts button overlapping checkout:**
+   - `FloatingContacts` was rendered everywhere, overlapping the sticky checkout bar on mobile.
+
+**Fix (Applied to all 5 stores: TotVogue, Zaynahs, MiniMahal, LittleMister, Lobo):**
+1. **Migration `20261013150000_fix_order_link_trigger_and_failed_attempts.sql`:**
+   - Replaced `link_order_to_abandoned_cart()` with `SECURITY DEFINER SET search_path = public` and wrapped in `BEGIN ... EXCEPTION WHEN OTHERS THEN RAISE WARNING ...; END;`.
+   - Added `idempotency_key TEXT` & unique index to `orders`.
+   - Created `failed_order_attempts` table.
+   - Added `enable_whatsapp_redirect BOOLEAN DEFAULT true` to `store_settings`.
+2. **Code fixes:**
+   - Replaced async `window.open` with `window.location.assign(whatsappUrl)` (immune to popup blockers).
+   - Checkout button text updated from `"Confirm Order via WhatsApp"` to `"Confirm Order"`.
+   - Added admin toggle in Settings -> WhatsApp tab.
+   - Added `failed_order_attempts` logging + recovery modal in `app/admin/orders`.
+   - Suppressed `FloatingContacts` on `/cart` and `/checkout`.
+   - Adjusted `<Toaster />` positioning to float above mobile bottom bar.
+3. **Rules added:**
+   - **RULE D18** in `docs/agent-rules/05-database-supabase.md` (Auxiliary trigger exception isolation & `SECURITY DEFINER`).
+   - **RULE W3** in `docs/agent-rules/10-whatsapp-order-flow.md` (Checkout button, popup-safe redirect & resilience).
+
+---
+
 ## [2026-10-11] 9 Orphan Vercel Projects Deleted — Root Cause: bare `vercel --prod` without `--project` flag
 
 **Symptom:** TotVogue account had 7 orphan projects (e.g. `zaynahsestore-tv-main`, `project-xxxx`); Zaynahs account had 2 orphans. None had custom domains — all were `.vercel.app` only.

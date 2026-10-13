@@ -230,12 +230,12 @@ export default async function RootLayout({
           <Toaster 
             position="bottom-center" 
             toastOptions={{
-              className: 'dark:bg-[#16162a] dark:text-white dark:border-gray-800 rounded-2xl shadow-lg border border-gray-100 font-semibold',
+              className: 'dark:bg-[#16162a] dark:text-white dark:border-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-800 font-semibold',
               style: {
-                fontSize: '11px',
-                padding: '10px 14px',
-                maxWidth: '300px',
-                marginBottom: '72px',
+                fontSize: '12px',
+                padding: '12px 16px',
+                maxWidth: 'min(92vw, 380px)',
+                marginBottom: 'calc(84px + env(safe-area-inset-bottom, 0px))',
               }
             }} 
             closeButton 

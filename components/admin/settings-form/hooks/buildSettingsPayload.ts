@@ -31,6 +31,7 @@ export function buildSettingsPayload(data: {
   enableCategoryFilter: boolean;
   whatsappGreeting: string;
   whatsappFooter: string;
+  enableWhatsappRedirect: boolean;
   popularSearches: string;
   footerText: string;
   socialFacebook: string;
@@ -63,6 +64,7 @@ export function buildSettingsPayload(data: {
     enableCategoryFilter,
     whatsappGreeting,
     whatsappFooter,
+    enableWhatsappRedirect,
     popularSearches,
     footerText,
     socialFacebook,
@@ -98,6 +100,7 @@ export function buildSettingsPayload(data: {
     enable_category_filter: enableCategoryFilter,
     whatsapp_greeting: whatsappGreeting.trim(),
     whatsapp_footer: whatsappFooter.trim(),
+    enable_whatsapp_redirect: enableWhatsappRedirect,
     popular_searches: popularSearches.trim(),
     footer_text: footerText.trim() || undefined,
     social_facebook: socialFacebook.trim() || undefined,

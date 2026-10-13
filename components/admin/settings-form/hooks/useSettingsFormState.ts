@@ -77,6 +77,7 @@ export function useSettingsFormState({ initialSettings }: UseSettingsFormStatePr
 
   const [whatsappGreeting, setWhatsappGreeting] = useState(initialSettings.whatsapp_greeting);
   const [whatsappFooter, setWhatsappFooter] = useState(initialSettings.whatsapp_footer);
+  const [enableWhatsappRedirect, setEnableWhatsappRedirect] = useState(initialSettings.enable_whatsapp_redirect ?? true);
 
   // Footer & Social States
   const [footerText, setFooterText] = useState(initialSettings.footer_text || '');
@@ -145,6 +146,7 @@ export function useSettingsFormState({ initialSettings }: UseSettingsFormStatePr
         enableCategoryFilter,
         whatsappGreeting,
         whatsappFooter,
+        enableWhatsappRedirect,
         popularSearches,
         footerText,
         socialFacebook,
@@ -241,6 +243,8 @@ export function useSettingsFormState({ initialSettings }: UseSettingsFormStatePr
     setWhatsappGreeting,
     whatsappFooter,
     setWhatsappFooter,
+    enableWhatsappRedirect,
+    setEnableWhatsappRedirect,
     footerText,
     setFooterText,
     socialFacebook,

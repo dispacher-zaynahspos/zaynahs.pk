@@ -80,6 +80,7 @@ export default function CartContainer({ settings, initialCustomer }: CartContain
     loading,
     itemCount,
     handleOrderSubmit,
+    submitError,
     summaryProps,
     router,
   } = useCartContainerState(settings, initialCustomer);
@@ -314,6 +315,7 @@ export default function CartContainer({ settings, initialCustomer }: CartContain
       onBackToCart={() => setView('cart')}
       handleOrderSubmit={handleOrderSubmit}
       summaryPanel={<CartSummaryPanel {...summaryProps} compact={true} />}
+      submitError={submitError}
     />
   );
 }

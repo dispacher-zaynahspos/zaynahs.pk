@@ -40,6 +40,7 @@ export interface SettingsRow {
   verticals_hub_subtitle?: string | null;
   whatsapp_greeting?: string | null;
   whatsapp_footer?: string | null;
+  enable_whatsapp_redirect?: boolean | null;
   meta_title?: string | null;
   meta_description?: string | null;
   footer_text?: string | null;

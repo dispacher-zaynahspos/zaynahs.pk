@@ -4,6 +4,31 @@
 
 ---
 
+### [2026-10-13] v9.x — Critical Checkout Recovery: Order Link Trigger Fix, Failed Order Attempts & WhatsApp Redirection
+
+**Root Cause of Bug:**
+On 2026-09-27, migration `20260927150000_rls_pii_hardening.sql` revoked `SELECT` on `abandoned_carts` from `anon`. The database trigger `trigger_link_order_to_abandoned_cart` on `orders` executed `link_order_to_abandoned_cart()` without `SECURITY DEFINER`. During guest checkout, `anon` inserted into `orders`, trigger fired `UPDATE abandoned_carts ... WHERE ...`, Postgres evaluated the `WHERE` clause, found `anon` lacked `SELECT` permissions, and threw `ERROR 42501: permission denied for table abandoned_carts`, rolling back the entire `orders` insert.
+
+**Database Changes (`supabase/migrations/20261013150000_fix_order_link_trigger_and_failed_attempts.sql`):**
+1. **Auxiliary Trigger Hardening:** Recreated `link_order_to_abandoned_cart()` with `SECURITY DEFINER SET search_path = public` and wrapped inside `BEGIN ... EXCEPTION WHEN OTHERS THEN RAISE WARNING ...; END;` (RULE D18). Auxiliary table failures can NEVER roll back customer purchase orders.
+2. **Order Idempotency:** Added `idempotency_key TEXT` column to `orders` and created unique partial index `idx_orders_idempotency_key` (`WHERE idempotency_key IS NOT NULL`).
+3. **Failed Order Attempts Tracking:** Created table `failed_order_attempts` with columns (`id`, `customer_name`, `customer_phone`, `customer_email`, `cart_items`, `subtotal`, `total`, `shipping_cost`, `shipping_method_name`, `shipping_address`, `payment_method_name`, `error_code`, `error_message`, `user_agent`, `idempotency_key`, `recovered_order_id`, `recovered_at`, `created_at`). RLS enabled: `admin` full access, `anon` insert-only.
+4. **WhatsApp Redirect Setting:** Added `enable_whatsapp_redirect BOOLEAN DEFAULT true` to `store_settings`.
+5. **Applied to all 5 live stores:** TotVogue, Zaynahs, MiniMahal, LittleMister, Lobo. Verified via live test orders on all 5 stores.
+6. **Reflected in `SUPER_MASTER_SCHEMA.sql`:** Verified with `node scripts/check-setup-sync.mjs` (161/161 migrations in sync, 0 drift).
+
+**Application Changes:**
+- `components/store/cart-container/CartCheckoutView.tsx`: Button text changed to simple **"Confirm Order"** (removed "via WhatsApp"). Added fallback error recovery card with direct WhatsApp pre-filled recovery link.
+- `components/store/cart-container/useCartContainerState.ts`: Fixed mobile browser popup blocker by replacing async `window.open` with `window.location.assign(whatsappUrl)`. Added idempotency key generation. Added Next.js server action mismatch auto-recovery.
+- `lib/services/orders/create.ts`: Switched orders insert to `supabaseAdmin` (service role) to guarantee guest orders succeed. Added logging to `failed_order_attempts` on exception.
+- `components/admin/settings/WhatsappTab.tsx`: Added Admin setting toggle for auto-redirecting to WhatsApp.
+- `components/admin/OrderLog.tsx` & `FailedAttemptsModal.tsx`: Added Failed Checkouts recovery panel in admin orders with 1-click customer WhatsApp recovery message.
+- `components/common/FloatingContacts.tsx`: Suppressed on `/cart` and `/checkout` to eliminate visual collision.
+- `docs/agent-rules/05-database-supabase.md`: Added **RULE D18** (Auxiliary trigger exception isolation).
+- `docs/agent-rules/10-whatsapp-order-flow.md`: Added **RULE W3** (Checkout button, popup-safe redirect & resilience).
+
+---
+
 ### [2026-10-10] v8.x — Shop pagination + bottom-grid-action settings
 
 **Feature:** `/shop` + category pages get the same controls as the Home product grid: pagination mode (infinite / load_more / numbered), Load More button (label + colors), optional View All button. Were type-only before → now real columns so the customizer save round-trips.
