@@ -51,7 +51,7 @@ async function resolveSiteUrl(): Promise<string> {
  * - Post-deploy + Manual "Purge Cache" button: purgeCloudflareEverything() always.
  * Rationale: full zone purge on every entity save caused unnecessary cache misses site-wide (RULE C10: targeted invalidation).
  */
-async function purgeCloudflareEverything() {
+function getCloudflareConfigs(): Array<{ zoneId: string; apiToken: string; name?: string }> {
   const multiStoreConfigStr = process.env.MULTI_STORE_CLOUDFLARE_CONFIG;
   let cfConfigs: Array<{ zoneId: string; apiToken: string; name?: string }> = [];
 
@@ -73,6 +73,46 @@ async function purgeCloudflareEverything() {
     }
   }
 
+  return cfConfigs;
+}
+
+/**
+ * Targeted URL purge on Cloudflare edge (RULE C10):
+ * Purges ONLY the specified URLs without wiping the rest of the zone or triggering full-site cache misses.
+ */
+export async function purgeCloudflareUrls(urls: string[]): Promise<void> {
+  if (!urls || urls.length === 0) return;
+  const cfConfigs = getCloudflareConfigs();
+  if (cfConfigs.length === 0) return;
+
+  for (const cfg of cfConfigs) {
+    try {
+      const res = await fetch(
+        `https://api.cloudflare.com/client/v4/zones/${cfg.zoneId}/purge_cache`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${cfg.apiToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ files: urls }),
+        }
+      );
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        console.error(`Failed targeted CF purge for ${cfg.name || cfg.zoneId}:`, data);
+      } else {
+        console.log(`[revalidate] Targeted CF purge for ${urls.length} URLs on ${cfg.name || cfg.zoneId}`);
+      }
+    } catch (error) {
+      console.error(`Error in targeted CF purge for ${cfg.name || cfg.zoneId}:`, error);
+    }
+  }
+}
+
+async function purgeCloudflareEverything() {
+  const cfConfigs = getCloudflareConfigs();
   if (cfConfigs.length === 0) {
     console.warn('Cloudflare credentials missing. Skipping complete cache purge.');
     return;
@@ -121,10 +161,14 @@ export async function revalidateProduct(slug: string, action: 'UPDATED' | 'DELET
     revalidatePath('/admin', 'layout');
     if (action !== 'DELETED') revalidatePath(`/product/${slug}`);
 
-    // Next.js ISR handles CDN freshness — no full CF purge needed for entity-level saves (RULE C9/C10)
-    // Notify search engines for instant indexing
+    // Targeted single-URL purge on Cloudflare edge (instant freshness on plain URLs, no purge_everything)
     const siteUrl = await resolveSiteUrl();
     const productUrl = `${siteUrl}/product/${slug}`;
+    await purgeCloudflareUrls([
+      productUrl,
+      `${siteUrl}/`,
+      `${siteUrl}/shop`,
+    ]);
 
     if (action === 'DELETED') {
       await notifyGoogleIndexing(productUrl, 'URL_DELETED');
@@ -158,7 +202,13 @@ export async function revalidateBanner() {
     revalidatePath('/store', 'layout');
     revalidatePath('/admin', 'layout');
 
-    // Next.js ISR handles CDN freshness — no full CF purge needed for banner saves (RULE C9/C10)
+    // Targeted single-URL purge on Cloudflare edge
+    const siteUrl = await resolveSiteUrl();
+    await purgeCloudflareUrls([
+      `${siteUrl}/`,
+      `${siteUrl}/shop`,
+    ]);
+
     console.log('[revalidate] Banners & homepage revalidated');
   } catch (error) {
     console.error('Error in revalidateBanner:', error);
@@ -178,9 +228,15 @@ export async function revalidateCategory(slug: string, action: 'UPDATED' | 'DELE
     revalidatePath('/admin', 'layout');
     if (action !== 'DELETED') revalidatePath(`/category/${slug}`);
 
-    // Next.js ISR handles CDN freshness — no full CF purge needed for entity-level saves (RULE C9/C10)
+    // Next.js ISR handles CDN freshness — targeted single-URL purge on Cloudflare edge
     const siteUrl = await resolveSiteUrl();
     const categoryUrl = `${siteUrl}/shop?category=${slug}`;
+    await purgeCloudflareUrls([
+      categoryUrl,
+      `${siteUrl}/category/${slug}`,
+      `${siteUrl}/shop`,
+      `${siteUrl}/`,
+    ]);
 
     if (action === 'DELETED') {
       await notifyGoogleIndexing(categoryUrl, 'URL_DELETED');
@@ -211,13 +267,14 @@ export async function revalidateHomepage() {
     revalidatePath('/store', 'layout');
     revalidatePath('/admin', 'layout');
 
-    // Next.js ISR handles CDN freshness — no full CF purge needed for homepage section saves (RULE C9/C10)
     const dynamicSiteUrl = await resolveSiteUrl();
     const urls = [
       `${dynamicSiteUrl}/`,
       `${dynamicSiteUrl}/shop`,
       `${dynamicSiteUrl}/store`,
     ];
+    await purgeCloudflareUrls(urls);
+
     for (const url of urls) {
       await notifyGoogleIndexing(url, 'URL_UPDATED');
     }
@@ -242,7 +299,14 @@ export async function revalidateVertical(slug: string) {
     revalidatePath('/');
     revalidatePath('/admin', 'layout');
 
-    // Next.js ISR handles CDN freshness — no full CF purge needed for vertical saves (RULE C9/C10)
+    const siteUrl = await resolveSiteUrl();
+    await purgeCloudflareUrls([
+      `${siteUrl}/store/${slug}`,
+      `${siteUrl}/store/${slug}/shop`,
+      `${siteUrl}/store`,
+      `${siteUrl}/`,
+    ]);
+
     console.log(`[revalidate] Vertical revalidated: ${slug}`);
   } catch (error) {
     console.error(`Error in revalidateVertical for ${slug}:`, error);
@@ -264,14 +328,8 @@ export async function revalidateTagSafe(tag: string) {
  * For admin-initiated writes to storefront-visible domains that don't have a
  * dedicated per-slug revalidator (collections, coupons, badges, size guides,
  * social proof, payment/shipping methods, admin review moderation), this
- * invalidates the given Next.js tags AND runs the full Cloudflare zone purge —
- * so the change is never left stale at the CDN edge (the gap that plain
- * `revalidateTagSafe` left).
- *
- * Do NOT use this for high-frequency PUBLIC writes (e.g. customer review
- * submissions) — those stay tag-only to avoid letting anonymous traffic force
- * repeated full-zone purges. Public content that needs moderation is hidden
- * until an admin action (which DOES call this) makes it visible.
+ * invalidates the given Next.js tags AND runs targeted Cloudflare URL purges —
+ * so the change is never left stale at the CDN edge without wiping the whole site.
  */
 export async function revalidateStorefrontEdge(...tags: string[]): Promise<void> {
   try {
@@ -280,7 +338,14 @@ export async function revalidateStorefrontEdge(...tags: string[]): Promise<void>
     revalidatePath('/', 'layout');
     revalidatePath('/shop');
     revalidatePath('/admin', 'layout');
-    await purgeCloudflareEverything();
+
+    const siteUrl = await resolveSiteUrl();
+    const urlsToPurge: string[] = [`${siteUrl}/`, `${siteUrl}/shop`];
+    if (tags.includes('reviews')) urlsToPurge.push(`${siteUrl}/reviews`);
+    if (tags.includes('size_guides')) urlsToPurge.push(`${siteUrl}/size-guides`, `${siteUrl}/api/size-guides`);
+    if (tags.includes('collections')) urlsToPurge.push(`${siteUrl}/collections`);
+    await purgeCloudflareUrls(urlsToPurge);
+
     console.log(`[revalidate] Storefront edge purge for tags: ${tags.join(', ')}`);
   } catch (error) {
     console.error(`Error in revalidateStorefrontEdge for tags ${tags.join(', ')}:`, error);
