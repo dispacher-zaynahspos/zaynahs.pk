@@ -36,7 +36,6 @@ export const createOrder = async (order: {
   idempotencyKey?: string;
 }): Promise<Order> => {
   try {
-    const supabase = await createClient();
     const session = await getCustomerSession();
     let customerId = session ? session.id : null;
 
