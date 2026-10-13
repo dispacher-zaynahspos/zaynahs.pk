@@ -136,15 +136,13 @@ Manual "Purge Cache" button sirf **emergency** ke liye hai. **Normal save ke baa
 ## CACHE1 — Active cache/page rule table
 | Cloudflare Cache Rule | Action | Notes |
 |------|--------|-------|
-| `no-cache-dynamic` | cache:false (bypass) | cart, checkout, account, api, admin |
+| `no-cache-dynamic` | cache:false (bypass) | cart, checkout, account, api, admin, wishlist, order, login, signup |
 | `static-assets` | cache:true + edge_ttl:1yr | `/_next/static/*` — hash filenames, never stale |
-| `html-pages` | **cache:false (bypass)** | all HTML pages — Next.js ISR + revalidateTag handles freshness |
+| `html-pages` | **cache:true + edge_ttl:300s (5 min)** | HTML cached at CF edge (55ms TTFB in PK) — Next.js ISR + 5min edge TTL |
 | `supabase-images` | cache:true + edge_ttl:30d | supabase.co images |
 
-> ⚠️ **html-pages = bypass** (changed 2026-10): HTML is no longer cached at Cloudflare edge.
-> Reason: With html-pages bypassed, `purgeCloudflareEverything()` is NOT needed for entity saves
-> (product/category/banner). Next.js ISR serves fresh responses directly. Cloudflare only caches
-> static assets (JS/CSS/images) which never go stale (hash-based filenames).
+> ⚡ **html-pages = cache:true, edge_ttl: 300s (5 min)**:
+> Reason: Bypassing HTML caused TTFB to jump to 2.1s because every request round-tripped across the globe to Vercel US. With a 5-minute edge TTL, responses are served from Karachi (`KHI`) edge in ~55ms. Entity saves invalidate Next.js tags, and edge caches expire naturally within 5 minutes — ZERO full-zone `purge_everything` spam on entity saves!
 
 Page Rules (legacy fallback): `cart*`, `checkout*`, `my-account*` → `cache_level: bypass`.
 
@@ -152,8 +150,8 @@ Page Rules (legacy fallback): `cart*`, `checkout*`, `my-account*` → `cache_lev
 ```
 Admin DB change → Supabase webhook → /api/revalidate
   → revalidateTag("product-slug") + revalidatePath("/shop")
-  → Next.js ISR marks cache stale → next visitor → fresh response from Vercel
-  → Cloudflare: MISS (html-pages bypassed) → always fresh ✅
+  → Next.js ISR updates cache immediately
+  → Cloudflare: edge cache expires within 5 min (or on edge refresh) → instant 55ms TTFB ✅
 ```
 
 **Cache flow — global/settings save:**

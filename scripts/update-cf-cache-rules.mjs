@@ -64,40 +64,43 @@ async function processStore(store) {
   const rules = detail.result?.rules || [];
   console.log(`  Found ${rules.length} rules`);
 
-  // Find html-pages rule and update to cache:false (bypass)
+  // Define standard cache rules
+  const dynamicBypassExpr = '(http.request.uri.path contains "/cart") or (http.request.uri.path contains "/checkout") or (http.request.uri.path contains "/account") or (http.request.uri.path contains "/api") or (http.request.uri.path contains "/admin") or (http.request.uri.path contains "/wishlist") or (http.request.uri.path contains "/order") or (http.request.uri.path contains "/login") or (http.request.uri.path contains "/signup") or (http.request.uri.path contains "/reset-password")';
+  const htmlPagesExpr = `(http.request.uri.path wildcard "/*") and not (${dynamicBypassExpr})`;
+
   const updatedRules = rules.map(rule => {
-    if (rule.description === 'html-pages') {
-      console.log(`  → Updating html-pages: cache:true edge_ttl:${rule.action_parameters.edge_ttl?.default}s → cache:false (bypass)`);
+    if (rule.description === 'no-cache-dynamic') {
       return {
         ...rule,
-        action_parameters: { cache: false },
+        expression: dynamicBypassExpr,
+        action_parameters: { cache: false }
+      };
+    }
+    if (rule.description === 'html-pages') {
+      console.log(`  → Updating html-pages: edge_ttl: 300s (5 min), cache: true`);
+      return {
+        ...rule,
+        expression: htmlPagesExpr,
+        action_parameters: {
+          cache: true,
+          edge_ttl: {
+            mode: 'override_origin',
+            default: 300
+          }
+        }
       };
     }
     return rule;
   });
 
-  const htmlRule = rules.find(r => r.description === 'html-pages');
-  if (!htmlRule) {
-    console.log('  ⚠️  html-pages rule not found — skipping');
-    return false;
-  }
-
-  if (htmlRule.action_parameters.cache === false) {
-    console.log('  ✅ html-pages already bypassed — no change needed');
-  } else {
-    // PUT updated ruleset
-    await cfReq(
-      store.token,
-      `/zones/${store.zoneId}/rulesets/${cacheRuleset.id}`,
-      'PUT',
-      { rules: updatedRules }
-    );
-    console.log('  ✅ html-pages rule updated to bypass');
-  }
-
-  // One-time full purge to clear stale cached HTML
-  await cfReq(store.token, `/zones/${store.zoneId}/purge_cache`, 'POST', { purge_everything: true });
-  console.log('  ✅ Full cache purged (one-time cleanup)');
+  // PUT updated ruleset
+  await cfReq(
+    store.token,
+    `/zones/${store.zoneId}/rulesets/${cacheRuleset.id}`,
+    'PUT',
+    { rules: updatedRules }
+  );
+  console.log('  ✅ Ruleset updated with 5-minute edge TTL & full dynamic bypass');
 
   return true;
 }

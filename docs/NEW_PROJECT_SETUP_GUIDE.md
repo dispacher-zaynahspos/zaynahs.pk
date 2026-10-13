@@ -1114,9 +1114,9 @@ RULE 2 - static-assets:
   → Action: cache:true, edge_ttl: 31536000 (1 year)
 
 RULE 3 - html-pages:  
-  → Match: /* (wildcard)
-  → Action: cache:true, edge_ttl: 86400 (24 hours)
-  → Combined with webhook purge → admin change → fresh data in seconds
+  → Match: /* (wildcard, bypassing dynamic/cart/checkout/api/admin/orders)
+  → Action: cache:true, edge_ttl: 300 (5 minutes)
+  → Next.js ISR tag revalidation handles freshness — edge serves ~55ms TTFB in PK
 
 RULE 4 - supabase-images:
   → Match: supabase.co in URL

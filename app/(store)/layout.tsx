@@ -15,8 +15,10 @@ export default async function StoreLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const settings = await getSettings();
-  const brand = await getDomainBrand().catch(() => null);
+  const [settings, brand] = await Promise.all([
+    getSettings(),
+    getDomainBrand().catch(() => null)
+  ]);
   const brandName = brand?.name ?? settings.store_name;
 
   return (

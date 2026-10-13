@@ -316,7 +316,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
 
           <div className="cb flex flex-col flex-grow justify-between px-2 pt-3 pb-2 w-full relative z-[2]">
             <div>
-              <Link href={productUrl} onClick={handleClick} prefetch={false} className={`card-title text-xs sm:text-sm font-semibold text-gray-900 dark:text-white leading-tight ${titleClampClass}`}>
+              <Link href={productUrl} onClick={handleClick} className={`card-title text-xs sm:text-sm font-semibold text-gray-900 dark:text-white leading-tight ${titleClampClass}`}>
                 {product.name}
               </Link>
               <div className="flex items-center justify-between gap-2 mt-1.5 flex-wrap">
@@ -376,7 +376,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
 
           <div className="cb flex flex-col flex-grow justify-between items-center text-center p-2.5 w-full relative z-[2]">
             <div className="w-full flex flex-col items-center">
-              <Link href={productUrl} onClick={handleClick} prefetch={false} className={`card-title text-xs sm:text-sm font-semibold text-gray-900 dark:text-white leading-tight ${titleClampClass}`}>
+              <Link href={productUrl} onClick={handleClick} className={`card-title text-xs sm:text-sm font-semibold text-gray-900 dark:text-white leading-tight ${titleClampClass}`}>
                 {product.name}
               </Link>
               <div className="mt-1">{renderPriceRow('center')}</div>
@@ -436,7 +436,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
 
           <div className="cb flex flex-col flex-grow justify-between p-2.5 w-full relative z-[2]">
             <div>
-              <Link href={productUrl} onClick={handleClick} prefetch={false} className={`card-title text-xs sm:text-sm font-semibold text-gray-900 dark:text-white leading-tight ${titleClampClass}`}>
+              <Link href={productUrl} onClick={handleClick} className={`card-title text-xs sm:text-sm font-semibold text-gray-900 dark:text-white leading-tight ${titleClampClass}`}>
                 {product.name}
               </Link>
               <div className="flex items-center justify-between gap-2 mt-1.5 flex-wrap">
@@ -498,7 +498,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
 
           <div className="cb flex flex-col flex-grow justify-between items-center text-center p-2.5 w-full relative z-[2]">
             <div className="w-full flex flex-col items-center">
-              <Link href={productUrl} onClick={handleClick} prefetch={false} className={`card-title text-xs sm:text-sm font-semibold text-gray-900 dark:text-white leading-tight ${titleClampClass}`}>
+              <Link href={productUrl} onClick={handleClick} className={`card-title text-xs sm:text-sm font-semibold text-gray-900 dark:text-white leading-tight ${titleClampClass}`}>
                 {product.name}
               </Link>
               <div className="mt-1">{renderPriceRow('center')}</div>
@@ -556,7 +556,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
 
           <div className="cb flex flex-col flex-grow justify-between p-2.5 w-full relative z-[2]">
             <div>
-              <Link href={productUrl} onClick={handleClick} prefetch={false} className={`card-title text-xs sm:text-sm font-semibold text-gray-900 dark:text-white leading-tight ${titleClampClass}`}>
+              <Link href={productUrl} onClick={handleClick} className={`card-title text-xs sm:text-sm font-semibold text-gray-900 dark:text-white leading-tight ${titleClampClass}`}>
                 {product.name}
               </Link>
               <div className="mt-1">{renderPriceRow('left')}</div>
@@ -615,7 +615,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
 
           <div className="cb flex flex-col flex-grow justify-between items-center text-center p-2.5 w-full relative z-[2]">
             <div className="w-full flex flex-col items-center">
-              <Link href={productUrl} onClick={handleClick} prefetch={false} className={`card-title text-xs sm:text-sm font-semibold text-gray-900 dark:text-white leading-tight ${titleClampClass}`}>
+              <Link href={productUrl} onClick={handleClick} className={`card-title text-xs sm:text-sm font-semibold text-gray-900 dark:text-white leading-tight ${titleClampClass}`}>
                 {product.name}
               </Link>
               <div className="mt-1">{renderPriceRow('center')}</div>
@@ -675,7 +675,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
 
           <div className="cb flex flex-col flex-grow justify-between items-center text-center p-2.5 w-full relative z-[2]">
             <div className="w-full flex flex-col items-center">
-              <Link href={productUrl} onClick={handleClick} prefetch={false} className={`card-title text-xs sm:text-sm font-semibold text-gray-900 dark:text-white leading-tight ${titleClampClass}`}>
+              <Link href={productUrl} onClick={handleClick} className={`card-title text-xs sm:text-sm font-semibold text-gray-900 dark:text-white leading-tight ${titleClampClass}`}>
                 {product.name}
               </Link>
               <div className="mt-1">{renderPriceRow('center')}</div>
@@ -722,7 +722,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
 
           <div className="cb flex flex-col flex-grow justify-between items-center text-center p-2.5 w-full relative z-[2]">
             <div className="w-full flex flex-col items-center">
-              <Link href={productUrl} onClick={handleClick} prefetch={false} className={`card-title text-xs sm:text-sm font-semibold text-gray-900 dark:text-white leading-tight ${titleClampClass}`}>
+              <Link href={productUrl} onClick={handleClick} className={`card-title text-xs sm:text-sm font-semibold text-gray-900 dark:text-white leading-tight ${titleClampClass}`}>
                 {product.name}
               </Link>
               <div className="mt-1">{renderPriceRow('center')}</div>
@@ -797,7 +797,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
 
           <div className="cb flex flex-col flex-grow justify-between items-center text-center p-2.5 w-full relative z-[2]">
             <div className="w-full flex flex-col items-center">
-              <Link href={productUrl} onClick={handleClick} prefetch={false} className={`card-title text-xs sm:text-sm font-semibold text-gray-900 dark:text-white leading-tight ${titleClampClass}`}>
+              <Link href={productUrl} onClick={handleClick} className={`card-title text-xs sm:text-sm font-semibold text-gray-900 dark:text-white leading-tight ${titleClampClass}`}>
                 {product.name}
               </Link>
               <div className="mt-1">{renderPriceRow('center')}</div>
@@ -900,7 +900,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
 
           <div className="cb flex flex-col flex-grow justify-between p-2.5 w-full relative z-[2]">
             <div>
-              <Link href={productUrl} onClick={handleClick} prefetch={false} className={`card-title text-xs sm:text-sm font-semibold text-gray-900 dark:text-white leading-tight ${titleClampClass}`}>
+              <Link href={productUrl} onClick={handleClick} className={`card-title text-xs sm:text-sm font-semibold text-gray-900 dark:text-white leading-tight ${titleClampClass}`}>
                 {product.name}
               </Link>
               <div className="mt-1.5">
@@ -922,7 +922,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
           </div>
           <div className="cb flex flex-col flex-grow justify-between px-1.5 pt-2 pb-1.5 w-full relative z-[2]">
             <div className="flex items-baseline justify-between gap-1.5 w-full">
-              <Link href={productUrl} onClick={handleClick} prefetch={false} className={`card-title text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-gray-900 dark:text-white flex-1 ${titleClampClass}`}>
+              <Link href={productUrl} onClick={handleClick} className={`card-title text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-gray-900 dark:text-white flex-1 ${titleClampClass}`}>
                 {product.name}
               </Link>
               <span className="card-price text-[11px] sm:text-xs font-bold text-gray-900 dark:text-white shrink-0">
@@ -974,7 +974,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
                   <span className="text-[9px] text-gray-400 font-medium">({product.reviews_count || 18} Sold)</span>
                 </div>
               )}
-              <Link href={productUrl} onClick={handleClick} prefetch={false} className={`card-title text-[11px] sm:text-xs font-semibold text-gray-900 dark:text-white leading-snug my-1 ${titleClampClass}`}>
+              <Link href={productUrl} onClick={handleClick} className={`card-title text-[11px] sm:text-xs font-semibold text-gray-900 dark:text-white leading-snug my-1 ${titleClampClass}`}>
                 {product.name}
               </Link>
               {finalRenderedGroups && (
@@ -1013,7 +1013,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
               <span className="text-[9px] font-extrabold uppercase tracking-widest text-gray-400 mb-0.5 block">
                 Collection • {product.has_variants ? 'Multiple Sizes' : 'In Stock'}
               </span>
-              <Link href={productUrl} onClick={handleClick} prefetch={false} className={`card-title text-xs sm:text-sm font-black uppercase tracking-tight text-gray-900 dark:text-white leading-tight ${titleClampClass}`}>
+              <Link href={productUrl} onClick={handleClick} className={`card-title text-xs sm:text-sm font-black uppercase tracking-tight text-gray-900 dark:text-white leading-tight ${titleClampClass}`}>
                 {product.name}
               </Link>
               {finalRenderedGroups && (
@@ -1067,7 +1067,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
                   </span>
                 )}
               </div>
-              <Link href={productUrl} onClick={handleClick} prefetch={false} className={`card-title text-[11px] sm:text-xs font-medium text-gray-800 dark:text-gray-200 leading-snug ${titleClampClass}`}>
+              <Link href={productUrl} onClick={handleClick} className={`card-title text-[11px] sm:text-xs font-medium text-gray-800 dark:text-gray-200 leading-snug ${titleClampClass}`}>
                 {product.name}
               </Link>
               {finalRenderedGroups && (
@@ -1100,7 +1100,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
                   {finalRenderedGroups}
                 </div>
               )}
-              <Link href={productUrl} onClick={handleClick} prefetch={false} className={`card-title text-xs font-semibold text-gray-900 dark:text-white leading-snug ${titleClampClass}`}>
+              <Link href={productUrl} onClick={handleClick} className={`card-title text-xs font-semibold text-gray-900 dark:text-white leading-snug ${titleClampClass}`}>
                 {product.name}
               </Link>
               <div className="mt-1 flex items-baseline justify-center gap-1.5">
@@ -1148,7 +1148,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
               <span className="text-[8.5px] font-bold uppercase tracking-widest text-gray-400 block mb-0.5">
                 Vol. 05 • Kinfolk
               </span>
-              <Link href={productUrl} onClick={handleClick} prefetch={false} className={`card-title text-xs sm:text-sm font-serif font-bold text-gray-900 dark:text-white leading-tight ${titleClampClass}`}>
+              <Link href={productUrl} onClick={handleClick} className={`card-title text-xs sm:text-sm font-serif font-bold text-gray-900 dark:text-white leading-tight ${titleClampClass}`}>
                 {product.name}
               </Link>
             </div>
@@ -1245,7 +1245,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
           <div className="cb flex flex-col flex-grow justify-between pt-2 px-1 w-full relative z-[2]">
             <div>
               <div className="flex items-baseline justify-between gap-1">
-                <Link href={productUrl} onClick={handleClick} prefetch={false} className={`card-title font-medium text-[11px] sm:text-xs text-gray-800 dark:text-gray-100 flex-1 ${titleClampClass}`}>
+                <Link href={productUrl} onClick={handleClick} className={`card-title font-medium text-[11px] sm:text-xs text-gray-800 dark:text-gray-100 flex-1 ${titleClampClass}`}>
                   {product.name}
                 </Link>
                 <span className="card-price font-bold text-xs text-gray-900 dark:text-white shrink-0">
@@ -1306,7 +1306,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
 
             <div>
               <div className="flex items-baseline justify-between gap-1">
-                <Link href={productUrl} onClick={handleClick} prefetch={false} className={`card-title text-xs sm:text-[13px] font-bold text-gray-900 dark:text-white leading-tight flex-1 ${titleClampClass}`}>
+                <Link href={productUrl} onClick={handleClick} className={`card-title text-xs sm:text-[13px] font-bold text-gray-900 dark:text-white leading-tight flex-1 ${titleClampClass}`}>
                   {product.name}
                 </Link>
                 <span className="card-price text-xs sm:text-sm font-black text-gray-900 dark:text-white shrink-0">
@@ -1364,7 +1364,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
           {/* Boutique Body */}
           <div className="cb flex flex-col flex-grow justify-between p-2.5 sm:p-3 w-full relative z-[2]">
             <div>
-              <Link href={productUrl} onClick={handleClick} prefetch={false} className={`card-title font-serif italic text-xs sm:text-sm text-[#2c2217] dark:text-[#eae1d5] font-semibold leading-snug ${titleClampClass}`}>
+              <Link href={productUrl} onClick={handleClick} className={`card-title font-serif italic text-xs sm:text-sm text-[#2c2217] dark:text-[#eae1d5] font-semibold leading-snug ${titleClampClass}`}>
                 {product.name}
               </Link>
               {currentComparePrice && currentComparePrice > currentPrice && (
@@ -1442,7 +1442,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
 
           {/* Dark Scrim Gradient Overlay at Bottom */}
           <div className="mt-auto relative z-[15] bg-gradient-to-t from-black via-black/85 to-transparent pt-14 pb-3 px-3 flex flex-col justify-end w-full">
-            <Link href={productUrl} onClick={handleClick} prefetch={false} className={`card-title text-white font-bold text-xs sm:text-sm drop-shadow-md leading-tight ${titleClampClass}`}>
+            <Link href={productUrl} onClick={handleClick} className={`card-title text-white font-bold text-xs sm:text-sm drop-shadow-md leading-tight ${titleClampClass}`}>
               {product.name}
             </Link>
             <div className="flex items-baseline gap-1.5 my-1">
@@ -1547,7 +1547,6 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
       <Link
         href={productUrl}
         onClick={handleClick}
-        prefetch={false}
         className="absolute inset-0 z-[1]"
         aria-label={`View ${product.name}`}
         tabIndex={-1}

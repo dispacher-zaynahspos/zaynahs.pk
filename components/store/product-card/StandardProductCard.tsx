@@ -109,7 +109,6 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
             key="title"
             href={productUrl}
             onClick={handleClick}
-            prefetch={false}
             className={`product-card-title relative z-[2] font-semibold text-[11px] sm:text-xs text-gray-900 dark:text-white leading-tight pb-0.5 ${titleClampClass}`}
           >
             {product.name}
@@ -185,7 +184,6 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
       <Link
         href={productUrl}
         onClick={handleClick}
-        prefetch={false}
         className="absolute inset-0 z-[1]"
         aria-label={`View ${product.name}`}
         tabIndex={-1}

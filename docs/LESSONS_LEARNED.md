@@ -1,3 +1,25 @@
+## [2026-10-13] Sonic Rocket Speed Optimization — 55ms TTFB, 0ms Card Navigation & Cache Architecture
+
+**Symptom:**
+Storefront TTFB in Pakistan degraded to ~2.1 seconds on first visit, tab switching felt sluggish, and product cards took 1-2 seconds to open on click.
+
+**Root Causes (Three-Fold):**
+1. **Cloudflare HTML Bypass (`cache: false`):**
+   - On 2026-10-11, `html-pages` cache rule was set to bypass. Every HTML request from Pakistan round-tripped all the way across the globe to Vercel US (`iad1`), causing 2.09s TTFB.
+2. **`cache: 'no-store'` in Public Supabase Clients:**
+   - Public read clients (`products`, `categories`, `settings`, `reviews`, `collections`, `sizeGuides`, `homepage-sections`) had explicit `cache: 'no-store'`, forcing Next.js App Router to de-opt static ISR pages to dynamic rendering (`Cache-Control: private, no-cache, no-store`).
+3. **`prefetch={false}` on Product Cards:**
+   - Product links had `prefetch={false}`, blocking Next.js route prefetching so every card tap incurred full network bundle loading.
+
+**Fix (Safe & Permanent Architecture):**
+1. **Cloudflare 5-Min Edge TTL:** Configured `html-pages` with `cache: true, edge_ttl: 300s (5 min)`. Dynamic/private routes (`/admin`, `/api`, `/cart`, `/checkout`, `/account`, `/wishlist`, `/order`, auth) strictly bypassed. Home page TTFB dropped from **2,090ms to 55ms** (`HIT` at Karachi `KHI` edge).
+2. **Removed `no-store` from Public Reads ONLY:** Restored ISR caching on public queries. Admin client (`supabaseAdmin`), orders, checkout, cart, and account retain `cache: 'no-store'` strictly untouched.
+3. **Parallelized StoreLayout:** Used `Promise.all([getSettings(), getDomainBrand()])` in `StoreLayout`.
+4. **Normalized Product Card Prefetch:** Removed `prefetch={false}` so Next.js viewport/hover prefetch restores instant 0ms transitions.
+5. **Zero Full Purges on Save:** Product/category saves rely on targeted Next.js tag invalidation (`revalidateTag`), with edge cache expiring naturally in 5 min. Never purge full zone on entity saves.
+
+---
+
 ## [2026-10-13] Checkout "Failed to submit order" & WhatsApp Redirect Blocker — Root Cause & Permanent Fix
 
 **Symptom:**

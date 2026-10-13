@@ -17,7 +17,7 @@ if (!zoneId || !apiToken) {
 const payload = {
   rules: [
     {
-      expression: '(http.request.uri.path contains "/cart") or (http.request.uri.path contains "/checkout") or (http.request.uri.path contains "/account") or (http.request.uri.path contains "/api") or (http.request.uri.path contains "/admin")',
+      expression: '(http.request.uri.path contains "/cart") or (http.request.uri.path contains "/checkout") or (http.request.uri.path contains "/account") or (http.request.uri.path contains "/api") or (http.request.uri.path contains "/admin") or (http.request.uri.path contains "/wishlist") or (http.request.uri.path contains "/order") or (http.request.uri.path contains "/login") or (http.request.uri.path contains "/signup") or (http.request.uri.path contains "/reset-password")',
       description: 'no-cache-dynamic',
       action: 'set_cache_settings',
       action_parameters: {
@@ -37,14 +37,15 @@ const payload = {
       }
     },
     {
-      expression: '(http.request.uri.path wildcard "/*") and not (http.request.uri.path contains "/cart") and not (http.request.uri.path contains "/checkout") and not (http.request.uri.path contains "/account") and not (http.request.uri.path contains "/api") and not (http.request.uri.path contains "/admin")',
+      expression: '(http.request.uri.path wildcard "/*") and not (http.request.uri.path contains "/cart") and not (http.request.uri.path contains "/checkout") and not (http.request.uri.path contains "/account") and not (http.request.uri.path contains "/api") and not (http.request.uri.path contains "/admin") and not (http.request.uri.path contains "/wishlist") and not (http.request.uri.path contains "/order") and not (http.request.uri.path contains "/login") and not (http.request.uri.path contains "/signup") and not (http.request.uri.path contains "/reset-password")',
       description: 'html-pages',
       action: 'set_cache_settings',
       action_parameters: {
-        // cache:false = bypass Cloudflare HTML cache.
-        // Next.js ISR + revalidateTag handles HTML freshness (RULE C9).
-        // No purgeCloudflareEverything() needed on entity saves (product/category/banner).
-        cache: false
+        cache: true,
+        edge_ttl: {
+          mode: 'override_origin',
+          default: 300
+        }
       }
     },
     {
