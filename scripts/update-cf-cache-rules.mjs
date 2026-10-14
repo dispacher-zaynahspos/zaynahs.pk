@@ -1,11 +1,16 @@
 #!/usr/bin/env node
 /**
  * update-cf-cache-rules.mjs
- * Updates Cloudflare html-pages cache rule for ALL stores:
- *   cache:false (bypass) — Next.js ISR + revalidateTag handles HTML freshness.
- * Static assets and supabase-images stay cached.
+ * Fast & Parallel Cloudflare Cache Rules Deployer across all stores (RULE CRED-ENVBACKUP).
+ * Deploys 4 standard cache rules:
+ *   1. no-cache-dynamic: cache bypass for dynamic/user routes (/cart, /checkout, /account, /api, /admin, etc.)
+ *   2. static-assets: Next.js static files cached 1 year
+ *   3. html-pages: edge TTL 300s (5 min) cache for fast global TTFB
+ *   4. supabase-images: cached 30 days
  *
- * Run: node scripts/update-cf-cache-rules.mjs
+ * Usage:
+ *   node scripts/update-cf-cache-rules.mjs               # Deploy to all stores in env-backups/
+ *   node scripts/update-cf-cache-rules.mjs --store=lobo  # Deploy to single store
  */
 
 import { readFileSync, readdirSync } from 'fs';
@@ -14,6 +19,8 @@ import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
+
+const specificStore = process.argv.find(a => a.startsWith('--store='))?.split('=')[1];
 
 function parseEnv(filePath) {
   const content = readFileSync(filePath, 'utf-8');
@@ -30,12 +37,23 @@ function parseEnv(filePath) {
 
 function loadAllStores() {
   const backupDir = join(ROOT, 'env-backups');
-  const files = readdirSync(backupDir).filter(f => f.endsWith('.env.local'));
+  let files = readdirSync(backupDir).filter(f => f.endsWith('.env.local'));
+  if (specificStore) {
+    files = files.filter(f => f.replace('.env.local', '') === specificStore);
+  }
   return files.map(file => {
     const env = parseEnv(join(backupDir, file));
-    return { name: file.replace('.env.local', ''), zoneId: env.CLOUDFLARE_ZONE_ID, token: env.CLOUDFLARE_API_TOKEN };
+    return {
+      name: file.replace('.env.local', ''),
+      zoneId: env.CLOUDFLARE_ZONE_ID,
+      token: env.CLOUDFLARE_API_TOKEN,
+      domain: env.NEXT_PUBLIC_SITE_URL || ''
+    };
   }).filter(s => {
-    if (!s.zoneId || !s.token) { console.warn(`⚠️  ${s.name}: missing CF creds — skipped`); return false; }
+    if (!s.zoneId || !s.token) {
+      console.warn(`⚠️  ${s.name}: missing CF creds — skipped`);
+      return false;
+    }
     return true;
   });
 }
@@ -52,80 +70,80 @@ async function cfReq(token, path, method = 'GET', body = null) {
 }
 
 async function processStore(store) {
-  console.log(`\n🔧 ${store.name} (zone: ${store.zoneId})`);
+  try {
+    // 1. Get rulesets
+    const rulesets = await cfReq(store.token, `/zones/${store.zoneId}/rulesets`);
+    let cacheRuleset = rulesets.result?.find(r => r.phase === 'http_request_cache_settings');
 
-  // Get rulesets
-  const rulesets = await cfReq(store.token, `/zones/${store.zoneId}/rulesets`);
-  const cacheRuleset = rulesets.result?.find(r => r.phase === 'http_request_cache_settings');
-  if (!cacheRuleset) { console.log('  ⚠️  No cache ruleset found — skipping'); return false; }
+    const dynamicBypassExpr = '(http.request.uri.path contains "/cart") or (http.request.uri.path contains "/checkout") or (http.request.uri.path contains "/account") or (http.request.uri.path contains "/api") or (http.request.uri.path contains "/admin") or (http.request.uri.path contains "/wishlist") or (http.request.uri.path contains "/order") or (http.request.uri.path contains "/login") or (http.request.uri.path contains "/signup") or (http.request.uri.path contains "/reset-password")';
+    const htmlPagesExpr = `(http.request.uri.path wildcard "/*") and not (${dynamicBypassExpr})`;
 
-  // Get current rules
-  const detail = await cfReq(store.token, `/zones/${store.zoneId}/rulesets/${cacheRuleset.id}`);
-  const rules = detail.result?.rules || [];
-  console.log(`  Found ${rules.length} rules`);
-
-  // Define standard cache rules
-  const dynamicBypassExpr = '(http.request.uri.path contains "/cart") or (http.request.uri.path contains "/checkout") or (http.request.uri.path contains "/account") or (http.request.uri.path contains "/api") or (http.request.uri.path contains "/admin") or (http.request.uri.path contains "/wishlist") or (http.request.uri.path contains "/order") or (http.request.uri.path contains "/login") or (http.request.uri.path contains "/signup") or (http.request.uri.path contains "/reset-password")';
-  const htmlPagesExpr = `(http.request.uri.path wildcard "/*") and not (${dynamicBypassExpr})`;
-
-  const updatedRules = rules.map(rule => {
-    if (rule.description === 'no-cache-dynamic') {
-      return {
-        ...rule,
+    const standardRules = [
+      {
         expression: dynamicBypassExpr,
+        description: 'no-cache-dynamic',
+        action: 'set_cache_settings',
         action_parameters: { cache: false }
-      };
-    }
-    if (rule.description === 'html-pages') {
-      console.log(`  → Updating html-pages: edge_ttl: 300s (5 min), cache: true`);
-      return {
-        ...rule,
+      },
+      {
+        expression: '(http.request.uri.path contains "/_next/static/")',
+        description: 'static-assets',
+        action: 'set_cache_settings',
+        action_parameters: { cache: true, edge_ttl: { mode: 'override_origin', default: 31536000 } }
+      },
+      {
         expression: htmlPagesExpr,
-        action_parameters: {
-          cache: true,
-          edge_ttl: {
-            mode: 'override_origin',
-            default: 300
-          }
-        }
-      };
+        description: 'html-pages',
+        action: 'set_cache_settings',
+        action_parameters: { cache: true, edge_ttl: { mode: 'override_origin', default: 300 } }
+      },
+      {
+        expression: '(http.request.full_uri contains "supabase.co")',
+        description: 'supabase-images',
+        action: 'set_cache_settings',
+        action_parameters: { cache: true, edge_ttl: { mode: 'override_origin', default: 2592000 } }
+      }
+    ];
+
+    if (!cacheRuleset) {
+      // Create ruleset if missing
+      await cfReq(store.token, `/zones/${store.zoneId}/rulesets`, 'POST', {
+        name: 'default',
+        kind: 'zone',
+        phase: 'http_request_cache_settings',
+        rules: standardRules
+      });
+    } else {
+      // Update ruleset
+      await cfReq(store.token, `/zones/${store.zoneId}/rulesets/${cacheRuleset.id}`, 'PUT', {
+        rules: standardRules
+      });
     }
-    return rule;
-  });
 
-  // PUT updated ruleset
-  await cfReq(
-    store.token,
-    `/zones/${store.zoneId}/rulesets/${cacheRuleset.id}`,
-    'PUT',
-    { rules: updatedRules }
-  );
-  console.log('  ✅ Ruleset updated with 5-minute edge TTL & full dynamic bypass');
-
-  return true;
+    return {
+      Store: store.name,
+      ZoneId: store.zoneId,
+      Status: 'DEPLOYED ✅',
+      RulesCount: standardRules.length
+    };
+  } catch (err) {
+    return {
+      Store: store.name,
+      ZoneId: store.zoneId || 'N/A',
+      Status: `FAILED ❌: ${err.message.slice(0, 50)}`,
+      RulesCount: 0
+    };
+  }
 }
 
 async function main() {
-  console.log('🚀 Updating Cloudflare html-pages cache rule → BYPASS for all stores');
-  console.log('   Reason: Next.js ISR + revalidateTag handles HTML freshness (RULE C9/C10)\n');
-
   const stores = loadAllStores();
-  console.log(`Stores (${stores.length}): ${stores.map(s => s.name).join(', ')}`);
+  console.log(`\n===============================================================`);
+  console.log(`🚀 DEPLOYING CLOUDFLARE CACHE RULES ACROSS ${stores.length} STORES (PARALLEL)`);
+  console.log(`===============================================================\n`);
 
-  let ok = 0;
-  for (const store of stores) {
-    try {
-      const success = await processStore(store);
-      if (success) ok++;
-    } catch (err) {
-      console.error(`  ❌ ${store.name} failed: ${err.message}`);
-    }
-  }
-
-  console.log(`\n📊 Result: ${ok}/${stores.length} stores updated`);
-  if (ok < stores.length) { console.error('⚠️  Some failed — check above'); process.exit(1); }
-  console.log('\n✅ ALL DONE — Verify with: curl -I https://domain.com/ | grep cf-cache-status');
-  console.log('   Expected: cf-cache-status: MISS (not HIT) for HTML pages');
+  const results = await Promise.all(stores.map(processStore));
+  console.table(results);
 }
 
 main().catch(err => { console.error('Fatal:', err); process.exit(1); });

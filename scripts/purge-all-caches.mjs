@@ -1,8 +1,22 @@
 import fs from 'fs';
 import path from 'path';
 
+/**
+ * Fast & Safe Cache Purge Across All Stores (RULE CRED-ENVBACKUP & RULE C10)
+ * By default: Targeted edge URL purge + Next.js ISR revalidation.
+ * Full zone wipe (purge_everything) requires --dangerously-purge-everything flag.
+ *
+ * Usage:
+ *   node scripts/purge-all-caches.mjs                # Safe targeted purge on all stores
+ *   node scripts/purge-all-caches.mjs --store=lobo   # Safe targeted purge on single store
+ *   node scripts/purge-all-caches.mjs --dangerously-purge-everything # Requires explicit intent
+ */
+
 const envBackupsDir = path.resolve(process.cwd(), 'env-backups');
-const envFiles = fs.readdirSync(envBackupsDir).filter(f => f.endsWith('.env.local') || f.endsWith('.env'));
+const envFiles = fs.readdirSync(envBackupsDir).filter(f => f.endsWith('.env.local'));
+
+const isFullPurge = process.argv.includes('--dangerously-purge-everything');
+const specificStore = process.argv.find(a => a.startsWith('--store='))?.split('=')[1];
 
 function parseEnv(filePath) {
   const content = fs.readFileSync(filePath, 'utf8');
@@ -24,47 +38,56 @@ function parseEnv(filePath) {
 }
 
 async function purgeStore(file) {
+  const storeName = file.replace('.env.local', '');
   const envPath = path.join(envBackupsDir, file);
   const env = parseEnv(envPath);
 
-  const site = env.NEXT_PUBLIC_SITE_URL || file;
+  const rawSite = env.NEXT_PUBLIC_SITE_URL || '';
+  const site = rawSite.replace(/\/+$/, '').replace(/^http:\/\//, 'https://');
   const cfZone = env.CLOUDFLARE_ZONE_ID;
   const cfToken = env.CLOUDFLARE_API_TOKEN;
   const revalidateSecret = env.REVALIDATE_SECRET || 'zaynahs_secret_cache_revalidate_2026';
 
-  console.log(`\n===============================================================`);
-  console.log(`🧹 Purging Cache for: ${file} (${site})`);
-  console.log(`===============================================================`);
+  let cfStatus = 'SKIPPED (no creds)';
+  let isrStatus = 'SKIPPED (no site)';
 
-  // 1. Cloudflare Edge Purge
+  // 1. Cloudflare Purge
   if (cfZone && cfToken) {
     try {
+      const body = isFullPurge
+        ? { purge_everything: true }
+        : {
+            files: [
+              `${site}/`,
+              `${site}/shop`,
+              `${site.replace('://', '://www.')}/`,
+              `${site.replace('://', '://www.')}/shop`,
+            ]
+          };
+
       const res = await fetch(`https://api.cloudflare.com/client/v4/zones/${cfZone}/purge_cache`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${cfToken}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ purge_everything: true })
+        body: JSON.stringify(body)
       });
       const data = await res.json();
       if (data.success) {
-        console.log(`  ✅ Cloudflare Cache Purged: OK (Zone: ${cfZone})`);
+        cfStatus = isFullPurge ? 'FULL PURGE ✅' : 'TARGETED PURGE ✅';
       } else {
-        console.warn(`  ⚠️ Cloudflare Purge response:`, data.errors || data.messages);
+        cfStatus = `CF ERR: ${JSON.stringify(data.errors || data.messages).slice(0, 40)}`;
       }
     } catch (e) {
-      console.error(`  ❌ Cloudflare Purge error:`, e.message);
+      cfStatus = `CF ERR: ${e.message.slice(0, 40)}`;
     }
-  } else {
-    console.log(`  ⏭️ Cloudflare Purge skipped (No Zone/Token in ${file})`);
   }
 
   // 2. Next.js Revalidate Webhook
   if (site && site.startsWith('http')) {
-    const cleanSite = site.replace(/\/+$/, '');
     try {
-      const res = await fetch(`${cleanSite}/api/revalidate`, {
+      const res = await fetch(`${site}/api/revalidate`, {
         method: 'POST',
         headers: {
           'x-revalidate-secret': revalidateSecret,
@@ -73,24 +96,37 @@ async function purgeStore(file) {
         },
         body: JSON.stringify({ table: 'deploy', type: 'deploy' })
       });
-      if (res.ok) {
-        console.log(`  ✅ Next.js On-Demand ISR Revalidated: OK (${res.status})`);
-      } else {
-        const text = await res.text().catch(() => '');
-        console.log(`  ℹ️ Next.js Revalidate response: HTTP ${res.status} (${text})`);
-      }
+      isrStatus = res.ok ? `ISR REVALIDATED ✅ (${res.status})` : `ISR HTTP ${res.status}`;
     } catch (e) {
-      console.log(`  ℹ️ Revalidate webhook notice: ${e.message}`);
+      isrStatus = `ISR ERR: ${e.message.slice(0, 40)}`;
     }
   }
+
+  return {
+    Store: storeName,
+    Domain: site || 'N/A',
+    Cloudflare: cfStatus,
+    'Next.js ISR': isrStatus
+  };
 }
 
 async function main() {
-  console.log(`🚀 Starting Full Cache Purge Across All Stores (${envFiles.length} stores)...`);
-  for (const f of envFiles) {
-    await purgeStore(f);
+  const targetFiles = specificStore
+    ? envFiles.filter(f => f.replace('.env.local', '') === specificStore)
+    : envFiles;
+
+  if (targetFiles.length === 0) {
+    console.error(`❌ No matching store found in env-backups/ for: ${specificStore || 'any'}`);
+    process.exit(1);
   }
-  console.log(`\n🎉 All stores cache purge complete!`);
+
+  console.log(`\n===============================================================`);
+  console.log(`🚀 ${isFullPurge ? '⚠️ DANGEROUS FULL' : '🛡️ TARGETED'} CACHE PURGE ACROSS ${targetFiles.length} STORE(S)`);
+  console.log(`===============================================================\n`);
+
+  const results = await Promise.all(targetFiles.map(purgeStore));
+
+  console.table(results);
 }
 
 main().catch(console.error);
