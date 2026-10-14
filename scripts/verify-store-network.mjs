@@ -177,10 +177,10 @@ async function verifyStore(store) {
         const rawPriceStr = String(testPrice);
         const priceRegex = new RegExp(`Rs\\.?\\s*${rawPriceStr}`, 'i');
         const formattedRegex = new RegExp(`Rs\\.?\\s*${formattedTestPrice.replace(/,/g, '[,]?')}`, 'i');
-        const hasPrice = html.includes(rawPriceStr) ||
-                         html.includes(formattedTestPrice) ||
-                         priceRegex.test(html) ||
-                         formattedRegex.test(html);
+        const schemaPriceRegex = new RegExp(`"price":\\s*"?${rawPriceStr}"?`);
+        const hasPrice = priceRegex.test(html) ||
+                         formattedRegex.test(html) ||
+                         schemaPriceRegex.test(html);
 
         if (hasPrice) {
           freshnessSeconds = `${elapsed}s`;
