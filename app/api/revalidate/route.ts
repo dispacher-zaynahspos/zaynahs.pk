@@ -68,10 +68,10 @@ export async function POST(req: NextRequest) {
       if (slug) {
         try {
           const safeTag = slug.replace(/[^a-zA-Z0-9-_]/g, '_');
-          (revalidateTag as unknown as (t: string) => void)(`product-${slug}`);
-          (revalidateTag as unknown as (t: string) => void)(`product-${safeTag}`);
-          (revalidateTag as unknown as (t: string) => void)('products');
-          (revalidateTag as unknown as (t: string) => void)('homepage');
+          (revalidateTag as unknown as (t: string, p?: string) => void)(`product-${slug}`, 'max');
+          (revalidateTag as unknown as (t: string, p?: string) => void)(`product-${safeTag}`, 'max');
+          (revalidateTag as unknown as (t: string, p?: string) => void)('products', 'max');
+          (revalidateTag as unknown as (t: string, p?: string) => void)('homepage', 'max');
           revalidatePath(`/product/${slug}`, 'page');
           revalidatePath('/product/[slug]', 'page');
           revalidatePath('/', 'page');

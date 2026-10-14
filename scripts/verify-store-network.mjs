@@ -81,13 +81,28 @@ async function verifyStore(store) {
 
   const supabase = createClient(store.supabaseUrl, store.supabaseKey);
 
-  // 1. Get an active product
-  const { data: prods, error: pErr } = await supabase
+  // 1. Get an active clean product (prefer has_variants = false or clean short slug)
+  let { data: prods, error: pErr } = await supabase
     .from('products')
-    .select('id, name, slug, price')
+    .select('id, name, slug, price, has_variants')
     .eq('is_active', true)
     .is('deleted_at', null)
+    .eq('has_variants', false)
+    .not('price', 'is', null)
     .limit(1);
+
+  if (!prods || prods.length === 0) {
+    const fallback = await supabase
+      .from('products')
+      .select('id, name, slug, price, has_variants')
+      .eq('is_active', true)
+      .is('deleted_at', null)
+      .not('price', 'is', null)
+      .order('created_at', { ascending: false })
+      .limit(15);
+    // Pick active product with the cleanest/shortest slug
+    prods = (fallback.data || []).sort((a, b) => a.slug.length - b.slug.length).slice(0, 1);
+  }
 
   if (pErr || !prods || prods.length === 0) {
     console.error(`❌ Could not find active product for ${store.name}:`, pErr);
