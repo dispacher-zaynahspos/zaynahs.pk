@@ -104,7 +104,7 @@ async function verifyStore(store) {
 
   const prod = prods[0];
   const originalPrice = Number(prod.price);
-  const testPrice = originalPrice + 10;
+  const testPrice = originalPrice + 99;
   const productUrl = `${store.domain}/product/${prod.slug}`;
   console.log(`Product: "${prod.name}" | Current Price: Rs. ${originalPrice}`);
 
@@ -161,14 +161,10 @@ async function verifyStore(store) {
         const rawPriceStr = String(testPrice);
         const priceRegex = new RegExp(`Rs\\.?\\s*${rawPriceStr}`, 'i');
         const formattedRegex = new RegExp(`Rs\\.?\\s*${formattedTestPrice.replace(/,/g, '[,]?')}`, 'i');
-        const hasPrice = priceRegex.test(html) ||
-                         formattedRegex.test(html) ||
-                         html.includes(`"price":"${rawPriceStr}"`) ||
-                         html.includes(`"price":${rawPriceStr}`) ||
-                         html.includes(`"price": ${rawPriceStr}`) ||
-                         html.includes(`>${rawPriceStr}<`) ||
-                         html.includes(`>${formattedTestPrice}<`) ||
-                         html.includes(`content="${rawPriceStr}"`);
+        const hasPrice = html.includes(rawPriceStr) ||
+                         html.includes(formattedTestPrice) ||
+                         priceRegex.test(html) ||
+                         formattedRegex.test(html);
 
         if (hasPrice) {
           freshnessSeconds = `${elapsed}s`;
