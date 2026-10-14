@@ -157,3 +157,31 @@ node scripts/audit-vercel-projects.mjs
 ### Known legitimate multi-project exception
 - **MiniMahal account**: 2 projects allowed — `mini-mahal-e-store` (store) + `mini-mahal-pos` (POS). Any 3rd project in this account is an orphan.
 - **All other accounts**: strictly 1 project allowed.
+
+---
+
+## 🛡️ RULE ROLLOUT1 — One-By-One Store Rollout & Verification Standard (STRICT, MANDATORY)
+
+Whenever deploying high-impact architectural changes, cache/edge revalidation updates, performance optimizations, or database migrations across the multi-store network (**TotVogue, Zaynahs, MiniMahal, LittleMister, Lobo**):
+
+### 1. Zero Blanket Deployments
+**NEVER deploy or push to all 5 stores simultaneously.** Multi-store operations must proceed strictly **ONE STORE AT A TIME (1-by-1)**. Complete verification on store `N` before touching store `N+1`.
+
+### 2. Standard Rollout Order
+1. **Canary / Verification Store:** `Zaynahs` (or designated pilot)
+2. **Rollout Sequence:** `Lobo` ➔ `LittleMister` ➔ `MiniMahal` ➔ `TotVogue` (TotVogue flagship is always deployed last).
+
+### 3. Five-Step Verification Protocol per Store (Mandatory Gate)
+For each store in the sequence, the agent must execute and document these 5 steps before touching the next store:
+
+1. **Env Preflight Check:**
+   Verify Vercel project environment variables (`CLOUDFLARE_ZONE_ID`, `CLOUDFLARE_API_TOKEN`, `NEXT_PUBLIC_SITE_URL`, `REVALIDATE_SECRET`). If any is missing or invalid, **STOP and report immediately** (prevents silent targeted purge failures and stale edge cache).
+2. **Deploy & Cloudflare Cache Rules:**
+   Push commit to the store's git remote and verify Vercel deployment status reaches `READY`. Verify Cloudflare edge cache rules (5-min HTML edge TTL with dynamic bypass for `/cart`, `/checkout`, `/account`, `/api`, `/admin`, `/wishlist`, `/order`, auth). **NEVER execute `purge_everything`.**
+3. **Live Plain URL Freshness Test (NO `?_t=` Bypass):**
+   Update a test product price in DB, trigger targeted revalidation, repeatedly fetch the **plain product URL** (no query strings, no bypass headers). Measure exact elapsed time (in seconds) until the new price reflects. Record `cf-cache-status` and `x-vercel-cache`. Revert the price back and verify revert. Target: **< 10 seconds** on plain URL.
+4. **Real Application Checkout Verification:**
+   Execute a real application checkout (`createOrder` with customer info, address, line items). Verify the order and address appear in admin/DB. Set status to `cancelled` and delete test records.
+5. **Circuit Breaker (Stop on Failure):**
+   If ANY check or test fails or exhibits regressions on store `N`, **HALT IMMEDIATELY**. Do not proceed to store `N+1`. Provide the measured numbers, diagnosis, and rollback plan.
+

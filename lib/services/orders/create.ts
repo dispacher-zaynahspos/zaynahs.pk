@@ -1,6 +1,5 @@
 'use server';
 
-import { createClient } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { Order, CartItem, StatusLogItem } from '@/lib/types';
 import { getCustomerSession } from '@/lib/utils/customer-auth';

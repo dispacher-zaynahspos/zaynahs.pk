@@ -29,7 +29,7 @@ async function getCacheMethods(): Promise<{ revalidateTag: RevalidateTagFn; reva
 
 async function resolveSiteUrl(): Promise<string> {
   if (process.env.NEXT_PUBLIC_SITE_URL) {
-    return process.env.NEXT_PUBLIC_SITE_URL.replace(/\/+$/, '');
+    return process.env.NEXT_PUBLIC_SITE_URL.replace(/\/+$/, '').replace(/^http:\/\//, 'https://');
   }
   try {
     const { supabaseAdmin } = await import('@/lib/supabase/admin');
@@ -38,7 +38,7 @@ async function resolveSiteUrl(): Promise<string> {
       .select('store_url')
       .eq('id', STORE_SETTINGS_ID)
       .maybeSingle();
-    if (data?.store_url) return data.store_url.replace(/\/+$/, '');
+    if (data?.store_url) return data.store_url.replace(/\/+$/, '').replace(/^http:\/\//, 'https://');
   } catch (e) {
     console.warn('Failed to resolve dynamic siteUrl via admin:', e);
   }
@@ -81,7 +81,7 @@ function getCloudflareConfigs(): Array<{ zoneId: string; apiToken: string; name?
 /**
  * Targeted URL purge on Cloudflare edge (RULE C10):
  * Purges ONLY the specified URLs without wiping the rest of the zone or triggering full-site cache misses.
- * Automatically purges both www and non-www variants to eliminate domain mismatch.
+ * Automatically enforces HTTPS and purges both www and non-www variants to eliminate domain/protocol mismatch.
  */
 export async function purgeCloudflareUrls(urls: string[]): Promise<void> {
   if (!urls || urls.length === 0) return;
@@ -91,11 +91,13 @@ export async function purgeCloudflareUrls(urls: string[]): Promise<void> {
   const targetFiles = new Set<string>();
   for (const rawUrl of urls) {
     if (!rawUrl) continue;
-    targetFiles.add(rawUrl);
-    if (rawUrl.includes('://www.')) {
-      targetFiles.add(rawUrl.replace('://www.', '://'));
-    } else if (rawUrl.startsWith('https://')) {
-      targetFiles.add(rawUrl.replace('https://', 'https://www.'));
+    // Always force HTTPS
+    const httpsUrl = rawUrl.replace(/^http:\/\//, 'https://');
+    targetFiles.add(httpsUrl);
+    if (httpsUrl.includes('://www.')) {
+      targetFiles.add(httpsUrl.replace('://www.', '://'));
+    } else {
+      targetFiles.add(httpsUrl.replace('://', '://www.'));
     }
   }
   const fileList = Array.from(targetFiles);

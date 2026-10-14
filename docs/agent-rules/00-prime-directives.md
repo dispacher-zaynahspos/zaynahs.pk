@@ -19,6 +19,7 @@ These are always active, on every task, no exceptions.
       git push origin main; git push zaynahspk main; git push minimahal main; git push littlemister main; git push minioutfits main; sleep 240 && node scripts/post-deploy-fix.mjs
       ```
 11. **Instant 0ms UI Navigation & Tabs (RULE F1)** — Every page, category, mobile bottom nav, product tab (Reviews, Specs, Description), and admin tab across all functional areas and stores MUST strictly implement the 0ms instant opening standard (`loading.tsx` skeletons, `<Link prefetch={true}>`, `React.cache()`, `Promise.all()`, and shallow URL routing `scroll: false`). Never allow frozen screens or sequential waterfalls. Full details in [03-frontend-nextjs-react.md](03-frontend-nextjs-react.md) RULE F1 and `docs/UI_PERFORMANCE_GUIDE.md` Section 8.
+12. **One-By-One Store Rollout (RULE ROLLOUT1)** — High-impact architectural changes, cache/edge revalidation updates, performance optimizations, or migrations MUST NEVER be deployed to all 5 stores simultaneously. Multi-store rollouts proceed strictly **ONE STORE AT A TIME (1-by-1)** in order: Canary (`Zaynahs`) ➔ `Lobo` ➔ `LittleMister` ➔ `MiniMahal` ➔ `TotVogue`. Every store must pass all 5 verification gates before proceeding to the next. Full details in [07-deployment-vercel-cloudflare.md](07-deployment-vercel-cloudflare.md) RULE ROLLOUT1.
 
 ## Reference doc links used across all rule files
 - `docs/SCHEMA_CHANGE_LOG.md`
