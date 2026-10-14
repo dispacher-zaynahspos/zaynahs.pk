@@ -160,22 +160,27 @@ node scripts/audit-vercel-projects.mjs
 
 ---
 
-## 🛡️ RULE ROLLOUT1 — One-By-One Store Rollout & Verification Standard (STRICT, MANDATORY)
+## 🛡️ RULE ROLLOUT1 — One-By-One Store Rollout vs Normal Deployments (STRICT, MANDATORY)
 
-Whenever deploying high-impact architectural changes, cache/edge revalidation updates, performance optimizations, or database migrations across the multi-store network (**TotVogue, Zaynahs, MiniMahal, LittleMister, Lobo**):
+The active store registry is **NEVER hardcoded** — active stores are always read dynamically from `env-backups/*.env.local` (see RULE CRED-ENVBACKUP).
 
-### 1. Zero Blanket Deployments
-**NEVER deploy or push to all 5 stores simultaneously.** Multi-store operations must proceed strictly **ONE STORE AT A TIME (1-by-1)**. Complete verification on store `N` before touching store `N+1`.
+### 1. Scope: High-Impact ("Big Needed") vs Normal Deployments
+- **BIG / CRITICAL CHANGES ("Big Needed" — 1-by-1 Gated Rollout MANDATORY):**
+  Applies ONLY to high-impact architectural shifts, core edge/Cloudflare caching rule overhauls, database schema migrations affecting live data, or checkout/payment engine rewrites. For these changes, blanket deployment is forbidden; rollout proceeds strictly **ONE STORE AT A TIME (1-by-1)** through the 5-step verification gate below.
+- **NORMAL / ROUTINE TASKS ("Normal Places" — Standard Apply All):**
+  For normal everyday development, UI/styling fixes, copy tweaks, standard feature updates, and routine non-breaking code changes, apply changes normally across all stores without 1-by-1 gating. Do NOT waste time running heavy multi-gate verification on small routine tasks.
 
-### 2. Standard Rollout Order
-1. **Canary / Verification Store:** `Zaynahs` (or designated pilot)
-2. **Rollout Sequence:** `Lobo` ➔ `LittleMister` ➔ `MiniMahal` ➔ `TotVogue` (TotVogue flagship is always deployed last).
+### 2. Rollout Sequence for High-Impact Changes (from `env-backups/`)
+Enumerate active stores dynamically from `env-backups/*.env.local`:
+1. **Canary / Pilot Store:** `zaynahs` (or designated pilot)
+2. **Intermediate Clones:** Remaining clone stores from `env-backups/*.env.local` one by one.
+3. **Flagship Store:** `totvogue` deployed last.
 
-### 3. Five-Step Verification Protocol per Store (Mandatory Gate)
-For each store in the sequence, the agent must execute and document these 5 steps before touching the next store:
+### 3. Five-Step Verification Protocol per Store (Mandatory Gate for High-Impact Changes)
+For each store in the sequence, execute and document these 5 steps before touching the next store:
 
 1. **Env Preflight Check:**
-   Verify Vercel project environment variables (`CLOUDFLARE_ZONE_ID`, `CLOUDFLARE_API_TOKEN`, `NEXT_PUBLIC_SITE_URL`, `REVALIDATE_SECRET`). If any is missing or invalid, **STOP and report immediately** (prevents silent targeted purge failures and stale edge cache).
+   Verify Vercel project environment variables (`CLOUDFLARE_ZONE_ID`, `CLOUDFLARE_API_TOKEN`, `NEXT_PUBLIC_SITE_URL`, `REVALIDATE_SECRET`) against `env-backups/<store>.env.local`. If any is missing or invalid, **STOP and report immediately** (prevents silent targeted purge failures and stale edge cache).
 2. **Deploy & Cloudflare Cache Rules:**
    Push commit to the store's git remote and verify Vercel deployment status reaches `READY`. Verify Cloudflare edge cache rules (5-min HTML edge TTL with dynamic bypass for `/cart`, `/checkout`, `/account`, `/api`, `/admin`, `/wishlist`, `/order`, auth). **NEVER execute `purge_everything`.**
 3. **Live Plain URL Freshness Test (NO `?_t=` Bypass):**
