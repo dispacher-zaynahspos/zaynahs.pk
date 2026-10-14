@@ -24,7 +24,7 @@ async function getCacheMethods(): Promise<{ revalidateTag: RevalidateTagFn; reva
     const safeTag: RevalidateTagFn = (tag: string) => {
       try {
         if (typeof mod?.revalidateTag === 'function') {
-          (mod.revalidateTag as unknown as (t: string, p?: string) => void)(tag, 'max');
+          mod.revalidateTag(tag, { expire: 0 });
         }
       } catch (err) {
         console.warn(`[revalidateTag] Failed for tag ${tag}:`, err);
@@ -217,6 +217,7 @@ export async function revalidateProduct(slug: string, action: 'UPDATED' | 'DELET
       revalidatePath(`/product/${slug}`);
       revalidatePath(`/product/${slug}`, 'page');
       revalidatePath('/product/[slug]', 'page');
+      revalidatePath('/(store)/product/[slug]', 'page');
     }
 
     // Targeted single-URL purge on Cloudflare edge (instant freshness on plain URLs, no purge_everything)
