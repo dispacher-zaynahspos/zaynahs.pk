@@ -14,10 +14,16 @@ async function getCacheMethods(): Promise<{ revalidateTag: RevalidateTagFn; reva
     };
   }
   try {
-    const mod = await import('next/cache');
+    let mod: any;
+    try {
+      mod = await import('next/cache');
+    } catch {
+      // In Node ESM runtime Next.js exports next/cache.js
+      mod = await import('next/cache.js' as string);
+    }
     const safeTag: RevalidateTagFn = (tag: string) => {
       try {
-        if (typeof mod.revalidateTag === 'function') {
+        if (typeof mod?.revalidateTag === 'function') {
           (mod.revalidateTag as unknown as (t: string) => void)(tag);
         }
       } catch (err) {
@@ -26,7 +32,7 @@ async function getCacheMethods(): Promise<{ revalidateTag: RevalidateTagFn; reva
     };
     const safePath: RevalidatePathFn = (path: string, type?: 'layout' | 'page') => {
       try {
-        if (typeof mod.revalidatePath === 'function') {
+        if (typeof mod?.revalidatePath === 'function') {
           mod.revalidatePath(path, type);
         }
       } catch (err) {
