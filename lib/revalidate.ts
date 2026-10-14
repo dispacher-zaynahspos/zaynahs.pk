@@ -1,4 +1,3 @@
-import { revalidateTag as nextRevalidateTag, revalidatePath as nextRevalidatePath } from 'next/cache';
 import { getSiteUrl } from '@/lib/site-url-server';
 import { STORE_SETTINGS_ID } from '@/lib/config/singleton-ids';
 import { notifyGoogleIndexing } from '@/lib/googleIndexing';
@@ -7,27 +6,43 @@ import { pingIndexNow } from '@/lib/indexNow';
 type RevalidateTagFn = (tag: string) => void;
 type RevalidatePathFn = (path: string, type?: 'layout' | 'page') => void;
 
-const safeRevalidateTag: RevalidateTagFn = (tag: string) => {
-  try {
-    (nextRevalidateTag as unknown as (t: string) => void)(tag);
-  } catch (e) {
-    console.warn(`[revalidateTag] Failed for tag ${tag}:`, e);
-  }
-};
-
-const safeRevalidatePath: RevalidatePathFn = (path: string, type?: 'layout' | 'page') => {
-  try {
-    nextRevalidatePath(path, type);
-  } catch (e) {
-    console.warn(`[revalidatePath] Failed for path ${path}:`, e);
-  }
-};
-
 async function getCacheMethods(): Promise<{ revalidateTag: RevalidateTagFn; revalidatePath: RevalidatePathFn }> {
-  return {
-    revalidateTag: safeRevalidateTag,
-    revalidatePath: safeRevalidatePath,
-  };
+  if (typeof window !== 'undefined') {
+    return {
+      revalidateTag: () => {},
+      revalidatePath: () => {},
+    };
+  }
+  try {
+    const mod = await import('next/cache');
+    const safeTag: RevalidateTagFn = (tag: string) => {
+      try {
+        if (typeof mod.revalidateTag === 'function') {
+          (mod.revalidateTag as unknown as (t: string) => void)(tag);
+        }
+      } catch (err) {
+        console.warn(`[revalidateTag] Failed for tag ${tag}:`, err);
+      }
+    };
+    const safePath: RevalidatePathFn = (path: string, type?: 'layout' | 'page') => {
+      try {
+        if (typeof mod.revalidatePath === 'function') {
+          mod.revalidatePath(path, type);
+        }
+      } catch (err) {
+        console.warn(`[revalidatePath] Failed for path ${path}:`, err);
+      }
+    };
+    return {
+      revalidateTag: safeTag,
+      revalidatePath: safePath,
+    };
+  } catch {
+    return {
+      revalidateTag: () => {},
+      revalidatePath: () => {},
+    };
+  }
 }
 
 async function resolveSiteUrl(): Promise<string> {
