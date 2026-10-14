@@ -228,9 +228,7 @@ export async function revalidateProduct(slug: string, action: 'UPDATED' | 'DELET
       `${siteUrl}/shop`,
     ]);
 
-    if (action !== 'DELETED') {
-      fetch(productUrl, { headers: { 'User-Agent': 'Storefront-Warm/1.0' } }).catch(() => {});
-    }
+    // Do not self-fetch immediately: Cloudflare edge must stay completely purged so subsequent customer requests fetch fresh DB data from Next.js without re-caching stale ISR payloads.
 
     if (action === 'DELETED') {
       await notifyGoogleIndexing(productUrl, 'URL_DELETED');
