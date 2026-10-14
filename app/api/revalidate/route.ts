@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import {
   revalidateProduct,
   revalidateBanner,
@@ -65,6 +66,19 @@ export async function POST(req: NextRequest) {
 
       const slug = activeRecord.slug;
       if (slug) {
+        try {
+          const safeTag = slug.replace(/[^a-zA-Z0-9-_]/g, '_');
+          (revalidateTag as unknown as (t: string) => void)(`product-${slug}`);
+          (revalidateTag as unknown as (t: string) => void)(`product-${safeTag}`);
+          (revalidateTag as unknown as (t: string) => void)('products');
+          (revalidateTag as unknown as (t: string) => void)('homepage');
+          revalidatePath(`/product/${slug}`, 'page');
+          revalidatePath('/product/[slug]', 'page');
+          revalidatePath('/', 'page');
+          revalidatePath('/shop', 'page');
+        } catch (e) {
+          console.warn('[Webhook Revalidate] Direct next/cache revalidate error:', e);
+        }
         await revalidateProduct(slug);
       } else {
         console.warn('[Webhook Revalidate] Product update received but slug was missing.');
