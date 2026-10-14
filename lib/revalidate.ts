@@ -222,14 +222,15 @@ export async function revalidateProduct(slug: string, action: 'UPDATED' | 'DELET
     // Targeted single-URL purge on Cloudflare edge (instant freshness on plain URLs, no purge_everything)
     const siteUrl = await resolveSiteUrl();
     const productUrl = `${siteUrl}/product/${slug}`;
-    if (action !== 'DELETED') {
-      await fetch(productUrl, { headers: { 'cache-control': 'no-cache' } }).catch(() => {});
-    }
     await purgeCloudflareUrls([
       productUrl,
       `${siteUrl}/`,
       `${siteUrl}/shop`,
     ]);
+
+    if (action !== 'DELETED') {
+      fetch(productUrl, { headers: { 'User-Agent': 'Storefront-Warm/1.0' } }).catch(() => {});
+    }
 
     if (action === 'DELETED') {
       await notifyGoogleIndexing(productUrl, 'URL_DELETED');
