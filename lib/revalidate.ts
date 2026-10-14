@@ -28,17 +28,19 @@ async function getCacheMethods(): Promise<{ revalidateTag: RevalidateTagFn; reva
 }
 
 async function resolveSiteUrl(): Promise<string> {
+  if (process.env.NEXT_PUBLIC_SITE_URL) {
+    return process.env.NEXT_PUBLIC_SITE_URL.replace(/\/+$/, '');
+  }
   try {
-    const { createClient } = await import('@/lib/supabase/server');
-    const supabase = await createClient();
-    const { data } = await supabase
+    const { supabaseAdmin } = await import('@/lib/supabase/admin');
+    const { data } = await supabaseAdmin
       .from('store_settings')
       .select('store_url')
       .eq('id', STORE_SETTINGS_ID)
       .maybeSingle();
-    return getSiteUrl({ store_url: data?.store_url });
+    if (data?.store_url) return data.store_url.replace(/\/+$/, '');
   } catch (e) {
-    console.warn('Failed to resolve dynamic siteUrl:', e);
+    console.warn('Failed to resolve dynamic siteUrl via admin:', e);
   }
   return getSiteUrl();
 }
@@ -79,11 +81,24 @@ function getCloudflareConfigs(): Array<{ zoneId: string; apiToken: string; name?
 /**
  * Targeted URL purge on Cloudflare edge (RULE C10):
  * Purges ONLY the specified URLs without wiping the rest of the zone or triggering full-site cache misses.
+ * Automatically purges both www and non-www variants to eliminate domain mismatch.
  */
 export async function purgeCloudflareUrls(urls: string[]): Promise<void> {
   if (!urls || urls.length === 0) return;
   const cfConfigs = getCloudflareConfigs();
   if (cfConfigs.length === 0) return;
+
+  const targetFiles = new Set<string>();
+  for (const rawUrl of urls) {
+    if (!rawUrl) continue;
+    targetFiles.add(rawUrl);
+    if (rawUrl.includes('://www.')) {
+      targetFiles.add(rawUrl.replace('://www.', '://'));
+    } else if (rawUrl.startsWith('https://')) {
+      targetFiles.add(rawUrl.replace('https://', 'https://www.'));
+    }
+  }
+  const fileList = Array.from(targetFiles);
 
   for (const cfg of cfConfigs) {
     try {
@@ -95,7 +110,7 @@ export async function purgeCloudflareUrls(urls: string[]): Promise<void> {
             'Authorization': `Bearer ${cfg.apiToken}`,
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ files: urls }),
+          body: JSON.stringify({ files: fileList }),
         }
       );
 
@@ -103,7 +118,7 @@ export async function purgeCloudflareUrls(urls: string[]): Promise<void> {
       if (!res.ok || !data.success) {
         console.error(`Failed targeted CF purge for ${cfg.name || cfg.zoneId}:`, data);
       } else {
-        console.log(`[revalidate] Targeted CF purge for ${urls.length} URLs on ${cfg.name || cfg.zoneId}`);
+        console.log(`[revalidate] Targeted CF purge for ${fileList.length} URLs on ${cfg.name || cfg.zoneId}`);
       }
     } catch (error) {
       console.error(`Error in targeted CF purge for ${cfg.name || cfg.zoneId}:`, error);
@@ -147,7 +162,9 @@ async function purgeCloudflareEverything() {
 export async function revalidateProduct(slug: string, action: 'UPDATED' | 'DELETED' = 'UPDATED') {
   try {
     const { revalidateTag, revalidatePath } = await getCacheMethods();
+    const safeTag = slug.replace(/[^a-zA-Z0-9-_]/g, '_');
     revalidateTag(`product-${slug}`);
+    revalidateTag(`product-${safeTag}`);
     revalidateTag('products');
     revalidateTag('homepage');
     revalidateTag('reviews');
@@ -159,7 +176,11 @@ export async function revalidateProduct(slug: string, action: 'UPDATED' | 'DELET
     revalidatePath('/(store)', 'page');
     revalidatePath('/shop');
     revalidatePath('/admin', 'layout');
-    if (action !== 'DELETED') revalidatePath(`/product/${slug}`);
+    if (action !== 'DELETED') {
+      revalidatePath(`/product/${slug}`);
+      revalidatePath(`/product/${slug}`, 'page');
+      revalidatePath('/product/[slug]', 'page');
+    }
 
     // Targeted single-URL purge on Cloudflare edge (instant freshness on plain URLs, no purge_everything)
     const siteUrl = await resolveSiteUrl();
