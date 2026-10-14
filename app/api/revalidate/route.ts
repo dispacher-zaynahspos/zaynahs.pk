@@ -72,10 +72,13 @@ export async function POST(req: NextRequest) {
           revalidateTag(`product-${safeTag}`, { expire: 0 });
           revalidateTag('products', { expire: 0 });
           revalidateTag('homepage', { expire: 0 });
+          revalidatePath(`/product/${slug}`);
           revalidatePath(`/product/${slug}`, 'page');
           revalidatePath('/product/[slug]', 'page');
           revalidatePath('/(store)/product/[slug]', 'page');
+          revalidatePath('/');
           revalidatePath('/', 'page');
+          revalidatePath('/shop');
           revalidatePath('/shop', 'page');
         } catch (e) {
           console.warn('[Webhook Revalidate] Direct next/cache revalidate error:', e);
