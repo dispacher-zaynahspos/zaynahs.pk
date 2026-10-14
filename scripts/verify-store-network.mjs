@@ -147,10 +147,10 @@ async function verifyStore(store) {
   let freshnessSeconds = 'timeout';
   const formattedTestPrice = Number(testPrice).toLocaleString('en-PK');
 
-  // Fast 500ms polling for up to 20 seconds
+  // Poll every 1s for up to 30 seconds (Next.js SSR re-render takes ~5-10s)
   try {
-    for (let i = 1; i <= 40; i++) {
-      await sleep(500);
+    for (let i = 1; i <= 30; i++) {
+      await sleep(1000);
       const elapsed = ((Date.now() - startPoll) / 1000).toFixed(1);
       try {
         const res = await fetch(productUrl, { headers: { 'User-Agent': 'NetworkVerifier/2.0' } });
@@ -159,12 +159,15 @@ async function verifyStore(store) {
         const html = await res.text();
 
         const rawPriceStr = String(testPrice);
-        const hasPrice = html.includes(`"price":"${rawPriceStr}"`) ||
+        const priceRegex = new RegExp(`Rs\\.?\\s*${rawPriceStr}`, 'i');
+        const formattedRegex = new RegExp(`Rs\\.?\\s*${formattedTestPrice.replace(/,/g, '[,]?')}`, 'i');
+        const hasPrice = priceRegex.test(html) ||
+                         formattedRegex.test(html) ||
+                         html.includes(`"price":"${rawPriceStr}"`) ||
                          html.includes(`"price":${rawPriceStr}`) ||
+                         html.includes(`"price": ${rawPriceStr}`) ||
                          html.includes(`>${rawPriceStr}<`) ||
                          html.includes(`>${formattedTestPrice}<`) ||
-                         html.includes(`Rs. ${rawPriceStr}`) ||
-                         html.includes(`Rs. ${formattedTestPrice}`) ||
                          html.includes(`content="${rawPriceStr}"`);
 
         if (hasPrice) {
@@ -172,9 +175,8 @@ async function verifyStore(store) {
           console.log(`✅ [${elapsed}s] Price Rs. ${testPrice} REFLECTED! (CF: ${cf}, Vercel: ${vercel})`);
           break;
         } else {
-          // Progress log every 2 seconds
-          if (i % 4 === 0) {
-            console.log(`   [${elapsed}s] Waiting for edge refresh... (CF: ${cf})`);
+          if (i % 2 === 0) {
+            console.log(`   [${elapsed}s] Waiting for edge refresh... (CF: ${cf}, Vercel: ${vercel})`);
           }
         }
       } catch (pollErr) {

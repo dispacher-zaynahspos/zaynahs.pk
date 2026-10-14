@@ -1,3 +1,4 @@
+import { revalidateTag as nextRevalidateTag, revalidatePath as nextRevalidatePath } from 'next/cache';
 import { getSiteUrl } from '@/lib/site-url-server';
 import { STORE_SETTINGS_ID } from '@/lib/config/singleton-ids';
 import { notifyGoogleIndexing } from '@/lib/googleIndexing';
@@ -6,25 +7,27 @@ import { pingIndexNow } from '@/lib/indexNow';
 type RevalidateTagFn = (tag: string) => void;
 type RevalidatePathFn = (path: string, type?: 'layout' | 'page') => void;
 
-async function getCacheMethods(): Promise<{ revalidateTag: RevalidateTagFn; revalidatePath: RevalidatePathFn }> {
-  if (typeof window !== 'undefined') {
-    return {
-      revalidateTag: () => {},
-      revalidatePath: () => {},
-    };
-  }
+const safeRevalidateTag: RevalidateTagFn = (tag: string) => {
   try {
-    const mod = await import('next/cache');
-    return {
-      revalidateTag: mod.revalidateTag as RevalidateTagFn,
-      revalidatePath: mod.revalidatePath as RevalidatePathFn,
-    };
-  } catch {
-    return {
-      revalidateTag: () => {},
-      revalidatePath: () => {},
-    };
+    (nextRevalidateTag as unknown as (t: string) => void)(tag);
+  } catch (e) {
+    console.warn(`[revalidateTag] Failed for tag ${tag}:`, e);
   }
+};
+
+const safeRevalidatePath: RevalidatePathFn = (path: string, type?: 'layout' | 'page') => {
+  try {
+    nextRevalidatePath(path, type);
+  } catch (e) {
+    console.warn(`[revalidatePath] Failed for path ${path}:`, e);
+  }
+};
+
+async function getCacheMethods(): Promise<{ revalidateTag: RevalidateTagFn; revalidatePath: RevalidatePathFn }> {
+  return {
+    revalidateTag: safeRevalidateTag,
+    revalidatePath: safeRevalidatePath,
+  };
 }
 
 async function resolveSiteUrl(): Promise<string> {
