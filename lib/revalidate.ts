@@ -229,11 +229,7 @@ export async function revalidateProduct(slug: string, action: 'UPDATED' | 'DELET
       `${siteUrl}/shop`,
     ]);
 
-    // Self-warm after purge: force Vercel ISR to re-render the fresh page immediately
-    // so CF caches the new price on first customer request (RULE C10 — instant freshness).
-    try {
-      await fetch(productUrl, { headers: { 'x-prerender-revalidate': '1', 'User-Agent': 'ISRWarmer/1.0' }, cache: 'no-store' }).catch(() => {});
-    } catch { /* non-fatal */ }
+    // Do not self-fetch immediately: Cloudflare edge must stay completely purged so subsequent customer requests fetch fresh DB data from Next.js without re-caching stale ISR payloads.
 
     if (action === 'DELETED') {
       await notifyGoogleIndexing(productUrl, 'URL_DELETED');
