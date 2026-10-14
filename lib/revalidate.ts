@@ -54,24 +54,35 @@ async function resolveSiteUrl(): Promise<string> {
  * Rationale: full zone purge on every entity save caused unnecessary cache misses site-wide (RULE C10: targeted invalidation).
  */
 function getCloudflareConfigs(): Array<{ zoneId: string; apiToken: string; name?: string }> {
-  const multiStoreConfigStr = process.env.MULTI_STORE_CLOUDFLARE_CONFIG;
-  let cfConfigs: Array<{ zoneId: string; apiToken: string; name?: string }> = [];
+  const cfConfigs: Array<{ zoneId: string; apiToken: string; name?: string }> = [];
 
-  if (multiStoreConfigStr) {
-    try {
-      const isBase64 = !multiStoreConfigStr.startsWith('[');
-      const decodedStr = isBase64 ? Buffer.from(multiStoreConfigStr, 'base64').toString('utf-8') : multiStoreConfigStr;
-      cfConfigs = JSON.parse(decodedStr);
-    } catch (e) {
-      console.warn('Failed to parse MULTI_STORE_CLOUDFLARE_CONFIG', e);
-    }
+  // Direct store credentials always take precedence (RULE CRED-ENVBACKUP)
+  const zone = process.env.CLOUDFLARE_ZONE_ID?.trim();
+  const token = process.env.CLOUDFLARE_API_TOKEN?.trim();
+  if (zone && token) {
+    cfConfigs.push({ zoneId: zone, apiToken: token, name: 'Current Store' });
   }
 
-  if (cfConfigs.length === 0) {
-    const zone = process.env.CLOUDFLARE_ZONE_ID;
-    const token = process.env.CLOUDFLARE_API_TOKEN;
-    if (zone && token) {
-      cfConfigs.push({ zoneId: zone, apiToken: token, name: 'Current Store' });
+  // Fallback to MULTI_STORE_CLOUDFLARE_CONFIG only if direct env vars are absent
+  if (cfConfigs.length === 0 && process.env.MULTI_STORE_CLOUDFLARE_CONFIG) {
+    try {
+      const raw = process.env.MULTI_STORE_CLOUDFLARE_CONFIG.trim();
+      let parsed: unknown = null;
+      if (raw.startsWith('[')) {
+        parsed = JSON.parse(raw);
+      } else {
+        const decodedStr = Buffer.from(raw, 'base64').toString('utf-8');
+        parsed = JSON.parse(decodedStr);
+      }
+      if (Array.isArray(parsed)) {
+        for (const item of parsed) {
+          if (item && typeof item === 'object' && 'zoneId' in item && 'apiToken' in item) {
+            cfConfigs.push(item as { zoneId: string; apiToken: string; name?: string });
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to parse MULTI_STORE_CLOUDFLARE_CONFIG', e);
     }
   }
 
