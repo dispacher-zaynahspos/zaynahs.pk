@@ -2766,7 +2766,7 @@ BEGIN
     AND column_name NOT IN ('smtp_app_password','postex_api_token','content_keys','vision_keys','ai_model_credentials');
   EXECUTE format('CREATE OR REPLACE VIEW public.store_settings_public AS SELECT %s FROM public.store_settings', cols);
 END $$;
-GRANT SELECT ON public.store_settings_public TO anon, authenticated;
+GRANT SELECT ON public.store_settings_public TO anon, authenticated, service_role;
 
 -- After a fresh clone is deployed with the current app code, harden secrets:
 --   REVOKE SELECT (smtp_app_password, postex_api_token, content_keys, vision_keys, ai_model_credentials)

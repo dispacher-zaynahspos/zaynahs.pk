@@ -220,14 +220,11 @@ export async function revalidateProduct(slug: string, action: 'UPDATED' | 'DELET
       revalidatePath('/(store)/product/[slug]', 'page');
     }
 
-    // Targeted single-URL purge on Cloudflare edge (instant freshness on plain URLs, no purge_everything)
+    // Reliable complete Cloudflare zone purge on every product save (RULE C10)
+    await purgeCloudflareEverything();
+
     const siteUrl = await resolveSiteUrl();
     const productUrl = `${siteUrl}/product/${slug}`;
-    await purgeCloudflareUrls([
-      productUrl,
-      `${siteUrl}/`,
-      `${siteUrl}/shop`,
-    ]);
 
     // Do not self-fetch immediately: Cloudflare edge must stay completely purged so subsequent customer requests fetch fresh DB data from Next.js without re-caching stale ISR payloads.
 
@@ -263,12 +260,8 @@ export async function revalidateBanner() {
     revalidatePath('/store', 'layout');
     revalidatePath('/admin', 'layout');
 
-    // Targeted single-URL purge on Cloudflare edge
-    const siteUrl = await resolveSiteUrl();
-    await purgeCloudflareUrls([
-      `${siteUrl}/`,
-      `${siteUrl}/shop`,
-    ]);
+    // Reliable complete Cloudflare zone purge on banner/homepage-section save (RULE C10)
+    await purgeCloudflareEverything();
 
     console.log('[revalidate] Banners & homepage revalidated');
   } catch (error) {
@@ -289,15 +282,11 @@ export async function revalidateCategory(slug: string, action: 'UPDATED' | 'DELE
     revalidatePath('/admin', 'layout');
     if (action !== 'DELETED') revalidatePath(`/category/${slug}`);
 
-    // Next.js ISR handles CDN freshness — targeted single-URL purge on Cloudflare edge
+    // Reliable complete Cloudflare zone purge on category save (RULE C10)
+    await purgeCloudflareEverything();
+
     const siteUrl = await resolveSiteUrl();
     const categoryUrl = `${siteUrl}/shop?category=${slug}`;
-    await purgeCloudflareUrls([
-      categoryUrl,
-      `${siteUrl}/category/${slug}`,
-      `${siteUrl}/shop`,
-      `${siteUrl}/`,
-    ]);
 
     if (action === 'DELETED') {
       await notifyGoogleIndexing(categoryUrl, 'URL_DELETED');
@@ -328,13 +317,15 @@ export async function revalidateHomepage() {
     revalidatePath('/store', 'layout');
     revalidatePath('/admin', 'layout');
 
+    // Reliable complete Cloudflare zone purge on homepage save (RULE C10)
+    await purgeCloudflareEverything();
+
     const dynamicSiteUrl = await resolveSiteUrl();
     const urls = [
       `${dynamicSiteUrl}/`,
       `${dynamicSiteUrl}/shop`,
       `${dynamicSiteUrl}/store`,
     ];
-    await purgeCloudflareUrls(urls);
 
     for (const url of urls) {
       await notifyGoogleIndexing(url, 'URL_UPDATED');
@@ -360,13 +351,8 @@ export async function revalidateVertical(slug: string) {
     revalidatePath('/');
     revalidatePath('/admin', 'layout');
 
-    const siteUrl = await resolveSiteUrl();
-    await purgeCloudflareUrls([
-      `${siteUrl}/store/${slug}`,
-      `${siteUrl}/store/${slug}/shop`,
-      `${siteUrl}/store`,
-      `${siteUrl}/`,
-    ]);
+    // Reliable complete Cloudflare zone purge on vertical save (RULE C10)
+    await purgeCloudflareEverything();
 
     console.log(`[revalidate] Vertical revalidated: ${slug}`);
   } catch (error) {
@@ -400,12 +386,8 @@ export async function revalidateStorefrontEdge(...tags: string[]): Promise<void>
     revalidatePath('/shop');
     revalidatePath('/admin', 'layout');
 
-    const siteUrl = await resolveSiteUrl();
-    const urlsToPurge: string[] = [`${siteUrl}/`, `${siteUrl}/shop`];
-    if (tags.includes('reviews')) urlsToPurge.push(`${siteUrl}/reviews`);
-    if (tags.includes('size_guides')) urlsToPurge.push(`${siteUrl}/size-guides`, `${siteUrl}/api/size-guides`);
-    if (tags.includes('collections')) urlsToPurge.push(`${siteUrl}/collections`);
-    await purgeCloudflareUrls(urlsToPurge);
+    // Reliable complete Cloudflare zone purge on storefront-visible admin saves (RULE C10)
+    await purgeCloudflareEverything();
 
     console.log(`[revalidate] Storefront edge purge for tags: ${tags.join(', ')}`);
   } catch (error) {

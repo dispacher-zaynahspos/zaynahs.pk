@@ -32,9 +32,12 @@ export function HeroSlideItem({
   styles,
 }: HeroSlideItemProps) {
   const hasVideo = !!slide.video_url;
-  const desktopImage = slide.image_url || bannerUrl || '';
-  const tabletImage = slide.tablet_image_url || desktopImage;
-  const mobileImage = slide.mobile_image_url || desktopImage;
+  const isBrokenPlaceholder = (url?: string) => !url || url.includes('placeholder.jpg');
+  const validMobileImage = !isBrokenPlaceholder(slide.mobile_image_url) ? (slide.mobile_image_url as string) : '';
+  const validDesktopImage = !isBrokenPlaceholder(slide.image_url) ? (slide.image_url as string) : (validMobileImage || bannerUrl || '');
+  const desktopImage = validDesktopImage;
+  const tabletImage = (!isBrokenPlaceholder(slide.tablet_image_url) ? (slide.tablet_image_url as string) : '') || desktopImage || validMobileImage;
+  const mobileImage = validMobileImage || desktopImage;
   const autoplay = slide.video_autoplay !== false;
   const muted = slide.video_muted !== false;
   const slideClass = `hbs-${slide.id.replace(/[^a-z0-9]/gi, '_')}`;

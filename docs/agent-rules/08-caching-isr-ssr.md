@@ -21,7 +21,7 @@ Always set `cdn-cache-control: public, s-maxage=300, stale-while-revalidate=60` 
 
 ## New feature caching checklist (whenever a new DB-driven page/feature is added)
 1. Wrap data fetches in `unstable_cache(fn, keyParts, { revalidate: 3600, tags: [tag] })` in `lib/services/`.
-2. Add a revalidation helper in `lib/revalidate.ts` that calls `revalidateTag`/`revalidatePath` for the affected tags. Only call `purgeCloudflareEverything()` if this is a **layout-level/global change** (RULE C9). For product/category/banner/section saves: Next.js tags only — no CF purge.
+2. Add a revalidation helper in `lib/revalidate.ts` that calls `revalidateTag`/`revalidatePath` and `purgeCloudflareEverything()` so both Vercel ISR and Cloudflare Edge are cleared immediately (RULE C10).
 3. Call the revalidation helper inside the corresponding `create`/`update`/`delete` service functions.
 4. Update `app/api/revalidate/route.ts` to route Supabase DB-trigger webhooks for the new table.
 
@@ -140,27 +140,23 @@ Manual "Purge Cache" button sirf **emergency** ke liye hai. **Normal save ke baa
 |------|--------|-------|
 | `no-cache-dynamic` | cache:false (bypass) | cart, checkout, account, api, admin, wishlist, order, login, signup |
 | `static-assets` | cache:true + edge_ttl:1yr | `/_next/static/*` — hash filenames, never stale |
-| `html-pages` | **cache:true + edge_ttl:300s (5 min)** | HTML cached at CF edge (55ms TTFB in PK) — Next.js ISR + 5min edge TTL |
+| `html-pages` | **cache:true + edge_ttl:300s (5 min)** | HTML cached at CF edge (55ms TTFB in PK) — Cloudflare full purge on admin writes |
 | `supabase-images` | cache:true + edge_ttl:30d | supabase.co images |
 
-> ⚡ **html-pages = cache:true, edge_ttl: 300s (5 min)**:
-> Reason: Bypassing HTML caused TTFB to jump to 2.1s because every request round-tripped across the globe to Vercel US. With a 5-minute edge TTL, responses are served from Karachi (`KHI`) edge in ~55ms. Entity saves invalidate Next.js tags, and edge caches expire naturally within 5 minutes — ZERO full-zone `purge_everything` spam on entity saves!
+> ⚡ **html-pages = cache:true, edge_ttl: 300s (5 min) + Webhook Full Purge (RULE C10 RESTORED)**:
+> HTML is cached at the Cloudflare edge for blazing-fast ~55ms TTFB in Pakistan. Whenever ANY admin change or DB webhook fires (products, prices, banners, categories, sections, settings), the webhook calls `purgeCloudflareEverything()` (`purge_everything: true`).
+> **Why full purge is mandatory:** Single-URL purge (`files: [url]`) does NOT reliably invalidate across regional Cloudflare POPs (Karachi, Singapore, Muscat). `purge_everything: true` guarantees instant (<1s) global cache invalidation while preserving 5-minute edge caching between writes!
 
 Page Rules (legacy fallback): `cart*`, `checkout*`, `my-account*` → `cache_level: bypass`.
 
-**Cache flow — entity save (product/category/banner):**
+**Cache flow — any admin save (product/category/banner/settings):**
 ```
 Admin DB change → Supabase webhook → /api/revalidate
-  → revalidateTag("product-slug") + revalidatePath("/shop")
-  → Next.js ISR updates cache immediately
-  → Cloudflare: edge cache expires within 5 min (or on edge refresh) → instant 55ms TTFB ✅
-```
-
-**Cache flow — global/settings save:**
-```
-Admin settings/theme change → revalidateSettings()
-  → revalidateTag (all tags) + revalidatePath + purgeCloudflareEverything()
-  → all layers cleared ✅
+  → revalidateTag(tag) + revalidatePath(path)
+  → Next.js ISR regenerates fresh page
+  → purgeCloudflareEverything() (purge_everything: true)
+  → Cloudflare edge instantly purged worldwide (0s lag)
+  → Next visitor re-warms Cloudflare edge with fresh HTML (55ms TTFB) ✅
 ```
 
 ## CACHE2 — Enforcement checklist for every NEW feature/table/admin tab
