@@ -51,8 +51,16 @@ export default function ThemeStyleRegistry({ settings }: ThemeStyleRegistryProps
       --swatch-border-unselected: color-mix(in srgb, ${colors.textPrimary || '#111827'} 28%, transparent) !important;
       --header-top-bar-bg: ${settings.header_top_bar_bg || colors.headerTopBarBg || colors.primary} !important;
       --header-top-bar-text: ${settings.header_top_bar_text_color || colors.headerTopBarTextColor || '#ffffff'} !important;
+      --header-bg: ${settings.header_bg || colors.surface || '#ffffff'} !important;
+      --header-text: ${settings.header_text_color || colors.textPrimary || '#1a1a2e'} !important;
       --footer-bg: ${settings.footer_bg || colors.footerBg || (colors.background === '#0E0E10' || colors.background === '#0B1120' || colors.background === '#121212' ? colors.surface : '#FFFFFF')} !important;
       --footer-text: ${settings.footer_text_color || colors.footerTextColor || colors.textSecondary} !important;
+      --footer-heading: ${settings.footer_heading_color || settings.footer_text_color || colors.footerTextColor || colors.textHeading || colors.primary} !important;
+      --footer-link: ${settings.footer_link_color || settings.footer_text_color || colors.footerTextColor || colors.accent} !important;
+      --footer-divider: ${settings.footer_border_color || colors.border || '#e5e7eb'} !important;
+      --footer-copyright: ${settings.footer_copyright_color || settings.footer_text_color || colors.textSecondary} !important;
+      --footer-heading-font: ${settings.footer_heading_font ? `"${settings.footer_heading_font}", sans-serif` : 'var(--font-heading)'} !important;
+      --footer-body-font: ${settings.footer_body_font ? `"${settings.footer_body_font}", sans-serif` : 'var(--font-body)'} !important;
 
       --font-heading: "${headingFont}", sans-serif !important;
       --font-body: "${bodyFont}", sans-serif !important;
@@ -98,12 +106,43 @@ export default function ThemeStyleRegistry({ settings }: ThemeStyleRegistryProps
       color: var(--color-text-primary) !important;
     }
 
-    /* Surface, white backgrounds & card overrides (Storefront only) */
-    body:not(.admin-shell) .bg-white, body:not(.admin-shell).dark .bg-white, 
-    body:not(.admin-shell) .bg-surface, body:not(.admin-shell) .bg-surface-2, body:not(.admin-shell) .bg-surface-3, 
-    body:not(.admin-shell) [class*="bg-surface"] {
+    /* Surface, white backgrounds & card overrides (Storefront only - NEVER override header/footer) */
+    body:not(.admin-shell) .bg-white:not(footer):not(header), body:not(.admin-shell).dark .bg-white:not(footer):not(header), 
+    body:not(.admin-shell) .bg-surface:not(footer):not(header), body:not(.admin-shell) .bg-surface-2:not(footer):not(header), body:not(.admin-shell) .bg-surface-3:not(footer):not(header), 
+    body:not(.admin-shell) [class*="bg-surface"]:not(footer):not(header) {
       background-color: var(--color-surface) !important;
       color: var(--color-text-primary) !important;
+    }
+
+    /* Footer Customizer Colors: Merchant settings have absolute priority over default theme colors */
+    footer, body:not(.admin-shell) footer {
+      background-color: var(--footer-bg) !important;
+      color: var(--footer-text) !important;
+      border-color: var(--footer-divider) !important;
+    }
+    footer :is(h1, h2, h3, h4, h5, h6),
+    body:not(.admin-shell) footer :is(h1, h2, h3, h4, h5, h6) {
+      color: var(--footer-heading) !important;
+      font-family: var(--footer-heading-font) !important;
+    }
+    footer a,
+    body:not(.admin-shell) footer a {
+      color: var(--footer-link) !important;
+    }
+    footer p,
+    body:not(.admin-shell) footer p {
+      color: var(--footer-text) !important;
+      font-family: var(--footer-body-font) !important;
+    }
+    footer .footer-copyright,
+    body:not(.admin-shell) footer .footer-copyright {
+      color: var(--footer-copyright) !important;
+    }
+
+    /* Header Customizer Colors: Merchant settings have absolute priority */
+    header, body:not(.admin-shell) header {
+      background-color: var(--header-bg) !important;
+      color: var(--header-text) !important;
     }
 
     /* Remap hardcoded dark-theme hex colors to active theme variables (Storefront only) */
@@ -137,11 +176,11 @@ export default function ThemeStyleRegistry({ settings }: ThemeStyleRegistryProps
       color: #ffffff !important;
     }
 
-    /* Typography Overrides (Storefront only) */
-    body:not(.admin-shell) :is(p, span, a, input, select, textarea, button, td, th, li, div, .font-body) {
+    /* Typography Overrides (Storefront only - protect header, footer, and hero banners) */
+    body:not(.admin-shell) :is(p, span, a, input, select, textarea, button, td, th, li, div, .font-body):not(footer *):not(header *):not(.hero-banner *):not([class*="hero-banner"] *) {
       font-family: var(--font-body) !important;
     }
-    body:not(.admin-shell) :is(h1, h2, h3, h4, h5, h6, .font-heading, [class*="font-heading"]) {
+    body:not(.admin-shell) :is(h1, h2, h3, h4, h5, h6, .font-heading, [class*="font-heading"]):not(footer *):not(header *):not(.hero-banner *):not([class*="hero-banner"] *) {
       font-family: var(--font-heading) !important;
       color: var(--color-text-heading) !important;
     }
@@ -294,25 +333,25 @@ export default function ThemeStyleRegistry({ settings }: ThemeStyleRegistryProps
       border-color: var(--color-success) !important;
     }
 
-    /* Standard Tailwind color scales overrides - Excluded inside dark containers and heading elements to protect readability */
-    .text-gray-900:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(.font-heading):not([class*="font-heading"]):not([class*="bg-[#1a1a2e]"] *):not(.bg-secondary *):not([class*="bg-[#e94560]"] *):not(.bg-accent *):not([class*="dark:bg-"] *):not([class*="bg-gray-9"] *):not([class*="bg-black"] *),
-    .dark .text-gray-900:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(.font-heading):not([class*="font-heading"]):not([class*="bg-[#1a1a2e]"] *):not(.bg-secondary *):not([class*="bg-[#e94560]"] *):not(.bg-accent *):not([class*="dark:bg-"] *):not([class*="bg-gray-9"] *):not([class*="bg-black"] *), 
-    .text-gray-955:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(.font-heading):not([class*="font-heading"]):not([class*="bg-[#1a1a2e]"] *):not(.bg-secondary *):not([class*="bg-[#e94560]"] *):not(.bg-accent *):not([class*="dark:bg-"] *):not([class*="bg-gray-9"] *):not([class*="bg-black"] *),
-    .text-gray-950:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(.font-heading):not([class*="font-heading"]):not([class*="bg-[#1a1a2e]"] *):not(.bg-secondary *):not([class*="bg-[#e94560]"] *):not(.bg-accent *):not([class*="dark:bg-"] *):not([class*="bg-gray-9"] *):not([class*="bg-black"] *),
-    .dark .text-gray-955:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(.font-heading):not([class*="font-heading"]):not([class*="bg-[#1a1a2e]"] *):not(.bg-secondary *):not([class*="bg-[#e94560]"] *):not(.bg-accent *):not([class*="dark:bg-"] *):not([class*="bg-gray-9"] *):not([class*="bg-black"] *),
-    .text-gray-800:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(.font-heading):not([class*="font-heading"]):not([class*="bg-[#1a1a2e]"] *):not(.bg-secondary *):not([class*="bg-[#e94560]"] *):not(.bg-accent *):not([class*="dark:bg-"] *):not([class*="bg-gray-9"] *):not([class*="bg-black"] *),
-    .dark .text-gray-800:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(.font-heading):not([class*="font-heading"]):not([class*="bg-[#1a1a2e]"] *):not(.bg-secondary *):not([class*="bg-[#e94560]"] *):not(.bg-accent *):not([class*="dark:bg-"] *):not([class*="bg-gray-9"] *):not([class*="bg-black"] *) {
+    /* Standard Tailwind color scales overrides - Excluded inside dark containers, footer, header, and heading elements to protect readability */
+    .text-gray-900:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(.font-heading):not([class*="font-heading"]):not([class*="bg-[#1a1a2e]"] *):not(.bg-secondary *):not([class*="bg-[#e94560]"] *):not(.bg-accent *):not([class*="dark:bg-"] *):not([class*="bg-gray-9"] *):not([class*="bg-black"] *):not(footer *):not(header *),
+    .dark .text-gray-900:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(.font-heading):not([class*="font-heading"]):not([class*="bg-[#1a1a2e]"] *):not(.bg-secondary *):not([class*="bg-[#e94560]"] *):not(.bg-accent *):not([class*="dark:bg-"] *):not([class*="bg-gray-9"] *):not([class*="bg-black"] *):not(footer *):not(header *), 
+    .text-gray-955:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(.font-heading):not([class*="font-heading"]):not([class*="bg-[#1a1a2e]"] *):not(.bg-secondary *):not([class*="bg-[#e94560]"] *):not(.bg-accent *):not([class*="dark:bg-"] *):not([class*="bg-gray-9"] *):not([class*="bg-black"] *):not(footer *):not(header *),
+    .text-gray-950:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(.font-heading):not([class*="font-heading"]):not([class*="bg-[#1a1a2e]"] *):not(.bg-secondary *):not([class*="bg-[#e94560]"] *):not(.bg-accent *):not([class*="dark:bg-"] *):not([class*="bg-gray-9"] *):not([class*="bg-black"] *):not(footer *):not(header *),
+    .dark .text-gray-955:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(.font-heading):not([class*="font-heading"]):not([class*="bg-[#1a1a2e]"] *):not(.bg-secondary *):not([class*="bg-[#e94560]"] *):not(.bg-accent *):not([class*="dark:bg-"] *):not([class*="bg-gray-9"] *):not([class*="bg-black"] *):not(footer *):not(header *),
+    .text-gray-800:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(.font-heading):not([class*="font-heading"]):not([class*="bg-[#1a1a2e]"] *):not(.bg-secondary *):not([class*="bg-[#e94560]"] *):not(.bg-accent *):not([class*="dark:bg-"] *):not([class*="bg-gray-9"] *):not([class*="bg-black"] *):not(footer *):not(header *),
+    .dark .text-gray-800:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(.font-heading):not([class*="font-heading"]):not([class*="bg-[#1a1a2e]"] *):not(.bg-secondary *):not([class*="bg-[#e94560]"] *):not(.bg-accent *):not([class*="dark:bg-"] *):not([class*="bg-gray-9"] *):not([class*="bg-black"] *):not(footer *):not(header *) {
       color: var(--color-text-primary) !important;
     }
     
-    .text-gray-700:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(.font-heading):not([class*="font-heading"]):not([class*="bg-[#1a1a2e]"] *):not(.bg-secondary *):not([class*="bg-[#e94560]"] *):not(.bg-accent *):not([class*="dark:bg-"] *):not([class*="bg-gray-9"] *):not([class*="bg-black"] *),
-    .dark .text-gray-700:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(.font-heading):not([class*="font-heading"]):not([class*="bg-[#1a1a2e]"] *):not(.bg-secondary *):not([class*="bg-[#e94560]"] *):not(.bg-accent *):not([class*="dark:bg-"] *):not([class*="bg-gray-9"] *):not([class*="bg-black"] *), 
-    .text-gray-600:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(.font-heading):not([class*="font-heading"]):not([class*="bg-[#1a1a2e]"] *):not(.bg-secondary *):not([class*="bg-[#e94560]"] *):not(.bg-accent *):not([class*="dark:bg-"] *):not([class*="bg-gray-9"] *):not([class*="bg-black"] *),
-    .dark .text-gray-600:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(.font-heading):not([class*="font-heading"]):not([class*="bg-[#1a1a2e]"] *):not(.bg-secondary *):not([class*="bg-[#e94560]"] *):not(.bg-accent *):not([class*="dark:bg-"] *):not([class*="bg-gray-9"] *):not([class*="bg-black"] *), 
-    .text-gray-500:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(.font-heading):not([class*="font-heading"]):not([class*="bg-[#1a1a2e]"] *):not(.bg-secondary *):not([class*="bg-[#e94560]"] *):not(.bg-accent *):not([class*="dark:bg-"] *):not([class*="bg-gray-9"] *):not([class*="bg-black"] *),
-    .dark .text-gray-500:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(.font-heading):not([class*="font-heading"]):not([class*="bg-[#1a1a2e]"] *):not(.bg-secondary *):not([class*="bg-[#e94560]"] *):not(.bg-accent *):not([class*="dark:bg-"] *):not([class*="bg-gray-9"] *):not([class*="bg-black"] *), 
-    .text-gray-400:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(.font-heading):not([class*="font-heading"]):not([class*="bg-[#1a1a2e]"] *):not(.bg-secondary *):not([class*="bg-[#e94560]"] *):not(.bg-accent *):not([class*="dark:bg-"] *):not([class*="bg-gray-9"] *):not([class*="bg-black"] *),
-    .dark .text-gray-400:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(.font-heading):not([class*="font-heading"]):not([class*="bg-[#1a1a2e]"] *):not(.bg-secondary *):not([class*="bg-[#e94560]"] *):not(.bg-accent *):not([class*="dark:bg-"] *):not([class*="bg-gray-9"] *):not([class*="bg-black"] *) {
+    .text-gray-700:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(.font-heading):not([class*="font-heading"]):not([class*="bg-[#1a1a2e]"] *):not(.bg-secondary *):not([class*="bg-[#e94560]"] *):not(.bg-accent *):not([class*="dark:bg-"] *):not([class*="bg-gray-9"] *):not([class*="bg-black"] *):not(footer *):not(header *),
+    .dark .text-gray-700:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(.font-heading):not([class*="font-heading"]):not([class*="bg-[#1a1a2e]"] *):not(.bg-secondary *):not([class*="bg-[#e94560]"] *):not(.bg-accent *):not([class*="dark:bg-"] *):not([class*="bg-gray-9"] *):not([class*="bg-black"] *):not(footer *):not(header *), 
+    .text-gray-600:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(.font-heading):not([class*="font-heading"]):not([class*="bg-[#1a1a2e]"] *):not(.bg-secondary *):not([class*="bg-[#e94560]"] *):not(.bg-accent *):not([class*="dark:bg-"] *):not([class*="bg-gray-9"] *):not([class*="bg-black"] *):not(footer *):not(header *),
+    .dark .text-gray-600:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(.font-heading):not([class*="font-heading"]):not([class*="bg-[#1a1a2e]"] *):not(.bg-secondary *):not([class*="bg-[#e94560]"] *):not(.bg-accent *):not([class*="dark:bg-"] *):not([class*="bg-gray-9"] *):not([class*="bg-black"] *):not(footer *):not(header *), 
+    .text-gray-500:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(.font-heading):not([class*="font-heading"]):not([class*="bg-[#1a1a2e]"] *):not(.bg-secondary *):not([class*="bg-[#e94560]"] *):not(.bg-accent *):not([class*="dark:bg-"] *):not([class*="bg-gray-9"] *):not([class*="bg-black"] *):not(footer *):not(header *),
+    .dark .text-gray-500:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(.font-heading):not([class*="font-heading"]):not([class*="bg-[#1a1a2e]"] *):not(.bg-secondary *):not([class*="bg-[#e94560]"] *):not(.bg-accent *):not([class*="dark:bg-"] *):not([class*="bg-gray-9"] *):not([class*="bg-black"] *):not(footer *):not(header *), 
+    .text-gray-400:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(.font-heading):not([class*="font-heading"]):not([class*="bg-[#1a1a2e]"] *):not(.bg-secondary *):not([class*="bg-[#e94560]"] *):not(.bg-accent *):not([class*="dark:bg-"] *):not([class*="bg-gray-9"] *):not([class*="bg-black"] *):not(footer *):not(header *),
+    .dark .text-gray-400:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(.font-heading):not([class*="font-heading"]):not([class*="bg-[#1a1a2e]"] *):not(.bg-secondary *):not([class*="bg-[#e94560]"] *):not(.bg-accent *):not([class*="dark:bg-"] *):not([class*="bg-gray-9"] *):not([class*="bg-black"] *):not(footer *):not(header *) {
       color: var(--color-text-secondary) !important;
     }
     

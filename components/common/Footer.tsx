@@ -70,19 +70,19 @@ export default function Footer({ settings, brandName }: FooterProps) {
   // control actually applies on the storefront (was overridden by hardcoded classes).
   const footerHeadingColor = settings.footer_heading_color || footerTextColor || undefined;
   const footerLinkColor = settings.footer_link_color || footerTextColor || undefined;
-  // CSS vars consumed by footer children (fallbacks keep the old gray look when unset).
+  // CSS vars consumed by footer children (fallbacks keep the old look when unset).
   const footerStyle: React.CSSProperties & Record<string, string> = {
-    backgroundColor: footerBg || '',
-    color: footerTextColor || '',
-    ...(footerBorderColor ? { borderTopColor: footerBorderColor } : {}),
-    ...(footerBg ? { ['--footer-bg']: footerBg } : {}),
-    ...(footerTextColor ? { ['--footer-text']: footerTextColor } : {}),
-    ...(footerHeadingColor ? { ['--footer-heading']: footerHeadingColor } : {}),
-    ...(footerLinkColor ? { ['--footer-link']: footerLinkColor } : {}),
-    ...(footerBorderColor ? { ['--footer-divider']: footerBorderColor } : {}),
-    ...(settings.footer_copyright_color ? { ['--footer-copyright']: settings.footer_copyright_color } : {}),
-    ...(settings.footer_heading_font ? { ['--footer-heading-font']: settings.footer_heading_font } : {}),
-    ...(settings.footer_body_font ? { ['--footer-body-font']: settings.footer_body_font } : {}),
+    backgroundColor: footerBg || 'var(--footer-bg)',
+    color: footerTextColor || 'var(--footer-text)',
+    borderTopColor: footerBorderColor || 'var(--footer-divider)',
+    ['--footer-bg']: footerBg || 'var(--color-surface)',
+    ['--footer-text']: footerTextColor || 'var(--color-text-secondary)',
+    ['--footer-heading']: footerHeadingColor || 'var(--color-text-heading)',
+    ['--footer-link']: footerLinkColor || 'var(--color-accent)',
+    ['--footer-divider']: footerBorderColor || 'var(--color-border)',
+    ['--footer-copyright']: settings.footer_copyright_color || footerTextColor || 'var(--color-text-secondary)',
+    ...(settings.footer_heading_font ? { ['--footer-heading-font']: `"${settings.footer_heading_font}", sans-serif` } : {}),
+    ...(settings.footer_body_font ? { ['--footer-body-font']: `"${settings.footer_body_font}", sans-serif` } : {}),
     ...(settings.footer_body_size ? { fontSize: settings.footer_body_size } : {}),
     ...(settings.footer_body_font ? { fontFamily: settings.footer_body_font } : {}),
   };
@@ -96,7 +96,7 @@ export default function Footer({ settings, brandName }: FooterProps) {
           window.parent.postMessage({ type: 'select_global_tab', subTab: 'footer' }, '*');
         }
       }}
-      className={`w-full overflow-hidden bg-white dark:bg-[#0f0f1b] border-t border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400 select-none transition-colors duration-200 ${
+      className={`w-full overflow-hidden border-t select-none transition-colors duration-200 ${
         isPreview ? 'cursor-pointer hover:ring-2 hover:ring-[#e94560] hover:ring-offset-2' : ''
       }`}
       style={footerStyle}
@@ -177,8 +177,8 @@ export default function Footer({ settings, brandName }: FooterProps) {
         </div>
 
         {/* Footer Bottom (Divider & Copyright) */}
-        <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 text-center sm:text-left" style={{ color: 'var(--footer-copyright, var(--footer-text))' }}>
+        <div className="mt-8 pt-8 border-t flex flex-col sm:flex-row items-center justify-between gap-4" style={{ borderTopColor: 'var(--footer-divider)' }}>
+          <p className="footer-copyright text-xs font-semibold text-center sm:text-left" style={{ color: 'var(--footer-copyright, var(--footer-text))' }}>
             {settings.footer_bottom_text
               ? settings.footer_bottom_text
               : `© ${currentYear} ${brandName || settings.store_name || 'Our Store'}. All rights reserved.`}

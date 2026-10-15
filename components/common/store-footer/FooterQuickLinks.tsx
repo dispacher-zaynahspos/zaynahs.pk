@@ -24,7 +24,8 @@ export function FooterQuickLinks({ settings, navigationMenu }: FooterQuickLinksP
           <div className="flex items-center justify-between">
             <Link
               href={item.url}
-              className="text-gray-500 hover:text-[#e94560] dark:text-gray-400 dark:hover:text-white transition-colors cursor-pointer block text-sm flex-grow"
+              className="hover:opacity-80 transition-opacity cursor-pointer block text-sm flex-grow"
+              style={{ color: 'var(--footer-link)' }}
             >
               {item.label}
             </Link>
@@ -60,26 +61,26 @@ export function FooterQuickLinks({ settings, navigationMenu }: FooterQuickLinksP
         ...renderFooterMenu(navigationMenu),
         settings.show_faq_in_footer !== false && (
           <li key="faq">
-            <Link href="/faq" className="text-gray-500 hover:text-[#e94560] dark:text-gray-400 dark:hover:text-white transition-colors block">
+            <Link href="/faq" style={{ color: 'var(--footer-link)' }} className="hover:opacity-80 transition-opacity block">
               FAQ
             </Link>
           </li>
         ),
         <li key="reviews">
-          <Link href="/reviews" className="text-gray-500 hover:text-[#e94560] dark:text-gray-400 dark:hover:text-white transition-colors block">
+          <Link href="/reviews" style={{ color: 'var(--footer-link)' }} className="hover:opacity-80 transition-opacity block">
             Reviews
           </Link>
         </li>,
         settings.show_returns_in_footer !== false && (
           <li key="returns">
-            <Link href="/returns" className="text-gray-500 hover:text-[#e94560] dark:text-gray-400 dark:hover:text-white transition-colors block">
+            <Link href="/returns" style={{ color: 'var(--footer-link)' }} className="hover:opacity-80 transition-opacity block">
               Return Policy
             </Link>
           </li>
         ),
         settings.show_privacy_in_footer !== false && (
           <li key="privacy">
-            <Link href="/privacy-policy" className="text-gray-500 hover:text-[#e94560] dark:text-gray-400 dark:hover:text-white transition-colors block">
+            <Link href="/privacy-policy" style={{ color: 'var(--footer-link)' }} className="hover:opacity-80 transition-opacity block">
               Privacy Policy
             </Link>
           </li>
@@ -87,42 +88,42 @@ export function FooterQuickLinks({ settings, navigationMenu }: FooterQuickLinksP
       ].filter(Boolean)
     : [
         <li key="home">
-          <Link href="/" className="text-gray-500 hover:text-[#e94560] dark:text-gray-400 dark:hover:text-white transition-colors block">
+          <Link href="/" style={{ color: 'var(--footer-link)' }} className="hover:opacity-80 transition-opacity block">
             Home
           </Link>
         </li>,
         <li key="cart">
-          <Link href="/cart" className="text-gray-500 hover:text-[#e94560] dark:text-gray-400 dark:hover:text-white transition-colors block">
+          <Link href="/cart" style={{ color: 'var(--footer-link)' }} className="hover:opacity-80 transition-opacity block">
             Cart
           </Link>
         </li>,
         <li key="reviews">
-          <Link href="/reviews" className="text-gray-500 hover:text-[#e94560] dark:text-gray-400 dark:hover:text-white transition-colors block">
+          <Link href="/reviews" style={{ color: 'var(--footer-link)' }} className="hover:opacity-80 transition-opacity block">
             Reviews
           </Link>
         </li>,
         <li key="account">
-          <Link href="/account" className="text-gray-500 hover:text-[#e94560] dark:text-gray-400 dark:hover:text-white transition-colors block">
+          <Link href="/account" style={{ color: 'var(--footer-link)' }} className="hover:opacity-80 transition-opacity block">
             My Account
           </Link>
         </li>,
         settings.show_faq_in_footer !== false && (
           <li key="faq">
-            <Link href="/faq" className="text-gray-500 hover:text-[#e94560] dark:text-gray-400 dark:hover:text-white transition-colors block">
+            <Link href="/faq" style={{ color: 'var(--footer-link)' }} className="hover:opacity-80 transition-opacity block">
               FAQ
             </Link>
           </li>
         ),
         settings.show_returns_in_footer !== false && (
           <li key="returns">
-            <Link href="/returns" className="text-gray-500 hover:text-[#e94560] dark:text-gray-400 dark:hover:text-white transition-colors block">
+            <Link href="/returns" style={{ color: 'var(--footer-link)' }} className="hover:opacity-80 transition-opacity block">
               Return Policy
             </Link>
           </li>
         ),
         settings.show_privacy_in_footer !== false && (
           <li key="privacy">
-            <Link href="/privacy-policy" className="text-gray-500 hover:text-[#e94560] dark:text-gray-400 dark:hover:text-white transition-colors block">
+            <Link href="/privacy-policy" style={{ color: 'var(--footer-link)' }} className="hover:opacity-80 transition-opacity block">
               Privacy Policy
             </Link>
           </li>

@@ -155,13 +155,13 @@ export function NavbarHeaderBar({
           window.parent.postMessage({ type: 'select_global_tab', subTab: 'header' }, '*');
         }
       }}
-      className={`${stickyClass} z-[100] w-full border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-[#0f0f1b] transition-colors duration-200 shadow-xs ${
+      className={`${stickyClass} z-[100] w-full border-b transition-colors duration-200 shadow-xs ${
         isPreview ? 'cursor-pointer hover:ring-2 hover:ring-[#e94560] hover:ring-offset-2' : ''
       }`}
       style={{
-        backgroundColor: headerBg !== '#ffffff' ? headerBg : undefined,
-        borderColor: headerBorderColor !== '#e5e7eb' ? headerBorderColor : undefined,
-        color: headerTextColor !== '#1a1a2e' ? headerTextColor : undefined,
+        backgroundColor: headerBg,
+        borderColor: headerBorderColor,
+        color: headerTextColor,
       }}
     >
       {/* Desktop Header Layout */}

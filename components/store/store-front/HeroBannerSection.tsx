@@ -48,24 +48,24 @@ export function HeroBannerSection({ section, settings }: HeroBannerSectionProps)
         button_link: contentData.button_link || '/shop',
         button_secondary_text: contentData.button_secondary_text,
         button_secondary_link: contentData.button_secondary_link,
-        mobile_tagline: contentData.mobile_tagline || contentData.tagline || settings.tagline,
-        mobile_title: contentData.mobile_title || section.title || '',
-        mobile_subtitle: contentData.mobile_subtitle || contentData.subtitle || '',
-        mobile_button_text: contentData.mobile_button_text || contentData.button_text,
-        mobile_button_link: contentData.mobile_button_link || contentData.button_link || '/shop',
+        mobile_tagline: contentData.mobile_tagline !== undefined ? contentData.mobile_tagline : (contentData.tagline || settings.tagline),
+        mobile_title: contentData.mobile_title !== undefined ? contentData.mobile_title : (section.title || ''),
+        mobile_subtitle: contentData.mobile_subtitle !== undefined ? contentData.mobile_subtitle : (contentData.subtitle || ''),
+        mobile_button_text: contentData.mobile_button_text !== undefined ? contentData.mobile_button_text : contentData.button_text,
+        mobile_button_link: contentData.mobile_button_link !== undefined ? contentData.mobile_button_link : (contentData.button_link || '/shop'),
         mobile_button_secondary_text:
-          contentData.mobile_button_secondary_text || contentData.button_secondary_text,
+          contentData.mobile_button_secondary_text !== undefined ? contentData.mobile_button_secondary_text : contentData.button_secondary_text,
         mobile_button_secondary_link:
-          contentData.mobile_button_secondary_link || contentData.button_secondary_link,
-        tablet_tagline: contentData.tablet_tagline || contentData.tagline || settings.tagline,
-        tablet_title: contentData.tablet_title || section.title || '',
-        tablet_subtitle: contentData.tablet_subtitle || contentData.subtitle || '',
-        tablet_button_text: contentData.tablet_button_text || contentData.button_text,
-        tablet_button_link: contentData.tablet_button_link || contentData.button_link || '/shop',
+          contentData.mobile_button_secondary_link !== undefined ? contentData.mobile_button_secondary_link : contentData.button_secondary_link,
+        tablet_tagline: contentData.tablet_tagline !== undefined ? contentData.tablet_tagline : (contentData.tagline || settings.tagline),
+        tablet_title: contentData.tablet_title !== undefined ? contentData.tablet_title : (section.title || ''),
+        tablet_subtitle: contentData.tablet_subtitle !== undefined ? contentData.tablet_subtitle : (contentData.subtitle || ''),
+        tablet_button_text: contentData.tablet_button_text !== undefined ? contentData.tablet_button_text : contentData.button_text,
+        tablet_button_link: contentData.tablet_button_link !== undefined ? contentData.tablet_button_link : (contentData.button_link || '/shop'),
         tablet_button_secondary_text:
-          contentData.tablet_button_secondary_text || contentData.button_secondary_text,
+          contentData.tablet_button_secondary_text !== undefined ? contentData.tablet_button_secondary_text : contentData.button_secondary_text,
         tablet_button_secondary_link:
-          contentData.tablet_button_secondary_link || contentData.button_secondary_link,
+          contentData.tablet_button_secondary_link !== undefined ? contentData.tablet_button_secondary_link : contentData.button_secondary_link,
       },
     ];
   }, [section, settings, bannerUrl]);
@@ -114,7 +114,7 @@ export function HeroBannerSection({ section, settings }: HeroBannerSectionProps)
   const bannerClassName = `hero-banner-${section.id}`;
 
   return (
-    <div key={carouselKey} className={`${bannerClassName} relative w-full bg-[#1a1a2e] overflow-hidden group`}>
+    <div key={carouselKey} className={`${bannerClassName} hero-banner relative w-full bg-[#1a1a2e] overflow-hidden group`}>
       <style
         dangerouslySetInnerHTML={{
           __html: `
