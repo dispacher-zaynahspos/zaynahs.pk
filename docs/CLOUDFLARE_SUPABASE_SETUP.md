@@ -30,11 +30,12 @@ Naya store setup karna ho (DB + webhooks + Vercel env + Cloudflare DNS/cache rul
 ```bash
 npm run clone:setup -- --store=<store> --deploy --yes
 ```
-Cloudflare-only phase (DNS records + 4 cache rules), idempotent:
+Cloudflare-only phase (DNS records + 4 cache rules + browser_cache_ttl = 0), idempotent:
 ```bash
 npm run cf:dns      # A @ → 76.76.21.21  +  CNAME www → cname.vercel-dns.com (proxied)
-npm run cf:rules    # no-cache-dynamic, static-assets, html-pages, supabase-images
+npm run cf:rules    # no-cache-dynamic, static-assets, html-pages, supabase-images + sets browser_cache_ttl=0 + zone purge
 ```
+> `cf:rules` automatically patches `browser_cache_ttl = 0` (Respect origin) so visitor browsers never cache HTML on device disk for 4 hours. Edge caches HTML for 300s, and admin saves purge Cloudflare globally in <1s.
 > `cf:dns` DNS records bana deta hai chahe zone abhi `pending` ho (NS registrar par switch hone ka intezaar) — jaise hi NS propagate hogi site live aa jayegi.
 
 ---

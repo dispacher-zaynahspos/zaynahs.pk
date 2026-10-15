@@ -118,20 +118,27 @@ Result: price change visible to customers in < 1 second, zero DB hits per page l
 - **Symptom**: Supabase DB is correct, but the live storefront (e.g. `/shop`) keeps rendering old/deleted slugs → 404s for users on fresh devices.
 - **Nuclear fix**: If a user reports products not updating/missing/404ing despite a correct DB, immediately bump the cache-key suffix in `lib/services/products.ts` (e.g. `['products-list']` → `['products-list-v2']` → `v3`...) and push a commit. This forces Vercel to treat it as a brand-new cache query, abandoning the poisoned cache node.
 
-## RULE C9 — Cloudflare edge cache purging strategy (MANDATORY)
-- NEVER use `purgeCloudflareUrls()` — Cloudflare URL purging is strict (exact protocol, `www` vs non-`www` matching) and silently fails on a slight mismatch.
-- **Targeted entity saves** (product, category, banner, homepage section, vertical): use Next.js `revalidateTag`/`revalidatePath` ONLY. No Cloudflare purge. Next.js ISR + `stale-while-revalidate` ensures fresh data at CDN edge without a full zone wipe.
-- **Global/layout-level saves** (theme, store settings, bulk import, `revalidateStorefrontEdge`): ALWAYS use `purgeCloudflareEverything()` — these affect every page simultaneously and targeted tags alone are insufficient.
+## RULE C9 — Cloudflare edge cache purging strategy (MANDATORY & PERMANENT)
+- **Zero-lag updates on all writes**: Whenever ANY storefront entity (product, price, variant, banner, homepage section, collection, category, store settings, footer) is mutated in admin or via webhook:
+  1. Next.js cache: `revalidateTag(tag)` (clean single-arg only — Next.js 16 compliant) + `revalidatePath(...)`.
+  2. Cloudflare Edge cache: ALWAYS call `purgeCloudflareEverything()` (`purge_everything: true`).
+- **NEVER use single-URL purge (`purgeCloudflareUrls`)**: Regional Cloudflare edge nodes (Karachi, Singapore, Muscat) do not reliably bust single URLs on free/standard zones due to protocol/host mismatches. `purge_everything: true` wipes edge cache globally in < 1 second.
 - **Post-deploy + Manual "Purge Cache" button**: ALWAYS use `purgeCloudflareEverything()`.
-- NEVER call `purgeCloudflareEverything()` inside `revalidateProduct`, `revalidateCategory`, `revalidateBanner`, `revalidateHomepage`, `revalidateVertical` — doing so causes unnecessary full-zone cache misses on every admin save (contradiction with RULE C10 targeted invalidation).
 
 ## RULE C10 — Every admin write auto-invalidates ALL cache layers (STRICT)
-Manual "Purge Cache" button sirf **emergency** ke liye hai. **Normal save ke baad kabhi bhi manual purge zaroori na ho** — har admin write khud saari cache layers invalidate kare, ek hi **shared utility** ke through (per-page/per-handler custom purge banned).
-- **Ek shared invalidation utility** (`lib/revalidate.ts`) har write path (product/variant/category/settings/AI-config create/update/delete) me call ho. Naya write path bina invalidation ke merge na ho.
-- Ek save par jo layers cover hone chahiye: **Next.js** (`revalidateTag` + `revalidatePath`), **Vercel Data Cache** (stuck ho to cache-key bump — RULE C8), **Cloudflare edge** (`purgeCloudflareEverything()` — RULE C9), aur client jahan `localStorage`/`sessionStorage` ko cache ki tarah use kar raha ho wahan explicit invalidation.
-- **No stale-data leakage**: save ke turant baad koi bhi layer purani value serve na kare (ties to [01-core-operating-principles.md](01-core-operating-principles.md) RULE OP2).
-- **Optimized DB usage (no waste)**: reads hamesha cache-first (`unstable_cache` + tag). DB tabhi hit ho jab cache cold ho ya invalidation ke baad — **ek page load = zero redundant DB queries**. Same request me ek hi data ko dobara fetch mat karo; N+1 / nested-RLS joins ban (batch-fetch — [05-database-supabase.md](05-database-supabase.md) line 10). Invalidation targeted ho (sirf affected tags/URLs) — bina zaroorat full-zone purge spam mat karo, lekin layout-level change par full purge zaroori (RULE C9).
-- Audit rule: jab bhi naya admin save banao, verify karo ki wo shared utility ko call kar raha hai — warna wahi "save hua par update nahi dikha" bug wapas aayega.
+Manual "Purge Cache" button sirf **emergency** ke liye hai. **Normal save ke baad kabhi bhi manual purge zaroori na ho** — har admin write khud saari cache layers invalidate kare, ek hi **shared utility** (`lib/revalidate.ts`) ke through.
+- **Ek shared invalidation utility** (`lib/revalidate.ts`) har write path me call ho.
+- Ek save par saari layers invalidate hon: **Next.js Tags & Paths** (`revalidateTag` + `revalidatePath`), **Vercel Data Cache** (`unstable_cache` TTL ≤ 300s), aur **Cloudflare edge** (`purgeCloudflareEverything()`).
+- **No stale-data leakage**: save ke turant baad koi bhi layer purani value serve na kare.
+
+## RULE C13 — Cloudflare Browser Cache TTL MUST be 0 (Respect Origin) (CRITICAL)
+- **Root Cause Prevention**: Cloudflare Zone Setting `browser_cache_ttl` MUST ALWAYS be set to `0` (Respect existing headers).
+- **NEVER set `browser_cache_ttl` to 14400 (4 hours) or any positive value** at the Cloudflare zone level!
+  - If set to 14400, Cloudflare injects `cache-control: max-age=14400` into every HTML page.
+  - As a result, visitor and admin browsers (Chrome, Safari, iPhone) store the page on device disk for 4 hours and refuse to ask the server again, making all admin updates appear stuck despite successful edge purges!
+- **Enforcement**:
+  - `scripts/deploy-cloudflare-rules.js` automatically patches `browser_cache_ttl = 0` during clone setup (`npm run clone:setup`).
+  - Next.js responses serve `s-maxage=300, stale-while-revalidate=...` without browser `max-age`, ensuring browsers always fetch fresh HTML from Cloudflare edge.
 
 ---
 

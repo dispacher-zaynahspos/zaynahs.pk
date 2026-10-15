@@ -52,9 +52,9 @@ When the user provides these 7 values (project ref ID auto-extracted from URL):
 
 The agent automatically:
 - **Supabase API**: executes `SUPER_MASTER_SCHEMA.sql` (tables, policies, bucket), creates storage bucket, creates 5 webhooks (products, categories, homepage_sections, store_settings, reviews).
-- **Cloudflare API**: creates 4 Cache Rules (`no-cache-dynamic`, `static-assets`, `html-pages`, `supabase-images`), 3 Page Rules (cart/checkout/my-account → bypass), DNS records (A, CNAME, TXT — all proxied/orange-cloud).
+- **Cloudflare API**: sets `browser_cache_ttl = 0` (Respect origin — prevents client 4h disk caching), creates 4 Cache Rules (`no-cache-dynamic`, `static-assets`, `html-pages`, `supabase-images`), 3 Page Rules (cart/checkout/my-account → bypass), DNS records (A, CNAME, TXT — all proxied/orange-cloud).
 - **GitHub + Vercel API**: `git init` + commit + push (via `GITHUB_TOKEN`); `npm i -g vercel` → `vercel --prod --token=$VERCEL_TOKEN`; sets Vercel env vars via API (from `.env.local`); `vercel domains add [domain]`; auto SSL enable.
-- **Verify**: cache headers (HIT/MISS/BYPASS), webhook (`revalidated:true`), CF purge API, page rules active.
+- **Verify**: cache headers (HIT/MISS/BYPASS), webhook (`revalidated:true`), CF purge API, page rules active, browser_cache_ttl verified 0.
 
 Full details: `docs/NEW_PROJECT_SETUP_GUIDE.md#agent-automation--full-setup-flow`.
 

@@ -44,23 +44,46 @@ export function HeroSlideItem({
   const imageFit = slide.image_fit || section.settings?.image_fit || 'cover';
   const objectFitClass = imageFit === 'contain' ? 'object-contain' : imageFit === 'fill' ? 'object-fill' : 'object-cover';
 
-  // Graceful fallbacks for Tablet view
-  const tabletTagline = slide.tablet_tagline || slide.tagline;
-  const tabletTitle = slide.tablet_title || slide.title;
-  const tabletSubtitle = slide.tablet_subtitle || slide.subtitle;
-  const tabletButtonText = slide.tablet_button_text || slide.button_text;
-  const tabletButtonLink = slide.tablet_button_link || slide.button_link;
-  const tabletButtonSecondaryText = slide.tablet_button_secondary_text || slide.button_secondary_text;
-  const tabletButtonSecondaryLink = slide.tablet_button_secondary_link || slide.button_secondary_link;
+  const isNonEmpty = (str?: string | null): boolean => typeof str === 'string' && str.trim().length > 0;
 
-  // Graceful fallbacks for Mobile view
-  const mobileTagline = slide.mobile_tagline || slide.tagline;
-  const mobileTitle = slide.mobile_title || slide.title;
-  const mobileSubtitle = slide.mobile_subtitle || slide.subtitle;
-  const mobileButtonText = slide.mobile_button_text || slide.button_text;
-  const mobileButtonLink = slide.mobile_button_link || slide.button_link;
-  const mobileButtonSecondaryText = slide.mobile_button_secondary_text || slide.button_secondary_text;
-  const mobileButtonSecondaryLink = slide.mobile_button_secondary_link || slide.button_secondary_link;
+  // Graceful fallbacks for Tablet view: only inherit if undefined, not if explicitly emptied
+  const tabletTagline = slide.tablet_tagline !== undefined ? slide.tablet_tagline : slide.tagline;
+  const tabletTitle = slide.tablet_title !== undefined ? slide.tablet_title : slide.title;
+  const tabletSubtitle = slide.tablet_subtitle !== undefined ? slide.tablet_subtitle : slide.subtitle;
+  const tabletButtonText = slide.tablet_button_text !== undefined ? slide.tablet_button_text : slide.button_text;
+  const tabletButtonLink = slide.tablet_button_link !== undefined ? slide.tablet_button_link : slide.button_link;
+  const tabletButtonSecondaryText = slide.tablet_button_secondary_text !== undefined ? slide.tablet_button_secondary_text : slide.button_secondary_text;
+  const tabletButtonSecondaryLink = slide.tablet_button_secondary_link !== undefined ? slide.tablet_button_secondary_link : slide.button_secondary_link;
+
+  // Graceful fallbacks for Mobile view: only inherit if undefined, not if explicitly emptied
+  const mobileTagline = slide.mobile_tagline !== undefined ? slide.mobile_tagline : slide.tagline;
+  const mobileTitle = slide.mobile_title !== undefined ? slide.mobile_title : slide.title;
+  const mobileSubtitle = slide.mobile_subtitle !== undefined ? slide.mobile_subtitle : slide.subtitle;
+  const mobileButtonText = slide.mobile_button_text !== undefined ? slide.mobile_button_text : slide.button_text;
+  const mobileButtonLink = slide.mobile_button_link !== undefined ? slide.mobile_button_link : slide.button_link;
+  const mobileButtonSecondaryText = slide.mobile_button_secondary_text !== undefined ? slide.mobile_button_secondary_text : slide.button_secondary_text;
+  const mobileButtonSecondaryLink = slide.mobile_button_secondary_link !== undefined ? slide.mobile_button_secondary_link : slide.button_secondary_link;
+
+  const hasDesktopText = Boolean(
+    isNonEmpty(slide.title) ||
+    isNonEmpty(slide.tagline) ||
+    isNonEmpty(slide.subtitle) ||
+    (slide.buttons_enabled !== false && (isNonEmpty(slide.button_text) || isNonEmpty(slide.button_secondary_text)))
+  );
+
+  const hasTabletText = Boolean(
+    isNonEmpty(tabletTitle) ||
+    isNonEmpty(tabletTagline) ||
+    isNonEmpty(tabletSubtitle) ||
+    (slide.buttons_enabled !== false && (isNonEmpty(tabletButtonText) || isNonEmpty(tabletButtonSecondaryText)))
+  );
+
+  const hasMobileText = Boolean(
+    isNonEmpty(mobileTitle) ||
+    isNonEmpty(mobileTagline) ||
+    isNonEmpty(mobileSubtitle) ||
+    (slide.buttons_enabled !== false && (isNonEmpty(mobileButtonText) || isNonEmpty(mobileButtonSecondaryText)))
+  );
 
   return (
     <div className="relative flex-grow-0 flex-shrink-0 w-full min-h-[200px] h-full overflow-hidden select-none">
@@ -187,196 +210,202 @@ export function HeroSlideItem({
       />
 
       {/* Desktop Content Container */}
-      <div
-        className={`absolute inset-0 hidden lg:flex p-16 z-10 bg-gradient-to-t from-black/40 via-transparent to-transparent ${styles.containerJustifyDesktop} ${styles.containerAlignDesktop}`}
-      >
+      {hasDesktopText && (
         <div
-          style={{ width: styles.contentWidthDesktop }}
-          className={`flex flex-col max-w-full transition-all duration-300 ${styles.textColAlignDesktop} ${styles.backdropClass}`}
+          className={`absolute inset-0 hidden lg:flex p-16 z-10 bg-gradient-to-t from-black/40 via-transparent to-transparent ${styles.containerJustifyDesktop} ${styles.containerAlignDesktop}`}
         >
-          {slide.tagline && (
-            <p style={{ color: styles.taglineColor }} className="text-xs font-extrabold uppercase tracking-widest mb-2">
-              {slide.tagline}
-            </p>
-          )}
+          <div
+            style={{ width: styles.contentWidthDesktop }}
+            className={`flex flex-col max-w-full transition-all duration-300 ${styles.textColAlignDesktop} ${styles.backdropClass}`}
+          >
+            {isNonEmpty(slide.tagline) && (
+              <p style={{ color: styles.taglineColor }} className="text-xs font-extrabold uppercase tracking-widest mb-2">
+                {slide.tagline?.trim()}
+              </p>
+            )}
 
-          {slide.title && (
-            <h1
-              style={{ color: styles.headingColor }}
-              className={`font-black tracking-tight font-serif leading-tight ${styles.headingDesktopClass}`}
-            >
-              {slide.title}
-            </h1>
-          )}
+            {isNonEmpty(slide.title) && (
+              <h1
+                style={{ color: styles.headingColor }}
+                className={`font-black tracking-tight font-serif leading-tight ${styles.headingDesktopClass}`}
+              >
+                {slide.title?.trim()}
+              </h1>
+            )}
 
-          {slide.subtitle && (
-            <p
-              style={{ color: styles.subtitleColor }}
-              className="text-xs sm:text-sm mt-3 font-medium opacity-90 leading-relaxed"
-            >
-              {slide.subtitle}
-            </p>
-          )}
+            {isNonEmpty(slide.subtitle) && (
+              <p
+                style={{ color: styles.subtitleColor }}
+                className="text-xs sm:text-sm mt-3 font-medium opacity-90 leading-relaxed"
+              >
+                {slide.subtitle?.trim()}
+              </p>
+            )}
 
-          {slide.buttons_enabled !== false && (slide.button_text || slide.button_secondary_text) && (
-            <div className="mt-6 flex flex-wrap gap-3 items-center">
-              {slide.button_text && (
-                <Link
-                  href={slide.button_link || '/shop'}
-                  style={{ backgroundColor: styles.primaryButtonBg, color: styles.primaryButtonTextColor }}
-                  className="px-6 py-2.5 text-xs font-extrabold uppercase rounded-xl transition-all shadow-md hover:brightness-110 active:scale-95 cursor-pointer"
-                >
-                  {slide.button_text}
-                </Link>
-              )}
-              {slide.button_secondary_text && (
-                <Link
-                  href={slide.button_secondary_link || '/'}
-                  style={{
-                    backgroundColor: styles.secondaryButtonBg,
-                    color: styles.secondaryButtonTextColor,
-                    borderColor:
-                      styles.secondaryButtonBg === 'transparent'
-                        ? styles.secondaryButtonTextColor
-                        : 'transparent',
-                  }}
-                  className="px-6 py-2.5 text-xs font-extrabold uppercase rounded-xl border transition-all shadow-md hover:brightness-110 active:scale-95 cursor-pointer"
-                >
-                  {slide.button_secondary_text}
-                </Link>
-              )}
-            </div>
-          )}
+            {slide.buttons_enabled !== false && (isNonEmpty(slide.button_text) || isNonEmpty(slide.button_secondary_text)) && (
+              <div className="mt-6 flex flex-wrap gap-3 items-center">
+                {isNonEmpty(slide.button_text) && (
+                  <Link
+                    href={slide.button_link || '/shop'}
+                    style={{ backgroundColor: styles.primaryButtonBg, color: styles.primaryButtonTextColor }}
+                    className="px-6 py-2.5 text-xs font-extrabold uppercase rounded-xl transition-all shadow-md hover:brightness-110 active:scale-95 cursor-pointer"
+                  >
+                    {slide.button_text?.trim()}
+                  </Link>
+                )}
+                {isNonEmpty(slide.button_secondary_text) && (
+                  <Link
+                    href={slide.button_secondary_link || '/'}
+                    style={{
+                      backgroundColor: styles.secondaryButtonBg,
+                      color: styles.secondaryButtonTextColor,
+                      borderColor:
+                        styles.secondaryButtonBg === 'transparent'
+                          ? styles.secondaryButtonTextColor
+                          : 'transparent',
+                    }}
+                    className="px-6 py-2.5 text-xs font-extrabold uppercase rounded-xl border transition-all shadow-md hover:brightness-110 active:scale-95 cursor-pointer"
+                  >
+                    {slide.button_secondary_text?.trim()}
+                  </Link>
+                )}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Tablet Content Container */}
-      <div
-        className={`absolute inset-0 hidden md:flex lg:hidden p-12 z-10 bg-gradient-to-t from-black/40 via-transparent to-transparent ${styles.containerJustifyTablet} ${styles.containerAlignTablet}`}
-      >
+      {hasTabletText && (
         <div
-          style={{ width: styles.contentWidthTablet }}
-          className={`flex flex-col max-w-full transition-all duration-300 ${styles.textColAlignTablet} ${styles.backdropClass}`}
+          className={`absolute inset-0 hidden md:flex lg:hidden p-12 z-10 bg-gradient-to-t from-black/40 via-transparent to-transparent ${styles.containerJustifyTablet} ${styles.containerAlignTablet}`}
         >
-          {tabletTagline && (
-            <p style={{ color: styles.taglineColor }} className="text-xs font-extrabold uppercase tracking-widest mb-2">
-              {tabletTagline}
-            </p>
-          )}
+          <div
+            style={{ width: styles.contentWidthTablet }}
+            className={`flex flex-col max-w-full transition-all duration-300 ${styles.textColAlignTablet} ${styles.backdropClass}`}
+          >
+            {isNonEmpty(tabletTagline) && (
+              <p style={{ color: styles.taglineColor }} className="text-xs font-extrabold uppercase tracking-widest mb-2">
+                {tabletTagline?.trim()}
+              </p>
+            )}
 
-          {tabletTitle && (
-            <h1
-              style={{ color: styles.headingColor }}
-              className={`font-black tracking-tight font-serif leading-tight ${styles.headingTabletClass}`}
-            >
-              {tabletTitle}
-            </h1>
-          )}
+            {isNonEmpty(tabletTitle) && (
+              <h1
+                style={{ color: styles.headingColor }}
+                className={`font-black tracking-tight font-serif leading-tight ${styles.headingTabletClass}`}
+              >
+                {tabletTitle?.trim()}
+              </h1>
+            )}
 
-          {tabletSubtitle && (
-            <p
-              style={{ color: styles.subtitleColor }}
-              className="text-xs sm:text-sm mt-3 font-medium opacity-90 leading-relaxed"
-            >
-              {tabletSubtitle}
-            </p>
-          )}
+            {isNonEmpty(tabletSubtitle) && (
+              <p
+                style={{ color: styles.subtitleColor }}
+                className="text-xs sm:text-sm mt-3 font-medium opacity-90 leading-relaxed"
+              >
+                {tabletSubtitle?.trim()}
+              </p>
+            )}
 
-          {slide.buttons_enabled !== false && (tabletButtonText || tabletButtonSecondaryText) && (
-            <div className="mt-6 flex flex-wrap gap-3 items-center">
-              {tabletButtonText && (
-                <Link
-                  href={tabletButtonLink || '/shop'}
-                  style={{ backgroundColor: styles.primaryButtonBg, color: styles.primaryButtonTextColor }}
-                  className="px-6 py-2.5 text-xs font-extrabold uppercase rounded-xl transition-all shadow-md hover:brightness-110 active:scale-95 cursor-pointer"
-                >
-                  {tabletButtonText}
-                </Link>
-              )}
-              {tabletButtonSecondaryText && (
-                <Link
-                  href={tabletButtonSecondaryLink || '/'}
-                  style={{
-                    backgroundColor: styles.secondaryButtonBg,
-                    color: styles.secondaryButtonTextColor,
-                    borderColor:
-                      styles.secondaryButtonBg === 'transparent'
-                        ? styles.secondaryButtonTextColor
-                        : 'transparent',
-                  }}
-                  className="px-6 py-2.5 text-xs font-extrabold uppercase rounded-xl border transition-all shadow-md hover:brightness-110 active:scale-95 cursor-pointer"
-                >
-                  {tabletButtonSecondaryText}
-                </Link>
-              )}
-            </div>
-          )}
+            {slide.buttons_enabled !== false && (isNonEmpty(tabletButtonText) || isNonEmpty(tabletButtonSecondaryText)) && (
+              <div className="mt-6 flex flex-wrap gap-3 items-center">
+                {isNonEmpty(tabletButtonText) && (
+                  <Link
+                    href={tabletButtonLink || '/shop'}
+                    style={{ backgroundColor: styles.primaryButtonBg, color: styles.primaryButtonTextColor }}
+                    className="px-6 py-2.5 text-xs font-extrabold uppercase rounded-xl transition-all shadow-md hover:brightness-110 active:scale-95 cursor-pointer"
+                  >
+                    {tabletButtonText?.trim()}
+                  </Link>
+                )}
+                {isNonEmpty(tabletButtonSecondaryText) && (
+                  <Link
+                    href={tabletButtonSecondaryLink || '/'}
+                    style={{
+                      backgroundColor: styles.secondaryButtonBg,
+                      color: styles.secondaryButtonTextColor,
+                      borderColor:
+                        styles.secondaryButtonBg === 'transparent'
+                          ? styles.secondaryButtonTextColor
+                          : 'transparent',
+                    }}
+                    className="px-6 py-2.5 text-xs font-extrabold uppercase rounded-xl border transition-all shadow-md hover:brightness-110 active:scale-95 cursor-pointer"
+                  >
+                    {tabletButtonSecondaryText?.trim()}
+                  </Link>
+                )}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Mobile Content Container */}
-      <div
-        className={`absolute inset-0 flex md:hidden p-6 z-10 bg-gradient-to-t from-black/40 via-transparent to-transparent ${styles.containerJustifyMobile} ${styles.containerAlignMobile}`}
-      >
+      {hasMobileText && (
         <div
-          style={{ width: styles.contentWidthMobile }}
-          className={`flex flex-col max-w-full transition-all duration-350 ${styles.textColAlignMobile} ${styles.backdropClass}`}
+          className={`absolute inset-0 flex md:hidden p-6 z-10 bg-gradient-to-t from-black/40 via-transparent to-transparent ${styles.containerJustifyMobile} ${styles.containerAlignMobile}`}
         >
-          {mobileTagline && (
-            <p style={{ color: styles.taglineColor }} className="text-xs font-extrabold uppercase tracking-widest mb-2">
-              {mobileTagline}
-            </p>
-          )}
+          <div
+            style={{ width: styles.contentWidthMobile }}
+            className={`flex flex-col max-w-full transition-all duration-350 ${styles.textColAlignMobile} ${styles.backdropClass}`}
+          >
+            {isNonEmpty(mobileTagline) && (
+              <p style={{ color: styles.taglineColor }} className="text-xs font-extrabold uppercase tracking-widest mb-2">
+                {mobileTagline?.trim()}
+              </p>
+            )}
 
-          {mobileTitle && (
-            <h1
-              style={{ color: styles.headingColor }}
-              className={`font-black tracking-tight font-serif leading-tight ${styles.headingMobileClass}`}
-            >
-              {mobileTitle}
-            </h1>
-          )}
+            {isNonEmpty(mobileTitle) && (
+              <h1
+                style={{ color: styles.headingColor }}
+                className={`font-black tracking-tight font-serif leading-tight ${styles.headingMobileClass}`}
+              >
+                {mobileTitle?.trim()}
+              </h1>
+            )}
 
-          {mobileSubtitle && (
-            <p
-              style={{ color: styles.subtitleColor }}
-              className="text-xs sm:text-sm mt-3 font-medium opacity-90 leading-relaxed"
-            >
-              {mobileSubtitle}
-            </p>
-          )}
+            {isNonEmpty(mobileSubtitle) && (
+              <p
+                style={{ color: styles.subtitleColor }}
+                className="text-xs sm:text-sm mt-3 font-medium opacity-90 leading-relaxed"
+              >
+                {mobileSubtitle?.trim()}
+              </p>
+            )}
 
-          {slide.buttons_enabled !== false && (mobileButtonText || mobileButtonSecondaryText) && (
-            <div className="mt-6 flex flex-wrap gap-3 items-center">
-              {mobileButtonText && (
-                <Link
-                  href={mobileButtonLink || '/shop'}
-                  style={{ backgroundColor: styles.primaryButtonBg, color: styles.primaryButtonTextColor }}
-                  className="px-6 py-2.5 text-xs font-extrabold uppercase rounded-xl transition-all shadow-md hover:brightness-110 active:scale-95 cursor-pointer"
-                >
-                  {mobileButtonText}
-                </Link>
-              )}
-              {mobileButtonSecondaryText && (
-                <Link
-                  href={mobileButtonSecondaryLink || '/'}
-                  style={{
-                    backgroundColor: styles.secondaryButtonBg,
-                    color: styles.secondaryButtonTextColor,
-                    borderColor:
-                      styles.secondaryButtonBg === 'transparent'
-                        ? styles.secondaryButtonTextColor
-                        : 'transparent',
-                  }}
-                  className="px-6 py-2.5 text-xs font-extrabold uppercase rounded-xl border transition-all shadow-md hover:brightness-110 active:scale-95 cursor-pointer"
-                >
-                  {mobileButtonSecondaryText}
-                </Link>
-              )}
-            </div>
-          )}
+            {slide.buttons_enabled !== false && (isNonEmpty(mobileButtonText) || isNonEmpty(mobileButtonSecondaryText)) && (
+              <div className="mt-6 flex flex-wrap gap-3 items-center">
+                {isNonEmpty(mobileButtonText) && (
+                  <Link
+                    href={mobileButtonLink || '/shop'}
+                    style={{ backgroundColor: styles.primaryButtonBg, color: styles.primaryButtonTextColor }}
+                    className="px-6 py-2.5 text-xs font-extrabold uppercase rounded-xl transition-all shadow-md hover:brightness-110 active:scale-95 cursor-pointer"
+                  >
+                    {mobileButtonText?.trim()}
+                  </Link>
+                )}
+                {isNonEmpty(mobileButtonSecondaryText) && (
+                  <Link
+                    href={mobileButtonSecondaryLink || '/'}
+                    style={{
+                      backgroundColor: styles.secondaryButtonBg,
+                      color: styles.secondaryButtonTextColor,
+                      borderColor:
+                        styles.secondaryButtonBg === 'transparent'
+                          ? styles.secondaryButtonTextColor
+                          : 'transparent',
+                    }}
+                    className="px-6 py-2.5 text-xs font-extrabold uppercase rounded-xl border transition-all shadow-md hover:brightness-110 active:scale-95 cursor-pointer"
+                  >
+                    {mobileButtonSecondaryText?.trim()}
+                  </Link>
+                )}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

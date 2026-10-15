@@ -242,6 +242,9 @@ async function deployRules() {
       console.error('FAILED to deploy rules:', JSON.stringify(data.errors, null, 2));
     }
     
+    // Ensure browser_cache_ttl is set to 0 (Respect origin) so clients never get stuck with 4h disk cache
+    await configureBrowserCacheTTL();
+
     // Auto deploy the DNS record as requested by the user
     console.log('Deploying google-site-verification DNS record...');
     await deployDNSRecord();
@@ -249,8 +252,53 @@ async function deployRules() {
     // Auto proxy the storefront CNAME records so cache rules actually execute
     console.log('Checking and enabling proxy (Orange Cloud) for CNAME records...');
     await proxyCNAMERecords();
+
+    // Final complete zone purge
+    await purgeZone();
   } catch (err) {
     console.error('Deployment script failed:', err.message);
+  }
+}
+
+async function configureBrowserCacheTTL() {
+  try {
+    console.log('Configuring Cloudflare Browser Cache TTL to 0 (Respect origin / No stale browser disk cache)...');
+    const res = await fetch(`https://api.cloudflare.com/client/v4/zones/${zoneId}/settings/browser_cache_ttl`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${apiToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ value: 0 })
+    });
+    const data = await res.json();
+    if (data.success) {
+      console.log('SUCCESS: Browser Cache TTL is set to 0 (Respect origin)!');
+    } else {
+      console.warn('WARN: Could not set browser_cache_ttl:', JSON.stringify(data.errors));
+    }
+  } catch (e) {
+    console.warn('Failed to configure browser_cache_ttl:', e.message);
+  }
+}
+
+async function purgeZone() {
+  try {
+    console.log('Purging Cloudflare cache everything...');
+    const res = await fetch(`https://api.cloudflare.com/client/v4/zones/${zoneId}/purge_cache`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ purge_everything: true })
+    });
+    const data = await res.json();
+    if (data.success) {
+      console.log('SUCCESS: Cloudflare cache purged successfully!');
+    }
+  } catch (e) {
+    console.warn('Failed to purge zone:', e.message);
   }
 }
 
