@@ -1,3 +1,30 @@
+## [2026-10-15] Admin Customizer Styles Not Reflecting on Live Store — ThemeStyleRegistry CSS `!important` Override
+
+**Symptom:**
+Merchant modified Footer colors (e.g. background `#c2c2c2`, text `#000000`, headings `#111827`, links `#f70202`), Header, or Hero Banner in the Admin Customizer. The Admin Customizer laptop preview showed the customized grey footer correctly. However, on the live storefront (`totvogue.pk`), the footer remained pure white, headings were bright orange, and links did not update. The merchant suspected Cloudflare cache or webhook failures, even though live HTML curl proved the server was already outputting the updated values (`style="background-color:#c2c2c2;color:#000000..."`).
+
+**Root Cause:**
+In `components/common/ThemeStyleRegistry.tsx`, global styling rules for active theme presets were defined with `!important` targeting Tailwind utility classes:
+```css
+body:not(.admin-shell) .bg-white {
+  background-color: var(--color-surface) !important;
+}
+body:not(.admin-shell) :is(h1, h2, h3, h4, h5, h6) {
+  color: var(--color-text-heading) !important;
+}
+.text-gray-500 {
+  color: var(--color-text-secondary) !important;
+}
+```
+Because `<footer className="w-full ... bg-white ... text-gray-500">` and `NavbarHeaderBar` contained default `.bg-white` and text classes, the browser gave absolute precedence to the stylesheet's `!important` rules over the element's inline `style` attribute. In the Customizer preview, `.admin-shell` was present, disabling these rules. But on the live store, `body:not(.admin-shell)` matched and completely destroyed all merchant customizations!
+
+**Fix (Permanent Architecture):**
+1. **Explicit Priority Rules in ThemeStyleRegistry:** Added dedicated CSS rules for `footer`, `header`, and customizer elements with their bound CSS variables (`--footer-bg`, `--footer-text`, `--footer-heading`, `--footer-link`, `--footer-divider`, `--header-bg`, `--header-text`), giving merchant settings absolute priority.
+2. **Excluded Header and Footer from Blanket Overrides:** Added `:not(footer):not(header)` to `.bg-white`, `.bg-surface`, and `:not(footer *):not(header *):not(.hero-banner *)` to `h1-h6` and `.text-gray-*` selectors.
+3. **Removed Default Conflicting Utility Classes:** Stripped `bg-white dark:bg-[#0f0f1b]` and `text-gray-*` from `<footer` and `<header` so inline styles and CSS variables directly control appearance.
+
+---
+
 ## [2026-10-13] Sonic Rocket Speed Optimization — 55ms TTFB, 0ms Card Navigation & Cache Architecture
 
 **Symptom:**
