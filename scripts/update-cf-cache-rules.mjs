@@ -95,7 +95,11 @@ async function processStore(store) {
         expression: htmlPagesExpr,
         description: 'html-pages',
         action: 'set_cache_settings',
-        action_parameters: { cache: true, edge_ttl: { mode: 'override_origin', default: 300 } }
+        action_parameters: {
+          cache: true,
+          edge_ttl: { mode: 'override_origin', default: 300 },
+          browser_ttl: { mode: 'override_origin', default: 0 }
+        }
       },
       {
         expression: '(http.request.full_uri contains "supabase.co")',
@@ -118,6 +122,13 @@ async function processStore(store) {
       await cfReq(store.token, `/zones/${store.zoneId}/rulesets/${cacheRuleset.id}`, 'PUT', {
         rules: standardRules
       });
+    }
+
+    // Set zone browser_cache_ttl to 0 (Respect origin) to stop clients caching HTML on device disk
+    try {
+      await cfReq(store.token, `/zones/${store.zoneId}/settings/browser_cache_ttl`, 'PATCH', { value: 0 });
+    } catch (e) {
+      console.warn(`[${store.name}] browser_cache_ttl setting warning:`, e.message);
     }
 
     return {

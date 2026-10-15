@@ -151,8 +151,8 @@ const nextConfig: NextConfig = {
         source: '/((?!api|_next|static|fonts|cart|checkout|account|login|admin).*)',
         headers: [
           {
-          key: 'Cache-Control',
-          value: 'public, max-age=60, s-maxage=300, stale-while-revalidate=60',
+            key: 'Cache-Control',
+            value: 'public, max-age=0, s-maxage=300, must-revalidate',
           },
           {
             key: 'CDN-Cache-Control',

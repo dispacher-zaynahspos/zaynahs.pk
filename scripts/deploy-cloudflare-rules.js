@@ -45,6 +45,10 @@ const payload = {
         edge_ttl: {
           mode: 'override_origin',
           default: 300
+        },
+        browser_ttl: {
+          mode: 'override_origin',
+          default: 0
         }
       }
     },
