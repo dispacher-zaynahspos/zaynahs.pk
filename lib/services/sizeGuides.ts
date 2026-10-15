@@ -74,7 +74,7 @@ export const getSizeGuides = async (): Promise<SizeGuide[]> => {
     return unstable_cache(
       async () => fetchSizeGuides(),
       ['size-guides-list'],
-      { revalidate: 86400, tags: ['size_guides'] }
+      { revalidate: 300, tags: ['size_guides'] }
     )();
   } catch {
     return fetchSizeGuides();

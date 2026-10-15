@@ -69,7 +69,7 @@ export const getSettings = async (): Promise<StoreSettings> => {
     const cachedFn = unstable_cache(
       async () => fetchSettings(),
       ['store-settings-v3'],
-      { revalidate: 86400, tags: ['settings'] }
+      { revalidate: 300, tags: ['settings'] }
     );
     return await cachedFn();
   } catch {

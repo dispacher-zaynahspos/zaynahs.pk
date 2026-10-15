@@ -56,7 +56,7 @@ export const getHomepageSections = async (onlyActive = false): Promise<HomepageS
     const cachedFn = unstable_cache(
       async () => fetchHomepageSections(onlyActive),
       [`homepage-sections-${onlyActive ? 'active' : 'all'}`],
-      { revalidate: 86400, tags: ['homepage', 'banners', 'homepage_sections'] }
+      { revalidate: 300, tags: ['homepage', 'banners', 'homepage_sections'] }
     );
     return cachedFn();
   } catch {

@@ -191,10 +191,12 @@ async function main() {
         ['scripts/vercel-setup.mjs', ...(has('deploy') ? ['--deploy'] : [])]);
     }
 
-    // 7–8) Cloudflare
+    // 7–8) Cloudflare (RULE CF-MANDATORY — cache rules are NOT optional)
     if (run('cloudflare')) {
       step('cf:dns     (A @ + CNAME www, proxied)', 'node', ['scripts/cloudflare-dns.mjs']);
-      step('cf:rules   (cache rules + proxy)', 'node', ['--env-file=.env.local', 'scripts/deploy-cloudflare-rules.js'], { optional: true });
+      step('cf:rules   (cache rules + proxy)', 'node', ['--env-file=.env.local', 'scripts/deploy-cloudflare-rules.js']);
+      // Fallback: also run the modern cache rules deployer (guaranteed 4 standard rules)
+      step('cf:cache   (4 standard cache rules)', 'node', ['scripts/update-cf-cache-rules.mjs', `--store=${store || ''}`], { optional: true });
     }
 
     // 9) Verify

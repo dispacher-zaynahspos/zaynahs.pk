@@ -6,20 +6,41 @@
 - On failure, fix root-cause from logs — no blind retry.
 - Every production deploy needs a ready rollback plan.
 
-## Mandatory post-push chain (never skip, never use background timers)
+## RULE BULK1 — Mandatory 1-Command Multi-Store Operations Engine
+All multi-store pushes, deployments, cache syncs, purges, and verifications MUST be run via the unified bulk engine:
 ```bash
-git push origin main; git push zaynahspk main; git push minimahal main; git push littlemister main; git push minioutfits main; sleep 240 && node scripts/post-deploy-fix.mjs
+npm run stores:all
 ```
-`sleep 240` blocks the terminal so the purge is guaranteed to run after Vercel finishes deploying — background schedule/timer tools get silently cancelled if the user sends a message or another background task finishes.
+This runs the complete automated pipeline across all stores in `env-backups/*.env.local`:
+1. `stores:push`: Pushes commit to all store remotes in parallel.
+2. `stores:sync-envs`: Direct Vercel REST API syncs `CLOUDFLARE_ZONE_ID`, `CLOUDFLARE_API_TOKEN`, `NEXT_PUBLIC_SITE_URL`, etc. across all environments.
+3. `stores:sync-cf`: Deploys standard Cloudflare cache rules (`no-cache-dynamic`, `static-assets`, `html-pages`, `supabase-images`) across all zones.
+4. `stores:wait`: Polls Vercel deployment API in parallel until all builds reach `READY`.
+5. `stores:purge`: Full edge purge + Next.js ISR revalidation across all stores.
+6. `stores:verify`: Automated sweep verifying TTFB, Cloudflare cache HIT, 1.0s price freshness, and relational order checkout test.
 
-`post-deploy-fix.mjs` automatically:
-1. Reads `.env.local` (current store) + ALL `env-backups/*.env.local` files.
-2. Purges Vercel ISR cache (requires `VERCEL_TOKEN` + `VERCEL_PROJECT_NAME`).
-3. Purges Cloudflare cache for EVERY store zone found.
-4. Triggers `/api/revalidate` webhook on the current store.
-5. Verifies all pages return HTTP 200.
+Individual commands:
+- `npm run stores:push`
+- `npm run stores:sync-envs`
+- `npm run stores:sync-cf`
+- `npm run stores:wait`
+- `npm run stores:purge`
+- `npm run stores:verify`
 
-If any zone/token fails → fix immediately, never skip.
+Never run manual sequential multi-store steps or individual git pushes. Always use `stores:*`.
+
+## RULE VERCEL-QUOTA — Zero Wasteful Deploys / Single Final Deploy Policy
+⚠️ **Vercel Free Tier limits build time (~4–6 build hours per month per account). Repeated intermediate deploys burn the monthly quota and block the account.**
+1. **Local-First Verification ALWAYS**:
+   - Every feature, UI tweak, bug fix, or schema change MUST be verified locally first (`npm run prebuild`, local syntax & type verification).
+   - Never push intermediate or exploratory trial-and-error commits.
+2. **Batch All Changes Into ONE Final Deploy**:
+   - Complete 100% of the requested task in local files first.
+   - Do NOT push after every single file edit.
+   - Only trigger `git push` / `npm run stores:all` as the **ONE SINGLE FINAL STEP** when everything is completely done.
+3. **Save Build Minutes**:
+   - If an operation is purely configuration or API-based (e.g. Supabase migrations, Cloudflare cache rules, DB triggers, Vercel env updates), perform it via API WITHOUT triggering a new Next.js production build.
+   - Only code changes that alter Next.js bundles warrant a Vercel build.
 
 ## RULE AUTO1 — Agent automation flow (clone/setup)
 When the user provides these 7 values (project ref ID auto-extracted from URL):
@@ -190,3 +211,18 @@ For each store in the sequence, execute and document these 5 steps before touchi
 5. **Circuit Breaker (Stop on Failure):**
    If ANY check or test fails or exhibits regressions on store `N`, **HALT IMMEDIATELY**. Do not proceed to store `N+1`. Provide the measured numbers, diagnosis, and rollback plan.
 
+---
+
+## RULE CF-MANDATORY — Cloudflare Cache Rules Are Non-Negotiable (STRICT)
+**Post-mortem (2026-10):** 4 out of 5 stores had NO Cloudflare cache rules after clone setup, causing 2-7s TTFB (origin round-trip to US) and admin changes not reflecting because CF had nothing to purge. TotVogue had rules but still had stale issues due to `revalidateTag` bug (see RULE C12).
+
+### Rules
+1. **`clone-setup.mjs` step `cf:rules` is MANDATORY** — NOT `{ optional: true }`. If CF cache rules fail to deploy, the clone setup MUST fail and report the error. No store ships without cache rules.
+2. **`check-setup-sync.mjs` MUST verify CF cache rules** on every `prebuild` / `npm run check:setup`. For each store in `env-backups/`, call CF API to verify the `http_request_cache_settings` ruleset has ≥ 3 rules. Block build if any store is missing rules.
+3. **After every `stores:all` or `stores:sync-cf`**, verify CF cache rules are deployed on all stores. The `stores:verify` step MUST check `cf-cache-status: HIT` (not DYNAMIC or MISS on warm requests).
+4. **Standard 4 CF cache rules** (deployed by `update-cf-cache-rules.mjs`):
+   - `no-cache-dynamic`: bypass for /cart, /checkout, /account, /api, /admin, /wishlist, /order, /login, /signup
+   - `static-assets`: `/_next/static/*` → 1 year edge TTL
+   - `html-pages`: all other pages → 300s (5 min) edge TTL
+   - `supabase-images`: supabase.co images → 30 day edge TTL
+5. **If a store's CF `cf-cache-status` shows DYNAMIC or persistent MISS**, investigate immediately — likely cache rules are missing or the zone is in "Development Mode" (disables caching).

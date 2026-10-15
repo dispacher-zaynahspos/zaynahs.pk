@@ -52,3 +52,43 @@ Ye idempotent orchestrator chalata hai: preflight → db:schema → db:webhooks 
 - Secrets kabhi chat/logs/commit me plaintext mat chhodo (sirf `env-backups/` me, jo `.gitignore` me hai).
 - Already-live store par `--skip-db` do (warna `db:brand` brand text overwrite kar dega).
 - Fresh clone ke baad `npm run check:setup` green hona chahiye (RULE SYNC1).
+
+## STEP 5 — Agent MANDATORY post-setup verification (RULE C12 + CF-MANDATORY)
+**Clone setup tabhi complete maano jab ye sab green ho:**
+
+### 5a. CF Cache Rules verified
+```bash
+# Verify CF cache rules exist on the new store
+node scripts/update-cf-cache-rules.mjs --store=<store>
+# Expected: DEPLOYED ✅, RulesCount: 4
+```
+Agar 0 rules → `clone-setup.mjs` ka `cf:rules` step fail hua tha. Re-run karein.
+
+### 5b. Cache headers correct
+```bash
+curl -sI https://www.<domain>/ | grep -i "cache-control\|stale-while-revalidate\|cf-cache"
+# Expected:
+#   cache-control: ...s-maxage=300...
+#   stale-while-revalidate should be ≤ 300 (NOT 31535700!)
+#   cf-cache-status: HIT (2nd request pe)
+```
+Agar `stale-while-revalidate=31535700` dikhe → `unstable_cache revalidate` galat hai (86400 nahi, 300 hona chahiye).
+
+### 5c. Admin save → storefront freshness test
+```bash
+# 1. Admin se koi setting change karo (e.g. ticker text)
+# 2. 30 seconds wait karo
+# 3. Storefront pe check karo — change dikhna chahiye
+# Agar nahi dikhe → revalidateTag bug hai (C12.1 check karo)
+```
+
+### 5d. Webhook test
+```bash
+curl -X POST https://www.<domain>/api/revalidate \
+  -H "Content-Type: application/json" \
+  -H "x-revalidate-secret: $REVALIDATE_SECRET" \
+  -d '{"type":"UPDATE","table":"store_settings","record":{}}'
+# Expected: {"revalidated":true,"table":"store_settings","type":"UPDATE"}
+```
+
+> **Ye steps skip karna BANNED hai.** 2026-10 me 4 stores bina CF rules ke ship ho gaye the — admin changes storefront pe nazar nahi aate the weeks tak. RULE C12 + CF-MANDATORY ka reference: `docs/agent-rules/08-caching-isr-ssr.md` aur `docs/agent-rules/07-deployment-vercel-cloudflare.md`.

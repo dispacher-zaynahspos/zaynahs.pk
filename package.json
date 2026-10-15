@@ -24,7 +24,14 @@
     "purge:network": "node scripts/purge-all-caches.mjs",
     "db:migrate:all": "node scripts/apply-migration-all-stores.mjs",
     "vercel:cleanup": "node scripts/cleanup-all-old-deployments.mjs",
-    "verify:network": "node scripts/verify-store-network.mjs"
+    "verify:network": "node scripts/verify-store-network.mjs",
+    "stores:all": "node scripts/stores-bulk-ops.mjs all",
+    "stores:push": "node scripts/stores-bulk-ops.mjs push",
+    "stores:sync-envs": "node scripts/stores-bulk-ops.mjs sync-envs",
+    "stores:sync-cf": "node scripts/stores-bulk-ops.mjs sync-cf",
+    "stores:wait": "node scripts/stores-bulk-ops.mjs wait",
+    "stores:purge": "node scripts/stores-bulk-ops.mjs purge",
+    "stores:verify": "node scripts/stores-bulk-ops.mjs verify"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

@@ -18,7 +18,7 @@ import { getDomainBrand, cleanBrandName } from '@/lib/utils/getDomainBrand';
 import { Metadata } from 'next';
 import Breadcrumb from '@/components/Breadcrumb';
 
-export const revalidate = 86400; // 24 hours — webhooks purge on admin save
+export const revalidate = 300; // 5 min — webhooks purge on admin save (RULE C12.3)
 export const dynamicParams = true; // allow new slugs added after build
 
 export async function generateStaticParams() {

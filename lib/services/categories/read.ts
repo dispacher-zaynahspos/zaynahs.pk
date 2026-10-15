@@ -82,7 +82,7 @@ export const getCategoryBySlug = async (slug: string): Promise<Category | null> 
     const cachedFn = unstable_cache(
       async () => fetchCategoryBySlug(slug),
       [`category-by-slug-${slug}`],
-      { revalidate: 86400, tags: [`category-${slug}`, 'categories'] }
+      { revalidate: 300, tags: [`category-${slug}`, 'categories'] }
     );
     return cachedFn();
   } catch {

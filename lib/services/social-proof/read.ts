@@ -33,7 +33,7 @@ export const getTopSocialProofs = async (limit: number = 2): Promise<SocialProof
     const cachedFn = unstable_cache(
       (lim: number) => fetchTopSocialProofs(lim),
       ['top-social-proofs-list'],
-      { revalidate: 86400, tags: ['social_proof'] }
+      { revalidate: 300, tags: ['social_proof'] }
     );
     return cachedFn(limit);
   } catch {

@@ -74,7 +74,7 @@ export const getRelatedProducts = cache(async (productId: string, categoryId?: s
     const cachedFn = unstable_cache(
       async () => fetchRelatedProducts(productId, categoryId, limit),
       [`related-products-${productId}-${categoryId || 'none'}-${limit}`],
-      { revalidate: 86400, tags: [`product-${productId}`, 'products'] }
+      { revalidate: 300, tags: [`product-${productId}`, 'products'] }
     );
     return cachedFn();
   } catch {
@@ -140,7 +140,7 @@ export const getProductBySlug = cache(async (slug: string) => {
     const cachedFn = unstable_cache(
       async () => fetchProductBySlug(decodedSlug),
       [`product-by-slug-${safeTag}`],
-      { revalidate: 86400, tags: [`product-${safeTag}`, 'products'] }
+      { revalidate: 300, tags: [`product-${safeTag}`, 'products'] }
     );
     return cachedFn();
   } catch {

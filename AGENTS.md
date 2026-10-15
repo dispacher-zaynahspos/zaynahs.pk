@@ -19,7 +19,7 @@ Stores: **TotVogue · Zaynahs · MiniMahal · LittleMister** (+ future clones)
 7. **Agent executes** — run terminal commands autonomously; never ask user to run commands manually unless truly required.
 8. **Fast & direct** — don't waste tokens on unnecessary MCP tools/browsing/file reads; resolve via direct code analysis.
 9. **Product card changes** → MUST follow `docs/prompts/add_card_style_prompt.md` step-by-step and `docs/UI_CARDS.md` (see [14-design-system.md](docs/agent-rules/14-design-system.md) RULE DS2 & RULE BASE-CARDS).
-10. Instant price/cache rule (RULE D12) → see [08-caching-isr-ssr.md](docs/agent-rules/08-caching-isr-ssr.md).
+10. Instant price/cache rule (RULE D12) → see [08-caching-isr-ssr.md](docs/agent-rules/08-caching-isr-ssr.md). **Cache invalidation correctness (RULE C12)** — `revalidateTag` single-arg only, CDN s-maxage ≤ ISR revalidate, `unstable_cache` revalidate ≤ 300s. **CF cache rules mandatory (RULE CF-MANDATORY)** → see [07-deployment-vercel-cloudflare.md](docs/agent-rules/07-deployment-vercel-cloudflare.md).
 11. Instant 0ms navigation & tabs across all functional tabs (Categories, Products, Reviews, Cart, Settings) (RULE F1) → see [03-frontend-nextjs-react.md](docs/agent-rules/03-frontend-nextjs-react.md) and `docs/UI_PERFORMANCE_GUIDE.md` Section 8.
 12. **Single Source of Truth (SSOT1)** — zero duplicate implementations; any feature that appears in 2+ places must reuse ONE shared component/logic/data source. Before writing new code, check if it already exists. → see [27-single-source-of-truth.md](docs/agent-rules/27-single-source-of-truth.md).
 13. **snake_case only (D13), UUID PK (D14), atomic writes (D15), RLS on every data table** → see [05-database-supabase.md](docs/agent-rules/05-database-supabase.md). Cache invalidation on every write via one shared utility (C10) → see [08-caching-isr-ssr.md](docs/agent-rules/08-caching-isr-ssr.md).
@@ -42,7 +42,7 @@ Full-system audit + permanent fixes are documented in `docs/AUDIT_PASS{0..10}_*.
 | 04 | [04-backend-api-routes.md](docs/agent-rules/04-backend-api-routes.md) | API validation, error handling, rate limits |
 | 05 | [05-database-supabase.md](docs/agent-rules/05-database-supabase.md) | Schema, RLS, D1–D12, master schema |
 | 06 | [06-git-github.md](docs/agent-rules/06-git-github.md) | Commits, branches, secrets |
-| 07 | [07-deployment-vercel-cloudflare.md](docs/agent-rules/07-deployment-vercel-cloudflare.md) | Deploy checklist, rollback, purge, RULE ROLLOUT1 (1-by-1 store rollout for big/high-impact changes vs normal apply all; stores read from `env-backups/`) |
+| 07 | [07-deployment-vercel-cloudflare.md](docs/agent-rules/07-deployment-vercel-cloudflare.md) | Deploy checklist, rollback, purge, RULE ROLLOUT1, RULE BULK1 (1-command parallel engine `npm run stores:all` for all push, env-sync, CF cache, wait, purge, verify), RULE VERCEL-QUOTA (Zero wasteful deploys; batch all changes locally, single final deploy only to preserve free tier monthly build limits) |
 | 08 | [08-caching-isr-ssr.md](docs/agent-rules/08-caching-isr-ssr.md) | C1–C9, ISR, instant price updates |
 | 09 | [09-ecommerce-pos.md](docs/agent-rules/09-ecommerce-pos.md) | Stock, payments, PKR formatting |
 | 10 | [10-whatsapp-order-flow.md](docs/agent-rules/10-whatsapp-order-flow.md) | W1–W2, message format |

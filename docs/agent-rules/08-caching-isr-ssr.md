@@ -10,14 +10,14 @@ Social proofs, banners, recommendations — anything non-critical must be:
 - Default to `[]`, let client-side fetch populate.
 
 ## ISR pattern
-`export const revalidate = 86400` on all storefront pages. Webhooks purge cache on admin save (`revalidateTag`, `revalidatePath`, Cloudflare purge).
+`export const revalidate = 300` on all storefront pages (RULE C12.3 — max 5 min, never 86400). Webhooks purge cache on admin save (`revalidateTag`, `revalidatePath`, Cloudflare purge).
 
 ## Server/client split for site-url
 - `lib/site-url-server.ts` = server-only (`next/headers`) — never import in client components.
 - `lib/site-url.ts` = client-safe (`window.location.origin`), no `next/headers`.
 
 ## Cloudflare cache override
-Always set `cdn-cache-control: public, s-maxage=86400, stale-while-revalidate=60` — this makes Cloudflare cache even pages with `cache-control: private`.
+Always set `cdn-cache-control: public, s-maxage=300, stale-while-revalidate=60` — CDN s-maxage MUST be ≤ ISR revalidate (RULE C12.2). Never use s-maxage=86400 — it causes 24h stale pages.
 
 ## New feature caching checklist (whenever a new DB-driven page/feature is added)
 1. Wrap data fetches in `unstable_cache(fn, keyParts, { revalidate: 3600, tags: [tag] })` in `lib/services/`.
@@ -25,12 +25,14 @@ Always set `cdn-cache-control: public, s-maxage=86400, stale-while-revalidate=60
 3. Call the revalidation helper inside the corresponding `create`/`update`/`delete` service functions.
 4. Update `app/api/revalidate/route.ts` to route Supabase DB-trigger webhooks for the new table.
 
-## Next.js 16 type-safety standard
-`revalidateTag` type expects 2 args at compile time, runtime only needs 1. MUST cast to `any`:
-```ts
-(revalidateTag as any)('your-cache-tag');
-```
-Never call `revalidateTag('tag')` directly — TS compile fails with `TS2554`.
+## Next.js 16 revalidateTag — legacy model (RULE C12.1)
+This project does NOT use `cacheComponents: true`, so we're on the **Previous Model**.
+- `revalidateTag(tag: string)` — single argument ONLY. No second arg.
+- ❌ NEVER: `revalidateTag(tag, { expire: 0 })` — invalid, silently ignored
+- ❌ NEVER: `revalidateTag(tag, 'max')` — only for cacheComponents model
+- ✅ ALWAYS: `revalidateTag(tag)` — plain call
+- The `safeTag` wrapper in `lib/revalidate.ts` already handles this correctly.
+- If TS compile fails, cast: `(revalidateTag as any)('tag')` — but single-arg should work.
 
 ## Automated cache/webhook/DNS setup
 For new forks: use the 1-click terminal commands in `docs/CLOUDFLARE_SUPABASE_SETUP.md` (DB webhooks, Cloudflare cache rules, `google-site-verification` DNS TXT record) instead of manual dashboard work. The Cloudflare deployer script auto-creates/updates the DNS TXT record matching `GOOGLE_SITE_VERIFICATION` in `.env.local`.
@@ -179,3 +181,51 @@ Verified 2026-10 (see `docs/AUDIT_DATA_LOADING_2026-10.md`). Applies to every li
 - **Checklist for every new list/page:** (1) page 1 only on first load, (2) server pagination, (3) needed columns only, (4) index for its filter/sort, (5) thumbnails + lazy images, (6) cached (storefront) or no-store (admin), (7) brand-scoped, (8) sentinel + fallback + skeleton + end state.
 
 > NOTE (known debt, tracked in audit): home/shop/inventory currently load the full catalog then client-slice. Convert to true server pagination per this rule as the next milestone.
+
+## RULE C12 — Cache Invalidation Correctness (MANDATORY — NEVER BREAK)
+**Root cause (2026-10 post-mortem):** Admin changes were invisible on storefront across ALL 5 stores because of 3 interacting cache bugs. These rules prevent recurrence PERMANENTLY.
+
+### C12.1 — `revalidateTag` signature (Next.js 16 legacy model)
+- **Project does NOT use `cacheComponents: true`** → we are on the **"Previous Model"** (`unstable_cache` + `revalidateTag`).
+- In Next.js 16 legacy model: `revalidateTag(tag: string)` — **NO second argument**. The old `{ expire: 0 }` pattern is INVALID and silently ignored, causing stale-while-revalidate to serve old content indefinitely.
+- ❌ **NEVER**: `revalidateTag(tag, { expire: 0 })` — does nothing, stale forever
+- ❌ **NEVER**: `revalidateTag(tag, 'max')` — that's for `cacheComponents` model only
+- ✅ **ALWAYS**: `revalidateTag(tag)` — plain single-arg call
+- The `safeTag` wrapper in `lib/revalidate.ts` MUST call `mod.revalidateTag(tag)` with NO second arg.
+- `app/api/revalidate/route.ts` direct calls MUST also be single-arg.
+
+### C12.2 — CDN `s-maxage` ≤ ISR `revalidate` (cache coherence)
+- `next.config.ts` `CDN-Cache-Control: s-maxage` MUST be ≤ the `unstable_cache({ revalidate })` value.
+- If ISR revalidate = 300s (5 min), CDN s-maxage MUST be ≤ 300s.
+- Otherwise CF/Vercel edge serves stale for hours/days even after ISR regeneration.
+- Current correct values: `s-maxage=300, stale-while-revalidate=60` for storefront HTML.
+
+### C12.3 — `unstable_cache` revalidate ≤ 300s for storefront-visible data
+- Settings, homepage sections, banners, products — any data that admin can change and should appear on storefront — MUST use `revalidate: 300` (5 min max), NOT 86400.
+- `revalidate: 86400` causes Vercel to add `stale-while-revalidate: 31535700` (365 DAYS!) to the response → stale content served for up to a year after tag invalidation.
+- `revalidate: 300` → `stale-while-revalidate` window is small → changes visible within minutes even if tag purge has issues.
+
+### C12.4 — Every admin save MUST trigger CF zone purge for settings/layout changes
+- `revalidateSettings()` MUST call `purgeCloudflareEverything()` — always.
+- `revalidateBanner()` / `revalidateHomepage()` MUST at minimum do targeted CF URL purge.
+- Customizer save calls `/api/revalidate-customizer` which does both Next.js + CF purge.
+- After CF purge, next visitor gets fresh page from Vercel origin.
+
+### C12.5 — Clone setup MUST verify CF cache rules exist (SYNC check)
+- `check-setup-sync.mjs` MUST verify every store in `env-backups/` has Cloudflare cache rules deployed.
+- `clone-setup.mjs` step `cf:rules` MUST NOT be `{ optional: true }` — it's mandatory.
+- Missing CF cache rules = storefront serves origin-only (2-7s TTFB) + no edge caching = terrible UX.
+
+### C12.6 — Verification after ANY cache-related change
+After touching revalidation, caching, CDN headers, or CF rules, run this verification:
+```bash
+# 1. Check cache headers are correct
+curl -sI https://www.totvogue.pk/ | grep -i "cache-control\|stale-while-revalidate\|cf-cache"
+# Expected: s-maxage=300, stale-while-revalidate=60, cf-cache-status: HIT
+
+# 2. Test admin save → storefront freshness
+node scripts/verify-store-network.mjs
+
+# 3. Verify all stores have CF cache rules
+node scripts/update-cf-cache-rules.mjs
+```

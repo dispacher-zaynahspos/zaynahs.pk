@@ -42,7 +42,7 @@ export const getProductReviews = async (productId: string): Promise<Review[]> =>
     return unstable_cache(
       () => fetchProductReviews(productId),
       [`product-reviews-list-${productId}`],
-      { revalidate: 86400, tags: [`reviews-${productId}`, 'reviews'] }
+      { revalidate: 300, tags: [`reviews-${productId}`, 'reviews'] }
     )();
   } catch {
     return fetchProductReviews(productId);
@@ -159,7 +159,7 @@ export const getAverageRating = async (productId: string): Promise<{ average: nu
     return unstable_cache(
       () => fetchAverageRating(productId),
       [`product-average-rating-${productId}`],
-      { revalidate: 86400, tags: [`reviews-${productId}`, 'reviews'] }
+      { revalidate: 300, tags: [`reviews-${productId}`, 'reviews'] }
     )();
   } catch {
     return fetchAverageRating(productId);
@@ -217,7 +217,7 @@ export const getTopReviews = async (limit: number = 8): Promise<(Review & { prod
     return unstable_cache(
       (lim: number) => fetchTopReviews(lim),
       ['top-reviews-list'],
-      { revalidate: 86400, tags: ['reviews'] }
+      { revalidate: 300, tags: ['reviews'] }
     )(limit);
   } catch {
     return fetchTopReviews(limit);

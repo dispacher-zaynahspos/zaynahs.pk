@@ -24,7 +24,7 @@ async function getCacheMethods(): Promise<{ revalidateTag: RevalidateTagFn; reva
     const safeTag: RevalidateTagFn = (tag: string) => {
       try {
         if (typeof mod?.revalidateTag === 'function') {
-          mod.revalidateTag(tag, { expire: 0 });
+          mod.revalidateTag(tag);
         }
       } catch (err) {
         console.warn(`[revalidateTag] Failed for tag ${tag}:`, err);
