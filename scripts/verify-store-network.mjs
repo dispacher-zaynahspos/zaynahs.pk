@@ -61,13 +61,19 @@ async function sleep(ms) {
 }
 
 async function measureSpeed(url) {
-  const t0 = Date.now();
   try {
-    const res = await fetch(url, { headers: { 'User-Agent': 'NetworkVerifier/2.0' } });
+    // Realistic browser headers so Cloudflare delivers Brotli-compressed response
+    const headers = {
+      'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+      'Accept-Encoding': 'gzip, deflate, br, zstd',
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    };
+    const t0 = Date.now();
+    const res = await fetch(url, { headers });
     const t1 = Date.now();
     const cf = res.headers.get('cf-cache-status') || 'unknown';
     const vercel = res.headers.get('x-vercel-cache') || 'unknown';
-    await res.text();
+    await res.arrayBuffer();
     return { timeMs: t1 - t0, cf, vercel, status: res.status };
   } catch (err) {
     return { timeMs: -1, cf: 'ERR', vercel: 'ERR', status: 500, error: err.message };
