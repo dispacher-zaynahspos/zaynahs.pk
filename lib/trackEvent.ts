@@ -19,9 +19,22 @@ export function trackEvent(eventName: string, params: Record<string, unknown> = 
       twq?: (...args: unknown[]) => void;
     };
 
+    // Normalize currency if present to standard 3-letter ISO code (PKR, USD, etc.)
+    const cleanParams: Record<string, unknown> = { ...params };
+    if ('currency' in cleanParams) {
+      const c = String(cleanParams.currency || '').trim().toUpperCase();
+      if (!c || c === 'RS' || c === 'RS.' || c === 'PKR') {
+        cleanParams.currency = 'PKR';
+      } else if (/^[A-Z]{3}$/.test(c)) {
+        cleanParams.currency = c;
+      } else {
+        cleanParams.currency = 'PKR';
+      }
+    }
+
     // 1. Meta Pixel (Facebook)
     if (typeof w.fbq === 'function') {
-      w.fbq('track', eventName, params);
+      w.fbq('track', eventName, cleanParams);
     }
 
     // 2. Google Analytics (GA4)

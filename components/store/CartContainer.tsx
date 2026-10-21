@@ -85,17 +85,32 @@ export default function CartContainer({ settings, initialCustomer }: CartContain
     router,
   } = useCartContainerState(settings, initialCustomer);
 
-  if (view === 'success' && placedOrder) {
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (placedOrder || view === 'success') {
+    if (placedOrder) {
+      return (
+        <CartSuccessView
+          placedOrder={placedOrder}
+          settings={settings}
+          onContinueShopping={() => {
+            localStorage.removeItem('last_placed_order');
+            setPlacedOrder(null);
+            router.push('/');
+          }}
+        />
+      );
+    }
+  }
+
+  if (!mounted) {
     return (
-      <CartSuccessView
-        placedOrder={placedOrder}
-        settings={settings}
-        onContinueShopping={() => {
-          localStorage.removeItem('last_placed_order');
-          setPlacedOrder(null);
-          router.push('/');
-        }}
-      />
+      <div className="min-h-[50vh] flex items-center justify-center">
+        <div className="h-8 w-8 rounded-full border-2 border-[#EA580C] border-t-transparent animate-spin" />
+      </div>
     );
   }
 

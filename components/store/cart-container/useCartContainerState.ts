@@ -45,14 +45,17 @@ export function useCartContainerState(
 
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [localView, setLocalView] = useState<CartView | null>(null);
   const view: CartView =
-    searchParams.get('step') === 'checkout'
+    localView ||
+    (searchParams.get('step') === 'checkout'
       ? 'checkout'
       : searchParams.get('step') === 'success'
       ? 'success'
-      : 'cart';
+      : 'cart');
 
   const setView = (newView: CartView) => {
+    setLocalView(newView);
     if (newView === 'checkout') {
       router.push('/cart?step=checkout');
     } else if (newView === 'success') {
@@ -325,18 +328,18 @@ export function useCartContainerState(
 
       localStorage.setItem('last_placed_order', JSON.stringify(orderData));
       setPlacedOrder(orderData);
+      setLocalView('success');
       setSubmitError(null);
 
-      try {
-        await markOrdered(order.id);
-      } catch {}
+      // Non-blocking markOrdered (never delays customer transition)
+      markOrdered(order.id).catch(() => {});
 
       if (typeof window !== 'undefined') {
         localStorage.removeItem('zaynahs_cart_session');
       }
 
       clearCart();
-      router.push('/cart?step=success');
+      router.replace('/cart?step=success');
 
       // WhatsApp Redirect (safe from popup blockers via window.location.assign)
       if (settings.enable_whatsapp_redirect !== false) {

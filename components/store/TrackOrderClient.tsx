@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Search, Package } from '@/components/common/Icons';
 import PhoneInput from '@/components/store/PhoneInput';
 import { trackOrder, type TrackOrderResult } from '@/lib/services/orders';
@@ -8,32 +9,54 @@ import { isValidPkMobile } from '@/lib/phone';
 import OrderResultCard from '@/components/store/OrderResultCard';
 
 export default function TrackOrderClient({ currencySymbol = 'Rs.' }: { currencySymbol?: string }) {
-  const [orderNumber, setOrderNumber] = useState('');
-  const [phone, setPhone] = useState('');
+  const searchParams = useSearchParams();
+  const [orderNumber, setOrderNumber] = useState(searchParams?.get('order') || searchParams?.get('orderNumber') || '');
+  const [phone, setPhone] = useState(searchParams?.get('phone') || '');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<TrackOrderResult | null>(null);
 
+  const autoSubmittedRef = useRef(false);
+
   const canSubmit = orderNumber.trim().length > 0 && isValidPkMobile(phone);
 
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!canSubmit || loading) return;
+  const executeLookup = async (num: string, ph: string) => {
+    if (!num.trim() || !isValidPkMobile(ph) || loading) return;
     setLoading(true);
     setResult(null);
     try {
-      setResult(await trackOrder(orderNumber, phone));
+      const res = await trackOrder(num, ph);
+      setResult(res);
+    } catch {
+      setResult({ ok: false, error: 'Could not fetch order. Please check details and try again.' });
     } finally {
       setLoading(false);
     }
   };
+
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!canSubmit) return;
+    await executeLookup(orderNumber, phone);
+  };
+
+  // Auto-search if valid order and phone were provided in URL
+  useEffect(() => {
+    if (!autoSubmittedRef.current && orderNumber.trim() && isValidPkMobile(phone)) {
+      autoSubmittedRef.current = true;
+      executeLookup(orderNumber, phone);
+    }
+  }, [orderNumber, phone]);
 
   const order = result?.order;
 
   return (
     <div className="mx-auto max-w-2xl px-4 pt-28 sm:pt-32 pb-16">
       <div className="text-center mb-6">
-        <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl" style={{ backgroundColor: 'var(--color-primary, #C2185B)' }}>
-          <Package className="h-6 w-6 text-white" />
+        <div
+          className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl shadow-sm text-white"
+          style={{ backgroundColor: 'var(--color-primary, #EA580C)' }}
+        >
+          <Package className="h-6 w-6" />
         </div>
         <h1 className="text-xl font-black tracking-tight text-gray-900 dark:text-white">Track Your Order</h1>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
@@ -41,9 +64,16 @@ export default function TrackOrderClient({ currencySymbol = 'Rs.' }: { currencyS
         </p>
       </div>
 
-      <form onSubmit={onSubmit} noValidate className="space-y-4 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] p-5 shadow-sm">
+      <form
+        onSubmit={onSubmit}
+        noValidate
+        className="space-y-4 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] p-5 shadow-sm"
+      >
         <div>
-          <label htmlFor="track-order-number" className="block text-[10px] font-black uppercase tracking-wider text-gray-400 mb-1.5">
+          <label
+            htmlFor="track-order-number"
+            className="block text-[10px] font-black uppercase tracking-wider text-gray-400 mb-1.5"
+          >
             Order Number<span className="text-red-500 ml-0.5">*</span>
           </label>
           <input
@@ -52,8 +82,8 @@ export default function TrackOrderClient({ currencySymbol = 'Rs.' }: { currencyS
             inputMode="text"
             value={orderNumber}
             onChange={(e) => setOrderNumber(e.target.value)}
-            placeholder="e.g. ZN-10234"
-            className="w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-[#0f0f1b]/50 px-4 py-3 text-sm font-medium text-gray-900 dark:text-white placeholder:text-gray-400 placeholder:font-normal placeholder:italic focus:border-[#e94560] focus:bg-white dark:focus:bg-[#16162a] focus:outline-none transition-all"
+            placeholder="e.g. TV-6473"
+            className="w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-[#0f0f1b]/50 px-4 py-3 text-sm font-medium text-gray-900 dark:text-white placeholder:text-gray-400 placeholder:font-normal placeholder:italic focus:border-[#EA580C] focus:bg-white dark:focus:bg-[#16162a] focus:outline-none transition-all"
           />
         </div>
 
@@ -62,18 +92,22 @@ export default function TrackOrderClient({ currencySymbol = 'Rs.' }: { currencyS
         <button
           type="submit"
           disabled={!canSubmit || loading}
-          style={{ backgroundColor: 'var(--color-primary, #C2185B)' }}
-          className="flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold text-white shadow-sm transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+          style={{ backgroundColor: 'var(--color-primary, #EA580C)' }}
+          className="flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold text-white shadow-sm transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         >
           {loading ? (
             <span className="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
           ) : (
-            <><Search className="h-4 w-4" /> Track Order</>
+            <>
+              <Search className="h-4 w-4" /> Track Order
+            </>
           )}
         </button>
 
         {result && !result.ok && (
-          <p role="alert" className="text-center text-[13px] font-semibold text-red-500">{result.error}</p>
+          <p role="alert" className="text-center text-[13px] font-semibold text-red-500">
+            {result.error}
+          </p>
         )}
       </form>
 

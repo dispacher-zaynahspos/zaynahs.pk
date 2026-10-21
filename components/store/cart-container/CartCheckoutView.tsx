@@ -316,16 +316,19 @@ export default function CartCheckoutView({
             <button
               type="submit"
               disabled={loading}
-              className={`relative overflow-hidden flex w-full items-center justify-center gap-2.5 rounded-2xl transition-all duration-200 shadow-lg shadow-red-500/20 cursor-pointer active:scale-98 text-white px-5 py-4.5 text-base font-black ${
-                loading ? 'bg-[#d8344e] disabled:cursor-not-allowed' : 'bg-[#e94560] hover:bg-[#d8344e]'
+              style={{ backgroundColor: 'var(--color-primary, #EA580C)' }}
+              className={`relative overflow-hidden flex w-full items-center justify-center gap-2.5 rounded-2xl transition-all duration-200 shadow-lg shadow-black/10 cursor-pointer active:scale-98 text-white px-5 py-4.5 text-base font-black ${
+                loading ? 'opacity-95 cursor-wait' : 'hover:brightness-105'
               }`}
             >
               {loading && (
-                <div className="absolute inset-0 flex items-center justify-center rounded-[inherit] pointer-events-none z-10 bg-inherit">
-                  <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
-                  <div className="flex items-center gap-2 relative z-10">
+                <div
+                  className="absolute inset-0 flex items-center justify-center rounded-[inherit] pointer-events-none z-10"
+                  style={{ backgroundColor: 'var(--color-primary, #EA580C)' }}
+                >
+                  <div className="flex items-center gap-2.5 relative z-10 text-white">
                     <div className="h-5 w-5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
-                    <span>Processing...</span>
+                    <span className="font-extrabold tracking-wide">Processing Order...</span>
                   </div>
                 </div>
               )}

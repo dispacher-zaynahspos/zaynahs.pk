@@ -61,24 +61,27 @@ export const createOrder = async (order: {
         const orderPhone = order.customerPhone ? normalizePkPhone(order.customerPhone) : null;
 
         let byEmail: CustomerLookupRow | null = null;
-        if (orderEmail) {
-          const { data } = await supabaseAdmin
-            .from('customers')
-            .select('id, phone, email, password_hash')
-            .eq('email', orderEmail)
-            .maybeSingle();
-          byEmail = data;
-        }
-
         let byPhone: CustomerLookupRow | null = null;
-        if (orderPhone) {
-          const { data } = await supabaseAdmin
-            .from('customers')
-            .select('id, phone, email, password_hash')
-            .eq('phone', orderPhone)
-            .maybeSingle();
-          byPhone = data;
-        }
+
+        const [emailRes, phoneRes] = await Promise.all([
+          orderEmail
+            ? supabaseAdmin
+                .from('customers')
+                .select('id, phone, email, password_hash')
+                .eq('email', orderEmail)
+                .maybeSingle()
+            : Promise.resolve({ data: null, error: null }),
+          orderPhone
+            ? supabaseAdmin
+                .from('customers')
+                .select('id, phone, email, password_hash')
+                .eq('phone', orderPhone)
+                .maybeSingle()
+            : Promise.resolve({ data: null, error: null }),
+        ]);
+
+        byEmail = emailRes.data;
+        byPhone = phoneRes.data;
 
         if (byEmail && byPhone) {
           if (byEmail.id === byPhone.id) {
@@ -209,6 +212,7 @@ export const createOrder = async (order: {
           status: 'pending',
           status_logs: initialLogs,
           idempotency_key: order.idempotencyKey || null,
+          access_token: accessToken,
         })
         .select('*')
         .single();
@@ -241,27 +245,12 @@ export const createOrder = async (order: {
     if (!data) {
       throw new Error('[orders] Failed to create order after retries');
     }
-    let orderRow: OrderRow = data;
-
-    // Set access_token via a fault-tolerant follow-up update. Kept separate from the
-    // base insert so an unmigrated DB (column not yet added) never blocks order creation —
-    // the /order/[token] page simply won't resolve until migration 20260928150000 is applied.
-    try {
-      const { data: updated } = await supabaseAdmin
-        .from('orders')
-        .update({ access_token: accessToken })
-        .eq('id', orderRow.id)
-        .select('*')
-        .single();
-      if (updated) orderRow = updated;
-    } catch (tokErr) {
-      console.error('[orders] access_token update skipped (run migration 20260928150000):', tokErr);
-    }
+    const orderRow: OrderRow = data;
     const mapped = mapOrder(orderRow);
     // Ensure the in-memory order always carries the token for the success/WhatsApp flow.
     if (!mapped.access_token) mapped.access_token = accessToken;
 
-    // Structured line-items + address (additive; failures never block the order).
+    // Structured line-items + address in parallel (additive; failures never block the order).
     try {
       const itemRows = (order.items || []).map((item) => {
         const it = item as CartItem & {
@@ -289,37 +278,47 @@ export const createOrder = async (order: {
           line_total: Number(it.total ?? unit * qty),
         };
       });
-      if (itemRows.length > 0) await supabaseAdmin.from('order_items').insert(itemRows);
+
+      const relPromises: Promise<unknown>[] = [];
+      if (itemRows.length > 0) {
+        relPromises.push(supabaseAdmin.from('order_items').insert(itemRows) as unknown as Promise<unknown>);
+      }
 
       const a = order.shippingAddress;
       if (a && (a.address1 || a.city || a.phone)) {
-        await supabaseAdmin.from('order_addresses').insert({
-          order_id: orderRow.id,
-          type: 'shipping',
-          name: a.name ?? order.customerName ?? null,
-          phone: a.phone ?? order.customerPhone ?? null,
-          email: a.email ?? order.customerEmail ?? null,
-          address1: a.address1 ?? null,
-          address2: a.address2 ?? null,
-          city: a.city ?? null,
-          postal_code: a.postalCode ?? null,
-          country: a.country ?? 'Pakistan',
-          latitude: a.latitude ?? null,
-          longitude: a.longitude ?? null,
-          payment_method: a.paymentMethod ?? null,
-        });
+        relPromises.push(
+          supabaseAdmin.from('order_addresses').insert({
+            order_id: orderRow.id,
+            type: 'shipping',
+            name: a.name ?? order.customerName ?? null,
+            phone: a.phone ?? order.customerPhone ?? null,
+            email: a.email ?? order.customerEmail ?? null,
+            address1: a.address1 ?? null,
+            address2: a.address2 ?? null,
+            city: a.city ?? null,
+            postal_code: a.postalCode ?? null,
+            country: a.country ?? 'Pakistan',
+            latitude: a.latitude ?? null,
+            longitude: a.longitude ?? null,
+            payment_method: a.paymentMethod ?? null,
+          }) as unknown as Promise<unknown>
+        );
+      }
+
+      if (relPromises.length > 0) {
+        await Promise.all(relPromises);
       }
     } catch (structErr) {
       console.error('[orders] structured items/address insert skipped:', structErr);
     }
 
-    // Await the email dispatch so the serverless function does not exit/freeze before delivery completes
-    try {
-      const { onOrderPlaced } = await import('@/lib/email/triggers');
-      await onOrderPlaced(mapped, { email: order.customerEmail, name: order.customerName, phone: order.customerPhone });
-    } catch (err) {
-      console.error('[Email Trigger] failed in createOrder:', err);
-    }
+    // Non-blocking email dispatch: does not hold up customer HTTP response or checkout UI
+    import('@/lib/email/triggers')
+      .then(({ onOrderPlaced }) => {
+        onOrderPlaced(mapped, { email: order.customerEmail, name: order.customerName, phone: order.customerPhone })
+          .catch((err) => console.error('[Email Trigger] non-blocking onOrderPlaced failed:', err));
+      })
+      .catch((err) => console.error('[Email Trigger] dynamic import failed:', err));
 
     // Auto-login: after placing an order the customer's details are already known,
     // so establish a session for the linked customer if they weren't logged in.

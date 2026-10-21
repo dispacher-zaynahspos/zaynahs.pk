@@ -31,8 +31,8 @@ export default async function OrderTokenPage({ params }: PageProps) {
   return (
     <div className="mx-auto max-w-2xl px-4 py-8 sm:py-12">
       <div className="text-center mb-2">
-        <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl" style={{ backgroundColor: 'var(--color-primary, #C2185B)' }}>
-          <Package className="h-6 w-6 text-white" />
+        <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl text-white" style={{ backgroundColor: 'var(--color-primary, #EA580C)' }}>
+          <Package className="h-6 w-6" />
         </div>
         <h1 className="text-xl font-black tracking-tight text-gray-900 dark:text-white">Your Order</h1>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
@@ -44,7 +44,7 @@ export default async function OrderTokenPage({ params }: PageProps) {
 
       <p className="mt-4 text-center text-[12px] text-gray-400">
         Need help?{' '}
-        <Link href="/track-order" className="font-bold text-[#e94560] hover:underline">Track another order</Link>
+        <Link href="/track-order" className="font-bold text-[#EA580C] hover:underline">Track another order</Link>
       </p>
     </div>
   );
