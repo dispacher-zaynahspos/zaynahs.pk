@@ -7,7 +7,7 @@ import { Metadata } from 'next';
 
 import { stripHtmlTags } from '@/lib/utils/stripHtml';
 
-export const revalidate = 300; // Cache redirect for 5 minutes
+export const revalidate = 2592000; // Cache redirect for 30 days (purged on admin change)
 
 interface CategoryPageProps {
   params: Promise<{

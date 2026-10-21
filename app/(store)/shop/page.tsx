@@ -8,7 +8,7 @@ import { getDomainBrand, cleanBrandName } from '@/lib/utils/getDomainBrand';
 import { Metadata } from 'next';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 
-export const revalidate = 3600; // 1 hour ISR — webhooks purge on admin save
+export const revalidate = 2592000; // 30 days ISR — webhooks purge on admin save
 
 interface PageProps {
   searchParams: Promise<{ category?: string; collection?: string; search?: string }>;

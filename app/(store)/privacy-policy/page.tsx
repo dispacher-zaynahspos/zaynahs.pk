@@ -4,7 +4,7 @@ import { getDomainBrand } from '@/lib/utils/getDomainBrand';
 import { getDomainConfig } from '@/lib/config/domains';
 import { Metadata } from 'next';
 
-export const revalidate = 60;
+export const revalidate = 2592000; // 30 days ISR — webhooks purge on admin save
 
 export async function generateMetadata(): Promise<Metadata> {
   try {

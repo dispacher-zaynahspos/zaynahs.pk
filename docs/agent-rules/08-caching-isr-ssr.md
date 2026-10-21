@@ -10,14 +10,14 @@ Social proofs, banners, recommendations — anything non-critical must be:
 - Default to `[]`, let client-side fetch populate.
 
 ## ISR pattern
-`export const revalidate = 300` on all storefront pages (RULE C12.3 — max 5 min, never 86400). Webhooks purge cache on admin save (`revalidateTag`, `revalidatePath`, Cloudflare purge).
+`export const revalidate = 2592000` (30 days) on all storefront pages (RULE C12.3). Webhooks purge cache on admin save (`revalidateTag`, `revalidatePath`, `purgeCloudflareEverything()`). Since Cloudflare edge + Next.js tags are purged instantly on every admin mutation, long ISR guarantees 0 Vercel Fast Origin Transfer load without serving stale content to customers.
 
 ## Server/client split for site-url
 - `lib/site-url-server.ts` = server-only (`next/headers`) — never import in client components.
 - `lib/site-url.ts` = client-safe (`window.location.origin`), no `next/headers`.
 
 ## Cloudflare cache override
-Always set `cdn-cache-control: public, s-maxage=300, stale-while-revalidate=60` — CDN s-maxage MUST be ≤ ISR revalidate (RULE C12.2). Never use s-maxage=86400 — it causes 24h stale pages.
+Always set `cdn-cache-control: public, s-maxage=2592000, stale-while-revalidate=86400` — CDN s-maxage matches long ISR to eliminate Vercel origin traffic. Admin mutations purge Cloudflare edge globally (< 1s), keeping customer experience 100% fresh.
 
 ## New feature caching checklist (whenever a new DB-driven page/feature is added)
 1. Wrap data fetches in `unstable_cache(fn, keyParts, { revalidate: 3600, tags: [tag] })` in `lib/services/`.

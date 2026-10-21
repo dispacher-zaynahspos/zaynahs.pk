@@ -3,6 +3,8 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
 import { getSettings } from '@/lib/services/settings';
 import { getSiteUrl } from '@/lib/site-url-server';
 
+export const revalidate = 86400; // 24 hours ISR — auto-refreshed daily
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let siteUrl = '';
   try {

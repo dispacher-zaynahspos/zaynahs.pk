@@ -44,7 +44,7 @@ const payload = {
         cache: true,
         edge_ttl: {
           mode: 'override_origin',
-          default: 300
+          default: 2592000
         },
         browser_ttl: {
           mode: 'override_origin',

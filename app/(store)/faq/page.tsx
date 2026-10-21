@@ -3,7 +3,7 @@ import { getSettings } from '@/lib/services/settings';
 import { getDomainBrand } from '@/lib/utils/getDomainBrand';
 import { Metadata } from 'next';
 
-export const revalidate = 60; // Cache for 1 minute
+export const revalidate = 2592000; // 30 days ISR — webhooks purge on admin save
 
 export async function generateMetadata(): Promise<Metadata> {
   try {

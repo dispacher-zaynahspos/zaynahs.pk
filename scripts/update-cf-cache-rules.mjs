@@ -97,7 +97,7 @@ async function processStore(store) {
         action: 'set_cache_settings',
         action_parameters: {
           cache: true,
-          edge_ttl: { mode: 'override_origin', default: 300 },
+          edge_ttl: { mode: 'override_origin', default: 2592000 },
           browser_ttl: { mode: 'override_origin', default: 0 }
         }
       },

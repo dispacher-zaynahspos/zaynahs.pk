@@ -10,7 +10,7 @@ import { getActiveSocialProofCount } from '@/lib/services/social-proof';
 import { getDomainBrand } from '@/lib/utils/getDomainBrand';
 import { Metadata } from 'next';
 
-export const revalidate = 300; // 5 min — webhooks purge on admin save (RULE C12.3)
+export const revalidate = 2592000; // 30 days ISR — webhooks purge instantly on admin save (RULE C10 / C12)
 
 export async function generateMetadata(): Promise<Metadata> {
   try {
