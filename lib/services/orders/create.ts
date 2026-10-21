@@ -5,6 +5,7 @@ import { Order, CartItem, StatusLogItem } from '@/lib/types';
 import { getCustomerSession } from '@/lib/utils/customer-auth';
 import { setCustomerSessionCookie } from '@/lib/utils/customer-auth';
 import { isValidPkMobile, normalizePkPhone } from '@/lib/phone';
+import { verifyOrderSecurity } from '@/lib/security/abuseProtection';
 import { mapOrder, OrderRow } from './types';
 
 /** Minimal customer row shape used during guest customer resolution. */
@@ -33,8 +34,21 @@ export const createOrder = async (order: {
     country?: string; latitude?: number | null; longitude?: number | null; paymentMethod?: string;
   };
   idempotencyKey?: string;
+  honeypot?: string;
+  renderedAt?: number;
 }): Promise<Order> => {
   try {
+    // Abuse & automated spam protection (honeypot + human entropy + fail-open burst guard)
+    const secCheck = await verifyOrderSecurity({
+      phone: order.customerPhone,
+      honeypot: order.honeypot,
+      renderedAt: order.renderedAt,
+    });
+    if (!secCheck.allowed) {
+      console.warn('[orders] createOrder blocked by security guard:', secCheck.reason);
+      throw new Error(secCheck.reason || 'Order submission blocked due to suspicious activity.');
+    }
+
     const session = await getCustomerSession();
     let customerId = session ? session.id : null;
 

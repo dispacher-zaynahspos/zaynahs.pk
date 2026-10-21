@@ -34,6 +34,9 @@ export function useCartContainerState(
 
   const [submitError, setSubmitError] = useState<{ message: string; whatsappFallbackUrl?: string } | null>(null);
   const idempotencyKeyRef = useRef<string>('');
+  const checkoutRenderedAtRef = useRef<number>(Date.now());
+  const [honeypot, setHoneypot] = useState('');
+
   useEffect(() => {
     if (!idempotencyKeyRef.current) {
       idempotencyKeyRef.current = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2);
@@ -53,6 +56,12 @@ export function useCartContainerState(
       : searchParams.get('step') === 'success'
       ? 'success'
       : 'cart');
+
+  useEffect(() => {
+    if (view === 'checkout') {
+      checkoutRenderedAtRef.current = Date.now();
+    }
+  }, [view]);
 
   const setView = (newView: CartView) => {
     setLocalView(newView);
@@ -240,6 +249,8 @@ export function useCartContainerState(
           paymentMethod: selectedPayment?.name ?? 'Cash on delivery',
         },
         idempotencyKey: idempotencyKeyRef.current || undefined,
+        honeypot: honeypot || undefined,
+        renderedAt: checkoutRenderedAtRef.current || undefined,
       });
 
       const orderTrackUrl = order.access_token
@@ -472,5 +483,7 @@ export function useCartContainerState(
     clearSubmitError: () => setSubmitError(null),
     summaryProps,
     router,
+    honeypot,
+    setHoneypot,
   };
 }

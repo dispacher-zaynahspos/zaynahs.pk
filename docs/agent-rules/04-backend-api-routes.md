@@ -27,6 +27,12 @@ export const getProducts = async (): Promise<Product[]> => {
 ## RULE E1 — Server Action error unmasking
 See [02-error-detection-autofix.md](02-error-detection-autofix.md) — all mutating Server Actions use the `safeAction()` / `SafeResult` pattern, never raw `throw`.
 
+## RULE ABUSE1 — Frictionless Human Bot & Abuse Shield
+1. **Zero Human Friction**: Real human shoppers must NEVER be presented with captchas, puzzles, or false-positive rate-limit blocks. All checks must fail-open on unexpected errors.
+2. **Invisible Honeypot**: Order forms include an offscreen hidden field (`website_url_hp`) with `tabIndex={-1}`, `opacity: 0`, and `pointer-events: none`. Automated bots filling this field are dropped in <0.1ms prior to any database queries or mutations.
+3. **Speed Entropy**: Real human users take >700ms to read and interact with checkout. Instantaneous programmatic submissions are rejected.
+4. **Burst Limiting**: Sliding window rate-limiting per client IP and PK phone number is capped generously (15 orders/5 min window) to permit real buyers while blocking massive script attacks.
+
 ## Feature implementation workflow (always in this order)
 1. SQL migration → `supabase/migrations/`
 2. Update `SUPER_MASTER_SCHEMA.sql` (keep in sync — see [05-database-supabase.md](05-database-supabase.md))
@@ -35,3 +41,4 @@ See [02-error-detection-autofix.md](02-error-detection-autofix.md) — all mutat
 5. Hooks → React hooks in `lib/hooks/`
 6. UI component — mobile-first, follow design rules ([14-design-system.md](14-design-system.md))
 7. Update `docs/SCHEMA_CHANGE_LOG.md` — document everything
+

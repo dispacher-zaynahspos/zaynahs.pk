@@ -78,6 +78,8 @@ export default function CartContainer({ settings, initialCustomer }: CartContain
     loadingPayments,
     shippingZones,
     loading,
+    honeypot,
+    setHoneypot,
     itemCount,
     handleOrderSubmit,
     submitError,
@@ -331,6 +333,8 @@ export default function CartContainer({ settings, initialCustomer }: CartContain
       handleOrderSubmit={handleOrderSubmit}
       summaryPanel={<CartSummaryPanel {...summaryProps} compact={true} />}
       submitError={submitError}
+      honeypot={honeypot}
+      setHoneypot={setHoneypot}
     />
   );
 }

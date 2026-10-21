@@ -45,6 +45,8 @@ interface CartCheckoutViewProps {
   handleOrderSubmit: (e: React.FormEvent) => void;
   summaryPanel: React.ReactNode;
   submitError?: { message: string; whatsappFallbackUrl?: string } | null;
+  honeypot?: string;
+  setHoneypot?: (val: string) => void;
 }
 
 export default function CartCheckoutView({
@@ -84,6 +86,8 @@ export default function CartCheckoutView({
   handleOrderSubmit,
   summaryPanel,
   submitError,
+  honeypot = '',
+  setHoneypot,
 }: CartCheckoutViewProps) {
   const zoneCities = shippingZones.flatMap((z) => z.cities || []);
 
@@ -91,6 +95,31 @@ export default function CartCheckoutView({
     <div className="min-h-screen bg-white dark:bg-[#0f0f1b] text-gray-900 dark:text-white">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-8">
         <form onSubmit={handleOrderSubmit} noValidate className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-start">
+
+          {/* Invisible Anti-Bot Honeypot: 0px, offscreen, tabIndex -1. Real users never see or fill this. Bots auto-fill all inputs. */}
+          <div
+            style={{
+              position: 'absolute',
+              opacity: 0,
+              zIndex: -1,
+              pointerEvents: 'none',
+              height: 0,
+              width: 0,
+              overflow: 'hidden',
+            }}
+            aria-hidden="true"
+          >
+            <label htmlFor="website_url_hp">Website URL</label>
+            <input
+              id="website_url_hp"
+              type="text"
+              name="website_url_hp"
+              tabIndex={-1}
+              autoComplete="off"
+              value={honeypot}
+              onChange={(e) => setHoneypot?.(e.target.value)}
+            />
+          </div>
 
           {/* LEFT: Checkout form */}
           <div className="lg:col-span-7 space-y-6">
