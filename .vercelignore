@@ -1,0 +1,9 @@
+# Never upload store credentials / local artefacts to a Vercel build.
+env-backups
+.env.local
+.env*.local
+.env
+.git
+.next
+node_modules
+*.log

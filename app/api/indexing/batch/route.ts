@@ -1,13 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { notifyGoogleIndexing } from '@/lib/googleIndexing';
 import { supabaseAdmin } from '@/lib/supabase/admin';
+import { requireAdmin } from '@/lib/auth/requireAdmin';
 
 /**
  * POST /api/indexing/batch
  * Body: { urls: string[], type?: "URL_UPDATED" | "URL_DELETED" }
  * Max 200 URLs per batch (Google limit).
+ *
+ * RULE #16 / SEC1: admin-only (quota-spending route).
  */
 export async function POST(req: NextRequest) {
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   try {
     const { urls, type = 'URL_UPDATED' } = await req.json();
 

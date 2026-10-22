@@ -223,6 +223,8 @@ For each store in the sequence, execute and document these 5 steps before touchi
 4. **Standard 4 CF cache rules** (deployed by `update-cf-cache-rules.mjs`):
    - `no-cache-dynamic`: bypass for /cart, /checkout, /account, /api, /admin, /wishlist, /order, /login, /signup
    - `static-assets`: `/_next/static/*` → 1 year edge TTL
-   - `html-pages`: all other pages → 300s (5 min) edge TTL
+   - `html-pages`: all other pages → **300s (5 min) edge TTL, NEVER higher**
    - `supabase-images`: supabase.co images → 30 day edge TTL
 5. **If a store's CF `cf-cache-status` shows DYNAMIC or persistent MISS**, investigate immediately — likely cache rules are missing or the zone is in "Development Mode" (disables caching).
+6. **`html-pages` TTL is a hard ceiling — 300s max.** Post-mortem (2026-10-22 audit): the rule was deployed with `edge_ttl override_origin = 2592000` (30 days), so `/shop` and `/product/*` — which Next.js serves as `Cache-Control: private, no-store` — were cached at the edge for up to a month (verified `cf-cache-status: HIT`, `age > 2600s`). Prices, stock, sold-out badges and admin edits were stale for real buyers. Cloudflare keeps HTML cache-eligible once a cache rule says `cache: true`, so **the rule TTL, not the origin header, is the real staleness ceiling**. Instant price/stock updates come from purge-on-write (`revalidateStorefrontEdge`), never from a long TTL.
+7. **ONE shared source for the rules** — `scripts/lib/cf-cache-rules.js`. Both `deploy-cloudflare-rules.js` (clone setup, single store) and `update-cf-cache-rules.mjs` (`cf:rules:all`) import `buildCacheRules()` from it (RULE SSOT1). Never paste the rule array into another script.

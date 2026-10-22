@@ -5,7 +5,9 @@
  * Deploys 4 standard cache rules:
  *   1. no-cache-dynamic: cache bypass for dynamic/user routes (/cart, /checkout, /account, /api, /admin, etc.)
  *   2. static-assets: Next.js static files cached 1 year
- *   3. html-pages: edge TTL 300s (5 min) cache for fast global TTFB
+ *   3. html-pages: edge TTL 300s (5 min) for fast global TTFB. NEVER raise it —
+ *      Cloudflare caches HTML even when the origin says `private, no-store`, so
+ *      this TTL is the staleness ceiling (instant updates come from purge-on-write).
  *   4. supabase-images: cached 30 days
  *
  * Usage:
@@ -16,6 +18,11 @@
 import { readFileSync, readdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { createRequire } from 'module';
+
+// RULE SSOT1: cache rules are defined once in scripts/lib/cf-cache-rules.js
+const require = createRequire(import.meta.url);
+const { buildCacheRules } = require('./lib/cf-cache-rules.js');
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
@@ -75,39 +82,8 @@ async function processStore(store) {
     const rulesets = await cfReq(store.token, `/zones/${store.zoneId}/rulesets`);
     let cacheRuleset = rulesets.result?.find(r => r.phase === 'http_request_cache_settings');
 
-    const dynamicBypassExpr = '(http.request.uri.path contains "/cart") or (http.request.uri.path contains "/checkout") or (http.request.uri.path contains "/account") or (http.request.uri.path contains "/api") or (http.request.uri.path contains "/admin") or (http.request.uri.path contains "/wishlist") or (http.request.uri.path contains "/order") or (http.request.uri.path contains "/login") or (http.request.uri.path contains "/signup") or (http.request.uri.path contains "/reset-password")';
-    const htmlPagesExpr = `(http.request.uri.path wildcard "/*") and not (${dynamicBypassExpr})`;
-
-    const standardRules = [
-      {
-        expression: dynamicBypassExpr,
-        description: 'no-cache-dynamic',
-        action: 'set_cache_settings',
-        action_parameters: { cache: false }
-      },
-      {
-        expression: '(http.request.uri.path contains "/_next/static/")',
-        description: 'static-assets',
-        action: 'set_cache_settings',
-        action_parameters: { cache: true, edge_ttl: { mode: 'override_origin', default: 31536000 } }
-      },
-      {
-        expression: htmlPagesExpr,
-        description: 'html-pages',
-        action: 'set_cache_settings',
-        action_parameters: {
-          cache: true,
-          edge_ttl: { mode: 'override_origin', default: 2592000 },
-          browser_ttl: { mode: 'override_origin', default: 0 }
-        }
-      },
-      {
-        expression: '(http.request.full_uri contains "supabase.co")',
-        description: 'supabase-images',
-        action: 'set_cache_settings',
-        action_parameters: { cache: true, edge_ttl: { mode: 'override_origin', default: 2592000 } }
-      }
-    ];
+    // RULE SSOT1: rule list comes from scripts/lib/cf-cache-rules.js
+    const standardRules = buildCacheRules();
 
     if (!cacheRuleset) {
       // Create ruleset if missing

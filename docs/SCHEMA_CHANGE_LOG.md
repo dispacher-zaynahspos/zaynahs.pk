@@ -4,6 +4,21 @@
 
 ---
 
+### [2026-10-23] v10.0.1 — Inventory: stock deducted on order creation (opt-in)
+
+**Migration:** `supabase/migrations/20261023000000_stock_deduction_on_order_creation.sql`
+(applied to zaynahs.pk, totvogue.pk, minimahal.com, littlemister.pk — Lobo blocked)
+
+- `orders.stock_deducted_at` — idempotency marker.
+- `public.deduct_stock_for_order(uuid)` — deducts variant + product stock once.
+- `restore_stock_on_cancel()` — restores only orders that were deducted; negatives
+  (un-cancel) re-deduct.
+- `adjust_stock_on_order_edit()` — no-op for legacy/manual-stock orders.
+- `createOrder()` calls it only when `AUTO_DEDUCT_STOCK=true` (default **false** so a
+  store that maintains stock manually is never double-decremented).
+
+---
+
 ### [2026-10-22] v10.0.0 — SECURITY LOCK: public PII / secrets / DB-admin escalation
 
 **Migration:** `supabase/migrations/20261022000000_security_lock_public_pii.sql`

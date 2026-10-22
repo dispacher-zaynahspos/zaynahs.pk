@@ -1,7 +1,14 @@
 import { NextResponse } from 'next/server';
 import { pingIndexNow } from '@/lib/indexNow';
+import { requireAdmin } from '@/lib/auth/requireAdmin';
 
+/**
+ * POST /api/indexnow — admin-only (RULE #16 / SEC1).
+ * Called from the admin category manager; never from the public storefront.
+ */
 export async function POST(request: Request) {
+  const denied = await requireAdmin(request);
+  if (denied) return denied;
   try {
     let body: unknown;
     try {

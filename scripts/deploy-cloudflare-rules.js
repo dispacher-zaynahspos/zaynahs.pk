@@ -14,58 +14,10 @@ if (!zoneId || !apiToken) {
   process.exit(1);
 }
 
-const payload = {
-  rules: [
-    {
-      expression: '(http.request.uri.path contains "/cart") or (http.request.uri.path contains "/checkout") or (http.request.uri.path contains "/account") or (http.request.uri.path contains "/api") or (http.request.uri.path contains "/admin") or (http.request.uri.path contains "/wishlist") or (http.request.uri.path contains "/order") or (http.request.uri.path contains "/login") or (http.request.uri.path contains "/signup") or (http.request.uri.path contains "/reset-password")',
-      description: 'no-cache-dynamic',
-      action: 'set_cache_settings',
-      action_parameters: {
-        cache: false
-      }
-    },
-    {
-      expression: '(http.request.uri.path contains "/_next/static/")',
-      description: 'static-assets',
-      action: 'set_cache_settings',
-      action_parameters: {
-        cache: true,
-        edge_ttl: {
-          mode: 'override_origin',
-          default: 31536000
-        }
-      }
-    },
-    {
-      expression: '(http.request.uri.path wildcard "/*") and not (http.request.uri.path contains "/cart") and not (http.request.uri.path contains "/checkout") and not (http.request.uri.path contains "/account") and not (http.request.uri.path contains "/api") and not (http.request.uri.path contains "/admin") and not (http.request.uri.path contains "/wishlist") and not (http.request.uri.path contains "/order") and not (http.request.uri.path contains "/login") and not (http.request.uri.path contains "/signup") and not (http.request.uri.path contains "/reset-password")',
-      description: 'html-pages',
-      action: 'set_cache_settings',
-      action_parameters: {
-        cache: true,
-        edge_ttl: {
-          mode: 'override_origin',
-          default: 2592000
-        },
-        browser_ttl: {
-          mode: 'override_origin',
-          default: 0
-        }
-      }
-    },
-    {
-      expression: '(http.request.full_uri contains "supabase.co")',
-      description: 'supabase-images',
-      action: 'set_cache_settings',
-      action_parameters: {
-        cache: true,
-        edge_ttl: {
-          mode: 'override_origin',
-          default: 2592000
-        }
-      }
-    }
-  ]
-};
+const { buildCacheRules } = require('./lib/cf-cache-rules.js');
+
+// RULE SSOT1: the rule list lives in scripts/lib/cf-cache-rules.js only.
+const payload = { rules: buildCacheRules() };
 
 async function getRulesetId() {
   const url = `https://api.cloudflare.com/client/v4/zones/${zoneId}/rulesets`;

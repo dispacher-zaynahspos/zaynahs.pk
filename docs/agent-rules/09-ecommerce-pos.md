@@ -21,3 +21,20 @@
 
 ## No customer accounts (also see RULE A2 in autonomy/architecture context)
 Customers do NOT register or log in. Cart is stored in `localStorage` via Zustand `persist`. Orders go via WhatsApp only — see [10-whatsapp-order-flow.md](10-whatsapp-order-flow.md).
+
+## RULE E1 — Inventory must be deducted exactly once (STRICT)
+
+Migration `20261023000000_stock_deduction_on_order_creation.sql` added
+`orders.stock_deducted_at` and `public.deduct_stock_for_order(uuid)`.
+
+- Deduction happens **once** per order (idempotent marker), inside the order-creation
+  path, via `adjust_item_stock()` (clamped at 0, variant stock recomputes product stock).
+- `restore_stock_on_cancel()` restores **only** orders that were actually deducted
+  (`stock_deducted_at IS NOT NULL`). Legacy/manual-stock orders return 0 — restoring them
+  would invent inventory. Un-cancel (negative quantities) re-arms the marker.
+- `adjust_stock_on_order_edit()` is a no-op for orders that were never deducted.
+- **Opt-in:** `AUTO_DEDUCT_STOCK=true` in the store's Vercel env. Default **false** because a
+  store that decrements stock by hand would otherwise be counted twice (auto + manual).
+  Never enable it on a store whose staff edits stock after every order.
+- Failures must never block checkout: the call is awaited but only logged; reconcile with
+  the order timeline entry "Inventory deducted for N item line(s)".

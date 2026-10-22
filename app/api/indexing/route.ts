@@ -1,12 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { notifyGoogleIndexing } from '@/lib/googleIndexing';
 import { supabaseAdmin } from '@/lib/supabase/admin';
+import { requireAdmin } from '@/lib/auth/requireAdmin';
 
 /**
  * POST /api/indexing
  * Body: { url: string, type?: "URL_UPDATED" | "URL_DELETED" }
+ *
+ * RULE #16 / SEC1: admin-only. This route spends the store's Google Indexing
+ * quota, so it must never be callable anonymously.
  */
 export async function POST(req: NextRequest) {
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   try {
     const { url, type = 'URL_UPDATED' } = await req.json();
 

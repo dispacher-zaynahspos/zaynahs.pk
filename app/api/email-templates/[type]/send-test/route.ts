@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireAdmin } from '@/lib/auth/requireAdmin';
 import { getEmailTemplate } from '@/lib/services/emailTemplates';
 import { getSettings } from '@/lib/services/settings';
 import { buildVariables, replaceVariables, renderOrderItemsTable } from '@/lib/email/variables';
@@ -93,6 +94,10 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ type: string }> }
 ) {
+  // RULE #16 / SEC1: sending mail from an unauthenticated endpoint is an open
+  // relay. Admin-only (the templates UI always carries the session cookie).
+  const denied = await requireAdmin(request);
+  if (denied) return denied;
   try {
     const { type } = await params;
     const body = await request.json().catch(() => ({}));

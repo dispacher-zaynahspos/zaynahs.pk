@@ -3017,3 +3017,119 @@ BEGIN
     END IF;
   END LOOP;
 END $$;
+
+-- ============================================================================
+-- 2026-10-23 — STOCK DEDUCTION ON ORDER CREATION (opt-in, idempotent)
+-- Mirrors supabase/migrations/20261023000000_stock_deduction_on_order_creation.sql
+-- Enable per store with AUTO_DEDUCT_STOCK=true (default OFF = manual stock).
+-- ============================================================================
+
+ALTER TABLE public.orders
+  ADD COLUMN IF NOT EXISTS stock_deducted_at TIMESTAMPTZ;
+
+CREATE OR REPLACE FUNCTION public.deduct_stock_for_order(p_order_id UUID)
+RETURNS INTEGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
+DECLARE
+  v_row    RECORD;
+  v_count  INTEGER := 0;
+  v_marked UUID;
+BEGIN
+  UPDATE orders
+     SET stock_deducted_at = NOW(), updated_at = NOW()
+   WHERE id = p_order_id AND stock_deducted_at IS NULL
+  RETURNING id INTO v_marked;
+
+  IF v_marked IS NULL THEN RETURN 0; END IF;
+
+  FOR v_row IN
+    SELECT product_id, variant_id, SUM(quantity)::INTEGER AS qty
+      FROM order_items
+     WHERE order_id = p_order_id AND product_id IS NOT NULL AND quantity > 0
+     GROUP BY product_id, variant_id
+  LOOP
+    PERFORM adjust_item_stock(v_row.product_id, v_row.variant_id, -v_row.qty);
+    v_count := v_count + 1;
+  END LOOP;
+
+  IF v_count > 0 THEN
+    UPDATE orders
+       SET status_logs = COALESCE(status_logs, '[]'::jsonb) || jsonb_build_array(
+             jsonb_build_object('id', gen_random_uuid()::text, 'type', 'status_change',
+               'message', 'Inventory deducted for ' || v_count || ' item line(s)',
+               'created_at', NOW()::text))
+     WHERE id = p_order_id;
+  END IF;
+  RETURN v_count;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.deduct_stock_for_order(UUID) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.deduct_stock_for_order(UUID) TO service_role;
+REVOKE EXECUTE ON FUNCTION public.deduct_stock_for_order(UUID) FROM anon, authenticated;
+
+CREATE OR REPLACE FUNCTION public.restore_stock_on_cancel(
+  p_order_id UUID,
+  p_items    JSONB
+) RETURNS INTEGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
+DECLARE
+  v_item         JSONB;
+  v_product_id   UUID;
+  v_variant_id   UUID;
+  v_qty          INTEGER;
+  v_count        INTEGER := 0;
+  v_is_deduction BOOLEAN := FALSE;
+  v_marked       UUID;
+  v_deducted     TIMESTAMPTZ;
+BEGIN
+  SELECT EXISTS (
+    SELECT 1 FROM jsonb_array_elements(p_items) e
+     WHERE COALESCE((e->>'quantity')::INTEGER, 1) < 0
+  ) INTO v_is_deduction;
+
+  IF v_is_deduction THEN
+    UPDATE orders SET stock_deducted_at = NOW(), updated_at = NOW()
+     WHERE id = p_order_id AND stock_deducted_at IS NULL
+    RETURNING id INTO v_marked;
+    IF v_marked IS NULL THEN RETURN 0; END IF;
+  ELSE
+    SELECT stock_deducted_at INTO v_deducted FROM orders WHERE id = p_order_id;
+    IF v_deducted IS NULL THEN RETURN 0; END IF;
+    UPDATE orders SET stock_deducted_at = NULL, updated_at = NOW() WHERE id = p_order_id;
+  END IF;
+
+  FOR v_item IN SELECT * FROM jsonb_array_elements(p_items)
+  LOOP
+    v_product_id := COALESCE((v_item->>'product_id')::UUID, (v_item->'product'->>'id')::UUID);
+    v_variant_id := COALESCE((v_item->>'variant_id')::UUID, (v_item->'selected_variant'->>'id')::UUID);
+    v_qty        := COALESCE((v_item->>'quantity')::INTEGER, 1);
+    IF v_product_id IS NOT NULL AND v_qty <> 0 THEN
+      PERFORM adjust_item_stock(v_product_id, v_variant_id, v_qty);
+      v_count := v_count + 1;
+    END IF;
+  END LOOP;
+
+  UPDATE orders
+     SET status_logs = COALESCE(status_logs, '[]'::jsonb) || jsonb_build_array(
+           jsonb_build_object('id', gen_random_uuid()::text, 'type', 'status_change',
+             'message', CASE WHEN v_is_deduction THEN 'Inventory deducted (order re-opened)'
+                             ELSE 'Inventory restored — all items returned to stock' END,
+             'status', CASE WHEN v_is_deduction THEN NULL ELSE 'cancelled' END,
+             'created_at', NOW()::text)),
+         updated_at = NOW()
+   WHERE id = p_order_id;
+
+  RETURN v_count;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.restore_stock_on_cancel(UUID, JSONB) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.restore_stock_on_cancel(UUID, JSONB) TO service_role;
+REVOKE EXECUTE ON FUNCTION public.restore_stock_on_cancel(UUID, JSONB) FROM anon, authenticated;

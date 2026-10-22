@@ -326,6 +326,22 @@ export const createOrder = async (order: {
       console.error('[orders] structured items/address insert skipped:', structErr);
     }
 
+    // ── Inventory deduction (opt-in per store) ────────────────────────────
+    // OFF unless AUTO_DEDUCT_STOCK=true. Stores that keep stock manually must
+    // never be double-decremented, so this is explicit opt-in. Failures never
+    // block the order (non-blocking, logged for reconciliation).
+    // Idempotent: `deduct_stock_for_order` only deducts once per order.
+    if (process.env.AUTO_DEDUCT_STOCK === 'true') {
+      try {
+        const { error: stockErr } = await supabaseAdmin.rpc('deduct_stock_for_order', {
+          p_order_id: orderRow.id,
+        });
+        if (stockErr) console.error('[orders] stock deduction failed:', stockErr);
+      } catch (stockErr) {
+        console.error('[orders] stock deduction threw:', stockErr);
+      }
+    }
+
     // Non-blocking email dispatch: does not hold up customer HTTP response or checkout UI
     import('@/lib/email/triggers')
       .then(({ onOrderPlaced }) => {
