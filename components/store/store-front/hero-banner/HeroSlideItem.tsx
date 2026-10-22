@@ -218,18 +218,23 @@ export function HeroSlideItem({
         {/* Background Image with Responsive Mobile/Tablet/Desktop Sources */}
         {(desktopImage || mobileImage || tabletImage) && (
           <picture className={`absolute inset-0 w-full h-full pointer-events-none select-none z-0 ${imageAnimationClass}`}>
-            {slide.mobile_image_url && (
+            {slide.mobile_image_url ? (
               <source
                 media="(max-width: 767px)"
-                srcSet={getPresetImageUrl(slide.mobile_image_url, 'hero')}
+                srcSet={getPresetImageUrl(slide.mobile_image_url, 'banner')}
               />
-            )}
-            {slide.tablet_image_url && (
+            ) : desktopImage ? (
+              <source
+                media="(max-width: 767px)"
+                srcSet={getPresetImageUrl(desktopImage, 'banner')}
+              />
+            ) : null}
+            {slide.tablet_image_url ? (
               <source
                 media="(max-width: 1023px)"
-                srcSet={getPresetImageUrl(slide.tablet_image_url, 'hero')}
+                srcSet={getPresetImageUrl(slide.tablet_image_url, 'banner')}
               />
-            )}
+            ) : null}
             <img
               src={getPresetImageUrl(desktopImage, 'hero')}
               alt={slide.title || section.title || settings.store_name}
@@ -237,6 +242,8 @@ export function HeroSlideItem({
                 hasVideo && loadedMedia[slide.id] ? 'opacity-0' : 'opacity-100'
               }`}
               loading={idx === 0 ? 'eager' : 'lazy'}
+              fetchPriority={idx === 0 ? 'high' : 'auto'}
+              decoding={idx === 0 ? 'sync' : 'async'}
             />
           </picture>
         )}

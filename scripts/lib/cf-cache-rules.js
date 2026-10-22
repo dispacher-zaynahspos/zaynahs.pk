@@ -57,6 +57,16 @@ function buildCacheRules() {
       },
     },
     {
+      expression: '(http.request.uri.path wildcard "/storage/*")',
+      description: 'storage-images',
+      action: 'set_cache_settings',
+      action_parameters: {
+        cache: true,
+        edge_ttl: { mode: 'override_origin', default: 31536000 },
+        browser_ttl: { mode: 'override_origin', default: 31536000 },
+      },
+    },
+    {
       expression: `(http.request.uri.path wildcard "/*") and not (${DYNAMIC_BYPASS_EXPR})`,
       description: 'html-pages',
       action: 'set_cache_settings',
@@ -67,15 +77,6 @@ function buildCacheRules() {
         // increases Vercel origin hits/bandwidth, which is what we are avoiding.
         edge_ttl: { mode: 'override_origin', default: 2592000 },
         browser_ttl: { mode: 'override_origin', default: 0 },
-      },
-    },
-    {
-      expression: '(http.request.full_uri contains "supabase.co")',
-      description: 'supabase-images',
-      action: 'set_cache_settings',
-      action_parameters: {
-        cache: true,
-        edge_ttl: { mode: 'override_origin', default: 2592000 },
       },
     },
   ];

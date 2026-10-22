@@ -10,7 +10,7 @@ export default async function Pixels() {
       {/* Meta Pixel */}
       {settings.meta_pixel_id && (
         <>
-          <Script id="meta-pixel" strategy="afterInteractive">
+          <Script id="meta-pixel" strategy="lazyOnload">
             {`
               !function(f,b,e,v,n,t,s)
               {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
@@ -52,9 +52,9 @@ export default async function Pixels() {
         <>
           <Script
             src={`https://www.googletagmanager.com/gtag/js?id=${settings.ga4_measurement_id}`}
-            strategy="afterInteractive"
+            strategy="lazyOnload"
           />
-          <Script id="ga4-pixel" strategy="afterInteractive">
+          <Script id="ga4-pixel" strategy="lazyOnload">
             {`
               window.dataLayer = window.dataLayer || [];
               function gtag(){dataLayer.push(arguments);}
@@ -67,7 +67,7 @@ export default async function Pixels() {
 
       {/* Google Tag Manager (GTM) */}
       {settings.gtm_container_id && (
-        <Script id="gtm-pixel" strategy="afterInteractive">
+        <Script id="gtm-pixel" strategy="lazyOnload">
           {`
             (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
             new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -80,7 +80,7 @@ export default async function Pixels() {
 
       {/* TikTok Pixel */}
       {settings.tiktok_pixel_id && (
-        <Script id="tiktok-pixel" strategy="afterInteractive">
+        <Script id="tiktok-pixel" strategy="lazyOnload">
           {`
             !function (w, d, t) {
               w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie","holdConsent","revokeConsent","grantConsent"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var r="https://analytics.tiktok.com/i18n/pixel/events.js",o=n&&n.mixpanel;ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=r,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};var a=d.createElement("script");a.type="text/javascript",a.async=!0,a.src=r+"?sdkid="+e+"&lib="+t;var c=d.getElementsByTagName("script")[0];c.parentNode.insertBefore(a,c)};
@@ -93,7 +93,7 @@ export default async function Pixels() {
 
       {/* Snapchat Pixel */}
       {settings.snapchat_pixel_id && (
-        <Script id="snapchat-pixel" strategy="afterInteractive">
+        <Script id="snapchat-pixel" strategy="lazyOnload">
           {`
             (function(e,t,n){if(e.snaptr)return;var a=e.snaptr=function()
             {a.handleRequest?a.handleRequest.apply(a,arguments):a.queue.push(arguments)};
@@ -109,7 +109,7 @@ export default async function Pixels() {
 
       {/* Pinterest Tag */}
       {settings.pinterest_tag_id && (
-        <Script id="pinterest-pixel" strategy="afterInteractive">
+        <Script id="pinterest-pixel" strategy="lazyOnload">
           {`
             !function(e){if(!window.pintrk){window.pintrk=function()
             {window.pintrk.queue.push(Array.prototype.slice.call(arguments))};var
@@ -125,7 +125,7 @@ export default async function Pixels() {
 
       {/* Twitter (X) Pixel */}
       {settings.twitter_pixel_id && (
-        <Script id="twitter-pixel" strategy="afterInteractive">
+        <Script id="twitter-pixel" strategy="lazyOnload">
           {`
             !function(e,t,n,s,u,a){e.twq||(s=e.twq=function(){s.exe?s.exe.apply(s,arguments):s.queue.push(arguments);
             },s.version='1.1',s.queue=[],u=t.createElement(n),u.async=!0,u.src='https://static.ads-twitter.com/uwt.js',

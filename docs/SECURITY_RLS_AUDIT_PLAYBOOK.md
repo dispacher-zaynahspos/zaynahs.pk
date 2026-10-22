@@ -208,10 +208,17 @@ storeSettingsSecrets 401 CLOSED
 reviewsPii           401 CLOSED
 reviewsPublic        200 OK      <- public content must still work
 settingsView         200 OK      <- storefront settings must still work
+mediaLibrary         401 CLOSED
+rpcAdjustStock       401 CLOSED  <- SEC10: SECURITY DEFINER RPC not callable by anon
+rpcTrafficStats      401 CLOSED
+rpcReorder           401 CLOSED
+storageWrite         400 CLOSED  <- SEC11: anon cannot write into product-images
 ```
 
 Then smoke-test real pages: home / shop / product / reviews / cart / order tracking = 200,
-`/admin` = 307 → login, admin login with bad creds = 401 (not 500).
+`/admin` = 307 → login, admin login with bad creds = 401 (not 500), and every public
+write endpoint returns 429 after its budget (e.g. 6 POSTs to `/api/contact` → the 6th is
+429). See RULE ABUSE2 in `docs/agent-rules/04-backend-api-routes.md`.
 
 ---
 

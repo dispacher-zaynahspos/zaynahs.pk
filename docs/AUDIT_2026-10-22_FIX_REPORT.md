@@ -157,3 +157,30 @@ npm run security:lock       # apply (idempotent)
 npm run check:setup         # migrations ↔ master schema ↔ clone docs
 npx tsc --noEmit && npm run build
 ```
+
+---
+
+## 4. Final hardening verification — 2026-10-24 (deployed SHA `c907aa7`, all 5 READY)
+
+| Probe (public anon key only) | zaynahs | totvogue | minimahal | littlemister | lobo |
+|---|---|---|---|---|---|
+| `orders` SELECT | 401 | 401 | 401 | 401 | 401 |
+| `store_settings` secrets | 401 | 401 | 401 | 401 | 401 |
+| `reviews` PII column | 401 | 401 | 401 | 401 | 401 |
+| `reviews` public columns | 200 | 200 | 200 | 200 | 200 |
+| `store_settings_public` | 200 | 200 | 200 | 200 | 200 |
+| `media_library` | 401 | 401 | 401 | 401 | 401 |
+| RPC `adjust_item_stock` | 401 | 401 | 401 | 401 | 401 |
+| RPC `get_traffic_stats` | 401 | 401 | 401 | 401 | 401 |
+| RPC `reorder_category_products` | 401 | 401 | 401 | 401 | 401 |
+| storage write `product-images` | 400 | 400 | 400 | 400 | 400 |
+| `/api/seo/test` (anon) | 401 | 401 | 401 | 401 | 401 |
+| email preview (anon) | 401 | 401 | 401 | 401 | 401 |
+| contact burst (6th request) | 429 | — | — | — | — |
+
+Storefront unchanged: home / shop / product / reviews = **200** on all 5, public product
+image = **200**, `/admin` unauthenticated shell (no data) and `/admin/orders` = **307 → login**.
+`npm run security:verify` → **stores: 5 | failed: 0**.
+
+`npm run check:setup` → 164/164 migrations reflected in `SUPER_MASTER_SCHEMA.sql`;
+`tsc --noEmit` = 0; `next build` ✓ (clean `.next`).

@@ -148,7 +148,20 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        source: '/((?!api|_next|static|fonts|cart|checkout|account|login|admin).*)',
+        source: '/storage/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+          {
+            key: 'CDN-Cache-Control',
+            value: 'public, s-maxage=31536000, immutable',
+          },
+        ],
+      },
+      {
+        source: '/((?!api|_next|static|fonts|storage|cart|checkout|account|login|admin).*)',
         headers: [
           {
             key: 'Cache-Control',
@@ -165,7 +178,12 @@ const nextConfig: NextConfig = {
     return rules;
   },
   async rewrites() {
+    const supabaseUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ziucrfpebpxijqhwmqre.supabase.co').replace(/\/+$/, '');
     return [
+      {
+        source: '/storage/:path*',
+        destination: `${supabaseUrl}/storage/v1/object/public/:path*`,
+      },
       {
         source: '/:key.txt',
         destination: '/api/indexnow/key?key=:key',

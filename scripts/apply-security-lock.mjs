@@ -166,6 +166,79 @@ async function anonProbe(env, table, select = 'id', extra = '') {
   return { status: res.status, body: text, closed: res.status === 401 || res.status === 403 };
 }
 
+/** POST a PostgREST RPC with the PUBLIC anon key. Closed = 401/403 (42501). */
+async function anonRpc(env, fn, body) {
+  const res = await fetch(`${env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/rpc/${fn}`, {
+    method: 'POST',
+    headers: {
+      apikey: env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+  return { status: res.status, closed: res.status === 401 || res.status === 403 };
+}
+
+/** Try writing a file into the public product-images bucket with the anon key. */
+async function anonStorageWrite(env) {
+  const key = env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const res = await fetch(
+    `${env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/product-images/_secprobe_${Date.now()}.txt`,
+    {
+      method: 'POST',
+      headers: { apikey: key, Authorization: `Bearer ${key}`, 'x-upsert': 'true' },
+      body: 'probe',
+    }
+  );
+  return { status: res.status, closed: res.status !== 200 && res.status !== 201 };
+}
+
+/**
+ * SEC1–SEC12 verification. Every probe uses ONLY the public anon key, exactly what
+ * an attacker has. All PII/RPC/storage probes must be CLOSED and the two public
+ * read paths (reviews, store_settings_public) must stay OK.
+ */
+async function probeAll(env) {
+  const [orders, settings, reviewsPii, reviewsPublic, settingsView, media] = await Promise.all([
+    anonProbe(env, 'orders'),
+    anonProbe(env, 'store_settings', 'ai_model_credentials'),
+    anonProbe(env, 'reviews', 'customer_email'),
+    anonProbe(env, 'reviews', 'customer_name,rating,comment'),
+    anonProbe(env, 'store_settings_public', 'store_name'),
+    anonProbe(env, 'media_library'),
+  ]);
+  const [adjustStock, trafficStats, reorder] = await Promise.all([
+    anonRpc(env, 'adjust_item_stock', {
+      p_product_id: '00000000-0000-0000-0000-000000000000',
+      p_variant_id: null,
+      p_delta: -9999,
+    }),
+    anonRpc(env, 'get_traffic_stats', { p_start: '2020-01-01', p_end: '2030-01-01' }),
+    anonRpc(env, 'reorder_category_products', {
+      p_category_id: '00000000-0000-0000-0000-000000000000',
+      p_product_ids: [],
+    }),
+  ]);
+  const storage = await anonStorageWrite(env);
+
+  const closed = (r, label) => `${r.status} ${r.closed ? 'CLOSED' : 'STILL OPEN'}`;
+  const ok = (r) => `${r.status} ${r.status === 200 ? 'OK' : 'BROKEN'}`;
+
+  return {
+    orders: closed(orders),
+    storeSettingsSecrets: closed(settings),
+    reviewsPii: closed(reviewsPii),
+    reviewsPublic: ok(reviewsPublic),
+    settingsView: ok(settingsView),
+    mediaLibrary: closed(media),
+    rpcAdjustStock: closed(adjustStock),
+    rpcTrafficStats: closed(trafficStats),
+    rpcReorder: closed(reorder),
+    storageWrite: `${storage.status} ${storage.closed ? 'CLOSED' : 'STILL OPEN'}`,
+  };
+}
+
 async function applyStore(store) {
   const { name, env } = store;
   const emails = adminEmails(env);
@@ -189,19 +262,7 @@ async function applyStore(store) {
 
   // ── Read-only verification mode (`npm run security:verify`) ──────────────
   if (verifyOnly) {
-    const orders = await anonProbe(env, 'orders');
-    const settings = await anonProbe(env, 'store_settings', 'ai_model_credentials');
-    const reviewsPii = await anonProbe(env, 'reviews', 'customer_email');
-    const reviewsPublic = await anonProbe(env, 'reviews', 'customer_name,rating,comment');
-    const settingsView = await anonProbe(env, 'store_settings_public', 'store_name');
-
-    report.verify = {
-      orders: `${orders.status} ${orders.closed ? 'CLOSED' : 'STILL OPEN'}`,
-      storeSettingsSecrets: `${settings.status} ${settings.closed ? 'CLOSED' : 'STILL OPEN'}`,
-      reviewsPii: `${reviewsPii.status} ${reviewsPii.closed ? 'CLOSED' : 'STILL OPEN'}`,
-      reviewsPublic: `${reviewsPublic.status} ${reviewsPublic.status === 200 ? 'OK' : 'BROKEN'}`,
-      settingsView: `${settingsView.status} ${settingsView.status === 200 ? 'OK' : 'BROKEN'}`,
-    };
+    report.verify = await probeAll(env);
     return report;
   }
 
@@ -238,17 +299,7 @@ async function applyStore(store) {
   if (!r5.ok) return report;
 
   // 6 — verify with the PUBLIC anon key
-  const orders = await anonProbe(env, 'orders');
-  const settings = await anonProbe(env, 'store_settings', 'ai_model_credentials');
-  const reviewsPii = await anonProbe(env, 'reviews', 'customer_email');
-  const reviewsPublic = await anonProbe(env, 'reviews', 'customer_name,rating,comment');
-
-  report.verify = {
-    orders: `${orders.status} ${orders.closed ? 'CLOSED' : 'STILL OPEN'}`,
-    storeSettingsSecrets: `${settings.status} ${settings.closed ? 'CLOSED' : 'STILL OPEN'}`,
-    reviewsPii: `${reviewsPii.status} ${reviewsPii.closed ? 'CLOSED' : 'STILL OPEN'}`,
-    reviewsPublic: `${reviewsPublic.status} ${reviewsPublic.status === 200 ? 'OK' : 'BROKEN'}`,
-  };
+  report.verify = await probeAll(env);
 
   return report;
 }

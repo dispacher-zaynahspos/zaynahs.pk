@@ -262,3 +262,21 @@ select tablename, policyname, roles::text, qual
 from pg_policies
 where schemaname='public' and roles::text like '%authenticated%' and coalesce(qual,'')='true';
 ```
+
+---
+
+## SEC13 — Definition of done: `npm run security:verify` is green on every store
+
+`npm run security:verify` probes each store with **only the public anon key** (exactly
+what an attacker has) and exits non-zero on any leak. Required output per store:
+
+```
+orders 401 CLOSED | storeSettingsSecrets 401 CLOSED | reviewsPii 401 CLOSED
+reviewsPublic 200 OK | settingsView 200 OK | mediaLibrary 401 CLOSED
+rpcAdjustStock 401 CLOSED | rpcTrafficStats 401 CLOSED | rpcReorder 401 CLOSED
+storageWrite 400 CLOSED
+```
+
+A security change is **not** done until all 5 stores show `failed: 0`. Then smoke-test
+the storefront (home / shop / product / reviews / cart / track = 200, a product image
+= 200) so the lock never breaks a real customer.
