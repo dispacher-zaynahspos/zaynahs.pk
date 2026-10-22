@@ -239,3 +239,18 @@ node scripts/update-cf-cache-rules.mjs
 - **Benchmarking Rule**: Any internal performance test or network verification script (`verify-store-network.mjs`) MUST send `Accept-Encoding: gzip, deflate, br, zstd` and measure on a warm keep-alive socket to mirror genuine browser mobile behavior (60ms–80ms TTFB).
 - **Homepage Payload Discipline**: While 2.5 MB uncompressed HTML delivers in 157 KB over the wire with 0 network slowdown, keep homepage sections focused (optimal: 8–15 sections) to minimize DOM memory overhead on low-end budget smartphones (e.g. 2GB RAM devices).
 
+
+## RULE C13 — Stale page? Fix PURGE, never the Cloudflare TTL (STRICT)
+
+`html-pages` cache rule **30 days** par rehti hai (jaan boojh kar). Freshness ka
+zimmedar purge-on-write hai: admin save → `revalidateStorefrontEdge` →
+`purge_everything` (`lib/revalidate.ts`). TTL kam karne se sirf Vercel origin
+hits aur bandwidth barhta hai (bill), stale ka masla hal nahi hota.
+
+Agar page stale dikhe to ye check karo (TTL ko haath na lagao):
+1. Admin save par purge call hui? (`revalidateStorefrontEdge` logs)
+2. `REVALIDATE_SECRET` / CF token sahi hai? (`npm run security:verify` style probes)
+3. `revalidateTag` single-arg hai? (RULE C12)
+4. CF zone "Development Mode" me nahi?
+
+Full context: [07-deployment-vercel-cloudflare.md](07-deployment-vercel-cloudflare.md) RULE CF-MANDATORY #6.

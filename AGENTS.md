@@ -42,7 +42,7 @@ Full-system audit + permanent fixes are documented in `docs/AUDIT_PASS{0..10}_*.
 | 04 | [04-backend-api-routes.md](docs/agent-rules/04-backend-api-routes.md) | API validation, error handling, rate limits |
 | 05 | [05-database-supabase.md](docs/agent-rules/05-database-supabase.md) | Schema, RLS, D1–D12, master schema |
 | 06 | [06-git-github.md](docs/agent-rules/06-git-github.md) | Commits, branches, secrets |
-| 07 | [07-deployment-vercel-cloudflare.md](docs/agent-rules/07-deployment-vercel-cloudflare.md) | Deploy checklist, rollback, purge, RULE ROLLOUT1, RULE BULK1 (1-command parallel engine `npm run stores:all` for all push, env-sync, CF cache, wait, purge, verify), RULE VERCEL-QUOTA (Zero wasteful deploys; batch all changes locally, single final deploy only to preserve free tier monthly build limits) |
+| 07 | [07-deployment-vercel-cloudflare.md](docs/agent-rules/07-deployment-vercel-cloudflare.md) | Deploy checklist, rollback, purge, RULE ROLLOUT1, RULE BULK1 (1-command parallel engine `npm run stores:all` for all push, env-sync, CF cache, wait, purge, verify), RULE VERCEL-QUOTA (Zero wasteful deploys; batch all changes locally, single final deploy only to preserve free tier monthly build limits), RULE CF-MANDATORY (ONE shared rule source `scripts/lib/cf-cache-rules.js`; `html-pages` TTL = 30 days by design — stale ho to PURGE debug karo, TTL kabhi kam na karo; Vercel bandwidth bachane ke liye) |
 | 08 | [08-caching-isr-ssr.md](docs/agent-rules/08-caching-isr-ssr.md) | C1–C9, ISR, instant price updates |
 | 09 | [09-ecommerce-pos.md](docs/agent-rules/09-ecommerce-pos.md) | Stock, payments, PKR formatting |
 | 10 | [10-whatsapp-order-flow.md](docs/agent-rules/10-whatsapp-order-flow.md) | W1–W2, message format |
