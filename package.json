@@ -31,7 +31,8 @@
     "stores:sync-cf": "node scripts/stores-bulk-ops.mjs sync-cf",
     "stores:wait": "node scripts/stores-bulk-ops.mjs wait",
     "stores:purge": "node scripts/stores-bulk-ops.mjs purge",
-    "stores:verify": "node scripts/stores-bulk-ops.mjs verify"
+    "stores:verify": "node scripts/stores-bulk-ops.mjs verify",
+    "stress:test": "node scripts/max-ceiling-stress.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

@@ -76,6 +76,7 @@ Full-system audit + permanent fixes are documented in `docs/AUDIT_PASS{0..10}_*.
 - `docs/STORE_GUIDE.md` — GitHub & Supabase credentials
 - `docs/CLOUDFLARE_SUPABASE_SETUP.md` — cache rules, webhooks, ISR guide, 1-click setup scripts
 - `docs/STORE_TESTING_GUIDE.md` — cache & webhook test commands
+- `docs/STRESS_TESTING_GUIDE.md` — universal edge & ceiling load testing engine (`scripts/max-ceiling-stress.mjs`), dynamic store resolution, zero hardcoded domains
 - `docs/NEW_PROJECT_SETUP_GUIDE.md` — full clone & deploy guide. **One-Command Clone Setup system:** `npm run clone:setup -- --store=<store> --deploy --yes` (preflight → DB schema+webhooks+admin+brand → Vercel env+deploy → Cloudflare DNS+cache rules → verify; all idempotent; orchestrator `scripts/clone-setup.mjs`). **Setup stays in sync automatically:** `npm run check:setup` (runs on `prebuild` + optional `npm run setup:hooks` git pre-commit) blocks any build/commit where migrations↔master schema, revalidate triggers, or clone env-docs drift — see RULE SYNC1 in [05-database-supabase.md](docs/agent-rules/05-database-supabase.md).
 - `docs/CLONE_SETUP_INTAKE.md` — **"clone setup" trigger flow (all IDEs/agents):** required API tokens + where-to-get + permissions table → write `env-backups/<store>.env.local` → run `clone:setup`. Follow this verbatim when the user asks to set up a new store/clone.
 - `docs/GEMINI_AUTOMATION_GUIDE.md` — Gemini automation scripts (product renaming/listings)
