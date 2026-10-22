@@ -4,6 +4,51 @@
 
 ---
 
+### [2026-10-22] v10.0.0 — SECURITY LOCK: public PII / secrets / DB-admin escalation
+
+**Migration:** `supabase/migrations/20261022000000_security_lock_public_pii.sql`
+(applied to zaynahs.pk, totvogue.pk, minimahal.com, littlemister.pk — Lobo pending a valid
+`SUPABASE_MGMT_TOKEN`)
+
+**What was closed (verified with the PUBLIC anon key):**
+
+1. `orders` — removed `Public select orders USING (true)`. Anon could read `customer_name`,
+   `customer_phone`, `customer_email`, `notes`, `items` and `access_token` (unlocks
+   `/order/<token>`). Now 401 for anon.
+2. `orders` — removed `Public insert orders WITH CHECK (true)`. Anon could POST fake orders
+   directly to PostgREST, bypassing the honeypot/phone/rate-limit shield in `createOrder()`.
+3. `store_settings` — revoked the **table-level** SELECT grant from anon. The earlier
+   column-level revoke (`20260926180000`) was a no-op while the table grant existed, so
+   `smtp_app_password`, `postex_api_token`, `content_keys`, `vision_keys` and
+   `ai_model_credentials` were still public. Storefront now reads `store_settings_public` only.
+4. `reviews` — table SELECT revoked from anon, re-granted on public columns only
+   (`customer_email` / `customer_phone` no longer readable by anyone but admin/server).
+5. `order_items` / `order_addresses` — public INSERT revoked (writes are service-role only).
+6. **DB-level admin escalation** — every `"Admin all …"` policy used
+   `auth.role() = 'authenticated'`; any self-signup became a full DB admin. Replaced with
+   `public.is_admin()` = `app_metadata.role='admin'` OR email in new `public.admin_users`.
+7. Supabase public signup disabled (`disable_signup = true`) on all reachable projects.
+8. `admin_users` seeded from `NEXT_PUBLIC_ADMIN_EMAIL`; those auth users tagged
+   `app_metadata.role='admin'` (keeps existing sessions working, no admin lockout).
+
+**Code changes required by the lock (no user-visible regression):**
+- `lib/services/orders/recent.ts` (NEW) — `getRecentBuyersPublic()` server action returns a
+  masked name + city + product id only. Replaces the browser anon read of the whole orders table.
+- `lib/services/orders-client.ts` — deleted (unused after the ticker migration).
+- `lib/services/customers/orders.ts` — customer order history now uses `supabaseAdmin`
+  (scoped by the signed customer session) because anon no longer reads `orders`.
+- `lib/services/reviews/public-reviews.ts` — explicit `PUBLIC_REVIEW_COLUMNS` instead of `select('*')`.
+- `app/api/cron/review-requests/route.ts` — `?secret=local-bypass` is now dev-only.
+- `lib/services/product-search/server-search.ts` — fixed invalid PostgREST relation
+  `modifiers(...)` → `product_modifiers(...)` (search API was returning 500).
+
+**Automation / future-proofing:**
+- `scripts/apply-security-lock.mjs` + `npm run security:lock` / `npm run security:verify`
+- `docs/agent-rules/32-security-public-data-lock.md` (SEC1–SEC9) + AGENTS index row 32
+- `clone:setup` now runs the security lock as a DB phase
+
+---
+
 ### [2026-10-21] v9.2.0 — Frictionless Human Bot & Anti-Abuse Shield + PostEx Real-Time Tracking + Instant Checkout Speed
 
 **Summary:**

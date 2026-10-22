@@ -217,3 +217,22 @@ Without this rule, agents fix code but leave clone scripts, guides, and schema o
 - RULE OP3 (`01-core-operating-principles.md`) — fool-proof: verify before "done"
 
 
+
+---
+
+## RULE D19 — Public data lock (PII / secrets / admin predicate) — STRICT
+
+Full rules: [32-security-public-data-lock.md](32-security-public-data-lock.md).
+
+Non-negotiables for every migration that touches a table:
+
+- `ENABLE ROW LEVEL SECURITY` + `REVOKE ALL FROM anon, authenticated` on every new table.
+- PII tables (`orders`, `order_items`, `order_addresses`, `customers`, `abandoned_carts`,
+  `contact_messages`, `page_views`, `email_subscribers`, `whatsapp_subscribers`) never get an
+  `anon` SELECT policy — serve them via `supabaseAdmin` server code, a masked view, or an RPC.
+- Admin = `public.is_admin()` only (`app_metadata.role='admin'` OR `admin_users` email).
+  `auth.role() = 'authenticated'` in a policy is **banned** (self-signup = DB admin).
+- A column-level `REVOKE SELECT (col)` is a no-op while a table-level `GRANT SELECT` exists:
+  revoke the table grant first, then re-grant the safe columns.
+- Verify before closing a task: `npm run security:lock` (apply, idempotent) then
+  `npm run security:verify`, and `npm run check:setup` must stay green.

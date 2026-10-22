@@ -2937,3 +2937,83 @@ GRANT EXECUTE ON FUNCTION adjust_stock_on_order_edit(UUID, JSONB, JSONB) TO serv
 REVOKE EXECUTE ON FUNCTION adjust_item_stock(UUID, UUID, INTEGER)         FROM anon, authenticated;
 REVOKE EXECUTE ON FUNCTION restore_stock_on_cancel(UUID, JSONB)           FROM anon, authenticated;
 REVOKE EXECUTE ON FUNCTION adjust_stock_on_order_edit(UUID, JSONB, JSONB) FROM anon, authenticated;
+
+-- ============================================================================
+-- 2026-10-22 — SECURITY LOCK: public PII / secrets / admin escalation
+-- Mirrors supabase/migrations/20261022000000_security_lock_public_pii.sql
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS public.admin_users (
+  email      TEXT PRIMARY KEY,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE public.admin_users ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.admin_users FROM anon, authenticated;
+GRANT ALL ON public.admin_users TO service_role;
+
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
+  SELECT
+    COALESCE(auth.jwt() -> 'app_metadata' ->> 'role', '') = 'admin'
+    OR EXISTS (
+      SELECT 1
+      FROM public.admin_users a
+      WHERE lower(a.email) = lower(COALESCE(auth.jwt() ->> 'email', ''))
+    );
+$$;
+
+REVOKE ALL ON FUNCTION public.is_admin() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.is_admin() TO anon, authenticated, service_role;
+
+DROP POLICY IF EXISTS "Public select orders" ON public.orders;
+DROP POLICY IF EXISTS "Public insert orders" ON public.orders;
+REVOKE SELECT, INSERT ON public.orders FROM anon;
+
+DROP POLICY IF EXISTS "Public insert order_items" ON public.order_items;
+REVOKE INSERT ON public.order_items FROM anon;
+DROP POLICY IF EXISTS "Public insert order_addresses" ON public.order_addresses;
+REVOKE INSERT ON public.order_addresses FROM anon;
+
+REVOKE SELECT ON public.reviews FROM anon;
+GRANT SELECT (
+  id, product_id, customer_name, rating, comment, approved, hidden,
+  is_manual, is_verified_purchase, screenshot_url, images, store_reply,
+  is_featured, sort_order, helpful_count, deleted_at, created_at
+) ON public.reviews TO anon;
+
+REVOKE SELECT ON public.store_settings FROM anon;
+REVOKE SELECT (smtp_app_password, postex_api_token, content_keys, vision_keys,
+               ai_model_credentials) ON public.store_settings FROM anon, authenticated;
+
+DO $$
+DECLARE
+  r record;
+BEGIN
+  FOR r IN
+    SELECT tablename, policyname, cmd
+    FROM pg_policies
+    WHERE schemaname = 'public'
+      AND policyname <> 'Authenticated read schema_version'
+      AND (
+        coalesce(qual, '') LIKE '%auth.role()%authenticated%'
+        OR coalesce(with_check, '') LIKE '%auth.role()%authenticated%'
+      )
+  LOOP
+    IF r.cmd = 'INSERT' THEN
+      EXECUTE format(
+        'ALTER POLICY %I ON public.%I WITH CHECK (public.is_admin())',
+        r.policyname, r.tablename
+      );
+    ELSIF r.cmd IN ('SELECT', 'DELETE') THEN
+      EXECUTE format('ALTER POLICY %I ON public.%I USING (public.is_admin())', r.policyname, r.tablename);
+    ELSE
+      EXECUTE format('ALTER POLICY %I ON public.%I USING (public.is_admin()) WITH CHECK (public.is_admin())', r.policyname, r.tablename);
+    END IF;
+  END LOOP;
+END $$;

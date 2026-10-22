@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { StoreSettings, Product, Order } from '@/lib/types';
+import { StoreSettings, Product } from '@/lib/types';
 import { isFeatureEnabled } from '@/lib/features/premium';
 import { getProductsClient } from '@/lib/services/products-client';
-import { getOrdersClient } from '@/lib/services/orders-client';
+import { getRecentBuyersPublic, type RecentBuyer } from '@/lib/services/orders/recent';
 
 interface UseRecentBuyerTickerProps {
   settings: StoreSettings;
@@ -13,7 +13,7 @@ interface UseRecentBuyerTickerProps {
 
 export function useRecentBuyerTicker({ settings, isCheckout }: UseRecentBuyerTickerProps) {
   const [products, setProducts] = useState<Product[]>([]);
-  const [realOrders, setRealOrders] = useState<Order[]>([]);
+  const [realOrders, setRealOrders] = useState<RecentBuyer[]>([]);
   const [tickerProduct, setTickerProduct] = useState<Product | null>(null);
   const [tickerBuyer, setTickerBuyer] = useState<{ name: string; city: string } | null>(null);
   const [tickerTime, setTickerTime] = useState('2m ago');
@@ -33,9 +33,8 @@ export function useRecentBuyerTicker({ settings, isCheckout }: UseRecentBuyerTic
     const loadRealOrders = async () => {
       if (settings.recent_buyers_source !== 'real') return;
       try {
-        const orderData = await getOrdersClient();
-        const validOrders = orderData.filter(o => o.items && o.items.length > 0);
-        setRealOrders(validOrders);
+        const orderData = await getRecentBuyersPublic();
+        setRealOrders(orderData);
       } catch (err) {
         console.error('Failed to load real orders for ticker:', err);
       }
@@ -58,17 +57,15 @@ export function useRecentBuyerTicker({ settings, isCheckout }: UseRecentBuyerTic
       let displayTime = '';
 
       if (settings.recent_buyers_source === 'real' && realOrders.length > 0) {
-        const randomOrder = realOrders[Math.floor(Math.random() * realOrders.length)];
-        if (randomOrder && randomOrder.items && randomOrder.items.length > 0) {
-          const orderItem = randomOrder.items[0];
-          selectedProduct = orderItem.product;
-          buyerName = randomOrder.customer_name || 'A customer';
+        const randomBuyer = realOrders[Math.floor(Math.random() * realOrders.length)];
+        if (randomBuyer) {
+          if (randomBuyer.product_id) {
+            selectedProduct = products.find((p) => p.id === randomBuyer.product_id) ?? null;
+          }
+          buyerName = randomBuyer.buyer_name || 'A customer';
+          buyerCity = randomBuyer.city || 'Pakistan';
 
-          const notesStr = randomOrder.notes || '';
-          const cityMatch = notesStr.match(/City:\s*([^\n\r]+)/i);
-          buyerCity = cityMatch ? cityMatch[1].trim() : 'Pakistan';
-
-          const createdTime = new Date(randomOrder.created_at).getTime();
+          const createdTime = new Date(randomBuyer.created_at).getTime();
           const elapsed = Date.now() - createdTime;
           const mins = Math.floor(elapsed / 60000);
           if (mins < 1) {

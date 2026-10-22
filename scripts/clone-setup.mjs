@@ -183,6 +183,11 @@ async function main() {
       step('db:webhooks (revalidate triggers)', 'node', ['scripts/setup-triggers.mjs']);
       step('db:admin   (Supabase Auth user)', 'node', ['scripts/create-admin.mjs', '--env', '.env.local'], { optional: true });
       step('db:brand   (brand text seed)', 'node', ['scripts/seed-brand.mjs'], { optional: true });
+      // RULE SEC1–SEC9 (32-security-public-data-lock.md): lock PII/secrets + seed
+      // admin_users + disable public signup. Idempotent, safe on a fresh clone.
+      step('db:security (public data lock)', 'node',
+        ['scripts/apply-security-lock.mjs', store ? `--store=${store}` : '--env=.env.local'],
+        { optional: true });
     }
 
     // 6) Vercel env (+ optional deploy)

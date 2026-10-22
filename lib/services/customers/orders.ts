@@ -1,20 +1,26 @@
 'use server';
 
-import { createClient } from '@/lib/supabase/server';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 import { getCustomerSession } from '@/lib/utils/customer-auth';
 import { isValidPkMobile, normalizePkPhone } from '@/lib/phone';
 import { Order } from '@/lib/types';
 import { mapOrder } from './types';
 
 /**
- * Fetch orders for the currently logged-in customer
+ * Fetch orders for the currently logged-in customer.
+ *
+ * SECURITY: customer sessions are OUR own signed cookie (not Supabase Auth), so
+ * the request is `anon` to Postgres. `orders` no longer grants anon SELECT
+ * (customer PII must never be publicly readable), therefore this runs with the
+ * service-role client — scoped by the session-derived filters below, which is
+ * exactly what the old anon query relied on RLS for.
  */
 export async function getCustomerOrders(): Promise<Order[]> {
   try {
     const session = await getCustomerSession();
     if (!session) return [];
 
-    const supabase = await createClient();
+    const supabase = supabaseAdmin;
     
     // Fetch orders matching customer_id, OR matching customer's phone/email if placed as guest
     let query = supabase

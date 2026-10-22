@@ -25,6 +25,8 @@
     "db:migrate:all": "node scripts/apply-migration-all-stores.mjs",
     "vercel:cleanup": "node scripts/cleanup-all-old-deployments.mjs",
     "verify:network": "node scripts/verify-store-network.mjs",
+    "security:lock": "node scripts/apply-security-lock.mjs",
+    "security:verify": "node scripts/apply-security-lock.mjs --dry-run",
     "stores:all": "node scripts/stores-bulk-ops.mjs all",
     "stores:push": "node scripts/stores-bulk-ops.mjs push",
     "stores:sync-envs": "node scripts/stores-bulk-ops.mjs sync-envs",

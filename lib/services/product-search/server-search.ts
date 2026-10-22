@@ -81,7 +81,7 @@ interface ProductSearchRow {
   product_images?: ProductImageRow[] | null;
   product_variants?: ProductVariantRow[] | null;
   categories?: ProductCategoryRow | null;
-  modifiers?: ProductModifierRow[] | null;
+  product_modifiers?: ProductModifierRow[] | null;
 }
 
 function mapSearchRow(row: ProductSearchRow, score: number, matchedFields: string[]): ProductSearchResult {
@@ -140,7 +140,7 @@ function mapSearchRow(row: ProductSearchRow, score: number, matchedFields: strin
     has_variants: row.has_variants,
     enable_swatches: row.enable_swatches,
     show_swatches_on_archive: row.show_swatches_on_archive,
-    modifiers: (row.modifiers || []).map((m) => ({
+    modifiers: (row.product_modifiers || []).map((m) => ({
       id: m.id,
       product_id: m.product_id,
       name: m.name,
@@ -183,7 +183,7 @@ export async function searchProductsServer(
       product_images(id, product_id, url, is_primary, sort_order, alt, created_at),
       product_variants(id, product_id, color, size, material, custom_value, sku, price, stock, active, sort_order),
       categories!category_id(id, name, slug, sort_order, active, created_at, updated_at, parent_id, description, image_url, meta_title, meta_description, deleted_at),
-      modifiers(id, product_id, name, price, active, sort_order)
+      product_modifiers(id, product_id, name, price, active, sort_order)
     `, { count: 'exact' })
     .is('deleted_at', null)
     .eq('is_active', true);
@@ -283,7 +283,7 @@ async function searchProductsServerFallback(
       product_images(id, product_id, url, is_primary, sort_order, alt, created_at),
       product_variants(id, product_id, color, size, material, custom_value, sku, price, stock, active, sort_order),
       categories!category_id(id, name, slug, sort_order, active, created_at, updated_at, parent_id, description, image_url, meta_title, meta_description, deleted_at),
-      modifiers(id, product_id, name, price, active, sort_order)
+      product_modifiers(id, product_id, name, price, active, sort_order)
     `, { count: 'exact' })
     .is('deleted_at', null)
     .eq('is_active', true);
@@ -388,7 +388,7 @@ export async function searchProductsByIds(
       product_images(id, product_id, url, is_primary, sort_order, alt, created_at),
       product_variants(id, product_id, color, size, material, custom_value, sku, price, stock, active, sort_order),
       categories!category_id(id, name, slug, sort_order, active, created_at, updated_at, parent_id, description, image_url, meta_title, meta_description, deleted_at),
-      modifiers(id, product_id, name, price, active, sort_order)
+      product_modifiers(id, product_id, name, price, active, sort_order)
     `)
     .is('deleted_at', null)
     .in('id', ids);

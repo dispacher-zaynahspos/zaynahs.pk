@@ -13,12 +13,22 @@ const staticSupabase = createSupabaseClient(supabaseUrl, supabaseAnonKey, {
   auth: { persistSession: false, autoRefreshToken: false }
 });
 
+/**
+ * SECURITY (RLS hardening): customer_email / customer_phone are PRIVATE and the
+ * anon role has no SELECT grant on them. Never `select('*')` on `reviews` with
+ * the anon/static client — list the public columns explicitly instead.
+ */
+const PUBLIC_REVIEW_COLUMNS =
+  'id, product_id, customer_name, rating, comment, approved, hidden, is_manual, ' +
+  'is_verified_purchase, screenshot_url, images, store_reply, is_featured, ' +
+  'sort_order, helpful_count, created_at, deleted_at';
+
 // 1. Fetch approved reviews for a product (public)
 const fetchProductReviews = async (productId: string): Promise<Review[]> => {
   try {
     const { data, error } = await staticSupabase
       .from('reviews')
-      .select('*')
+      .select(PUBLIC_REVIEW_COLUMNS)
       .eq('product_id', productId)
       .eq('approved', true)
       .eq('hidden', false)
@@ -26,7 +36,7 @@ const fetchProductReviews = async (productId: string): Promise<Review[]> => {
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return (data ?? []).map(mapReview);
+    return ((data ?? []) as unknown as DBReview[]).map(mapReview);
   } catch (error) {
     console.error('[reviews] fetchProductReviews failed, returning empty fallback list:', error);
     return [];
@@ -171,7 +181,7 @@ const fetchTopReviews = async (limit: number = 8): Promise<(Review & { productNa
   try {
     const { data, error } = await staticSupabase
       .from('reviews')
-      .select('*')
+      .select(PUBLIC_REVIEW_COLUMNS)
       .eq('approved', true)
       .eq('hidden', false)
       .gte('rating', 4)
@@ -180,7 +190,7 @@ const fetchTopReviews = async (limit: number = 8): Promise<(Review & { productNa
       .limit(limit);
 
     if (error) throw error;
-    const reviews = (data ?? []).map((row: DBReview) => mapReview(row));
+    const reviews = ((data ?? []) as unknown as DBReview[]).map((row: DBReview) => mapReview(row));
 
     const productIds = reviews.map(r => r.product_id).filter(Boolean) as string[];
     if (productIds.length > 0) {

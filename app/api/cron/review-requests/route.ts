@@ -11,7 +11,9 @@ export async function GET(request: NextRequest) {
 
     // Secure the cron endpoint: allow local runs in dev mode or verify bearer token
     const isDev = process.env.NODE_ENV === 'development';
-    const isLocalTrigger = url.searchParams.get('secret') === 'local-bypass';
+    // Local shortcut is dev-only. Never allow it in production — otherwise any
+    // visitor could trigger the review-email job and spam real customers.
+    const isLocalTrigger = isDev && url.searchParams.get('secret') === 'local-bypass';
     const isAuthorized = isDev || isLocalTrigger || (cronSecret && authHeader === `Bearer ${cronSecret}`);
 
     if (!isAuthorized) {
