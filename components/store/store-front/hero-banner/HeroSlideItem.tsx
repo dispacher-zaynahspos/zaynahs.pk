@@ -7,6 +7,7 @@ import { HeroSlide } from './types';
 import { parseVideoUrl } from './parseVideoUrl';
 import { getPresetImageUrl } from '@/lib/utils/imageUrl';
 import type { useHeroBannerStyles } from './useHeroBannerStyles';
+import type { HeroAnimationStyle } from './heroAnimationStyles';
 
 interface HeroSlideItemProps {
   slide: HeroSlide;
@@ -18,6 +19,7 @@ interface HeroSlideItemProps {
   loadedMedia: Record<string, boolean>;
   setLoadedMedia: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
   styles: ReturnType<typeof useHeroBannerStyles>;
+  animationStyle?: HeroAnimationStyle;
 }
 
 export function HeroSlideItem({
@@ -30,6 +32,7 @@ export function HeroSlideItem({
   loadedMedia,
   setLoadedMedia,
   styles,
+  animationStyle = 'smooth_slide',
 }: HeroSlideItemProps) {
   const hasVideo = !!slide.video_url;
   const isBrokenPlaceholder = (url?: string) => !url || url.includes('placeholder.jpg');
@@ -85,76 +88,158 @@ export function HeroSlideItem({
     (slide.buttons_enabled !== false && (isNonEmpty(mobileButtonText) || isNonEmpty(mobileButtonSecondaryText)))
   );
 
+  const isCardDeck = animationStyle === 'creative_card';
+  const slideOuterClass = isCardDeck ? 'p-1.5 sm:p-2.5 md:p-3.5' : '';
+  const slideInnerClass = isCardDeck
+    ? `relative w-full h-full rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl transition-all duration-500 cubic-bezier(0.16, 1, 0.3, 1) ${
+        isSlideActive ? 'scale-100 opacity-100 ring-1 ring-white/15' : 'scale-[0.93] opacity-60'
+      }`
+    : 'relative w-full h-full';
+
+  // Image wrapper / picture classes for the 5 animation styles
+  let imageAnimationClass = '';
+  if (animationStyle === 'scale_zoom') {
+    imageAnimationClass = `transition-transform duration-[8000ms] cubic-bezier(0.25, 1, 0.5, 1) will-change-transform ${
+      isSlideActive ? 'scale-105' : 'scale-100'
+    }`;
+  } else if (animationStyle === 'parallax') {
+    imageAnimationClass = `transition-transform duration-700 cubic-bezier(0.16, 1, 0.3, 1) will-change-transform ${
+      isSlideActive ? 'scale-100 translate-x-0' : 'scale-105 -translate-x-4'
+    }`;
+  } else if (animationStyle === 'fade') {
+    imageAnimationClass = `transition-opacity duration-700 ease-in-out ${
+      isSlideActive ? 'opacity-100' : 'opacity-20 md:opacity-10'
+    }`;
+  }
+
+  // Text content animation classes
+  let desktopContentAnimClass = '';
+  let tabletContentAnimClass = '';
+  let mobileContentAnimClass = '';
+
+  if (animationStyle === 'parallax') {
+    desktopContentAnimClass = `transition-all duration-700 cubic-bezier(0.16, 1, 0.3, 1) ${
+      isSlideActive ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'
+    }`;
+    tabletContentAnimClass = `transition-all duration-700 cubic-bezier(0.16, 1, 0.3, 1) ${
+      isSlideActive ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-6'
+    }`;
+    mobileContentAnimClass = `transition-all duration-600 cubic-bezier(0.16, 1, 0.3, 1) ${
+      isSlideActive ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4'
+    }`;
+  } else if (animationStyle === 'fade') {
+    desktopContentAnimClass = `transition-all duration-700 ease-out ${
+      isSlideActive ? 'opacity-100' : 'opacity-0 pointer-events-none'
+    }`;
+    tabletContentAnimClass = `transition-all duration-700 ease-out ${
+      isSlideActive ? 'opacity-100' : 'opacity-0 pointer-events-none'
+    }`;
+    mobileContentAnimClass = `transition-all duration-700 ease-out ${
+      isSlideActive ? 'opacity-100' : 'opacity-0 pointer-events-none'
+    }`;
+  } else if (animationStyle === 'scale_zoom') {
+    desktopContentAnimClass = `transition-all duration-600 ease-out delay-100 ${
+      isSlideActive ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
+    }`;
+    tabletContentAnimClass = `transition-all duration-600 ease-out delay-100 ${
+      isSlideActive ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
+    }`;
+    mobileContentAnimClass = `transition-all duration-600 ease-out delay-100 ${
+      isSlideActive ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-1.5'
+    }`;
+  } else if (animationStyle === 'creative_card') {
+    desktopContentAnimClass = `transition-all duration-500 ease-out ${
+      isSlideActive ? 'opacity-100 translate-y-0' : 'opacity-70 translate-y-1'
+    }`;
+    tabletContentAnimClass = `transition-all duration-500 ease-out ${
+      isSlideActive ? 'opacity-100 translate-y-0' : 'opacity-70 translate-y-1'
+    }`;
+    mobileContentAnimClass = `transition-all duration-500 ease-out ${
+      isSlideActive ? 'opacity-100 translate-y-0' : 'opacity-70 translate-y-1'
+    }`;
+  } else {
+    // smooth_slide
+    desktopContentAnimClass = `transition-all duration-400 ease-out ${
+      isSlideActive ? 'opacity-100 translate-y-0' : 'opacity-90 translate-y-0'
+    }`;
+    tabletContentAnimClass = `transition-all duration-400 ease-out ${
+      isSlideActive ? 'opacity-100 translate-y-0' : 'opacity-90 translate-y-0'
+    }`;
+    mobileContentAnimClass = `transition-all duration-400 ease-out ${
+      isSlideActive ? 'opacity-100 translate-y-0' : 'opacity-90 translate-y-0'
+    }`;
+  }
+
   return (
-    <div className="relative flex-grow-0 flex-shrink-0 w-full min-h-[200px] h-full overflow-hidden select-none">
-      {/* Per-slide responsive focal-point CSS */}
-      <style
-        dangerouslySetInnerHTML={{
-          __html: `
-          .${slideClass} {
-            object-position: ${styles.imageFocalXDesktop}% ${styles.imageFocalYDesktop}%;
-            transform: scale(${styles.imageScaleDesktop / 100});
-            transform-origin: ${styles.imageFocalXDesktop}% ${styles.imageFocalYDesktop}%;
-            transition: transform 0.3s ease, object-position 0.3s ease, opacity 0.7s ease;
-          }
-          [data-device="desktop"] .${slideClass} {
-            object-position: ${styles.imageFocalXDesktop}% ${styles.imageFocalYDesktop}%;
-            transform: scale(${styles.imageScaleDesktop / 100});
-            transform-origin: ${styles.imageFocalXDesktop}% ${styles.imageFocalYDesktop}%;
-          }
-          @media (max-width: 1023px) {
+    <div className={`relative flex-grow-0 flex-shrink-0 w-full min-h-[200px] h-full overflow-hidden select-none ${slideOuterClass}`}>
+      <div className={slideInnerClass}>
+        {/* Per-slide responsive focal-point CSS */}
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
             .${slideClass} {
+              object-position: ${styles.imageFocalXDesktop}% ${styles.imageFocalYDesktop}%;
+              transform: scale(${styles.imageScaleDesktop / 100});
+              transform-origin: ${styles.imageFocalXDesktop}% ${styles.imageFocalYDesktop}%;
+            }
+            [data-device="desktop"] .${slideClass} {
+              object-position: ${styles.imageFocalXDesktop}% ${styles.imageFocalYDesktop}%;
+              transform: scale(${styles.imageScaleDesktop / 100});
+              transform-origin: ${styles.imageFocalXDesktop}% ${styles.imageFocalYDesktop}%;
+            }
+            @media (max-width: 1023px) {
+              .${slideClass} {
+                object-position: ${styles.imageFocalXTablet}% ${styles.imageFocalYTablet}%;
+                transform: scale(${styles.imageScaleTablet / 100});
+                transform-origin: ${styles.imageFocalXTablet}% ${styles.imageFocalYTablet}%;
+              }
+            }
+            [data-device="tablet"] .${slideClass} {
               object-position: ${styles.imageFocalXTablet}% ${styles.imageFocalYTablet}%;
               transform: scale(${styles.imageScaleTablet / 100});
               transform-origin: ${styles.imageFocalXTablet}% ${styles.imageFocalYTablet}%;
             }
-          }
-          [data-device="tablet"] .${slideClass} {
-            object-position: ${styles.imageFocalXTablet}% ${styles.imageFocalYTablet}%;
-            transform: scale(${styles.imageScaleTablet / 100});
-            transform-origin: ${styles.imageFocalXTablet}% ${styles.imageFocalYTablet}%;
-          }
-          @media (max-width: 767px) {
-            .${slideClass} {
+            @media (max-width: 767px) {
+              .${slideClass} {
+                object-position: ${styles.imageFocalXMobile}% ${styles.imageFocalYMobile}%;
+                transform: scale(${styles.imageScaleMobile / 100});
+                transform-origin: ${styles.imageFocalXMobile}% ${styles.imageFocalYMobile}%;
+              }
+            }
+            [data-device="mobile"] .${slideClass} {
               object-position: ${styles.imageFocalXMobile}% ${styles.imageFocalYMobile}%;
               transform: scale(${styles.imageScaleMobile / 100});
               transform-origin: ${styles.imageFocalXMobile}% ${styles.imageFocalYMobile}%;
             }
-          }
-          [data-device="mobile"] .${slideClass} {
-            object-position: ${styles.imageFocalXMobile}% ${styles.imageFocalYMobile}%;
-            transform: scale(${styles.imageScaleMobile / 100});
-            transform-origin: ${styles.imageFocalXMobile}% ${styles.imageFocalYMobile}%;
-          }
-        `,
-        }}
-      />
+          `,
+          }}
+        />
 
-      {/* Background Image with Responsive Mobile/Tablet/Desktop Sources */}
-      {(desktopImage || mobileImage || tabletImage) && (
-        <picture className="absolute inset-0 w-full h-full pointer-events-none select-none z-0">
-          {slide.mobile_image_url && (
-            <source
-              media="(max-width: 767px)"
-              srcSet={getPresetImageUrl(slide.mobile_image_url, 'hero')}
+        {/* Background Image with Responsive Mobile/Tablet/Desktop Sources */}
+        {(desktopImage || mobileImage || tabletImage) && (
+          <picture className={`absolute inset-0 w-full h-full pointer-events-none select-none z-0 ${imageAnimationClass}`}>
+            {slide.mobile_image_url && (
+              <source
+                media="(max-width: 767px)"
+                srcSet={getPresetImageUrl(slide.mobile_image_url, 'hero')}
+              />
+            )}
+            {slide.tablet_image_url && (
+              <source
+                media="(max-width: 1023px)"
+                srcSet={getPresetImageUrl(slide.tablet_image_url, 'hero')}
+              />
+            )}
+            <img
+              src={getPresetImageUrl(desktopImage, 'hero')}
+              alt={slide.title || section.title || settings.store_name}
+              className={`${slideClass} w-full h-full ${objectFitClass} select-none pointer-events-none ${
+                hasVideo && loadedMedia[slide.id] ? 'opacity-0' : 'opacity-100'
+              }`}
+              loading={idx === 0 ? 'eager' : 'lazy'}
             />
-          )}
-          {slide.tablet_image_url && (
-            <source
-              media="(max-width: 1023px)"
-              srcSet={getPresetImageUrl(slide.tablet_image_url, 'hero')}
-            />
-          )}
-          <img
-            src={getPresetImageUrl(desktopImage, 'hero')}
-            alt={slide.title || section.title || settings.store_name}
-            className={`${slideClass} w-full h-full ${objectFitClass} select-none pointer-events-none ${
-              hasVideo && loadedMedia[slide.id] ? 'opacity-0' : 'opacity-100'
-            }`}
-            loading={idx === 0 ? 'eager' : 'lazy'}
-          />
-        </picture>
-      )}
+          </picture>
+        )}
 
       {/* Video Overlay */}
       {hasVideo &&
@@ -212,7 +297,7 @@ export function HeroSlideItem({
       {/* Desktop Content Container */}
       {hasDesktopText && (
         <div
-          className={`absolute inset-0 hidden lg:flex p-16 z-10 bg-gradient-to-t from-black/40 via-transparent to-transparent ${styles.containerJustifyDesktop} ${styles.containerAlignDesktop}`}
+          className={`absolute inset-0 hidden lg:flex p-16 z-10 bg-gradient-to-t from-black/40 via-transparent to-transparent ${styles.containerJustifyDesktop} ${styles.containerAlignDesktop} ${desktopContentAnimClass}`}
         >
           <div
             style={{ width: styles.contentWidthDesktop }}
@@ -278,7 +363,7 @@ export function HeroSlideItem({
       {/* Tablet Content Container */}
       {hasTabletText && (
         <div
-          className={`absolute inset-0 hidden md:flex lg:hidden p-12 z-10 bg-gradient-to-t from-black/40 via-transparent to-transparent ${styles.containerJustifyTablet} ${styles.containerAlignTablet}`}
+          className={`absolute inset-0 hidden md:flex lg:hidden p-12 z-10 bg-gradient-to-t from-black/40 via-transparent to-transparent ${styles.containerJustifyTablet} ${styles.containerAlignTablet} ${tabletContentAnimClass}`}
         >
           <div
             style={{ width: styles.contentWidthTablet }}
@@ -344,7 +429,7 @@ export function HeroSlideItem({
       {/* Mobile Content Container */}
       {hasMobileText && (
         <div
-          className={`absolute inset-0 flex md:hidden p-6 z-10 bg-gradient-to-t from-black/40 via-transparent to-transparent ${styles.containerJustifyMobile} ${styles.containerAlignMobile}`}
+          className={`absolute inset-0 flex md:hidden p-6 z-10 bg-gradient-to-t from-black/40 via-transparent to-transparent ${styles.containerJustifyMobile} ${styles.containerAlignMobile} ${mobileContentAnimClass}`}
         >
           <div
             style={{ width: styles.contentWidthMobile }}
@@ -406,6 +491,7 @@ export function HeroSlideItem({
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }
