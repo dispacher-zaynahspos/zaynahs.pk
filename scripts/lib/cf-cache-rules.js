@@ -7,17 +7,14 @@
  *
  * RULE CF-MANDATORY + RULE SSOT1: never duplicate the rule list again.
  *
- * IMPORTANT (2026-10-22 fix): the `html-pages` rule used to force
- * `edge_ttl: override_origin = 2592000` (30 days). That made Cloudflare cache
- * pages that Next.js serves with `Cache-Control: private, no-store`
- * (/shop, /product/*), so prices, stock, sold-out state and admin edits stayed
- * stale for up to a month (verified: cf-cache-status HIT with age > 2600s on a
- * no-store page).
+ * IMPORTANT (2026-10-22 audit): do NOT force a short TTL here. The rule is
+ * 30 days on purpose — every admin write purges the edge
+ * (`revalidateStorefrontEdge` → purge_everything), so freshness does not depend
+ * on the TTL. A short TTL only multiplies Vercel origin hits and burns
+ * bandwidth (the exact reason this rule caches HTML at all).
  *
- * Always keep this TTL short (300s). Cloudflare keeps an HTML response eligible
- * for cache once the rule says `cache: true`, so the edge TTL — not the origin
- * header — is the real staleness ceiling. Instant price/stock updates come from
- * purge-on-write (`revalidateStorefrontEdge`), never from a long TTL.
+ * Cloudflare keeps HTML cache-eligible once a rule says `cache: true`, so if a
+ * store ever serves stale pages, fix the PURGE path — never lower this TTL.
  */
 
 'use strict';
@@ -65,11 +62,10 @@ function buildCacheRules() {
       action: 'set_cache_settings',
       action_parameters: {
         cache: true,
-        // 300s (5 min) — MUST stay short: Cloudflare keeps HTML eligible for
-        // cache even when the origin sends `private, no-store`, so this TTL is
-        // the real staleness ceiling. Admin writes purge the edge immediately
-        // (revalidateStorefrontEdge), which is what makes price/stock instant.
-        edge_ttl: { mode: 'override_origin', default: 300 },
+        // 30 days — safe because every admin write purges the edge
+        // (revalidateStorefrontEdge + purge_everything). A short TTL only
+        // increases Vercel origin hits/bandwidth, which is what we are avoiding.
+        edge_ttl: { mode: 'override_origin', default: 2592000 },
         browser_ttl: { mode: 'override_origin', default: 0 },
       },
     },

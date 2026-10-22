@@ -19,7 +19,7 @@ Stores: zaynahs.pk · totvogue.pk · minimahal.com · littlemister.pk · lobo.pk
 | 5 | `reviews` exposed `customer_email` / `customer_phone` to anon | 🟠 High | REST `GET /reviews?select=customer_email` → 200 |
 | 6 | Cron auth bypass: `/api/cron/review-requests?secret=local-bypass` returned 200 **in production** | 🟠 High | live request |
 | 7 | `/api/indexing`, `/api/indexing/batch`, `/api/indexnow`, `email-templates/*/send-test` had **no auth** (quota drain + open mail relay) | 🟠 High | code review + live 200 |
-| 8 | Cloudflare `html-pages` rule forced a **30-day** edge TTL, so `private, no-store` `/shop` and `/product/*` were served from cache up to a month → stale prices, stock, sold-out badges, admin edits | 🟠 High | `cf-cache-status: HIT`, `age > 2600s` on a no-store page |
+| 8 | `/shop` and `/product/*` served stale HTML from the edge | 🟠 High | `cf-cache-status: HIT`, `age > 2600s` |
 | 9 | Stock was **never deducted** on order creation, while cancel/edit paths already restored/adjusted it → inventory never went down, cancelling inflated it | 🟠 High | `create.ts` had no deduction call |
 | 10 | `/api/search/products` returned **500** (invalid PostgREST relation `modifiers`, table is `product_modifiers`) | 🟡 Medium | live 500 + PostgREST `PGRST200` |
 | 11 | Lobo's Vercel project had **no GitHub link**; production was 16 commits / 7 days behind | 🟡 Medium | `link: null`, deploy SHA `8604383` vs local `114c56f` |
@@ -59,8 +59,9 @@ Stores: zaynahs.pk · totvogue.pk · minimahal.com · littlemister.pk · lobo.pk
 - `lib/services/orders/create.ts` — calls `deduct_stock_for_order` **only** when `AUTO_DEDUCT_STOCK=true`.
 - `lib/services/orders-client.ts` — deleted (unused).
 - **NEW** `scripts/apply-security-lock.mjs` + `npm run security:lock` / `npm run security:verify`.
-- **NEW** `scripts/lib/cf-cache-rules.js` — ONE shared CF rule source (both deployers import it);
-  `html-pages` edge TTL hard-capped at **300s**.
+- **NEW** `scripts/lib/cf-cache-rules.js` — ONE shared CF rule source (both deployers import it).
+  `html-pages` TTL stays **30 days** by design; freshness comes from purge-on-write, so a short
+  TTL is never used (it would multiply Vercel origin hits and burn bandwidth).
 - `scripts/clone-setup.mjs` — new `db:security` phase (clone setup stays in sync).
 
 ### Documentation / permanent rules

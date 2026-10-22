@@ -5,9 +5,9 @@
  * Deploys 4 standard cache rules:
  *   1. no-cache-dynamic: cache bypass for dynamic/user routes (/cart, /checkout, /account, /api, /admin, etc.)
  *   2. static-assets: Next.js static files cached 1 year
- *   3. html-pages: edge TTL 300s (5 min) for fast global TTFB. NEVER raise it —
- *      Cloudflare caches HTML even when the origin says `private, no-store`, so
- *      this TTL is the staleness ceiling (instant updates come from purge-on-write).
+ *   3. html-pages: edge TTL 30 days — freshness comes from purge-on-write
+ *      (admin save → purge_everything). Do NOT shorten: that multiplies
+ *      Vercel origin hits/bandwidth.
  *   4. supabase-images: cached 30 days
  *
  * Usage:
