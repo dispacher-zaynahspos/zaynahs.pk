@@ -172,6 +172,11 @@ curl -s -o /dev/null -w "%{http_code}\n" \
 
 ---
 
+## Portable version
+
+Kisi bhi doosre Supabase project ke liye step-by-step playbook:
+[../SECURITY_RLS_AUDIT_PLAYBOOK.md](../SECURITY_RLS_AUDIT_PLAYBOOK.md)
+
 ## Cross-references
 
 - [05-database-supabase.md](05-database-supabase.md) — RULE D13/D14/D15, schema sync (RULE SYNC1/2)
