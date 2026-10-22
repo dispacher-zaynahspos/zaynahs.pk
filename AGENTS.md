@@ -46,7 +46,7 @@ Full-system audit + permanent fixes are documented in `docs/AUDIT_PASS{0..10}_*.
 | 08 | [08-caching-isr-ssr.md](docs/agent-rules/08-caching-isr-ssr.md) | C1–C13, ISR, instant price updates, RULE C13 (stale page? debug PURGE — Cloudflare TTL kabhi kam na karo) |
 | 09 | [09-ecommerce-pos.md](docs/agent-rules/09-ecommerce-pos.md) | Stock, payments, PKR formatting, RULE E1 (inventory exactly once — `deduct_stock_for_order`, opt-in `AUTO_DEDUCT_STOCK`) |
 | 10 | [10-whatsapp-order-flow.md](docs/agent-rules/10-whatsapp-order-flow.md) | W1–W2, message format |
-| 11 | [11-storage-images.md](docs/agent-rules/11-storage-images.md) | S1–S6, bucket, compressor, media selector |
+| 11 | [11-storage-images.md](docs/agent-rules/11-storage-images.md) | S1–S9, bucket, compressor, media selector, edge-cached /storage/ delivery & Core Web Vitals optimization |
 | 12 | [12-testing-verification.md](docs/agent-rules/12-testing-verification.md) | Happy path + edge case rules |
 | 13 | [13-autonomy-boundaries.md](docs/agent-rules/13-autonomy-boundaries.md) | Auto-allowed / confirm-first / never-auto |
 | 14 | [14-design-system.md](docs/agent-rules/14-design-system.md) | Colors, tokens, DS1–DS24 (sticky bars, safe bounds, swatches, controls, linked image swap, zero card arrow clutter, mobile rating & swatch density, mandatory Ella engine for new cards, drop/fly animation & bucket bounce standard, unified catalog & grid layout controls), anti-bloat |

@@ -129,3 +129,9 @@ Verified 2026-10. ALL media uploads go through a single system — never a bespo
 - **Resilience:** parallel limit 2 (slow-phone safe); 8s no-progress → "Slow connection" hint; offline → fail with Retry; per-file Retry/Remove on error; one failure never blocks others; cancel via `xhr.abort()` at any stage; duplicate/invalid files handled; type+size validated before start (25MB cap).
 - **Selector modal:** newly uploaded image auto-selects (single picker highlights it; multi adds to selection) so "Add Selected" is immediately usable.
 - **Backward compatible:** same endpoint, WebP output, file naming, DB record, cache purge — only the client UX/progress changed. Any NEW upload UI MUST reuse `useMediaDragAndDropUpload` + `UploadTileCard` + `UploadProgressPanel`.
+
+## RULE S9 — Edge-Cached /storage/ Delivery & Core Web Vitals Optimization (verified 2026-10)
+- **Domain-Proxied Edge Delivery**: Storefront images must resolve through `/storage/...` (via `getOptimizedImageUrl` / `getPresetImageUrl`). `next.config.ts` rewrites `/storage/:path*` to Supabase public storage, and Cloudflare rule `(http.request.uri.path wildcard "/storage/*")` caches all storage images at Cloudflare Edge for 1 year with `override_origin`. Zero Vercel image units used, zero quota risk.
+- **Hero LCP Preload**: Slide #1 on Hero Banner must have `fetchPriority="high"`, `decoding="sync"`, and responsive `<source>` with `'banner'` preset for mobile (<768px). Guarantees LCP < 1.8s even on throttled 4G.
+- **Zero-Block Pixels**: All marketing tracking scripts in `components/Pixels.tsx` must use `strategy="lazyOnload"` (never `afterInteractive`) to prevent main-thread contention during hydration, eliminating TBT.
+- **Zero-Block Fonts**: Theme font stylesheets in `ThemeStyleRegistry.tsx` must render as `<link rel="preconnect">` + `<link rel="stylesheet">`, never inline `@import url(...)` inside `<style>` blocks which halt CSSOM layout.
