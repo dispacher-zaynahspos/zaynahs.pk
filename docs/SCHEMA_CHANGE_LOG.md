@@ -7,7 +7,7 @@
 ### [2026-10-23] v10.0.1 — Inventory: stock deducted on order creation (opt-in)
 
 **Migration:** `supabase/migrations/20261023000000_stock_deduction_on_order_creation.sql`
-(applied to zaynahs.pk, totvogue.pk, minimahal.com, littlemister.pk — Lobo blocked)
+(applied to all 5: zaynahs.pk, totvogue.pk, minimahal.com, littlemister.pk, lobo.pk)
 
 - `orders.stock_deducted_at` — idempotency marker.
 - `public.deduct_stock_for_order(uuid)` — deducts variant + product stock once.
@@ -22,8 +22,7 @@
 ### [2026-10-22] v10.0.0 — SECURITY LOCK: public PII / secrets / DB-admin escalation
 
 **Migration:** `supabase/migrations/20261022000000_security_lock_public_pii.sql`
-(applied to zaynahs.pk, totvogue.pk, minimahal.com, littlemister.pk — Lobo pending a valid
-`SUPABASE_MGMT_TOKEN`)
+(applied to all 5 stores)
 
 **What was closed (verified with the PUBLIC anon key):**
 

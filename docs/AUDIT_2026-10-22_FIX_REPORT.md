@@ -29,7 +29,7 @@ Stores: zaynahs.pk · totvogue.pk · minimahal.com · littlemister.pk · lobo.pk
 
 ## 2. What was fixed
 
-### Database (migrations, applied to 4/5 stores)
+### Database (migrations, applied to 5/5 stores)
 `20261022000000_security_lock_public_pii.sql`
 - `orders`: dropped `Public select orders` + `Public insert orders`, revoked anon grants.
 - `order_items`, `order_addresses`: anon INSERT revoked (service-role only).
@@ -84,14 +84,14 @@ zaynahs         OK     OK    OK     OK      300s
 totvogue        OK     OK    OK     OK      300s
 minimahal       OK     OK    OK     OK      300s
 littlemister    OK     OK    OK     OK      300s
-lobo            OK     OK    OK    OPEN*    300s   (*DB lock blocked — see §4)
+lobo            OK     OK    OK     OK      300s
 ```
 
 Per store: `/` `/shop` `/product/<slug>` `/reviews` `/cart` = 200 · `/admin/dashboard` = 307 → `/admin/login` ·
 `/api/search/products` = 200 · `/api/reviews/global` = 200 · `/api/settings` = 200 · `/order/<token>` = 200 ·
 login with bad credentials = 401 (no 500).
 
-Anon probes (4 stores): `orders` 401 · `store_settings` secrets 401 · `reviews.customer_email` 401 ·
+Anon probes (5/5 stores): `orders` 401 · `store_settings` secrets 401 · `reviews.customer_email` 401 ·
 public review columns 200 · `store_settings_public` 200.
 
 Guard probes (all 5): `/api/indexnow` 401 · `/api/indexing` 401 · `/api/indexing/batch` 401 ·
@@ -106,7 +106,6 @@ second call returns **0** (idempotent), marker set — no live data changed.
 
 | Item | Why blocked | Action |
 |------|-------------|--------|
-| **Lobo DB still open** (`orders`, `store_settings` secrets, `reviews` PII readable by anon) | Lobo's `SUPABASE_MGMT_TOKEN` returns **401 Invalid access token**, and the other stores' tokens get **403** (different Supabase org) | Create a fresh Personal Access Token (supabase.com → Account → Access Tokens) for Lobo's org → `env-backups/lobo.env.local` → then run `npm run security:lock -- --store=lobo` and apply `20261023000000_stock_deduction_on_order_creation.sql` |
 | **Lobo redeploys** | Its Vercel project has no GitHub integration (`link: null`) → no auto-deploy on push | Install the Vercel GitHub app on `infolobopk-lgtm/lobo.pk`, **or** deploy with `npx vercel deploy --prod` (a `.vercel/project.json` for `lobo-pk` is present locally and gitignored) |
 | **Secret rotation** | Keys were exposed in plaintext and are visible in DB/history | Rotate: zaynahs AI key · minimahal SMTP password + AI keys · littlemister AI/vision keys (totvogue was encrypted-only). Update in admin → Settings, never in code |
 | **GitHub PAT in `.git/config`** | Remotes embed `https://<token>@github.com/...`; it appears in shell history/logs | Rotate the PAT on GitHub and switch remotes to SSH or the OS credential helper |
