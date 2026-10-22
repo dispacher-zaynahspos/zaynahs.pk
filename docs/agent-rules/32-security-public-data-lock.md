@@ -138,7 +138,7 @@ Before merging any migration that adds a table or a public read:
 ## SEC8 — Verification (Definition of Done)
 
 ```bash
-npm run security:verify          # plan only, all stores
+npm run security:verify          # read-only probes, all stores (fails on any open leak)
 npm run security:lock            # apply (idempotent) to all env-backups stores
 ```
 

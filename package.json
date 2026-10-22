@@ -26,7 +26,7 @@
     "vercel:cleanup": "node scripts/cleanup-all-old-deployments.mjs",
     "verify:network": "node scripts/verify-store-network.mjs",
     "security:lock": "node scripts/apply-security-lock.mjs",
-    "security:verify": "node scripts/apply-security-lock.mjs --dry-run",
+    "security:verify": "node scripts/apply-security-lock.mjs --verify-only",
     "stores:all": "node scripts/stores-bulk-ops.mjs all",
     "stores:push": "node scripts/stores-bulk-ops.mjs push",
     "stores:sync-envs": "node scripts/stores-bulk-ops.mjs sync-envs",

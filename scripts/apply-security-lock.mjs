@@ -31,6 +31,7 @@ const SPLIT_MARKER = '-- ── 2. orders';
 
 const args = process.argv.slice(2);
 const dryRun = args.includes('--dry-run');
+const verifyOnly = args.includes('--verify-only');
 const onlyStore = args.find((a) => a.startsWith('--store='))?.split('=')[1]?.trim();
 const envFile = args.find((a) => a.startsWith('--env='))?.split('=')[1]?.trim();
 
@@ -186,6 +187,24 @@ async function applyStore(store) {
     return report;
   }
 
+  // ── Read-only verification mode (`npm run security:verify`) ──────────────
+  if (verifyOnly) {
+    const orders = await anonProbe(env, 'orders');
+    const settings = await anonProbe(env, 'store_settings', 'ai_model_credentials');
+    const reviewsPii = await anonProbe(env, 'reviews', 'customer_email');
+    const reviewsPublic = await anonProbe(env, 'reviews', 'customer_name,rating,comment');
+    const settingsView = await anonProbe(env, 'store_settings_public', 'store_name');
+
+    report.verify = {
+      orders: `${orders.status} ${orders.closed ? 'CLOSED' : 'STILL OPEN'}`,
+      storeSettingsSecrets: `${settings.status} ${settings.closed ? 'CLOSED' : 'STILL OPEN'}`,
+      reviewsPii: `${reviewsPii.status} ${reviewsPii.closed ? 'CLOSED' : 'STILL OPEN'}`,
+      reviewsPublic: `${reviewsPublic.status} ${reviewsPublic.status === 200 ? 'OK' : 'BROKEN'}`,
+      settingsView: `${settingsView.status} ${settingsView.status === 200 ? 'OK' : 'BROKEN'}`,
+    };
+    return report;
+  }
+
   // 1 — additive schema + predicate
   const r1 = await mgmtQuery(env, part1);
   report.steps.schema = r1.ok ? 'OK' : `FAILED ${r1.status}: ${r1.raw.slice(0, 160)}`;
@@ -240,14 +259,18 @@ if (stores.length === 0) {
   process.exit(1);
 }
 
-console.log(`▶ security lock — ${stores.length} store(s)${dryRun ? ' [DRY RUN]' : ''}`);
+console.log(
+  `▶ security lock — ${stores.length} store(s)${dryRun ? ' [DRY RUN]' : verifyOnly ? ' [VERIFY ONLY]' : ''}`
+);
 
 const results = [];
 for (const store of stores) {
   console.log(`\n=== ${store.name} ===`);
   try {
     const report = await applyStore(store);
-    console.log(JSON.stringify(report.steps, null, 1));
+    if (Object.keys(report.steps || {}).length) {
+      console.log(JSON.stringify(report.steps, null, 1));
+    }
     if (Object.keys(report.verify).length) console.log('verify:', JSON.stringify(report.verify));
     results.push(report);
   } catch (err) {
@@ -257,7 +280,10 @@ for (const store of stores) {
 }
 
 const failed = results.filter(
-  (r) => r.error || Object.values(r.steps || {}).some((v) => String(v).startsWith('FAILED'))
+  (r) =>
+    r.error ||
+    Object.values(r.steps || {}).some((v) => String(v).startsWith('FAILED')) ||
+    Object.values(r.verify || {}).some((v) => /STILL OPEN|BROKEN/.test(String(v)))
 );
 console.log(`\n──────── summary ────────`);
 console.log(`stores: ${results.length} | failed: ${failed.length}`);
