@@ -181,6 +181,10 @@ const nextConfig: NextConfig = {
     const supabaseUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ziucrfpebpxijqhwmqre.supabase.co').replace(/\/+$/, '');
     return [
       {
+        source: '/storage/v1/object/public/:path*',
+        destination: `${supabaseUrl}/storage/v1/object/public/:path*`,
+      },
+      {
         source: '/storage/:path*',
         destination: `${supabaseUrl}/storage/v1/object/public/:path*`,
       },
