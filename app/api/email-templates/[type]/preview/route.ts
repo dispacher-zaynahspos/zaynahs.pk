@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireAdmin } from '@/lib/auth/requireAdmin';
 import { getEmailTemplate } from '@/lib/services/emailTemplates';
 import { getSettings } from '@/lib/services/settings';
 import { buildVariables, replaceVariables, renderOrderItemsTable } from '@/lib/email/variables';
@@ -91,6 +92,9 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ type: string }> }
 ) {
+  // Admin-only: renders server-side settings into an email preview.
+  const denied = await requireAdmin(request);
+  if (denied) return denied;
   try {
     const { type } = await params;
     const body = await request.json().catch(() => ({}));

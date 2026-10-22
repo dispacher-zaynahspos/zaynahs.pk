@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { upsertAbandonedCart } from '@/lib/services/abandonedCarts';
+import { checkRateLimit, getClientIp, tooManyRequests } from '@/lib/security/abuseProtection';
 
 /**
  * POST /api/abandoned-cart
@@ -7,6 +8,10 @@ import { upsertAbandonedCart } from '@/lib/services/abandonedCarts';
  */
 export async function POST(req: NextRequest) {
   try {
+    // Abuse shield: 40 upserts / minute / IP (normal cart typing stays well under).
+    const rl = checkRateLimit(`cart:${await getClientIp()}`, { max: 40, windowMs: 60_000 });
+    if (!rl.allowed) return tooManyRequests(rl.retryAfter);
+
     const body = await req.json();
     const {
       sessionId,

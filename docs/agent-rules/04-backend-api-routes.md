@@ -33,6 +33,27 @@ See [02-error-detection-autofix.md](02-error-detection-autofix.md) — all mutat
 3. **Speed Entropy**: Real human users take >700ms to read and interact with checkout. Instantaneous programmatic submissions are rejected.
 4. **Burst Limiting**: Sliding window rate-limiting per client IP and PK phone number is capped generously (15 orders/5 min window) to permit real buyers while blocking massive script attacks.
 
+## RULE ABUSE2 — Every public write endpoint is rate-limited (STRICT)
+Never ship a public `POST`/`GET` route that writes rows, sends messages, or spends
+third-party quota without a limiter. Use the ONE shared limiter — never hand-roll a Map.
+
+```ts
+import { checkRateLimit, getClientIp, tooManyRequests } from '@/lib/security/abuseProtection';
+
+const rl = checkRateLimit(`contact:${await getClientIp()}`, { max: 5, windowMs: 3_600_000 });
+if (!rl.allowed) return tooManyRequests(rl.retryAfter);   // 429 + Retry-After
+```
+
+Baseline budgets (raise only with a reason): contact **5/h**, reviews/submit **5/h**,
+abandoned-cart upsert + mark-ordered **40/min**, tracking lookup **60/min**
+(protects the PostEx quota). Limits are per server instance (in-memory) — the first
+wall, never a replacement for RLS ([32-security-public-data-lock.md](32-security-public-data-lock.md)).
+
+Also: any route that spends external quota or renders server config (e.g.
+`/api/seo/test`, `email-templates/[type]/preview`) MUST call `requireAdmin(request)`
+first. Public-by-design exceptions (keep open): `/api/indexnow/key` (IndexNow requires
+it), `/api/google-verify`, `/api/admin/login`, `/api/track` (rate-limited).
+
 ## Feature implementation workflow (always in this order)
 1. SQL migration → `supabase/migrations/`
 2. Update `SUPER_MASTER_SCHEMA.sql` (keep in sync — see [05-database-supabase.md](05-database-supabase.md))

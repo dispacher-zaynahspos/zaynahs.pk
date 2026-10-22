@@ -4,6 +4,34 @@
 
 ---
 
+### [2026-10-24] v10.0.2 — Harden RPC grants + storage policies
+
+**Migration:** `supabase/migrations/20261024000000_harden_rpc_and_storage.sql`
+(applied to all 5 stores, verified with the public anon key)
+
+Found in the follow-up hacker sweep:
+
+1. **`adjust_item_stock` was executable by `anon`** (`SECURITY DEFINER`, so RLS is
+   bypassed) → anyone could change stock via `POST /rest/v1/rpc/adjust_item_stock`.
+   Now 401 (`42501 permission denied`). Same for `get_traffic_stats`,
+   `increment_ai_usage`, `recompute_*`, `update_product_reviews_stats`,
+   `link_order_to_abandoned_cart`, `generate_order_number`, and the stock
+   cancel/edit RPCs → service_role only.
+2. **`reorder_category_products`** was anon-executable → now `authenticated`
+   + internal `IF NOT public.is_admin() THEN RAISE EXCEPTION` guard.
+3. **`storage.objects` had `Public Insert/Update/Delete product-images`** → any
+   visitor could upload, overwrite or delete catalog images with the anon key.
+   Now: public **SELECT** only; writes require `public.is_admin()`. App uploads go
+   through admin-only `/api/upload-image` (service role), so nothing breaks.
+4. `failed_order_attempts` "Admin all" was `roles={authenticated} qual=true`
+   (missed by the text-based rewrite) → `is_admin()`; anon INSERT revoked.
+5. `media_library` "Public read" removed → admin-only metadata.
+
+Docs: `docs/agent-rules/32-security-public-data-lock.md` SEC10–SEC12 +
+`docs/SECURITY_RLS_AUDIT_PLAYBOOK.md` Step 2b.
+
+---
+
 ### [2026-10-23] v10.0.1 — Inventory: stock deducted on order creation (opt-in)
 
 **Migration:** `supabase/migrations/20261023000000_stock_deduction_on_order_creation.sql`

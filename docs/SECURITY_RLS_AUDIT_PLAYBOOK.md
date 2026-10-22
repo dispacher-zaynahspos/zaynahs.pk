@@ -75,6 +75,47 @@ GRANT SELECT (safe_a, safe_b) ON public.<table> TO anon;          -- re-grant sa
 
 ---
 
+## Step 2b — SECURITY DEFINER functions + Storage (the two holes people forget)
+
+**Functions.** A `SECURITY DEFINER` function bypasses RLS. If `anon` can execute it,
+the anon key inherits its power.
+
+```sql
+-- everything anon can execute
+select p.proname,
+       pg_get_function_identity_arguments(p.oid) as args,
+       p.prosecdef as security_definer
+from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+where n.nspname='public' and has_function_privilege('anon', p.oid, 'EXECUTE')
+order by 1;
+```
+
+For every `security_definer = true` entry, ask: *does the storefront need it?*
+If not:
+
+```sql
+revoke all on function public.<fn>(<args>) from public;
+revoke execute on function public.<fn>(<args>) from anon, authenticated;
+grant execute on function public.<fn>(<args>) to service_role;
+```
+
+Keep `public.is_admin()` executable (RLS uses it). For admin-called RPCs that must
+stay callable by `authenticated`, add an internal guard:
+`IF NOT public.is_admin() THEN RAISE EXCEPTION 'unauthorized'; END IF;`
+
+**Storage.** Public buckets need public SELECT only.
+
+```sql
+select policyname, cmd, roles::text, qual from pg_policies
+where schemaname='storage' and tablename='objects';
+```
+
+Any `INSERT/UPDATE/DELETE` with `roles={public}` and no `is_admin()` check means
+**anyone can upload/overwrite/delete your images**. Uploads should go through an
+admin-only API route using the service role.
+
+---
+
 ## Step 3 — One admin predicate (never `authenticated`)
 
 ```sql
@@ -196,3 +237,6 @@ Then smoke-test real pages: home / shop / product / reviews / cart / order track
 | public INSERT on `orders` | bots write fake orders, bypassing checkout shield |
 | dev bypass secret shipped to prod | anyone triggers crons |
 | long CF cache TTL blamed for staleness | wrong fix — debug purge, never shorten the TTL |
+| `SECURITY DEFINER` RPC executable by anon | anon key can change stock / read stats / trigger heavy jobs |
+| `Public Insert/Update/Delete` on `storage.objects` | anyone can deface or delete product images |
+| policy `roles={authenticated}` + `qual=true` | pattern-rewrite misses it; any logged-in user reads PII |

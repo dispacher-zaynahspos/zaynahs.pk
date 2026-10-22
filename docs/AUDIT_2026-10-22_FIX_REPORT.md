@@ -24,6 +24,11 @@ Stores: zaynahs.pk · totvogue.pk · minimahal.com · littlemister.pk · lobo.pk
 | 10 | `/api/search/products` returned **500** (invalid PostgREST relation `modifiers`, table is `product_modifiers`) | 🟡 Medium | live 500 + PostgREST `PGRST200` |
 | 11 | Lobo's Vercel project had **no GitHub link**; production was 16 commits / 7 days behind | 🟡 Medium | `link: null`, deploy SHA `8604383` vs local `114c56f` |
 | 12 | The earlier "secret column revoke" (`20260926180000`) was a **no-op**: a table-level `GRANT SELECT` covers every column, so `REVOKE SELECT (col)` did nothing | 🟡 Medium | grants inspection |
+| 13 | `adjust_item_stock`, `get_traffic_stats`, `reorder_category_products` were **executable by `anon`** (all `SECURITY DEFINER`, so RLS bypassed) | 🔴 Critical | `has_function_privilege('anon', …)` = true |
+| 14 | `storage.objects` had `Public Insert/Update/Delete product-images` → anyone with the anon key could **upload, overwrite or delete catalog images** | 🔴 Critical | storage policies inspection |
+| 15 | `failed_order_attempts` "Admin all" was `roles={authenticated} qual=true` (missed by the text-based rewrite) → any logged-in user read failed-order PII | 🟠 High | `pg_policies` |
+| 16 | `media_library` was publicly readable with the anon key | 🟡 Low | anon probe returned 1 row |
+| 17 | Public write endpoints (`contact`, `reviews/submit`, `abandoned-cart`, `track`, `seo/test`, email preview) had **no rate limit / no admin guard** | 🟠 High | code review |
 
 ---
 
@@ -64,8 +69,26 @@ Stores: zaynahs.pk · totvogue.pk · minimahal.com · littlemister.pk · lobo.pk
   TTL is never used (it would multiply Vercel origin hits and burn bandwidth).
 - `scripts/clone-setup.mjs` — new `db:security` phase (clone setup stays in sync).
 
+### Hardening follow-up (2026-10-24, migration `20261024000000_harden_rpc_and_storage.sql`)
+- SECURITY DEFINER RPCs revoked from `anon`/`authenticated` → **service_role only**
+  (`adjust_item_stock`, `restore_stock_on_cancel`, `adjust_stock_on_order_edit`,
+  `deduct_stock_for_order`, `get_traffic_stats`, `increment_ai_usage`, `recompute_*`,
+  `update_product_reviews_stats`, `link_order_to_abandoned_cart`,
+  `refresh_all_product_search_vectors`, `generate_order_number`).
+  `reorder_category_products` stays callable by `authenticated` **with an internal
+  `is_admin()` guard** (admin UI needs it).
+- Storage: `product-images` = public **SELECT only**; INSERT/UPDATE/DELETE require
+  `public.is_admin()`. Uploads still work via admin-only `/api/upload-image`.
+- `failed_order_attempts` → `is_admin()`; anon INSERT revoked.
+- `media_library` public read removed (admin metadata only).
+- Rate limits (`lib/security/abuseProtection.ts::checkRateLimit`, one shared limiter):
+  contact 5/h, reviews 5/h, abandoned-cart 40/min, tracking 60/min.
+- Admin guards added: `/api/seo/test` (spent IndexNow/Google quota), `email-templates/[type]/preview`.
+- Verified 5/5: RPC → 401 (42501), storage upload → 403, `media_library` → 401,
+  storefront pages + public images still 200.
+
 ### Documentation / permanent rules
-- `docs/agent-rules/32-security-public-data-lock.md` (SEC1–SEC9) + `AGENTS.md` index row 32.
+- `docs/agent-rules/32-security-public-data-lock.md` (SEC1–SEC12) + `AGENTS.md` index row 32.
 - `docs/agent-rules/05-database-supabase.md` → RULE D19.
 - `docs/agent-rules/07-deployment-vercel-cloudflare.md` → RULE CF-MANDATORY #6/#7 (300s ceiling + SSOT).
 - `docs/agent-rules/09-ecommerce-pos.md` → RULE E1 (inventory deducted exactly once).

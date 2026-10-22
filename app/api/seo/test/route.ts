@@ -3,12 +3,18 @@ import { getSettings } from '@/lib/services/settings';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { pingIndexNow } from '@/lib/indexNow';
 import { notifyGoogleIndexing } from '@/lib/googleIndexing';
+import { requireAdmin } from '@/lib/auth/requireAdmin';
 
 /**
  * GET /api/seo/test
  * Tests SEO setup: sitemap, robots, canonical, IndexNow, Google Indexing
+ *
+ * Admin-only: it PINGS IndexNow/Google (spends quota) and reveals store config.
  */
-export async function GET() {
+export async function GET(request: Request) {
+  const denied = await requireAdmin(request);
+  if (denied) return denied;
+
   interface SeoCheck {
     status: string;
     error?: string;

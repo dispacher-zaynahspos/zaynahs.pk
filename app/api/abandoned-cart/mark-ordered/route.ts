@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { markCartAsOrdered } from '@/lib/services/abandonedCarts';
+import { checkRateLimit, getClientIp, tooManyRequests } from '@/lib/security/abuseProtection';
 
 export async function POST(req: NextRequest) {
   try {
+    const rl = checkRateLimit(`cart-ordered:${await getClientIp()}`, { max: 40, windowMs: 60_000 });
+    if (!rl.allowed) return tooManyRequests(rl.retryAfter);
+
     const { sessionId, orderId } = await req.json();
     if (!sessionId || !orderId) {
       return NextResponse.json({ error: 'Missing sessionId or orderId' }, { status: 400 });

@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PostExClient } from '@/lib/postex/client';
 import { getLatestPostExStatus, mapPostExToFulfillmentStatus } from '@/lib/postex/statusMapper';
+import { checkRateLimit, getClientIp, tooManyRequests } from '@/lib/security/abuseProtection';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
+  // Abuse shield: 60 lookups / minute / IP (protects the PostEx quota).
+  const rl = checkRateLimit(`track:${await getClientIp()}`, { max: 60, windowMs: 60_000 });
+  if (!rl.allowed) return tooManyRequests(rl.retryAfter);
+
   const cn = (
     req.nextUrl.searchParams.get('cn') ||
     req.nextUrl.searchParams.get('trackingNumber') ||

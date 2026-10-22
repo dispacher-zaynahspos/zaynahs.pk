@@ -3133,3 +3133,120 @@ $$;
 REVOKE ALL ON FUNCTION public.restore_stock_on_cancel(UUID, JSONB) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.restore_stock_on_cancel(UUID, JSONB) TO service_role;
 REVOKE EXECUTE ON FUNCTION public.restore_stock_on_cancel(UUID, JSONB) FROM anon, authenticated;
+
+-- ============================================================================
+-- 2026-10-24 — HARDEN RPC GRANTS + STORAGE POLICIES
+-- Mirrors supabase/migrations/20261024000000_harden_rpc_and_storage.sql
+-- SECURITY DEFINER RPCs = service_role only (except is_admin + admin-guarded
+-- reorder_category_products). Storage writes = admin only; reads stay public.
+-- ============================================================================
+
+CREATE OR REPLACE FUNCTION public.reorder_category_products(
+  p_category_id uuid,
+  p_product_ids uuid[]
+) RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public', 'pg_temp'
+AS $function$
+BEGIN
+  IF NOT public.is_admin() THEN
+    RAISE EXCEPTION 'unauthorized' USING ERRCODE = '42501';
+  END IF;
+
+  INSERT INTO public.product_categories (product_id, category_id)
+  SELECT pid, p_category_id
+  FROM unnest(p_product_ids) AS pid
+  WHERE EXISTS (
+    SELECT 1 FROM public.products p
+    WHERE p.id = pid AND p.category_id = p_category_id
+  )
+  ON CONFLICT (product_id, category_id) DO NOTHING;
+
+  UPDATE public.product_categories pc
+  SET position = idx.ord
+  FROM (
+    SELECT unnest(p_product_ids) AS product_id,
+           generate_subscripts(p_product_ids, 1) AS ord
+  ) idx
+  WHERE pc.category_id = p_category_id
+    AND pc.product_id = idx.product_id;
+END;
+$function$;
+
+REVOKE ALL ON FUNCTION public.reorder_category_products(uuid, uuid[]) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.reorder_category_products(uuid, uuid[]) TO authenticated, service_role;
+REVOKE EXECUTE ON FUNCTION public.reorder_category_products(uuid, uuid[]) FROM anon;
+
+DO $$
+DECLARE
+  r record;
+BEGIN
+  FOR r IN
+    SELECT p.oid::regprocedure AS sig
+    FROM pg_proc p
+    JOIN pg_namespace n ON n.oid = p.pronamespace
+    WHERE n.nspname = 'public'
+      AND p.proname IN (
+        'adjust_item_stock',
+        'restore_stock_on_cancel',
+        'adjust_stock_on_order_edit',
+        'deduct_stock_for_order',
+        'get_traffic_stats',
+        'increment_ai_usage',
+        'recompute_all_review_stats',
+        'recompute_product_review_stats',
+        'update_product_reviews_stats',
+        'link_order_to_abandoned_cart',
+        'refresh_all_product_search_vectors',
+        'generate_order_number'
+      )
+  LOOP
+    EXECUTE format('REVOKE ALL ON FUNCTION %s FROM PUBLIC', r.sig);
+    EXECUTE format('REVOKE EXECUTE ON FUNCTION %s FROM anon, authenticated', r.sig);
+    EXECUTE format('GRANT EXECUTE ON FUNCTION %s TO service_role', r.sig);
+  END LOOP;
+END $$;
+
+DROP POLICY IF EXISTS "Public Insert product-images"  ON storage.objects;
+DROP POLICY IF EXISTS "Public Update product-images"  ON storage.objects;
+DROP POLICY IF EXISTS "Public Delete product-images"  ON storage.objects;
+DROP POLICY IF EXISTS "Public Read product-images"    ON storage.objects;
+DROP POLICY IF EXISTS "Public read product images"    ON storage.objects;
+DROP POLICY IF EXISTS "Admin upload product images"   ON storage.objects;
+DROP POLICY IF EXISTS "Admin update product images"   ON storage.objects;
+DROP POLICY IF EXISTS "Admin delete product images"   ON storage.objects;
+
+CREATE POLICY "Public read product images"
+  ON storage.objects FOR SELECT
+  TO public
+  USING (bucket_id = 'product-images');
+
+CREATE POLICY "Admin upload product images"
+  ON storage.objects FOR INSERT
+  TO authenticated
+  WITH CHECK (bucket_id = 'product-images' AND public.is_admin());
+
+CREATE POLICY "Admin update product images"
+  ON storage.objects FOR UPDATE
+  TO authenticated
+  USING (bucket_id = 'product-images' AND public.is_admin())
+  WITH CHECK (bucket_id = 'product-images' AND public.is_admin());
+
+CREATE POLICY "Admin delete product images"
+  ON storage.objects FOR DELETE
+  TO authenticated
+  USING (bucket_id = 'product-images' AND public.is_admin());
+
+DROP POLICY IF EXISTS "Admin all failed_order_attempts" ON public.failed_order_attempts;
+CREATE POLICY "Admin all failed_order_attempts"
+  ON public.failed_order_attempts FOR ALL
+  TO authenticated
+  USING (public.is_admin())
+  WITH CHECK (public.is_admin());
+
+DROP POLICY IF EXISTS "Public insert failed_order_attempts" ON public.failed_order_attempts;
+REVOKE INSERT ON public.failed_order_attempts FROM anon, authenticated;
+
+DROP POLICY IF EXISTS "Public read media_library" ON public.media_library;
+REVOKE SELECT ON public.media_library FROM anon;

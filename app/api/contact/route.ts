@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
+import { checkRateLimit, getClientIp, tooManyRequests } from '@/lib/security/abuseProtection';
 
 export async function POST(request: NextRequest) {
   try {
+    // Abuse shield: 5 messages / hour / IP (bots were able to spam rows + email).
+    const rl = checkRateLimit(`contact:${await getClientIp()}`, { max: 5, windowMs: 3_600_000 });
+    if (!rl.allowed) return tooManyRequests(rl.retryAfter);
+
     const body = await request.json();
     const { name, email, subject, message } = body;
 

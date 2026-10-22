@@ -6,6 +6,7 @@ import { HeroTabletSettings } from './HeroTabletSettings';
 import { HeroMobileSettings } from './HeroMobileSettings';
 import { HeroDesktopSettings } from './HeroDesktopSettings';
 import { HeroColorSettings } from './HeroColorSettings';
+import { HeroTransitionSettings } from './HeroTransitionSettings';
 
 interface HeroGlobalSettingsProps {
   settings: Record<string, unknown>;
@@ -37,6 +38,11 @@ export function HeroGlobalSettings({
       <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#e94560] block">Global Slider Settings</span>
 
       <HeroAutoplaySettings
+        settings={settings}
+        handleSettingsChange={handleSettingsChange}
+      />
+
+      <HeroTransitionSettings
         settings={settings}
         handleSettingsChange={handleSettingsChange}
       />

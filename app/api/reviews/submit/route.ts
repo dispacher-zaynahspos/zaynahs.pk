@@ -1,9 +1,14 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { normalizePkPhone } from '@/lib/phone';
+import { checkRateLimit, getClientIp, tooManyRequests } from '@/lib/security/abuseProtection';
 
 export async function POST(request: Request) {
   try {
+    // Abuse shield: 5 reviews / hour / IP (unapproved spam still costs storage).
+    const rl = checkRateLimit(`review:${await getClientIp()}`, { max: 5, windowMs: 3_600_000 });
+    if (!rl.allowed) return tooManyRequests(rl.retryAfter);
+
     const body = await request.json();
     const { productId, customerName, contact, customerPhone, customerEmail, rating, comment, images } = body;
 

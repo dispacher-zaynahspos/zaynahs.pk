@@ -134,3 +134,48 @@ export async function verifyOrderSecurity(options: SecurityCheckOptions): Promis
     return { allowed: true };
   }
 }
+
+// ── Generic per-IP rate limiter (SSOT) ──────────────────────────────────────
+// Used by public write endpoints (contact, reviews, abandoned cart, tracking)
+// so bots cannot spam rows or burn third-party quota. In-memory per instance:
+// good enough as a first wall, never a substitute for RLS.
+const windowLimiter = new Map<string, { count: number; resetAt: number }>();
+
+if (typeof setInterval !== 'undefined') {
+  setInterval(() => {
+    const now = Date.now();
+    for (const [key, val] of windowLimiter.entries()) {
+      if (now > val.resetAt) windowLimiter.delete(key);
+    }
+  }, 5 * 60 * 1000);
+}
+
+export interface RateLimitResult {
+  allowed: boolean;
+  retryAfter: number;
+}
+
+export function checkRateLimit(
+  key: string,
+  { max = 30, windowMs = 60_000 }: { max?: number; windowMs?: number } = {}
+): RateLimitResult {
+  const now = Date.now();
+  const rec = windowLimiter.get(key);
+  if (!rec || now > rec.resetAt) {
+    windowLimiter.set(key, { count: 1, resetAt: now + windowMs });
+    return { allowed: true, retryAfter: 0 };
+  }
+  if (rec.count >= max) {
+    return { allowed: false, retryAfter: Math.max(1, Math.ceil((rec.resetAt - now) / 1000)) };
+  }
+  rec.count += 1;
+  return { allowed: true, retryAfter: 0 };
+}
+
+/** Helper for route handlers: 429 response with Retry-After. */
+export function tooManyRequests(retryAfter: number): Response {
+  return new Response(JSON.stringify({ success: false, error: 'Too many requests. Please try again later.' }), {
+    status: 429,
+    headers: { 'Content-Type': 'application/json', 'Retry-After': String(retryAfter) },
+  });
+}

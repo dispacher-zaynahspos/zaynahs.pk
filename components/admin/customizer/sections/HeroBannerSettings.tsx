@@ -152,6 +152,8 @@ export default function HeroBannerSettings({
             handleAddSlide={handleAddSlide}
             handleDeleteSlide={handleDeleteSlide}
             handleMoveSlide={handleMoveSlide}
+            settings={settings}
+            handleSettingsChange={handleSettingsChange}
           />
           {activeSlide && (
             <HeroActiveSlideForm

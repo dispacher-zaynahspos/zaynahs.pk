@@ -10,6 +10,7 @@ import {
   parseVideoUrl,
   useHeroBannerStyles,
   HeroSlideItem,
+  HeroAnimationStyle,
 } from './hero-banner';
 
 export { parseVideoUrl };
@@ -23,9 +24,23 @@ export function HeroBannerSection({ section, settings }: HeroBannerSectionProps)
       ? `${settings.banner_url}?v=${settingsTimestamp}`
       : settings?.banner_url || '';
 
-  // Carousel options
+  // Carousel & Animation options
   const isAutoplay = section.settings?.autoplay ?? true;
   const autoplaySpeed = section.settings?.autoplay_speed ?? 5000;
+  const animationStyle = (section.settings?.animation_style as HeroAnimationStyle) || 'smooth_slide';
+
+  // Smooth duration tuning: default embla duration (25) is too abrupt & jerky.
+  // 35-45 gives buttery smooth momentum matching luxury e-commerce standards.
+  const emblaDuration =
+    animationStyle === 'fade'
+      ? 45
+      : animationStyle === 'scale_zoom'
+      ? 42
+      : animationStyle === 'creative_card'
+      ? 36
+      : animationStyle === 'parallax'
+      ? 38
+      : 35;
 
   // Extract slides list with backward compatibility
   const slides: HeroSlide[] = React.useMemo(() => {
@@ -73,7 +88,14 @@ export function HeroBannerSection({ section, settings }: HeroBannerSectionProps)
   const autoplayPlugin = React.useRef(Autoplay({ delay: autoplaySpeed, stopOnInteraction: false, playOnInit: false }));
 
   const [emblaRef, emblaApi] = useEmblaCarousel(
-    { loop: slides.length > 1, align: 'center', skipSnaps: false },
+    {
+      loop: slides.length > 1,
+      align: 'center',
+      skipSnaps: false,
+      duration: emblaDuration,
+      containScroll: 'trimSnaps',
+      watchDrag: slides.length > 1,
+    },
     slides.length > 1 && isAutoplay ? [autoplayPlugin.current] : []
   );
 
@@ -110,7 +132,7 @@ export function HeroBannerSection({ section, settings }: HeroBannerSectionProps)
     }
   }, [emblaApi, isAutoplay, slides.length]);
 
-  const carouselKey = `${section.id}_${slides.length}_${isAutoplay}_${autoplaySpeed}`;
+  const carouselKey = `${section.id}_${slides.length}_${isAutoplay}_${autoplaySpeed}_${animationStyle}`;
   const bannerClassName = `hero-banner-${section.id}`;
 
   return (
@@ -143,9 +165,10 @@ export function HeroBannerSection({ section, settings }: HeroBannerSectionProps)
       `,
         }}
       />
-      {/* Embla Viewport wrapper */}
-      <div className="overflow-hidden min-h-[200px] h-full w-full" ref={emblaRef}>
-        <div className="flex min-h-[200px] h-full w-full">
+      {/* Embla Viewport wrapper with touch-action: pan-y to prevent gesture conflicts on mobile */}
+      <div className="overflow-hidden min-h-[200px] h-full w-full [touch-action:pan-y] select-none" ref={emblaRef}>
+        {/* Track with GPU hardware acceleration to eliminate jitter */}
+        <div className="flex min-h-[200px] h-full w-full will-change-transform [backface-visibility:hidden] [transform:translateZ(0)]">
           {slides.map((slide, idx) => (
             <HeroSlideItem
               key={slide.id}
@@ -158,6 +181,7 @@ export function HeroBannerSection({ section, settings }: HeroBannerSectionProps)
               loadedMedia={loadedMedia}
               setLoadedMedia={setLoadedMedia}
               styles={styles}
+              animationStyle={animationStyle}
             />
           ))}
         </div>

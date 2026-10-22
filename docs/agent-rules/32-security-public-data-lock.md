@@ -184,3 +184,81 @@ Kisi bhi doosre Supabase project ke liye step-by-step playbook:
 - [27-single-source-of-truth.md](27-single-source-of-truth.md) — `server-secrets.ts`, `is_admin()` SSOT
 - [13-autonomy-boundaries.md](13-autonomy-boundaries.md) — live-DB changes need review + smoke test
 - `docs/SECURITY_STORE_SETTINGS_SECRETS_PLAN.md` — original secret-hardening plan (Part 1/2)
+
+---
+
+## SEC10 — SECURITY DEFINER RPCs are service_role only (STRICT)
+
+A `SECURITY DEFINER` function runs with the owner's rights and **bypasses RLS**. If
+`anon` can `EXECUTE` it, the anon key can do whatever the function does.
+
+Migration `20261024000000_harden_rpc_and_storage.sql` enforces:
+
+```sql
+REVOKE ALL ON FUNCTION public.<fn>() FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.<fn>() FROM anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.<fn>() TO service_role;
+```
+
+Service-role only: `adjust_item_stock`, `restore_stock_on_cancel`,
+`adjust_stock_on_order_edit`, `deduct_stock_for_order`, `get_traffic_stats`,
+`increment_ai_usage`, `recompute_*`, `update_product_reviews_stats`,
+`link_order_to_abandoned_cart`, `refresh_all_product_search_vectors`,
+`generate_order_number`.
+
+Exceptions:
+- `public.is_admin()` → executable by `anon, authenticated` (used inside RLS policies).
+- `public.reorder_category_products(...)` → `authenticated`, **plus** an internal
+  `IF NOT public.is_admin() THEN RAISE EXCEPTION 'unauthorized'` guard (it is called from
+  the admin UI, so the caller's JWT is available).
+
+Verify:
+
+```bash
+curl -s -o /dev/null -w "%{http_code}\n" -X POST "$URL/rest/v1/rpc/adjust_item_stock" \
+  -H "apikey: $ANON" -H "Content-Type: application/json" \
+  -d '{"p_product_id":"00000000-0000-0000-0000-000000000000","p_variant_id":null,"p_delta":-9999}'
+# expect 401/403 (42501 permission denied), never 200
+```
+
+---
+
+## SEC11 — Storage: public READ, admin-only WRITE (STRICT)
+
+Public product images must be readable by everyone (customers, OG tags, sitemaps) —
+but **never writable**. A `Public Insert/Update/Delete` policy on `storage.objects`
+lets any visitor overwrite or delete your catalog images with the anon key.
+
+Required policies for the `product-images` bucket (migration `20261024000000`):
+
+```sql
+-- SELECT: TO public  USING (bucket_id = 'product-images')
+-- INSERT/UPDATE/DELETE: TO authenticated
+--   USING / WITH CHECK (bucket_id = 'product-images' AND public.is_admin())
+```
+
+Uploads in the app go through `/api/upload-image` (admin-only, service role), so the
+storefront never needs a write policy. Removing public write policies breaks nothing.
+
+Verify (must NOT be 200):
+
+```bash
+curl -s -o /dev/null -w "%{http_code}\n" -X POST \
+  "$URL/storage/v1/object/product-images/probe.txt" \
+  -H "apikey: $ANON" -H "Authorization: Bearer $ANON" -H "x-upsert: true" --data "x"
+# expect 400/403
+```
+
+---
+
+## SEC12 — Policies the pattern-rewrite misses
+
+The `auth.role() = 'authenticated'` rewrite only catches policies whose **expression**
+contains that text. Watch for `roles = {authenticated}` with `qual = true`
+(e.g. `failed_order_attempts` "Admin all") — rewrite those to `public.is_admin()` too.
+
+```sql
+select tablename, policyname, roles::text, qual
+from pg_policies
+where schemaname='public' and roles::text like '%authenticated%' and coalesce(qual,'')='true';
+```

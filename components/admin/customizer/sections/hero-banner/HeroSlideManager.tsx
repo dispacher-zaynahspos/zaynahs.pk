@@ -4,6 +4,7 @@ import { Trash2 } from '@/components/common/Icons';
 
 import React from 'react';
 import { HeroSlide } from './HeroBannerControls';
+import { HeroTransitionSettings } from './HeroTransitionSettings';
 
 interface HeroSlideManagerProps {
   slides: HeroSlide[];
@@ -12,6 +13,8 @@ interface HeroSlideManagerProps {
   handleAddSlide: () => void;
   handleDeleteSlide: (id: string) => void;
   handleMoveSlide: (index: number, direction: 'up' | 'down') => void;
+  settings?: Record<string, unknown>;
+  handleSettingsChange?: (key: string, value: unknown) => void;
 }
 
 export function HeroSlideManager({
@@ -20,7 +23,9 @@ export function HeroSlideManager({
   setActiveSlideId,
   handleAddSlide,
   handleDeleteSlide,
-  handleMoveSlide
+  handleMoveSlide,
+  settings,
+  handleSettingsChange
 }: HeroSlideManagerProps) {
   return (
     <div className="space-y-3 p-3.5 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-200 dark:border-gray-800">
@@ -88,6 +93,15 @@ export function HeroSlideManager({
               </div>
             );
           })}
+        </div>
+      )}
+
+      {slides.length > 1 && settings && handleSettingsChange && (
+        <div className="pt-2 border-t border-gray-200 dark:border-gray-800">
+          <HeroTransitionSettings
+            settings={settings}
+            handleSettingsChange={handleSettingsChange}
+          />
         </div>
       )}
     </div>
