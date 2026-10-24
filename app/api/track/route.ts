@@ -2,9 +2,22 @@ import { NextRequest, NextResponse } from 'next/server';
 import { PostExClient } from '@/lib/postex/client';
 import { getLatestPostExStatus, mapPostExToFulfillmentStatus } from '@/lib/postex/statusMapper';
 import { checkRateLimit, getClientIp, tooManyRequests } from '@/lib/security/abuseProtection';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 
 export const dynamic = 'force-dynamic';
 
+function getHeader(req: NextRequest, ...keys: string[]): string {
+  for (const k of keys) {
+    const v = req.headers.get(k);
+    if (v) return v;
+  }
+  return '';
+}
+
+/**
+ * GET /api/track — Courier order tracking lookup (PostEx).
+ * Query params: ?cn=<tracking_number> or ?trackingNumber=<tracking_number>
+ */
 export async function GET(req: NextRequest) {
   // Abuse shield: 60 lookups / minute / IP (protects the PostEx quota).
   const rl = checkRateLimit(`track:${await getClientIp()}`, { max: 60, windowMs: 60_000 });
@@ -94,14 +107,64 @@ export async function GET(req: NextRequest) {
   }
 }
 
+/**
+ * POST /api/track — Handles TWO paths:
+ * 1. First-party Traffic Analytics Beacon (<TrafficBeacon /> sends { path, visitorId, referrer })
+ * 2. PostEx order tracking lookup via POST body ({ cn: string } or { trackingNumber: string })
+ */
 export async function POST(req: NextRequest) {
-  const body = await req.json().catch(() => ({}));
-  const cn = String(body.trackingNumber || body.cn || '').trim();
-  if (!cn) {
-    return NextResponse.json({ error: 'Tracking number missing' }, { status: 400 });
-  }
+  try {
+    const body = await req.json().catch(() => ({}));
 
-  const client = new PostExClient();
-  const result = await client.trackSingleOrder(cn);
-  return NextResponse.json(result);
+    // ── PATH 1: Traffic Analytics Beacon (Storefront Page Views) ──────────────
+    if ('path' in body || 'visitorId' in body) {
+      const path = typeof body.path === 'string' ? body.path.slice(0, 512) : '/';
+      const visitorId = typeof body.visitorId === 'string' ? body.visitorId.slice(0, 64) : null;
+      const referrer = typeof body.referrer === 'string' ? body.referrer.slice(0, 512) : null;
+
+      // Ignore admin / api / internal paths — storefront traffic only (RULE TA2)
+      if (path.startsWith('/admin') || path.startsWith('/api') || path.startsWith('/_next')) {
+        return new NextResponse(null, { status: 204 });
+      }
+
+      const country =
+        getHeader(req, 'cf-ipcountry', 'x-vercel-ip-country').toUpperCase().slice(0, 2) || null;
+
+      let city = getHeader(req, 'cf-ipcity', 'x-vercel-ip-city') || '';
+      try {
+        city = decodeURIComponent(city);
+      } catch {
+        /* keep raw */
+      }
+      city = city.slice(0, 120);
+
+      await supabaseAdmin.from('page_views').insert({
+        path,
+        country: country || null,
+        city: city || null,
+        visitor_id: visitorId,
+        referrer,
+      });
+
+      return new NextResponse(null, { status: 204 });
+    }
+
+    // ── PATH 2: PostEx Courier Order Tracking ────────────────────────────────
+    const cn = String(body.trackingNumber || body.cn || '').trim();
+    if (cn) {
+      const rl = checkRateLimit(`track:${await getClientIp()}`, { max: 60, windowMs: 60_000 });
+      if (!rl.allowed) return tooManyRequests(rl.retryAfter);
+
+      const client = new PostExClient();
+      const result = await client.trackSingleOrder(cn);
+      return NextResponse.json(result);
+    }
+
+    return NextResponse.json({ error: 'Invalid tracking payload' }, { status: 400 });
+  } catch (err) {
+    console.error('[API /api/track POST] Error:', err);
+    // Never surface errors to the visitor beacon
+    return new NextResponse(null, { status: 204 });
+  }
 }
+
