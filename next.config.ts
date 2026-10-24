@@ -204,6 +204,14 @@ const nextConfig: NextConfig = {
         source: '/google:code.html',
         destination: '/api/google-verify?code=:code',
       },
+      {
+        source: '/catalog.xml',
+        destination: '/api/meta/catalog.xml',
+      },
+      {
+        source: '/api/meta/feed.xml',
+        destination: '/api/meta/catalog.xml',
+      },
     ];
   },
   async redirects() {

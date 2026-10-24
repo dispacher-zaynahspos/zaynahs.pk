@@ -38,3 +38,26 @@ Migration `20261023000000_stock_deduction_on_order_creation.sql` added
   Never enable it on a store whose staff edits stock after every order.
 - Failures must never block checkout: the call is awaited but only logged; reconcile with
   the order timeline entry "Inventory deducted for N item line(s)".
+
+## RULE E2 — Multi-Platform Catalog Sync & Data Feed Architecture (Meta, TikTok, Google)
+Applies universally across all current stores (TotVogue, Zaynahs, MiniMahal, LittleMister, Lobo) and ALL future clones:
+
+1. **Zero Hardcoded Domains (Complete Clone & Domain Independence)**:
+   - Every store/clone operates its own independent catalog feed and sync endpoints (`/api/meta/catalog.xml`, `/catalog.xml`, `/api/meta-sync/bulk`).
+   - Domain resolution is STRICTLY dynamic via `getSiteUrl(settings)` (server-side) and `window.location.origin` (client-side). Hardcoding any store domain (e.g. totvogue.pk, zaynahs.pk) in catalog feeds or mappers is strictly forbidden.
+   - Each clone feeds its own separate Meta / TikTok Commerce Manager catalog.
+
+2. **Variant Clustering vs Standalone Products (Duplicate ID Invariant)**:
+   - **Products with Variants**: Only active variants are emitted as catalog items (`id = variant.id`, `item_group_id = parent.id`). The parent product itself MUST NEVER be emitted as a standalone item alongside its variants.
+   - **Simple Products (No Variants)**: Emitted with `id = product.id` and `item_group_id` MUST be completely omitted.
+   - Violation causes Meta's fatal `"18 products have duplicate product and group IDs"` clustering error.
+
+3. **Dual-Sync Strategy (Real-time Graph API + Scheduled Feed URL)**:
+   - **Instant Layer**: Admin CRUD actions (save, update, delete) trigger immediate Graph API sync and cache revalidations within 2-3 seconds.
+   - **Self-Healing Layer**: Standard RSS 2.0 / Google & Meta compliant XML Data Feed (`/api/meta/catalog.xml`) is scheduled hourly in Meta Commerce Manager. It auto-heals any missed items, price updates, stock changes, and deleted items without manual intervention.
+   - Batch `DELETE` calls to Meta Graph API MUST include `{ data: { id: retailer_id } }`.
+
+4. **Extensibility for Future Platforms (TikTok, Google Merchant, Pinterest)**:
+   - All catalog mappers and feed generators live in modular folders (`lib/meta/`, `lib/catalog-feeds/`).
+   - TikTok Catalog and Google Merchant feeds MUST reuse the same single source of truth product mapping logic to ensure price, inventory, and variant clustering consistency across all ad platforms.
+
