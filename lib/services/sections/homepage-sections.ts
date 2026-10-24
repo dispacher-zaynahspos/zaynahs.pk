@@ -67,7 +67,7 @@ export const getHomepageSections = async (onlyActive = false): Promise<HomepageS
 export const fetchSectionsForVerticalAdmin = async (): Promise<HomepageSection[]> => {
   try {
     const supabase = supabaseAdmin;
-    let query = supabase
+    const query = supabase
       .from('homepage_sections')
       .select('*')
       .order('sort_order', { ascending: true });

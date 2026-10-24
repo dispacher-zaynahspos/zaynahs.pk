@@ -38,7 +38,7 @@ Full-system audit + permanent fixes are documented in `docs/AUDIT_PASS{0..10}_*.
 | 00 | [00-prime-directives.md](docs/agent-rules/00-prime-directives.md) | Full unpacked Rule #0 |
 | 01 | [01-core-operating-principles.md](docs/agent-rules/01-core-operating-principles.md) | Root-cause first, scope discipline, logging |
 | 02 | [02-error-detection-autofix.md](docs/agent-rules/02-error-detection-autofix.md) | Auto-detect/fix build/runtime errors |
-| 03 | [03-frontend-nextjs-react.md](docs/agent-rules/03-frontend-nextjs-react.md) | App Router, safe access, SEO, icons |
+| 03 | [03-frontend-nextjs-react.md](docs/agent-rules/03-frontend-nextjs-react.md) | App Router, safe access, SEO, icons, RULE F6 (strictly non-indexable admin defense-in-depth) |
 | 04 | [04-backend-api-routes.md](docs/agent-rules/04-backend-api-routes.md) | API validation, error handling, rate limits; RULE ABUSE1 (bot shield) + RULE ABUSE2 (every public write route uses the ONE shared `checkRateLimit`; quota-spending/server-config routes use `requireAdmin`) |
 | 05 | [05-database-supabase.md](docs/agent-rules/05-database-supabase.md) | Schema, RLS, D1–D12, master schema |
 | 06 | [06-git-github.md](docs/agent-rules/06-git-github.md) | Commits, branches, secrets |

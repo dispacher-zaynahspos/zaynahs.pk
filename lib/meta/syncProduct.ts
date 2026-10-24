@@ -113,34 +113,42 @@ export async function syncProductToMeta(
     // 3. Build requests payload
     let requests: MetaBatchRequest[] = [];
 
-    if (action === 'DELETE') {
-      if (product.has_variants && product.variants && product.variants.length > 0) {
-        requests = product.variants.map(v => ({
-          method: 'DELETE',
-          retailer_id: v.id
-        }));
-      } else {
-        requests = [{ method: 'DELETE', retailer_id: product.id }];
-      }
+    const activeVariants = product.variants ? product.variants.filter(v => v.active) : [];
+    const hasVariants = Boolean(
+      product.has_variants ??
+      (product as unknown as { hasVariants?: boolean }).hasVariants ??
+      activeVariants.length > 0
+    );
+
+    if (action === 'DELETE' || product.deleted_at || !product.is_active) {
+      // Complete cleanup: delete parent item AND all variants with required data: { id }
+      requests = [
+        { method: 'DELETE', retailer_id: product.id, data: { id: product.id } as MetaCatalogItem },
+        ...activeVariants.map(v => ({
+          method: 'DELETE' as const,
+          retailer_id: v.id,
+          data: { id: v.id } as MetaCatalogItem,
+        })),
+      ];
     } else {
-      // Inactive or soft-deleted product → delete from Meta catalog
-      if (product.deleted_at) {
-        if (product.has_variants && product.variants && product.variants.length > 0) {
-          requests = product.variants.map(v => ({
-            method: 'DELETE',
-            retailer_id: v.id
-          }));
-        } else {
-          requests = [{ method: 'DELETE', retailer_id: product.id }];
-        }
-      } else {
-        const mappedItems = mapProductToMeta(product, settings, categoryMap);
-        requests = mappedItems.map(item => ({
-          method: 'UPDATE',
+      const mappedItems = mapProductToMeta(product, settings, categoryMap);
+      const isVariantProduct = mappedItems.some(item => item.item_group_id === product.id);
+
+      // CRITICAL DUPLICATE PREVENTION:
+      // If product has variants, always delete the standalone parent item from Meta.
+      // In Meta Catalog, parent ID must ONLY exist as an item_group_id, NEVER as an item id.
+      const cleanupRequests: MetaBatchRequest[] = isVariantProduct
+        ? [{ method: 'DELETE', retailer_id: product.id, data: { id: product.id } as MetaCatalogItem }]
+        : [];
+
+      requests = [
+        ...cleanupRequests,
+        ...mappedItems.map(item => ({
+          method: 'UPDATE' as const,
           retailer_id: item.id,
-          data: item
-        }));
-      }
+          data: item,
+        })),
+      ];
     }
 
     if (requests.length === 0) {
@@ -220,19 +228,33 @@ export async function bulkSyncProductsToMeta(
     for (const product of products) {
       try {
         let requests: MetaBatchRequest[] = [];
-        if (action === 'DELETE' || product.deleted_at) {
-          if (product.has_variants && product.variants && product.variants.length > 0) {
-            requests = product.variants.map(v => ({ method: 'DELETE', retailer_id: v.id }));
-          } else {
-            requests = [{ method: 'DELETE', retailer_id: product.id }];
-          }
+        const activeVariants = product.variants ? product.variants.filter(v => v.active) : [];
+
+        if (action === 'DELETE' || product.deleted_at || !product.is_active) {
+          requests = [
+            { method: 'DELETE', retailer_id: product.id, data: { id: product.id } as MetaCatalogItem },
+            ...activeVariants.map(v => ({
+              method: 'DELETE' as const,
+              retailer_id: v.id,
+              data: { id: v.id } as MetaCatalogItem,
+            })),
+          ];
         } else {
           const mappedItems = mapProductToMeta(product, settings, categoryMap);
-          requests = mappedItems.map(item => ({
-            method: 'UPDATE',
-            retailer_id: item.id,
-            data: item
-          }));
+          const isVariantProduct = mappedItems.some(item => item.item_group_id === product.id);
+
+          const cleanupRequests: MetaBatchRequest[] = isVariantProduct
+            ? [{ method: 'DELETE', retailer_id: product.id, data: { id: product.id } as MetaCatalogItem }]
+            : [];
+
+          requests = [
+            ...cleanupRequests,
+            ...mappedItems.map(item => ({
+              method: 'UPDATE' as const,
+              retailer_id: item.id,
+              data: item,
+            })),
+          ];
         }
         requests.forEach(() => productIdForChunk.push(product.id));
         allRequests.push(...requests);

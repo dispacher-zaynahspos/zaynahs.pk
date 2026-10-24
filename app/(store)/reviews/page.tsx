@@ -96,18 +96,31 @@ export default async function ReviewsPage({ searchParams }: PageProps) {
   }
 
   // Active products for Write Review modal product picker
-  let activeProducts: { id: string; name: string; slug: string }[] = [];
+  let activeProducts: { id: string; name: string; slug: string; image?: string; price?: number }[] = [];
   try {
     const { data: productsData } = await supabaseAdmin
       .from('products')
-      .select('id, name, slug')
+      .select('id, name, slug, price, product_images(url, is_primary, sort_order)')
       .eq('is_active', true)
       .is('deleted_at', null)
       .order('sort_order', { ascending: true })
-      .limit(60);
+      .limit(100);
 
     if (productsData) {
-      activeProducts = productsData;
+      activeProducts = productsData.map((p) => {
+        const row = p as { id: string; name: string; slug: string; price: number; product_images?: Array<{ url?: string; is_primary?: boolean | null; sort_order?: number | null }> };
+        const imgs = Array.isArray(row.product_images) ? row.product_images : [];
+        const sorted = [...imgs].sort(
+          (a, b) => (b.is_primary ? 1 : 0) - (a.is_primary ? 1 : 0) || (a.sort_order ?? 0) - (b.sort_order ?? 0)
+        );
+        return {
+          id: row.id,
+          name: row.name,
+          slug: row.slug,
+          price: row.price,
+          image: sorted[0]?.url || '',
+        };
+      });
     }
   } catch (err) {
     console.error('Error fetching active products:', err);

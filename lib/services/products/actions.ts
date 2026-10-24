@@ -151,7 +151,7 @@ export async function createProductAction(
         if (modError) throw modError;
       }
 
-      let categoryIdsToInsert = product.product_categories?.map(pc => pc.category_id) || [];
+      const categoryIdsToInsert = product.product_categories?.map(pc => pc.category_id) || [];
       if (categoryIdsToInsert.length === 0 && product.category_id) {
         categoryIdsToInsert.push(product.category_id);
       }
@@ -368,7 +368,7 @@ export async function updateProductAction(
         if (modInsError) throw modInsError;
       }
 
-      let categoryIdsToUpdate = product.product_categories?.map(pc => pc.category_id) || [];
+      const categoryIdsToUpdate = product.product_categories?.map(pc => pc.category_id) || [];
       if (categoryIdsToUpdate.length === 0 && product.category_id) {
         categoryIdsToUpdate.push(product.category_id);
       }
@@ -463,7 +463,7 @@ export async function updateProductFieldsAction(
     if (error) throw error;
 
     if (fields.product_categories !== undefined || fields.category_id !== undefined) {
-      let categoryIdsToUpdate = fields.product_categories?.map(pc => pc.category_id) || [];
+      const categoryIdsToUpdate = fields.product_categories?.map(pc => pc.category_id) || [];
       if (categoryIdsToUpdate.length === 0 && fields.category_id) {
         categoryIdsToUpdate.push(fields.category_id);
       }

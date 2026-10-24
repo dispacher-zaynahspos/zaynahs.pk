@@ -11,6 +11,7 @@ import MediaSelectorModal from './MediaSelectorModal';
 import { toast } from 'sonner';
 import StarRating from '@/components/store/StarRating';
 import { rankProducts } from '@/lib/services/product-search/useInMemoryProductSearch';
+import ProductSearchPicker from '@/components/common/ProductSearchPicker';
 
 interface PostReviewModalProps {
   isOpen: boolean;
@@ -203,12 +204,20 @@ export default function PostReviewModal({ isOpen, onClose, onSuccess, editProof 
               </div>
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">Attach to Product (Optional)</label>
-                <select value={selectedProductId} onChange={(e) => setSelectedProductId(e.target.value)} className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-[#0f0f1b]/50 px-4 py-2.5 text-sm font-medium text-gray-900 dark:text-white focus:border-[#e94560] focus:outline-none transition-all">
-                  <option value="">General Store Review (No Product)</option>
-                  {products.map((p) => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
-                  ))}
-                </select>
+                <ProductSearchPicker
+                  value={selectedProductId}
+                  onChange={(id) => setSelectedProductId(id)}
+                  initialProducts={products.map((p) => ({
+                    id: p.id,
+                    name: p.name,
+                    slug: p.slug,
+                    price: p.price,
+                    sku: p.sku,
+                    image: p.images?.[0]?.url || '',
+                  }))}
+                  placeholder="Search products to attach (or leave empty for general store review)..."
+                  allowClear={true}
+                />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -320,8 +329,23 @@ export default function PostReviewModal({ isOpen, onClose, onSuccess, editProof 
                             onChange={() => toggleProductId(p.id)}
                             className="w-4 h-4 rounded border-gray-300 text-[#e94560] focus:ring-[#e94560] cursor-pointer"
                           />
+                          <div className="relative w-8 h-8 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 shrink-0 border border-gray-200 dark:border-gray-700">
+                            {p.images?.[0]?.url ? (
+                              /* eslint-disable-next-line @next/next/no-img-element */
+                              <img src={p.images[0].url} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                <Package className="w-4 h-4" />
+                              </div>
+                            )}
+                          </div>
                           <div className="flex-1 min-w-0">
-                            <div className="truncate">{p.name}</div>
+                            <div className="truncate text-xs sm:text-sm font-semibold">{p.name}</div>
+                            {typeof p.price === 'number' && (
+                              <div className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+                                Rs. {p.price.toLocaleString()}
+                              </div>
+                            )}
                           </div>
                         </label>
                       ));

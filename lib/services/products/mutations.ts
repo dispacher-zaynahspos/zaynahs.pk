@@ -109,7 +109,7 @@ export const createProduct = async (
       if (modError) throw modError;
     }
 
-    let categoryIdsToInsert = product.product_categories?.map(pc => pc.category_id) || [];
+    const categoryIdsToInsert = product.product_categories?.map(pc => pc.category_id) || [];
     if (categoryIdsToInsert.length === 0 && product.category_id) {
       categoryIdsToInsert.push(product.category_id);
     }
@@ -260,7 +260,7 @@ export const updateProduct = async (
       if (modInsError) throw modInsError;
     }
 
-    let categoryIdsToUpdate = product.product_categories?.map(pc => pc.category_id) || [];
+    const categoryIdsToUpdate = product.product_categories?.map(pc => pc.category_id) || [];
     if (categoryIdsToUpdate.length === 0 && product.category_id) {
       categoryIdsToUpdate.push(product.category_id);
     }

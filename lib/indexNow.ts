@@ -32,13 +32,27 @@ export async function pingIndexNow(urls: string[], siteUrlOverride?: string): Pr
 
     const keyLocation = `${siteUrl}/${key}.txt`;
 
-    console.log(`[IndexNow] Pinging ${urls.length} URLs for host: ${host}`);
+    const safeUrls = urls.filter((u) => {
+      try {
+        const path = new URL(u).pathname;
+        return !path.startsWith('/admin') && !path.startsWith('/api');
+      } catch {
+        return !u.includes('/admin') && !u.includes('/api');
+      }
+    });
+
+    if (safeUrls.length === 0) {
+      console.log('[IndexNow] No indexable storefront URLs in batch (admin/api stripped). Skipping.');
+      return true;
+    }
+
+    console.log(`[IndexNow] Pinging ${safeUrls.length} URLs for host: ${host}`);
 
     const body = JSON.stringify({
       host,
       key,
       keyLocation,
-      urlList: urls
+      urlList: safeUrls
     });
 
     console.log(`[IndexNow] Sending to host=${host} keyLocation=${keyLocation}`);

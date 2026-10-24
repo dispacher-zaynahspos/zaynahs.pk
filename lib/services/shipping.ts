@@ -89,7 +89,7 @@ export async function updateShippingMethod(
 ): Promise<ShippingMethod> {
   const supabase = await createClient();
   
-  const updatePayload: any = {};
+  const updatePayload: Record<string, unknown> = {};
   if (data.name !== undefined) updatePayload.name = data.name;
   if (data.cost !== undefined) updatePayload.cost = data.cost;
   if (data.estimated_days !== undefined) updatePayload.estimated_days = data.estimated_days;

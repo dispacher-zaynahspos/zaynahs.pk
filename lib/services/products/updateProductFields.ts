@@ -60,7 +60,7 @@ export const updateProductFields = async (
     if (error) throw error;
 
     if (fields.product_categories !== undefined || fields.category_id !== undefined) {
-      let categoryIdsToUpdate = fields.product_categories?.map(pc => pc.category_id) || [];
+      const categoryIdsToUpdate = fields.product_categories?.map(pc => pc.category_id) || [];
       if (categoryIdsToUpdate.length === 0 && fields.category_id) {
         categoryIdsToUpdate.push(fields.category_id);
       }

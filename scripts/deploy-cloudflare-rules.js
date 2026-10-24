@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 /**
  * Cloudflare Cache Rules Auto-Deployer
  * Automatically resolves the ruleset ID for the http_request_cache_settings phase

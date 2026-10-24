@@ -88,6 +88,11 @@ async function getAccessToken(): Promise<string | null> {
  */
 export async function notifyGoogleIndexing(url: string, type: 'URL_UPDATED' | 'URL_DELETED' = 'URL_UPDATED'): Promise<boolean> {
   try {
+    if (url.includes('/admin') || url.includes('/api/')) {
+      console.warn('[GoogleIndexing] Blocked attempt to index admin/api URL:', url);
+      return false;
+    }
+
     const token = await getAccessToken();
     if (!token) return false;
 

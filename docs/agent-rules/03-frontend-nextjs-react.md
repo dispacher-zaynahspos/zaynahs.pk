@@ -133,3 +133,18 @@ const setTab = useCallback((tab: T) => {
 
 ### Verify
 Click between Settings tabs → each switch is instant (no spinner, no blank); URL `?tab=` updates; refresh keeps the tab; browser Back restores the previous tab.
+
+## RULE F6 — Strictly Non-Indexable Admin & Authenticated System (Zero SEO Leaks, Crawl Budget Protection)
+Applies universally across all current stores and future clones:
+1. **Four-Layer Defense-in-Depth against Crawlers**:
+   - **Layer 1: robots.txt (`app/robots.ts`)**: Explicitly blocks `/admin`, `/admin/`, `/cart`, `/checkout`, `/account`, `/login`, `/api`, etc. Disallow rules are applied to both wildcard `*` AND explicitly to all named AI/search engine crawlers (GPTBot, ClaudeBot, PerplexityBot, Googlebot, Bingbot, etc.), preventing bots with custom user-agent blocks from ignoring wildcard disallow directives. Storefront routes (`allow: '/'`) remain 100% crawlable.
+   - **Layer 2: App Router Layout Metadata (`app/admin/layout.tsx`)**: Strict `robots: { index: false, follow: false, nocache: true, googleBot: { index: false, follow: false, noimageindex: true } }`. Any child admin metadata inherits or cascades these tags.
+   - **Layer 3: HTTP Response Header `X-Robots-Tag` (`next.config.ts` & `middleware.ts`)**:
+     - `next.config.ts`: Emits `X-Robots-Tag: noindex, nofollow, noarchive, nosnippet` on `/admin` and `/admin/:path*`.
+     - `middleware.ts`: Scoped strictly via `matcher: ['/admin', '/admin/:path*']` to emit `X-Robots-Tag: noindex, nofollow, noarchive` on all admin responses and login redirects without touching storefront routes.
+   - **Layer 4: Search Engine API Shields (`lib/indexNow.ts` & `lib/googleIndexing.ts`)**:
+     - IndexNow API payload filters out any `/admin` or `/api` URLs before submission.
+     - Google Indexing API service worker aborts immediately if a URL contains `/admin` or `/api/`.
+2. **Sitemap Isolation (`app/sitemap.ts`)**:
+   - Only public storefront canonical URLs (home, `/shop`, categories, products, collections, `/reviews`, policies) are included. Admin, cart, checkout, account, and auth URLs are strictly excluded.
+

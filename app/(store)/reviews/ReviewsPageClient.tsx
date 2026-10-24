@@ -20,7 +20,7 @@ interface ReviewsPageClientProps {
   initialSocialProofs: SocialProof[];
   storeUrl: string;
   ratingDistribution: Record<number, number>;
-  products: { id: string; name: string; slug: string }[];
+  products: { id: string; name: string; slug: string; image?: string; price?: number }[];
 }
 
 const itemsPerPage = 20;

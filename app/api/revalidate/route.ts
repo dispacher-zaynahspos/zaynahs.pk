@@ -108,6 +108,14 @@ export async function POST(req: NextRequest) {
         if (product && product.slug) {
           await revalidateProduct(product.slug);
           console.log(`[Webhook Revalidate] Revalidated parent product ${product.slug} due to change in table ${table}`);
+
+          // Real-time Meta sync when variants or images change
+          try {
+            await syncProductToMeta(product, 'UPDATE');
+            console.log(`[Webhook Revalidate] Synced updated product ${product.id} to Meta Catalog.`);
+          } catch (metaErr) {
+            console.error('[Webhook Revalidate] Meta Catalog Sync for child table failed:', metaErr);
+          }
         } else {
           console.warn(`[Webhook Revalidate] Parent product not found or slug missing for product ID: ${productId}`);
         }

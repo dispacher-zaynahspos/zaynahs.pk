@@ -135,62 +135,72 @@ export function mapProductToMeta(
   const gender = getGender(product.name, baseDescription);
   const ageGroup = getAgeGroup(product.name, baseDescription, categoryPath);
 
+  // Resilient variant detection: check has_variants (snake_case), hasVariants (camelCase), or active variants presence
+  const hasVariants = Boolean(
+    product.has_variants ??
+    (product as unknown as { hasVariants?: boolean }).hasVariants ??
+    (product.variants && product.variants.length > 0)
+  );
+
+  const activeVariants = (product.variants ?? []).filter((v) => v.active);
+
   // If the product has active variants, map each variant as an item in Meta Catalog
-  if (product.has_variants && product.variants && product.variants.length > 0) {
-    return product.variants
-      .filter(v => v.active)
-      .map(v => {
-        const variantNameParts = [];
-        if (v.color) variantNameParts.push(v.color);
-        if (v.size) variantNameParts.push(v.size);
-        if (v.material) variantNameParts.push(v.material);
-        if (v.custom_value) variantNameParts.push(v.custom_value);
-        
-        const variantName = variantNameParts.length > 0 
-          ? `${product.name} - ${variantNameParts.join(', ')}`
-          : product.name;
+  // CRITICAL META CATALOG SPEC:
+  // - Variants have: id = variant.id, item_group_id = product.id
+  // - Parent product itself MUST NOT be uploaded as an item alongside variants (prevents duplicate product and group IDs error)
+  if (hasVariants && activeVariants.length > 0) {
+    return activeVariants.map((v) => {
+      const variantNameParts = [];
+      if (v.color) variantNameParts.push(v.color);
+      if (v.size) variantNameParts.push(v.size);
+      if (v.material) variantNameParts.push(v.material);
+      if (v.custom_value) variantNameParts.push(v.custom_value);
 
-        const activePrice = v.price || product.price;
-        const comparePrice = v.compare_price || product.compare_price;
+      const variantName = variantNameParts.length > 0
+        ? `${product.name} - ${variantNameParts.join(', ')}`
+        : product.name;
 
-        // Sale price calculations: regular price goes to 'price', discounted active goes to 'sale_price'
-        let finalPrice = `${activePrice} ${currency}`;
-        let salePrice: string | undefined = undefined;
+      const activePrice = v.price || product.price;
+      const comparePrice = v.compare_price || product.compare_price;
 
-        if (comparePrice && Number(comparePrice) > Number(activePrice)) {
-          finalPrice = `${comparePrice} ${currency}`;
-          salePrice = `${activePrice} ${currency}`;
-        }
+      // Sale price calculations: regular price goes to 'price', discounted active goes to 'sale_price'
+      let finalPrice = `${activePrice} ${currency}`;
+      let salePrice: string | undefined = undefined;
 
-        const variantImageUrl = v.image_url ? cleanImageUrl(v.image_url, siteUrl) : primaryImage;
+      if (comparePrice && Number(comparePrice) > Number(activePrice)) {
+        finalPrice = `${comparePrice} ${currency}`;
+        salePrice = `${activePrice} ${currency}`;
+      }
 
-        return {
-          id: v.id,
-          item_group_id: product.id,
-          title: variantName,
-          description: baseDescription,
-          price: finalPrice,
-          sale_price: salePrice,
-          currency: currency,
-          availability: v.stock > 0 ? 'in stock' : 'out of stock',
-          condition: 'new',
-          link: `${siteUrl}/product/${product.slug}`,
-          image_link: variantImageUrl,
-          additional_image_link: additionalImages.length > 0 ? additionalImages.join(',') : undefined,
-          brand: brandName,
-          category: categoryPath,
-          google_product_category: categoryPath,
-          inventory: v.stock,
-          color: v.color || undefined,
-          size: v.size || undefined,
-          material: v.material || undefined,
-          gender,
-          age_group: ageGroup
-        };
-      });
+      const variantImageUrl = v.image_url ? cleanImageUrl(v.image_url, siteUrl) : primaryImage;
+
+      return {
+        id: v.id,
+        item_group_id: product.id,
+        title: variantName,
+        description: baseDescription,
+        price: finalPrice,
+        sale_price: salePrice,
+        currency: currency,
+        availability: v.stock > 0 ? 'in stock' : 'out of stock',
+        condition: 'new',
+        link: `${siteUrl}/product/${product.slug}`,
+        image_link: variantImageUrl,
+        additional_image_link: additionalImages.length > 0 ? additionalImages.join(',') : undefined,
+        brand: brandName,
+        category: categoryPath,
+        google_product_category: categoryPath,
+        inventory: v.stock,
+        color: v.color || undefined,
+        size: v.size || undefined,
+        material: v.material || undefined,
+        gender,
+        age_group: ageGroup,
+      };
+    });
   }
 
-  // Simple product mapping (no variants — item_group_id omitted)
+  // Simple product mapping (no variants — item_group_id MUST be omitted completely)
   const activePrice = product.price;
   const comparePrice = product.compare_price;
 
@@ -219,6 +229,6 @@ export function mapProductToMeta(
     google_product_category: categoryPath,
     inventory: product.stock,
     gender,
-    age_group: ageGroup
+    age_group: ageGroup,
   }];
 }

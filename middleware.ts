@@ -15,6 +15,7 @@ import { createServerClient } from '@supabase/ssr';
  */
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
+  res.headers.set('X-Robots-Tag', 'noindex, nofollow, noarchive');
   const { pathname } = req.nextUrl;
 
   // --- Canonical host is owned by EXACTLY ONE layer: the Vercel domain-level
@@ -38,7 +39,9 @@ export async function middleware(req: NextRequest) {
     const loginUrl = new URL('/admin/login', req.url);
     loginUrl.searchParams.set(reason === 'not_authorized' ? 'error' : 'redirect',
       reason === 'not_authorized' ? 'not_authorized' : pathname);
-    return NextResponse.redirect(loginUrl);
+    const redirectRes = NextResponse.redirect(loginUrl);
+    redirectRes.headers.set('X-Robots-Tag', 'noindex, nofollow, noarchive');
+    return redirectRes;
   };
 
   try {
@@ -86,5 +89,5 @@ export const config = {
   // only needs to run on the admin UI (auth gate + Supabase session refresh).
   // Scoping to /admin avoids running the edge auth check on every storefront
   // request and removes any chance of a middleware-emitted host/redirect loop.
-  matcher: ['/admin/:path*'],
+  matcher: ['/admin', '/admin/:path*'],
 };

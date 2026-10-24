@@ -68,11 +68,11 @@ export async function attachLinkedProducts(proofs: SocialProof[]): Promise<Socia
 
     return proofs.map(proof => ({
       ...proof,
-      linkedProducts: (productsByProofId[proof.id] || []).map((p: any) => ({
+      linkedProducts: (productsByProofId[proof.id] || []).map((p) => ({
         ...p,
         image: imageMap[p.id]
       })),
-      productIds: (productsByProofId[proof.id] || []).map((p: any) => p.id)
+      productIds: (productsByProofId[proof.id] || []).map((p) => p.id)
     }));
   } catch (err) {
     console.error('[socialProof] attachLinkedProducts failed:', err);

@@ -8,11 +8,12 @@ import { submitReview } from '@/lib/services/reviews';
 import { uploadReviewImage } from '@/lib/uploadImage';
 import { toast } from 'sonner';
 import { Send, Upload, X } from '@/components/common/Icons';
+import ProductSearchPicker, { ProductPickerItem } from '@/components/common/ProductSearchPicker';
 
 interface WriteReviewModalProps {
   open: boolean;
   onClose: () => void;
-  products: { id: string; name: string; slug: string }[];
+  products: ProductPickerItem[];
   onSubmitted?: () => void;
 }
 
@@ -134,26 +135,19 @@ export default function WriteReviewModal({
       ariaLabel="Write a Customer Review modal"
     >
       <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
-        {/* Product selection */}
-        {products.length > 0 && (
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1.5">
-              Select Product <span className="text-red-500">*</span>
-            </label>
-            <select
-              value={productId}
-              onChange={(e) => setProductId(e.target.value)}
-              required
-              className="w-full h-11 px-3.5 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-[#0f0f1b]/50 text-sm font-medium text-gray-900 dark:text-white focus:border-[#e94560] focus:outline-none transition-all cursor-pointer"
-            >
-              {products.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
+        {/* Product selection with search & image */}
+        <div>
+          <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5">
+            Select Product <span className="text-red-500">*</span>
+          </label>
+          <ProductSearchPicker
+            value={productId}
+            onChange={(id) => setProductId(id)}
+            initialProducts={products}
+            placeholder="Search product by name or keyword..."
+            required
+          />
+        </div>
 
         {/* Rating selection */}
         <div className="space-y-1">
