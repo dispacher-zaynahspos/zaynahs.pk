@@ -48,7 +48,11 @@ function itemToXml(item: MetaCatalogItem): string {
   }
 
   lines.push(`      <g:condition>${item.condition}</g:condition>`);
-  lines.push(`      <g:brand>${cdata(item.brand)}</g:brand>`);
+  lines.push(`      <g:brand>${sanitizeXmlText(item.brand)}</g:brand>`);
+  if (item.inventory !== undefined && item.inventory !== null) {
+    lines.push(`      <g:inventory>${item.inventory}</g:inventory>`);
+    lines.push(`      <g:quantity_to_sell_on_facebook>${item.inventory}</g:quantity_to_sell_on_facebook>`);
+  }
 
   if (item.category) {
     lines.push(`      <g:product_type>${cdata(item.category)}</g:product_type>`);
