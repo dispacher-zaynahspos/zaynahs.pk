@@ -150,7 +150,7 @@ const mapClientProduct = (row: ProductClientRow): Product => {
   };
 };
 
-export const getProductsClient = async (categoryId?: string): Promise<Product[]> => {
+export const getProductsClient = async (categoryId?: string, limit = 50): Promise<Product[]> => {
   try {
     const supabase = createClient();
     let query = supabase
@@ -163,6 +163,10 @@ export const getProductsClient = async (categoryId?: string): Promise<Product[]>
       query = query.eq('category_id', categoryId);
     }
 
+    if (limit && limit > 0) {
+      query = query.limit(limit);
+    }
+
     const { data, error } = await query.order('created_at', { ascending: false });
 
     if (error) throw error;
@@ -170,7 +174,7 @@ export const getProductsClient = async (categoryId?: string): Promise<Product[]>
     return (data ?? []).map(mapClientProduct);
   } catch (error) {
     console.error('[products-client] getProductsClient failed:', error);
-    throw error;
+    return [];
   }
 };
 

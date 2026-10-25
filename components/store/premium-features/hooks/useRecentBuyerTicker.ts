@@ -20,9 +20,11 @@ export function useRecentBuyerTicker({ settings, isCheckout }: UseRecentBuyerTic
   const [showTicker, setShowTicker] = useState(false);
 
   useEffect(() => {
+    if (!isFeatureEnabled(settings, 'recent_buyers')) return;
+
     const loadProducts = async () => {
       try {
-        const data = await getProductsClient();
+        const data = await getProductsClient(undefined, 25);
         setProducts(data);
       } catch (err) {
         console.error('Failed to load products for ticker:', err);
@@ -40,7 +42,7 @@ export function useRecentBuyerTicker({ settings, isCheckout }: UseRecentBuyerTic
       }
     };
     loadRealOrders();
-  }, [settings.recent_buyers_source]);
+  }, [settings, settings.recent_buyers_source]);
 
   // Recent Purchases Ticker Loop
   useEffect(() => {
