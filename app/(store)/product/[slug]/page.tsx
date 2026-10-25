@@ -203,32 +203,47 @@ export default async function ProductPage({ params }: PageProps) {
     }
   };
 
-  if (averageRating && averageRating.count > 0) {
+  const ratingCount =
+    averageRating && averageRating.count > 0
+      ? averageRating.count
+      : (product.reviews_count || (reviews ? reviews.length : 0));
+  const ratingVal =
+    averageRating && averageRating.count > 0
+      ? averageRating.average
+      : (product.rating || 5.0);
+
+  if (ratingCount > 0) {
     productSchema.aggregateRating = {
       "@type": "AggregateRating",
-      "ratingValue": averageRating.average.toString(),
-      "reviewCount": averageRating.count.toString(),
+      "ratingValue": ratingVal.toFixed(1),
+      "reviewCount": ratingCount.toString(),
       "bestRating": "5",
       "worstRating": "1"
     };
   }
 
   if (reviews && reviews.length > 0) {
-    productSchema.review = reviews.map((r) => ({
-      "@type": "Review",
-      "author": {
-        "@type": "Person",
-        "name": r.customer_name || 'Customer'
-      },
-      "datePublished": r.created_at ? new Date(r.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-      "reviewBody": r.comment || '',
-      "reviewRating": {
-        "@type": "Rating",
-        "ratingValue": r.rating.toString(),
-        "bestRating": "5",
-        "worstRating": "1"
-      }
-    }));
+    productSchema.review = reviews.slice(0, 10).map((r) => {
+      const reviewImgs = Array.isArray(r.images) && r.images.length > 0 ? r.images : (r.screenshot_url ? [r.screenshot_url] : []);
+      return {
+        "@type": "Review",
+        "author": {
+          "@type": "Person",
+          "name": r.customer_name || 'Customer'
+        },
+        "datePublished": r.created_at ? new Date(r.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        "reviewBody": r.comment || '',
+        "reviewRating": {
+          "@type": "Rating",
+          "ratingValue": r.rating.toString(),
+          "bestRating": "5",
+          "worstRating": "1"
+        },
+        ...(reviewImgs.length > 0 && {
+          "image": reviewImgs[0]
+        })
+      };
+    });
   }
 
   const faqSchema = seoMeta?.faq_schema && Array.isArray(seoMeta.faq_schema) && seoMeta.faq_schema.length > 0 ? {

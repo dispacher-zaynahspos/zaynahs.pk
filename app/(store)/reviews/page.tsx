@@ -55,7 +55,7 @@ export default async function ReviewsPage({ searchParams }: PageProps) {
       const brand = await getDomainBrand();
       siteUrl = `${brand.protocol}://${brand.domain}`;
     } catch {
-      siteUrl = 'https://zaynahs.pk';
+      siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.totvogue.pk';
     }
   }
 
@@ -126,7 +126,7 @@ export default async function ReviewsPage({ searchParams }: PageProps) {
     console.error('Error fetching active products:', err);
   }
 
-  // Generate JSON-LD aggregate schema
+  // Generate Google-compliant Schema.org Store and Breadcrumb rich snippets
   const aggregateRating = reviews.length + socialProofs.length > 0
     ? {
         average: (reviews.reduce((sum, r) => sum + r.rating, 0) + socialProofs.length * 5) / (reviews.length + socialProofs.length),
@@ -134,26 +134,67 @@ export default async function ReviewsPage({ searchParams }: PageProps) {
       }
     : null;
 
-  const jsonLd = {
+  const storeSchema = {
     '@context': 'https://schema.org',
-    '@type': 'WebPage',
-    name: `Customer Reviews | ${storeName}`,
+    '@type': 'Store',
+    name: storeName,
+    url: siteUrl,
     ...(aggregateRating && {
-      review: {
+      aggregateRating: {
         '@type': 'AggregateRating',
         ratingValue: aggregateRating.average.toFixed(1),
         reviewCount: aggregateRating.count,
         bestRating: 5,
         worstRating: 1,
-      }
+      },
     }),
+    ...(reviews.length > 0 && {
+      review: reviews.slice(0, 10).map((r) => ({
+        '@type': 'Review',
+        author: {
+          '@type': 'Person',
+          name: r.customer_name || 'Customer',
+        },
+        datePublished: r.created_at ? new Date(r.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        reviewBody: r.comment || '',
+        reviewRating: {
+          '@type': 'Rating',
+          ratingValue: r.rating.toString(),
+          bestRating: '5',
+          worstRating: '1',
+        },
+      })),
+    }),
+  };
+
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: siteUrl,
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'Reviews',
+        item: `${siteUrl}/reviews`,
+      },
+    ],
   };
 
   return (
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(storeSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
       <ReviewsPageClient
         initialReviews={reviews}

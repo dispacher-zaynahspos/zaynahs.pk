@@ -4,7 +4,7 @@ import { getProducts } from '@/lib/services/products';
 import { getCategories } from '@/lib/services/categories';
 import { getCollections } from '@/lib/services/collections';
 import { getSettings } from '@/lib/services/settings';
-import { getTopReviews } from '@/lib/services/reviews';
+import { getTopReviews, getTotalReviewsStats } from '@/lib/services/reviews';
 import { getHomepageSections } from '@/lib/services/sections';
 import { getActiveSocialProofCount } from '@/lib/services/social-proof';
 import { getDomainBrand } from '@/lib/utils/getDomainBrand';
@@ -74,14 +74,15 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function CatalogPage() {
   // Fetch all active products on SSR to prevent layout shifts and missing products in Featured/Category grids.
   // The data is cached via unstable_cache in getProducts, so DB load is 0.
-  const [products, categories, collections, settings, reviews, sections, socialProofCount] = await Promise.all([
+  const [products, categories, collections, settings, reviews, sections, socialProofCount, reviewStats] = await Promise.all([
     getProducts(),
     getCategories(),
     getCollections(),
     getSettings(),
-    getTopReviews(20),
+    getTopReviews(8),
     getHomepageSections(true),
-    getActiveSocialProofCount().catch(() => 0)
+    getActiveSocialProofCount().catch(() => 0),
+    getTotalReviewsStats().catch(() => ({ totalCount: 0, avgRating: 5.0 }))
   ]);
 
   return (
@@ -93,6 +94,8 @@ export default async function CatalogPage() {
       reviews={reviews}
       sections={sections}
       socialProofCount={socialProofCount}
+      totalReviewsCount={reviewStats.totalCount}
+      avgStoreRating={reviewStats.avgRating}
     />
   );
 }

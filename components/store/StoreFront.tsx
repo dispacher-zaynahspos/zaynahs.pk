@@ -34,11 +34,13 @@ interface StoreFrontProps {
   categories: Category[];
   collections?: Collection[];
   settings: StoreSettings;
-  reviews?: (Review & { productName?: string; productSlug?: string })[];
+  reviews?: (Review & { productName?: string; productSlug?: string; productImage?: string })[];
   sections?: HomepageSection[];
   isPreview?: boolean;
   activeSectionId?: string | null;
   socialProofCount?: number;
+  totalReviewsCount?: number;
+  avgStoreRating?: number;
   viewportMode?: 'desktop' | 'tablet' | 'mobile';
 }
 
@@ -52,6 +54,8 @@ export default function StoreFront({
   isPreview = false,
   activeSectionId = null,
   socialProofCount = 0,
+  totalReviewsCount,
+  avgStoreRating,
   viewportMode,
 }: StoreFrontProps) {
   const searchQuery = useSearchStore((state) => state.searchQuery);
@@ -245,7 +249,15 @@ export default function StoreFront({
             content = <TrustBadgesSection section={section} settings={activeSettings} />;
             break;
           case 'recent_reviews':
-            content = <RecentReviewsSection section={section} reviews={reviews} socialProofCount={socialProofCount} />;
+            content = (
+              <RecentReviewsSection
+                section={section}
+                reviews={reviews}
+                socialProofCount={socialProofCount}
+                totalReviewsCount={totalReviewsCount}
+                avgStoreRating={avgStoreRating}
+              />
+            );
             break;
           case 'promo_banner':
             content = <PromoBannerSection section={section} />;
