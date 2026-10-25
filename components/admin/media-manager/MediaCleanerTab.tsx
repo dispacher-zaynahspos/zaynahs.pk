@@ -30,6 +30,8 @@ interface MediaCleanerTabProps {
   setPreviewItem: (item: MediaItem) => void;
   handleCopyUrl: (url: string) => void;
   formatBytes: (bytes?: number) => string;
+  lastActiveId?: string | null;
+  lastActiveType?: 'viewed' | 'edited' | null;
 }
 
 export function MediaCleanerTab({
@@ -55,7 +57,9 @@ export function MediaCleanerTab({
   isBulkDeleting,
   setPreviewItem,
   handleCopyUrl,
-  formatBytes
+  formatBytes,
+  lastActiveId = null,
+  lastActiveType = null
 }: MediaCleanerTabProps) {
   const totalCleanerSelected = cleanerUsedSelected.size + cleanerUnusedSelected.size;
 
@@ -185,6 +189,8 @@ export function MediaCleanerTab({
                   item={item}
                   index={idx}
                   isSelected={cleanerUnusedSelected.has(item.id)}
+                  isLastActive={item.id === lastActiveId}
+                  lastActiveType={item.id === lastActiveId ? lastActiveType : null}
                   onToggle={() => toggleCleanerUnused(item)}
                   mode="library"
                   generatingId={null}
@@ -255,6 +261,8 @@ export function MediaCleanerTab({
                   item={item}
                   index={idx}
                   isSelected={cleanerUsedSelected.has(item.id)}
+                  isLastActive={item.id === lastActiveId}
+                  lastActiveType={item.id === lastActiveId ? lastActiveType : null}
                   onToggle={() => toggleCleanerUsed(item)}
                   mode="library"
                   generatingId={null}

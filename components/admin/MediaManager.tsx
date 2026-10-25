@@ -76,6 +76,9 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
     bulkTotal,
     editingItem, setEditingItem,
     previewItem, setPreviewItem,
+    lastActiveId,
+    lastActiveType,
+    recordActiveItem,
     isDragging, setIsDragging,
     filteredMedia,
     paginatedMedia,
@@ -155,6 +158,7 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
 
       if (error) throw error;
       toast.success('Image details updated successfully');
+      recordActiveItem(editingItem.id, 'edited');
       setEditingItem(null);
       fetchMedia();
     } catch (err: unknown) {
@@ -284,6 +288,8 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
                   item={item}
                   index={idx}
                   isSelected={mode === 'selector' ? selectedLibraryUrls.has(item.file_url) : selectedIds.includes(item.id)}
+                  isLastActive={item.id === lastActiveId}
+                  lastActiveType={item.id === lastActiveId ? lastActiveType : null}
                   onToggle={() => toggleSelect(item)}
                   mode={mode}
                   generatingId={generatingId}
@@ -406,6 +412,8 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
           setPreviewItem={setPreviewItem}
           handleCopyUrl={handleCopyUrl}
           formatBytes={formatBytes}
+          lastActiveId={lastActiveId}
+          lastActiveType={lastActiveType}
         />
       )}
 

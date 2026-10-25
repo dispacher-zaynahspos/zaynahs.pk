@@ -93,6 +93,53 @@ export function useMediaManagerData({ mode, multiple, onSelect, onClose }: UseMe
   const [pendingVideoUpload, setPendingVideoUpload] = useState<{ task: UploadTask; file: File } | null>(null);
 
   const [previewItem, setPreviewItem] = useState<MediaItem | null>(null);
+  const [lastActiveId, setLastActiveId] = useState<string | null>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        return sessionStorage.getItem('media_last_active_id') || null;
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  });
+  const [lastActiveType, setLastActiveType] = useState<'viewed' | 'edited' | null>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        return (sessionStorage.getItem('media_last_active_type') as 'viewed' | 'edited') || null;
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  });
+
+  const recordActiveItem = (id: string, type: 'viewed' | 'edited') => {
+    setLastActiveId(id);
+    setLastActiveType(type);
+    try {
+      sessionStorage.setItem('media_last_active_id', id);
+      sessionStorage.setItem('media_last_active_type', type);
+    } catch {}
+  };
+
+  const handleSetPreviewItem = (item: MediaItem | null) => {
+    setPreviewItem(item);
+    if (item?.id) {
+      recordActiveItem(item.id, 'viewed');
+    }
+  };
+
+  const handleSetEditingItem: React.Dispatch<React.SetStateAction<MediaItem | null>> = (action) => {
+    setEditingItem((prev) => {
+      const next = typeof action === 'function' ? action(prev) : action;
+      if (next?.id) {
+        recordActiveItem(next.id, 'edited');
+      }
+      return next;
+    });
+  };
+
   const [isSavingSortOrder, setIsSavingSortOrder] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -305,9 +352,17 @@ export function useMediaManagerData({ mode, multiple, onSelect, onClose }: UseMe
     bulkFailedIds: mediaAi.bulkFailedIds,
     bulkTotal: mediaAi.bulkTotal,
     visionApiError: mediaAi.visionApiError,
-    editingItem, setEditingItem,
-    pendingVideoUpload, setPendingVideoUpload,
-    previewItem, setPreviewItem,
+    editingItem,
+    setEditingItem: handleSetEditingItem,
+    pendingVideoUpload,
+    setPendingVideoUpload,
+    previewItem,
+    setPreviewItem: handleSetPreviewItem,
+    lastActiveId,
+    setLastActiveId,
+    lastActiveType,
+    setLastActiveType,
+    recordActiveItem,
     isSavingSortOrder,
     isDragging, setIsDragging,
     isMediaUsed: mediaUsage.isMediaUsed,

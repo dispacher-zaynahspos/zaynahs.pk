@@ -23,6 +23,8 @@ interface MediaCardProps {
   showCheckbox?: boolean;
   showBadge?: boolean;
   showActions?: boolean;
+  isLastActive?: boolean;
+  lastActiveType?: 'viewed' | 'edited' | null;
 }
 
 export function MediaCard({
@@ -44,6 +46,8 @@ export function MediaCard({
   showCheckbox = true,
   showBadge = true,
   showActions = true,
+  isLastActive = false,
+  lastActiveType = null,
 }: MediaCardProps) {
   const [imageLoaded, setImageLoaded] = React.useState(false);
   const isGenerating = generatingId === item.id;
@@ -61,9 +65,11 @@ export function MediaCard({
           onToggle();
         }
       }}
-      className={`group relative aspect-square rounded-2xl overflow-hidden border-2 bg-gray-50 dark:bg-gray-800/50 cursor-pointer flex flex-col justify-end transition-all ${
+      className={`group relative aspect-square rounded-2xl overflow-hidden border-2 bg-gray-50 dark:bg-gray-800/50 cursor-pointer flex flex-col justify-end transition-all duration-200 ${
         isSelected
           ? 'border-blue-600 shadow-md ring-2 ring-blue-500/20'
+          : isLastActive
+          ? 'border-amber-500 dark:border-amber-400 ring-2 ring-amber-500/40 shadow-lg shadow-amber-500/20'
           : 'border-gray-100 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700'
       }`}
     >
@@ -142,6 +148,19 @@ export function MediaCard({
         </div>
       )}
 
+      {/* Last Active Track Sign (Viewed / Edited) */}
+      {isLastActive && (
+        <div className={`absolute ${isVideo ? 'bottom-8' : 'bottom-2.5'} left-2.5 z-10 pointer-events-none transition-all`}>
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-extrabold bg-amber-500 text-gray-950 shadow-md ring-1 ring-amber-300/80 tracking-tight">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-200 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-950"></span>
+            </span>
+            <span>{lastActiveType === 'edited' ? 'Last Edited' : 'Last Viewed'}</span>
+          </span>
+        </div>
+      )}
+
       {/* Bulk Progress Overlay */}
       {bulkGenerating && (
         <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
@@ -168,7 +187,7 @@ export function MediaCard({
 
       {/* Hover Actions */}
       {showActions && (
-        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-3 z-10">
+        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-3 z-20">
           <div className="flex justify-end gap-1.5">
             <button type="button" onClick={e => { e.stopPropagation(); setPreviewItem(item); }} className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-all cursor-pointer min-h-[32px]" title="Preview & Edit Image">
               <Eye className="w-3.5 h-3.5" />
