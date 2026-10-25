@@ -353,7 +353,7 @@ async function listProducts(config, options) {
       sort_order: 1,
       badge_enabled: sample.badge_enabled ?? true,
       custom_badge_id: sample.custom_badge_id || null,
-      size_guide_id: sample.size_guide_id || null,
+      size_guide_id: p.size_guide_id || sample.size_guide_id || null,
       frequently_bought_together_ids: fbt,
       flash_sale_enabled: false,
       inventory_threshold: 0,
