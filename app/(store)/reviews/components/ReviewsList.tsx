@@ -5,13 +5,14 @@ import { Review } from '@/lib/types';
 import { MessageSquare } from '@/components/common/Icons';
 import Pagination from '@/components/common/Pagination';
 import ReviewCard from './ReviewCard';
+import { ReviewLightboxData } from './ReviewImageLightbox';
 
 interface ReviewsListProps {
   loading: boolean;
   reviews: (Review & { productName?: string; productImage?: string; productSlug?: string })[];
   search: string;
   formatDate: (dateStr: string) => string;
-  setLightboxImage: (url: string | null) => void;
+  onImageClick: (data: ReviewLightboxData) => void;
   totalPages: number;
   page: number;
   handlePageChange: (newPage: number) => void;
@@ -22,18 +23,18 @@ export default function ReviewsList({
   reviews,
   search,
   formatDate,
-  setLightboxImage,
+  onImageClick,
   totalPages,
   page,
   handlePageChange,
 }: ReviewsListProps) {
   if (loading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {[...Array(6)].map((_, i) => (
           <div
             key={i}
-            className="h-44 rounded-2xl border border-gray-200/80 dark:border-gray-800/80 animate-pulse"
+            className="h-48 rounded-2xl border border-gray-200/80 dark:border-gray-800/80 animate-pulse"
             style={{ backgroundColor: 'var(--color-surface, #ffffff)' }}
           />
         ))}
@@ -59,9 +60,9 @@ export default function ReviewsList({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div
-        className={`grid gap-4 ${
+        className={`grid gap-6 ${
           reviews.length === 1
             ? 'grid-cols-1 max-w-xl mx-auto'
             : reviews.length === 2
@@ -74,14 +75,14 @@ export default function ReviewsList({
             key={review.id}
             review={review}
             formatDate={formatDate}
-            onImageClick={(url) => setLightboxImage(url)}
+            onImageClick={onImageClick}
           />
         ))}
       </div>
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="pt-4">
+        <div className="pt-4 flex justify-center">
           <Pagination
             currentPage={page}
             totalPages={totalPages}

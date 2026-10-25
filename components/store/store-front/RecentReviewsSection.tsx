@@ -8,7 +8,8 @@ import StarRating from '../StarRating';
 import { sanitizeReviewText } from '@/lib/utils/sanitizeReview';
 import { SectionWrapper } from './SectionWrapper';
 import { Check, Package, ArrowRight } from '@/components/common/Icons';
-import ReviewImageLightbox from '@/app/(store)/reviews/components/ReviewImageLightbox';
+import ReviewImageLightbox, { ReviewLightboxData } from '@/app/(store)/reviews/components/ReviewImageLightbox';
+import { getReviewInitials, getReviewAvatarColor } from '@/lib/utils/reviewAvatar';
 
 interface RecentReviewsSectionProps {
   section: HomepageSection;
@@ -17,30 +18,6 @@ interface RecentReviewsSectionProps {
   totalReviewsCount?: number;
   avgStoreRating?: number;
 }
-
-const getInitials = (name: string) => {
-  const parts = name.trim().split(/\s+/);
-  if (parts.length === 0) return '?';
-  if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-};
-
-const getAvatarColorClass = (name: string) => {
-  const colors = [
-    'bg-[#FF8B3D]',
-    'bg-[#10b981]',
-    'bg-[#3b82f6]',
-    'bg-[#8b5cf6]',
-    'bg-[#e94560]',
-    'bg-[#06b6d4]',
-    'bg-[#f59e0b]',
-  ];
-  let sum = 0;
-  for (let i = 0; i < name.length; i++) {
-    sum += name.charCodeAt(i);
-  }
-  return colors[sum % colors.length];
-};
 
 const formatDate = (dateStr: string) => {
   try {
@@ -62,7 +39,7 @@ export function RecentReviewsSection({
   totalReviewsCount: passedTotalCount,
   avgStoreRating: passedAvgRating,
 }: RecentReviewsSectionProps) {
-  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+  const [lightboxData, setLightboxData] = useState<ReviewLightboxData | null>(null);
 
   if (!reviews || reviews.length === 0) return null;
 
@@ -118,10 +95,11 @@ export function RecentReviewsSection({
     }
   }
 
+  // Cap to limit
   const displayReviews = sortedReviews.slice(0, limit);
 
   return (
-    <SectionWrapper section={section} className="border-t border-gray-100 dark:border-gray-800 py-10 md:py-14">
+    <SectionWrapper section={section}>
       {/* Header section with verified social proof stats */}
       <div className="text-center space-y-2 mb-8 md:mb-12 px-4">
         <span className="text-[11px] font-black uppercase tracking-widest text-[#e94560] block">
@@ -144,9 +122,9 @@ export function RecentReviewsSection({
         </div>
       </div>
 
-      {/* Responsive layout: smooth horizontal scroll on mobile, balanced 3-column grid on desktop */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6">
-        <div className="flex md:grid md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 overflow-x-auto md:overflow-x-visible pb-4 md:pb-0 snap-x snap-mandatory scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
+      {/* Responsive layout: smooth horizontal scroll on mobile, balanced wide 3-column grid on desktop */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex md:grid md:grid-cols-2 lg:grid-cols-3 gap-6 overflow-x-auto md:overflow-x-visible pb-4 md:pb-0 snap-x snap-mandatory scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
           {displayReviews.map((review) => {
             const reviewImages =
               showImages && review.images && review.images.length > 0
@@ -159,17 +137,17 @@ export function RecentReviewsSection({
             return (
               <div
                 key={review.id}
-                className="w-[84vw] sm:w-[360px] md:w-auto shrink-0 snap-center flex flex-col justify-between p-5 rounded-2xl border border-gray-200/90 dark:border-gray-800/90 bg-white dark:bg-[#16162a] shadow-sm hover:shadow-md transition-all duration-200"
+                className="w-[84vw] sm:w-[360px] md:w-auto shrink-0 snap-center flex flex-col justify-between p-5 rounded-2xl border border-gray-200/90 dark:border-gray-800/90 bg-white dark:bg-[#16162a] shadow-sm hover:shadow-lg transition-all duration-200"
               >
                 <div className="space-y-3">
                   {/* Reviewer Header: Avatar + Name + Verified Badge + Date */}
                   <div className="flex items-start gap-3">
                     <div
-                      className={`w-10 h-10 rounded-full shrink-0 flex items-center justify-center text-xs font-black text-white uppercase shadow-sm ${getAvatarColorClass(
+                      className={`w-10 h-10 rounded-full shrink-0 flex items-center justify-center text-xs font-black text-white uppercase shadow-sm border border-white/20 ${getReviewAvatarColor(
                         review.customer_name
                       )}`}
                     >
-                      {getInitials(review.customer_name)}
+                      {getReviewInitials(review.customer_name)}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5 flex-wrap">
@@ -230,31 +208,40 @@ export function RecentReviewsSection({
                     </div>
                   )}
 
-                  {/* Review Text */}
-                  {sanitizeReviewText(review.comment) && (
+                  {/* Comment */}
+                  {review.comment && (
                     <p className="text-xs sm:text-[13px] text-gray-700 dark:text-gray-300 leading-relaxed font-medium line-clamp-4">
                       &ldquo;{sanitizeReviewText(review.comment)}&rdquo;
                     </p>
                   )}
                 </div>
 
-                {/* Customer Review Photos Gallery */}
+                {/* Customer Review Photos Gallery (Bigger thumbnails: w-20 h-20 sm:w-24 sm:h-24) */}
                 {reviewImages.length > 0 && (
                   <div className="pt-3 mt-3 border-t border-gray-100 dark:border-gray-800/60">
-                    <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                    <div className="flex items-center gap-2.5 overflow-x-auto pb-1 scrollbar-hide">
                       {reviewImages.map((imgUrl, imgIdx) => (
                         <button
                           key={imgIdx}
                           type="button"
-                          onClick={() => setLightboxImage(imgUrl)}
-                          className="relative w-16 h-16 sm:w-18 sm:h-18 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800 shrink-0 border border-gray-200 dark:border-gray-700 hover:opacity-90 hover:scale-105 transition-all cursor-zoom-in shadow-xs"
+                          onClick={() => setLightboxData({
+                            images: reviewImages,
+                            currentIndex: imgIdx,
+                            customerName: review.customer_name,
+                            product: productAvailable ? {
+                              name: review.productName!,
+                              slug: review.productSlug!,
+                              image: review.productImage,
+                            } : undefined,
+                          })}
+                          className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-gray-100 dark:bg-gray-800 shrink-0 border border-gray-200 dark:border-gray-700 hover:opacity-95 hover:scale-[1.03] transition-all cursor-zoom-in shadow-xs"
                           aria-label={`View photo ${imgIdx + 1} by ${review.customer_name}`}
                         >
                           <Image
                             src={imgUrl}
                             alt={`Review by ${review.customer_name} - ${imgIdx + 1}`}
                             fill
-                            sizes="72px"
+                            sizes="96px"
                             className="object-cover"
                           />
                         </button>
@@ -287,11 +274,14 @@ export function RecentReviewsSection({
         </div>
       )}
 
-      {/* Review Image Lightbox Modal */}
+      {/* Upgraded Review Image Lightbox Modal with Arrows & Linked Product */}
       <ReviewImageLightbox
-        open={!!lightboxImage}
-        onClose={() => setLightboxImage(null)}
-        imageUrl={lightboxImage}
+        open={lightboxData !== null}
+        onClose={() => setLightboxData(null)}
+        data={lightboxData}
+        onNavigate={(newIdx) =>
+          setLightboxData((prev) => (prev ? { ...prev, currentIndex: newIdx } : null))
+        }
       />
     </SectionWrapper>
   );

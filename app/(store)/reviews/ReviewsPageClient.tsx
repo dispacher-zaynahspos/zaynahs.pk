@@ -11,7 +11,7 @@ import ReviewsTabs, { FilterTab } from './components/ReviewsTabs';
 import ReviewsList from './components/ReviewsList';
 import ProofWallGrid from './components/ProofWallGrid';
 import ProofLightbox from './components/ProofLightbox';
-import ReviewImageLightbox from './components/ReviewImageLightbox';
+import ReviewImageLightbox, { ReviewLightboxData } from './components/ReviewImageLightbox';
 import WriteReviewModal from './components/WriteReviewModal';
 
 interface ReviewsPageClientProps {
@@ -62,7 +62,7 @@ export default function ReviewsPageClient({
 
   // Modals state
   const [activeProofIndex, setActiveProofIndex] = useState<number | null>(null);
-  const [activeReviewImage, setActiveReviewImage] = useState<string | null>(null);
+  const [activeLightboxData, setActiveLightboxData] = useState<ReviewLightboxData | null>(null);
   const [writeModalOpen, setWriteModalOpen] = useState(false);
 
   // Overall average rating calculation
@@ -176,7 +176,7 @@ export default function ReviewsPageClient({
     <>
       <div className="min-h-screen">
         <div
-          className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 pb-[calc(20rem+env(safe-area-inset-bottom,0px))] md:pb-24"
+          className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 pb-[calc(20rem+env(safe-area-inset-bottom,0px))] md:pb-24"
         >
           {/* Header */}
           <div className="text-center mb-8">
@@ -235,7 +235,7 @@ export default function ReviewsPageClient({
                   reviews={reviews}
                   search={search}
                   formatDate={formatDate}
-                  setLightboxImage={setActiveReviewImage}
+                  onImageClick={(data) => setActiveLightboxData(data)}
                   totalPages={totalPages}
                   page={page}
                   handlePageChange={handlePageChange}
@@ -270,11 +270,14 @@ export default function ReviewsPageClient({
         sourceTypeLabel={sourceTypeLabel}
       />
 
-      {/* Review Photo Shared Modal Lightbox */}
+      {/* Review Photo Shared Modal Lightbox (with arrows, swipe & linked product) */}
       <ReviewImageLightbox
-        open={activeReviewImage !== null}
-        onClose={() => setActiveReviewImage(null)}
-        imageUrl={activeReviewImage}
+        open={activeLightboxData !== null}
+        onClose={() => setActiveLightboxData(null)}
+        data={activeLightboxData}
+        onNavigate={(newIdx) =>
+          setActiveLightboxData((prev) => (prev ? { ...prev, currentIndex: newIdx } : null))
+        }
       />
 
       {/* Write a Review Modal */}
