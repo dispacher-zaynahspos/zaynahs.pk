@@ -273,20 +273,26 @@ async function listProducts(config, options) {
   const sample = await findSampleProduct(config, sampleQuery);
   console.log(`[Sample] Found: "${sample.name}" (ID: ${sample.id})`);
 
-  const sortedSampleVariants = (sample.product_variants || [])
-    .filter(v => v.size)
-    .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+  const uniqueSizesMap = new Map();
+  for (const v of sample.product_variants || []) {
+    if (v.size && !uniqueSizesMap.has(v.size)) {
+      uniqueSizesMap.set(v.size, v.sort_order || uniqueSizesMap.size + 1);
+    }
+  }
 
-  const sampleSizes = sortedSampleVariants.length > 0
-    ? sortedSampleVariants.map((v, i) => ({ size: v.size, sort_order: v.sort_order || i + 1 }))
+  const defaultSampleSizes = uniqueSizesMap.size > 0
+    ? Array.from(uniqueSizesMap.entries())
+        .sort((a, b) => a[1] - b[1])
+        .map(([size, sort_order]) => ({ size, sort_order }))
     : [
-        { size: "2-3y", sort_order: 1 },
-        { size: "3-4y", sort_order: 2 },
-        { size: "4-5y", sort_order: 3 },
-        { size: "5-6y", sort_order: 4 },
-        { size: "7-8y", sort_order: 5 },
-        { size: "9-10y", sort_order: 6 },
-        { size: "11-12y", sort_order: 7 }
+        { size: "1-2y", sort_order: 1 },
+        { size: "2-3y", sort_order: 2 },
+        { size: "3-4y", sort_order: 3 },
+        { size: "4-5y", sort_order: 4 },
+        { size: "5-6y", sort_order: 5 },
+        { size: "7-8y", sort_order: 6 },
+        { size: "9-10y", sort_order: 7 },
+        { size: "11-12y", sort_order: 8 }
       ];
 
   const createdProducts = [];
@@ -330,6 +336,7 @@ async function listProducts(config, options) {
     const tags = p.tags || [title, "Kids Fashion", "Winter Wear", "Premium Wear"];
 
     const fbt = crossLinkPool.filter(id => id !== p.id);
+    const itemSizes = p.sizes || defaultSampleSizes;
 
     productRows.push({
       id: p.id,
@@ -340,8 +347,8 @@ async function listProducts(config, options) {
       price: price,
       compare_price: comparePrice,
       cost: cost,
-      category_id: sample.category_id,
-      stock: sampleSizes.length * 100,
+      category_id: p.category_id || sample.category_id,
+      stock: itemSizes.length * 100,
       has_variants: true,
       is_featured: true,
       is_service: false,
@@ -361,7 +368,7 @@ async function listProducts(config, options) {
       is_active: true
     });
 
-    for (const s of sampleSizes) {
+    for (const s of itemSizes) {
       variantRows.push({
         id: crypto.randomUUID(),
         product_id: p.id,
@@ -389,7 +396,11 @@ async function listProducts(config, options) {
       });
     }
 
-    for (const cat of sample.product_categories || []) {
+    const categoriesToMap = p.category_ids && Array.isArray(p.category_ids) && p.category_ids.length > 0
+      ? p.category_ids.map((cid, idx) => ({ category_id: cid, position: idx + 1 }))
+      : (sample.product_categories || []);
+
+    for (const cat of categoriesToMap) {
       categoryRows.push({
         product_id: p.id,
         category_id: cat.category_id,
