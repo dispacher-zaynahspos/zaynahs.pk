@@ -5,6 +5,10 @@ import {
   Upload,
   Image as ImageIcon,
   Archive,
+  Trash2,
+  Sparkles,
+  Loader2,
+  X,
 } from '@/components/common/Icons';
 import { toast } from 'sonner';
 import { createClient } from '@/lib/supabase/client';
@@ -288,6 +292,7 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
                   item={item}
                   index={idx}
                   isSelected={mode === 'selector' ? selectedLibraryUrls.has(item.file_url) : selectedIds.includes(item.id)}
+                  hasSelection={mode === 'selector' ? selectedLibraryUrls.size > 0 : selectedIds.length > 0}
                   isLastActive={item.id === lastActiveId}
                   lastActiveType={item.id === lastActiveId ? lastActiveType : null}
                   onToggle={() => toggleSelect(item)}
@@ -434,6 +439,43 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
           onSave={handleUpdateItem}
         />
       )}
+      {/* Floating Sticky Bulk Actions Bar */}
+      {mode === 'library' && selectedIds.length > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 sm:gap-3 bg-gray-950/95 dark:bg-[#1a1a2e]/95 text-white backdrop-blur-md px-4 sm:px-5 py-2.5 sm:py-3 rounded-2xl shadow-2xl border border-white/10 animate-in fade-in slide-in-from-bottom-4 duration-200 max-w-[95vw]">
+          <div className="flex items-center gap-2 pr-3 border-r border-white/20 text-xs font-bold whitespace-nowrap">
+            <span className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
+            <span>{selectedIds.length} {selectedIds.length === 1 ? 'item' : 'items'} selected</span>
+          </div>
+          <button
+            type="button"
+            onClick={handleBulkDelete}
+            disabled={isBulkDeleting}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-600 hover:bg-red-700 active:scale-95 text-white text-xs font-bold transition-all cursor-pointer disabled:opacity-50 whitespace-nowrap shadow-xs"
+          >
+            {isBulkDeleting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+            <span>Delete</span>
+          </button>
+          <button
+            type="button"
+            onClick={handleBulkGenerate}
+            disabled={bulkGenerating}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/15 hover:bg-white/25 active:scale-95 text-white text-xs font-bold transition-all cursor-pointer disabled:opacity-50 whitespace-nowrap shadow-xs"
+          >
+            {bulkGenerating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 text-amber-400" />}
+            <span>Auto-tag</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelectedIds([])}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl hover:bg-white/10 text-gray-400 hover:text-white text-xs font-semibold transition-all cursor-pointer whitespace-nowrap"
+            title="Clear selection"
+          >
+            <X className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Clear</span>
+          </button>
+        </div>
+      )}
+
       {/* Shared sticky upload progress panel (survives modal close within admin) */}
       <UploadProgressPanel
         tasks={uploadTasks}

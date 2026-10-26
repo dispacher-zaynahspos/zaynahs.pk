@@ -110,6 +110,17 @@ export function MediaLibraryFilters({
               <input type="file" multiple={multiple} accept="image/*,video/*" onChange={handleFileUpload} className="hidden" />
             </label>
           )}
+          {mode === 'library' && filteredMedia.length > 0 && (
+            <button
+              type="button"
+              onClick={toggleSelectAll}
+              className="px-4 py-2 text-xs font-semibold border border-gray-200 dark:border-gray-800 rounded-xl bg-white dark:bg-[#16162a] text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 min-h-[44px] cursor-pointer whitespace-nowrap transition-colors"
+            >
+              {selectedIds.length === filteredMedia.length && filteredMedia.length > 0
+                ? 'Deselect All'
+                : `Select All (${filteredMedia.length})`}
+            </button>
+          )}
           <select value={sortBy} onChange={e => setSortBy(e.target.value as 'newest' | 'oldest' | 'size-desc' | 'size-asc')}
             className="w-full sm:w-44 px-3.5 py-2 text-sm bg-white dark:bg-[#16162a] border border-gray-200 dark:border-gray-800 rounded-xl text-gray-700 dark:text-gray-300 focus:outline-none focus:border-blue-500 min-h-[44px] cursor-pointer">
             <option value="newest">Newest First</option>

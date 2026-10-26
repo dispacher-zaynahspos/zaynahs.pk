@@ -25,6 +25,7 @@ interface MediaCardProps {
   showActions?: boolean;
   isLastActive?: boolean;
   lastActiveType?: 'viewed' | 'edited' | null;
+  hasSelection?: boolean;
 }
 
 export function MediaCard({
@@ -48,6 +49,7 @@ export function MediaCard({
   showActions = true,
   isLastActive = false,
   lastActiveType = null,
+  hasSelection = false,
 }: MediaCardProps) {
   const [imageLoaded, setImageLoaded] = React.useState(false);
   const isGenerating = generatingId === item.id;
@@ -59,7 +61,7 @@ export function MediaCard({
   return (
     <div
       onClick={() => {
-        if (mode === 'library') {
+        if (mode === 'library' && !hasSelection) {
           setPreviewItem(item);
         } else {
           onToggle();
@@ -77,21 +79,42 @@ export function MediaCard({
       {showCheckbox && (
         mode === 'selector' ? (
           isSelected && (
-            <div className="absolute inset-0 bg-blue-600/10 flex items-center justify-center z-10">
+            <div className="absolute inset-0 bg-blue-600/10 flex items-center justify-center z-10 pointer-events-none">
               <div className="h-6 w-6 rounded-full bg-blue-600 flex items-center justify-center shadow-lg">
                 <Check className="h-3.5 w-3.5 text-white" />
               </div>
             </div>
           )
         ) : (
-          <input
-            type="checkbox"
-            checked={isSelected}
-            onChange={onToggle}
-            onClick={e => e.stopPropagation()}
-            className="absolute top-3 left-3 h-4 w-4 text-blue-600 rounded border-gray-300 cursor-pointer z-20 accent-blue-600"
-          />
+          <div
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggle();
+            }}
+            className={`absolute top-2.5 left-2.5 z-30 p-1.5 rounded-xl cursor-pointer transition-all duration-200 flex items-center justify-center ${
+              isSelected
+                ? 'bg-blue-600 text-white shadow-md ring-2 ring-white/90 scale-105'
+                : 'bg-black/50 hover:bg-black/75 backdrop-blur-xs text-white hover:scale-110 shadow-xs'
+            }`}
+            title={isSelected ? 'Deselect image' : 'Select image'}
+          >
+            <input
+              type="checkbox"
+              checked={isSelected}
+              onChange={(e) => {
+                e.stopPropagation();
+                onToggle();
+              }}
+              onClick={(e) => e.stopPropagation()}
+              className="h-4 w-4 rounded border-white/60 cursor-pointer accent-blue-600 block"
+            />
+          </div>
         )
+      )}
+
+      {/* Selected Tint */}
+      {isSelected && (
+        <div className="absolute inset-0 bg-blue-600/15 pointer-events-none z-10" />
       )}
 
       {/* Media */}
@@ -187,8 +210,8 @@ export function MediaCard({
 
       {/* Hover Actions */}
       {showActions && (
-        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-3 z-20">
-          <div className="flex justify-end gap-1.5">
+        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-3 z-20 pointer-events-none">
+          <div className="flex justify-end gap-1.5 pointer-events-auto">
             <button type="button" onClick={e => { e.stopPropagation(); setPreviewItem(item); }} className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-all cursor-pointer min-h-[32px]" title="Preview & Edit Image">
               <Eye className="w-3.5 h-3.5" />
             </button>
@@ -206,7 +229,7 @@ export function MediaCard({
               </>
             )}
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-1.5 pointer-events-auto">
             <div className="text-[10px] text-white font-mono line-clamp-1 w-full bg-black/40 p-1 rounded flex justify-between">
               <span className="truncate mr-1">Alt: {item.alt_text || 'None'}</span>
               <span className="flex-shrink-0 text-gray-300">{formatBytes(item.file_size)}</span>

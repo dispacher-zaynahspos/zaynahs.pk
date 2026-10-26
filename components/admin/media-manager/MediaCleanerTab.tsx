@@ -189,6 +189,7 @@ export function MediaCleanerTab({
                   item={item}
                   index={idx}
                   isSelected={cleanerUnusedSelected.has(item.id)}
+                  hasSelection={cleanerUnusedSelected.size > 0}
                   isLastActive={item.id === lastActiveId}
                   lastActiveType={item.id === lastActiveId ? lastActiveType : null}
                   onToggle={() => toggleCleanerUnused(item)}
@@ -261,6 +262,7 @@ export function MediaCleanerTab({
                   item={item}
                   index={idx}
                   isSelected={cleanerUsedSelected.has(item.id)}
+                  hasSelection={cleanerUsedSelected.size > 0}
                   isLastActive={item.id === lastActiveId}
                   lastActiveType={item.id === lastActiveId ? lastActiveType : null}
                   onToggle={() => toggleCleanerUsed(item)}
