@@ -41,6 +41,9 @@ Never run manual sequential multi-store steps or individual git pushes. Always u
 3. **Save Build Minutes**:
    - If an operation is purely configuration or API-based (e.g. Supabase migrations, Cloudflare cache rules, DB triggers, Vercel env updates), perform it via API WITHOUT triggering a new Next.js production build.
    - Only code changes that alter Next.js bundles warrant a Vercel build.
+4. **MANDATORY User Approval Before ANY Push (RULE GIT-STRICT-APPROVAL)**:
+   - Under NO circumstances may the agent run `git push`, `npm run stores:push`, or trigger any Vercel deploy autonomously.
+   - Pushes/deployments are ONLY permitted when the user explicitly commands it in the chat (e.g. "push karo", "deploy karo").
 
 ## RULE AUTO1 — Agent automation flow (clone/setup)
 When the user provides these 7 values (project ref ID auto-extracted from URL):

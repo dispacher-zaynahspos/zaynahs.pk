@@ -66,23 +66,6 @@ export async function POST(req: NextRequest) {
 
       const slug = activeRecord.slug;
       if (slug) {
-        try {
-          const safeTag = slug.replace(/[^a-zA-Z0-9-_]/g, '_');
-          (revalidateTag as any)(`product-${slug}`);
-          (revalidateTag as any)(`product-${safeTag}`);
-          (revalidateTag as any)('products');
-          (revalidateTag as any)('homepage');
-          revalidatePath(`/product/${slug}`);
-          revalidatePath(`/product/${slug}`, 'page');
-          revalidatePath('/product/[slug]', 'page');
-          revalidatePath('/(store)/product/[slug]', 'page');
-          revalidatePath('/');
-          revalidatePath('/', 'page');
-          revalidatePath('/shop');
-          revalidatePath('/shop', 'page');
-        } catch (e) {
-          console.warn('[Webhook Revalidate] Direct next/cache revalidate error:', e);
-        }
         await revalidateProduct(slug);
       } else {
         console.warn('[Webhook Revalidate] Product update received but slug was missing.');

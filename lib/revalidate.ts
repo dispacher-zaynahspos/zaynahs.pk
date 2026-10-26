@@ -207,17 +207,9 @@ export async function revalidateProduct(slug: string, action: 'UPDATED' | 'DELET
     revalidateTag('reviews');
 
     revalidatePath('/');
-    revalidatePath('/', 'page');
-    revalidatePath('/', 'layout');
-    revalidatePath('/(store)', 'layout');
-    revalidatePath('/(store)', 'page');
     revalidatePath('/shop');
-    revalidatePath('/admin', 'layout');
     if (action !== 'DELETED') {
       revalidatePath(`/product/${slug}`);
-      revalidatePath(`/product/${slug}`, 'page');
-      revalidatePath('/product/[slug]', 'page');
-      revalidatePath('/(store)/product/[slug]', 'page');
     }
 
     // Reliable complete Cloudflare zone purge on every product save (RULE C10)
@@ -225,8 +217,6 @@ export async function revalidateProduct(slug: string, action: 'UPDATED' | 'DELET
 
     const siteUrl = await resolveSiteUrl();
     const productUrl = `${siteUrl}/product/${slug}`;
-
-    // Do not self-fetch immediately: Cloudflare edge must stay completely purged so subsequent customer requests fetch fresh DB data from Next.js without re-caching stale ISR payloads.
 
     if (action === 'DELETED') {
       await notifyGoogleIndexing(productUrl, 'URL_DELETED');
@@ -250,14 +240,9 @@ export async function revalidateBanner() {
     revalidateTag('products');
     revalidateTag('verticals');
 
-    // Purge page routing cache
+    // Purge canonical page routing cache
     revalidatePath('/');
-    revalidatePath('/', 'page');
-    revalidatePath('/', 'layout');
-    revalidatePath('/(store)', 'layout');
-    revalidatePath('/(store)', 'page');
     revalidatePath('/shop');
-    revalidatePath('/store', 'layout');
     revalidatePath('/admin', 'layout');
 
     // Reliable complete Cloudflare zone purge on banner/homepage-section save (RULE C10)
@@ -309,13 +294,7 @@ export async function revalidateHomepage() {
     revalidateTag('verticals');
 
     revalidatePath('/');
-    revalidatePath('/', 'page');
-    revalidatePath('/', 'layout');
-    revalidatePath('/(store)', 'layout');
-    revalidatePath('/(store)', 'page');
     revalidatePath('/shop');
-    revalidatePath('/store', 'layout');
-    revalidatePath('/admin', 'layout');
 
     // Reliable complete Cloudflare zone purge on homepage save (RULE C10)
     await purgeCloudflareEverything();
