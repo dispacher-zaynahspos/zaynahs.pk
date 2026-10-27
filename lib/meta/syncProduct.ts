@@ -76,6 +76,50 @@ async function logSyncResult(
 }
 
 /**
+ * Queries Meta Graph API for all items currently registered under this product group or standalone retailer ID.
+ * This ensures that when variants are changed, regenerated, or deleted, old ghost variants in Meta are cleaned up.
+ */
+async function getExistingMetaItemsForProduct(
+  productId: string,
+  catalogId: string,
+  accessToken: string,
+  apiVersion: string
+): Promise<{ retailer_id: string }[]> {
+  try {
+    const url = `https://graph.facebook.com/${apiVersion}/${catalogId}/products?limit=100&fields=id,retailer_id&filter=${encodeURIComponent(
+      JSON.stringify({ retailer_product_group_id: { eq: productId } })
+    )}&access_token=${accessToken}`;
+
+    const res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) return [];
+    const json = await res.json();
+    const items: { retailer_id: string }[] = json?.data || [];
+
+    // Also check for legacy standalone item with retailer_id === productId
+    const singleUrl = `https://graph.facebook.com/${apiVersion}/${catalogId}/products?limit=10&fields=id,retailer_id&filter=${encodeURIComponent(
+      JSON.stringify({ retailer_id: { eq: productId } })
+    )}&access_token=${accessToken}`;
+
+    const singleRes = await fetch(singleUrl, { cache: 'no-store' });
+    if (singleRes.ok) {
+      const singleJson = await singleRes.json();
+      if (singleJson?.data) {
+        singleJson.data.forEach((s: { retailer_id: string }) => {
+          if (!items.some(i => i.retailer_id === s.retailer_id)) {
+            items.push(s);
+          }
+        });
+      }
+    }
+
+    return items;
+  } catch (err) {
+    console.warn(`[MetaSync] Warning: Failed to query existing items for product ${productId}:`, err);
+    return [];
+  }
+}
+
+/**
  * Syncs a single product (including its variants) to Meta Catalog.
  * Results are written to meta_sync_log — NOT to products table.
  */
@@ -110,36 +154,57 @@ export async function syncProductToMeta(
       return { success: true, error: 'Meta Catalog Sync is disabled' };
     }
 
-    // 3. Build requests payload
-    let requests: MetaBatchRequest[] = [];
-
-    const activeVariants = product.variants ? product.variants.filter(v => v.active) : [];
-    const hasVariants = Boolean(
-      product.has_variants ??
-      (product as unknown as { hasVariants?: boolean }).hasVariants ??
-      activeVariants.length > 0
+    // 3. Reconcile existing Meta items to guarantee zero ghost variants or stale images survive
+    const existingMetaItems = await getExistingMetaItemsForProduct(
+      product.id,
+      catalogId,
+      accessToken,
+      apiVersion
     );
 
+    let requests: MetaBatchRequest[] = [];
+    const activeVariants = product.variants ? product.variants.filter(v => v.active) : [];
+
     if (action === 'DELETE' || product.deleted_at || !product.is_active) {
-      // Complete cleanup: delete parent item AND all variants with required data: { id }
-      requests = [
-        { method: 'DELETE', retailer_id: product.id, data: { id: product.id } as MetaCatalogItem },
-        ...activeVariants.map(v => ({
-          method: 'DELETE' as const,
-          retailer_id: v.id,
-          data: { id: v.id } as MetaCatalogItem,
-        })),
-      ];
+      // Complete cleanup: delete parent item, all current variants, AND any ghost items found in Meta
+      const toDeleteRetailerIds = new Set<string>();
+      toDeleteRetailerIds.add(product.id);
+      activeVariants.forEach(v => toDeleteRetailerIds.add(v.id));
+      existingMetaItems.forEach(item => toDeleteRetailerIds.add(item.retailer_id));
+
+      requests = Array.from(toDeleteRetailerIds).map(id => ({
+        method: 'DELETE',
+        retailer_id: id,
+        data: { id } as MetaCatalogItem,
+      }));
     } else {
       const mappedItems = mapProductToMeta(product, settings, categoryMap);
       const isVariantProduct = mappedItems.some(item => item.item_group_id === product.id);
+      const currentValidIds = new Set(mappedItems.map(item => item.id));
 
-      // CRITICAL DUPLICATE PREVENTION:
-      // If product has variants, always delete the standalone parent item from Meta.
-      // In Meta Catalog, parent ID must ONLY exist as an item_group_id, NEVER as an item id.
-      const cleanupRequests: MetaBatchRequest[] = isVariantProduct
-        ? [{ method: 'DELETE', retailer_id: product.id, data: { id: product.id } as MetaCatalogItem }]
-        : [];
+      // CRITICAL ORPHAN & GHOST CLEANUP:
+      // Any item currently in Meta for this product that is NOT in current mapped items is deleted.
+      // This permanently prevents old images (e.g. Purple tracksuit) from surviving when an article is replaced/edited.
+      const cleanupRequests: MetaBatchRequest[] = [];
+
+      existingMetaItems.forEach(item => {
+        if (!currentValidIds.has(item.retailer_id)) {
+          cleanupRequests.push({
+            method: 'DELETE',
+            retailer_id: item.retailer_id,
+            data: { id: item.retailer_id } as MetaCatalogItem,
+          });
+        }
+      });
+
+      // If product has variants, always ensure the standalone parent item is deleted from Meta
+      if (isVariantProduct && !cleanupRequests.some(r => r.retailer_id === product.id)) {
+        cleanupRequests.push({
+          method: 'DELETE',
+          retailer_id: product.id,
+          data: { id: product.id } as MetaCatalogItem,
+        });
+      }
 
       requests = [
         ...cleanupRequests,

@@ -61,3 +61,9 @@ Applies universally across all current stores (TotVogue, Zaynahs, MiniMahal, Lit
    - All catalog mappers and feed generators live in modular folders (`lib/meta/`, `lib/catalog-feeds/`).
    - TikTok Catalog and Google Merchant feeds MUST reuse the same single source of truth product mapping logic to ensure price, inventory, and variant clustering consistency across all ad platforms.
 
+5. **Self-Reconciling Ghost Variant & Stale Image Purge Invariant**:
+   - In Meta Graph API, when variants are updated, regenerated, or an article image is replaced, Meta NEVER deletes old variants automatically.
+   - `syncProductToMeta` MUST query existing Meta items under `retailer_product_group_id` and explicitly emit `DELETE` for any ghost variant IDs or legacy standalone parent IDs that no longer exist in the current DB product.
+   - Every store and clone MUST register its `/api/meta/catalog.xml` Data Feed in Meta Commerce Manager (`update_type: REPLACE`, interval: `HOURLY`) to ensure the catalog continuously self-heals and prevents ghost variants or wrong images from lingering.
+
+
