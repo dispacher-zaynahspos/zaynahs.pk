@@ -72,13 +72,13 @@ export default function ProductListTable({
                     className="rounded border-gray-300 text-[#e94560] focus:ring-[#e94560] h-3.5 w-3.5 cursor-pointer accent-[#e94560]"
                   />
                 </th>
-                <th className="py-2.5 px-2.5 min-w-[140px]">Product</th>
+                <th className="py-2.5 px-3 min-w-[200px]">Product</th>
                 <th className="py-2.5 px-2 hidden 2xl:table-cell w-24">SKU</th>
                 <th className="py-2.5 px-2 w-20">Price</th>
                 <th className="py-2.5 px-2 hidden sm:table-cell w-24">Stock</th>
                 <th className="py-2.5 px-1 hidden md:table-cell text-center w-14">Visible</th>
                 <th className="py-2.5 px-1 hidden xl:table-cell text-center w-14">Featured</th>
-                {settings.meta_sync_enabled && <th className="py-2.5 px-1 hidden 2xl:table-cell w-20 text-center">Meta Sync</th>}
+                {settings.meta_sync_enabled && <th className="py-2.5 px-2 text-center w-24 whitespace-nowrap">Meta Sync</th>}
                 <th className="py-2.5 px-1.5 text-center w-18">Actions</th>
               </tr>
             </thead>
@@ -105,28 +105,26 @@ export default function ProductListTable({
                         className="rounded border-gray-300 text-[#e94560] focus:ring-[#e94560] h-3.5 w-3.5 cursor-pointer accent-[#e94560]"
                       />
                     </td>
-                    <td className="py-2.5 px-2.5 min-w-[140px]">
-                      <div className="flex items-center gap-2 md:gap-2.5">
+                    <td className="py-2.5 px-3 min-w-0">
+                      <div className="flex items-center gap-2.5 min-w-0">
                         <TableThumbnail 
                           url={primaryImage} 
                           alt={product.name} 
                           onPreview={setPreviewImageUrl} 
                         />
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-1.5">
-                            <p className="font-bold text-gray-900 dark:text-white text-xs md:text-sm max-w-[140px] xl:max-w-[220px] truncate" title={product.name}>
-                              {product.name}
-                            </p>
-                          </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-bold text-gray-900 dark:text-white text-xs md:text-sm truncate" title={product.name}>
+                            {(product.name || '').replace(/^[\s*#-]+/, '').replace(/[*_~`]/g, '').trim()}
+                          </p>
                           {product.product_categories && product.product_categories.length > 0 ? (
                             <div className="flex flex-wrap items-center gap-1 mt-0.5">
-                              {product.product_categories.slice(0, 2).map((pc) => pc.category ? (
+                              {product.product_categories.slice(0, 3).map((pc) => pc.category ? (
                                 <span key={pc.category_id} className="inline-flex items-center px-1.5 py-0.2 rounded-full bg-indigo-50/70 dark:bg-indigo-950/30 text-[9px] font-bold text-indigo-600 dark:text-indigo-400 leading-tight">
                                   {pc.category.name}
                                 </span>
                               ) : null)}
-                              {product.product_categories.length > 2 && (
-                                <span className="text-[9px] font-bold text-gray-400">+{product.product_categories.length - 2}</span>
+                              {product.product_categories.length > 3 && (
+                                <span className="text-[9px] font-bold text-gray-400">+{product.product_categories.length - 3}</span>
                               )}
                             </div>
                           ) : product.category ? (
@@ -203,13 +201,22 @@ export default function ProductListTable({
                       </div>
                     </td>
                     {settings.meta_sync_enabled && (
-                      <td className="py-2.5 px-1 hidden 2xl:table-cell text-center w-20">
+                      <td className="py-2.5 px-2 text-center w-24 whitespace-nowrap">
                         {product.meta_sync_status === 'synced' ? (
-                          <span suppressHydrationWarning={true} className="inline-flex items-center gap-1 text-[9px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded-full border border-emerald-500/20" title={product.meta_last_synced_at ? `Synced at: ${new Date(product.meta_last_synced_at).toLocaleString()}` : 'Synced'}>🟢 Synced</span>
+                          <span suppressHydrationWarning={true} className="inline-flex items-center gap-1.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 rounded-full border border-emerald-300 dark:border-emerald-800 shadow-2xs" title={product.meta_last_synced_at ? `Synced at: ${new Date(product.meta_last_synced_at).toLocaleString()}` : 'Synced with Meta Catalog'}>
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block animate-pulse" />
+                            Synced
+                          </span>
                         ) : product.meta_sync_status === 'error' ? (
-                          <span className="inline-flex items-center gap-1 text-[9px] font-bold text-red-600 dark:text-red-400 bg-red-500/10 px-1.5 py-0.5 rounded-full border border-red-500/20 cursor-help" title={product.meta_sync_error || 'Sync failed'}>🔴 Error</span>
+                          <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-rose-700 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 px-2.5 py-1 rounded-full border border-rose-300 dark:border-rose-800 shadow-2xs cursor-help" title={product.meta_sync_error || 'Meta Sync failed'}>
+                            <span className="w-1.5 h-1.5 rounded-full bg-rose-500 inline-block" />
+                            Failed
+                          </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 text-[9px] font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded-full border border-amber-500/20">🟡 Pending</span>
+                          <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-2.5 py-1 rounded-full border border-amber-300 dark:border-amber-800 shadow-2xs" title="Not synced to Meta catalog yet (Pending)">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block" />
+                            Pending
+                          </span>
                         )}
                       </td>
                     )}
@@ -220,8 +227,20 @@ export default function ProductListTable({
                             type="button"
                             onClick={() => handleSingleSync(product.id)} 
                             disabled={isSyncing}
-                            className="p-1 rounded-md border border-gray-200/80 dark:border-gray-800/80 text-gray-600 dark:text-gray-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all cursor-pointer" 
-                            title="Force Meta Sync"
+                            className={`p-1 rounded-md border transition-all cursor-pointer ${
+                              product.meta_sync_status === 'synced'
+                                ? 'border-emerald-200 dark:border-emerald-800/80 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30'
+                                : product.meta_sync_status === 'error'
+                                ? 'border-rose-200 dark:border-rose-800/80 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30'
+                                : 'border-gray-200/80 dark:border-gray-800/80 text-gray-600 dark:text-gray-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 hover:text-indigo-600 dark:hover:text-indigo-400'
+                            }`}
+                            title={
+                              product.meta_sync_status === 'synced'
+                                ? 'Meta Synced (Click to re-sync)'
+                                : product.meta_sync_status === 'error'
+                                ? `Meta Sync Failed: ${product.meta_sync_error || 'Error'} (Click to retry)`
+                                : 'Meta Sync Pending (Click to sync)'
+                            }
                           >
                             {isSyncing ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
                           </button>
@@ -372,11 +391,20 @@ export default function ProductListTable({
 
                   {settings.meta_sync_enabled && (
                     product.meta_sync_status === 'synced' ? (
-                      <span className="text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">🟢 Synced</span>
+                      <span suppressHydrationWarning={true} className="inline-flex items-center gap-1.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full border border-emerald-300 dark:border-emerald-800">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
+                        Synced
+                      </span>
                     ) : product.meta_sync_status === 'error' ? (
-                      <span className="text-red-600 dark:text-red-400 font-bold bg-red-500/10 px-2 py-0.5 rounded-full border border-red-500/20">🔴 Error</span>
+                      <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-rose-700 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 px-2 py-0.5 rounded-full border border-rose-300 dark:border-rose-800 cursor-help" title={product.meta_sync_error || 'Sync failed'}>
+                        <span className="w-1.5 h-1.5 rounded-full bg-rose-500 inline-block" />
+                        Failed
+                      </span>
                     ) : (
-                      <span className="text-amber-600 dark:text-amber-400 font-bold bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">🟡 Pending</span>
+                      <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded-full border border-amber-300 dark:border-amber-800">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block" />
+                        Pending
+                      </span>
                     )
                   )}
                 </div>
