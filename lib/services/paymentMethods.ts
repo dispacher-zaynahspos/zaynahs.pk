@@ -6,31 +6,54 @@ import { PaymentMethod } from '@/lib/types';
 import { revalidateStorefrontEdge } from '@/lib/revalidate';
 
 export async function getPaymentMethods(onlyActive = false): Promise<PaymentMethod[]> {
-  const supabase = await createClient();
-  let query = supabase
-    .from('payment_methods')
-    .select('*')
-    .order('sort_order', { ascending: true });
+  try {
+    const supabase = onlyActive ? await createClient() : supabaseAdmin;
+    let query = supabase
+      .from('payment_methods')
+      .select('*')
+      .order('sort_order', { ascending: true });
 
-  if (onlyActive) {
-    query = query.eq('active', true);
+    if (onlyActive) {
+      query = query.eq('active', true);
+    }
+
+    const { data, error } = await query;
+    if (error) {
+      if (onlyActive) {
+        const { data: fbData, error: fbErr } = await supabaseAdmin
+          .from('payment_methods')
+          .select('*')
+          .eq('active', true)
+          .order('sort_order', { ascending: true });
+        if (!fbErr && fbData) {
+          return fbData.map(row => ({
+            id: row.id,
+            name: row.name,
+            code: row.code,
+            active: row.active,
+            instructions: row.instructions,
+            sort_order: row.sort_order ?? 0,
+            created_at: row.created_at
+          }));
+        }
+      }
+      console.error('getPaymentMethods failed:', error);
+      return [];
+    }
+
+    return (data || []).map(row => ({
+      id: row.id,
+      name: row.name,
+      code: row.code,
+      active: row.active,
+      instructions: row.instructions,
+      sort_order: row.sort_order ?? 0,
+      created_at: row.created_at
+    }));
+  } catch (err) {
+    console.error('getPaymentMethods exception:', err);
+    return [];
   }
-
-  const { data, error } = await query;
-  if (error) {
-    console.error('getPaymentMethods failed:', error);
-    throw error;
-  }
-
-  return (data || []).map(row => ({
-    id: row.id,
-    name: row.name,
-    code: row.code,
-    active: row.active,
-    instructions: row.instructions,
-    sort_order: row.sort_order ?? 0,
-    created_at: row.created_at
-  }));
 }
 
 export async function createPaymentMethod(data: {
@@ -40,7 +63,7 @@ export async function createPaymentMethod(data: {
   instructions?: string;
   sortOrder?: number;
 }): Promise<PaymentMethod> {
-  const supabase = await createClient();
+  const supabase = supabaseAdmin;
 
   // Auto-assign next sort_order if not provided
   let sortOrder = data.sortOrder;
@@ -87,7 +110,7 @@ export async function updatePaymentMethod(
   id: string,
   data: Partial<Omit<PaymentMethod, 'id' | 'createdAt'>>
 ): Promise<PaymentMethod> {
-  const supabase = await createClient();
+  const supabase = supabaseAdmin;
 
   const updatePayload: Record<string, unknown> = {};
   if (data.name !== undefined) updatePayload.name = data.name;
@@ -135,7 +158,7 @@ export async function reorderPaymentMethods(orderedIds: string[]): Promise<void>
 }
 
 export async function deletePaymentMethod(id: string): Promise<void> {
-  const supabase = await createClient();
+  const supabase = supabaseAdmin;
   const { error } = await supabase
     .from('payment_methods')
     .delete()

@@ -4,6 +4,27 @@
 
 ---
 
+### [2026-10-29] v10.0.3 — Shipping Zones Permissions & Admin Services Resilience
+
+**Migration:** `supabase/migrations/20261029100000_grant_shipping_zones_permissions.sql`
+(applied to all 5 stores: totvogue.pk, zaynahs.pk, minimahal.com, littlemister.pk, lobo.pk)
+
+**Root Cause:**
+On `totvogue.pk`, `shipping_zones` was created without table-level grants (`SELECT` to `anon`, `ALL` to `authenticated` and `service_role`). When the admin settings page (`/admin/settings?tab=shipping`) mounted, `ShippingZonesCard` called `getShippingZones()`, PostgreSQL threw `42501 permission denied for table shipping_zones`, and Next.js responded with a 500 Internal Server Error toast "Failed to load shipping zones".
+
+**Database Changes:**
+1. `GRANT SELECT ON public.shipping_zones TO anon;` (filtered by RLS `active = true` for public checkout).
+2. `GRANT ALL ON public.shipping_zones TO authenticated, service_role;` (filtered by RLS `is_admin()` for authenticated; service_role bypasses).
+3. Applied to all 5 stores dynamically via Supabase Management API.
+4. Added to `SUPER_MASTER_SCHEMA.sql` to ensure all future clones created via `clone:setup` have these grants out of the box.
+
+**Application Changes:**
+1. `lib/services/shipping-zones.ts`: Admin reads (`onlyActive = false`) and mutations (`createShippingZone`, `updateShippingZone`, `deleteShippingZone`) updated to use `supabaseAdmin`, with graceful exception handling (`return []` on failure instead of 500 crash).
+2. `lib/services/shipping.ts`: `getShippingMethods`, `createShippingMethod`, `updateShippingMethod`, `deleteShippingMethod` updated to use `supabaseAdmin` for admin operations with graceful error fallback.
+3. `lib/services/paymentMethods.ts`: `getPaymentMethods`, `createPaymentMethod`, `updatePaymentMethod`, `deletePaymentMethod` updated to use `supabaseAdmin` for admin operations with graceful error fallback.
+
+---
+
 ### [2026-10-24] v10.0.2 — Harden RPC grants + storage policies
 
 **Migration:** `supabase/migrations/20261024000000_harden_rpc_and_storage.sql`

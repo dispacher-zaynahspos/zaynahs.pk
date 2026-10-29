@@ -1363,6 +1363,8 @@ DROP POLICY IF EXISTS "Public read shipping_zones" ON shipping_zones;
 CREATE POLICY "Public read shipping_zones" ON shipping_zones FOR SELECT USING (active = true);
 DROP POLICY IF EXISTS "Admin all shipping_zones" ON shipping_zones;
 CREATE POLICY "Admin all shipping_zones" ON shipping_zones FOR ALL USING (auth.role() = 'authenticated');
+GRANT SELECT ON public.shipping_zones TO anon;
+GRANT ALL ON public.shipping_zones TO authenticated, service_role;
 
 -- ============================================================
 -- PAYMENT METHODS

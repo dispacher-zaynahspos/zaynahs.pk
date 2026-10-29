@@ -6,31 +6,54 @@ import { ShippingMethod } from '@/lib/types';
 import { revalidateStorefrontEdge } from '@/lib/revalidate';
 
 export async function getShippingMethods(onlyActive = false): Promise<ShippingMethod[]> {
-  const supabase = await createClient();
-  let query = supabase
-    .from('shipping_methods')
-    .select('*')
-    .order('sort_order', { ascending: true });
+  try {
+    const supabase = onlyActive ? await createClient() : supabaseAdmin;
+    let query = supabase
+      .from('shipping_methods')
+      .select('*')
+      .order('sort_order', { ascending: true });
 
-  if (onlyActive) {
-    query = query.eq('active', true);
+    if (onlyActive) {
+      query = query.eq('active', true);
+    }
+
+    const { data, error } = await query;
+    if (error) {
+      if (onlyActive) {
+        const { data: fbData, error: fbErr } = await supabaseAdmin
+          .from('shipping_methods')
+          .select('*')
+          .eq('active', true)
+          .order('sort_order', { ascending: true });
+        if (!fbErr && fbData) {
+          return fbData.map(row => ({
+            id: row.id,
+            name: row.name,
+            cost: Number(row.cost),
+            estimated_days: row.estimated_days,
+            active: row.active,
+            sort_order: row.sort_order ?? 0,
+            created_at: row.created_at
+          }));
+        }
+      }
+      console.error('getShippingMethods failed:', error);
+      return [];
+    }
+
+    return (data || []).map(row => ({
+      id: row.id,
+      name: row.name,
+      cost: Number(row.cost),
+      estimated_days: row.estimated_days,
+      active: row.active,
+      sort_order: row.sort_order ?? 0,
+      created_at: row.created_at
+    }));
+  } catch (err) {
+    console.error('getShippingMethods exception:', err);
+    return [];
   }
-
-  const { data, error } = await query;
-  if (error) {
-    console.error('getShippingMethods failed:', error);
-    throw error;
-  }
-
-  return (data || []).map(row => ({
-    id: row.id,
-    name: row.name,
-    cost: Number(row.cost),
-    estimated_days: row.estimated_days,
-    active: row.active,
-    sort_order: row.sort_order ?? 0,
-    created_at: row.created_at
-  }));
 }
 
 export async function createShippingMethod(data: {
@@ -40,7 +63,7 @@ export async function createShippingMethod(data: {
   active?: boolean;
   sortOrder?: number;
 }): Promise<ShippingMethod> {
-  const supabase = await createClient();
+  const supabase = supabaseAdmin;
 
   // Auto-assign next sort_order if not provided
   let sortOrder = data.sortOrder;
@@ -87,7 +110,7 @@ export async function updateShippingMethod(
   id: string,
   data: Partial<Omit<ShippingMethod, 'id' | 'createdAt'>>
 ): Promise<ShippingMethod> {
-  const supabase = await createClient();
+  const supabase = supabaseAdmin;
   
   const updatePayload: Record<string, unknown> = {};
   if (data.name !== undefined) updatePayload.name = data.name;
@@ -135,7 +158,7 @@ export async function reorderShippingMethods(orderedIds: string[]): Promise<void
 }
 
 export async function deleteShippingMethod(id: string): Promise<void> {
-  const supabase = await createClient();
+  const supabase = supabaseAdmin;
   const { error } = await supabase
     .from('shipping_methods')
     .delete()

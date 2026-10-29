@@ -36,15 +36,28 @@ function mapZone(row: ShippingZoneRow): ShippingZone {
 }
 
 export async function getShippingZones(onlyActive = false): Promise<ShippingZone[]> {
-  const supabase = await createClient();
-  let query = supabase.from('shipping_zones').select('*').order('sort_order', { ascending: true });
-  if (onlyActive) query = query.eq('active', true);
-  const { data, error } = await query;
-  if (error) {
-    console.error('getShippingZones failed:', error);
-    throw error;
+  try {
+    const supabase = onlyActive ? await createClient() : supabaseAdmin;
+    let query = supabase.from('shipping_zones').select('*').order('sort_order', { ascending: true });
+    if (onlyActive) query = query.eq('active', true);
+    const { data, error } = await query;
+    if (error) {
+      if (onlyActive) {
+        const { data: fbData, error: fbErr } = await supabaseAdmin
+          .from('shipping_zones')
+          .select('*')
+          .eq('active', true)
+          .order('sort_order', { ascending: true });
+        if (!fbErr && fbData) return fbData.map(mapZone);
+      }
+      console.error('getShippingZones failed:', error);
+      return [];
+    }
+    return (data || []).map(mapZone);
+  } catch (err) {
+    console.error('getShippingZones exception:', err);
+    return [];
   }
-  return (data || []).map(mapZone);
 }
 
 export async function createShippingZone(data: {
@@ -57,7 +70,7 @@ export async function createShippingZone(data: {
   active?: boolean;
   sortOrder?: number;
 }): Promise<ShippingZone> {
-  const supabase = await createClient();
+  const supabase = supabaseAdmin;
 
   let sortOrder = data.sortOrder;
   if (sortOrder === undefined) {
@@ -106,7 +119,7 @@ export async function updateShippingZone(
     sort_order: number;
   }>
 ): Promise<ShippingZone> {
-  const supabase = await createClient();
+  const supabase = supabaseAdmin;
   const payload: {
     name?: string;
     cities?: string[];
@@ -143,7 +156,7 @@ export async function updateShippingZone(
 }
 
 export async function deleteShippingZone(id: string): Promise<void> {
-  const supabase = await createClient();
+  const supabase = supabaseAdmin;
   const { error } = await supabase.from('shipping_zones').delete().eq('id', id);
   if (error) {
     console.error('deleteShippingZone failed:', error);
