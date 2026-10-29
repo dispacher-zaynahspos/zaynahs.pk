@@ -450,5 +450,18 @@ Verified 2026-10. Across all stores (TotVogue, Zaynahs, MiniMahal, LittleMister,
 2. **Single Source of Truth**:
    Controls MUST use `components/admin/customizer/shared/GridGapControl.tsx` and `components/admin/customizer/shared/ResponsiveGridColumnsControl.tsx`. Hand-rolling ad-hoc selects or inline segmented controls for grid columns or gap is strictly forbidden.
 
+## RULE DS25 — Smart-Fit Proportional Buttons & Responsive Alignment (MANDATORY)
+1. **Desktop (sm: and above)**:
+   - Action buttons must **never** be stretched into arbitrary full-width slabs across large content containers (e.g. 700px–800px width cards).
+   - Multi-action rows (Payment actions, Fulfillment actions, Customer controls, Admin toolbars) must place section headings and status badges on the left, and smart-fit action buttons (`w-auto inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap`) cleanly grouped on the right.
+2. **Mobile (<sm)**:
+   - Touch targets must have a minimum height of 36px–44px with comfortable padding and tactile active feedback (`active:scale-95`).
+   - Action buttons must always display clear text labels alongside icons (e.g. `[Call]`, `[WhatsApp]`, `[Mark as Paid]`, `[Book at PostEx]`). Never hide text labels leaving ambiguous icons on mobile.
+   - Dual actions on mobile must use equal proportional distribution (`grid grid-cols-2` or `flex-1 sm:flex-initial sm:w-auto`) so the interface feels like a polished, native mobile app.
+3. **Visual Hierarchy & State Clarity**:
+   - **Primary Actions**: Solid high-contrast background with soft shadow (`bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs`).
+   - **Secondary / Toggle Actions**: Muted border with subtle hover highlight (`border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800`).
+   - **Destructive / Caution Actions**: Soft danger palette (`border border-red-200 dark:border-red-900/40 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10`).
+
 
 

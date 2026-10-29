@@ -334,41 +334,95 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
           </div>
 
           {/* Payment & fulfillment status + actions (real columns, not notes-derived) */}
-          <div className="bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm p-4 space-y-3 print:hidden">
-            <div className="flex items-center justify-between">
-              <span className="text-[13px] font-bold text-gray-700 dark:text-gray-300">Payment</span>
-              <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
-                order.payment_status === 'paid' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400'
-                : order.payment_status === 'refunded' ? 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400'
-                : 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400'}`}>
-                {(order.payment_status || 'unpaid').toUpperCase()}
-              </span>
+          <div className="bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm p-4 space-y-4 print:hidden">
+            {/* Payment Section */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
+              <div className="flex items-center gap-2">
+                <span className="text-[13.5px] font-bold text-gray-800 dark:text-gray-200">Payment</span>
+                <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${
+                  order.payment_status === 'paid'
+                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-400 dark:border-emerald-500/30'
+                    : order.payment_status === 'refunded'
+                      ? 'bg-red-50 text-red-700 border-red-200 dark:bg-red-500/15 dark:text-red-400 dark:border-red-500/30'
+                      : 'bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-500/15 dark:text-amber-400 dark:border-amber-500/30'
+                }`}>
+                  {(order.payment_status || 'unpaid').toUpperCase()}
+                </span>
+              </div>
+
+              {/* Action buttons: smart-fit on desktop, proportional on mobile */}
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                {order.payment_status !== 'paid' && (
+                  <button
+                    onClick={() => handleSetPayment('paid')}
+                    className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[12px] font-bold cursor-pointer active:scale-95 transition-all shadow-xs whitespace-nowrap"
+                  >
+                    <Check className="w-3.5 h-3.5" />
+                    Mark as Paid
+                  </button>
+                )}
+                {order.payment_status === 'paid' && (
+                  <button
+                    onClick={() => handleSetPayment('unpaid')}
+                    className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 text-[12px] font-bold cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 active:scale-95 transition-all whitespace-nowrap"
+                  >
+                    Mark Unpaid
+                  </button>
+                )}
+                {order.payment_status !== 'refunded' && (
+                  <button
+                    onClick={() => handleSetPayment('refunded')}
+                    className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-red-200 dark:border-red-900/40 text-red-600 dark:text-red-400 text-[12px] font-bold cursor-pointer hover:bg-red-50 dark:hover:bg-red-500/10 active:scale-95 transition-all whitespace-nowrap"
+                  >
+                    Refunded
+                  </button>
+                )}
+              </div>
             </div>
-            <div className="flex gap-2">
-              {order.payment_status !== 'paid' && (
-                <button onClick={() => handleSetPayment('paid')} className="flex-1 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[12px] font-bold cursor-pointer active:scale-95">Mark as Paid</button>
-              )}
-              {order.payment_status === 'paid' && (
-                <button onClick={() => handleSetPayment('unpaid')} className="flex-1 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 text-[12px] font-bold cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800">Mark Unpaid</button>
-              )}
-              {order.payment_status !== 'refunded' && (
-                <button onClick={() => handleSetPayment('refunded')} className="flex-1 py-1.5 rounded-lg border border-red-200 dark:border-red-900/40 text-red-600 text-[12px] font-bold cursor-pointer hover:bg-red-50 dark:hover:bg-red-500/10">Refunded</button>
-              )}
+
+            <div className="border-t border-gray-100 dark:border-gray-800/80" />
+
+            {/* Fulfillment Section */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-[13.5px] font-bold text-gray-800 dark:text-gray-200">Fulfillment</span>
+                <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${
+                  order.fulfillment_status === 'fulfilled'
+                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-400 dark:border-emerald-500/30'
+                    : 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700'
+                }`}>
+                  {(order.fulfillment_status || 'unfulfilled').toUpperCase()}
+                </span>
+                {order.tracking_number && (
+                  <span className="text-[11px] font-mono bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 px-2 py-0.5 rounded border border-blue-200/60 dark:border-blue-800/60">
+                    TRK: {order.tracking_number}
+                  </span>
+                )}
+              </div>
+
+              {/* Action buttons: smart-fit on desktop, proportional on mobile */}
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <button
+                  onClick={() => router.push(`/admin/orders/postex-booking?id=${order.id}`)}
+                  className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#2c6ecb] hover:bg-[#20549c] text-white text-[12px] font-bold cursor-pointer active:scale-95 transition-all shadow-xs whitespace-nowrap"
+                  title="Book or manage courier at PostEx"
+                >
+                  <Package className="w-3.5 h-3.5" />
+                  Book at PostEx
+                </button>
+                <button
+                  onClick={() => handleSetFulfillment(order.fulfillment_status === 'fulfilled' ? 'unfulfilled' : 'fulfilled')}
+                  className={`flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[12px] font-bold cursor-pointer active:scale-95 transition-all shadow-xs whitespace-nowrap ${
+                    order.fulfillment_status === 'fulfilled'
+                      ? 'border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
+                      : 'bg-emerald-700 hover:bg-emerald-800 text-white'
+                  }`}
+                >
+                  <Check className="w-3.5 h-3.5" />
+                  {order.fulfillment_status === 'fulfilled' ? 'Mark Unfulfilled' : 'Mark Fulfilled'}
+                </button>
+              </div>
             </div>
-            <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-800">
-              <span className="text-[13px] font-bold text-gray-700 dark:text-gray-300">Fulfillment</span>
-              <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
-                order.fulfillment_status === 'fulfilled' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400'
-                : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'}`}>
-                {(order.fulfillment_status || 'unfulfilled').toUpperCase()}
-              </span>
-            </div>
-            <button
-              onClick={() => handleSetFulfillment(order.fulfillment_status === 'fulfilled' ? 'unfulfilled' : 'fulfilled')}
-              className="w-full py-1.5 rounded-lg bg-[#1a1a2e] dark:bg-[#e94560] hover:opacity-90 text-white text-[12px] font-bold cursor-pointer active:scale-95"
-            >
-              {order.fulfillment_status === 'fulfilled' ? 'Mark Unfulfilled' : 'Mark Fulfilled'}
-            </button>
           </div>
 
           <div className="bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm p-4 space-y-4 print:hidden">
