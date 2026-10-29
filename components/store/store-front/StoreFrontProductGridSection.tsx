@@ -42,7 +42,7 @@ export function StoreFrontProductGridSection({
   // row is never half-empty when more products exist. Defaults keep the old
   // behavior (manual limit 8, fill ON).
   const fillRowsEnabled = section.settings?.fill_rows !== false;
-  const { columns, fill, limit } = useCatalogColumns({
+  const { columns, width } = useCatalogColumns({
     mode: section.settings?.columns_mode || 'manual',
     mobile: Number(section.settings?.columns_mobile) || 2,
     tablet: Number(section.settings?.columns_tablet) || 3,
@@ -50,19 +50,41 @@ export function StoreFrontProductGridSection({
     wide: section.settings?.columns_wide,
     minDesktop: section.settings?.min_card_desktop,
   });
-  const baseLimit = section.settings?.limit ?? 8;
-  const limitCfg = {
-    mode: section.settings?.limit_mode || 'manual',
-    manual: baseLimit,
-    rows: section.settings?.limit_rows,
-  };
-  // Base per-batch target for this layout (before cumulative load-more).
-  const batchTarget = React.useMemo(
-    () => limit(limitCfg, Number.MAX_SAFE_INTEGER, false),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [columns, section.settings?.limit_mode, section.settings?.limit_rows, baseLimit],
-  );
-  const effectiveLimit = loadMoreLimits[section.id] || batchTarget;
+
+  // Responsive per-device batch limit
+  const deviceBatchLimit = React.useMemo(() => {
+    const s = section.settings || {};
+    const fallback = Number(s.limit) || 8;
+    if (width < 640 && s.products_per_page_mobile) {
+      return Number(s.products_per_page_mobile);
+    }
+    if (width >= 640 && width < 1024 && s.products_per_page_tablet) {
+      return Number(s.products_per_page_tablet);
+    }
+    if (width >= 1024 && s.products_per_page_desktop) {
+      return Number(s.products_per_page_desktop);
+    }
+    return fallback;
+  }, [width, section.settings]);
+
+  // Unified batch increment:
+  // If limit_mode === 'auto', batch target is columns * rows.
+  // Otherwise, batch target is deviceBatchLimit.
+  // When fill-rows is enabled, round to a multiple of columns so each batch adds full rows consistently.
+  const batchStep = React.useMemo(() => {
+    const s = section.settings || {};
+    let target = deviceBatchLimit;
+    if (s.limit_mode === 'auto') {
+      const rows = Math.min(6, Math.max(1, Math.floor(Number(s.limit_rows) || 2)));
+      target = Math.max(1, columns * rows);
+    }
+    if (fillRowsEnabled && columns > 1) {
+      return Math.ceil(target / columns) * columns;
+    }
+    return Math.max(1, target);
+  }, [columns, deviceBatchLimit, section.settings, fillRowsEnabled]);
+
+  const effectiveLimit = loadMoreLimits[section.id] || batchStep;
 
 
   const sectionProducts = React.useMemo(() => {
@@ -123,10 +145,8 @@ export function StoreFrontProductGridSection({
   }, [filteredProducts, sortMethod, manualProductIds, source, selectedCategoryId, getValidCategoryIds]);
 
   const displayProducts = React.useMemo(() => {
-    // Round the visible count up to a full row when more products exist (fill-rows).
-    const visible = fill(effectiveLimit, sectionProducts.length, fillRowsEnabled);
-    return sectionProducts.slice(0, visible);
-  }, [sectionProducts, effectiveLimit, fill, fillRowsEnabled]);
+    return sectionProducts.slice(0, effectiveLimit);
+  }, [sectionProducts, effectiveLimit]);
 
   const viewAllLink = (() => {
     if (section.settings?.viewAllUrl) {
@@ -161,7 +181,7 @@ export function StoreFrontProductGridSection({
       (entries) => {
         if (entries[0].isIntersecting && !isTriggeringRef.current && typeof onLoadMore === 'function' && section?.id) {
           isTriggeringRef.current = true;
-          onLoadMore(section.id, batchTarget);
+          onLoadMore(section.id, batchStep);
         }
       },
       { rootMargin: '250px' }
@@ -169,7 +189,7 @@ export function StoreFrontProductGridSection({
 
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [bottomEnableInfiniteScroll, hasMore, onLoadMore, section?.id, batchTarget]);
+  }, [bottomEnableInfiniteScroll, hasMore, onLoadMore, section?.id, batchStep]);
 
   return (
     <SectionWrapper section={section}>
@@ -242,7 +262,7 @@ export function StoreFrontProductGridSection({
               type="button"
               onClick={(e) => {
                 e.preventDefault();
-                onLoadMore(section.id, batchTarget);
+                onLoadMore(section.id, batchStep);
               }}
               className="px-5 py-2.5 text-xs md:text-sm font-semibold tracking-wide uppercase rounded-full transition-all duration-200 shadow-sm active:scale-95 hover:brightness-90 cursor-pointer select-none touch-manipulation relative z-10"
               style={{

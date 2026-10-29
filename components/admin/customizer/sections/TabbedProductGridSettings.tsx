@@ -5,6 +5,7 @@ import { HomepageSection, Category } from '@/lib/types';
 import { Trash2, Plus } from '@/components/common/Icons';
 import { AccordionGroup } from '@/components/admin/customizer/controls';
 import ResponsiveGridColumnsControl from '../shared/ResponsiveGridColumnsControl';
+import ResponsiveProductsPerPageControl from '../shared/ResponsiveProductsPerPageControl';
 import GridGapControl from '../shared/GridGapControl';
 import ContentWidthControl from '../shared/ContentWidthControl';
 import FillRowsControl from '../shared/FillRowsControl';
@@ -97,14 +98,30 @@ export default function TabbedProductGridSettings({
       {/* Grid Layout */}
       <AccordionGroup id={`tpg-${section.id}-layout`} title="Grid Layout" defaultOpen={false}>
         <div className="space-y-4 pt-2">
+          <ResponsiveProductsPerPageControl
+            label="Products per Tab (Per Page Limit)"
+            viewportMode={viewportMode}
+            desktopLimit={Number(s.products_per_page_desktop) || Number(s.limit_per_tab) || 12}
+            tabletLimit={Number(s.products_per_page_tablet) || Number(s.limit_per_tab) || 8}
+            mobileLimit={Number(s.products_per_page_mobile) || Number(s.limit_per_tab) || 6}
+            onChangeDesktop={(val) => {
+              setSetting('products_per_page_desktop', val);
+              setSetting('limit_per_tab', val);
+            }}
+            onChangeTablet={(val) => setSetting('products_per_page_tablet', val)}
+            onChangeMobile={(val) => setSetting('products_per_page_mobile', val)}
+          />
           <CatalogLimitControl
-            label="Products per Tab"
+            label="Auto / Manual Limit Mode"
             mode={s.limit_mode || 'manual'}
             onChangeMode={(m) => setSetting('limit_mode', m)}
             rows={Number(s.limit_rows) || 2}
             onChangeRows={(r) => setSetting('limit_rows', r)}
             manual={Number(s.limit_per_tab) || 8}
-            onChangeManual={(v) => setSetting('limit_per_tab', v)}
+            onChangeManual={(v) => {
+              setSetting('limit_per_tab', v);
+              setSetting('products_per_page_desktop', v);
+            }}
             previewColumns={Number(s.columns_desktop) || 4}
           />
           <ResponsiveGridColumnsControl

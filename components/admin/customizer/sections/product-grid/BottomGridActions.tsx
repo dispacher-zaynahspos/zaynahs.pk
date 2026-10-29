@@ -1,15 +1,18 @@
 'use client';
 
 import React from 'react';
+import ResponsiveProductsPerPageControl from '@/components/admin/customizer/shared/ResponsiveProductsPerPageControl';
 
 interface BottomGridActionsProps {
   settings: Record<string, string | number | boolean | undefined>;
   handleSettingsChange: (key: string, value: string | number | boolean) => void;
+  viewportMode?: 'desktop' | 'tablet' | 'mobile';
 }
 
 export default function BottomGridActions({
   settings,
   handleSettingsChange,
+  viewportMode = 'desktop',
 }: BottomGridActionsProps) {
   return (
     <div className="space-y-3">
@@ -163,6 +166,22 @@ export default function BottomGridActions({
           </div>
         </div>
       )}
+
+      {/* Responsive Products per Page / Load More Batch Limit */}
+      <div className="pt-2 border-t border-gray-200 dark:border-gray-800">
+        <ResponsiveProductsPerPageControl
+          viewportMode={viewportMode}
+          desktopLimit={Number(settings.products_per_page_desktop) || Number(settings.limit) || 12}
+          tabletLimit={Number(settings.products_per_page_tablet) || Number(settings.limit) || 8}
+          mobileLimit={Number(settings.products_per_page_mobile) || Number(settings.limit) || 6}
+          onChangeDesktop={(val) => {
+            handleSettingsChange('products_per_page_desktop', val);
+            handleSettingsChange('limit', val);
+          }}
+          onChangeTablet={(val) => handleSettingsChange('products_per_page_tablet', val)}
+          onChangeMobile={(val) => handleSettingsChange('products_per_page_mobile', val)}
+        />
+      </div>
     </div>
   );
 }

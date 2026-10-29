@@ -14,6 +14,7 @@ interface FlashSaleSettingsProps {
   section: HomepageSection;
   products: Product[];
   categories: Category[];
+  viewportMode?: 'desktop' | 'tablet' | 'mobile';
   onUpdateSection: (updates: Partial<HomepageSection>) => void;
 }
 
@@ -21,6 +22,7 @@ export default function FlashSaleSettings({
   section,
   products,
   categories,
+  viewportMode = 'desktop',
   onUpdateSection
 }: FlashSaleSettingsProps) {
   return (
@@ -29,6 +31,7 @@ export default function FlashSaleSettings({
         <div className="pt-2">
           <FlashSaleGeneralConfig
             section={section}
+            viewportMode={viewportMode}
             onUpdateSection={onUpdateSection}
           />
         </div>

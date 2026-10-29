@@ -35,7 +35,7 @@ export function FlashSaleSection({ section, products, currencySymbol, settings, 
     wide: section.settings?.columns_wide,
     minDesktop: section.settings?.min_card_desktop,
   };
-  const { fill, limit } = useCatalogColumns(gridCfg);
+  const { columns, width, fill } = useCatalogColumns(gridCfg);
 
   useEffect(() => {
     if (!featureOn) return;
@@ -153,22 +153,41 @@ export function FlashSaleSection({ section, products, currencySymbol, settings, 
         return (b.created_at || '').localeCompare(a.created_at || '');
       });
 
-  // Fill-rows + per-layout auto/manual limit (RULE DS24). Columns-aware so the
-  // visible count follows the chosen columns (auto = cols × rows) and the last
-  // row is never half-empty when more products exist. Defaults keep old behavior.
-  const limitCfg = {
-    mode: section.settings?.limit_mode || 'manual',
-    manual: section.settings?.limit || 8,
-    rows: section.settings?.limit_rows,
-  };
-  const baseLimit = limit(limitCfg, allMatchedProducts.length, false, 8);
-  const effectiveLimit = loadMoreLimit || baseLimit;
+  // Responsive per-device batch limit
+  const deviceBatchLimit = React.useMemo(() => {
+    const s = section.settings || {};
+    const fallback = Number(s.limit) || 8;
+    if (width < 640 && s.products_per_page_mobile) {
+      return Number(s.products_per_page_mobile);
+    }
+    if (width >= 640 && width < 1024 && s.products_per_page_tablet) {
+      return Number(s.products_per_page_tablet);
+    }
+    if (width >= 1024 && s.products_per_page_desktop) {
+      return Number(s.products_per_page_desktop);
+    }
+    return fallback;
+  }, [width, section.settings]);
+
+  const fillRowsEnabled = section.settings?.fill_rows !== false;
+  const batchStep = React.useMemo(() => {
+    const s = section.settings || {};
+    let target = deviceBatchLimit;
+    if (s.limit_mode === 'auto') {
+      const rows = Math.min(6, Math.max(1, Math.floor(Number(s.limit_rows) || 2)));
+      target = Math.max(1, columns * rows);
+    }
+    if (fillRowsEnabled && columns > 1) {
+      return Math.ceil(target / columns) * columns;
+    }
+    return Math.max(1, target);
+  }, [columns, deviceBatchLimit, section.settings, fillRowsEnabled]);
+
+  const effectiveLimit = loadMoreLimit || batchStep;
   const bottomEnableViewAll = section.settings?.bottomEnableViewAll === true;
   const bottomEnableLoadMore = section.settings?.bottomEnableLoadMore === true;
 
-  const fillRowsEnabled = section.settings?.fill_rows !== false;
-  const visibleCount = fill(effectiveLimit, allMatchedProducts.length, fillRowsEnabled);
-  const displayProducts = allMatchedProducts.slice(0, visibleCount);
+  const displayProducts = allMatchedProducts.slice(0, effectiveLimit);
   const hasMore = displayProducts.length < allMatchedProducts.length;
 
   if (displayProducts.length === 0) {
@@ -256,7 +275,7 @@ export function FlashSaleSection({ section, products, currencySymbol, settings, 
           {bottomEnableLoadMore && hasMore && (
             <button
               type="button"
-              onClick={() => onLoadMore && onLoadMore(section.id, baseLimit)}
+              onClick={() => onLoadMore && onLoadMore(section.id, batchStep)}
               className="px-5 py-2.5 text-xs md:text-sm font-semibold tracking-wide uppercase rounded-full transition-all duration-200 shadow-sm active:scale-95 hover:brightness-90 cursor-pointer"
               style={{
                 backgroundColor: section.settings?.bottomLoadMoreBgColor || 'var(--color-surface, #f1f5f9)',

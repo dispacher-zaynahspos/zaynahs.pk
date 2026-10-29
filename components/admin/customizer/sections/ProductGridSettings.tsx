@@ -241,6 +241,7 @@ export default function ProductGridSettings({
       <BottomGridActions
         settings={settings}
         handleSettingsChange={handleSettingsChange}
+        viewportMode={viewportMode}
       />
       </div>
       </AccordionGroup>

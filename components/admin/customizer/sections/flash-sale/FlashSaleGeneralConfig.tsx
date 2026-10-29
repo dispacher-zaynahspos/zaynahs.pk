@@ -10,11 +10,13 @@ import BottomGridActions from '@/components/admin/customizer/sections/product-gr
 
 interface FlashSaleGeneralConfigProps {
   section: HomepageSection;
+  viewportMode?: 'desktop' | 'tablet' | 'mobile';
   onUpdateSection: (updates: Partial<HomepageSection>) => void;
 }
 
 export default function FlashSaleGeneralConfig({
   section,
+  viewportMode = 'desktop',
   onUpdateSection,
 }: FlashSaleGeneralConfigProps) {
   const settings = section.settings || {};
@@ -148,7 +150,7 @@ export default function FlashSaleGeneralConfig({
       <hr className="border-gray-200 dark:border-gray-800" />
 
       {/* Bottom Grid Actions — shared SSOT component (RULE SSOT-CATALOG-LAYOUTS Family F) */}
-      <BottomGridActions settings={settings} handleSettingsChange={handleSettingsChange} />
+      <BottomGridActions settings={settings} handleSettingsChange={handleSettingsChange} viewportMode={viewportMode} />
     </div>
   );
 }

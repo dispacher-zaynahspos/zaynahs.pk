@@ -34,7 +34,7 @@ export function TabbedProductGridSection({ section, allProducts, activeSettings 
 
   // Fill-rows + per-layout auto/manual limit (RULE DS24). Columns-aware.
   const fillRowsEnabled = s.fill_rows !== false;
-  const { fill, limit } = useCatalogColumns({
+  const { columns, width } = useCatalogColumns({
     mode: s.columns_mode || 'manual',
     mobile: Number(s.columns_mobile) || 2,
     tablet: Number(s.columns_tablet) || 3,
@@ -42,11 +42,32 @@ export function TabbedProductGridSection({ section, allProducts, activeSettings 
     wide: s.columns_wide,
     minDesktop: s.min_card_desktop,
   });
-  const limitCfg = {
-    mode: s.limit_mode || 'manual',
-    manual: limitPerTab,
-    rows: s.limit_rows,
-  };
+
+  const deviceBatchLimit = useMemo(() => {
+    const fallback = Number(s.limit_per_tab) || 8;
+    if (width < 640 && s.products_per_page_mobile) {
+      return Number(s.products_per_page_mobile);
+    }
+    if (width >= 640 && width < 1024 && s.products_per_page_tablet) {
+      return Number(s.products_per_page_tablet);
+    }
+    if (width >= 1024 && s.products_per_page_desktop) {
+      return Number(s.products_per_page_desktop);
+    }
+    return fallback;
+  }, [width, s]);
+
+  const batchStep = useMemo(() => {
+    let target = deviceBatchLimit;
+    if (s.limit_mode === 'auto') {
+      const rows = Math.min(6, Math.max(1, Math.floor(Number(s.limit_rows) || 2)));
+      target = Math.max(1, columns * rows);
+    }
+    if (fillRowsEnabled && columns > 1) {
+      return Math.ceil(target / columns) * columns;
+    }
+    return Math.max(1, target);
+  }, [columns, deviceBatchLimit, s, fillRowsEnabled]);
 
   const tabProducts = useMemo(() => {
     if (!activeTab) return [];
@@ -68,10 +89,8 @@ export function TabbedProductGridSection({ section, allProducts, activeSettings 
       );
     }
 
-    const visible = limit(limitCfg, list.length, fillRowsEnabled, limitPerTab);
-    return list.slice(0, visible);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allProducts, activeTab, limitPerTab, limit, fillRowsEnabled, s.limit_mode, s.limit_rows]);
+    return list.slice(0, batchStep);
+  }, [allProducts, activeTab, batchStep]);
 
   return (
     <SectionWrapper section={section}>

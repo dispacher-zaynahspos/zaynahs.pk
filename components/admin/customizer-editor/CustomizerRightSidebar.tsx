@@ -299,6 +299,7 @@ export function CustomizerRightSidebar({
                     section={activeSection}
                     products={products}
                     categories={categories}
+                    viewportMode={viewportMode}
                     onUpdateSection={(updates) => handleUpdateSection(activeSection.id, updates)}
                   />
                 )
