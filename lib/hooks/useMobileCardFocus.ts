@@ -1,40 +1,34 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 
 /**
  * Mobile Card Focus Coordinator (Shopify / Headless E-Commerce Compatible)
  * 
- * Key Features:
- * 1. Dynamic Card Size & Settings Sync:
- *    - No hardcoded pixel heights or offsets.
- *    - Dynamically queries runtime bounding boxes (getBoundingClientRect) for any
- *      aspect ratio (natural, 1:1, 3:4, compact, custom).
- *    - Automatically handles dynamic pagination, infinite scroll ("Load More"),
- *      and DOM unmounts without memory leaks.
- * 2. Accurate Center-Proximity Sweet-Spot Algorithm:
- *    - Natural mobile eye-level anchor (targetY = innerHeight * 0.45, range 0.42 - 0.48).
- *    - Dynamic touch/thumb tracking (targetX = lastTouchX or screen center).
- *    - Weighted Euclidean distance: sqrt(dx^2 + (dy * 1.4)^2).
- *    - 18% Hysteresis / Threshold Lock: Focus stays locked to the active card until
- *      a neighboring card is at least 18% closer. Eliminates left/right jumping and flickers.
- * 3. Touch & Tap Direct Override:
- *    - Direct tap immediately locks focus onto the touched card with a 750ms sticky window.
- * 4. 60 FPS Mobile Performance:
- *    - requestAnimationFrame (rAF) coalesced evaluation + passive event listeners.
+ * Performance Architecture:
+ * 1. Zero Layout Thrashing:
+ *    - Desktop (pointer:fine / hover:hover / width > 768px) is completely bypassed.
+ *      Desktop uses pure CSS :hover with zero scroll/rAF listeners.
+ *    - On touch devices, evaluation is coalesced via rAF and throttled during active scrolling.
+ * 2. Zero React Re-Renders:
+ *    - Focus classes (.is-in-focus, .active-card) are toggled directly on the DOM element's
+ *      classList. React does not re-render cards during scroll, keeping scroll at a locked 60/120fps.
+ * 3. Hysteresis & Sticky Tap:
+ *    - Center-proximity sweet spot algorithm with 18% lock hysteresis.
+ *    - Tap immediately locks focus for 750ms.
  */
 
 export class MobileCardFocusManager {
   private static instance: MobileCardFocusManager | null = null;
   private observer: IntersectionObserver | null = null;
-  private registeredCards = new Map<HTMLElement, (focused: boolean) => void>();
+  private registeredCards = new Set<HTMLElement>();
   private intersectingEntries = new Map<HTMLElement, IntersectionObserverEntry>();
   private currentFocusedEl: HTMLElement | null = null;
   private lastTouchX: number = typeof window !== 'undefined' ? window.innerWidth * 0.5 : 200;
   private manualLockUntil = 0;
   private rafId: number | null = null;
+  private scrollDebounceId: ReturnType<typeof setTimeout> | null = null;
   private isListening = false;
-  /** Store-wide activation mode. 'touch' disables scroll auto-focus (tap only). */
   private mode: 'scroll' | 'touch' | 'off' = 'scroll';
 
   public static getInstance(): MobileCardFocusManager {
@@ -56,7 +50,6 @@ export class MobileCardFocusManager {
   private initObserver() {
     if (this.observer || typeof window === 'undefined') return;
 
-    // Viewport rootMargin to track cards entering the active reading band
     this.observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -67,23 +60,42 @@ export class MobileCardFocusManager {
             this.intersectingEntries.delete(el);
           }
         });
-        this.scheduleEvaluation();
+        if (this.isTouchDevice()) {
+          this.scheduleEvaluation();
+        }
       },
       {
         root: null,
         rootMargin: '-5% 0px -5% 0px',
-        threshold: [0, 0.1, 0.25, 0.5, 0.75, 1.0],
+        threshold: [0, 0.25, 0.5, 0.75, 1.0],
       }
     );
 
-    if (!this.isListening) {
+    this.attachListeners();
+  }
+
+  private attachListeners() {
+    if (this.isListening || typeof window === 'undefined') return;
+
+    // Window resize is always needed to adapt between mobile/desktop modes
+    window.addEventListener('resize', this.onResize, { passive: true });
+
+    // Touch and scroll listeners ONLY attach if touch device is active
+    if (this.isTouchDevice()) {
       window.addEventListener('scroll', this.onScroll, { passive: true });
-      window.addEventListener('resize', this.onResize, { passive: true });
       window.addEventListener('touchstart', this.onTouchStart, { passive: true });
       window.addEventListener('touchmove', this.onTouchMove, { passive: true });
       window.addEventListener('pointerdown', this.onPointerDown, { passive: true });
-      this.isListening = true;
     }
+    this.isListening = true;
+  }
+
+  private detachScrollListeners() {
+    if (typeof window === 'undefined') return;
+    window.removeEventListener('scroll', this.onScroll);
+    window.removeEventListener('touchstart', this.onTouchStart);
+    window.removeEventListener('touchmove', this.onTouchMove);
+    window.removeEventListener('pointerdown', this.onPointerDown);
   }
 
   private onTouchStart = (e: TouchEvent) => {
@@ -107,11 +119,26 @@ export class MobileCardFocusManager {
   };
 
   private onScroll = () => {
+    // Coalesced rAF evaluation + debounced rest evaluation
     this.scheduleEvaluation();
+    if (this.scrollDebounceId) clearTimeout(this.scrollDebounceId);
+    this.scrollDebounceId = setTimeout(() => {
+      this.evaluateFocusedCard();
+    }, 80);
   };
 
   private onResize = () => {
-    this.scheduleEvaluation();
+    const isTouch = this.isTouchDevice();
+    if (isTouch) {
+      this.attachListeners();
+      this.scheduleEvaluation();
+    } else {
+      this.detachScrollListeners();
+      if (this.currentFocusedEl) {
+        this.setElementFocus(this.currentFocusedEl, false);
+        this.currentFocusedEl = null;
+      }
+    }
   };
 
   private scheduleEvaluation() {
@@ -131,19 +158,13 @@ export class MobileCardFocusManager {
       return;
     }
 
-    // In 'touch' mode, focus is driven only by a real tap (setManualFocus) —
-    // scrolling past cards must NOT auto-focus them.
-    if (this.mode === 'touch') return;
+    if (this.mode === 'touch' || this.mode === 'off') return;
 
-    // Touch & Tap Sticky Lock check:
-    // If a card was manually tapped recently, keep it locked as long as it's still visible in viewport
     const now = Date.now();
     if (now < this.manualLockUntil && this.currentFocusedEl && this.currentFocusedEl.isConnected) {
       const rect = this.currentFocusedEl.getBoundingClientRect();
       const inViewport = rect.bottom > 60 && rect.top < window.innerHeight - 60;
-      if (inViewport) {
-        return; // Retain tap lock-focus
-      }
+      if (inViewport) return;
     }
 
     if (this.intersectingEntries.size === 0) {
@@ -154,14 +175,12 @@ export class MobileCardFocusManager {
       return;
     }
 
-    // Natural mobile eye-level anchor (45% from top)
     const targetY = window.innerHeight * 0.45;
     const targetX = this.lastTouchX;
 
     let bestEl: HTMLElement | null = null;
     let minEffectiveDistance = Infinity;
 
-    // Prune detached cards from memory
     this.intersectingEntries.forEach((_, el) => {
       if (!el.isConnected) {
         this.intersectingEntries.delete(el);
@@ -169,25 +188,16 @@ export class MobileCardFocusManager {
         return;
       }
 
-      // Dynamic real-time rendered dimensions
       const rect = el.getBoundingClientRect();
-
-      // Must have some visibility in viewport
-      if (rect.bottom <= 0 || rect.top >= window.innerHeight) {
-        return;
-      }
+      if (rect.bottom <= 0 || rect.top >= window.innerHeight) return;
 
       const cardCenterX = rect.left + rect.width / 2;
       const cardCenterY = rect.top + rect.height / 2;
 
-      // Euclidean distance with vertical weight (1.4) for mobile feed scanning
       const dx = cardCenterX - targetX;
       const dy = cardCenterY - targetY;
       const euclideanDistance = Math.sqrt(dx * dx + (dy * 1.4) * (dy * 1.4));
 
-      // 18% Hysteresis / Threshold Lock:
-      // The currently focused card receives an 18% advantage (0.82 multiplier).
-      // A neighboring card cannot steal focus unless it is > 18% closer.
       const isCurrentlyFocused = el === this.currentFocusedEl;
       const effectiveDistance = isCurrentlyFocused
         ? euclideanDistance * 0.82
@@ -216,17 +226,17 @@ export class MobileCardFocusManager {
     } else {
       el.classList.remove('is-in-focus', 'active-card');
     }
-    const cb = this.registeredCards.get(el);
-    if (cb) cb(focused);
   }
 
-  public register(el: HTMLElement, onFocusChange: (focused: boolean) => void) {
-    this.registeredCards.set(el, onFocusChange);
+  public register(el: HTMLElement) {
+    this.registeredCards.add(el);
     this.initObserver();
     if (this.observer) {
       this.observer.observe(el);
     }
-    this.scheduleEvaluation();
+    if (this.isTouchDevice()) {
+      this.scheduleEvaluation();
+    }
   }
 
   public unregister(el: HTMLElement) {
@@ -238,7 +248,9 @@ export class MobileCardFocusManager {
     if (this.currentFocusedEl === el) {
       this.setElementFocus(el, false);
       this.currentFocusedEl = null;
-      this.scheduleEvaluation();
+      if (this.isTouchDevice()) {
+        this.scheduleEvaluation();
+      }
     }
     if (this.registeredCards.size === 0) {
       this.destroy();
@@ -249,7 +261,6 @@ export class MobileCardFocusManager {
     if (!this.isTouchDevice()) return;
     const rect = el.getBoundingClientRect();
     this.lastTouchX = rect.left + rect.width / 2;
-    // Lock for 750ms so inertia scroll right after tap doesn't immediately dismiss it
     this.manualLockUntil = Date.now() + 750;
 
     if (this.currentFocusedEl !== el) {
@@ -263,13 +274,15 @@ export class MobileCardFocusManager {
 
   public rebindAll() {
     if (typeof document === 'undefined') return;
-    const cards = document.querySelectorAll<HTMLElement>('.z-card-container');
+    const cards = document.querySelectorAll<HTMLElement>('.z-card-container, .pc');
     cards.forEach((card) => {
       if (!this.registeredCards.has(card)) {
-        this.register(card, () => {});
+        this.register(card);
       }
     });
-    this.scheduleEvaluation();
+    if (this.isTouchDevice()) {
+      this.scheduleEvaluation();
+    }
   }
 
   private destroy() {
@@ -278,16 +291,17 @@ export class MobileCardFocusManager {
       this.observer = null;
     }
     if (this.isListening && typeof window !== 'undefined') {
-      window.removeEventListener('scroll', this.onScroll);
       window.removeEventListener('resize', this.onResize);
-      window.removeEventListener('touchstart', this.onTouchStart);
-      window.removeEventListener('touchmove', this.onTouchMove);
-      window.removeEventListener('pointerdown', this.onPointerDown);
+      this.detachScrollListeners();
       this.isListening = false;
     }
     if (this.rafId !== null) {
       cancelAnimationFrame(this.rafId);
       this.rafId = null;
+    }
+    if (this.scrollDebounceId !== null) {
+      clearTimeout(this.scrollDebounceId);
+      this.scrollDebounceId = null;
     }
     this.currentFocusedEl = null;
     this.intersectingEntries.clear();
@@ -296,19 +310,15 @@ export class MobileCardFocusManager {
 
 export function useMobileCardFocus<T extends HTMLElement = HTMLDivElement>(mode: 'scroll' | 'touch' | 'off' = 'scroll') {
   const cardRef = useRef<T | null>(null);
-  const [isFocused, setIsFocused] = useState(false);
 
   useEffect(() => {
     const el = cardRef.current;
     if (!el || typeof window === 'undefined') return;
-    // 'off' → card never participates in mobile focus (icons/hover stay hidden on touch).
     if (mode === 'off') return;
 
     const manager = MobileCardFocusManager.getInstance();
     manager.setMode(mode);
-    manager.register(el, (focused) => {
-      setIsFocused(focused);
-    });
+    manager.register(el);
 
     return () => {
       manager.unregister(el);
@@ -322,5 +332,5 @@ export function useMobileCardFocus<T extends HTMLElement = HTMLDivElement>(mode:
     }
   };
 
-  return { cardRef, isFocused, setManualFocus };
+  return { cardRef, isFocused: false, setManualFocus };
 }

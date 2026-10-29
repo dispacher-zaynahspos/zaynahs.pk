@@ -81,7 +81,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
   onSelectAttribute,
   onHoverImage,
 }) => {
-  const { cardRef, isFocused, setManualFocus } = useMobileCardFocus(settings?.card_mobile_activation ?? 'scroll');
+  const { cardRef, setManualFocus } = useMobileCardFocus(settings?.card_mobile_activation ?? 'scroll');
 
   const handlePointerDown = (e: React.PointerEvent) => {
     if (e.pointerType === 'touch') setManualFocus();
@@ -1541,7 +1541,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
       data-hover-effect={hoverStyle}
       onPointerDown={handlePointerDown}
       style={{ touchAction: 'pan-y' }}
-      className={`z-card-container ${scClass} group relative flex flex-col h-full ${isFocused ? 'is-in-focus active-card' : ''} ${Boolean(hoveredImage || isVariantSelected) ? 'has-hovered-variant' : ''}`}
+      className={`z-card-container ${scClass} group relative flex flex-col h-full ${Boolean(hoveredImage || isVariantSelected) ? 'has-hovered-variant' : ''}`}
     >
       {/* Full-card transparent overlay link — single-tap = navigate, no double-tap */}
       <Link

@@ -150,8 +150,8 @@ export function ProductCard({ product: p, variant, limit, currencySymbol, cardMo
       <article className={`pc${hasHoveredVariant ? ' has-hovered-variant' : ''}`} id={`product-card-${p.id}`} data-product-id={p.id} ref={cardRef} onPointerDown={(e) => { if (e.pointerType === 'touch') setManualFocus(); }}>
         <div className="pc-media">
           <Link className="ovl" href={p.href} aria-label={p.title} />
-          <img className="i1" src={img1} alt="" loading="lazy" />
-          {p.image2 && !userSelected && hoveredSwatch === null && <img className="i2" src={p.image2} alt="" loading="lazy" />}
+          <img className="i1" src={img1} alt="" loading="lazy" decoding="async" />
+          {p.image2 && !userSelected && hoveredSwatch === null && <img className="i2" src={p.image2} alt="" loading="lazy" decoding="async" />}
           {p.source ? (
             <ProductCardBadges
               product={p.source}

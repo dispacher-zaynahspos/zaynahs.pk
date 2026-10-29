@@ -74,7 +74,7 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
   // ── Mobile scroll-focus (Shopify-style): the card nearest the reading band gets
   //    `is-in-focus active-card` → its hover image plays + action icons spawn.
   //    Desktop keeps pure CSS :hover. A direct touch also locks focus onto the card. ──
-  const { cardRef, isFocused, setManualFocus } = useMobileCardFocus(settings?.card_mobile_activation ?? 'scroll');
+  const { cardRef, setManualFocus } = useMobileCardFocus(settings?.card_mobile_activation ?? 'scroll');
 
   const handlePointerDown = (e: React.PointerEvent) => {
     if (e.pointerType === 'touch') setManualFocus();
@@ -166,8 +166,8 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
     // Transparent overlay Link at z-[1] covers entire card → single tap navigates
     // DIRECTLY to the product. Icons at z-[25] win over overlay → icon taps don't navigate.
     // Title Link at z-[2] → tap on title navigates directly.
-    // Action icons + hover image: revealed on mobile when the card is the scroll-focused
-    // one (`is-in-focus active-card`, driven by useMobileCardFocus); on hover-capable
+    // Action icons + hover image: revealed on mobile when the card holds
+    // `.is-in-focus.active-card` (driven by useMobileCardFocus DOM mutations); on hover-capable
     // devices they reveal on real CSS :hover (customCss @media hover:hover).
     // ─────────────────────────────────────────────────────────────────────────────
     <div
@@ -177,7 +177,7 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
       data-hover-effect={hoverStyle}
       onPointerDown={handlePointerDown}
       style={{ borderRadius: 'var(--border-radius-card, 16px)', touchAction: 'pan-y' }}
-      className={`z-card-container group relative flex flex-col ${cardBorderClass} bg-white dark:bg-[#16162a] ${cardShadowClass} ${cardHoverClass} transition-all duration-300 ${isFocused ? 'is-in-focus active-card' : ''} ${Boolean(hoveredImage || isVariantSelected) ? 'has-hovered-variant' : ''}`}
+      className={`z-card-container group relative flex flex-col ${cardBorderClass} bg-white dark:bg-[#16162a] ${cardShadowClass} ${cardHoverClass} transition-[box-shadow,transform] duration-300 ${Boolean(hoveredImage || isVariantSelected) ? 'has-hovered-variant' : ''}`}
     >
       {/* ── Shopify-style full-card transparent overlay link ── */}
       {/* Sits at z-[1], covers entire card, enables single-tap navigation on mobile */}

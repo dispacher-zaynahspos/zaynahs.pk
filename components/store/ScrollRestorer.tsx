@@ -27,6 +27,8 @@ export default function ScrollRestorer() {
   const currentKey = `scroll:${pathname}?${searchParams?.toString() ?? ''}`;
 
   const isPopRef = useRef(false);
+  const prevPathnameRef = useRef<string | null>(null);
+  const isInitialMountRef = useRef(true);
   const activeRestoreRef = useRef<{
     rafId: number | null;
     observer: MutationObserver | null;
@@ -95,6 +97,11 @@ export default function ScrollRestorer() {
     // Cancel any previous restoration in progress
     cancelActiveRestore();
 
+    const isNewRoute = prevPathnameRef.current !== null && prevPathnameRef.current !== pathname;
+    const isFirstLoad = isInitialMountRef.current;
+    isInitialMountRef.current = false;
+    prevPathnameRef.current = pathname;
+
     // 1. Hash anchor links jump to target
     if (window.location.hash) {
       const el = document.getElementById(window.location.hash.slice(1));
@@ -140,8 +147,12 @@ export default function ScrollRestorer() {
       }
     }
 
-    // 4. Fresh navigation → scroll to top & clear stale card data if path doesn't match
-    window.scrollTo({ top: 0, behavior: 'instant' });
+    // 4. Fresh navigation → ONLY scroll to top when route/pathname actually changed!
+    // (e.g. navigating from / to /shop, or /shop to /product/xyz)
+    // NEVER scroll to top on in-page query changes (page=2, filter changes, load more) which must preserve scroll!
+    if (isNewRoute || isFirstLoad) {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentKey]);
 
