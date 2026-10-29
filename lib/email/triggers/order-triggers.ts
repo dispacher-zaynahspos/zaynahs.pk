@@ -164,7 +164,7 @@ export async function notifyAdminOrderCancelled(order: TriggerOrder, customer: T
   try {
     const adminEmail = await getAdminEmail();
     if (adminEmail) {
-      await sendTemplatedEmail('admin_new_order', adminEmail, { order: order as unknown as Parameters<typeof sendTemplatedEmail>[2]["order"], customer });
+      await sendTemplatedEmail('admin_order_cancelled', adminEmail, { order: order as unknown as Parameters<typeof sendTemplatedEmail>[2]["order"], customer });
     }
   } catch (error) {
     console.error('[Email Trigger] notifyAdminOrderCancelled failed:', error);
