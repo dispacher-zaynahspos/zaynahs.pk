@@ -8,6 +8,7 @@ import {
 } from '@/components/common/Icons';
 import { Order, ProductImage } from '@/lib/types';
 import { formatPrice } from '@/lib/utils/whatsapp';
+import { getItemVariant } from '@/lib/utils/formatVariant';
 
 interface AccountOrdersListProps {
   orders: Order[];
@@ -122,11 +123,8 @@ export function AccountOrdersList({ orders }: AccountOrdersListProps) {
                       <h4 className="text-xs font-black uppercase tracking-wider text-gray-400 dark:text-gray-500">Ordered Items</h4>
                       <div className="divide-y divide-gray-100 dark:divide-gray-800/50">
                         {order.items.map((item, idx) => {
-                          const img = item.product.images?.find((i: ProductImage & { isPrimary?: boolean }) => i.isPrimary)?.url || item.product.images?.[0]?.url || '';
-                          const parts = [];
-                          if (item.selected_variant?.color) parts.push(item.selected_variant.color);
-                          if (item.selected_variant?.size) parts.push(item.selected_variant.size);
-                          const variantStr = parts.join(' · ');
+                          const variantDetails = getItemVariant(item);
+                          const img = variantDetails.imageUrl || item.product.images?.find((i: ProductImage & { isPrimary?: boolean }) => i.isPrimary)?.url || item.product.images?.[0]?.url || '';
 
                           return (
                             <div key={idx} className="py-3 flex items-center gap-3 first:pt-0 last:pb-0">
@@ -141,8 +139,8 @@ export function AccountOrdersList({ orders }: AccountOrdersListProps) {
                                 <h5 className="font-bold text-gray-900 dark:text-white text-xs truncate">
                                   {item.product.name}
                                 </h5>
-                                {variantStr && (
-                                  <p className="text-[10px] text-gray-400 font-semibold mt-0.5">{variantStr}</p>
+                                {variantDetails.summary && (
+                                  <p className="text-[10px] text-gray-400 font-semibold mt-0.5">{variantDetails.summary}</p>
                                 )}
                               </div>
                               <div className="text-right">

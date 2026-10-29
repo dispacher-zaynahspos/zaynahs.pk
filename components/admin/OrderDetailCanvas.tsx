@@ -15,6 +15,7 @@ import {
 } from '@/components/common/Icons';
 import { Order, StoreSettings } from '@/lib/types';
 import { formatPrice } from '@/lib/utils/whatsapp';
+import { getItemVariant } from '@/lib/utils/formatVariant';
 import { Modal } from '@/components/common/Modal';
 import OrderEditor from './OrderEditor';
 import { useOrderDetailState, OrderCustomerCard } from './order-detail';
@@ -77,7 +78,7 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
           <div className="flex items-center gap-3 mb-1">
             <button 
               onClick={() => router.push('/admin/orders')}
-              className="p-1 -ml-1 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+              className="p-1 -ml-1 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 transition-colors print:hidden"
               title="Back to orders"
             >
               <ArrowLeft className="h-5 w-5" />
@@ -134,7 +135,7 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
           </div>
         </div>
 
-        <div className="flex items-center gap-3 relative">
+        <div className="flex items-center gap-3 relative print:hidden">
           <div className="flex items-center border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden">
             <button
               onClick={() => { if (nextOrderId) router.push(`/admin/orders/detail?id=${nextOrderId}`); }}
@@ -230,20 +231,79 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
               </span>
             </div>
             
-            {order.items.map((item, idx) => (
-              <div key={idx} className="flex items-start gap-3 p-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] last:border-b-0">
-                <div className="w-12 h-12 rounded border border-gray-200 dark:border-gray-700 overflow-hidden flex-shrink-0 bg-gray-100 flex items-center justify-center">
-                  {item.product.images?.[0] ? <img src={item.product.images[0].url} alt="" className="w-full h-full object-cover" /> : <Package className="h-5 w-5 text-gray-400" />}
+            {order.items.map((item, idx) => {
+              const variantDetails = getItemVariant(item);
+              const displayImage = variantDetails.imageUrl || item.product.images?.[0]?.url;
+
+              return (
+                <div key={idx} className="flex items-start gap-3.5 p-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] last:border-b-0">
+                  <div 
+                    onClick={() => displayImage && setLightboxImage(displayImage)}
+                    className={`w-14 h-14 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden flex-shrink-0 bg-gray-100 dark:bg-gray-800 flex items-center justify-center ${displayImage ? 'cursor-zoom-in' : ''}`}
+                  >
+                    {displayImage ? (
+                      <img src={displayImage} alt={item.product.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <Package className="h-6 w-6 text-gray-400" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[14px] font-semibold text-[#2c6ecb]">
+                      {item.product.name}
+                    </div>
+
+                    {/* Variant Badges / Attributes (Size, Color, etc.) */}
+                    {variantDetails.chips.length > 0 && (
+                      <div className="flex flex-wrap items-center gap-1.5 mt-1.5 mb-1">
+                        {variantDetails.chips.map((chip, cIdx) => (
+                          <span
+                            key={cIdx}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[11.5px] font-semibold bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-700 shadow-2xs"
+                          >
+                            {chip.colorHex && (
+                              <span
+                                className="w-2.5 h-2.5 rounded-full border border-black/20 shrink-0"
+                                style={{ backgroundColor: chip.colorHex }}
+                              />
+                            )}
+                            <span className="text-gray-500 dark:text-gray-400 font-normal">{chip.label}:</span>
+                            <span className="font-bold text-gray-900 dark:text-white">{chip.value}</span>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Modifiers if any */}
+                    {item.selected_modifiers && item.selected_modifiers.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-1 text-[11px] text-gray-500">
+                        {item.selected_modifiers.map((m, mIdx) => (
+                          <span key={mIdx} className="bg-amber-50 dark:bg-amber-950/30 text-amber-800 dark:text-amber-300 px-1.5 py-0.5 rounded border border-amber-200 dark:border-amber-900/40">
+                            +{m.name} ({formatPrice(m.price, settings.currency_symbol)})
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="text-[12.5px] text-gray-500 dark:text-gray-400 mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1">
+                      <span>Qty: <strong className="font-bold text-gray-900 dark:text-white">{item.quantity}</strong></span>
+                      {item.quantity > 1 && (
+                        <span className="text-gray-400 dark:text-gray-500">
+                          ({formatPrice(item.unit_price, settings.currency_symbol)} each)
+                        </span>
+                      )}
+                      {variantDetails.sku && (
+                        <span className="text-[11px] font-mono text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-800/50 px-1.5 py-0.5 rounded">
+                          SKU: {variantDetails.sku}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="font-bold text-[14px] text-gray-900 dark:text-white text-right shrink-0">
+                    {formatPrice(item.total, settings.currency_symbol)}
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-[13.5px] font-medium text-[#2c6ecb]">{item.product.name}</div>
-                  <div className="text-[12.5px] text-gray-500">Qty: {item.quantity}</div>
-                </div>
-                <div className="font-semibold text-gray-900 dark:text-white">
-                  {formatPrice(item.total, settings.currency_symbol)}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           <div className="bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden p-4">
@@ -274,7 +334,7 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
           </div>
 
           {/* Payment & fulfillment status + actions (real columns, not notes-derived) */}
-          <div className="bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm p-4 space-y-3">
+          <div className="bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm p-4 space-y-3 print:hidden">
             <div className="flex items-center justify-between">
               <span className="text-[13px] font-bold text-gray-700 dark:text-gray-300">Payment</span>
               <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
@@ -311,7 +371,7 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
             </button>
           </div>
 
-          <div className="bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm p-4 space-y-4">
+          <div className="bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm p-4 space-y-4 print:hidden">
             <div className="text-[13.5px] font-bold">Timeline</div>
             <div className="flex items-start gap-2.5">
               <textarea

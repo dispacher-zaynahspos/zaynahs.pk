@@ -18,6 +18,7 @@ import {
 } from '@/components/common/Icons';
 import { Modal } from '@/components/common/Modal';
 import { formatPrice } from '@/lib/utils/whatsapp';
+import { getItemVariant } from '@/lib/utils/formatVariant';
 import { AbandonedCart } from './AbandonedCartTypes';
 
 interface AbandonedCartDetailDrawerProps {
@@ -143,12 +144,8 @@ export default function AbandonedCartDetailDrawer({
                 
                 <div className="divide-y divide-gray-100 dark:divide-gray-800/60 px-5">
                   {selectedCart.items.map((item, idx) => {
-                    const variantParts = [];
-                    if ((item.selected_variant ?? item.selectedVariant)?.color) variantParts.push((item.selected_variant ?? item.selectedVariant)?.color);
-                    if ((item.selected_variant ?? item.selectedVariant)?.size) variantParts.push((item.selected_variant ?? item.selectedVariant)?.size);
-                    const variantStr = variantParts.join(', ');
-                    
-                    const imgUrl = item.product?.images?.[0]?.url || '';
+                    const variantDetails = getItemVariant(item);
+                    const imgUrl = variantDetails.imageUrl || item.product?.images?.[0]?.url || '';
 
                     return (
                       <div key={idx} className="py-4 flex gap-4 items-start">
@@ -173,9 +170,9 @@ export default function AbandonedCartDetailDrawer({
                           <h4 className="text-xs font-bold text-gray-900 dark:text-white line-clamp-2">
                             {item.product?.name || 'Product'}
                           </h4>
-                          {variantStr && (
+                          {variantDetails.summary && (
                             <p className="text-[10px] text-gray-500 dark:text-gray-400 font-bold mt-0.5">
-                              {variantStr}
+                              {variantDetails.summary}
                             </p>
                           )}
                           <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 font-semibold">

@@ -5,6 +5,7 @@ import EmptyState from '@/components/common/EmptyState';
 import { Modal } from '@/components/common/Modal';
 import { Order } from '@/lib/types';
 import { formatPrice } from '@/lib/utils/whatsapp';
+import { getItemVariant } from '@/lib/utils/formatVariant';
 import { CustomerRecord } from './types';
 
 interface CustomerOrdersModalProps {
@@ -137,11 +138,8 @@ export default function CustomerOrdersModal({
                         <h4 className="text-[10px] font-black uppercase tracking-wider text-gray-400 dark:text-gray-500">Ordered Items</h4>
                         <div className="divide-y divide-gray-100 dark:divide-gray-800/50">
                           {order.items.map((item, idx) => {
-                            const img = item.product.images?.find((i: { isPrimary?: boolean; url: string }) => i.isPrimary)?.url || item.product.images?.[0]?.url || '';
-                            const parts = [];
-                            if (item.selected_variant?.color) parts.push(item.selected_variant.color);
-                            if (item.selected_variant?.size) parts.push(item.selected_variant.size);
-                            const variantStr = parts.join(' · ');
+                            const variantDetails = getItemVariant(item);
+                            const img = variantDetails.imageUrl || item.product.images?.find((i: { isPrimary?: boolean; url: string }) => i.isPrimary)?.url || item.product.images?.[0]?.url || '';
 
                             return (
                               <div key={idx} className="py-3 flex items-center gap-3 first:pt-0 last:pb-0">
@@ -154,7 +152,7 @@ export default function CustomerOrdersModal({
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <h5 className="font-bold text-gray-900 dark:text-white text-xs truncate">{item.product.name}</h5>
-                                  {variantStr && <p className="text-[10px] text-gray-400 font-semibold mt-0.5">{variantStr}</p>}
+                                  {variantDetails.summary && <p className="text-[10px] text-gray-400 font-semibold mt-0.5">{variantDetails.summary}</p>}
                                 </div>
                                 <div className="text-right flex-shrink-0">
                                   <div className="text-[10px] text-gray-400 font-semibold">Qty {item.quantity}</div>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { CartItem, StoreSettings } from '@/lib/types';
 import { formatPrice } from '@/lib/utils/whatsapp';
+import { getItemVariant } from '@/lib/utils/formatVariant';
 import { Package, Trash2 } from '@/components/common/Icons';
 
 interface OrderItemCardProps {
@@ -22,23 +23,21 @@ export default function OrderItemCard({
   onRemoveItem,
   onSelectOption,
 }: OrderItemCardProps) {
-  const variantStr = item.selected_variant ? Object.values({
-    color: item.selected_variant.color,
-    size: item.selected_variant.size,
-    material: item.selected_variant.material,
-    custom: item.selected_variant.custom_value
-  }).filter(Boolean).join(', ') : '';
+  const variantDetails = getItemVariant(item);
+  const variantStr = variantDetails.summary;
+
+  const displayImage = variantDetails.imageUrl || item.product?.images?.[0]?.url;
 
   return (
     <div className="border border-gray-200 dark:border-gray-800 rounded-xl p-4 bg-white dark:bg-[#16162a] shadow-xs">
       {/* Top: image + name + variants */}
       <div className="flex items-start gap-3">
-        {item.product.images && item.product.images.length > 0 ? (
+        {displayImage ? (
           <div className="h-14 w-14 bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden flex-shrink-0 border border-gray-200 dark:border-gray-700">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img 
-              src={item.product.images[0].url} 
-              alt={item.product.name} 
+              src={displayImage} 
+              alt={item.product?.name || 'Product'} 
               className="h-full w-full object-cover"
             />
           </div>

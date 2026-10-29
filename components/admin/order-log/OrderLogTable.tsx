@@ -6,6 +6,7 @@ import EmptyState from '@/components/common/EmptyState';
 import { Package } from '@/components/common/Icons';
 import { Order, StoreSettings } from '@/lib/types';
 import { formatPrice } from '@/lib/utils/whatsapp';
+import { getItemVariant } from '@/lib/utils/formatVariant';
 import { isOrderPaid, getOrderPaymentMethod, getDeliveryStatus } from './orderLogUtils';
 
 interface OrderLogTableProps {
@@ -182,9 +183,33 @@ export function OrderLogTable({
                   </td>
                 )}
                 {visibleColumns.includes('items') && (
-                  <td className="block md:table-cell py-1 px-4 md:py-3 text-xs text-gray-500">
+                  <td className="block md:table-cell py-1 px-4 md:py-3 text-xs text-gray-500 max-w-[260px]">
                     <span className="md:hidden font-semibold text-gray-400 mr-2">Items:</span>
-                    {order.items.length} item{order.items.length !== 1 ? 's' : ''}
+                    <div className="flex flex-col gap-1">
+                      <span className="font-semibold text-gray-800 dark:text-gray-200">
+                        {order.items.length} item{order.items.length !== 1 ? 's' : ''}
+                      </span>
+                      <div className="flex flex-wrap gap-1">
+                        {order.items.map((item, i) => {
+                          const v = getItemVariant(item);
+                          return (
+                            <span
+                              key={i}
+                              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200/70 dark:border-gray-700/70"
+                              title={`${item.product?.name || 'Item'}${v.summary ? ` (${v.summary})` : ''} × ${item.quantity}`}
+                            >
+                              <span className="truncate max-w-[120px]">{item.product?.name || 'Item'}</span>
+                              {v.shortSummary && (
+                                <span className="font-bold text-indigo-600 dark:text-indigo-400 text-[10px]">({v.shortSummary})</span>
+                              )}
+                              {item.quantity > 1 && (
+                                <span className="text-gray-400 font-semibold">×{item.quantity}</span>
+                              )}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    </div>
                   </td>
                 )}
                 {visibleColumns.includes('deliveryStatus') && (

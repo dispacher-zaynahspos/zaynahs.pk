@@ -7,10 +7,23 @@ export function normalizeCartItems(raw: unknown): CartItem[] {
   if (!Array.isArray(raw)) return [];
   return raw.map((item) => {
     const i = item as Record<string, unknown>;
+    const rawV = (i.selected_variant ?? i.selectedVariant ?? i.variant) as Record<string, unknown> | undefined;
+    const selected_variant = rawV && typeof rawV === 'object' ? {
+      ...rawV,
+      custom_value: rawV.custom_value ?? rawV.customValue,
+      custom_option: rawV.custom_option ?? rawV.customOption,
+      color_hex: rawV.color_hex ?? rawV.colorHex,
+      compare_price: rawV.compare_price ?? rawV.comparePrice,
+      image_url: rawV.image_url ?? rawV.imageUrl,
+      sort_order: rawV.sort_order ?? rawV.sortOrder,
+      inventory_threshold: rawV.inventory_threshold ?? rawV.inventoryThreshold,
+      product_id: rawV.product_id ?? rawV.productId,
+    } : undefined;
+
     return {
       ...i,
-      selected_variant: i.selected_variant ?? i.selectedVariant,
-      selected_modifiers: i.selected_modifiers ?? i.selectedModifiers ?? [],
+      selected_variant,
+      selected_modifiers: (i.selected_modifiers ?? i.selectedModifiers ?? []) as CartItem['selected_modifiers'],
       unit_price: i.unit_price ?? i.unitPrice,
       total: i.total,
       discount_amount: i.discount_amount ?? i.discountAmount,
