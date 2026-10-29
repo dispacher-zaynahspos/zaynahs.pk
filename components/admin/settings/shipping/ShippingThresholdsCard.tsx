@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Truck, Clock, Sparkles } from '@/components/common/Icons';
+import { Truck, Clock, Sparkles, Heart } from '@/components/common/Icons';
 
 interface ShippingThresholdsCardProps {
   // Free Shipping
@@ -20,6 +20,16 @@ interface ShippingThresholdsCardProps {
   setCartRecommendationsTitle: (v: string) => void;
   recentlyViewedLimit: number;
   setRecentlyViewedLimit: (v: number) => void;
+
+  // Wishlist Recommendations / Recently Viewed
+  wishlistRecommendationsEnabled: boolean;
+  setWishlistRecommendationsEnabled: (v: boolean) => void;
+  wishlistRecommendationsSource: 'recently_viewed' | 'best_selling' | 'new_arrivals' | 'featured';
+  setWishlistRecommendationsSource: (v: 'recently_viewed' | 'best_selling' | 'new_arrivals' | 'featured') => void;
+  wishlistRecommendationsTitle: string;
+  setWishlistRecommendationsTitle: (v: string) => void;
+  wishlistRecommendationsLimit: number;
+  setWishlistRecommendationsLimit: (v: number) => void;
 
   // Cart Expiry Timer
   cartTimerMinutes: number;
@@ -42,6 +52,14 @@ export default function ShippingThresholdsCard({
   setCartRecommendationsTitle,
   recentlyViewedLimit,
   setRecentlyViewedLimit,
+  wishlistRecommendationsEnabled,
+  setWishlistRecommendationsEnabled,
+  wishlistRecommendationsSource,
+  setWishlistRecommendationsSource,
+  wishlistRecommendationsTitle,
+  setWishlistRecommendationsTitle,
+  wishlistRecommendationsLimit,
+  setWishlistRecommendationsLimit,
   cartTimerMinutes,
   setCartTimerMinutes,
   cartTimerMessage,
@@ -52,10 +70,10 @@ export default function ShippingThresholdsCard({
       {/* Header */}
       <div>
         <h3 className="text-sm font-extrabold text-[#e94560] uppercase tracking-wider flex items-center gap-2">
-          Urgency, Shipping & Cart Recommendations
+          Cart & Wishlist Cross-Sell, Urgency & Delivery
         </h3>
         <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-          Configure free delivery trigger, cart product recommendations, and reservation timer.
+          Configure free delivery trigger, cart & wishlist product recommendations, and cart reservation timer.
         </p>
       </div>
 
@@ -239,7 +257,120 @@ export default function ShippingThresholdsCard({
         </div>
       </div>
 
-      {/* ── 3. CART EXPIRY RESERVATION TIMER ── */}
+      {/* ── 3. WISHLIST RECOMMENDATIONS & RECENTLY VIEWED ── */}
+      <div className="bg-gray-50/70 dark:bg-[#0f0f1b]/70 border border-gray-200/80 dark:border-gray-800 rounded-xl p-4.5 space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-gray-200/70 dark:border-gray-800">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400">
+              <Heart className="h-4 w-4 fill-rose-500" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-black text-gray-900 dark:text-white uppercase tracking-wider">
+                  Wishlist Recommendations & Recently Viewed
+                </span>
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                  wishlistRecommendationsEnabled
+                    ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300'
+                    : 'bg-gray-200 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+                }`}>
+                  {wishlistRecommendationsEnabled ? 'Active' : 'Disabled'}
+                </span>
+              </div>
+              <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
+                Display curated cross-sell or recently viewed items below wishlist products. Excludes items already in user&apos;s wishlist or cart.
+              </p>
+            </div>
+          </div>
+
+          {/* Toggle Switch */}
+          <button
+            type="button"
+            role="switch"
+            aria-checked={wishlistRecommendationsEnabled}
+            onClick={() => setWishlistRecommendationsEnabled(!wishlistRecommendationsEnabled)}
+            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+              wishlistRecommendationsEnabled ? 'bg-rose-600' : 'bg-gray-300 dark:bg-gray-700'
+            }`}
+          >
+            <span
+              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                wishlistRecommendationsEnabled ? 'translate-x-5' : 'translate-x-0'
+              }`}
+            />
+          </button>
+        </div>
+
+        {wishlistRecommendationsEnabled && (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
+            {/* Source Selector */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-gray-700 dark:text-gray-300 block">
+                Recommendation Source
+              </label>
+              <select
+                value={wishlistRecommendationsSource}
+                onChange={(e) =>
+                  setWishlistRecommendationsSource(
+                    e.target.value as 'recently_viewed' | 'best_selling' | 'new_arrivals' | 'featured'
+                  )
+                }
+                className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#16162a] text-gray-900 dark:text-gray-50 focus:outline-none focus:ring-2 focus:ring-[#e94560] cursor-pointer"
+              >
+                <option value="recently_viewed">Recently Viewed (Auto-fallback to Catalog)</option>
+                <option value="best_selling">Best Selling Products</option>
+                <option value="new_arrivals">New Arrivals / Latest Products</option>
+                <option value="featured">Featured Products</option>
+              </select>
+              <p className="text-[10px] text-gray-400">
+                {wishlistRecommendationsSource === 'recently_viewed'
+                  ? 'Shows buyer browsed items, backfilling from catalog if none exist.'
+                  : `Curates top items from your ${wishlistRecommendationsSource.replace('_', ' ')} list.`}
+              </p>
+            </div>
+
+            {/* Section Title */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-gray-700 dark:text-gray-300 block">
+                Section Heading Title
+              </label>
+              <input
+                type="text"
+                value={wishlistRecommendationsTitle}
+                onChange={(e) => setWishlistRecommendationsTitle(e.target.value)}
+                placeholder="Recommended for You"
+                className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#16162a] text-gray-900 dark:text-gray-50 focus:outline-none focus:ring-2 focus:ring-[#e94560]"
+              />
+              <p className="text-[10px] text-gray-400">Heading title displayed above recommendations on /wishlist.</p>
+            </div>
+
+            {/* Product Limit */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-gray-700 dark:text-gray-300 block">
+                Max Products Display Limit
+              </label>
+              <input
+                type="number"
+                min="2"
+                max="12"
+                value={wishlistRecommendationsLimit}
+                onChange={(e) => setWishlistRecommendationsLimit(Math.max(2, Math.min(12, Number(e.target.value))))}
+                className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#16162a] text-gray-900 dark:text-gray-50 focus:outline-none focus:ring-2 focus:ring-[#e94560]"
+              />
+              <p className="text-[10px] text-gray-400">Number of products rendered (2 to 12).</p>
+            </div>
+          </div>
+        )}
+
+        <div className="p-2.5 rounded-lg bg-rose-50/70 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/30 text-[11px] text-rose-700 dark:text-rose-300 flex items-start gap-2">
+          <span className="shrink-0 text-sm">❤️</span>
+          <span>
+            <strong>Smart Deduping Rule:</strong> Any item currently added to the buyer&apos;s Wishlist or Cart is automatically hidden from recommendations, keeping recommendations fresh.
+          </span>
+        </div>
+      </div>
+
+      {/* ── 4. CART EXPIRY RESERVATION TIMER ── */}
       <div className="bg-gray-50/70 dark:bg-[#0f0f1b]/70 border border-gray-200/80 dark:border-gray-800 rounded-xl p-4.5 space-y-4">
         <div className="flex items-center gap-3 pb-3 border-b border-gray-200/70 dark:border-gray-800">
           <div className="p-2 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400">

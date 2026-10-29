@@ -401,7 +401,7 @@ export function CustomizerRightSidebar({
           <GlobalSettings
             settings={storeSettings}
             onUpdateSettings={(updates) => setStoreSettings(prev => ({ ...prev, ...updates }))}
-            subTab={activeSubTab as 'header' | 'footer' | 'branding'}
+            subTab={activeSubTab as 'header' | 'footer' | 'branding' | 'recommendations'}
             onSelectMedia={(fieldKey) => {
               setMediaUploadTarget({ sectionId: 'global', fieldPath: 'settings', fieldKey });
               setIsMediaModalOpen(true);

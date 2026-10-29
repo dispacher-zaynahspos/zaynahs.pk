@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Heart, ShoppingBag } from '@/components/common/Icons';
 import { Product, StoreSettings } from '@/lib/types';
 import ProductGrid from './ProductGrid';
+import WishlistRecommendations from '@/components/store/wishlist/WishlistRecommendations';
 import { useScrollRestoration } from '@/lib/hooks/useScrollRestoration';
 
 interface WishlistContainerProps {
@@ -14,6 +15,7 @@ interface WishlistContainerProps {
 
 export default function WishlistContainer({ products, settings }: WishlistContainerProps) {
   const [mounted, setMounted] = useState(false);
+  const [wishlistIds, setWishlistIds] = useState<string[]>([]);
   const [wishlistedProducts, setWishlistedProducts] = useState<Product[]>([]);
   useScrollRestoration();
 
@@ -25,8 +27,15 @@ export default function WishlistContainer({ products, settings }: WishlistContai
     if (!mounted) return;
 
     const loadWishlist = () => {
-      const wishlistIds: string[] = JSON.parse(localStorage.getItem('wishlist') || '[]');
-      const filtered = products.filter(p => wishlistIds.includes(p.id));
+      let ids: string[] = [];
+      try {
+        ids = JSON.parse(localStorage.getItem('wishlist') || '[]');
+        if (!Array.isArray(ids)) ids = [];
+      } catch {
+        ids = [];
+      }
+      setWishlistIds(ids);
+      const filtered = products.filter(p => ids.includes(p.id));
       setWishlistedProducts(filtered);
     };
 
@@ -86,6 +95,13 @@ export default function WishlistContainer({ products, settings }: WishlistContai
           </Link>
         </div>
       )}
+
+      {/* Cross-Sell & Recently Viewed Recommendations */}
+      <WishlistRecommendations
+        settings={settings}
+        wishlistProductIds={wishlistIds}
+        fallbackProducts={products}
+      />
     </div>
   );
 }

@@ -278,6 +278,10 @@ export interface SettingsRow {
   cart_recommendations_source?: string | null;
   cart_recommendations_title?: string | null;
   cart_recommendations_limit?: number | string | null;
+  wishlist_recommendations_enabled?: boolean | null;
+  wishlist_recommendations_source?: string | null;
+  wishlist_recommendations_title?: string | null;
+  wishlist_recommendations_limit?: number | string | null;
   recent_buyers_names?: string | null;
   recent_buyers_cities?: string | null;
   recent_buyers_source?: string | null;

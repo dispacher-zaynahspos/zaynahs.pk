@@ -83,6 +83,14 @@ interface ShippingTabProps {
   setCartRecommendationsSource: (v: 'recently_viewed' | 'best_selling' | 'new_arrivals' | 'featured') => void;
   cartRecommendationsTitle: string;
   setCartRecommendationsTitle: (v: string) => void;
+  wishlistRecommendationsEnabled: boolean;
+  setWishlistRecommendationsEnabled: (v: boolean) => void;
+  wishlistRecommendationsSource: 'recently_viewed' | 'best_selling' | 'new_arrivals' | 'featured';
+  setWishlistRecommendationsSource: (v: 'recently_viewed' | 'best_selling' | 'new_arrivals' | 'featured') => void;
+  wishlistRecommendationsTitle: string;
+  setWishlistRecommendationsTitle: (v: string) => void;
+  wishlistRecommendationsLimit: number;
+  setWishlistRecommendationsLimit: (v: number) => void;
   currencySymbol: string;
 }
 
@@ -146,6 +154,14 @@ export default function ShippingTab({
   setCartRecommendationsSource,
   cartRecommendationsTitle,
   setCartRecommendationsTitle,
+  wishlistRecommendationsEnabled,
+  setWishlistRecommendationsEnabled,
+  wishlistRecommendationsSource,
+  setWishlistRecommendationsSource,
+  wishlistRecommendationsTitle,
+  setWishlistRecommendationsTitle,
+  wishlistRecommendationsLimit,
+  setWishlistRecommendationsLimit,
   currencySymbol
 }: ShippingTabProps) {
   const dragItem = useRef<string | null>(null);
@@ -256,6 +272,14 @@ export default function ShippingTab({
         setCartRecommendationsTitle={setCartRecommendationsTitle}
         recentlyViewedLimit={recentlyViewedLimit}
         setRecentlyViewedLimit={setRecentlyViewedLimit}
+        wishlistRecommendationsEnabled={wishlistRecommendationsEnabled}
+        setWishlistRecommendationsEnabled={setWishlistRecommendationsEnabled}
+        wishlistRecommendationsSource={wishlistRecommendationsSource}
+        setWishlistRecommendationsSource={setWishlistRecommendationsSource}
+        wishlistRecommendationsTitle={wishlistRecommendationsTitle}
+        setWishlistRecommendationsTitle={setWishlistRecommendationsTitle}
+        wishlistRecommendationsLimit={wishlistRecommendationsLimit}
+        setWishlistRecommendationsLimit={setWishlistRecommendationsLimit}
         cartTimerMinutes={cartTimerMinutes}
         setCartTimerMinutes={setCartTimerMinutes}
         cartTimerMessage={cartTimerMessage}

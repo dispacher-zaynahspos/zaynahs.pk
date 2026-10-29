@@ -82,6 +82,14 @@ export function SettingsTabRendererAdvanced({ activeTab, s }: SettingsTabRendere
           setCartRecommendationsSource={s.setCartRecommendationsSource}
           cartRecommendationsTitle={s.cartRecommendationsTitle}
           setCartRecommendationsTitle={s.setCartRecommendationsTitle}
+          wishlistRecommendationsEnabled={s.wishlistRecommendationsEnabled}
+          setWishlistRecommendationsEnabled={s.setWishlistRecommendationsEnabled}
+          wishlistRecommendationsSource={s.wishlistRecommendationsSource}
+          setWishlistRecommendationsSource={s.setWishlistRecommendationsSource}
+          wishlistRecommendationsTitle={s.wishlistRecommendationsTitle}
+          setWishlistRecommendationsTitle={s.setWishlistRecommendationsTitle}
+          wishlistRecommendationsLimit={s.wishlistRecommendationsLimit}
+          setWishlistRecommendationsLimit={s.setWishlistRecommendationsLimit}
           currencySymbol={s.currencySymbol}
         />
       );

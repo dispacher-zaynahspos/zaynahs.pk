@@ -86,6 +86,18 @@ export function useSettingsPopupsAndPixels({ initialSettings }: UseSettingsPopup
   const [cartRecommendationsLimit, setCartRecommendationsLimit] = useState(
     initialSettings.cart_recommendations_limit ?? (initialSettings.recently_viewed_limit ?? 4)
   );
+  const [wishlistRecommendationsEnabled, setWishlistRecommendationsEnabled] = useState(
+    initialSettings.wishlist_recommendations_enabled ?? true
+  );
+  const [wishlistRecommendationsSource, setWishlistRecommendationsSource] = useState<
+    'recently_viewed' | 'best_selling' | 'new_arrivals' | 'featured'
+  >((initialSettings.wishlist_recommendations_source as any) || 'recently_viewed');
+  const [wishlistRecommendationsTitle, setWishlistRecommendationsTitle] = useState(
+    initialSettings.wishlist_recommendations_title || 'Recommended for You'
+  );
+  const [wishlistRecommendationsLimit, setWishlistRecommendationsLimit] = useState(
+    initialSettings.wishlist_recommendations_limit ?? 4
+  );
 
   const [socialFeedsHomepageEnabled, setSocialFeedsHomepageEnabled] = useState(
     initialSettings.social_feeds_homepage_enabled ?? true
@@ -216,6 +228,14 @@ export function useSettingsPopupsAndPixels({ initialSettings }: UseSettingsPopup
     setCartRecommendationsTitle,
     cartRecommendationsLimit,
     setCartRecommendationsLimit,
+    wishlistRecommendationsEnabled,
+    setWishlistRecommendationsEnabled,
+    wishlistRecommendationsSource,
+    setWishlistRecommendationsSource,
+    wishlistRecommendationsTitle,
+    setWishlistRecommendationsTitle,
+    wishlistRecommendationsLimit,
+    setWishlistRecommendationsLimit,
     socialFeedsHomepageEnabled,
     setSocialFeedsHomepageEnabled,
     socialFeedsProductEnabled,

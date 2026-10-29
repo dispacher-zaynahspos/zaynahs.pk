@@ -206,7 +206,8 @@ export function CustomizerLeftSidebar({
               {[
                 { id: 'branding', label: 'Store Branding', desc: 'Upload store logo and favicon details' },
                 { id: 'header', label: 'Header & Topbar', desc: 'Stickiness, newsletter banners, phone/email' },
-                { id: 'footer', label: 'Footer & Social', desc: 'Copyright messages, social handles links' }
+                { id: 'footer', label: 'Footer & Social', desc: 'Copyright messages, social handles links' },
+                { id: 'recommendations', label: 'Pages & Recommendations', desc: 'Cart & Wishlist cross-sell & recently viewed' }
               ].map(tab => (
                 <button
                   key={tab.id}

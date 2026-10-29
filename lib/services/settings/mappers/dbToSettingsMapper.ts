@@ -269,6 +269,10 @@ export const mapSettings = (row: SettingsRow): StoreSettings => ({
   cart_recommendations_source: (row.cart_recommendations_source as StoreSettings["cart_recommendations_source"]) || 'recently_viewed',
   cart_recommendations_title: row.cart_recommendations_title || 'You May Also Like',
   cart_recommendations_limit: row.cart_recommendations_limit ? parseInt(row.cart_recommendations_limit.toString(), 10) : 4,
+  wishlist_recommendations_enabled: row.wishlist_recommendations_enabled ?? true,
+  wishlist_recommendations_source: (row.wishlist_recommendations_source as StoreSettings["wishlist_recommendations_source"]) || 'recently_viewed',
+  wishlist_recommendations_title: row.wishlist_recommendations_title || 'Recommended for You',
+  wishlist_recommendations_limit: row.wishlist_recommendations_limit ? parseInt(row.wishlist_recommendations_limit.toString(), 10) : 4,
 
   recent_buyers_names: row.recent_buyers_names ?? 'Ahmad, Fatima, Zainab, Hamza, Ayesha, Bilal, Sana, Ali, Usman, Maryam',
   recent_buyers_cities: row.recent_buyers_cities ?? 'Lahore, Karachi, Islamabad, Rawalpindi, Faisalabad, Multan, Peshawar, Quetta, Sialkot, Gujranwala',

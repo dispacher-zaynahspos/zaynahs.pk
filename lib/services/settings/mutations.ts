@@ -288,6 +288,10 @@ export const updateSettings = async (settings: Partial<StoreSettings>): Promise<
     if (settings.cart_recommendations_source !== undefined) updatePayload.cart_recommendations_source = settings.cart_recommendations_source;
     if (settings.cart_recommendations_title !== undefined) updatePayload.cart_recommendations_title = settings.cart_recommendations_title;
     if (settings.cart_recommendations_limit !== undefined) updatePayload.cart_recommendations_limit = settings.cart_recommendations_limit;
+    if (settings.wishlist_recommendations_enabled !== undefined) updatePayload.wishlist_recommendations_enabled = settings.wishlist_recommendations_enabled;
+    if (settings.wishlist_recommendations_source !== undefined) updatePayload.wishlist_recommendations_source = settings.wishlist_recommendations_source;
+    if (settings.wishlist_recommendations_title !== undefined) updatePayload.wishlist_recommendations_title = settings.wishlist_recommendations_title;
+    if (settings.wishlist_recommendations_limit !== undefined) updatePayload.wishlist_recommendations_limit = settings.wishlist_recommendations_limit;
 
     if (settings.recent_buyers_names !== undefined) updatePayload.recent_buyers_names = settings.recent_buyers_names;
     if (settings.recent_buyers_cities !== undefined) updatePayload.recent_buyers_cities = settings.recent_buyers_cities;

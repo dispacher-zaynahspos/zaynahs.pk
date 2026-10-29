@@ -5,11 +5,12 @@ import { StoreSettings } from '@/lib/types';
 import MediaField from '@/components/admin/customizer/shared/MediaField';
 import HeaderAnnouncementFields from '@/components/admin/shared/HeaderAnnouncementFields';
 import MobileBottomNavBuilder from '@/components/admin/customizer/pages/global/MobileBottomNavBuilder';
+import { Sparkles, Heart, ShoppingBag } from '@/components/common/Icons';
 
 interface GlobalSettingsProps {
   settings: StoreSettings;
   onUpdateSettings: (updates: Partial<StoreSettings>) => void;
-  subTab: 'header' | 'footer' | 'branding';
+  subTab: 'header' | 'footer' | 'branding' | 'recommendations';
   onSelectMedia: (fieldKey: string) => void;
 }
 
@@ -19,6 +20,195 @@ export default function GlobalSettings({
   subTab,
   onSelectMedia
 }: GlobalSettingsProps) {
+  if (subTab === 'recommendations') {
+    const cartEnabled = settings.cart_recommendations_enabled !== false;
+    const wishlistEnabled = settings.wishlist_recommendations_enabled !== false;
+
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-800">
+          <div className="min-w-0">
+            <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest block leading-none mb-1">Editing Section</span>
+            <h4 className="text-sm font-black text-gray-900 dark:text-white truncate">Pages & Recommendations</h4>
+          </div>
+          <span className="text-[9px] font-black text-[#e94560] bg-[#e94560]/10 px-2.5 py-1 rounded-full uppercase tracking-wider flex-shrink-0">
+            Cross-Sell
+          </span>
+        </div>
+
+        {/* 1. Cart Recommendations */}
+        <div className="space-y-3 p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-200 dark:border-gray-800">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="p-1.5 rounded-lg bg-purple-100 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400">
+                <ShoppingBag className="h-4 w-4" />
+              </div>
+              <div>
+                <h5 className="text-xs font-black text-gray-900 dark:text-white">Cart Recommendations</h5>
+                <p className="text-[10px] text-gray-400">Cross-sell products on /cart page</p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              role="switch"
+              aria-checked={cartEnabled}
+              onClick={() => onUpdateSettings({ cart_recommendations_enabled: !cartEnabled })}
+              className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
+                cartEnabled ? 'bg-purple-600' : 'bg-gray-300 dark:bg-gray-700'
+              }`}
+            >
+              <span
+                className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-md transition duration-200 ease-in-out ${
+                  cartEnabled ? 'translate-x-4' : 'translate-x-0'
+                }`}
+              />
+            </button>
+          </div>
+
+          {cartEnabled && (
+            <div className="space-y-3 pt-2 border-t border-gray-200/60 dark:border-gray-800">
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider block">
+                  Recommendation Source
+                </label>
+                <select
+                  value={settings.cart_recommendations_source || 'recently_viewed'}
+                  onChange={(e) => onUpdateSettings({ cart_recommendations_source: e.target.value as any })}
+                  className="w-full px-2.5 py-1.5 text-xs rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#16162a] text-gray-900 dark:text-gray-50 cursor-pointer"
+                >
+                  <option value="recently_viewed">Recently Viewed (Auto-fallback to Catalog)</option>
+                  <option value="best_selling">Best Selling Products</option>
+                  <option value="new_arrivals">New Arrivals / Latest Products</option>
+                  <option value="featured">Featured Products</option>
+                </select>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider block">
+                  Section Heading Title
+                </label>
+                <input
+                  type="text"
+                  value={settings.cart_recommendations_title ?? 'You May Also Like'}
+                  onChange={(e) => onUpdateSettings({ cart_recommendations_title: e.target.value })}
+                  placeholder="You May Also Like"
+                  className="w-full px-2.5 py-1.5 text-xs rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#16162a] text-gray-900 dark:text-gray-50"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <div className="flex justify-between text-[11px] font-bold text-gray-500">
+                  <span>Product Display Limit</span>
+                  <span className="text-purple-600 font-extrabold">{settings.cart_recommendations_limit || 4} products</span>
+                </div>
+                <input
+                  type="range"
+                  min="2"
+                  max="12"
+                  step="1"
+                  value={settings.cart_recommendations_limit || 4}
+                  onChange={(e) => onUpdateSettings({ cart_recommendations_limit: parseInt(e.target.value) })}
+                  className="w-full accent-purple-600"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* 2. Wishlist Recommendations */}
+        <div className="space-y-3 p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-200 dark:border-gray-800">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="p-1.5 rounded-lg bg-rose-100 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400">
+                <Heart className="h-4 w-4 fill-rose-500" />
+              </div>
+              <div>
+                <h5 className="text-xs font-black text-gray-900 dark:text-white">Wishlist Recommendations</h5>
+                <p className="text-[10px] text-gray-400">Cross-sell products on /wishlist page</p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              role="switch"
+              aria-checked={wishlistEnabled}
+              onClick={() => onUpdateSettings({ wishlist_recommendations_enabled: !wishlistEnabled })}
+              className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
+                wishlistEnabled ? 'bg-rose-600' : 'bg-gray-300 dark:bg-gray-700'
+              }`}
+            >
+              <span
+                className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-md transition duration-200 ease-in-out ${
+                  wishlistEnabled ? 'translate-x-4' : 'translate-x-0'
+                }`}
+              />
+            </button>
+          </div>
+
+          {wishlistEnabled && (
+            <div className="space-y-3 pt-2 border-t border-gray-200/60 dark:border-gray-800">
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider block">
+                  Recommendation Source
+                </label>
+                <select
+                  value={settings.wishlist_recommendations_source || 'recently_viewed'}
+                  onChange={(e) => onUpdateSettings({ wishlist_recommendations_source: e.target.value as any })}
+                  className="w-full px-2.5 py-1.5 text-xs rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#16162a] text-gray-900 dark:text-gray-50 cursor-pointer"
+                >
+                  <option value="recently_viewed">Recently Viewed (Auto-fallback to Catalog)</option>
+                  <option value="best_selling">Best Selling Products</option>
+                  <option value="new_arrivals">New Arrivals / Latest Products</option>
+                  <option value="featured">Featured Products</option>
+                </select>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider block">
+                  Section Heading Title
+                </label>
+                <input
+                  type="text"
+                  value={settings.wishlist_recommendations_title ?? 'Recommended for You'}
+                  onChange={(e) => onUpdateSettings({ wishlist_recommendations_title: e.target.value })}
+                  placeholder="Recommended for You"
+                  className="w-full px-2.5 py-1.5 text-xs rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#16162a] text-gray-900 dark:text-gray-50"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <div className="flex justify-between text-[11px] font-bold text-gray-500">
+                  <span>Product Display Limit</span>
+                  <span className="text-rose-600 font-extrabold">{settings.wishlist_recommendations_limit || 4} products</span>
+                </div>
+                <input
+                  type="range"
+                  min="2"
+                  max="12"
+                  step="1"
+                  value={settings.wishlist_recommendations_limit || 4}
+                  onChange={(e) => onUpdateSettings({ wishlist_recommendations_limit: parseInt(e.target.value) })}
+                  className="w-full accent-rose-600"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-950/20 border border-blue-200/60 dark:border-blue-900/40 text-[11px] text-blue-700 dark:text-blue-300 space-y-1 leading-relaxed">
+          <div className="font-bold flex items-center gap-1.5">
+            <Sparkles className="w-3.5 h-3.5 text-blue-500" />
+            <span>Automatic Deduping & Fallback Engine</span>
+          </div>
+          <p className="text-[10px] text-blue-600/90 dark:text-blue-300/90">
+            Products already added to the user&apos;s Cart or Wishlist are automatically excluded from recommendations so buyers are always shown fresh, relevant discoveries.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   if (subTab === 'branding') {
     return (
       <div className="space-y-4">

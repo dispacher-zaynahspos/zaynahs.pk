@@ -380,6 +380,10 @@ export interface StoreSettings {
   cart_recommendations_source?: 'recently_viewed' | 'best_selling' | 'new_arrivals' | 'featured';
   cart_recommendations_title?: string;
   cart_recommendations_limit?: number;
+  wishlist_recommendations_enabled?: boolean;
+  wishlist_recommendations_source?: 'recently_viewed' | 'best_selling' | 'new_arrivals' | 'featured';
+  wishlist_recommendations_title?: string;
+  wishlist_recommendations_limit?: number;
 
   // Product Card Customizations
   card_style?:
