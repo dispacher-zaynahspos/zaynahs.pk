@@ -376,6 +376,10 @@ export interface StoreSettings {
   social_feeds_enabled?: boolean;
   cart_timer_enabled?: boolean;
   size_guide_enabled?: boolean;
+  cart_recommendations_enabled?: boolean;
+  cart_recommendations_source?: 'recently_viewed' | 'best_selling' | 'new_arrivals' | 'featured';
+  cart_recommendations_title?: string;
+  cart_recommendations_limit?: number;
 
   // Product Card Customizations
   card_style?:

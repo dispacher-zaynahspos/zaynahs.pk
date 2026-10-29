@@ -274,6 +274,10 @@ export interface SettingsRow {
   social_feeds_enabled?: boolean | null;
   cart_timer_enabled?: boolean | null;
   size_guide_enabled?: boolean | null;
+  cart_recommendations_enabled?: boolean | null;
+  cart_recommendations_source?: string | null;
+  cart_recommendations_title?: string | null;
+  cart_recommendations_limit?: number | string | null;
   recent_buyers_names?: string | null;
   recent_buyers_cities?: string | null;
   recent_buyers_source?: string | null;

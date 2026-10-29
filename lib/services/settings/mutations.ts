@@ -284,6 +284,10 @@ export const updateSettings = async (settings: Partial<StoreSettings>): Promise<
     if (settings.social_feeds_enabled !== undefined) updatePayload.social_feeds_enabled = settings.social_feeds_enabled;
     if (settings.cart_timer_enabled !== undefined) updatePayload.cart_timer_enabled = settings.cart_timer_enabled;
     if (settings.size_guide_enabled !== undefined) updatePayload.size_guide_enabled = settings.size_guide_enabled;
+    if (settings.cart_recommendations_enabled !== undefined) updatePayload.cart_recommendations_enabled = settings.cart_recommendations_enabled;
+    if (settings.cart_recommendations_source !== undefined) updatePayload.cart_recommendations_source = settings.cart_recommendations_source;
+    if (settings.cart_recommendations_title !== undefined) updatePayload.cart_recommendations_title = settings.cart_recommendations_title;
+    if (settings.cart_recommendations_limit !== undefined) updatePayload.cart_recommendations_limit = settings.cart_recommendations_limit;
 
     if (settings.recent_buyers_names !== undefined) updatePayload.recent_buyers_names = settings.recent_buyers_names;
     if (settings.recent_buyers_cities !== undefined) updatePayload.recent_buyers_cities = settings.recent_buyers_cities;

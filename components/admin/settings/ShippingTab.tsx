@@ -71,10 +71,18 @@ interface ShippingTabProps {
   setCartTimerMinutes: (v: number) => void;
   cartTimerMessage: string;
   setCartTimerMessage: (v: string) => void;
+  freeShippingBarEnabled: boolean;
+  setFreeShippingBarEnabled: (v: boolean) => void;
   freeShippingThreshold: number;
   setFreeShippingThreshold: (v: number) => void;
   recentlyViewedLimit: number;
   setRecentlyViewedLimit: (v: number) => void;
+  cartRecommendationsEnabled: boolean;
+  setCartRecommendationsEnabled: (v: boolean) => void;
+  cartRecommendationsSource: 'recently_viewed' | 'best_selling' | 'new_arrivals' | 'featured';
+  setCartRecommendationsSource: (v: 'recently_viewed' | 'best_selling' | 'new_arrivals' | 'featured') => void;
+  cartRecommendationsTitle: string;
+  setCartRecommendationsTitle: (v: string) => void;
   currencySymbol: string;
 }
 
@@ -126,10 +134,18 @@ export default function ShippingTab({
   setCartTimerMinutes,
   cartTimerMessage,
   setCartTimerMessage,
+  freeShippingBarEnabled,
+  setFreeShippingBarEnabled,
   freeShippingThreshold,
   setFreeShippingThreshold,
   recentlyViewedLimit,
   setRecentlyViewedLimit,
+  cartRecommendationsEnabled,
+  setCartRecommendationsEnabled,
+  cartRecommendationsSource,
+  setCartRecommendationsSource,
+  cartRecommendationsTitle,
+  setCartRecommendationsTitle,
   currencySymbol
 }: ShippingTabProps) {
   const dragItem = useRef<string | null>(null);
@@ -227,15 +243,23 @@ export default function ShippingTab({
       </div>
 
       <ShippingThresholdsCard
+        freeShippingBarEnabled={freeShippingBarEnabled}
+        setFreeShippingBarEnabled={setFreeShippingBarEnabled}
+        freeShippingThreshold={freeShippingThreshold}
+        setFreeShippingThreshold={setFreeShippingThreshold}
+        currencySymbol={currencySymbol}
+        cartRecommendationsEnabled={cartRecommendationsEnabled}
+        setCartRecommendationsEnabled={setCartRecommendationsEnabled}
+        cartRecommendationsSource={cartRecommendationsSource}
+        setCartRecommendationsSource={setCartRecommendationsSource}
+        cartRecommendationsTitle={cartRecommendationsTitle}
+        setCartRecommendationsTitle={setCartRecommendationsTitle}
+        recentlyViewedLimit={recentlyViewedLimit}
+        setRecentlyViewedLimit={setRecentlyViewedLimit}
         cartTimerMinutes={cartTimerMinutes}
         setCartTimerMinutes={setCartTimerMinutes}
         cartTimerMessage={cartTimerMessage}
         setCartTimerMessage={setCartTimerMessage}
-        freeShippingThreshold={freeShippingThreshold}
-        setFreeShippingThreshold={setFreeShippingThreshold}
-        recentlyViewedLimit={recentlyViewedLimit}
-        setRecentlyViewedLimit={setRecentlyViewedLimit}
-        currencySymbol={currencySymbol}
       />
 
       <ShippingZonesCard currencySymbol={currencySymbol} />

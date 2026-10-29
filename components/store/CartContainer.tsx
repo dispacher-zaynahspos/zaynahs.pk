@@ -16,6 +16,8 @@ import {
   CartEmptyView,
   useCartContainerState,
 } from './cart-container';
+import CartRecommendations from './cart-container/CartRecommendations';
+import { Product } from '@/lib/types';
 
 // Lazy-load step-specific views so their CSS/JS only loads when that step is
 // actually rendered. This removes the "preloaded but not used" console warnings
@@ -32,9 +34,10 @@ const CartSuccessView = dynamic(
 interface CartContainerProps {
   settings: StoreSettings;
   initialCustomer?: { id: string; name: string; email: string | null; phone: string | null } | null;
+  fallbackProducts?: Product[];
 }
 
-export default function CartContainer({ settings, initialCustomer }: CartContainerProps) {
+export default function CartContainer({ settings, initialCustomer, fallbackProducts = [] }: CartContainerProps) {
   const {
     items,
     updateQuantity,
@@ -117,7 +120,18 @@ export default function CartContainer({ settings, initialCustomer }: CartContain
   }
 
   if (items.length === 0) {
-    return <CartEmptyView />;
+    return (
+      <div className="min-h-screen bg-white dark:bg-[#0f0f1b] text-gray-900 dark:text-white">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+          <CartEmptyView />
+          <CartRecommendations
+            settings={settings}
+            cartItems={items}
+            fallbackProducts={fallbackProducts}
+          />
+        </div>
+      </div>
+    );
   }
 
   if (view === 'cart') {
@@ -290,6 +304,13 @@ export default function CartContainer({ settings, initialCustomer }: CartContain
               </p>
             </div>
           </div>
+
+          {/* Cart Product Recommendations / Recently Viewed */}
+          <CartRecommendations
+            settings={settings}
+            cartItems={items}
+            fallbackProducts={fallbackProducts}
+          />
         </div>
       </div>
     );

@@ -70,10 +70,18 @@ export function SettingsTabRendererAdvanced({ activeTab, s }: SettingsTabRendere
           setCartTimerMinutes={s.setCartTimerMinutes}
           cartTimerMessage={s.cartTimerMessage}
           setCartTimerMessage={s.setCartTimerMessage}
+          freeShippingBarEnabled={s.freeShippingBarEnabled}
+          setFreeShippingBarEnabled={s.setFreeShippingBarEnabled}
           freeShippingThreshold={s.freeShippingThreshold}
           setFreeShippingThreshold={s.setFreeShippingThreshold}
           recentlyViewedLimit={s.recentlyViewedLimit}
           setRecentlyViewedLimit={s.setRecentlyViewedLimit}
+          cartRecommendationsEnabled={s.cartRecommendationsEnabled}
+          setCartRecommendationsEnabled={s.setCartRecommendationsEnabled}
+          cartRecommendationsSource={s.cartRecommendationsSource}
+          setCartRecommendationsSource={s.setCartRecommendationsSource}
+          cartRecommendationsTitle={s.cartRecommendationsTitle}
+          setCartRecommendationsTitle={s.setCartRecommendationsTitle}
           currencySymbol={s.currencySymbol}
         />
       );

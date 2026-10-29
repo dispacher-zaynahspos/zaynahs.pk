@@ -74,6 +74,18 @@ export function useSettingsPopupsAndPixels({ initialSettings }: UseSettingsPopup
   const [socialFeedsEnabled, setSocialFeedsEnabled] = useState(initialSettings.social_feeds_enabled ?? true);
   const [cartTimerEnabled, setCartTimerEnabled] = useState(initialSettings.cart_timer_enabled ?? true);
   const [sizeGuideEnabled, setSizeGuideEnabled] = useState(initialSettings.size_guide_enabled ?? true);
+  const [cartRecommendationsEnabled, setCartRecommendationsEnabled] = useState(
+    initialSettings.cart_recommendations_enabled ?? true
+  );
+  const [cartRecommendationsSource, setCartRecommendationsSource] = useState<
+    'recently_viewed' | 'best_selling' | 'new_arrivals' | 'featured'
+  >((initialSettings.cart_recommendations_source as any) || 'recently_viewed');
+  const [cartRecommendationsTitle, setCartRecommendationsTitle] = useState(
+    initialSettings.cart_recommendations_title || 'You May Also Like'
+  );
+  const [cartRecommendationsLimit, setCartRecommendationsLimit] = useState(
+    initialSettings.cart_recommendations_limit ?? (initialSettings.recently_viewed_limit ?? 4)
+  );
 
   const [socialFeedsHomepageEnabled, setSocialFeedsHomepageEnabled] = useState(
     initialSettings.social_feeds_homepage_enabled ?? true
@@ -196,6 +208,14 @@ export function useSettingsPopupsAndPixels({ initialSettings }: UseSettingsPopup
     setCartTimerEnabled,
     sizeGuideEnabled,
     setSizeGuideEnabled,
+    cartRecommendationsEnabled,
+    setCartRecommendationsEnabled,
+    cartRecommendationsSource,
+    setCartRecommendationsSource,
+    cartRecommendationsTitle,
+    setCartRecommendationsTitle,
+    cartRecommendationsLimit,
+    setCartRecommendationsLimit,
     socialFeedsHomepageEnabled,
     setSocialFeedsHomepageEnabled,
     socialFeedsProductEnabled,

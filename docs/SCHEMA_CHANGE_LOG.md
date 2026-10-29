@@ -4,6 +4,36 @@
 
 ---
 
+### [2026-10-29] v10.0.4 — Free Shipping Toggle & Cart Recommendations Engine
+
+**Migration:** `supabase/migrations/20261029110000_cart_recommendations_and_free_shipping.sql`
+(applied to all 5 stores: totvogue.pk, zaynahs.pk, minimahal.com, littlemister.pk, lobo.pk)
+
+**Features Added & Fixed:**
+1. **Free Shipping Toggle on Shipping Tab:**
+   - Moved / exposed the `free_shipping_bar_enabled` toggle directly onto `Admin Console -> Shop Settings -> Shipping & Pay` tab (`ShippingThresholdsCard.tsx`) right beside the Free Shipping Minimum Threshold.
+   - Merchants can easily see and switch Free Delivery offer and progress bar ON/OFF without having to hunt in other tabs.
+2. **Cart Recommendations & Recently Viewed Engine:**
+   - Added new `CartRecommendations.tsx` component to `/cart` page (both when items exist and in empty cart view).
+   - Added configurable recommendation sources:
+     - `recently_viewed` (with seamless automatic backfill to best sellers if buyer has browsed fewer items than limit).
+     - `best_selling` (Top trending products).
+     - `new_arrivals` (Fresh new styles).
+     - `featured` (Handpicked featured items).
+   - **Smart Cart Deduping Rule:** Products currently added to the buyer's cart are strictly excluded from recommendations in real time so customers never see redundant items they've already added.
+   - Sonic Speed (0ms delay): Uses parallel server-rendered fallback products in `CartPage` (`getProducts(undefined, 12)`).
+   - Responsive Design: Smart-fit 2-column mobile layout and 4-column desktop layout adhering to RULE DS25.
+3. **Database Changes:**
+   - Added columns to `store_settings`:
+     - `cart_recommendations_enabled BOOLEAN DEFAULT true`
+     - `cart_recommendations_source TEXT DEFAULT 'recently_viewed'`
+     - `cart_recommendations_title TEXT DEFAULT 'You May Also Like'`
+     - `cart_recommendations_limit INTEGER DEFAULT 4`
+   - Dynamically refreshed `store_settings_public` view across all 5 stores.
+   - Updated `SUPER_MASTER_SCHEMA.sql` to keep clone setup in sync (166/166 migrations).
+
+---
+
 ### [2026-10-29] v10.0.3 — Shipping Zones Permissions & Admin Services Resilience
 
 **Migration:** `supabase/migrations/20261029100000_grant_shipping_zones_permissions.sql`
