@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Product, StoreSettings } from '@/lib/types';
 import { ProductCardActions } from './ProductCardActions';
 import { ProductCardBadges } from './ProductCardBadges';
+import { ImageLoadingPlaceholder } from '@/components/common/ImageLoadingPlaceholder';
 import { formatPrice } from '@/lib/utils/whatsapp';
 import { saveScrollPosition } from '@/lib/hooks/useScrollRestoration';
 import { useMobileCardFocus } from '@/lib/hooks/useMobileCardFocus';
@@ -75,6 +76,16 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
   //    `is-in-focus active-card` → its hover image plays + action icons spawn.
   //    Desktop keeps pure CSS :hover. A direct touch also locks focus onto the card. ──
   const { cardRef, setManualFocus } = useMobileCardFocus(settings?.card_mobile_activation ?? 'scroll');
+
+  const [isImgLoaded, setIsImgLoaded] = React.useState(false);
+  const prevImageRef = React.useRef(activeImage);
+
+  React.useEffect(() => {
+    if (prevImageRef.current !== activeImage) {
+      prevImageRef.current = activeImage;
+      setIsImgLoaded(false);
+    }
+  }, [activeImage]);
 
   const handlePointerDown = (e: React.PointerEvent) => {
     if (e.pointerType === 'touch') setManualFocus();
@@ -191,6 +202,12 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
 
       {/* ── Image box ── */}
       <div className={`relative ${aspectClass} w-full overflow-hidden bg-gray-50 dark:bg-black/10`}>
+        <ImageLoadingPlaceholder
+          style={settings?.image_loading_style}
+          logoUrl={settings?.logo_url}
+          storeName={settings?.store_name}
+          isLoaded={isImgLoaded}
+        />
         {/* Primary image */}
         <Image
           src={activeImage}
@@ -200,6 +217,7 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
           className={`${imageFit} object-center pointer-events-none${isZoom ? ' hover-zoom' : ''}${showSecond ? ' hover-fade-out' : ' transition-opacity duration-200'}`}
           priority={false}
           loading="lazy"
+          onLoad={() => setIsImgLoaded(true)}
         />
 
         {/* Second image (hover/touch swap) */}

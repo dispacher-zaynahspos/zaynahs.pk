@@ -384,8 +384,71 @@ body {
 }
 
 /* ============================================================
-   ANIMATIONS
+   ANIMATIONS & IMAGE LOADING PLACEHOLDERS
    ============================================================ */
+
+/* Pure GPU-Composited Image Loading Placeholder Keyframes (0% JS Overhead) */
+@keyframes img-shimmer-sweep {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes img-logo-pulse-anim {
+  0%, 100% { transform: scale(0.92); opacity: 0.5; }
+  50% { transform: scale(1.05); opacity: 0.95; }
+}
+
+@keyframes img-spinner-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes img-glow-pulse-anim {
+  0%, 100% { opacity: 0.35; transform: scale(0.96); }
+  50% { opacity: 0.85; transform: scale(1.04); }
+}
+
+@keyframes img-mesh-flow-anim {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.img-placeholder-shimmer {
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.45) 50%, transparent 100%);
+  animation: img-shimmer-sweep 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  will-change: transform;
+}
+.dark .img-placeholder-shimmer {
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.08) 50%, transparent 100%);
+}
+
+.img-placeholder-logo-pulse {
+  animation: img-logo-pulse-anim 2s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+.img-placeholder-spinner {
+  animation: img-spinner-spin 0.85s linear infinite;
+  will-change: transform;
+}
+
+.img-placeholder-pulse-glow {
+  animation: img-glow-pulse-anim 2.4s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+.img-placeholder-blur-mesh {
+  background: linear-gradient(-45deg, #f1f5f9, #e2e8f0, #cbd5e1, #e2e8f0);
+  background-size: 300% 300%;
+  animation: img-mesh-flow-anim 3.5s ease infinite;
+  will-change: background-position;
+}
+.dark .img-placeholder-blur-mesh {
+  background: linear-gradient(-45deg, #181828, #222238, #16162a, #262640);
+  background-size: 300% 300%;
+  animation: img-mesh-flow-anim 3.5s ease infinite;
+}
 
 @keyframes slide-down {
   from {

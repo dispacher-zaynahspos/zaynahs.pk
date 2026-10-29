@@ -86,4 +86,15 @@ export const ATC_ANIMATION_OPTIONS: SelectOption[] = [
 ];
 export const DEFAULT_ATC_ANIMATION = 'none';
 
+/** Image loading placeholder animation style (strictly shown during network image loading). */
+export const IMAGE_LOADING_STYLE_OPTIONS: SelectOption[] = [
+  { value: 'shimmer', label: 'Shimmer Wave (Modern Dynamic Sweep)' },
+  { value: 'logo_pulse', label: 'Brand Logo Pulse (Breathing Store Logo)' },
+  { value: 'spinner', label: 'Minimal Ring Spinner (Clean Micro-Ring)' },
+  { value: 'pulse_glow', label: 'Ambient Pulse Glow (Soft Accent Aura)' },
+  { value: 'blur_mesh', label: 'Frosted Blur Mesh (Glass Motion Shimmer)' },
+  { value: 'none', label: 'None (Clean Neutral Static Box)' },
+];
+export const DEFAULT_IMAGE_LOADING_STYLE = 'shimmer';
+
 

@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { StoreSettings } from '@/lib/types';
 import { ProductsDesignCatalogSection } from './products/ProductsDesignCatalogSection';
 import { VariantSwatchDisplaySection } from './products/VariantSwatchDisplaySection';
 
@@ -57,6 +58,8 @@ interface ProductsTabProps {
   setImageHoverStyle: (val: 'second_image' | 'zoom' | 'slide_left' | 'zoom_swap' | 'fade_up' | 'blur_crossfade' | 'flip_3d' | 'none') => void;
   imageAspectRatio: string;
   setImageAspectRatio: (val: string) => void;
+  imageLoadingStyle?: NonNullable<StoreSettings['image_loading_style']>;
+  setImageLoadingStyle?: (val: NonNullable<StoreSettings['image_loading_style']>) => void;
   titleLineLimit: '1' | '2' | 'none';
   setTitleLineLimit: (val: '1' | '2' | 'none') => void;
   cardShowDescription: boolean;
@@ -97,6 +100,8 @@ export default function ProductsTab(props: ProductsTabProps) {
         setImageHoverStyle={props.setImageHoverStyle}
         imageAspectRatio={props.imageAspectRatio}
         setImageAspectRatio={props.setImageAspectRatio}
+        imageLoadingStyle={props.imageLoadingStyle}
+        setImageLoadingStyle={props.setImageLoadingStyle}
         titleLineLimit={props.titleLineLimit}
         setTitleLineLimit={props.setTitleLineLimit}
         cardMobileColumns={props.cardMobileColumns}

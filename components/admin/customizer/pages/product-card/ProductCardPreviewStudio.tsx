@@ -7,6 +7,7 @@ import { Heart, Eye, ShoppingCart, Smartphone, Play, RefreshCw } from '@/compone
 import { getSharedAspectClass, getSharedTitleClampClass } from '@/lib/utils/styles';
 import { ProductCardStyleInjector } from '@/components/store/product-card/ProductCardStyles';
 import { CardWishlistIcon, CardQuickviewIcon, CardCartIcon } from '@/components/store/product-card/ProductCardActions';
+import { ImageLoadingPlaceholder } from '@/components/common/ImageLoadingPlaceholder';
 
 interface ProductCardPreviewStudioProps {
   settings: StoreSettings;
@@ -16,6 +17,7 @@ interface ProductCardPreviewStudioProps {
 export function ProductCardPreviewStudio({ settings, onUpdateSettings }: ProductCardPreviewStudioProps) {
   const [isSimulatedFocus, setIsSimulatedFocus] = useState(false);
   const [isWishlisted, setIsWishlisted] = useState(false);
+  const [simulateLoading, setSimulateLoading] = useState(false);
 
   const hoverStyle = settings.image_hover_style || 'second_image';
   const isZoom = hoverStyle === 'zoom';
@@ -106,6 +108,12 @@ export function ProductCardPreviewStudio({ settings, onUpdateSettings }: Product
           >
             {/* Image Box */}
             <div className={`relative ${aspectClass} w-full overflow-hidden bg-gray-100 dark:bg-black/20`}>
+              <ImageLoadingPlaceholder
+                style={settings.image_loading_style}
+                logoUrl={settings.logo_url}
+                storeName={settings.store_name}
+                isLoaded={!simulateLoading}
+              />
               {/* Primary Image */}
               <Image
                 src={primaryImg}
@@ -227,8 +235,26 @@ export function ProductCardPreviewStudio({ settings, onUpdateSettings }: Product
           }`}
         >
           <Smartphone className="h-3.5 w-3.5" />
-          <span>{isSimulatedFocus ? 'Mobile Focused (Tap to Exit)' : 'Simulate Mobile Scroll Focus'}</span>
+          <span>{isSimulatedFocus ? 'Mobile Focused' : 'Simulate Mobile Focus'}</span>
         </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setSimulateLoading(true);
+            setTimeout(() => setSimulateLoading(false), 2400);
+          }}
+          className={`py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-xs ${
+            simulateLoading
+              ? 'bg-[#e94560] text-white'
+              : 'bg-gray-100 hover:bg-gray-200 dark:bg-white/10 dark:hover:bg-white/15 text-gray-800 dark:text-white'
+          }`}
+          title="Preview image loading placeholder animation"
+        >
+          <RefreshCw className={`h-3.5 w-3.5 ${simulateLoading ? 'animate-spin' : ''}`} />
+          <span>{simulateLoading ? 'Loading...' : 'Test Loading'}</span>
+        </button>
+
         {isSimulatedFocus && (
           <button
             type="button"

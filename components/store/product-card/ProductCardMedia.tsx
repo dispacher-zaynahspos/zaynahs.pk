@@ -1,8 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { StoreSettings } from '@/lib/types';
+import { ImageLoadingPlaceholder } from '@/components/common/ImageLoadingPlaceholder';
 
 interface ProductCardMediaProps {
   activeImage: string;
@@ -25,6 +26,16 @@ export const ProductCardMedia: React.FC<ProductCardMediaProps> = ({
   fitClass = 'object-contain',
   isVariantSelected = false,
 }) => {
+  const [isLoaded, setIsLoaded] = useState(false);
+  const prevImageRef = useRef(activeImage);
+
+  useEffect(() => {
+    if (prevImageRef.current !== activeImage) {
+      prevImageRef.current = activeImage;
+      setIsLoaded(false);
+    }
+  }, [activeImage]);
+
   const hoverStyle = settings?.image_hover_style ?? 'second_image';
   const isZoom = hoverStyle === 'zoom';
   const isSecondImage = hoverStyle !== 'none' && hoverStyle !== 'zoom';
@@ -32,6 +43,12 @@ export const ProductCardMedia: React.FC<ProductCardMediaProps> = ({
 
   return (
     <>
+      <ImageLoadingPlaceholder
+        style={settings?.image_loading_style}
+        logoUrl={settings?.logo_url}
+        storeName={settings?.store_name}
+        isLoaded={isLoaded}
+      />
       <Image
         src={activeImage}
         alt={productName}
@@ -42,6 +59,7 @@ export const ProductCardMedia: React.FC<ProductCardMediaProps> = ({
         }${showSecond ? ' hover-fade-out' : ' transition-opacity duration-200'}`}
         priority={priority}
         loading={priority ? undefined : 'lazy'}
+        onLoad={() => setIsLoaded(true)}
       />
       {showSecond && secondImage && (
         <Image

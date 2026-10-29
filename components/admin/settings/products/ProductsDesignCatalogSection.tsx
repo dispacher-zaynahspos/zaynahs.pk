@@ -1,9 +1,11 @@
 'use client';
 
 import React from 'react';
+import { StoreSettings } from '@/lib/types';
 import {
   IMAGE_HOVER_STYLE_OPTIONS,
   IMAGE_ASPECT_RATIO_OPTIONS,
+  IMAGE_LOADING_STYLE_OPTIONS,
   TITLE_LINE_LIMIT_OPTIONS,
   ATC_ANIMATION_OPTIONS,
 } from '@/lib/constants/productCardOptions';
@@ -13,6 +15,8 @@ interface ProductsDesignCatalogSectionProps {
   setImageHoverStyle: (val: 'second_image' | 'zoom' | 'slide_left' | 'zoom_swap' | 'fade_up' | 'blur_crossfade' | 'flip_3d' | 'none') => void;
   imageAspectRatio: string;
   setImageAspectRatio: (val: string) => void;
+  imageLoadingStyle?: NonNullable<StoreSettings['image_loading_style']>;
+  setImageLoadingStyle?: (val: NonNullable<StoreSettings['image_loading_style']>) => void;
   titleLineLimit: '1' | '2' | 'none';
   setTitleLineLimit: (val: '1' | '2' | 'none') => void;
   addToCartAnimation?: string;
@@ -30,6 +34,8 @@ export function ProductsDesignCatalogSection({
   setImageHoverStyle,
   imageAspectRatio,
   setImageAspectRatio,
+  imageLoadingStyle = 'shimmer',
+  setImageLoadingStyle,
   titleLineLimit,
   setTitleLineLimit,
   addToCartAnimation = 'none',
@@ -45,7 +51,7 @@ export function ProductsDesignCatalogSection({
     <div className="bg-white dark:bg-[#16162a] p-6 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm space-y-4 transition-colors">
       <div className="border-b border-gray-100 dark:border-gray-800 pb-3">
         <h3 className="text-base font-bold text-gray-900 dark:text-white">Design & Catalog Layout</h3>
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Configure product image styles, aspect ratios, and card layouts in lists</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Configure product image styles, aspect ratios, loading placeholders, and card layouts in lists</p>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
         <div>
@@ -74,6 +80,20 @@ export function ProductsDesignCatalogSection({
             ))}
           </select>
           <p className="text-[10px] text-gray-400 mt-1">Specify aspect sizing for product card images in grids.</p>
+        </div>
+
+        <div>
+          <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">Image Loading Placeholder</label>
+          <select
+            value={imageLoadingStyle}
+            onChange={(e) => setImageLoadingStyle && setImageLoadingStyle(e.target.value as NonNullable<StoreSettings['image_loading_style']>)}
+            className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f0f1b] px-4 py-2.5 text-sm focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
+          >
+            {IMAGE_LOADING_STYLE_OPTIONS.map(o => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
+          </select>
+          <p className="text-[10px] text-gray-400 mt-1">Placeholder animation shown while images are downloading over network.</p>
         </div>
 
         <div>

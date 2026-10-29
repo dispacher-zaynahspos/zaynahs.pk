@@ -8,6 +8,7 @@ import { getSharedAspectClass } from '@/lib/utils/styles';
 import { getPresetImageUrl } from '@/lib/utils/imageUrl';
 import { useEmblaGallery } from '@/components/store/product-card/hooks/useEmblaGallery';
 import { ProductCardBadges } from '@/components/store/product-card/ProductCardBadges';
+import { ImageLoadingPlaceholder } from '@/components/common/ImageLoadingPlaceholder';
 
 import { ProductLightboxModal } from './gallery/ProductLightboxModal';
 
@@ -46,6 +47,7 @@ export default function ProductDetailGallery({
   const [isZoomed, setIsZoomed] = useState(false);
   const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 });
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [loadedSlides, setLoadedSlides] = useState<Record<number, boolean>>({});
   const imgContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -83,6 +85,12 @@ export default function ProductDetailGallery({
                 }}
                 onMouseLeave={() => setIsZoomed(false)}
               >
+                <ImageLoadingPlaceholder
+                  style={settings?.image_loading_style}
+                  logoUrl={settings?.logo_url}
+                  storeName={settings?.store_name}
+                  isLoaded={Boolean(loadedSlides[i])}
+                />
                 <Image
                   src={getPresetImageUrl(img.url, 'zoom')}
                   alt={img.alt || product.name}
@@ -92,6 +100,7 @@ export default function ProductDetailGallery({
                   style={isZoomed && i === activeImageIndex ? { transformOrigin: `${zoomPos.x}% ${zoomPos.y}%` } : {}}
                   priority={i === 0}
                   draggable={false}
+                  onLoad={() => setLoadedSlides(prev => ({ ...prev, [i]: true }))}
                 />
               </div>
             ))}

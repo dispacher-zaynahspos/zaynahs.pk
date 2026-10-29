@@ -754,6 +754,7 @@ CREATE TABLE IF NOT EXISTS store_settings (
   wishlist_recommendations_source TEXT DEFAULT 'recently_viewed',
   wishlist_recommendations_title TEXT DEFAULT 'Recommended for You',
   wishlist_recommendations_limit INTEGER DEFAULT 4,
+  image_loading_style TEXT DEFAULT 'shimmer',
   related_products_enabled BOOLEAN DEFAULT true,
   related_products_title TEXT DEFAULT 'Related Products',
   related_products_subtitle TEXT DEFAULT 'You might also like these handpicked recommendations',

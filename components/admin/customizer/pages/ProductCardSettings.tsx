@@ -13,9 +13,11 @@ import { normalizeCardStyle, CARD_STYLE_OPTIONS } from '@/lib/utils/cardStyles';
 import {
   IMAGE_HOVER_STYLE_OPTIONS,
   IMAGE_ASPECT_RATIO_OPTIONS,
+  IMAGE_LOADING_STYLE_OPTIONS,
   TITLE_LINE_LIMIT_OPTIONS,
   CARD_ICON_STYLE_OPTIONS,
   DEFAULT_IMAGE_HOVER_STYLE,
+  DEFAULT_IMAGE_LOADING_STYLE,
   DEFAULT_IMAGE_ASPECT_RATIO,
   DEFAULT_TITLE_LINE_LIMIT,
 } from '@/lib/constants/productCardOptions';
@@ -178,6 +180,25 @@ export default function ProductCardSettings({
             </select>
             <p className="text-[10px] text-gray-400">
               Select the visual animation when hovering on desktop or scrolling past cards on mobile.
+            </p>
+          </div>
+
+          {/* Image Loading Placeholder Style */}
+          <div className="space-y-1.5 pt-2">
+            <label className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest block">
+              Image Loading Placeholder Style
+            </label>
+            <select
+              value={settings.image_loading_style || DEFAULT_IMAGE_LOADING_STYLE}
+              onChange={(e) => onUpdateSettings({ image_loading_style: e.target.value as NonNullable<StoreSettings['image_loading_style']> })}
+              className="w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-[#f8f8f8] dark:bg-[#0f0f1b] px-3 py-2 text-xs font-bold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
+            >
+              {IMAGE_LOADING_STYLE_OPTIONS.map(o => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+            <p className="text-[10px] text-gray-400">
+              Placeholder animation shown while images are downloading over network or before load.
             </p>
           </div>
 

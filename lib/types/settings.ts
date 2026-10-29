@@ -141,6 +141,7 @@ export interface StoreSettings {
   default_variant_index: number;
   image_hover_style?: 'second_image' | 'zoom' | 'slide_left' | 'zoom_swap' | 'fade_up' | 'blur_crossfade' | 'flip_3d' | 'none';
   image_aspect_ratio?: string;
+  image_loading_style?: 'shimmer' | 'logo_pulse' | 'spinner' | 'pulse_glow' | 'blur_mesh' | 'none';
   title_line_limit?: '1' | '2' | 'none';
   /** Animation style for primary Add to Cart buttons on PDP, Sticky Bar, and QuickViewModal. */
   add_to_cart_animation?:

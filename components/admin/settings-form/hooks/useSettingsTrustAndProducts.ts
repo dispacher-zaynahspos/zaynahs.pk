@@ -48,6 +48,9 @@ export function useSettingsTrustAndProducts({ initialSettings }: UseSettingsTrus
     initialSettings.image_hover_style ?? 'second_image'
   );
   const [imageAspectRatio, setImageAspectRatio] = useState(initialSettings.image_aspect_ratio ?? '1:1');
+  const [imageLoadingStyle, setImageLoadingStyle] = useState<NonNullable<StoreSettings['image_loading_style']>>(
+    initialSettings.image_loading_style ?? 'shimmer'
+  );
   const [titleLineLimit, setTitleLineLimit] = useState<'1' | '2' | 'none'>(initialSettings.title_line_limit ?? '2');
   const [addToCartAnimation, setAddToCartAnimation] = useState<string>(
     initialSettings.add_to_cart_animation ?? 'none'
@@ -199,6 +202,8 @@ export function useSettingsTrustAndProducts({ initialSettings }: UseSettingsTrus
     setImageHoverStyle,
     imageAspectRatio,
     setImageAspectRatio,
+    imageLoadingStyle,
+    setImageLoadingStyle,
     titleLineLimit,
     setTitleLineLimit,
     addToCartAnimation,

@@ -126,6 +126,7 @@ export function buildSettingsPayload(data: {
     default_variant_index: Number(trustProducts.defaultVariantIndex) || 1,
     image_hover_style: trustProducts.imageHoverStyle,
     image_aspect_ratio: trustProducts.imageAspectRatio,
+    image_loading_style: trustProducts.imageLoadingStyle,
     title_line_limit: trustProducts.titleLineLimit,
     add_to_cart_animation: trustProducts.addToCartAnimation,
     enable_fly_to_cart: trustProducts.enableFlyToCart,

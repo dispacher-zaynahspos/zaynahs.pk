@@ -167,6 +167,8 @@ export function SettingsTabRendererCore({ activeTab, s }: SettingsTabRendererCor
           setImageHoverStyle={s.setImageHoverStyle}
           imageAspectRatio={s.imageAspectRatio}
           setImageAspectRatio={s.setImageAspectRatio}
+          imageLoadingStyle={s.imageLoadingStyle}
+          setImageLoadingStyle={s.setImageLoadingStyle}
           titleLineLimit={s.titleLineLimit}
           setTitleLineLimit={s.setTitleLineLimit}
           archiveSwatchSize={s.archiveSwatchSize}
