@@ -15,7 +15,9 @@ export const getOrders = async (): Promise<Order[]> => {
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return (data ?? []).map(mapOrder);
+    return (data ?? [])
+      .filter((r) => !r.deleted_at && r.status !== 'trash' && r.status !== 'deleted')
+      .map(mapOrder);
   } catch (error) {
     console.error('[orders] getOrders failed:', error);
     throw error;
@@ -47,10 +49,13 @@ export const getOrdersByCustomerId = async (customerId: string): Promise<Order[]
       .from('orders')
       .select('*')
       .eq('customer_id', customerId)
+      .is('deleted_at', null)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return (data ?? []).map(mapOrder);
+    return (data ?? [])
+      .filter((r) => !r.deleted_at && r.status !== 'trash' && r.status !== 'deleted')
+      .map(mapOrder);
   } catch (error) {
     console.error('[orders] getOrdersByCustomerId failed:', error);
     throw error;

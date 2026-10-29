@@ -36,11 +36,12 @@ export async function linkPreviousOrders(
     const canonicalPhone = phone && isValidPkMobile(phone) ? normalizePkPhone(phone) : null;
     const cleanEmail = email?.trim().toLowerCase() || null;
 
-    // Fetch all unassigned orders
+    // Fetch all unassigned orders (excluding trashed orders)
     const { data: orders, error } = await supabaseAdmin
       .from('orders')
       .select('id, customer_phone, customer_email')
-      .is('customer_id', null);
+      .is('customer_id', null)
+      .is('deleted_at', null);
 
     if (error || !orders || orders.length === 0) return;
 

@@ -21,14 +21,19 @@ export default async function DashboardPage() {
     getAdminCustomers()
   ]);
 
-  const totalSales = orders
-    .filter(o => o.status !== 'cancelled' && o.status !== 'refunded')
+  // Filter out any trashed orders, products, and categories defense-in-depth
+  const cleanOrders = orders.filter(o => !o.deleted_at && (o.status as string) !== 'trash' && (o.status as string) !== 'deleted');
+  const cleanProducts = products.filter(p => !p.deleted_at);
+  const cleanCategories = categories.filter(c => !c.deleted_at);
+
+  const totalSales = cleanOrders
+    .filter(o => o.status !== 'cancelled' && o.status !== 'refunded' && o.payment_status !== 'refunded')
     .reduce((sum, o) => sum + o.total, 0);
 
   const stats = [
     { 
       label: 'Total Products', 
-      value: products.length.toLocaleString(), 
+      value: cleanProducts.length.toLocaleString(), 
       icon: ShoppingBag, 
       color: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20', 
       glow: 'from-blue-500/15 via-blue-500/5 to-transparent',
@@ -36,7 +41,7 @@ export default async function DashboardPage() {
     },
     { 
       label: 'Total Categories', 
-      value: categories.length.toLocaleString(), 
+      value: cleanCategories.length.toLocaleString(), 
       icon: FolderOpen, 
       color: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20', 
       glow: 'from-amber-500/15 via-amber-500/5 to-transparent',
@@ -44,7 +49,7 @@ export default async function DashboardPage() {
     },
     { 
       label: 'Orders Logged', 
-      value: orders.length.toLocaleString(), 
+      value: cleanOrders.length.toLocaleString(), 
       icon: ClipboardList, 
       color: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20', 
       glow: 'from-emerald-500/15 via-emerald-500/5 to-transparent',
@@ -94,7 +99,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Main Dashboard Client Hub */}
-      <DashboardClient orders={orders} products={products} customers={customers} settings={settings} />
+      <DashboardClient orders={cleanOrders} products={cleanProducts} customers={customers} settings={settings} />
 
       {/* Real-time Traffic Panel */}
       <TrafficPanel />

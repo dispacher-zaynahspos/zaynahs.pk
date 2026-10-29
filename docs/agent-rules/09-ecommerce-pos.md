@@ -66,4 +66,13 @@ Applies universally across all current stores (TotVogue, Zaynahs, MiniMahal, Lit
    - `syncProductToMeta` MUST query existing Meta items under `retailer_product_group_id` and explicitly emit `DELETE` for any ghost variant IDs or legacy standalone parent IDs that no longer exist in the current DB product.
    - Every store and clone MUST register its `/api/meta/catalog.xml` Data Feed in Meta Commerce Manager (`update_type: REPLACE`, interval: `HOURLY`) to ensure the catalog continuously self-heals and prevents ghost variants or wrong images from lingering.
 
+## RULE E3 — Trashed Data Isolation & Reporting Integrity (STRICT)
+1. **Zero Trash Leakage in Reporting & Dashboards**:
+   - Trashed orders (soft-deleted with `deleted_at IS NOT NULL` or `status = 'trash' | 'deleted'`) must **never** appear or be counted anywhere across Admin Dashboard, Financial/Sales Reporting, Live Feeds, Revenue Charts, Top Products, Status Breakdown, or Payment Ledgers.
+   - All queries, filters, and calculation utilities (`getOrders()`, `filterOrders()`, `computeMetrics()`, `ReportingDashboard.tsx`, `DashboardClient.tsx`) must strictly filter out `deleted_at` and `trash`/`deleted` status rows defense-in-depth.
+2. **Revenue Calculation Purity**:
+   - Sales, revenue, profit, and AOV calculations must strictly exclude cancelled, refunded (`status = 'cancelled' | 'refunded'` OR `payment_status = 'refunded'`), and trashed orders.
+3. **Customer History & Public Tracking Defense**:
+   - Customer profile order lists (`getCustomerOrders()`, `getOrdersByCustomerId()`), lifetime customer spend (`getAdminCustomers()`), social proof ticker (`getRecentBuyersPublic()`), and guest order tracking (`trackOrder()`) must strictly exclude trashed and cancelled/refunded orders so public trackers and customer metrics are never corrupted.
+
 

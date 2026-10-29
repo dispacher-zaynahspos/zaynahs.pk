@@ -26,6 +26,7 @@ export async function getCustomerOrders(): Promise<Order[]> {
     let query = supabase
       .from('orders')
       .select('*')
+      .is('deleted_at', null)
       .order('created_at', { ascending: false });
 
     const conditions: string[] = [`customer_id.eq.${session.id}`];
@@ -48,7 +49,9 @@ export async function getCustomerOrders(): Promise<Order[]> {
     const { data, error } = await query;
 
     if (error) throw error;
-    return (data ?? []).map(mapOrder);
+    return (data ?? [])
+      .filter((r) => !r.deleted_at && r.status !== 'trash' && r.status !== 'deleted')
+      .map(mapOrder);
   } catch (err) {
     console.error('getCustomerOrders failed:', err);
     return [];

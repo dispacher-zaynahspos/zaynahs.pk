@@ -13,9 +13,12 @@ export default async function AdminReportingPage() {
     getSettings()
   ]);
 
+  const cleanOrders = orders.filter(o => !o.deleted_at && (o.status as string) !== 'trash' && (o.status as string) !== 'deleted');
+  const cleanProducts = products.filter(p => !p.deleted_at);
+
   return (
     <div className="space-y-6">
-      <ReportingDashboard orders={orders} settings={settings} products={products} />
+      <ReportingDashboard orders={cleanOrders} settings={settings} products={cleanProducts} />
     </div>
   );
 }

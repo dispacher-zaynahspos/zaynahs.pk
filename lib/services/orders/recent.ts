@@ -36,8 +36,9 @@ export async function getRecentBuyersPublic(limit = 20): Promise<RecentBuyer[]> 
 
   const { data, error } = await supabaseAdmin
     .from('orders')
-    .select('customer_name, notes, items, created_at')
+    .select('customer_name, notes, items, created_at, status')
     .is('deleted_at', null)
+    .not('status', 'in', '("cancelled","refunded","trash","deleted")')
     .order('created_at', { ascending: false })
     .limit(safeLimit);
 

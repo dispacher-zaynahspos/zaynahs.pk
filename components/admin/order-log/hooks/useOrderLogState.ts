@@ -233,7 +233,7 @@ export function useOrderLogState({ initialOrders, settings }: UseOrderLogStatePr
 
   // Filter & Search Logic
   const filteredOrders = orders.filter(o => {
-    if (o.deleted_at) return false;
+    if (o.deleted_at || (o.status as string) === 'trash' || (o.status as string) === 'deleted') return false;
 
     if (activeTab === 'unfulfilled') {
       if (o.fulfillment_status === 'fulfilled') return false;

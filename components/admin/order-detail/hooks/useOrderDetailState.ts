@@ -34,6 +34,7 @@ export function useOrderDetailState(initialOrder: Order) {
           .select('id')
           .lt('created_at', order.created_at)
           .is('deleted_at', null)
+          .not('status', 'in', '("trash","deleted")')
           .order('created_at', { ascending: false })
           .limit(1)
           .maybeSingle(),
@@ -42,6 +43,7 @@ export function useOrderDetailState(initialOrder: Order) {
           .select('id')
           .gt('created_at', order.created_at)
           .is('deleted_at', null)
+          .not('status', 'in', '("trash","deleted")')
           .order('created_at', { ascending: true })
           .limit(1)
           .maybeSingle(),

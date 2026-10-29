@@ -34,7 +34,7 @@ export function OrderLogStatsBar({
 
     // PKT (UTC+5) day boundaries — identical to the list fetch + header badge.
     return orders.filter(o => {
-      if (o.deleted_at) return false;
+      if (o.deleted_at || (o.status as string) === 'trash' || (o.status as string) === 'deleted') return false;
       const orderTime = new Date(o.created_at).getTime();
 
       if (dateFilter === 'today') {
@@ -57,11 +57,11 @@ export function OrderLogStatsBar({
   const statsOrders = getStatsOrders();
   const statsOrdersCount = statsOrders.length;
   const statsItemsCount = statsOrders.reduce((sum, o) => sum + o.items.reduce((itemSum, item) => itemSum + (item.quantity || 1), 0), 0);
-  const statsReturnsCount = statsOrders.filter(o => o.status === 'refunded' || o.status === 'cancelled').reduce((sum, o) => sum + o.total, 0);
+  const statsReturnsCount = statsOrders.filter(o => o.status === 'refunded' || o.status === 'cancelled' || o.payment_status === 'refunded').reduce((sum, o) => sum + o.total, 0);
   const statsFulfilledCount = statsOrders.filter(o => !['pending', 'placed', 'confirmed'].includes(o.status)).length;
   const statsDeliveredCount = statsOrders.filter(o => o.status === 'delivered').length;
   const statsTotalSales = statsOrders
-    .filter(o => o.status !== 'cancelled' && o.status !== 'refunded')
+    .filter(o => o.status !== 'cancelled' && o.status !== 'refunded' && o.payment_status !== 'refunded')
     .reduce((sum, o) => sum + (o.total || 0), 0);
   const statsAov = statsOrdersCount > 0 ? Math.round(statsTotalSales / statsOrdersCount) : 0;
   const statsCancelledCount = statsOrders.filter(o => o.status === 'cancelled').length;

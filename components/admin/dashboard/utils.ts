@@ -44,13 +44,16 @@ export function getPreviousPeriodBounds(filter: DateRange, now: Date): { start: 
 export function filterOrders(orders: Order[], start: number, end: number): Order[] {
   if (start === 0 && end === 0) return [];
   return orders.filter(o => {
+    if (o.deleted_at || (o.status as string) === 'trash' || (o.status as string) === 'deleted') return false;
     const t = new Date(o.created_at).getTime();
     return t >= start && t <= end;
   });
 }
 
 export function computeMetrics(filteredOrders: Order[]) {
-  const revenueOrders = filteredOrders.filter(o => o.status !== 'cancelled' && o.status !== 'refunded');
+  // Trashed orders must never enter metrics under any circumstance
+  const activeOrders = filteredOrders.filter(o => !o.deleted_at && (o.status as string) !== 'trash' && (o.status as string) !== 'deleted');
+  const revenueOrders = activeOrders.filter(o => o.status !== 'cancelled' && o.status !== 'refunded' && o.payment_status !== 'refunded');
   let totalSales = 0, totalCOGS = 0, totalDeliveryCost = 0;
   revenueOrders.forEach(order => {
     totalSales += order.total;
@@ -71,9 +74,9 @@ export function computeMetrics(filteredOrders: Order[]) {
     netMargin: totalSales > 0 ? (netProfit / totalSales) * 100 : 0,
     count: revenueOrders.length,
     avgOrderValue: revenueOrders.length > 0 ? totalSales / revenueOrders.length : 0,
-    refundedCount: filteredOrders.filter(o => o.status === 'refunded').length,
-    cancelledCount: filteredOrders.filter(o => o.status === 'cancelled').length,
-    totalOrders: filteredOrders.length,
+    refundedCount: activeOrders.filter(o => o.status === 'refunded' || o.payment_status === 'refunded').length,
+    cancelledCount: activeOrders.filter(o => o.status === 'cancelled').length,
+    totalOrders: activeOrders.length,
   };
 }
 

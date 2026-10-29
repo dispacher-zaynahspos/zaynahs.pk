@@ -50,6 +50,8 @@ export default function ReportingDashboard({ orders, settings, products = [] }: 
   const dateFilteredOrders = useMemo(() => {
     const now = new Date();
     return orders.filter(o => {
+      // Exclude trashed or deleted orders completely from all reporting
+      if (o.deleted_at || (o.status as string) === 'trash' || (o.status as string) === 'deleted') return false;
       const t = new Date(o.created_at).getTime();
       if (dateFilter === 'today')     { return t >= getStartOfDay(now) && t <= getEndOfDay(now); }
       if (dateFilter === 'yesterday') { const y = new Date(now); y.setDate(y.getDate()-1); return t >= getStartOfDay(y) && t <= getEndOfDay(y); }
@@ -78,7 +80,7 @@ export default function ReportingDashboard({ orders, settings, products = [] }: 
   // ── Metrics ───────────────────────────────────────────────────────────
   const metrics: ReportingMetrics = useMemo(() => {
     const fulfilledStatuses = new Set(['shipped', 'out_for_delivery', 'delivered']);
-    const revenueOrders  = filteredOrders.filter(o => o.status !== 'cancelled' && o.status !== 'refunded');
+    const revenueOrders  = filteredOrders.filter(o => o.status !== 'cancelled' && o.status !== 'refunded' && o.payment_status !== 'refunded');
     const fulfilledOrders = filteredOrders.filter(o => fulfilledStatuses.has(o.status));
 
     let totalSales = 0, totalCOGS = 0, totalDeliveryCost = 0, fulfilledSales = 0, fulfilledCOGS = 0;
@@ -129,7 +131,7 @@ export default function ReportingDashboard({ orders, settings, products = [] }: 
 
   const topProducts: TopProduct[] = useMemo(() => {
     const map: Record<string, TopProduct> = {};
-    filteredOrders.filter(o => o.status !== 'cancelled' && o.status !== 'refunded').forEach(o => {
+    filteredOrders.filter(o => o.status !== 'cancelled' && o.status !== 'refunded' && o.payment_status !== 'refunded').forEach(o => {
       o.items.forEach(it => {
         const id = it.product.id;
         if (!map[id]) map[id] = { id, name: it.product.name, qty: 0, sales: 0, profit: 0, cost: 0 };
@@ -162,7 +164,7 @@ export default function ReportingDashboard({ orders, settings, products = [] }: 
 
   const chartData = useMemo(() => {
     const dm: Record<string, { day: string; revenue: number; cogs: number; profit: number }> = {};
-    filteredOrders.filter(o => o.status !== 'cancelled' && o.status !== 'refunded').forEach(o => {
+    filteredOrders.filter(o => o.status !== 'cancelled' && o.status !== 'refunded' && o.payment_status !== 'refunded').forEach(o => {
       const day = new Date(o.created_at).toLocaleDateString('en-CA');
       if (!dm[day]) dm[day] = { day, revenue: 0, cogs: 0, profit: 0 };
       let oc = 0;
@@ -178,7 +180,7 @@ export default function ReportingDashboard({ orders, settings, products = [] }: 
   }, [filteredOrders]);
 
   const inventoryData: InventoryItem[] = useMemo(() =>
-    products.filter(p => p.is_active).map(p => {
+    products.filter(p => p.is_active && !p.deleted_at).map(p => {
       const stockUnits = p.variants?.length ? p.variants.reduce((s, v) => s + (v.stock || 0), 0) : (p.stock || 0);
       const costVal    = stockUnits * (p.cost || 0);
       const saleVal    = p.variants?.length
@@ -216,7 +218,7 @@ export default function ReportingDashboard({ orders, settings, products = [] }: 
   // ── Cancellations / Refunds data ─────────────────────────────────────
   const cancellationRows: CancellationRow[] = useMemo(() =>
     filteredOrders
-      .filter(o => o.status === 'cancelled' || o.status === 'refunded')
+      .filter(o => !o.deleted_at && (o.status as string) !== 'trash' && (o.status === 'cancelled' || o.status === 'refunded'))
       .map(o => ({
         orderId:      o.id,
         orderNumber:  String(o.order_number ?? o.id.slice(0, 8)),

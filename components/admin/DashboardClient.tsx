@@ -51,7 +51,7 @@ export default function DashboardClient({ orders, products, customers, settings 
 
   const topProducts = useMemo(() => {
     const productMap: Record<string, { id: string; name: string; qty: number; sales: number; profit: number; cost: number }> = {};
-    const revenueOrders = currentOrders.filter(o => o.status !== 'cancelled' && o.status !== 'refunded');
+    const revenueOrders = currentOrders.filter(o => !o.deleted_at && o.status !== 'cancelled' && o.status !== 'refunded' && o.payment_status !== 'refunded' && (o.status as string) !== 'trash');
     revenueOrders.forEach(order => {
       order.items.forEach(item => {
         const pId = item.product.id;
@@ -72,7 +72,7 @@ export default function DashboardClient({ orders, products, customers, settings 
     const rangeDays = dateFilter === 'today' ? 1 : dateFilter === 'last7' ? 7 : dateFilter === 'last30' ? 30 : dateFilter === 'thisMonth' ? new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate() : 365;
     const groupByWeek = rangeDays > 60;
     const groupByMonth = rangeDays > 180;
-    const revenueOrders = currentOrders.filter(o => o.status !== 'cancelled' && o.status !== 'refunded');
+    const revenueOrders = currentOrders.filter(o => !o.deleted_at && o.status !== 'cancelled' && o.status !== 'refunded' && o.payment_status !== 'refunded' && (o.status as string) !== 'trash');
 
     const map: Record<string, { label: string; revenue: number; cogs: number; profit: number }> = {};
     revenueOrders.forEach(order => {
@@ -111,6 +111,7 @@ export default function DashboardClient({ orders, products, customers, settings 
   const recentActivity = useMemo(() => {
     const events: { id: string; type: 'order' | 'customer' | 'product'; text: string; time: string }[] = [];
     orders.forEach(o => {
+      if (o.deleted_at || (o.status as string) === 'trash' || (o.status as string) === 'deleted') return;
       events.push({
         id: `o-${o.id}`,
         type: 'order',
@@ -119,6 +120,7 @@ export default function DashboardClient({ orders, products, customers, settings 
       });
     });
     customers.forEach(c => {
+      if ((c as any).deleted_at) return;
       events.push({
         id: `c-${c.id}`,
         type: 'customer',
@@ -127,6 +129,7 @@ export default function DashboardClient({ orders, products, customers, settings 
       });
     });
     products.forEach(p => {
+      if (p.deleted_at) return;
       events.push({
         id: `p-${p.id}`,
         type: 'product',

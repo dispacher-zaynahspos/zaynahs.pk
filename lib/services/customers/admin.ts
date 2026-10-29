@@ -6,6 +6,8 @@ interface CustomerOrderRow {
   id: string;
   total: number | string | null;
   status: string | null;
+  payment_status?: string | null;
+  deleted_at?: string | null;
 }
 
 interface CustomerWithOrdersRow {
@@ -27,7 +29,7 @@ export async function getAdminCustomers() {
     // Select all customers, along with their orders
     const { data, error } = await supabaseAdmin
       .from('customers')
-      .select('*, orders(id, total, status)')
+      .select('*, orders(id, total, status, payment_status, deleted_at)')
       .is('deleted_at', null)
       .order('created_at', { ascending: false });
 
@@ -35,7 +37,14 @@ export async function getAdminCustomers() {
 
     return (data || []).map((c: CustomerWithOrdersRow) => {
       const orders = c.orders || [];
-      const validOrders = orders.filter((o) => o.status !== 'cancelled');
+      const validOrders = orders.filter((o) =>
+        !o.deleted_at &&
+        o.status !== 'cancelled' &&
+        o.status !== 'refunded' &&
+        o.payment_status !== 'refunded' &&
+        o.status !== 'trash' &&
+        o.status !== 'deleted'
+      );
       const totalSpent = validOrders.reduce((sum: number, o) => sum + Number(o.total || 0), 0);
 
       return {

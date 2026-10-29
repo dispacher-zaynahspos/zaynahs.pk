@@ -31,6 +31,7 @@ export async function trackOrder(orderNumber: string, phone: string): Promise<Tr
       .from('orders')
       .select('*')
       .ilike('order_number', num)
+      .is('deleted_at', null)
       .limit(1);
 
     if ((!data || data.length === 0) && rawNum !== num) {
@@ -38,6 +39,7 @@ export async function trackOrder(orderNumber: string, phone: string): Promise<Tr
         .from('orders')
         .select('*')
         .ilike('order_number', rawNum)
+        .is('deleted_at', null)
         .limit(1);
       data = res.data;
       error = res.error;
