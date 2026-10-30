@@ -1,6 +1,13 @@
-# Sample-Inspired Product Listing & Dynamic Multi-Store Engine Guide
+---
+name: sample-inspired-product-listing
+description: "Use when creating, listing, or cloning sample-inspired products across stores with inherited categories, sizes, size charts, badges, and mutual bought-together cross-links."
+metadata:
+  version: "1.0.0"
+---
 
-This document defines the automated operational workflow for listing products across stores using **Sample Inspiration Articles**.
+# Sample-Inspired Product Listing & Dynamic Multi-Store Engine Skill
+
+This skill defines the operational workflow for listing products across stores using **Sample Inspiration Articles**.
 
 ---
 
