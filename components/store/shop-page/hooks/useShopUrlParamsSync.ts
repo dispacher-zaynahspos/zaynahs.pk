@@ -98,10 +98,9 @@ export function useShopUrlParamsSync({
     if (!urlCategorySlug || urlCategorySlug === 'shop') {
       setSelectedCategoryId(undefined);
     } else {
-      const cat = displayCategories.find((c) => c.slug === urlCategorySlug);
-      setSelectedCategoryId(cat?.id);
+      setSelectedCategoryId(activeCategory?.id);
     }
-  }, [urlCategorySlug, displayCategories, setSelectedCategoryId]);
+  }, [urlCategorySlug, activeCategory, setSelectedCategoryId]);
 
   useEffect(() => {
     if (!urlCollectionSlug) {

@@ -43,14 +43,52 @@ export function useShopPageFilters({
   const urlMinPriceParam = searchParams.get('minPrice');
   const urlMaxPriceParam = searchParams.get('maxPrice');
 
+const CATEGORY_SLUG_ALIASES: Record<string, string> = {
+  shirts: 'casual-double-shirts',
+  shirt: 'casual-double-shirts',
+  boys: 'boys-winter-collection',
+  'boys-winter': 'Boys Winter Collections',
+  'boys-winter-collections': 'Boys Winter Collections',
+  hoodie: 'hoodies',
+  sweatshirt: 'sweatshirts',
+};
+
   const displayCategories = useMemo(() => {
     return categories.filter((c) => c.id !== SYSTEM_CATEGORY_ID);
   }, [categories]);
 
   const activeCategory = useMemo(() => {
     if (!urlCategorySlug) return undefined;
-    if (urlCategorySlug === 'shop') return undefined;
-    return displayCategories.find((c) => c.slug === urlCategorySlug);
+    const cleanSlug = urlCategorySlug.toLowerCase().trim();
+    if (cleanSlug === 'shop') return undefined;
+
+    // 1. Direct slug match (case-insensitive)
+    const direct = displayCategories.find((c) => c.slug?.toLowerCase() === cleanSlug);
+    if (direct) return direct;
+
+    // 2. Alias mapping (e.g. 'shirts' -> 'casual-double-shirts', 'boys' -> 'boys-winter-collection')
+    const aliasTarget = CATEGORY_SLUG_ALIASES[cleanSlug];
+    if (aliasTarget) {
+      const aliasMatch = displayCategories.find(
+        (c) => c.slug?.toLowerCase() === aliasTarget.toLowerCase() || c.name?.toLowerCase() === aliasTarget.toLowerCase()
+      );
+      if (aliasMatch) return aliasMatch;
+    }
+
+    // 3. Name match (exact or hyphens to spaces)
+    const normalizedName = cleanSlug.replace(/-/g, ' ');
+    const nameMatch = displayCategories.find(
+      (c) => c.name?.toLowerCase() === cleanSlug || c.name?.toLowerCase() === normalizedName
+    );
+    if (nameMatch) return nameMatch;
+
+    // 4. Partial substring match (e.g. 'shirts' matches 'casual-double-shirts')
+    const partial = displayCategories.find(
+      (c) => c.slug?.toLowerCase().includes(cleanSlug) || c.name?.toLowerCase().includes(cleanSlug)
+    );
+    if (partial) return partial;
+
+    return undefined;
   }, [urlCategorySlug, displayCategories]);
 
   const activeCollection = useMemo(() => {

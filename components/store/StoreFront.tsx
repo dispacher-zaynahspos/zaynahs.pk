@@ -6,7 +6,7 @@ import CategoryFilter from './CategoryFilter';
 import ProductGrid from './ProductGrid';
 import { getContentWidthClass, CATALOG_SECTION_PADDING } from '@/lib/utils/responsiveGrid';
 import { useSearchStore } from '@/store/searchStore';
-import { useScrollRestoration } from '@/lib/hooks/useScrollRestoration';
+import { useScrollRestoration, SCROLL_KEY, isSameStorePath, ScrollRestoreData } from '@/lib/hooks/useScrollRestoration';
 import { useSettings } from '@/lib/hooks/useSettings';
 import {
   FlashSaleSection,
@@ -89,19 +89,59 @@ export default function StoreFront({
   // Restoration from sessionStorage is therefore deferred to a post-mount effect.
   const [loadMoreLimits, setLoadMoreLimits] = useState<Record<string, number>>({});
 
-  // Restore saved limits AFTER hydration (back/forward navigation only).
+  // Restore saved limits AFTER hydration (return from product detail or back/forward navigation).
   useEffect(() => {
     try {
+      const currentPath = window.location.pathname + (window.location.search || '');
+      const rawScroll = sessionStorage.getItem(SCROLL_KEY);
+      let isReturnNavigation = false;
+      let limitsToRestore: Record<string, number> | null = null;
+
+      if (rawScroll) {
+        try {
+          const scrollData: ScrollRestoreData = JSON.parse(rawScroll);
+          if (
+            isSameStorePath(scrollData?.path, currentPath) &&
+            scrollData?.timestamp &&
+            Date.now() - scrollData.timestamp < 30 * 60 * 1000
+          ) {
+            isReturnNavigation = true;
+            if (scrollData.loadMoreLimits && Object.keys(scrollData.loadMoreLimits).length > 0) {
+              limitsToRestore = scrollData.loadMoreLimits;
+            }
+          }
+        } catch {}
+      }
+
+      // Also check performance navigation timing (for browser bfcache / hard back)
       const navEntries = performance?.getEntriesByType?.('navigation') as PerformanceNavigationTiming[];
-      const isBackForward = navEntries?.[0]?.type === 'back_forward';
-      if (isBackForward) {
-        const saved = sessionStorage.getItem(LOAD_MORE_KEY);
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 0) {
-            setLoadMoreLimits(parsed);
+      if (navEntries?.[0]?.type === 'back_forward') {
+        isReturnNavigation = true;
+      }
+
+      // Also check live scroll key
+      const cleanSearch = window.location.search.replace(/^\?/, '');
+      const liveKey = `scroll:${window.location.pathname}?${cleanSearch}`;
+      if (sessionStorage.getItem(liveKey)) {
+        isReturnNavigation = true;
+      }
+
+      if (isReturnNavigation) {
+        if (!limitsToRestore) {
+          const saved = sessionStorage.getItem(LOAD_MORE_KEY);
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 0) {
+              limitsToRestore = parsed;
+            }
           }
         }
+        if (limitsToRestore) {
+          setLoadMoreLimits(limitsToRestore);
+        }
+      } else {
+        // Fresh arrival at storefront (not returning via back): clear saved limits
+        sessionStorage.removeItem(LOAD_MORE_KEY);
       }
     } catch {}
     // Run once on mount only.

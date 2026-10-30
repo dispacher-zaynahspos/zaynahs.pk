@@ -7,6 +7,7 @@ export interface ScrollRestoreData {
   productId: string;
   path: string;
   timestamp: number;
+  loadMoreLimits?: Record<string, number>;
 }
 
 /**
@@ -56,11 +57,24 @@ export const saveScrollPosition = (productId: string) => {
   if (typeof window === 'undefined') return;
   const currentY = Math.round(window.scrollY);
   const currentPath = window.location.pathname + (window.location.search ? window.location.search : '');
+
+  let loadMoreLimits: Record<string, number> | undefined;
+  try {
+    const rawLimits = sessionStorage.getItem('storefront_load_more_limits');
+    if (rawLimits) {
+      const parsed = JSON.parse(rawLimits);
+      if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 0) {
+        loadMoreLimits = parsed;
+      }
+    }
+  } catch {}
+
   const data: ScrollRestoreData = {
     scrollY: currentY,
     productId,
     path: currentPath,
     timestamp: Date.now(),
+    loadMoreLimits,
   };
   try {
     sessionStorage.setItem(SCROLL_KEY, JSON.stringify(data));
