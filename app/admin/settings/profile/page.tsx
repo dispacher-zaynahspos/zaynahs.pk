@@ -125,19 +125,20 @@ export default function ProfileSettingsPage() {
                 Current Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <Lock className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 pointer-events-none" />
                 <input
                   type={showCurrentPassword ? 'text' : 'password'}
                   required
                   placeholder="Enter current password"
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
-                  className="w-full rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-[#0f0f1b]/50 h-10 pl-10 pr-10 text-xs font-medium text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[var(--color-primary,#C2185B)] focus:bg-white dark:focus:bg-[#16162a] focus:outline-none transition-all"
+                  className="w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-[#0f0f1b]/50 min-h-[44px] pl-10 pr-12 text-base sm:text-xs font-medium text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[var(--color-primary,#C2185B)] focus:bg-white dark:focus:bg-[#16162a] focus:outline-none transition-all"
                 />
                 <button
                   type="button"
                   onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors cursor-pointer"
+                  aria-label={showCurrentPassword ? 'Hide current password' : 'Show current password'}
+                  className="absolute right-1 top-1/2 -translate-y-1/2 min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors cursor-pointer"
                   tabIndex={-1}
                 >
                   {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -151,19 +152,20 @@ export default function ProfileSettingsPage() {
                   New Password
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                  <Lock className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 pointer-events-none" />
                   <input
                     type={showNewPassword ? 'text' : 'password'}
                     required
                     placeholder="Min 6 characters"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-[#0f0f1b]/50 h-10 pl-10 pr-10 text-xs font-medium text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[var(--color-primary,#C2185B)] focus:bg-white dark:focus:bg-[#16162a] focus:outline-none transition-all"
+                    className="w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-[#0f0f1b]/50 min-h-[44px] pl-10 pr-12 text-base sm:text-xs font-medium text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[var(--color-primary,#C2185B)] focus:bg-white dark:focus:bg-[#16162a] focus:outline-none transition-all"
                   />
                   <button
                     type="button"
                     onClick={() => setShowNewPassword(!showNewPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors cursor-pointer"
+                    aria-label={showNewPassword ? 'Hide new password' : 'Show new password'}
+                    className="absolute right-1 top-1/2 -translate-y-1/2 min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors cursor-pointer"
                     tabIndex={-1}
                   >
                     {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -176,19 +178,20 @@ export default function ProfileSettingsPage() {
                   Confirm New Password
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                  <Lock className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 pointer-events-none" />
                   <input
                     type={showConfirmPassword ? 'text' : 'password'}
                     required
                     placeholder="Re-enter new password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-[#0f0f1b]/50 h-10 pl-10 pr-10 text-xs font-medium text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[var(--color-primary,#C2185B)] focus:bg-white dark:focus:bg-[#16162a] focus:outline-none transition-all"
+                    className="w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-[#0f0f1b]/50 min-h-[44px] pl-10 pr-12 text-base sm:text-xs font-medium text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-[var(--color-primary,#C2185B)] focus:bg-white dark:focus:bg-[#16162a] focus:outline-none transition-all"
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors cursor-pointer"
+                    aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
+                    className="absolute right-1 top-1/2 -translate-y-1/2 min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors cursor-pointer"
                     tabIndex={-1}
                   >
                     {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -197,19 +200,19 @@ export default function ProfileSettingsPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-3 pt-2">
+            <div className="flex flex-wrap items-center gap-3 pt-2">
               <button
                 type="submit"
                 disabled={loading}
                 style={{ backgroundColor: 'var(--color-primary, #C2185B)' }}
-                className="inline-flex items-center justify-center gap-2 rounded-lg text-white px-5 h-9 text-xs font-bold shadow-xs hover:brightness-110 active:scale-95 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl text-white px-6 min-h-[44px] text-xs sm:text-sm font-bold shadow-xs hover:brightness-110 active:scale-95 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? 'Updating...' : 'Update Password'}
               </button>
 
               <Link
                 href="/admin/forgot-password"
-                className="text-xs font-semibold text-gray-500 dark:text-gray-400 hover:text-[var(--color-primary,#C2185B)] transition-colors underline underline-offset-2"
+                className="text-xs font-semibold text-gray-500 dark:text-gray-400 hover:text-[var(--color-primary,#C2185B)] transition-colors underline underline-offset-2 py-2"
               >
                 Forgot Password?
               </Link>

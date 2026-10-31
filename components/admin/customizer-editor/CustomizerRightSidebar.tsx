@@ -96,7 +96,7 @@ export function CustomizerRightSidebar({
           {onBack && (
             <button
               onClick={onBack}
-              className="flex items-center gap-1 shrink-0 px-1.5 py-1 -ml-1 rounded-lg text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/70 dark:hover:bg-gray-700 transition-all cursor-pointer"
+              className="flex items-center gap-1 shrink-0 p-2 min-h-[44px] min-w-[44px] rounded-xl text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/70 dark:hover:bg-gray-700 transition-all cursor-pointer"
               aria-label="Back to sections list"
               title="Back"
             >
@@ -111,7 +111,7 @@ export function CustomizerRightSidebar({
         </div>
         <button
           onClick={() => setMobileTab('preview')}
-          className="md:hidden p-1.5 rounded-lg text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-700 transition-all cursor-pointer"
+          className="md:hidden p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-700 transition-all cursor-pointer"
           aria-label="Close"
         >
           <X className="h-4 w-4" />

@@ -155,7 +155,7 @@ export function SettingsTabBar({ activeTab, setActiveTab }: SettingsTabBarProps)
                 id={`tab-btn-${id}`}
                 type="button"
                 onClick={() => handleTabClick(tab)}
-                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-black whitespace-nowrap transition-all duration-200 cursor-pointer shrink-0 min-h-[36px] ml-auto border shadow-xs ${
+                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-black whitespace-nowrap transition-all duration-200 cursor-pointer shrink-0 min-h-[40px] sm:min-h-[36px] ml-auto border shadow-xs ${
                   isActive
                     ? 'bg-gradient-to-r from-[#e94560] to-orange-500 text-white border-transparent shadow-md ring-2 ring-[#e94560]/50'
                     : 'bg-gradient-to-r from-[#e94560]/10 via-purple-500/10 to-amber-500/15 hover:from-[#e94560]/20 hover:to-amber-500/25 text-[#e94560] dark:text-amber-400 border-[#e94560]/35 hover:border-[#e94560]/60 active:scale-98'
@@ -177,7 +177,7 @@ export function SettingsTabBar({ activeTab, setActiveTab }: SettingsTabBarProps)
               type="button"
               onClick={() => handleTabClick(tab)}
               style={isActive ? { backgroundColor: 'var(--color-primary, #C2185B)' } : undefined}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-150 cursor-pointer shrink-0 min-h-[36px] ${
+              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-150 cursor-pointer shrink-0 min-h-[40px] sm:min-h-[36px] ${
                 isActive
                   ? 'text-white shadow-xs font-black'
                   : 'text-gray-600 dark:text-gray-400 bg-gray-50/80 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white'

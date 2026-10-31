@@ -26,7 +26,7 @@ export function SettingsSaveBar({ activeTab, isSubmitting, isPurging, onPurgeCac
           type="button"
           disabled={isPurging}
           onClick={onPurgeCache}
-          className={`relative overflow-hidden flex items-center justify-center gap-1.5 rounded-lg active:scale-95 px-3.5 h-8.5 text-xs font-bold shadow-xs transition-all cursor-pointer border ${
+          className={`relative overflow-hidden flex items-center justify-center gap-1.5 rounded-xl active:scale-95 px-3.5 min-h-[44px] sm:min-h-[34px] text-xs font-bold shadow-xs transition-all cursor-pointer border ${
             isPurging
               ? 'border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 disabled:cursor-not-allowed'
               : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-[#0f0f1b] text-gray-700 dark:text-gray-300 hover:border-amber-400 dark:hover:border-amber-600 hover:text-amber-600 dark:hover:text-amber-400'
@@ -50,7 +50,7 @@ export function SettingsSaveBar({ activeTab, isSubmitting, isPurging, onPurgeCac
           type="submit"
           disabled={isSubmitting}
           style={{ backgroundColor: 'var(--color-primary, #C2185B)' }}
-          className="relative overflow-hidden flex items-center justify-center gap-2 rounded-lg active:scale-95 text-white px-5 h-8.5 text-xs font-bold shadow-sm hover:brightness-110 transition-all cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
+          className="relative overflow-hidden flex-1 sm:flex-initial flex items-center justify-center gap-2 rounded-xl active:scale-95 text-white px-5 min-h-[44px] sm:min-h-[34px] text-xs font-bold shadow-sm hover:brightness-110 transition-all cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
         >
           {isSubmitting ? (
             <div className="flex items-center gap-2">

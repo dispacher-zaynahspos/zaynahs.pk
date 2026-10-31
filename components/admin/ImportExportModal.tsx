@@ -251,13 +251,13 @@ export default function ImportExportModal({
   if (!isOpen) return null;
 
   return (
-    <Modal open={isOpen} onClose={onClose} showClose={false} size="lg" className="h-[90vh] md:h-[85vh] !max-h-[90vh]">
+    <Modal open={isOpen} onClose={onClose} variant="sheet" showClose={false} size="lg" className="h-[92dvh] md:h-[85vh] !max-h-[92dvh] md:!max-h-[85vh]">
       <div className="relative flex flex-col h-full overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-gray-150 dark:border-gray-800/80 px-6 py-4">
+        <div className="flex items-center justify-between border-b border-gray-150 dark:border-gray-800/80 px-4 sm:px-6 py-3.5 sm:py-4 shrink-0">
           <div>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-              <PackageOpen className="w-6 h-6 text-[#e94560]" />
+            <h2 className="text-base sm:text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+              <PackageOpen className="w-5 h-5 sm:w-6 sm:h-6 text-[#e94560]" />
               Import / Export Products
             </h2>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
@@ -267,10 +267,11 @@ export default function ImportExportModal({
           <button 
             type="button"
             onClick={isImporting ? handleImportClose : onClose}
-            className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors text-gray-500 dark:text-gray-400 cursor-pointer"
+            aria-label="Close modal"
+            className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors text-gray-500 dark:text-gray-400 cursor-pointer min-h-[44px] min-w-[44px] flex items-center justify-center -mr-2"
             disabled={isExporting || isImporting}
           >
-            <X className="w-6 h-6" />
+            <X className="w-5 h-5 sm:w-6 sm:h-6" />
           </button>
         </div>
 

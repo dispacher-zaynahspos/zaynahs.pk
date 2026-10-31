@@ -88,18 +88,19 @@ Rules:
   };
 
   return (
-    <Modal open onClose={() => setEditingItem(null)} showClose={false} size="sm">
+    <Modal open onClose={() => setEditingItem(null)} showClose={false} size="sm" variant="sheet" className="max-h-[92dvh] sm:max-h-[90vh] flex flex-col">
       <div className="flex justify-between items-center p-4 border-b border-gray-100 dark:border-gray-800">
           <h3 className="font-bold text-gray-900 dark:text-white">Edit Image Metadata</h3>
           <button
             type="button"
             onClick={() => setEditingItem(null)}
-            className="p-1 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer min-h-[36px]"
+            aria-label="Close"
+            className="p-1 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
-        <form onSubmit={onSave} className="p-6 space-y-4">
+        <form onSubmit={onSave} className="p-6 space-y-4 flex-1 overflow-y-auto overscroll-contain">
           {isImage && (
             <button
               type="button"
@@ -124,7 +125,7 @@ Rules:
                   type="button"
                   onClick={() => handleGenerate('alt')}
                   disabled={!!generating}
-                  className="flex items-center gap-1.5 text-[11px] font-semibold text-gray-700 hover:text-black dark:text-gray-300 dark:hover:text-white bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 px-2.5 py-1 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  className="flex items-center gap-1.5 text-[11px] font-semibold text-gray-700 hover:text-black dark:text-gray-300 dark:hover:text-white bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 px-2.5 py-1 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer min-h-[36px]"
                 >
                   {generating === 'alt' ? <Loader2 className="w-3 h-3 animate-spin text-gray-500" /> : <Sparkles className="w-3 h-3 text-amber-500" />}
                   <span>Auto-fill</span>
@@ -137,7 +138,7 @@ Rules:
               onChange={(e) =>
                 setEditingItem((prev) => (prev ? { ...prev, alt_text: e.target.value } : null))
               }
-              className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1a1a30] text-gray-900 dark:text-white text-xs font-medium focus:border-gray-900 dark:focus:border-gray-400 focus:outline-hidden focus:ring-1 focus:ring-gray-900 dark:focus:ring-gray-400 min-h-[42px] transition-colors"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1a1a30] text-gray-900 dark:text-white text-base sm:text-xs font-medium focus:border-gray-900 dark:focus:border-gray-400 focus:outline-hidden focus:ring-1 focus:ring-gray-900 dark:focus:ring-gray-400 min-h-[44px] sm:min-h-[42px] transition-colors"
             />
             <div className={`text-[10px] font-medium text-right ${altLength > ALT_MAX ? 'text-amber-600 font-semibold' : 'text-gray-400'}`}>
               {altLength}/{ALT_MAX}
@@ -152,7 +153,7 @@ Rules:
                   type="button"
                   onClick={() => handleGenerate('title')}
                   disabled={!!generating}
-                  className="flex items-center gap-1.5 text-[11px] font-semibold text-gray-700 hover:text-black dark:text-gray-300 dark:hover:text-white bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 px-2.5 py-1 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  className="flex items-center gap-1.5 text-[11px] font-semibold text-gray-700 hover:text-black dark:text-gray-300 dark:hover:text-white bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 px-2.5 py-1 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer min-h-[36px]"
                 >
                   {generating === 'title' ? <Loader2 className="w-3 h-3 animate-spin text-gray-500" /> : <Sparkles className="w-3 h-3 text-amber-500" />}
                   <span>Auto-fill</span>
@@ -165,21 +166,21 @@ Rules:
               onChange={(e) =>
                 setEditingItem((prev) => (prev ? { ...prev, title: e.target.value } : null))
               }
-              className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1a1a30] text-gray-900 dark:text-white text-xs font-medium focus:border-gray-900 dark:focus:border-gray-400 focus:outline-hidden focus:ring-1 focus:ring-gray-900 dark:focus:ring-gray-400 min-h-[42px] transition-colors"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1a1a30] text-gray-900 dark:text-white text-base sm:text-xs font-medium focus:border-gray-900 dark:focus:border-gray-400 focus:outline-hidden focus:ring-1 focus:ring-gray-900 dark:focus:ring-gray-400 min-h-[44px] sm:min-h-[42px] transition-colors"
             />
           </div>
 
-          <div className="pt-4 flex justify-end gap-2 border-t border-gray-100 dark:border-gray-800">
+          <div className="pt-4 flex justify-end gap-2 border-t border-gray-100 dark:border-gray-800 pb-[calc(1rem+env(safe-area-inset-bottom,0px))]">
             <button
               type="button"
               onClick={() => setEditingItem(null)}
-              className="px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 font-semibold text-xs cursor-pointer min-h-[38px] transition-colors"
+              className="flex-1 sm:flex-initial px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 font-semibold text-xs cursor-pointer min-h-[44px] sm:min-h-[38px] transition-colors flex items-center justify-center"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-5 py-2 text-white rounded-xl font-bold text-xs bg-gray-950 hover:bg-black dark:bg-white dark:text-gray-950 dark:hover:bg-gray-100 transition-all flex items-center justify-center gap-2 cursor-pointer min-h-[38px] shadow-xs active:scale-95"
+              className="flex-1 sm:flex-initial px-5 py-2 text-white rounded-xl font-bold text-xs bg-gray-950 hover:bg-black dark:bg-white dark:text-gray-950 dark:hover:bg-gray-100 transition-all flex items-center justify-center gap-2 cursor-pointer min-h-[44px] sm:min-h-[38px] shadow-xs active:scale-95"
             >
               Save Details
             </button>

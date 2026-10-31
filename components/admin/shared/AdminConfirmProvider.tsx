@@ -56,14 +56,14 @@ export function AdminConfirmProvider({ children }: { children: ReactNode }) {
       <Modal
         open={isOpen && !!options}
         onClose={handleCancel}
-        variant="center"
+        variant="sheet"
         size="sm"
         showClose={false}
         ariaLabel={options?.title}
       >
         {options && (
           <>
-            <div className="p-6 text-center space-y-4">
+            <div className="p-5 sm:p-6 text-center space-y-4">
               <div className={`mx-auto flex h-12 w-12 items-center justify-center rounded-full ${
                 options.variant === 'danger' ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-500' :
                 options.variant === 'warning' ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-500' :
@@ -76,27 +76,27 @@ export function AdminConfirmProvider({ children }: { children: ReactNode }) {
                 )}
               </div>
               <div>
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
                   {options.title}
                 </h3>
-                <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                <p className="mt-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                   {options.message}
                 </p>
               </div>
             </div>
 
-            <div className="bg-gray-50 dark:bg-[#0f0f1b] px-6 py-4 flex items-center justify-end gap-3 border-t border-gray-100 dark:border-gray-800">
+            <div className="bg-gray-50 dark:bg-[#0f0f1b] px-4 sm:px-6 py-3 sm:py-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] sm:pb-4 flex items-center justify-end gap-2.5 sm:gap-3 border-t border-gray-100 dark:border-gray-800">
               <button
                 type="button"
                 onClick={handleCancel}
-                className="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors"
+                className="flex-1 sm:flex-initial min-h-[44px] px-4 py-2.5 text-xs sm:text-sm font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors flex items-center justify-center cursor-pointer active:scale-95"
               >
                 {options.cancelText || 'Cancel'}
               </button>
               <button
                 type="button"
                 onClick={handleConfirm}
-                className={`px-4 py-2 text-sm font-semibold text-white rounded-xl shadow-sm transition-colors ${
+                className={`flex-1 sm:flex-initial min-h-[44px] px-5 py-2.5 text-xs sm:text-sm font-bold text-white rounded-xl shadow-sm transition-all flex items-center justify-center cursor-pointer active:scale-95 ${
                   options.variant === 'danger' ? 'bg-red-600 hover:bg-red-700' :
                   options.variant === 'warning' ? 'bg-amber-600 hover:bg-amber-700' :
                   'bg-blue-600 hover:bg-blue-700'

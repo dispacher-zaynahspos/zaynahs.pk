@@ -100,7 +100,7 @@ export function AdminMobileDrawer({
           <button
             type="button"
             onClick={() => setIsMobileMenuOpen(false)}
-            className="h-10 w-10 flex items-center justify-center rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all focus:outline-none active:scale-95 cursor-pointer"
+            className="h-11 w-11 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all focus:outline-none active:scale-95 cursor-pointer"
             title="Close menu"
             aria-label="Close navigation menu"
           >
@@ -117,7 +117,7 @@ export function AdminMobileDrawer({
                 setIsMobileMenuOpen(false);
                 onOpenCommandPalette();
               }}
-              className="w-full flex items-center justify-between px-3 h-10 rounded-xl bg-black/35 hover:bg-black/45 text-white border border-white/20 shadow-inner transition-all cursor-pointer active:scale-98"
+              className="w-full flex items-center justify-between px-3 h-11 min-h-[44px] rounded-xl bg-black/35 hover:bg-black/45 text-white border border-white/20 shadow-inner transition-all cursor-pointer active:scale-98"
             >
               <div className="flex items-center gap-2">
                 <Search className="h-4 w-4 text-white/85" />

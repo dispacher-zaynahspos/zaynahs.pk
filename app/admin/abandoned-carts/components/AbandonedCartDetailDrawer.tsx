@@ -66,7 +66,8 @@ export default function AbandonedCartDetailDrawer({
           <div className="flex items-center gap-3">
             <button
               onClick={() => setSelectedCartId(null)}
-              className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-700 dark:hover:text-white transition-colors"
+              aria-label="Close details"
+              className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-700 dark:hover:text-white transition-colors cursor-pointer"
             >
               <X className="h-5 w-5" />
             </button>
@@ -89,7 +90,7 @@ export default function AbandonedCartDetailDrawer({
           <div className="flex items-center gap-2 self-end sm:self-auto">
             <button
               onClick={() => handleCopyDetails(selectedCart)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#16162a] text-[10px] sm:text-xs font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors whitespace-nowrap shrink-0"
+              className="flex items-center gap-1.5 px-3 py-1.5 min-h-[44px] sm:min-h-0 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#16162a] text-[10px] sm:text-xs font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
             >
               {copiedId === selectedCart.id ? (
                 <>
@@ -110,16 +111,18 @@ export default function AbandonedCartDetailDrawer({
             <button
               onClick={handlePrevCart}
               disabled={selectedCartIndex <= 0}
-              className="p-1.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#16162a] text-gray-550 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="p-1.5 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#16162a] text-gray-550 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
               title="Previous Cart"
+              aria-label="Previous Cart"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
             <button
               onClick={handleNextCart}
               disabled={selectedCartIndex < 0 || selectedCartIndex >= filteredCarts.length - 1}
-              className="p-1.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#16162a] text-gray-550 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="p-1.5 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#16162a] text-gray-550 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
               title="Next Cart"
+              aria-label="Next Cart"
             >
               <ChevronRight className="h-4 w-4" />
             </button>
@@ -127,7 +130,7 @@ export default function AbandonedCartDetailDrawer({
         </div>
 
         {/* Scrollable Drawer Body */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 overscroll-contain pb-24 sm:pb-8">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 overscroll-contain pb-[calc(6rem+env(safe-area-inset-bottom,0px))] sm:pb-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
             {/* Left/Main Column - Items & Totals (2 columns) */}

@@ -73,7 +73,7 @@ export function CustomizerLeftSidebar({
         </h3>
         <button
           onClick={() => setMobileTab('preview')}
-          className="md:hidden p-1.5 rounded-lg text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-700 transition-all cursor-pointer"
+          className="md:hidden p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-700 transition-all cursor-pointer"
           aria-label="Close"
         >
           <X className="h-4 w-4" />

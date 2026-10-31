@@ -112,23 +112,25 @@ export function EditSEOModal({ isOpen, onClose, entity_type, entity_id, seoData 
     <Modal
       open={isOpen}
       onClose={onClose}
-      variant="center"
+      variant="sheet"
       size="md"
       showClose={false}
       ariaLabel="Edit SEO Copy overrides"
       zIndexClassName="z-50"
       className="!bg-transparent !border-0 !shadow-none !rounded-none !overflow-visible"
     >
-      <div className="w-full max-w-3xl mx-auto bg-white dark:bg-[#16162a] rounded-2xl border border-gray-100 dark:border-gray-800 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="w-full max-w-3xl mx-auto bg-white dark:bg-[#16162a] rounded-t-3xl sm:rounded-2xl border-t border-x sm:border border-gray-100 dark:border-gray-800 shadow-2xl overflow-hidden flex flex-col max-h-[92dvh] sm:max-h-[90vh]">
         {/* Header */}
-        <div className="flex justify-between items-center p-4 border-b border-gray-100 dark:border-gray-800">
+        <div className="flex justify-between items-center p-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
           <div>
             <h3 className="font-bold text-gray-900 dark:text-white">Edit SEO Copy overrides</h3>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Customize specific search and social tags manually.</p>
           </div>
           <button 
+            type="button"
             onClick={onClose} 
-            className="p-1 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer min-h-[36px] min-w-[36px] flex items-center justify-center"
+            aria-label="Close"
+            className="p-1 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer min-h-[44px] min-w-[44px] flex items-center justify-center -mr-2"
           >
             <X className="w-5 h-5" />
           </button>
@@ -312,7 +314,7 @@ export function EditSEOModal({ isOpen, onClose, entity_type, entity_id, seoData 
           </div>
 
           {/* Footer Save Actions */}
-          <div className="sticky bottom-0 bg-white dark:bg-[#16162a] py-4 border-t border-gray-100 dark:border-gray-800 flex justify-end gap-3">
+          <div className="sticky bottom-0 bg-white dark:bg-[#16162a] py-3.5 sm:py-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] sm:pb-4 border-t border-gray-100 dark:border-gray-800 flex justify-end gap-3 px-6">
             <button
               type="button"
               onClick={onClose}

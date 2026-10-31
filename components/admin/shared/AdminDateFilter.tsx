@@ -22,12 +22,12 @@ export default function AdminDateFilter({
   ]
 }: AdminDateFilterProps) {
   return (
-    <div className={`flex items-center gap-1.5 min-w-0 box-border bg-white dark:bg-[#16162a] border border-gray-200 dark:border-gray-800 rounded-xl px-3 py-1 ${className}`}>
+    <div className={`flex items-center gap-1.5 min-w-0 box-border bg-white dark:bg-[#16162a] border border-gray-200 dark:border-gray-800 rounded-xl px-3 py-1 min-h-[44px] sm:min-h-0 ${className}`}>
       <Calendar className="h-4 w-4 shrink-0 text-gray-400" />
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="flex-1 min-w-0 w-full box-border bg-transparent border-0 text-xs font-bold focus:outline-none text-gray-900 dark:text-white cursor-pointer py-1.5 pr-1 appearance-none truncate"
+        className="flex-1 min-w-0 w-full box-border bg-transparent border-0 text-base sm:text-xs font-bold focus:outline-none text-gray-900 dark:text-white cursor-pointer py-1.5 pr-1 appearance-none truncate"
       >
         {options.map((option) => (
           <option key={option.value} value={option.value}>

@@ -148,18 +148,23 @@ export default function PostReviewModal({ isOpen, onClose, onSuccess, editProof 
   };
 
   return (
-    <Modal open={isOpen} onClose={onClose} showClose={false} size="md" className="!max-h-[90vh]">
+    <Modal open={isOpen} onClose={onClose} variant="sheet" showClose={false} size="md" className="!max-h-[92dvh] sm:!max-h-[90vh]">
       {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between flex-shrink-0">
+        <div className="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between flex-shrink-0">
           <div>
-            <h3 className="text-lg font-black text-gray-900 dark:text-white">
+            <h3 className="text-base sm:text-lg font-black text-gray-900 dark:text-white">
               {isEditing ? 'Edit Social Proof' : 'Post Customer Content'}
             </h3>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
               {isEditing ? 'Update the social proof entry' : 'Create a review or share social proof'}
             </p>
           </div>
-          <button type="button" onClick={onClose} className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-700 dark:hover:text-white transition-all cursor-pointer">
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-700 dark:hover:text-white transition-all cursor-pointer min-h-[44px] min-w-[44px] flex items-center justify-center -mr-2"
+          >
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -359,9 +364,9 @@ export default function PostReviewModal({ isOpen, onClose, onSuccess, editProof 
                 )}
               </div>
 
-              <div className="flex justify-end gap-3 pt-2">
-                <button type="button" onClick={onClose} className="px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 text-sm font-bold text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5 transition-all cursor-pointer">Cancel</button>
-                <button type="submit" disabled={submitting || !proofImageUrl} className="flex items-center gap-1.5 px-5 py-2 rounded-xl bg-[#1a1a2e] hover:bg-[#e94560] disabled:bg-gray-300 disabled:cursor-not-allowed text-white text-sm font-bold transition-all cursor-pointer">
+              <div className="flex justify-end gap-3 pt-2 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] sm:pb-2">
+                <button type="button" onClick={onClose} className="min-h-[44px] px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-sm font-bold text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5 transition-all cursor-pointer flex items-center justify-center">Cancel</button>
+                <button type="submit" disabled={submitting || !proofImageUrl} className="min-h-[44px] flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-xl bg-[#1a1a2e] hover:bg-[#e94560] disabled:bg-gray-300 disabled:cursor-not-allowed text-white text-sm font-bold transition-all cursor-pointer active:scale-95">
                   <Send className="w-4 h-4" />
                   <span>{submitting ? 'Saving...' : isEditing ? 'Update Proof' : 'Post to Wall'}</span>
                 </button>

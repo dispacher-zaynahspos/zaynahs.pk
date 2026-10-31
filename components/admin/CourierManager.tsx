@@ -275,7 +275,7 @@ export default function CourierManager({ settings: initialSettings }: CourierMan
             onClick={handleSave}
             disabled={saving}
             style={{ backgroundColor: 'var(--color-primary, #C2185B)' }}
-            className="ml-auto flex items-center justify-center gap-2 rounded-xl text-white px-6 h-10 text-xs sm:text-sm font-bold shadow-md hover:brightness-110 active:scale-95 transition-all cursor-pointer disabled:opacity-50"
+            className="w-full sm:w-auto ml-auto flex items-center justify-center gap-2 rounded-xl text-white px-6 min-h-[44px] sm:min-h-0 py-2.5 text-xs sm:text-sm font-bold shadow-md hover:brightness-110 active:scale-95 transition-all cursor-pointer disabled:opacity-50"
           >
             {saving ? <Loader2 className="h-4 w-4 animate-spin text-white" /> : <Save className="h-4 w-4 text-white" />}
             <span>Save Courier Settings</span>

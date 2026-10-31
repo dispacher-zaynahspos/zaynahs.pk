@@ -159,13 +159,14 @@ export function AdminCommandPalette({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Type a command or jump to page... (e.g. Products, Customizer, WhatsApp)"
-            className="w-full bg-transparent text-sm sm:text-base font-medium text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none"
+            className="w-full bg-transparent text-base font-medium text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none"
           />
           {query ? (
             <button
               type="button"
               onClick={() => setQuery('')}
-              className="p-1 rounded-md text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              aria-label="Clear query"
+              className="p-1 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-md text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 cursor-pointer"
             >
               <X className="h-4 w-4" />
             </button>

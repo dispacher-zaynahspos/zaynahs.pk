@@ -88,8 +88,8 @@ export default function MenuItemFormModal({
   if (!isOpen) return null;
 
   return (
-    <Modal open={isOpen} onClose={onClose} showClose={false} size="sm">
-      <div className="p-6 relative">
+    <Modal open={isOpen} onClose={onClose} variant="sheet" showClose={false} size="sm">
+      <div className="p-4 sm:p-6 relative">
         <div className="flex items-center justify-between mb-4 border-b border-gray-200 dark:border-gray-800 pb-2">
           <h3 className="text-sm font-bold uppercase tracking-wider text-gray-900 dark:text-white">
             {editingMenuItemId ? 'Edit Menu Item' : 'Add Menu Item'}
@@ -97,7 +97,8 @@ export default function MenuItemFormModal({
           <button
             type="button"
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-500 dark:hover:text-white cursor-pointer"
+            aria-label="Close"
+            className="text-gray-400 hover:text-gray-500 dark:hover:text-white cursor-pointer min-h-[44px] min-w-[44px] flex items-center justify-center -mr-2"
           >
             <X className="h-5 w-5" />
           </button>
@@ -112,7 +113,7 @@ export default function MenuItemFormModal({
               placeholder="e.g. Track Suits"
               value={menuItemLabel}
               onChange={(e) => setMenuItemLabel(e.target.value)}
-              className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f0f1b] px-4 py-2.5 text-sm focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
+              className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f0f1b] px-4 py-2.5 text-base sm:text-sm focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white min-h-[44px] sm:min-h-0"
             />
           </div>
 
@@ -306,18 +307,18 @@ export default function MenuItemFormModal({
             </div>
           )}
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-800">
+          <div className="flex justify-end gap-3 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] sm:pb-0 border-t border-gray-200 dark:border-gray-800">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-transparent text-gray-700 dark:text-gray-300 text-xs font-bold hover:bg-gray-100 dark:hover:bg-white/5 transition-all cursor-pointer"
+              className="min-h-[44px] px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-transparent text-gray-700 dark:text-gray-300 text-xs sm:text-sm font-bold hover:bg-gray-100 dark:hover:bg-white/5 transition-all cursor-pointer flex items-center justify-center active:scale-95"
             >
               Cancel
             </button>
             <button
               type="button"
               onClick={handleSaveMenuItem}
-              className="px-4 py-2 rounded-xl bg-[#e94560] text-white text-xs font-bold hover:bg-[#d83a52] transition-all cursor-pointer"
+              className="min-h-[44px] px-5 py-2.5 rounded-xl bg-[#e94560] text-white text-xs sm:text-sm font-bold hover:bg-[#d83a52] transition-all cursor-pointer flex items-center justify-center active:scale-95 shadow-sm"
             >
               Save Item
             </button>

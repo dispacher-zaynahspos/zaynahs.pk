@@ -65,7 +65,7 @@ export default function CategoryFormModal({
     <Modal
       open={isOpen}
       onClose={onClose}
-      variant="center"
+      variant="sheet"
       size="md"
       showClose={false}
       ariaLabel={editId ? 'Edit Category' : 'Create New Category'}
@@ -76,12 +76,12 @@ export default function CategoryFormModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="category-form-modal-title"
-        className="relative w-full max-w-3xl mx-auto bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 shadow-2xl flex flex-col max-h-[90dvh] overflow-hidden text-gray-900 dark:text-white"
+        className="relative w-full max-w-3xl mx-auto bg-white dark:bg-[#16162a] rounded-t-3xl sm:rounded-2xl border-t border-x sm:border border-gray-200 dark:border-gray-800 shadow-2xl flex flex-col max-h-[92dvh] sm:max-h-[90dvh] overflow-hidden text-gray-900 dark:text-white"
       >
         
         {/* Sticky Header */}
-        <div className="flex justify-between items-center px-5 sm:px-6 py-4 border-b border-gray-150 dark:border-gray-800 shrink-0 bg-white dark:bg-[#16162a]">
-          <div className="flex items-center gap-3">
+        <div className="flex justify-between items-center px-4 sm:px-6 py-3.5 sm:py-4 border-b border-gray-150 dark:border-gray-800 shrink-0 bg-white dark:bg-[#16162a]">
+          <div className="flex items-center gap-2 sm:gap-3">
             <h3 id="category-form-modal-title" className="text-base font-extrabold tracking-tight text-gray-900 dark:text-white">
               {editId ? 'Edit Category' : 'Create New Category'}
             </h3>
@@ -90,7 +90,7 @@ export default function CategoryFormModal({
                 type="button"
                 onClick={onAICopywrite}
                 disabled={isAiGenerating}
-                className={`flex items-center gap-1.5 px-3 py-1.5 text-white rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm disabled:opacity-50 disabled:cursor-not-allowed select-none active:scale-[0.98] ${
+                className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-white rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm disabled:opacity-50 disabled:cursor-not-allowed select-none active:scale-[0.98] ${
                   aiConfigured
                     ? 'bg-purple-600 bg-linear-to-r from-purple-600 to-indigo-600 hover:bg-purple-700 hover:from-purple-700 hover:to-indigo-700'
                     : 'bg-gray-400 hover:bg-gray-500'
@@ -102,14 +102,15 @@ export default function CategoryFormModal({
                 ) : (
                   <Zap className="w-3.5 h-3.5 fill-current" />
                 )}
-                <span>AI Generate Copy</span>
+                <span className="hidden sm:inline">AI Generate Copy</span>
+                <span className="sm:hidden">AI Copy</span>
               </button>
             )}
           </div>
           <button 
             type="button"
             onClick={onClose} 
-            className="text-gray-400 hover:text-gray-650 dark:hover:text-white cursor-pointer p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 transition-all"
+            className="text-gray-400 hover:text-gray-650 dark:hover:text-white cursor-pointer p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 transition-all min-h-[44px] min-w-[44px] flex items-center justify-center -mr-2"
             aria-label="Close modal"
           >
             <X className="h-5 w-5" />
@@ -278,19 +279,19 @@ export default function CategoryFormModal({
           </div>
 
           {/* Action Buttons (Sticky Footer) */}
-          <div className="p-6 pt-4 border-t border-gray-150 dark:border-gray-800 bg-gray-50 dark:bg-[#11111e] shrink-0">
-            <div className="flex gap-4">
+          <div className="p-4 sm:p-6 pt-3 sm:pt-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] sm:pb-4 border-t border-gray-150 dark:border-gray-800 bg-gray-50 dark:bg-[#11111e] shrink-0">
+            <div className="flex gap-3 sm:gap-4">
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 text-center border border-gray-250 dark:border-gray-700 text-gray-700 dark:text-gray-350 bg-white dark:bg-transparent rounded-xl py-3 text-sm font-bold cursor-pointer hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                className="flex-1 min-h-[44px] flex items-center justify-center text-center border border-gray-250 dark:border-gray-700 text-gray-700 dark:text-gray-350 bg-white dark:bg-transparent rounded-xl py-2.5 sm:py-3 text-sm font-bold cursor-pointer hover:bg-gray-50 dark:hover:bg-white/5 transition-colors active:scale-98"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className={`relative overflow-hidden flex-1 flex items-center justify-center text-center rounded-xl py-3 text-sm font-bold shadow-md cursor-pointer transition-all active:scale-[0.98] ${
+                className={`relative overflow-hidden flex-1 min-h-[44px] flex items-center justify-center text-center rounded-xl py-2.5 sm:py-3 text-sm font-bold shadow-md cursor-pointer transition-all active:scale-[0.98] ${
                   isSubmitting
                     ? 'bg-gray-400 dark:bg-gray-600 cursor-not-allowed'
                     : 'bg-[#1a1a2e] dark:bg-[#e94560] hover:opacity-90 text-white'

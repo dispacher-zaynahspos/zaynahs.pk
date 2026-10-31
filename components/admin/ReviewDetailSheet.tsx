@@ -92,7 +92,7 @@ export default function ReviewDetailSheet({ review, onClose, onApprove, onHide, 
     <Modal
       open
       onClose={onClose}
-      variant="center"
+      variant="sheet"
       size="lg"
       showClose={false}
       fitHeight
@@ -101,10 +101,10 @@ export default function ReviewDetailSheet({ review, onClose, onApprove, onHide, 
       className="!bg-transparent !border-0 !shadow-none !rounded-none !overflow-visible"
     >
       <div
-        className="relative w-full max-w-lg mx-auto bg-white dark:bg-[#16162a] rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-800 flex flex-col max-h-[90dvh] sm:max-h-[85vh] overflow-hidden"
+        className="relative w-full max-w-lg mx-auto bg-white dark:bg-[#16162a] rounded-t-3xl sm:rounded-2xl shadow-2xl border-t border-x sm:border border-gray-200 dark:border-gray-800 flex flex-col max-h-[92dvh] sm:max-h-[85vh] overflow-hidden"
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100 dark:border-gray-800 flex-shrink-0 bg-white dark:bg-[#16162a]">
+        <div className="flex items-center justify-between px-4 sm:px-5 py-3.5 border-b border-gray-100 dark:border-gray-800 flex-shrink-0 bg-white dark:bg-[#16162a]">
           <div>
             <span className="text-[11px] font-bold uppercase tracking-wider text-[#e94560]">
               REVIEW PROFILE PANEL &mdash; {reviewId}
@@ -113,7 +113,8 @@ export default function ReviewDetailSheet({ review, onClose, onApprove, onHide, 
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 text-gray-600 dark:text-gray-300 transition-colors cursor-pointer"
+            aria-label="Close panel"
+            className="w-10 h-10 sm:w-8 sm:h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 text-gray-600 dark:text-gray-300 transition-colors cursor-pointer min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 -mr-1"
           >
             <X className="w-4 h-4" />
           </button>
@@ -403,11 +404,11 @@ export default function ReviewDetailSheet({ review, onClose, onApprove, onHide, 
         </div>
 
         {/* Footer — Moderation Flow Actions */}
-        <div className="flex flex-wrap items-center justify-end gap-2 p-4 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-[#16162a] flex-shrink-0">
+        <div className="flex flex-wrap items-center justify-end gap-2 p-3 sm:p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] sm:pb-3 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-[#16162a] flex-shrink-0">
           <button
             type="button"
             onClick={() => { onApprove(review.id, !review.approved); onClose(); }}
-            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            className={`min-h-[44px] flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer active:scale-95 ${
               review.approved
                 ? 'bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-600 hover:text-white dark:hover:bg-red-500'
                 : 'bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400 hover:bg-green-600 hover:text-white dark:hover:bg-green-500'
@@ -419,7 +420,7 @@ export default function ReviewDetailSheet({ review, onClose, onApprove, onHide, 
           <button
             type="button"
             onClick={() => { onHide(review.id, !(review.hidden ?? false)); onClose(); }}
-            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            className={`min-h-[44px] flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer active:scale-95 ${
               review.hidden
                 ? 'bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400 hover:bg-green-600 hover:text-white dark:hover:bg-green-500'
                 : 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-600 hover:text-white dark:hover:bg-amber-500'
@@ -439,7 +440,7 @@ export default function ReviewDetailSheet({ review, onClose, onApprove, onHide, 
               });
               if (confirmed) { onDelete(review.id); onClose(); } 
             }}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-600 hover:text-white dark:hover:bg-red-500 text-xs font-bold transition-all cursor-pointer"
+            className="min-h-[44px] flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-600 hover:text-white dark:hover:bg-red-500 text-xs font-bold transition-all cursor-pointer active:scale-95"
           >
             <Trash2 className="w-3.5 h-3.5" />
             <span>Dump to Trash</span>

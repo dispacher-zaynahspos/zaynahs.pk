@@ -50,8 +50,9 @@ export function CustomizerTopBar({
       <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0 shrink">
         <button
           onClick={() => router.push('/admin/dashboard')}
-          className="flex items-center gap-1 sm:gap-1.5 text-white/80 hover:text-white px-2 sm:px-2.5 py-1.5 hover:bg-white/10 rounded-xl transition-all font-bold text-xs cursor-pointer select-none shrink-0"
+          className="flex items-center gap-1 sm:gap-1.5 text-white/80 hover:text-white px-2 sm:px-2.5 py-1.5 hover:bg-white/10 rounded-xl transition-all font-bold text-xs cursor-pointer select-none shrink-0 min-h-[44px] sm:min-h-0"
           title="Back to Dashboard"
+          aria-label="Back to Dashboard"
         >
           <ChevronLeft className="h-4 w-4 shrink-0" />
           <span className="hidden md:inline">Dashboard</span>
@@ -103,7 +104,7 @@ export function CustomizerTopBar({
                 appearance: 'none',
                 WebkitAppearance: 'none',
               }}
-              className="customizer-page-select appearance-none bg-black/30 text-white font-bold cursor-pointer outline-none border border-white/20 rounded-lg pl-2.5 pr-6 py-1 text-xs truncate max-w-[110px] sm:max-w-[140px] md:max-w-[170px]"
+              className="customizer-page-select appearance-none bg-black/30 text-white font-bold cursor-pointer outline-none border border-white/20 rounded-lg pl-2.5 pr-6 py-1 text-base sm:text-xs truncate max-w-[110px] sm:max-w-[140px] md:max-w-[170px] min-h-[44px] sm:min-h-0"
             >
               <option value="home" className="bg-[#1a1a2e] text-white">Home Page</option>
               <option value="shop" className="bg-[#1a1a2e] text-white">Shop Page</option>
@@ -124,7 +125,7 @@ export function CustomizerTopBar({
       >
         <button
           onClick={() => setViewportMode('desktop')}
-          className={`px-2 lg:px-3 py-1.5 rounded-lg flex items-center gap-1 sm:gap-1.5 text-[10px] font-extrabold uppercase tracking-wider transition-all cursor-pointer ${
+          className={`px-2 lg:px-3 py-1.5 rounded-lg flex items-center justify-center gap-1 sm:gap-1.5 text-[10px] font-extrabold uppercase tracking-wider transition-all cursor-pointer min-h-[40px] sm:min-h-0 ${
             viewportMode === 'desktop'
               ? 'bg-[#e94560] text-white shadow-sm'
               : 'text-white/75 hover:text-white'
@@ -137,7 +138,7 @@ export function CustomizerTopBar({
         </button>
         <button
           onClick={() => setViewportMode('tablet')}
-          className={`px-2 lg:px-3 py-1.5 rounded-lg flex items-center gap-1 sm:gap-1.5 text-[10px] font-extrabold uppercase tracking-wider transition-all cursor-pointer ${
+          className={`px-2 lg:px-3 py-1.5 rounded-lg flex items-center justify-center gap-1 sm:gap-1.5 text-[10px] font-extrabold uppercase tracking-wider transition-all cursor-pointer min-h-[40px] sm:min-h-0 ${
             viewportMode === 'tablet'
               ? 'bg-[#e94560] text-white shadow-sm'
               : 'text-white/75 hover:text-white'
@@ -150,7 +151,7 @@ export function CustomizerTopBar({
         </button>
         <button
           onClick={() => setViewportMode('mobile')}
-          className={`px-2 lg:px-3 py-1.5 rounded-lg flex items-center gap-1 sm:gap-1.5 text-[10px] font-extrabold uppercase tracking-wider transition-all cursor-pointer ${
+          className={`px-2 lg:px-3 py-1.5 rounded-lg flex items-center justify-center gap-1 sm:gap-1.5 text-[10px] font-extrabold uppercase tracking-wider transition-all cursor-pointer min-h-[40px] sm:min-h-0 ${
             viewportMode === 'mobile'
               ? 'bg-[#e94560] text-white shadow-sm'
               : 'text-white/75 hover:text-white'
@@ -175,7 +176,7 @@ export function CustomizerTopBar({
           <button
             onClick={onDiscard}
             disabled={isPending}
-            className="flex items-center gap-1 px-2.5 sm:px-3 py-2 bg-white/10 hover:bg-white/20 text-white/90 text-xs font-bold uppercase tracking-wider rounded-xl transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
+            className="flex items-center gap-1 px-2.5 sm:px-3 py-2 bg-white/10 hover:bg-white/20 text-white/90 text-xs font-bold uppercase tracking-wider rounded-xl transition-all active:scale-95 disabled:opacity-50 cursor-pointer min-h-[44px] sm:min-h-0"
             title="Discard unsaved changes"
           >
             <RotateCcw className="h-3.5 w-3.5 shrink-0" />
@@ -185,7 +186,7 @@ export function CustomizerTopBar({
         <button
           onClick={onSaveLayout}
           disabled={isPending || !isDirty}
-          className={`relative flex items-center gap-1 sm:gap-1.5 px-3 sm:px-4 py-2 text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all shadow-md active:scale-95 disabled:opacity-50 cursor-pointer ${
+          className={`relative flex items-center gap-1 sm:gap-1.5 px-3 sm:px-4 py-2 text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all shadow-md active:scale-95 disabled:opacity-50 cursor-pointer min-h-[44px] sm:min-h-0 ${
             isDirty ? 'bg-[#e94560] hover:bg-[#d83550]' : 'bg-[#e94560]/70'
           }`}
           title={isDirty ? 'Save all changes' : 'No unsaved changes'}

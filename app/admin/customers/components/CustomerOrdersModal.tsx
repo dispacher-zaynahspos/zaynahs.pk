@@ -40,16 +40,16 @@ export default function CustomerOrdersModal({
     <Modal
       open={true}
       onClose={onClose}
-      variant="center"
+      variant="sheet"
       size="md"
       showClose={false}
       className="!bg-transparent !border-0 !shadow-none !rounded-none !overflow-visible"
     >
       {/* Modal Panel */}
-      <div className="relative w-full max-h-[80vh] flex flex-col bg-gray-50 dark:bg-[#0f0f1b] sm:rounded-3xl rounded-2xl shadow-2xl overflow-hidden">
+      <div className="relative w-full max-h-[92dvh] sm:max-h-[85vh] flex flex-col bg-gray-50 dark:bg-[#0f0f1b] rounded-t-3xl sm:rounded-3xl border-t border-x sm:border border-gray-150 dark:border-gray-800 shadow-2xl overflow-hidden pb-[calc(1rem+env(safe-area-inset-bottom,0px))] sm:pb-0">
         
         {/* Modal Header */}
-        <div className="flex-shrink-0 px-5 pt-5 pb-4 bg-white dark:bg-[#16162a] border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
+        <div className="flex-shrink-0 px-4 sm:px-5 pt-4 sm:pt-5 pb-3.5 sm:pb-4 bg-white dark:bg-[#16162a] border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
           <div>
             <h2 className="text-base font-black text-gray-900 dark:text-white flex items-center gap-2">
               <ShoppingBag className="h-5 w-5 text-[#e94560]" />
@@ -62,7 +62,8 @@ export default function CustomerOrdersModal({
           <button
             type="button"
             onClick={onClose}
-            className="h-8 w-8 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 flex items-center justify-center transition-all cursor-pointer"
+            aria-label="Close modal"
+            className="h-10 w-10 sm:h-8 sm:w-8 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 flex items-center justify-center transition-all cursor-pointer min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0"
           >
             <X className="h-4 w-4" />
           </button>

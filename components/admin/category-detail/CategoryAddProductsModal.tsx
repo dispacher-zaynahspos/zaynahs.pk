@@ -39,7 +39,7 @@ export function CategoryAddProductsModal({
     <Modal
       open={isOpen}
       onClose={onClose}
-      variant="center"
+      variant="sheet"
       size="lg"
       showClose={false}
       ariaLabel={`Add products to ${category.name}`}
@@ -50,7 +50,7 @@ export function CategoryAddProductsModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="add-products-modal-title"
-        className="relative w-full max-w-2xl mx-auto bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 shadow-2xl flex flex-col max-h-[90dvh] overflow-hidden"
+        className="relative w-full max-w-2xl mx-auto bg-white dark:bg-[#16162a] rounded-t-3xl sm:rounded-2xl border-t border-x sm:border border-gray-200 dark:border-gray-800 shadow-2xl flex flex-col max-h-[92dvh] sm:max-h-[90dvh] overflow-hidden"
       >
         <div className="flex items-center justify-between p-4 sm:p-5 border-b border-gray-150 dark:border-gray-800 shrink-0">
           <h3 id="add-products-modal-title" className="text-base sm:text-lg font-black text-gray-900 dark:text-white tracking-tight">
@@ -59,7 +59,8 @@ export function CategoryAddProductsModal({
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-all cursor-pointer"
+            aria-label="Close modal"
+            className="p-1.5 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-all cursor-pointer min-h-[44px] min-w-[44px] flex items-center justify-center -mr-2"
           >
             <X className="h-5 w-5" />
           </button>
@@ -74,7 +75,7 @@ export function CategoryAddProductsModal({
               placeholder="Search products by name or SKU..."
               value={modalSearchQuery}
               onChange={(e) => setModalSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-gray-50/50 dark:bg-[#0f0f1b] border border-gray-200 dark:border-gray-700 rounded-xl text-xs sm:text-sm focus:outline-none focus:border-[var(--color-primary,#e94560)] text-gray-900 dark:text-white"
+              className="w-full pl-9 pr-4 py-2 sm:py-2.5 bg-gray-50/50 dark:bg-[#0f0f1b] border border-gray-200 dark:border-gray-700 rounded-xl text-base sm:text-sm focus:outline-none focus:border-[var(--color-primary,#e94560)] text-gray-900 dark:text-white min-h-[44px] sm:min-h-0"
             />
           </div>
 

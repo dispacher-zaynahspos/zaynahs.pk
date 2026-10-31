@@ -46,30 +46,32 @@ export function SEOPreviewModal({ isOpen, onClose, entity_type, entity_name, seo
     <Modal
       open={isOpen}
       onClose={onClose}
-      variant="center"
+      variant="sheet"
       size="md"
       showClose={false}
       ariaLabel="SEO & Social Snippet Preview"
       zIndexClassName="z-50"
       className="!bg-transparent !border-0 !shadow-none !rounded-none !overflow-visible"
     >
-      <div className="w-full max-w-2xl mx-auto bg-white dark:bg-[#16162a] rounded-2xl border border-gray-100 dark:border-gray-800 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="w-full max-w-2xl mx-auto bg-white dark:bg-[#16162a] rounded-t-3xl sm:rounded-2xl border-t border-x sm:border border-gray-100 dark:border-gray-800 shadow-2xl overflow-hidden flex flex-col max-h-[92dvh] sm:max-h-[90vh]">
         {/* Header */}
-        <div className="flex justify-between items-center p-4 border-b border-gray-100 dark:border-gray-800">
+        <div className="flex justify-between items-center p-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
           <div>
             <h3 className="font-bold text-gray-900 dark:text-white">SEO & Social Snippet Preview</h3>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{entity_name}</p>
           </div>
           <button 
+            type="button"
             onClick={onClose} 
-            className="p-1 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer min-h-[36px] min-w-[36px] flex items-center justify-center"
+            aria-label="Close"
+            className="p-1 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer min-h-[44px] min-w-[44px] flex items-center justify-center -mr-2"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Tab Buttons */}
-        <div className="flex border-b border-gray-100 dark:border-gray-800 p-2 bg-gray-50/50 dark:bg-gray-900/30 overflow-x-auto gap-1">
+        <div className="flex border-b border-gray-100 dark:border-gray-800 p-2 bg-gray-50/50 dark:bg-gray-900/30 overflow-x-auto gap-1 shrink-0 no-scrollbar">
           {(['google', 'facebook', 'twitter', 'whatsapp'] as const).map((tab) => (
             <button
               key={tab}

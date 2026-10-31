@@ -78,9 +78,9 @@ export function FailedAttemptsModal({
         </div>
       }
       size="lg"
-      variant="center"
+      variant="sheet"
     >
-      <div className="p-4 sm:p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+      <div className="p-4 sm:p-6 space-y-4 max-h-[75vh] overflow-y-auto pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] sm:pb-6">
         {failedAttempts.length === 0 ? (
           <div className="text-center py-12 space-y-3">
             <div className="w-12 h-12 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 mx-auto flex items-center justify-center">

@@ -53,7 +53,7 @@ export function ProductSaveBar({
             type="button"
             onClick={onCancel}
             disabled={isSubmitting}
-            className="text-center border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 bg-white dark:bg-[#16162a] hover:bg-gray-50 dark:hover:bg-white/5 active:scale-95 rounded-xl py-1.5 px-3 sm:px-4 text-xs font-bold cursor-pointer shadow-2xs disabled:opacity-50 min-h-[36px] sm:min-h-[38px] flex items-center justify-center"
+            className="text-center border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 bg-white dark:bg-[#16162a] hover:bg-gray-50 dark:hover:bg-white/5 active:scale-95 rounded-xl py-1.5 px-3 sm:px-4 text-xs font-bold cursor-pointer shadow-2xs disabled:opacity-50 min-h-[44px] sm:min-h-[38px] flex items-center justify-center"
           >
             Cancel
           </button>
@@ -61,7 +61,7 @@ export function ProductSaveBar({
           <button
             type="submit"
             disabled={isSubmitting}
-            className="relative overflow-hidden flex items-center justify-center gap-1.5 sm:gap-2 bg-[#e94560] hover:bg-[#d8344e] text-white rounded-xl py-1.5 px-3.5 sm:px-5 text-xs sm:text-sm font-bold active:scale-95 cursor-pointer shadow-md hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed min-h-[36px] sm:min-h-[38px]"
+            className="relative overflow-hidden flex items-center justify-center gap-1.5 sm:gap-2 bg-[#e94560] hover:bg-[#d8344e] text-white rounded-xl py-1.5 px-3.5 sm:px-5 text-xs sm:text-sm font-bold active:scale-95 cursor-pointer shadow-md hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed min-h-[44px] sm:min-h-[38px]"
           >
             {isSubmitting ? (
               <>

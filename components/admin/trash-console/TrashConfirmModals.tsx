@@ -37,9 +37,9 @@ interface TrashConfirmModalsProps {
 }
 
 const cancelBtn =
-  'px-4 py-2 rounded-xl text-xs font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors';
+  'flex-1 sm:flex-initial min-h-[44px] px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex items-center justify-center cursor-pointer active:scale-95';
 const dangerBtn =
-  'px-4 py-2 rounded-xl text-xs font-semibold bg-red-600 hover:bg-red-700 text-white transition-colors disabled:opacity-50';
+  'flex-1 sm:flex-initial min-h-[44px] px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-red-600 hover:bg-red-700 text-white transition-all disabled:opacity-50 flex items-center justify-center cursor-pointer active:scale-95 shadow-sm';
 
 export const TrashConfirmModals: React.FC<TrashConfirmModalsProps> = ({
   confirmDelete,
@@ -67,15 +67,15 @@ export const TrashConfirmModals: React.FC<TrashConfirmModalsProps> = ({
       <Modal
         open={!!confirmDelete}
         onClose={() => setConfirmDelete(null)}
-        variant="center"
+        variant="sheet"
         size="sm"
         title="Delete Permanently?"
       >
-        <div className="p-5 space-y-4">
-          <p className="text-xs text-gray-500 dark:text-gray-400">
+        <div className="p-4 sm:p-5 space-y-4">
+          <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
             Are you sure you want to permanently delete <strong className="text-gray-800 dark:text-gray-200">"{confirmDelete?.name}"</strong>? This action cannot be undone.
           </p>
-          <div className="flex gap-2 justify-end pt-2">
+          <div className="flex gap-2.5 justify-end pt-3 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] sm:pb-0 border-t border-gray-100 dark:border-gray-800">
             <button onClick={() => setConfirmDelete(null)} className={cancelBtn}>
               Cancel
             </button>
@@ -90,15 +90,15 @@ export const TrashConfirmModals: React.FC<TrashConfirmModalsProps> = ({
       <Modal
         open={confirmBulkDelete}
         onClose={() => setConfirmBulkDelete(false)}
-        variant="center"
+        variant="sheet"
         size="sm"
         title="Delete Selected Items?"
       >
-        <div className="p-5 space-y-4">
-          <p className="text-xs text-gray-500 dark:text-gray-400">
+        <div className="p-4 sm:p-5 space-y-4">
+          <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
             Permanently delete <strong className="text-gray-800 dark:text-gray-200">{selectedCount} item(s)</strong>? This action cannot be undone.
           </p>
-          <div className="flex gap-2 justify-end pt-2">
+          <div className="flex gap-2.5 justify-end pt-3 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] sm:pb-0 border-t border-gray-100 dark:border-gray-800">
             <button onClick={() => setConfirmBulkDelete(false)} className={cancelBtn}>
               Cancel
             </button>
@@ -113,15 +113,15 @@ export const TrashConfirmModals: React.FC<TrashConfirmModalsProps> = ({
       <Modal
         open={confirmEmptyTab}
         onClose={() => setConfirmEmptyTab(false)}
-        variant="center"
+        variant="sheet"
         size="sm"
         title={`Empty ${activeTab.replace('_', ' ')} Trash?`}
       >
-        <div className="p-5 space-y-4">
-          <p className="text-xs text-gray-500 dark:text-gray-400">
+        <div className="p-4 sm:p-5 space-y-4">
+          <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
             Permanently delete all items currently in <strong className="text-gray-800 dark:text-gray-200">{activeTab.replace('_', ' ')}</strong>? This action cannot be undone.
           </p>
-          <div className="flex gap-2 justify-end pt-2">
+          <div className="flex gap-2.5 justify-end pt-3 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] sm:pb-0 border-t border-gray-100 dark:border-gray-800">
             <button onClick={() => setConfirmEmptyTab(false)} className={cancelBtn}>
               Cancel
             </button>
@@ -136,15 +136,15 @@ export const TrashConfirmModals: React.FC<TrashConfirmModalsProps> = ({
       <Modal
         open={confirmEmptyCompleteTrash}
         onClose={() => setConfirmEmptyCompleteTrash(false)}
-        variant="center"
+        variant="sheet"
         size="sm"
         title={<span className="text-red-600 dark:text-red-400">Empty Entire Trash Bin?</span>}
       >
-        <div className="p-5 space-y-4">
-          <p className="text-xs text-gray-500 dark:text-gray-400">
+        <div className="p-4 sm:p-5 space-y-4">
+          <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
             Permanently delete all <strong className="text-gray-800 dark:text-gray-200">{totalTrashCount} item(s)</strong> across ALL trash categories? THIS CANNOT BE UNDONE.
           </p>
-          <div className="flex gap-2 justify-end pt-2">
+          <div className="flex gap-2.5 justify-end pt-3 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] sm:pb-0 border-t border-gray-100 dark:border-gray-800">
             <button onClick={() => setConfirmEmptyCompleteTrash(false)} className={cancelBtn}>
               Cancel
             </button>

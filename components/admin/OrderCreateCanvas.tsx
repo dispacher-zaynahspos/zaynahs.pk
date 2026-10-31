@@ -31,7 +31,7 @@ export default function OrderCreateCanvas({ isOpen, onClose, onOrderCreated, set
       ariaLabel="Create New Order"
       className="!w-screen !max-w-2xl font-sans"
       footer={
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center justify-between gap-3 pb-[calc(0.5rem+env(safe-area-inset-bottom,0px))] sm:pb-0">
           <div className="flex flex-col">
             <span className="text-[10px] uppercase font-bold text-gray-400">Total Payable</span>
             <span className="text-base font-black text-emerald-600 dark:text-emerald-400">
@@ -42,7 +42,7 @@ export default function OrderCreateCanvas({ isOpen, onClose, onOrderCreated, set
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl text-xs font-bold text-gray-600 dark:text-gray-400 hover:bg-gray-200/50 dark:hover:bg-gray-800 transition-colors"
+              className="px-4 py-2 min-h-[44px] sm:min-h-0 rounded-xl text-xs font-bold text-gray-600 dark:text-gray-400 hover:bg-gray-200/50 dark:hover:bg-gray-800 transition-colors flex items-center justify-center cursor-pointer"
             >
               Cancel
             </button>
@@ -50,7 +50,7 @@ export default function OrderCreateCanvas({ isOpen, onClose, onOrderCreated, set
               type="button"
               onClick={c.handleCreateOrderSubmit}
               disabled={c.isSaving || c.selectedItems.length === 0}
-              className="px-5 py-2.5 rounded-xl bg-[#008060] hover:bg-[#006e52] text-white text-xs font-bold transition-all shadow-md flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              className="px-5 py-2.5 min-h-[44px] sm:min-h-0 rounded-xl bg-[#008060] hover:bg-[#006e52] text-white text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               {c.isSaving ? (
                 <>
@@ -73,7 +73,8 @@ export default function OrderCreateCanvas({ isOpen, onClose, onOrderCreated, set
         </div>
         <button
           onClick={onClose}
-          className="p-2 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-gray-800 transition-colors"
+          aria-label="Close"
+          className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-gray-800 transition-colors cursor-pointer"
         >
           <X className="w-5 h-5" />
         </button>

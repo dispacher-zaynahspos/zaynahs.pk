@@ -198,23 +198,28 @@ export default function BadgeManager({ initialBadges }: BadgeManagerProps) {
       <Modal
         open={isOpen}
         onClose={() => setIsOpen(false)}
-        variant="center"
+        variant="sheet"
         size="sm"
         showClose={false}
         zIndexClassName="z-[1055]"
         className="!bg-transparent !border-0 !shadow-none !rounded-none !overflow-visible"
       >
-        <div className="bg-white dark:bg-[#16162a] w-full rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xl overflow-hidden text-gray-900 dark:text-white will-change-transform">
-            <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100 dark:border-gray-800">
+        <div className="bg-white dark:bg-[#16162a] w-full max-w-lg mx-auto rounded-t-3xl sm:rounded-2xl border-t border-x sm:border border-gray-200 dark:border-gray-800 shadow-xl overflow-hidden text-gray-900 dark:text-white will-change-transform flex flex-col max-h-[92dvh] sm:max-h-[90dvh]">
+            <div className="flex justify-between items-center px-4 sm:px-6 py-3.5 sm:py-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
               <h3 className="text-base font-bold text-gray-900 dark:text-white">
                 {editId ? 'Edit Badge' : 'Create New Badge'}
               </h3>
-              <button onClick={() => setIsOpen(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-white cursor-pointer">
+              <button
+                type="button"
+                onClick={() => setIsOpen(false)}
+                aria-label="Close"
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-white cursor-pointer min-h-[44px] min-w-[44px] flex items-center justify-center -mr-2"
+              >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1">
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">Badge Label Name *</label>
                 <input
@@ -222,7 +227,7 @@ export default function BadgeManager({ initialBadges }: BadgeManagerProps) {
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="mt-1.5 w-full rounded-xl border border-gray-200 dark:border-gray-850 bg-gray-50 dark:bg-[#0f0f1b] px-4 py-2.5 text-sm font-medium focus:border-[#1a1a2e] dark:focus:border-[#e94560] focus:bg-white dark:focus:bg-[#16162a] focus:outline-none transition-all text-gray-900 dark:text-white"
+                  className="mt-1.5 w-full rounded-xl border border-gray-200 dark:border-gray-850 bg-gray-50 dark:bg-[#0f0f1b] px-4 py-2.5 text-base sm:text-sm font-medium focus:border-[#1a1a2e] dark:focus:border-[#e94560] focus:bg-white dark:focus:bg-[#16162a] focus:outline-none transition-all text-gray-900 dark:text-white min-h-[44px] sm:min-h-0"
                   placeholder="e.g. FEATURED, SALE, HOT"
                 />
 
@@ -308,18 +313,18 @@ export default function BadgeManager({ initialBadges }: BadgeManagerProps) {
                 </div>
               </div>
 
-              <div className="flex gap-4 pt-4">
+              <div className="flex gap-3 sm:gap-4 pt-3 sm:pt-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] sm:pb-0">
                 <button
                   type="button"
                   onClick={() => setIsOpen(false)}
-                  className="flex-1 text-center border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 bg-white dark:bg-[#16162a] hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl py-3 text-sm font-semibold cursor-pointer transition-colors"
+                  className="flex-1 min-h-[44px] flex items-center justify-center text-center border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 bg-white dark:bg-[#16162a] hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl py-2.5 sm:py-3 text-sm font-semibold cursor-pointer transition-colors active:scale-98"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className={`relative overflow-hidden flex-1 flex items-center justify-center text-center rounded-xl py-3 text-sm font-bold shadow-md cursor-pointer transition-all ${
+                  className={`relative overflow-hidden flex-1 min-h-[44px] flex items-center justify-center text-center rounded-xl py-2.5 sm:py-3 text-sm font-bold shadow-md cursor-pointer transition-all active:scale-[0.98] ${
                     isSubmitting
                       ? 'bg-gray-400 dark:bg-gray-600 cursor-not-allowed'
                       : 'bg-[#1a1a2e] hover:bg-[#e94560] text-white'
