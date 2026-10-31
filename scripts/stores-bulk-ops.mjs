@@ -51,11 +51,11 @@ function parseEnv(filePath) {
 
 function loadAllStores() {
   const files = fs.readdirSync(ENV_DIR).filter(f => f.endsWith('.env.local'));
-  const stores = [];
+  const allStores = [];
   for (const file of files) {
     const name = file.replace('.env.local', '');
     const env = parseEnv(path.join(ENV_DIR, file));
-    stores.push({
+    allStores.push({
       name,
       envFile: file,
       domain: (env.NEXT_PUBLIC_SITE_URL || '').replace(/\/+$/, '').replace(/^http:\/\//, 'https://'),
@@ -69,7 +69,21 @@ function loadAllStores() {
       revalidateSecret: env.REVALIDATE_SECRET || 'zaynahs_secret_cache_revalidate_2026'
     });
   }
-  return stores;
+
+  const excludeArg = process.argv.find(a => a.startsWith('--exclude='));
+  const storesArg = process.argv.find(a => a.startsWith('--stores=') || a.startsWith('--store='));
+  const excludedStores = excludeArg ? excludeArg.split('=')[1].split(',').map(s => s.trim().toLowerCase()) : [];
+  const includedStores = storesArg ? storesArg.split('=')[1].split(',').map(s => s.trim().toLowerCase()) : [];
+
+  let filtered = allStores;
+  if (includedStores.length > 0) {
+    filtered = filtered.filter(s => includedStores.includes(s.name.toLowerCase()));
+  }
+  if (excludedStores.length > 0) {
+    filtered = filtered.filter(s => !excludedStores.includes(s.name.toLowerCase()));
+  }
+
+  return filtered;
 }
 
 const stores = loadAllStores();
@@ -194,12 +208,19 @@ async function runSyncEnvs() {
 
 async function runSyncCf() {
   console.log('\n===============================================================');
-  console.log('⚡ DEPLOYING CLOUDFLARE CACHE RULES ACROSS ALL STORES');
+  console.log('⚡ DEPLOYING CLOUDFLARE CACHE RULES ACROSS TARGET STORES');
   console.log('===============================================================\n');
 
   const updateScript = path.join(ROOT, 'scripts', 'update-cf-cache-rules.mjs');
   if (fs.existsSync(updateScript)) {
-    execSync(`node "${updateScript}"`, { stdio: 'inherit', cwd: ROOT });
+    for (const store of stores) {
+      console.log(`\n▶ [${store.name}] Deploying Cloudflare rules...`);
+      try {
+        execSync(`node "${updateScript}" --store=${store.name}`, { stdio: 'inherit', cwd: ROOT });
+      } catch (err) {
+        console.error(`❌ [${store.name}] Failed to update CF rules:`, err.message);
+      }
+    }
   } else {
     console.error('scripts/update-cf-cache-rules.mjs not found.');
   }
@@ -239,7 +260,7 @@ async function runWaitBuilds(maxWaitSec = 240) {
 
     if (readyCount === stores.length) {
       allReady = true;
-      console.log(`\n\n🎉 ALL ${stores.length} STORES ARE READY ON VERCEL! (in ${elapsed}s)\n`);
+      console.log(`\n\n🎉 ALL ${stores.length} TARGET STORES ARE READY ON VERCEL! (in ${elapsed}s)\n`);
       return true;
     }
 
@@ -259,7 +280,14 @@ async function runPurge() {
 
   const purgeScript = path.join(ROOT, 'scripts', 'purge-all-caches.mjs');
   if (fs.existsSync(purgeScript)) {
-    execSync(`node "${purgeScript}" --dangerously-purge-everything`, { stdio: 'inherit', cwd: ROOT });
+    for (const store of stores) {
+      console.log(`\n▶ [${store.name}] Purging cache...`);
+      try {
+        execSync(`node "${purgeScript}" --store=${store.name} --dangerously-purge-everything`, { stdio: 'inherit', cwd: ROOT });
+      } catch (err) {
+        console.error(`❌ [${store.name}] Failed to purge cache:`, err.message);
+      }
+    }
   } else {
     console.error('scripts/purge-all-caches.mjs not found.');
   }
@@ -267,12 +295,19 @@ async function runPurge() {
 
 async function runVerify() {
   console.log('\n===============================================================');
-  console.log('🔍 RUNNING COMPREHENSIVE 5-STORE NETWORK VERIFICATION SWEEP');
+  console.log('🔍 RUNNING COMPREHENSIVE NETWORK VERIFICATION SWEEP');
   console.log('===============================================================\n');
 
   const verifyScript = path.join(ROOT, 'scripts', 'verify-store-network.mjs');
   if (fs.existsSync(verifyScript)) {
-    execSync(`node "${verifyScript}"`, { stdio: 'inherit', cwd: ROOT });
+    for (const store of stores) {
+      console.log(`\n▶ [${store.name}] Verifying store...`);
+      try {
+        execSync(`node "${verifyScript}" --store=${store.name}`, { stdio: 'inherit', cwd: ROOT });
+      } catch (err) {
+        console.error(`❌ [${store.name}] Verification error:`, err.message);
+      }
+    }
   } else {
     console.error('scripts/verify-store-network.mjs not found.');
   }
