@@ -91,7 +91,7 @@ export function MediaCard({
               e.stopPropagation();
               onToggle();
             }}
-            className={`absolute top-2.5 left-2.5 z-30 p-1.5 rounded-xl cursor-pointer transition-all duration-200 flex items-center justify-center ${
+            className={`absolute top-2.5 left-2.5 z-10 p-1.5 rounded-xl cursor-pointer transition-all duration-200 flex items-center justify-center ${
               isSelected
                 ? 'bg-blue-600 text-white shadow-md ring-2 ring-white/90 scale-105'
                 : 'bg-black/50 hover:bg-black/75 backdrop-blur-xs text-white hover:scale-110 shadow-xs'

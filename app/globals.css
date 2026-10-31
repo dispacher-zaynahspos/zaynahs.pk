@@ -630,9 +630,9 @@ main#admin-main-content:has(.fixed.z-50) {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
 }
 
-/* Prevent scroll snap-back / rubber-band bounce on the admin main content scroll container */
+/* Prevent rubber-band bounce while allowing smooth momentum scrolling on admin main content */
 #admin-main-content {
-  overscroll-behavior-y: none;
+  overscroll-behavior-y: contain;
 }
 
 

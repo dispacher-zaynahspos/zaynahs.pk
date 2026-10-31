@@ -289,6 +289,19 @@ function AdminLayoutContent({
     }
   }, [pathname, mounted, navSections, isItemActive]);
 
+  useEffect(() => {
+    // Safety: ensure background body scroll lock is not orphaned on navigation if no modal is open
+    if (typeof document !== 'undefined') {
+      const activeModal = document.querySelector('[role="dialog"], [aria-modal="true"]');
+      if (!activeModal && document.body.style.position === 'fixed') {
+        document.body.style.position = '';
+        document.body.style.overflow = '';
+        document.body.style.top = '';
+        document.body.style.width = '';
+      }
+    }
+  }, [pathname]);
+
   const getPageTitle = () => {
     if (!mounted) return 'Console';
     for (const section of navSections) {
@@ -343,7 +356,7 @@ function AdminLayoutContent({
       />
 
       {/* Main Content Area (Automatically adjusts width as sidebar expands/collapses) */}
-      <div className="admin-layout-wrapper flex-1 flex flex-col min-w-0 max-w-full overflow-hidden">
+      <div className="admin-layout-wrapper flex-1 min-h-0 flex flex-col min-w-0 max-w-full overflow-hidden relative">
         <AdminHeader
           pageTitle={getPageTitle()}
           setIsMobileMenuOpen={setIsMobileMenuOpen}
@@ -353,7 +366,7 @@ function AdminLayoutContent({
 
         <main
           id="admin-main-content"
-          className="flex-1 w-full max-w-full px-3 sm:px-4 md:px-5 pt-[calc(3.5rem+env(safe-area-inset-top,0px))] md:pt-4 pb-[calc(3.5rem+env(safe-area-inset-bottom,0px))] md:pb-6 overflow-y-auto overflow-x-hidden overscroll-y-none bg-slate-50 text-gray-900 transition-colors duration-200"
+          className="flex-1 min-h-0 w-full max-w-full px-3 sm:px-4 md:px-5 pt-3 sm:pt-4 pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))] md:pb-8 overflow-y-auto overflow-x-hidden overscroll-y-contain bg-slate-50 text-gray-900 transition-colors duration-200"
           style={{ WebkitOverflowScrolling: 'touch' }}
         >
           {children}

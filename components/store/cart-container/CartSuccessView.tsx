@@ -23,7 +23,7 @@ import { StoreSettings, ProductImage, ProductModifier } from '@/lib/types';
 import { formatPrice, cleanWhatsAppPhone } from '@/lib/utils/whatsapp';
 import { getSharedAspectClass } from '@/lib/utils/styles';
 import { getPresetImageUrl } from '@/lib/utils/imageUrl';
-import { getPaymentMethodIcon } from '@/components/common/PaymentBadges';
+import { getPaymentMethodIcon } from '@/lib/utils/paymentIcons';
 import type { PlacedOrder } from './hooks/useCheckoutFormState';
 
 interface CartSuccessViewProps {

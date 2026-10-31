@@ -3,7 +3,7 @@
 import React from 'react';
 import { CreditCard, Loader2, Plus, Edit2, Trash2, Check, X, GripVertical, ChevronUp, ChevronDown } from '@/components/common/Icons';
 import { PaymentMethod } from '@/lib/types';
-import { getPaymentMethodIcon } from '@/components/common/PaymentBadges';
+import { getPaymentMethodIcon } from '@/lib/utils/paymentIcons';
 
 interface PaymentMethodsCardProps {
   paymentMethods: PaymentMethod[];
@@ -178,7 +178,9 @@ export default function PaymentMethodsCard({
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         {(() => {
-                          const iconSrc = getPaymentMethodIcon(method.code || method.name) || ((method.code || method.name || '').toLowerCase().includes('cod') ? '/payments/cod.ico' : null);
+                          const iconSrc =
+                            (typeof getPaymentMethodIcon === 'function' ? getPaymentMethodIcon(method.code || method.name) : null) ||
+                            ((method.code || method.name || '').toLowerCase().includes('cod') ? '/payments/cod.ico' : null);
                           if (iconSrc) {
                             return (
                               <div className="h-6 w-6 rounded bg-white dark:bg-white/10 p-0.5 border border-black/5 dark:border-white/10 flex items-center justify-center shrink-0 shadow-2xs">

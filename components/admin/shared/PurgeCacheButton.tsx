@@ -56,9 +56,9 @@ export default function PurgeCacheButton({ className, label = 'Purge Cache', var
     }
   };
 
-  const baseStyles = "flex items-center justify-center gap-1.5 px-2.5 sm:px-3 h-8 sm:h-8.5 text-xs font-semibold rounded-lg transition-all disabled:opacity-50 disabled:pointer-events-none whitespace-nowrap shrink-0 active:scale-95 cursor-pointer";
-  const outlineStyles = "bg-white dark:bg-[#16162a] border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-900 dark:text-white shadow-xs";
-  const ghostStyles = "bg-transparent border-transparent hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white";
+  const baseStyles = "flex items-center justify-center gap-1.5 px-3 h-9 text-xs font-bold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none whitespace-nowrap shrink-0 active:scale-95 cursor-pointer";
+  const outlineStyles = "bg-white dark:bg-[#16162a] border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-900 dark:text-white shadow-2xs hover:shadow-xs";
+  const ghostStyles = "bg-slate-100/90 hover:bg-slate-200/90 dark:bg-white/[0.08] dark:hover:bg-white/[0.14] border border-gray-200/80 dark:border-white/10 text-gray-700 dark:text-gray-200 hover:text-gray-950 dark:hover:text-white shadow-2xs hover:shadow-xs";
 
   const appliedStyles = variant === 'ghost' ? ghostStyles : outlineStyles;
   const tooltipText = `Purge Edge & CDN Cache\nLast purged: A (Vercel): ${formatTime(vercelTime)} | B (Cloudflare): ${formatTime(cfTime)}`;
@@ -73,22 +73,22 @@ export default function PurgeCacheButton({ className, label = 'Purge Cache', var
         aria-label="Purge Edge & CDN Cache"
         className={`${baseStyles} ${appliedStyles}`}
       >
-        <RefreshCw className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${isPurging ? 'animate-spin text-[#e94560]' : ''}`} />
+        <RefreshCw className={`h-3.5 w-3.5 ${isPurging ? 'animate-spin text-[#e94560]' : 'text-gray-500 dark:text-gray-400'}`} />
         <span className="hidden sm:inline">{isPurging ? 'Purging...' : label}</span>
         <span className="sm:hidden">{isPurging ? 'Purging...' : 'Purge'}</span>
       </button>
       
       {showTimestamps && (
         <div 
-          className="hidden md:flex items-center gap-1.5 text-[10px] font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap opacity-80 uppercase tracking-wider select-none shrink-0"
+          className="hidden lg:flex items-center gap-2 px-2.5 py-1 rounded-lg bg-gray-100/70 dark:bg-white/5 border border-gray-200/60 dark:border-white/5 text-[10px] font-semibold text-gray-500 dark:text-gray-400 whitespace-nowrap select-none shrink-0"
           title={`Last cache purge timestamps\nVercel (A): ${formatTime(vercelTime)}\nCloudflare (B): ${formatTime(cfTime)}`}
         >
-          <span className="flex items-center gap-0.5">
-            <span className="text-[#e94560] font-bold">A:</span> {formatTime(vercelTime)}
+          <span className="flex items-center gap-1">
+            <span className="text-[#e94560] font-black">A:</span> {formatTime(vercelTime)}
           </span>
-          <span className="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-700"></span>
-          <span className="flex items-center gap-0.5">
-            <span className="text-blue-500 font-bold">B:</span> {formatTime(cfTime)}
+          <span className="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
+          <span className="flex items-center gap-1">
+            <span className="text-blue-500 font-black">B:</span> {formatTime(cfTime)}
           </span>
         </div>
       )}

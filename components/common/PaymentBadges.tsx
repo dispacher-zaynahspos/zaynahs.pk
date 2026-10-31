@@ -1,25 +1,9 @@
 'use client';
 
 import React from 'react';
+import { getPaymentMethodIcon } from '@/lib/utils/paymentIcons';
 
-/**
- * Returns the real payment icon URL from /payments/*.ico if the code/name matches
- * JazzCash, EasyPaisa, Bank Transfer, or NayaPay.
- */
-export function getPaymentMethodIcon(codeOrName: string): string | null {
-  if (!codeOrName) return null;
-  const lower = codeOrName.toLowerCase().replace(/[\s_-]/g, '');
-  if (lower.includes('jazzcash')) return '/payments/jazzcash.ico';
-  if (lower.includes('easypaisa')) return '/payments/easypaisa.ico';
-  if (lower.includes('nayapay')) return '/payments/nayapay.ico';
-  if (lower.includes('banktransfer') || lower.includes('bank') || lower.includes('transfer')) {
-    return '/payments/banktransfer.ico';
-  }
-  if (lower.includes('cod') || lower.includes('cashondelivery') || lower.includes('cash')) {
-    return '/payments/cod.ico';
-  }
-  return null;
-}
+export { getPaymentMethodIcon };
 
 const renderPaymentBadgeByCode = (code: string, id: string) => {
   const norm = code.toLowerCase().trim();

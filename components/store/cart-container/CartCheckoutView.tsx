@@ -6,7 +6,7 @@ import { StoreSettings, ShippingMethod, PaymentMethod, CartItem, ShippingZone } 
 import { formatPrice } from '@/lib/utils/whatsapp';
 import PhoneInput from '@/components/store/PhoneInput';
 import CitySelect from '@/components/store/CitySelect';
-import { getPaymentMethodIcon } from '@/components/common/PaymentBadges';
+import { getPaymentMethodIcon } from '@/lib/utils/paymentIcons';
 
 interface CartCheckoutViewProps {
   settings: StoreSettings;
