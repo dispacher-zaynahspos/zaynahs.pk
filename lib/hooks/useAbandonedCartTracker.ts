@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useCallback } from 'react';
 import { useCart } from '@/lib/hooks/useCart';
+import { CART_SESSION_KEY } from '@/lib/store/storageKeys';
 
-const CART_SESSION_KEY = 'zaynahs_cart_session';
 const DEBOUNCE_MS = 2000; // wait 2s after last change before saving
 
 function getOrCreateSessionId(): string {

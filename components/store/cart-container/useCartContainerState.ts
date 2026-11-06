@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { StoreSettings } from '@/lib/types';
 import { isFeatureEnabled } from '@/lib/features/premium';
 import { useCartStore } from '@/lib/store/cartStore';
+import { CART_SESSION_KEY } from '@/lib/store/storageKeys';
 import { generateWhatsAppMessage, buildWhatsAppURL, formatPrice } from '@/lib/utils/whatsapp';
 import { createOrder } from '@/lib/services/orders';
 import { trackEvent } from '@/lib/trackEvent';
@@ -346,7 +347,7 @@ export function useCartContainerState(
       markOrdered(order.id).catch(() => {});
 
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('zaynahs_cart_session');
+        localStorage.removeItem(CART_SESSION_KEY);
       }
 
       clearCart();

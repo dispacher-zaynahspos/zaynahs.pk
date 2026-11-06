@@ -95,6 +95,11 @@ function fetchPage(base, path, host, timeoutMs = 30000) {
 
 function normalizeForHash(body) {
   return body
+    // build-dependent artefacts — must not count as a content change
+    .replace(/\/_next\/static\/[^"'\s\\]+/g, '/_next/static/<asset>')
+    .replace(/\\"buildId\\":\\"[^"\\]+\\"/g, '\\"buildId\\":\\"<id>\\"')
+    .replace(/"buildId":"[^"]*"/g, '"buildId":"<id>"')
+    // volatile timestamps
     .replace(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z/g, '<ts>')
     .replace(/\s+/g, ' ')
     .trim();

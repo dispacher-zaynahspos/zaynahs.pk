@@ -1,6 +1,10 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { CartItem, Product, ProductVariant, ProductModifier, Coupon } from '@/lib/types';
+import { CART_PERSIST_KEY, migrateLegacyStorageKeys } from '@/lib/store/storageKeys';
+
+// One-time migration of legacy brand-prefixed keys (no cart is ever lost).
+migrateLegacyStorageKeys();
 
 interface CartStore {
   items: CartItem[];
@@ -99,7 +103,7 @@ export const useCartStore = create<CartStore>()(
       applyCoupon: (coupon) => set({ appliedCoupon: coupon }),
     }),
     {
-      name: 'zaynahs-cart',
+      name: CART_PERSIST_KEY,
       version: 1,
       // Fool-proof migration: existing browsers have camelCase cart items in localStorage.
       // Convert them to snake_case on load so NO cart is ever wiped (RULE D13 + no data loss).
