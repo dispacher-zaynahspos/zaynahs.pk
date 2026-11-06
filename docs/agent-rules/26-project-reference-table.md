@@ -4,7 +4,7 @@ Cross-check this before ANY multi-store operation (purge, webhook, migration, cr
 
 | Project | Supabase Ref | Cloudflare Zone ID | Site URL | REVALIDATE_SECRET | VERCEL_PROJECT_NAME |
 |---------|-------------|------------|----------|--------------------|----------------------|
-| TotVogue | `ziucrfpebpxijqhwmqre` | `e4aceeacdc4f6a1677e92823df1651fd` | www.totvogue.pk | `zaynahs_secret_cache_revalidate_2026` | `zaynahsestore-tv` |
+| TotVogue | `ziucrfpebpxijqhwmqre` | `e4aceeacdc4f6a1677e92823df1651fd` | www.totvogue.pk | `zaynahs_secret_cache_revalidate_2026` | `Cloudflare Workers ($5 Paid) [Vercel Disconnected]` |
 | Zaynahs | `unfdpfmjqljbjydgsccr` | `10d964449186f64d7896f8dcac4e5eff` | www.zaynahs.pk | `zaynahs_secret_cache_revalidate_2026` | `zaynahsestore-tv-main` |
 | MiniMahal | `mgwkcumurrllhpjvfezz` | `6acd493022cd0f2d5a9c290088b5327a` | www.minimahal.com | `zaynahs_secret_cache_revalidate_2026` | `mini-mahal-e-store` |
 | LittleMister | `ljknmwianiswkalifueb` | `063a3d5c72d44b3654aa60b17ed94863` | www.littlemister.pk | `zaynahs_secret_cache_revalidate_2026` | `eestore` |
