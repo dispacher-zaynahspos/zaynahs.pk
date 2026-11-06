@@ -70,7 +70,25 @@ Full-system audit + permanent fixes are documented in `docs/AUDIT_PASS{0..10}_*.
 | 32 | [32-security-public-data-lock.md](docs/agent-rules/32-security-public-data-lock.md) | SEC1–SEC13 — **public data lock**. Anon key is public; RLS is the only wall. PII tables (`orders`, `order_items`, `order_addresses`, `customers`, `abandoned_carts`, `contact_messages`, `page_views`, `email_subscribers`, `whatsapp_subscribers`) NEVER public SELECT. Admin predicate = `public.is_admin()` (`app_metadata.role='admin'` OR `admin_users` email) — `auth.role()='authenticated'` is BANNED. No `select('*')` with anon (RLS hides rows, grants hide columns). Secrets only via `store_settings_public` / `server-secrets.ts`. Signup must stay disabled. Column-revoke requires revoking the table grant first. **SEC10**: `SECURITY DEFINER` RPCs = `service_role` only (anon EXECUTE on `adjust_item_stock`/`get_traffic_stats` was a real hole); `reorder_category_products` = `authenticated` + internal `is_admin()` guard. **SEC11**: storage = public SELECT only, writes `is_admin()`. **SEC12**: `roles={authenticated} qual=true` policies evade the text rewrite. **SEC13**: `npm run security:verify` green = definition of done. Apply/verify with `npm run security:lock` / `npm run security:verify`. |
 | 33 | [33-sample-inspired-product-cloning.md](docs/agent-rules/33-sample-inspired-product-cloning.md) | **RULE LISTING-REUSE** (Zero throwaway scripts, strict reuse of `scripts/store-list-product.cjs` / Admin API); sample-inspired product cloning: inherited categories, size chart, badges, sizes, frequently bought together cross-linking, unique titles/descriptions, zero hardcoded domains |
 | 34 | [34-admin-responsive-pwa-app-feel.md](docs/agent-rules/34-admin-responsive-pwa-app-feel.md) | RULE PWA1 — Admin Responsive PWA & Native Phone App UI System (<860px native app UI + bottom tab bar max 5 + bottom sheets, ≥860px desktop dashboard; tables to grouped cards; notch/home bar safe areas, 44px targets, 16px inputs, status dots); **RULE PWA2** — Orders Log single eye icon standard (strictly ONE `<Eye />` in Items column), smart small-fit item titles & grouped attribute pills (line-clamp-2), realistic DB-level order tab & status filters (`isOrderUnfulfilled` SSOT) |
+| 35 | [35-universal-codebase-structure.md](docs/agent-rules/35-universal-codebase-structure.md) | Read-first/update-after, where-to-find-what, structure-by-area, naming, file size & clarity, folder READMEs, living docs set (`ARCHITECTURE`/`CACHE-AND-REVALIDATION`/`DEPLOY-CLOUDFLARE`/`ENV`/`BRANDS`/`AGENT-LOG`), **no hardcoding**, safe small steps, secrets, isolation, stop points, Definition of Done |
 
+
+## 🗺️ Where to find what (keep current)
+| Topic | Home |
+|---|---|
+| Brand config / brand resolver | `lib/brand/` (target) · today `lib/config/domains.ts`, `lib/utils/getDomainBrand.ts`, `NEXT_PUBLIC_BRAND_*` |
+| Store pages | `app/(store)/` |
+| Admin pages | `app/admin/` |
+| API routes | `app/api/` |
+| Database access | `lib/supabase/` (`client`, `server`, `admin`) |
+| Server logic / services | `lib/services/` |
+| Cache + revalidation | `lib/revalidate.ts`, `app/api/revalidate/` |
+| Images + upload (R2 later) | `app/api/upload-image/`, `lib/uploadImage.ts`, `lib/utils/imageUrl.ts` |
+| Cloudflare / platform code | `lib/platform/` (target) · today `scripts/*cf*`, `worker-config/` (generated) |
+| Env variables | `docs/ENV.md`, `.env.example` |
+| Tests | `__tests__/`, snapshot tooling (target `scripts/snapshots/`) |
+| Scripts | `scripts/` |
+| Docs | `docs/` |
 
 ## 🔗 External Docs (unchanged locations)
 - `docs/TARGETED_EDGE_CACHING_GUIDE.md` — Shopify-grade targeted cache-tag & URL edge purging, Next.js first order of operations, zero order purge policy, server stock validation, and SSG preservation.
@@ -79,6 +97,7 @@ Full-system audit + permanent fixes are documented in `docs/AUDIT_PASS{0..10}_*.
 - `docs/UI_CARDS.md` — master product card system, controls, modules, base themes protection & Elessi archetype reference.
 - `docs/SCHEMA_CHANGE_LOG.md` — every DB change, dated
 - `docs/STORE_GUIDE.md` — GitHub & Supabase credentials
+- `docs/CLOUDFLARE_WORKERS_SEPARATION_PLAN.md` — Workers migration + store/admin separation plan (universal, zero hardcoded domains; `lib/config/worker-role.ts` + `scripts/gen-worker-config.mjs`)
 - `docs/CLOUDFLARE_SUPABASE_SETUP.md` — cache rules, webhooks, ISR guide, 1-click setup scripts
 - `docs/STORE_TESTING_GUIDE.md` — cache & webhook test commands
 - `docs/STRESS_TESTING_GUIDE.md` — universal edge & ceiling load testing engine (`scripts/max-ceiling-stress.mjs`), dynamic store resolution, zero hardcoded domains
