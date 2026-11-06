@@ -43,7 +43,7 @@ Full-system audit + permanent fixes are documented in `docs/AUDIT_PASS{0..10}_*.
 | 05 | [05-database-supabase.md](docs/agent-rules/05-database-supabase.md) | Schema, RLS, D1–D12, master schema |
 | 06 | [06-git-github.md](docs/agent-rules/06-git-github.md) | Commits, branches, secrets |
 | 07 | [07-deployment-vercel-cloudflare.md](docs/agent-rules/07-deployment-vercel-cloudflare.md) | Deploy checklist, rollback, purge, RULE ROLLOUT1, RULE BULK1 (1-command parallel engine `npm run stores:all` for all push, env-sync, CF cache, wait, purge, verify), RULE VERCEL-QUOTA (Zero wasteful deploys; batch all changes locally, single final deploy only to preserve free tier monthly build limits), RULE CF-MANDATORY (ONE shared rule source `scripts/lib/cf-cache-rules.js`; `html-pages` TTL = 30 days by design — stale ho to PURGE debug karo, TTL kabhi kam na karo; Vercel bandwidth bachane ke liye) |
-| 08 | [08-caching-isr-ssr.md](docs/agent-rules/08-caching-isr-ssr.md) | C1–C13, ISR, instant price updates, RULE C13 (stale page? debug PURGE — Cloudflare TTL kabhi kam na karo) |
+| 08 | [08-caching-isr-ssr.md](docs/agent-rules/08-caching-isr-ssr.md) | C1–C17, ISR, targeted Tag/URL edge purge (RULE C9/C14), zero order purge (RULE C15), checkout stock integrity (RULE C16), no-store leak prevention & SSG preservation (RULE C17) |
 | 09 | [09-ecommerce-pos.md](docs/agent-rules/09-ecommerce-pos.md) | Stock, payments, PKR formatting, RULE E1 (inventory exactly once — `deduct_stock_for_order`, opt-in `AUTO_DEDUCT_STOCK`), RULE E2 (multi-platform catalog sync & XML data feed architecture for Meta, TikTok & clones), RULE E3 (trashed data isolation & reporting integrity) |
 | 10 | [10-whatsapp-order-flow.md](docs/agent-rules/10-whatsapp-order-flow.md) | W1–W2, message format |
 | 11 | [11-storage-images.md](docs/agent-rules/11-storage-images.md) | S1–S9, bucket, compressor, media selector, edge-cached /storage/ delivery & Core Web Vitals optimization |
@@ -73,6 +73,7 @@ Full-system audit + permanent fixes are documented in `docs/AUDIT_PASS{0..10}_*.
 
 
 ## 🔗 External Docs (unchanged locations)
+- `docs/TARGETED_EDGE_CACHING_GUIDE.md` — Shopify-grade targeted cache-tag & URL edge purging, Next.js first order of operations, zero order purge policy, server stock validation, and SSG preservation.
 - `docs/SAMPLE_INSPIRED_PRODUCT_LISTING_GUIDE.md` — Dynamic multi-store sample-inspired product cloning, size chart inheritance, mutual cross-linking, zero hardcoded domains, and instant cache revalidation.
 - `docs/UI_RULES.md` — design-system UI reference. **§9 popup/modal/bottom-sheet scroll standard** (shared `lib/hooks/useBodyScrollLock.ts`, `flex-1 min-h-0 overflow-y-auto overscroll-contain`) and **§10 product-card interaction trigger** (Shopify-style: touch = single scroll-focused card plays hover image + spawns icons via shared `lib/hooks/useMobileCardFocus.ts`; hover devices use CSS `@media (hover:hover)`; full-card overlay `Link` = single-tap opens product, icons win at `z-[25]`) live here.
 - `docs/UI_CARDS.md` — master product card system, controls, modules, base themes protection & Elessi archetype reference.

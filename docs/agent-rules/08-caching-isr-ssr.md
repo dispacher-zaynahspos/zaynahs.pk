@@ -119,11 +119,13 @@ Result: price change visible to customers in < 1 second, zero DB hits per page l
 - **Nuclear fix**: If a user reports products not updating/missing/404ing despite a correct DB, immediately bump the cache-key suffix in `lib/services/products.ts` (e.g. `['products-list']` → `['products-list-v2']` → `v3`...) and push a commit. This forces Vercel to treat it as a brand-new cache query, abandoning the poisoned cache node.
 
 ## RULE C9 — Cloudflare edge cache purging strategy (MANDATORY & PERMANENT)
-- **Zero-lag updates on all writes**: Whenever ANY storefront entity (product, price, variant, banner, homepage section, collection, category, store settings, footer) is mutated in admin or via webhook:
-  1. Next.js cache: `revalidateTag(tag)` (clean single-arg only — Next.js 16 compliant) + `revalidatePath(...)`.
-  2. Cloudflare Edge cache: ALWAYS call `purgeCloudflareEverything()` (`purge_everything: true`).
-- **NEVER use single-URL purge (`purgeCloudflareUrls`)**: Regional Cloudflare edge nodes (Karachi, Singapore, Muscat) do not reliably bust single URLs on free/standard zones due to protocol/host mismatches. `purge_everything: true` wipes edge cache globally in < 1 second.
-- **Post-deploy + Manual "Purge Cache" button**: ALWAYS use `purgeCloudflareEverything()`.
+- **Targeted purge standard**: Whenever an entity is updated (product, variant, image, price, review, category, banner, homepage section):
+  1. Next.js cache FIRST: `revalidateTag(tag)` (clean single-arg only — Next.js 16 compliant) + `revalidatePath(...)`.
+  2. Cloudflare Edge cache SECOND: Call `purgeCloudflareTargeted({ tags, urls, prefixes })` using Cloudflare's April 2025+ Tag/URL purge API.
+  3. Purge URLs MUST automatically include all 4 variations: apex + www, trailing slash + no trailing slash.
+  4. Unrelated pages STAY 100% HOT & CACHED on Cloudflare edge (zero cache stampede, near-zero Vercel CPU).
+- **Global zone purge reserved strictly for settings/theme**: Only `revalidateSettings()` (global colors, logo, root layout) and post-deployment emergency fixes call `purgeCloudflareEverything()` (`purge_everything: true`). Routine product/category saves must NEVER wipe the entire zone.
+- See full architecture in [docs/TARGETED_EDGE_CACHING_GUIDE.md](../../docs/TARGETED_EDGE_CACHING_GUIDE.md).
 
 ## RULE C10 — Every admin write auto-invalidates ALL cache layers (STRICT)
 Manual "Purge Cache" button sirf **emergency** ke liye hai. **Normal save ke baad kabhi bhi manual purge zaroori na ho** — har admin write khud saari cache layers invalidate kare, ek hi **shared utility** (`lib/revalidate.ts`) ke through.
@@ -254,3 +256,31 @@ Agar page stale dikhe to ye check karo (TTL ko haath na lagao):
 4. CF zone "Development Mode" me nahi?
 
 Full context: [07-deployment-vercel-cloudflare.md](07-deployment-vercel-cloudflare.md) RULE CF-MANDATORY #6.
+ 
++## RULE C14 — Strict Order of Operations: Next.js First, Cloudflare Second
++Cache invalidation must ALWAYS execute in strict sequence:
++1. **Next.js internal invalidation FIRST**: Call `revalidateTag(...)` and `revalidatePath(...)` to ensure Vercel origin Data Cache is evicted and fresh data is primed.
++2. **Cloudflare edge purge SECOND**: Call `purgeCloudflareTargeted({ tags, urls, prefixes })`.
++* **Why:** If Cloudflare purges first, an immediate incoming visitor request will hit Vercel while Vercel's internal Data Cache is still holding the old data, causing Vercel to re-serve and re-cache the stale page back onto Cloudflare edge.
++* **Retry Loop:** Cloudflare API calls MUST include a 3-attempt exponential retry loop with console logging to survive intermittent network hiccups.
++
++## RULE C15 — Order Placement Zero Edge Purge Policy
++Customer order placement MUST NEVER trigger a Cloudflare cache purge.
++* In-store order creation (`createOrder`) deducts inventory via database RPC (`deduct_stock_for_order`).
++* **Do NOT call `purgeCloudflareEverything` or `revalidateProduct` during checkout:** Firing edge purges on every customer purchase exhausts Cloudflare's 5-purges/min limit during flash sales or ad campaigns and triggers unnecessary origin rebuilds.
++* Real-time stock display on product detail pages and cart is validated server-side during checkout.
++
++## RULE C16 — Server-Side Checkout Stock & Price Integrity
++Checkout must never trust client-submitted prices or stock quantities.
++1. In `lib/services/orders/create.ts`, before inserting any order row:
++   - Query live product and variant rows from database via `supabaseAdmin`.
++   - Verify that all products exist, are `is_active === true`, and `deleted_at === null`.
++   - Verify that live database stock is greater than or equal to the ordered quantity.
++   - Reject with an explicit user error if out of stock (`"Insufficient stock for [Product Name] ([N] available)."`).
++2. This guarantees complete data integrity even when browsing edge-cached catalog pages.
++
++## RULE C17 — No-Store Leak Prevention & SSG Preservation
++Storefront Server Components (especially `generateMetadata` and data fetching on `/product/[slug]`, `/category/[slug]`, `/`, `/shop`) MUST NEVER make uncached `fetch()` calls with `{ cache: 'no-store' }`.
++* In Next.js App Router, an uncached `no-store` fetch causes Next.js to switch the entire page to dynamic SSR (`cache-control: private, no-store`, `x-vercel-cache: MISS`), forcing Vercel to run a full serverless function and burn 200–500ms of Fluid CPU on every cache miss.
++* **Enforcement:** All DB queries on storefront pages must be wrapped in `unstable_cache` with tags.
++* **Verification:** `npm run build` MUST compile `/product/[slug]` as **`● (SSG)`** (Prerendered as static HTML). It must NEVER be `ƒ (Dynamic)`.
