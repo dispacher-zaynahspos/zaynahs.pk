@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import { ShoppingBag, X, Package, Calendar, ChevronUp, ChevronDown, MapPin, Truck } from '@/components/common/Icons';
 import EmptyState from '@/components/common/EmptyState';
 import { Modal } from '@/components/common/Modal';
+import TableThumbnail from '@/components/admin/TableThumbnail';
+import ImagePreviewModal from '@/components/admin/ImagePreviewModal';
 import { Order } from '@/lib/types';
 import { formatPrice } from '@/lib/utils/whatsapp';
 import { getItemVariant } from '@/lib/utils/formatVariant';
@@ -25,6 +27,7 @@ export default function CustomerOrdersModal({
   setExpandedOrderId,
   onClose,
 }: CustomerOrdersModalProps) {
+  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
   const getStatusColor = (status: Order['status']) => {
     switch (status) {
       case 'pending':    return 'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200 dark:border-amber-900/30';
@@ -37,6 +40,7 @@ export default function CustomerOrdersModal({
   };
 
   return (
+    <>
     <Modal
       open={true}
       onClose={onClose}
@@ -144,13 +148,12 @@ export default function CustomerOrdersModal({
 
                             return (
                               <div key={idx} className="py-3 flex items-center gap-3 first:pt-0 last:pb-0">
-                                <div className="relative h-12 w-12 rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden shrink-0 bg-gray-50 dark:bg-[#0f0f1b]">
-                                  {img ? (
-                                    <Image src={img} alt={item.product.name} fill sizes="48px" className="object-cover" unoptimized />
-                                  ) : (
-                                    <div className="flex h-full w-full items-center justify-center"><Package className="h-5 w-5 text-gray-300" /></div>
-                                  )}
-                                </div>
+                                <TableThumbnail
+                                  url={img || null}
+                                  alt={item.product?.name || 'Product'}
+                                  onPreview={setPreviewImageUrl}
+                                  className="h-12 w-12 rounded-lg flex-shrink-0"
+                                />
                                 <div className="flex-1 min-w-0">
                                   <h5 className="font-bold text-gray-900 dark:text-white text-xs truncate">{item.product.name}</h5>
                                   {variantDetails.summary && <p className="text-[10px] text-gray-400 font-semibold mt-0.5">{variantDetails.summary}</p>}
@@ -223,5 +226,11 @@ export default function CustomerOrdersModal({
         </div>
       </div>
     </Modal>
+
+    <ImagePreviewModal
+      url={previewImageUrl}
+      onClose={() => setPreviewImageUrl(null)}
+    />
+    </>
   );
 }

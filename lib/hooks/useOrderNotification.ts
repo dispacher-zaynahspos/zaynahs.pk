@@ -54,6 +54,8 @@ export function useOrderNotification() {
     const init = async () => {
       // Pehle existing order IDs fetch karo, tab subscribe karo
       try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
         const { data } = await supabase.from('orders').select('id');
         if (data && mounted) data.forEach((row) => playedOrderIds.current.add(row.id));
       } catch {}

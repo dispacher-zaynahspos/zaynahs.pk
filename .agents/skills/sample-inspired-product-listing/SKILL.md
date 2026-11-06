@@ -11,6 +11,15 @@ This skill defines the operational workflow for listing products across stores u
 
 ---
 
+## ⛔ 0. RULE LISTING-REUSE — Strict Prohibition on New Throwaway Scripts (MANDATORY)
+
+- **NEVER create new throwaway script files** (e.g. `scripts/list-xxx.mjs`, `scripts/attach-xxx.mjs`, `scripts/update-xxx.mjs`).
+- **ALWAYS REUSE the canonical engine**: `scripts/store-list-product.cjs` or the Admin API actions.
+- Creating temporary ad-hoc scripts in `scripts/` pollutes the git working tree, creates technical debt, and violates Single Source of Truth (SSOT1).
+- For quick database audits or calculations, execute via inline command: `node -e "..."` without saving files to `scripts/`.
+
+---
+
 ## 1. Core Principle: What "Inspired Sample" Means
 
 Whenever the merchant or user specifies a sample product (e.g., *"is article se inspired sample dunga..."* or *"sample this article..."*):

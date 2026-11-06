@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { revalidatePath, revalidateTag } from 'next/cache';
 import {
   revalidateProduct,
+  revalidateAllProducts,
   revalidateBanner,
   revalidateCategory,
   revalidateHomepage,
@@ -68,7 +69,8 @@ export async function POST(req: NextRequest) {
       if (slug) {
         await revalidateProduct(slug);
       } else {
-        console.warn('[Webhook Revalidate] Product update received but slug was missing.');
+        console.warn('[Webhook Revalidate] Product update received but slug was missing — refreshing all product pages.');
+        await revalidateAllProducts();
       }
 
       // Real-time sync to Meta Catalog
@@ -103,7 +105,8 @@ export async function POST(req: NextRequest) {
           console.warn(`[Webhook Revalidate] Parent product not found or slug missing for product ID: ${productId}`);
         }
       } else {
-        console.warn(`[Webhook Revalidate] Table is ${table} but product_id was missing from activeRecord.`);
+        console.warn(`[Webhook Revalidate] Table is ${table} but product_id was missing from activeRecord — refreshing all product pages.`);
+        await revalidateAllProducts();
       }
     } else if (table === 'banners' || table === 'homepage_sections') {
       await revalidateBanner();

@@ -32,9 +32,28 @@ const DYNAMIC_PATHS = [
   '/reset-password',
 ];
 
+// Paths that must bypass cache but are NOT real pages:
+//   /.well-known/ — SSL probe pings (1.4k/day fake health checks)
+//   /cdn-cgi/     — Cloudflare internal (RUM analytics, etc.)
+//   /s7pc/        — Third-party tracking scripts
+// These are excluded from html-pages caching so they don't inflate
+// "uncached HTML" metrics and waste Vercel invocations.
+const PROBE_BYPASS_PATHS = [
+  '/.well-known/',
+  '/cdn-cgi/',
+  '/s7pc/',
+];
+
+const PROBE_BYPASS_EXPR = PROBE_BYPASS_PATHS.map(
+  (p) => `(http.request.uri.path contains "${p}")`
+).join(' or ');
+
 const DYNAMIC_BYPASS_EXPR = DYNAMIC_PATHS.map(
   (p) => `(http.request.uri.path contains "${p}")`
 ).join(' or ');
+
+// Combined expression — dynamic user routes + probe/bot paths
+const ALL_BYPASS_EXPR = `${DYNAMIC_BYPASS_EXPR} or ${PROBE_BYPASS_EXPR}`;
 
 /**
  * @returns {Array<object>} Cloudflare `http_request_cache_settings` rules.
@@ -42,7 +61,8 @@ const DYNAMIC_BYPASS_EXPR = DYNAMIC_PATHS.map(
 function buildCacheRules() {
   return [
     {
-      expression: DYNAMIC_BYPASS_EXPR,
+      // Block caching for dynamic user routes AND probe/bot paths
+      expression: ALL_BYPASS_EXPR,
       description: 'no-cache-dynamic',
       action: 'set_cache_settings',
       action_parameters: { cache: false },
@@ -67,7 +87,8 @@ function buildCacheRules() {
       },
     },
     {
-      expression: `(http.request.uri.path wildcard "/*") and not (${DYNAMIC_BYPASS_EXPR})`,
+      // Only cache real HTML pages — excludes dynamic + probe paths
+      expression: `(http.request.uri.path wildcard "/*") and not (${ALL_BYPASS_EXPR})`,
       description: 'html-pages',
       action: 'set_cache_settings',
       action_parameters: {
@@ -82,4 +103,4 @@ function buildCacheRules() {
   ];
 }
 
-module.exports = { buildCacheRules, DYNAMIC_PATHS, DYNAMIC_BYPASS_EXPR };
+module.exports = { buildCacheRules, DYNAMIC_PATHS, PROBE_BYPASS_PATHS, DYNAMIC_BYPASS_EXPR, PROBE_BYPASS_EXPR, ALL_BYPASS_EXPR };

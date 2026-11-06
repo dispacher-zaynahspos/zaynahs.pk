@@ -9,6 +9,7 @@ import { formatPrice } from '@/lib/utils/whatsapp';
 import { NavigationItem, StoreSettings, Product } from '@/lib/types';
 import { Modal } from '@/components/common/Modal';
 import type { CustomerSession } from '@/lib/utils/customer-auth';
+import HeaderSocialLinks from './HeaderSocialLinks';
 
 // Session-level cache so opening the menu doesn't refetch the catalog every time.
 let cachedFeatured: Product[] | null = null;
@@ -271,6 +272,16 @@ export function NavbarMobileDrawer({
               </div>
               <ChevronRight className="h-4 w-4 shrink-0 group-hover:translate-x-0.5 transition-transform" />
             </a>
+          </div>
+        )}
+
+        {/* Social Accounts in Mobile Drawer */}
+        {settings && (
+          <div className="px-6 py-2.5 border-t border-gray-100 dark:border-white/5 flex items-center justify-between">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+              Follow Us
+            </span>
+            <HeaderSocialLinks settings={settings} color="currentColor" showOnMobile={true} />
           </div>
         )}
 

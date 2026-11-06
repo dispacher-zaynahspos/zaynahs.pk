@@ -67,94 +67,81 @@ export function AdminHeader({
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full h-[calc(3.5rem+env(safe-area-inset-top,0px))] md:h-14 flex-shrink-0 bg-white/85 dark:bg-[#0c0c16]/85 backdrop-blur-xl border-b border-gray-200/80 dark:border-white/10 flex items-center justify-between px-3 sm:px-4 md:px-6 pt-[env(safe-area-inset-top,0px)] md:pt-0 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] dark:shadow-[0_4px_24px_-4px_rgba(0,0,0,0.5)] transition-all">
+    <header className="sticky top-0 z-40 w-full h-[calc(3.5rem+env(safe-area-inset-top,0px))] md:h-14 flex-shrink-0 bg-white/95 dark:bg-[#0c0c16]/95 backdrop-blur-md border-b border-gray-100 dark:border-white/5 flex items-center justify-between px-3 sm:px-4 md:px-6 pt-[env(safe-area-inset-top,0px)] md:pt-0 transition-colors">
       {/* Left: Mobile Menu Toggle + Title */}
-      <div className="flex items-center gap-2.5 min-w-0 max-w-[55%] sm:max-w-none">
-        {/* Hamburger Menu Toggle (Mobile & Tablet) */}
+      <div className="flex items-center gap-2.5 min-w-0">
+        {/* Hamburger Menu Toggle (Mobile & Tablet) - Pure Icon */}
         <button
           type="button"
           onClick={() => setIsMobileMenuOpen(true)}
-          className="lg:hidden h-9 w-9 flex items-center justify-center rounded-xl bg-slate-100 hover:bg-slate-200/80 dark:bg-white/[0.08] dark:hover:bg-white/[0.14] text-gray-700 dark:text-gray-200 border border-gray-200/80 dark:border-white/10 shadow-2xs active:scale-95 transition-all cursor-pointer shrink-0"
-          title="Open menu drawer"
-          aria-label="Open menu drawer"
+          className="lg:hidden h-9 w-9 flex items-center justify-center rounded-xl text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/5 active:scale-95 transition-colors cursor-pointer shrink-0"
+          title="Open menu"
+          aria-label="Open menu"
         >
-          <Menu className="h-4.5 w-4.5" />
+          <Menu className="h-5 w-5" />
         </button>
 
-        <div className="flex items-center gap-2 min-w-0">
-          <div className="hidden sm:block h-2 w-2 rounded-full bg-emerald-500 ring-4 ring-emerald-500/20 shrink-0" />
-          <h1 className="text-sm sm:text-base font-extrabold text-gray-900 dark:text-white tracking-tight truncate">
-            {pageTitle}
-          </h1>
-        </div>
+        <h1 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white tracking-tight truncate">
+          {pageTitle}
+        </h1>
       </div>
 
-      {/* Right Actions: Search Pill, Pending Orders, Purge Cache, View Store */}
-      <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
-        {/* Quick Spotlight Search Button */}
+      {/* Right Actions: Clean Icons Only (No shadows, No box borders, No bulky pill text) */}
+      <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+        {/* Quick Spotlight Search Icon */}
         {onOpenCommandPalette && (
           <button
             type="button"
             onClick={onOpenCommandPalette}
-            className="group h-9 px-3 rounded-xl bg-slate-100/90 hover:bg-white dark:bg-white/[0.07] dark:hover:bg-white/[0.12] border border-gray-200/90 dark:border-white/10 flex items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all cursor-pointer active:scale-95 shadow-[inset_0_1px_2px_rgba(0,0,0,0.03)] hover:shadow-2xs"
-            title="Search Navigation (Cmd+K)"
+            className="h-9 w-9 flex items-center justify-center rounded-xl text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/5 active:scale-95 transition-colors cursor-pointer"
+            title="Search Navigation (⌘K)"
             aria-label="Search Navigation"
           >
-            <Search className="h-4 w-4 shrink-0 transition-transform group-hover:scale-110" />
-            <span className="hidden xl:inline text-xs font-semibold text-gray-600 dark:text-gray-300">Quick search...</span>
-            <kbd className="hidden sm:inline-flex items-center text-[10px] font-bold bg-white dark:bg-white/15 px-1.5 py-0.5 rounded-md text-gray-600 dark:text-gray-200 border border-gray-200/90 dark:border-white/10 shadow-3xs font-mono">
-              ⌘K
-            </kbd>
+            <Search className="h-4.5 w-4.5" />
           </button>
         )}
 
-        {/* Pending Orders Notification Pill */}
+        {/* Pending Orders Icon with subtle badge */}
         {pendingOrdersCount > 0 && (
           <Link
             href="/admin/orders"
-            className="group h-9 px-2.5 sm:px-3 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/30 flex items-center gap-1.5 transition-all text-xs font-bold shrink-0 shadow-2xs hover:shadow-xs active:scale-95"
-            title={`${pendingOrdersCount} pending orders require fulfillment`}
+            className="relative h-9 w-9 flex items-center justify-center rounded-xl text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30 active:scale-95 transition-colors"
+            title={`${pendingOrdersCount} pending orders`}
+            aria-label="Pending Orders"
           >
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500" />
+            <ClipboardList className="h-4.5 w-4.5" />
+            <span className="absolute top-1 right-1 flex items-center justify-center min-w-[15px] h-3.5 px-1 rounded-full bg-amber-500 text-white text-[9px] font-bold leading-none">
+              {pendingOrdersCount > 99 ? '99+' : pendingOrdersCount}
             </span>
-            <ClipboardList className="h-3.5 w-3.5" />
-            <span>{pendingOrdersCount > 99 ? '99+' : pendingOrdersCount}</span>
-            <span className="hidden sm:inline text-[11px] font-semibold text-amber-700/90 dark:text-amber-300/80">Orders</span>
           </Link>
         )}
 
-        {/* PWA Install App Button */}
+        {/* PWA Install App Icon */}
         {installPrompt && !isInstalled && (
           <button
             type="button"
             onClick={handleInstallClick}
-            className="h-9 px-3 rounded-xl bg-gradient-to-b from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white border border-blue-600/30 flex items-center gap-1.5 transition-all text-xs font-bold shrink-0 shadow-xs hover:shadow-sm active:scale-95 cursor-pointer"
-            title="Install Admin App (PWA)"
+            className="h-9 w-9 flex items-center justify-center rounded-xl text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30 active:scale-95 transition-colors cursor-pointer"
+            title="Install Admin App"
+            aria-label="Install Admin App"
           >
-            <Download className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Install App</span>
+            <Download className="h-4.5 w-4.5" />
           </button>
         )}
 
-        {/* Purge Cache Button */}
-        <PurgeCacheButton variant="ghost" />
+        {/* Purge Cache Icon Only */}
+        <PurgeCacheButton variant="minimal" iconOnly />
 
-        {/* Modern Flagship View Storefront Pill Button */}
+        {/* View Storefront Icon */}
         <Link
           href="/"
           target="_blank"
           rel="noopener noreferrer"
-          className="group relative h-9 px-3.5 rounded-xl bg-gradient-to-b from-gray-900 to-gray-800 hover:from-black hover:to-gray-900 dark:from-white dark:to-gray-100 text-white dark:text-gray-950 border border-gray-900/10 dark:border-white/20 active:scale-95 transition-all duration-200 flex items-center gap-2 text-xs font-extrabold shadow-[0_2px_8px_-2px_rgba(0,0,0,0.25)] hover:shadow-[0_4px_16px_-2px_rgba(0,0,0,0.35)] shrink-0 cursor-pointer overflow-hidden"
+          className="h-9 w-9 flex items-center justify-center rounded-xl text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/5 active:scale-95 transition-colors cursor-pointer"
           title="View Storefront (opens in new tab)"
+          aria-label="View Storefront"
         >
-          <span className="relative z-10 flex items-center gap-1.5">
-            <span className="hidden sm:inline">View Store</span>
-            <span className="sm:hidden">Store</span>
-            <ExternalLink className="h-3.5 w-3.5 opacity-80 group-hover:opacity-100 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
-          </span>
-          <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full bg-gradient-to-r from-transparent via-white/15 to-transparent transition-transform duration-700 pointer-events-none" />
+          <ExternalLink className="h-4.5 w-4.5" />
         </Link>
       </div>
     </header>

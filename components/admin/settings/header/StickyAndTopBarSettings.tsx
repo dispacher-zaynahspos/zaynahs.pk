@@ -54,7 +54,7 @@ export default function StickyAndTopBarSettings({
     header_top_bar_email: headerTopBarEmail,
     header_newsletter_text: headerNewsletterText,
     header_social_enabled: headerSocialEnabled ?? true,
-    header_social_show_mobile: headerSocialShowMobile ?? false,
+    header_social_show_mobile: headerSocialShowMobile ?? true,
   };
   const onAnnouncementUpdate = (updates: Partial<StoreSettings>) => {
     if (updates.header_show_top_bar !== undefined) setHeaderShowTopBar(updates.header_show_top_bar);

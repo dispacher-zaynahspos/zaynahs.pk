@@ -2,10 +2,11 @@
 
 import React, { useState, useMemo } from 'react';
 import { Product, CartItem, ProductVariant, StoreSettings, Order, StatusLogItem } from '@/lib/types';
-import { Package, Check } from '@/components/common/Icons';
+import { Package, Check, ArrowLeft } from '@/components/common/Icons';
 import { updateOrderDetailsSafe } from '@/lib/services/orders';
 import { toast } from 'sonner';
 import { OrderItemCard, OrderProductSearch, OrderFinancialSummary } from './order-editor';
+import ImagePreviewModal from '@/components/admin/ImagePreviewModal';
 
 interface OrderEditorProps {
   order: Order;
@@ -26,6 +27,7 @@ export default function OrderEditor({ order: initialOrder, settings, products, o
   
   const [searchQuery, setSearchQuery] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
 
   // Financials
   const subtotal = useMemo(() => {
@@ -228,10 +230,22 @@ export default function OrderEditor({ order: initialOrder, settings, products, o
   return (
     <div className="bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xl overflow-hidden flex flex-col">
       <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between sticky top-0 bg-white dark:bg-[#16162a] z-10">
-        <h2 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
-          <Package className="h-5 w-5 text-indigo-500" />
-          Edit Order
-        </h2>
+        <div className="flex items-center gap-2.5">
+          <button 
+            type="button"
+            onClick={onCancel}
+            disabled={isSaving}
+            className="p-1.5 -ml-1 text-gray-500 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors cursor-pointer"
+            title="Back to order detail"
+            aria-label="Back to order detail"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+          <h2 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            <Package className="h-5 w-5 text-indigo-500" />
+            Edit Order {initialOrder.order_number ? `· ${initialOrder.order_number}` : ''}
+          </h2>
+        </div>
         <div className="flex gap-2">
           <button 
             type="button"
@@ -265,6 +279,7 @@ export default function OrderEditor({ order: initialOrder, settings, products, o
               onQuantityChange={handleQuantityChange}
               onRemoveItem={handleRemoveItem}
               onSelectOption={handleSelectOption}
+              onPreviewImage={setPreviewImageUrl}
             />
           ))}
         </div>
@@ -295,6 +310,11 @@ export default function OrderEditor({ order: initialOrder, settings, products, o
           setShippingAmount={setShippingAmount}
         />
       </div>
+
+      <ImagePreviewModal
+        url={previewImageUrl}
+        onClose={() => setPreviewImageUrl(null)}
+      />
     </div>
   );
 }

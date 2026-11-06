@@ -32,7 +32,7 @@ export default async function StoreLayout({
       <Suspense fallback={<div className="h-16 bg-white dark:bg-[#0f0f1b] border-b border-gray-200 dark:border-gray-800" />}>
         <Navbar settings={settings} storeName={brandName} logoUrl={settings?.logo_url} logoWidth={settings?.logo_width} />
       </Suspense>
-      <main className="flex-grow min-h-[80vh] bg-gray-50 dark:bg-[#0f0f1b] transition-colors duration-200">
+      <main className="flex-grow min-h-[80vh] bg-gray-50 dark:bg-[#0f0f1b] transition-colors duration-200 overflow-x-clip">
 
         {children}
       </main>

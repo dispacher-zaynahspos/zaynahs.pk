@@ -626,7 +626,7 @@ CREATE TABLE IF NOT EXISTS store_settings (
   header_show_newsletter BOOLEAN DEFAULT true,
   header_newsletter_text TEXT DEFAULT 'Summer sale discount off 50%. Shop Sale',
   header_social_enabled BOOLEAN DEFAULT true,
-  header_social_show_mobile BOOLEAN DEFAULT false,
+  header_social_show_mobile BOOLEAN DEFAULT true,
 
   header_top_bar_bg TEXT DEFAULT '#d97706',
   header_top_bar_text_color TEXT DEFAULT '#ffffff',

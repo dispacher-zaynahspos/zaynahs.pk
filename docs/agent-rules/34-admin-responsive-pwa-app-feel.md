@@ -96,3 +96,24 @@ Before completing any UI change in Admin/POS:
 - [ ] **Keyboard Test**: Opening keyboard on input fields does not break layout or hide submit button.
 - [ ] **Theme Check**: Light mode and dark mode tested and contrast verified.
 - [ ] **Zero Console Errors**: Clean runtime, zero unhandled exceptions.
+
+---
+
+## 10. Admin Orders Log & Detail Standards (RULE PWA2 — MANDATORY)
+1. **Single Eye Icon Standard & Aligned Items Count**:
+   - In Orders Log table (`OrderLogTable.tsx`) and mobile cards, render strictly **ONE eye icon (`<Eye className="w-3.5 h-3.5" />`) per order row/card**.
+   - The eye icon belongs strictly in the **Items column/cell** next to the compact item count on a single line (`{count} item{count !== 1 ? 's' : ''} 👁️`).
+   - Outside in the table, strictly show items count; NEVER render `(pcs)` outside in the table cell to prevent horizontal misalignment.
+   - NEVER duplicate eye icons in the Order Number column (`TV-XXXX`) or inside mobile card headers. Clicking the row or order number navigates to full Order Detail; clicking the eye opens the Quick View modal.
+2. **Compact Smart-Fit Item Titles & Grouped Badges**:
+   - In Order Detail Canvas, Quick View modal, and Order Editor, product titles must be compact and smart-fit (`text-[12.5px] sm:text-[13px] font-bold text-gray-900 dark:text-white leading-snug line-clamp-1 sm:line-clamp-2`). Never render unconstrained 4+ line bloated titles.
+   - Variant chips (`Size: 3-4y`, Color), quantity (`Qty: 1`), and unit pricing must be grouped into a single horizontal inline flex row with compact pills (`text-[10.5px] font-semibold`), never stacking 5–6 vertical lines per item.
+3. **Realistic Orders Filtering & SSOT Fulfillment**:
+   - Tab filters (`All`, `Unfulfilled`, `Unpaid`, `Open`, `Archived`) must filter at the Supabase database level so `count` and pagination are 100% accurate.
+   - Single Source of Truth (`orderLogUtils.ts`): use `isOrderFulfilled(order)` and `isOrderUnfulfilled(order)`. Orders with status `shipped`, `out_for_delivery`, or `delivered` (or `fulfillment_status === 'fulfilled'`) are Fulfilled and must NEVER appear in the `Unfulfilled` tab or display an Unfulfilled badge.
+   - Date filter options use standard Shopify ranges (`Today`, `Yesterday`, `Last 7 Days`, `Last 30 Days`, `Custom Range`), avoiding redundant or unindexed all-time filters.
+4. **Shopify Polaris Style Order Quick View Modal**:
+   - **Maximized Products Scroll Area**: The articles ordered list is the hero of the modal and takes primary vertical space (up to 380px–420px), displaying 5–6 products simultaneously with smooth internal scroll (`[scrollbar-width:thin]`).
+   - **Smart Compact Metadata Strip**: Customer name, phone, delivery address, payment method, customer note (if present), and financial totals are consolidated into a sleek, unified, compact summary strip (~70px–90px) that NEVER gets cut off or pushed behind the footer.
+   - **Stable Non-Jumping Dimensions**: Modal container height is strictly stable (`sm:!h-[670px]` desktop, `!h-[92dvh]` mobile) across navigation, keeping Next/Previous switcher buttons (`[ ← N of M → ]`) and Close button (`✕`) at the exact same screen coordinates.
+

@@ -26,7 +26,7 @@ export default function RichMediaPreviewModal({ url, item: initialItem, onClose,
   const hasContent = !(!state.mounted || (!state.previewItem && !state.loading));
 
   return (
-    <Modal open={hasContent} onClose={onClose} variant="lightbox" showClose={false}>
+    <Modal open={hasContent} onClose={onClose} variant="lightbox" showClose={false} zIndexClassName="z-[1100]">
       <div className="bg-white dark:bg-[#16162a] rounded-3xl max-w-5xl w-[calc(100%-2rem)] border border-gray-200 dark:border-gray-800 shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[90vh] md:max-h-[85vh] will-change-transform">
         
         {/* Left/Center: Image Viewport */}

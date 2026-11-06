@@ -112,7 +112,7 @@ When `vercel --prod` is run from a machine without `.vercel/` config, Vercel cre
 
    | Store | Vercel Account | Project Name | Project ID | Live Domain |
    |-------|---------------|-------------|------------|-------------|
-   | TotVogue | totvogue | `zaynahsestore-tv` | `prj_4YNXcnk6AOXQfTQeausLWgn36j6M` | `totvogue.pk` |
+   | TotVogue | (read from `env-backups/totvogue.env.local` → `VERCEL_TEAM_ID`) | `zaynahsestore-tv` | `prj_4YNXcnk6AOXQfTQeausLWgn36j6M` | `totvogue.pk` |
    | Zaynahs | zaynahs | `zaynahs-pk` | `prj_4xecB10gue1JYbovg5FbOpa2cpJd` | `zaynahs.pk` |
    | Lobo | lobo | `lobo-pk` | `prj_W0fmRcNx1RGaxtGyZ75gQ3Aqpp7V` | `lobo.pk` |
    | MiniMahal | minimahal | `mini-mahal-e-store` | `prj_uBAU5DIPpiuSlal9ENW9lJ2YkGjH` | `minimahal.com` |
@@ -120,6 +120,8 @@ When `vercel --prod` is run from a machine without `.vercel/` config, Vercel cre
    | LittleMister | littlemister | `eestore` | `prj_fYG7cR3Nx0o2wDnjCw65jzAIMs66` | `littlemister.pk` |
 
    > **Rule:** A project entry in this table requires a real custom domain. Any Vercel project with only a `.vercel.app` domain is by definition an orphan and must be deleted.
+
+   > **Moving a project between Vercel accounts (generic flow):** never re-import the repo into a new account (that loses domain verification and forces a fresh DNS TXT challenge). Instead create a transfer request from the source team (`POST /projects/{id}/transfer-request`), then accept it with the destination team (`PUT /projects/transfer-request/{code}`). Project ID, Git link, env vars and custom-domain verification move with the project. Account/team/project IDs are **never hardcoded in docs or code** — always read them from `env-backups/<store>.env.local` (`VERCEL_TOKEN`, `VERCEL_TEAM_ID`, `VERCEL_PROJECT_NAME`). Keep the previous token as a rollback-only key (e.g. `VERCEL_TOKEN_<ACCOUNT_LABEL>`), never as the active `VERCEL_TOKEN`.
 
 6. **If a duplicate/orphan project is discovered** (no custom domain, named `zaynahsestore-tv-main` or otherwise):
    - Check it has NO custom domain: `curl /v9/projects/<id>/domains`

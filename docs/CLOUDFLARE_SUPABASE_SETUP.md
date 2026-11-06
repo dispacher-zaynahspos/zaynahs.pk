@@ -32,10 +32,13 @@ npm run clone:setup -- --store=<store> --deploy --yes
 ```
 Cloudflare-only phase (DNS records + 4 cache rules + browser_cache_ttl = 0), idempotent:
 ```bash
-npm run cf:dns      # A @ → 76.76.21.21  +  CNAME www → cname.vercel-dns.com (proxied)
-npm run cf:rules    # no-cache-dynamic, static-assets, html-pages, supabase-images + sets browser_cache_ttl=0 + zone purge
+npm run cf:dns        # A @ → 76.76.21.21  +  CNAME www → cname.vercel-dns.com (proxied)
+npm run cf:rules      # Single store: no-cache-dynamic, static-assets, html-pages, storage-images + browser_cache_ttl=0
+npm run cf:rules:all  # All stores: parallel deployment across 5 stores (RULE CF-MANDATORY)
+npm run cf:rules:undo # 1-Command Rollback: wipe rules and purge cache instantly (see docs/CLOUDFLARE_CACHE_UNDO.md)
 ```
-> `cf:rules` automatically patches `browser_cache_ttl = 0` (Respect origin) so visitor browsers never cache HTML on device disk for 4 hours. Edge caches HTML for 300s, and admin saves purge Cloudflare globally in <1s.
+> `cf:rules` / `cf:rules:all` automatically patches `browser_cache_ttl = 0` (Respect origin) so visitor browsers never cache HTML on device disk for 4 hours. Edge caches HTML for 30 days, and admin saves purge Cloudflare globally in <1s.
+> For full rollback / undo documentation, see [CLOUDFLARE_CACHE_UNDO.md](docs/CLOUDFLARE_CACHE_UNDO.md).
 > `cf:dns` DNS records bana deta hai chahe zone abhi `pending` ho (NS registrar par switch hone ka intezaar) — jaise hi NS propagate hogi site live aa jayegi.
 
 ---

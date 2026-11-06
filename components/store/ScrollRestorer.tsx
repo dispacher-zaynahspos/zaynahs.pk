@@ -7,6 +7,7 @@ import {
   SCROLL_KEY,
   ScrollRestoreData
 } from '@/lib/hooks/useScrollRestoration';
+import { resetBodyScrollLock } from '@/lib/hooks/useBodyScrollLock';
 
 /**
  * Storefront scroll restoration (single source of truth).
@@ -96,6 +97,14 @@ export default function ScrollRestorer() {
   useEffect(() => {
     // Cancel any previous restoration in progress
     cancelActiveRestore();
+
+    // Safety: ensure background body scroll lock is not orphaned on navigation if no modal is open
+    if (typeof document !== 'undefined') {
+      const activeModal = document.querySelector('[role="dialog"], [aria-modal="true"], .modal-overlay');
+      if (!activeModal) {
+        resetBodyScrollLock();
+      }
+    }
 
     const isNewRoute = prevPathnameRef.current !== null && prevPathnameRef.current !== pathname;
     const isFirstLoad = isInitialMountRef.current;

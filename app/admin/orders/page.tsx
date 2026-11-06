@@ -13,10 +13,12 @@ export default async function AdminOrdersPage() {
   ]);
 
   return (
-    <OrderLog
-      initialOrders={orders}
-      settings={settings}
-      initialFailedAttempts={failedAttempts}
-    />
+    <React.Suspense fallback={null}>
+      <OrderLog
+        initialOrders={orders}
+        settings={settings}
+        initialFailedAttempts={failedAttempts}
+      />
+    </React.Suspense>
   );
 }

@@ -17,6 +17,13 @@ export function useOrderCustomerEditing(
   const [editCustomerName, setEditCustomerName] = useState(order.customer_name || '');
   const [editCustomerPhone, setEditCustomerPhone] = useState(order.customer_phone || '');
 
+  useEffect(() => {
+    setEditCustomerName(order.customer_name || '');
+    setEditCustomerPhone(order.customer_phone || '');
+    setIsEditingCustomer(false);
+    setIsEditingNotes(false);
+  }, [order.id, order.customer_name, order.customer_phone]);
+
   const [editAddress, setEditAddress] = useState('');
   const [editApt, setEditApt] = useState('');
   const [editCity, setEditCity] = useState('');

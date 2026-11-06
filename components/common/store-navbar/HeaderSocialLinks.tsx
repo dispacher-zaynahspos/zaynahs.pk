@@ -25,7 +25,7 @@ export default function HeaderSocialLinks({ settings, color, showOnMobile = fals
 
   return (
     <div
-      className={`${showOnMobile ? 'flex' : 'hidden md:flex'} items-center gap-1 lg:gap-1.5 xl:gap-2 shrink-0`}
+      className={`${showOnMobile ? 'flex' : 'hidden md:flex'} items-center justify-center md:justify-end gap-1.5 lg:gap-1.5 xl:gap-2 shrink-0`}
       style={color ? ({ color } as React.CSSProperties) : undefined}
     >
       {items.map(({ key, href, label, Icon }) => (
@@ -36,9 +36,12 @@ export default function HeaderSocialLinks({ settings, color, showOnMobile = fals
           rel="noopener noreferrer"
           aria-label={label}
           title={label}
-          className="flex items-center justify-center h-6 w-6 lg:h-6 lg:w-6 xl:h-7 xl:w-7 rounded-md hover:opacity-70 active:scale-95 transition-all duration-200 cursor-pointer -my-1"
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
+          className="flex items-center justify-center h-7 w-7 lg:h-6 lg:w-6 xl:h-7 xl:w-7 rounded-md hover:opacity-75 active:scale-90 transition-all duration-200 cursor-pointer -my-1"
         >
-          <Icon className="h-3.5 w-3.5 lg:h-3.5 lg:w-3.5 xl:h-4 xl:w-4 shrink-0" />
+          <Icon className="h-4 w-4 lg:h-3.5 lg:w-3.5 xl:h-4 xl:w-4 shrink-0" />
         </a>
       ))}
     </div>

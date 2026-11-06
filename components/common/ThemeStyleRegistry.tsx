@@ -197,15 +197,18 @@ export default function ThemeStyleRegistry({ settings }: ThemeStyleRegistryProps
     
     /* Backgrounds hardcoded to secondary navy */
     .bg-\\[\\#1a1a2e\\], .dark .bg-\\[\\#1a1a2e\\], 
-    [class*="bg-[#1a1a2e]"]:not([class*="bg-[#1a1a2e]/"]):not([class*="hover:"]),
+    [class~="bg-[#1a1a2e]"]:not([class*="dark:"]):not([class*="bg-[#1a1a2e]/"]):not([class*="hover:"]),
+    [class^="bg-[#1a1a2e]"]:not([class*="dark:"]):not([class*="bg-[#1a1a2e]/"]):not([class*="hover:"]),
+    [class*=" bg-[#1a1a2e]"]:not([class*="dark:"]):not([class*="bg-[#1a1a2e]/"]):not([class*="hover:"]),
     .bg-secondary, .dark .bg-secondary,
     .btn-primary, [class*="btn-primary"] {
       background-color: var(--btn-primary-bg) !important;
       color: var(--btn-primary-text, #ffffff) !important;
     }
-    .bg-\\[\\#1a1a2e\\] *, [class*="bg-[#1a1a2e]"] *:not(.badge):not([class*="bg-"]),
-    .bg-secondary *, .dark .bg-secondary *,
-    .btn-primary *, [class*="btn-primary"] * {
+    .bg-\\[\\#1a1a2e\\] *:not(.badge):not([class*="bg-"]):not(:hover),
+    [class~="bg-[#1a1a2e]"] *:not(.badge):not([class*="bg-"]):not(:hover),
+    .bg-secondary *:not(:hover), .dark .bg-secondary *:not(:hover),
+    .btn-primary *:not(:hover), [class*="btn-primary"] *:not(:hover) {
       color: var(--btn-primary-text, #ffffff) !important;
     }
     

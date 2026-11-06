@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import { Order, StoreSettings } from '@/lib/types';
 import { Edit } from '@/components/common/Icons';
 import { cleanWhatsAppPhone } from '@/lib/utils/whatsapp';
@@ -55,7 +56,17 @@ export function OrderCustomerCard({
   handleSaveCustomer,
   isUpdating
 }: OrderCustomerCardProps) {
+  const router = useRouter();
   const [orderCount, setOrderCount] = React.useState<number | null>(null);
+
+  const handleViewCustomerOrders = () => {
+    const params = new URLSearchParams();
+    if (order.customer_id) params.set('customerId', String(order.customer_id));
+    if (order.customer_phone) params.set('customerPhone', order.customer_phone);
+    if (order.customer_name) params.set('customerName', order.customer_name);
+    params.set('timeRange', 'all');
+    router.push(`/admin/orders?${params.toString()}`);
+  };
 
   React.useEffect(() => {
     let alive = true;
@@ -169,13 +180,28 @@ export function OrderCustomerCard({
         ) : (
           <div className="space-y-4 text-[13px]">
             <div>
-              <a className="text-[13.5px] font-semibold text-[#2c6ecb] dark:text-blue-400 cursor-pointer hover:underline decoration-[#2c6ecb]">
+              <button
+                type="button"
+                onClick={handleViewCustomerOrders}
+                className="text-[13.5px] font-semibold text-[#2c6ecb] dark:text-blue-400 cursor-pointer hover:underline decoration-[#2c6ecb] text-left block"
+                title="Click to view all orders from this customer"
+              >
                 {order.customer_name || 'Guest Customer'}
-              </a>
-              <div className="text-[12.5px] text-gray-500 dark:text-gray-400 mt-0.5">
-                {orderCount === null
-                  ? (order.customer_id ? 'Loading orders…' : 'Guest (no account)')
-                  : `${orderCount} order${orderCount === 1 ? '' : 's'}`}
+              </button>
+              <div className="mt-1">
+                <button
+                  type="button"
+                  onClick={handleViewCustomerOrders}
+                  className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/60 text-[#2c6ecb] dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/60 transition-colors text-[12px] font-semibold cursor-pointer group"
+                  title="Click to view all orders from this customer"
+                >
+                  <span>
+                    {orderCount === null
+                      ? (order.customer_id ? 'Loading orders…' : 'Guest (no account)')
+                      : `${orderCount} order${orderCount === 1 ? '' : 's'}`}
+                  </span>
+                  <span className="text-[11px] text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-300">→</span>
+                </button>
               </div>
             </div>
             

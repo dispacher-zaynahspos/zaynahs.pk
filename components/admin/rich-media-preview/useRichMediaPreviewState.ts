@@ -36,10 +36,6 @@ export function useRichMediaPreviewState({ url, item: initialItem }: Pick<RichMe
 
   useEffect(() => {
     setMounted(true);
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = '';
-    };
   }, []);
 
 

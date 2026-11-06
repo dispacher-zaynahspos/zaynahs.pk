@@ -36,17 +36,21 @@ export default function NavbarAnnouncementBar({
   emblaApi,
   settings,
 }: NavbarAnnouncementBarProps) {
-  if (!showTopBar && !showNewsletter) return null;
-
   // Shared SSOT social icons on the right (same source as footer). Merchant
-  // toggles: default ON; mobile hidden unless header_social_show_mobile.
+  // toggles: default ON; mobile enabled by default unless explicitly disabled.
   const showSocial = settings ? settings.header_social_enabled !== false : false;
-  const showSocialMobile = settings?.header_social_show_mobile === true;
+  const showSocialMobile = settings ? settings.header_social_show_mobile !== false : true;
+
+  if (!showTopBar && !showNewsletter && !showSocial) return null;
 
   return (
     <div
       onClick={(e) => {
         if (isPreview) {
+          const target = e.target as HTMLElement | null;
+          if (target?.closest('a') || target?.closest('button')) {
+            return;
+          }
           e.preventDefault();
           e.stopPropagation();
           window.parent.postMessage({ type: 'select_section', sectionId: 'announcement_bar' }, '*');

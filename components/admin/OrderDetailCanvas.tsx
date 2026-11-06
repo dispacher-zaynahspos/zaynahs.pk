@@ -16,9 +16,10 @@ import {
 import { Order, StoreSettings } from '@/lib/types';
 import { formatPrice } from '@/lib/utils/whatsapp';
 import { getItemVariant } from '@/lib/utils/formatVariant';
-import { Modal } from '@/components/common/Modal';
 import OrderEditor from './OrderEditor';
 import { useOrderDetailState, OrderCustomerCard } from './order-detail';
+import TableThumbnail from '@/components/admin/TableThumbnail';
+import ImagePreviewModal from '@/components/admin/ImagePreviewModal';
 
 interface OrderDetailCanvasProps {
   order: Order;
@@ -33,10 +34,17 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
     isUpdating,
     isDropdownOpen, setIsDropdownOpen,
     isEditingOrder, setIsEditingOrder,
+    handleOpenEditOrder,
+    handleCloseEditOrder,
     allProducts,
     isFulfillDropdownOpen, setIsFulfillDropdownOpen,
     lightboxImage, setLightboxImage,
     prevOrderId, nextOrderId,
+    currentIndexDisplay,
+    handleNavigateNext,
+    handleNavigatePrev,
+    handleTouchStart,
+    handleTouchEnd,
     paymentMethod, isPaid,
     staffNoteInput, setStaffNoteInput,
     isEditingCustomer, setIsEditingCustomer,
@@ -69,55 +77,105 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
     handleUpdateTimelineComment
   } = state;
 
+  const safeFormatOrderDate = (dateVal: string | undefined | null) => {
+    if (!dateVal) return 'Recently';
+    const d = new Date(dateVal);
+    if (isNaN(d.getTime())) return 'Recently';
+    try {
+      return `${d.toLocaleString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} at ${d.toLocaleString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }).toLowerCase()}`;
+    } catch {
+      return d.toLocaleDateString();
+    }
+  };
+
+  const safeFormatLogDate = (dateVal: string | undefined | null) => {
+    if (!dateVal) return '';
+    const d = new Date(dateVal);
+    if (isNaN(d.getTime())) return '';
+    try {
+      return new Intl.DateTimeFormat('en-PK', {
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'Asia/Karachi',
+      }).format(d);
+    } catch {
+      return d.toLocaleDateString();
+    }
+  };
+
   return (
     <div className="max-w-full sm:max-w-6xl mx-auto space-y-6 pb-20 font-sans overflow-x-hidden w-full">
       
-      {/* Detail Topbar */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-        <div>
-          <div className="flex items-center gap-3 mb-1">
+      {/* Detail Topbar - Executive Shopify Polaris Style */}
+      <div 
+        className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 sm:gap-4 mb-6 pb-4 border-b border-gray-200/80 dark:border-gray-800"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
             <button 
-              onClick={() => router.push('/admin/orders')}
-              className="p-1 -ml-1 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 transition-colors print:hidden"
-              title="Back to orders"
+              onClick={() => {
+                if (isEditingOrder) {
+                  handleCloseEditOrder();
+                  return;
+                }
+                if (typeof window !== 'undefined') {
+                  const returnUrl = sessionStorage.getItem('admin_orders_return_url');
+                  if (returnUrl) {
+                    router.push(returnUrl);
+                    return;
+                  }
+                  if (window.history.length > 1) {
+                    router.back();
+                    return;
+                  }
+                }
+                router.push('/admin/orders');
+              }}
+              className="p-1 -ml-1 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 transition-colors print:hidden cursor-pointer"
+              title={isEditingOrder ? "Back to order detail" : "Back to orders"}
             >
               <ArrowLeft className="h-5 w-5" />
             </button>
             
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <span className="text-gray-500 dark:text-gray-400 flex-shrink-0">
-                <Package className="h-4 w-4" />
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="text-gray-400 dark:text-gray-500 shrink-0">
+                <Package className="h-4.5 w-4.5" />
               </span>
-              <span className="text-[20px] font-bold text-gray-900 dark:text-white leading-none whitespace-nowrap">
+              <span className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white leading-none tracking-tight whitespace-nowrap">
                 {order.order_number}
               </span>
             </div>
 
-            <div className="flex flex-wrap gap-2 ml-1">
+            {/* Status Badges - Always grouped together horizontally */}
+            <div className="inline-flex items-center gap-1.5 shrink-0 whitespace-nowrap">
               {isPaid ? (
-                <span className="inline-flex items-center gap-1.5 bg-[#d4edda] text-[#2d6a4f] dark:bg-[#d4edda]/20 dark:text-[#a0dcb3] rounded-[6px] px-2 py-0.5 text-[13px] font-semibold">
+                <span className="inline-flex items-center gap-1.5 bg-[#d4edda] text-[#2d6a4f] dark:bg-[#d4edda]/20 dark:text-[#a0dcb3] rounded-[6px] px-2 py-0.5 text-xs font-bold">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#2d6a4f] dark:bg-[#a0dcb3]" />
                   Paid
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1.5 bg-[#fff4c4] text-[#7c5c00] dark:bg-[#fff4c4]/20 dark:text-[#d4c382] rounded-[6px] px-2 py-0.5 text-[13px] font-semibold animate-pulse">
+                <span className="inline-flex items-center gap-1.5 bg-[#fff4c4] text-[#7c5c00] dark:bg-[#fff4c4]/20 dark:text-[#d4c382] rounded-[6px] px-2 py-0.5 text-xs font-bold">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#b98900] dark:bg-[#d4c382]" />
                   Unpaid
                 </span>
               )}
               {order.status === 'cancelled' ? (
-                <span className="inline-flex items-center gap-1.5 rounded-[6px] px-2 py-0.5 text-[13px] font-semibold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
-                  <span className="w-2.5 h-2.5 rounded-full bg-red-500 dark:bg-red-400" />
+                <span className="inline-flex items-center gap-1.5 rounded-[6px] px-2 py-0.5 text-xs font-bold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
+                  <span className="w-2 h-2 rounded-full bg-red-500 dark:bg-red-400" />
                   Cancelled
                 </span>
               ) : (
-                <span className={`inline-flex items-center gap-1.5 rounded-[6px] px-2 py-0.5 text-[13px] font-semibold ${
+                <span className={`inline-flex items-center gap-1.5 rounded-[6px] px-2 py-0.5 text-xs font-bold ${
                    order.status === 'pending' || order.status === 'placed' || order.status === 'confirmed'
                    ? 'bg-[#fff4c4] text-[#7c5c00] dark:bg-[#fff4c4]/20 dark:text-[#d4c382]'
                    : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'
                 }`}>
                   {order.status === 'pending' || order.status === 'placed' || order.status === 'confirmed' ? (
-                    <span className="w-2.5 h-2.5 rounded-full border-2 border-[#b98900] dark:border-[#d4c382]" />
+                    <span className="w-2 h-2 rounded-full border-2 border-[#b98900] dark:border-[#d4c382]" />
                   ) : (
                     <Check className="h-3 w-3" />
                   )}
@@ -126,45 +184,49 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
               )}
             </div>
           </div>
-          <div className="text-[13px] text-gray-500 dark:text-gray-400 ml-9">
-            {new Date(order.created_at).toLocaleString('en-US', { 
-              month: 'long', day: 'numeric', year: 'numeric'
-            })} at {new Date(order.created_at).toLocaleString('en-US', { 
-              hour: 'numeric', minute: '2-digit', hour12: true
-            }).toLowerCase()} from Online Store
-          </div>
+          <p className="text-xs sm:text-[13px] text-gray-500 dark:text-gray-400 mt-1 pl-7 sm:pl-8">
+            {safeFormatOrderDate(order.created_at)} from Online Store
+          </p>
         </div>
 
-        <div className="flex items-center gap-3 relative print:hidden">
-          <div className="flex items-center border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden">
+        {/* Action Buttons: Responsive & Neat */}
+        <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap shrink-0 print:hidden self-stretch sm:self-auto justify-start sm:justify-end">
+          <div className="flex items-center border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden bg-white dark:bg-[#16162a] shadow-2xs">
             <button
-              onClick={() => { if (nextOrderId) router.push(`/admin/orders/detail?id=${nextOrderId}`); }}
+              onClick={handleNavigateNext}
               disabled={!nextOrderId}
-              className="px-2.5 py-1.5 bg-white dark:bg-[#16162a] text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors border-r border-gray-200 dark:border-gray-800"
-              title="Newer order"
+              className="px-2.5 py-1.5 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer border-r border-gray-200 dark:border-gray-800 text-xs font-bold"
+              title={nextOrderId ? "Previous / Newer order (← Left Arrow)" : "No previous order"}
+              aria-label="Previous order"
             >
               &larr;
             </button>
+            {currentIndexDisplay && (
+              <span className="px-2.5 py-1 text-xs font-bold text-gray-600 dark:text-gray-300 border-r border-gray-200 dark:border-gray-800 select-none whitespace-nowrap bg-gray-50/50 dark:bg-white/[0.02]">
+                {currentIndexDisplay}
+              </span>
+            )}
             <button
-              onClick={() => { if (prevOrderId) router.push(`/admin/orders/detail?id=${prevOrderId}`); }}
+              onClick={handleNavigatePrev}
               disabled={!prevOrderId}
-              className="px-2.5 py-1.5 bg-white dark:bg-[#16162a] text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-              title="Older order"
+              className="px-2.5 py-1.5 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer text-xs font-bold"
+              title={prevOrderId ? "Next / Older order (→ Right Arrow)" : "No next order"}
+              aria-label="Next order"
             >
               &rarr;
             </button>
           </div>
 
           <button
-            onClick={() => setIsEditingOrder(true)}
-            className="px-3 py-1.5 rounded-xl bg-white dark:bg-[#16162a] text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 text-[13.5px] font-semibold shadow-sm transition-colors whitespace-nowrap"
+            onClick={isEditingOrder ? handleCloseEditOrder : handleOpenEditOrder}
+            className="px-3 py-1.5 rounded-xl bg-white dark:bg-[#16162a] text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 text-xs font-bold shadow-2xs transition-colors whitespace-nowrap cursor-pointer"
           >
-            Edit
+            {isEditingOrder ? 'Cancel Edit' : 'Edit'}
           </button>
 
           <button
             onClick={() => window.print()}
-            className="px-3 py-1.5 rounded-xl bg-white dark:bg-[#16162a] text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 text-[13.5px] font-semibold shadow-sm transition-colors whitespace-nowrap"
+            className="px-3 py-1.5 rounded-xl bg-white dark:bg-[#16162a] text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 text-xs font-bold shadow-2xs transition-colors whitespace-nowrap cursor-pointer"
           >
             Print
           </button>
@@ -172,10 +234,10 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
           <div className="relative">
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="px-2.5 py-1.5 rounded-xl bg-[#f6f6f7] dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-[#babfc3] dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700 text-[13.5px] font-semibold shadow-sm transition-colors flex items-center gap-1 whitespace-nowrap"
+              className="px-3 py-1.5 rounded-xl bg-[#f6f6f7] dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700 text-xs font-bold shadow-2xs transition-colors flex items-center gap-1.5 whitespace-nowrap cursor-pointer"
             >
               <span>More actions</span>
-              <ChevronDown className="h-3.5 w-3.5" />
+              <ChevronDown className="h-3.5 w-3.5 opacity-70" />
             </button>
 
             {isDropdownOpen && (
@@ -216,10 +278,10 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
           products={allProducts}
           onSave={(updated) => {
             setOrder(updated);
-            setIsEditingOrder(false);
+            handleCloseEditOrder();
             router.refresh();
           }}
-          onCancel={() => setIsEditingOrder(false)}
+          onCancel={handleCloseEditOrder}
         />
       ) : (
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_310px] gap-4 items-start">
@@ -237,41 +299,59 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
 
               return (
                 <div key={idx} className="flex items-start gap-3.5 p-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] last:border-b-0">
-                  <div 
-                    onClick={() => displayImage && setLightboxImage(displayImage)}
-                    className={`w-14 h-14 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden flex-shrink-0 bg-gray-100 dark:bg-gray-800 flex items-center justify-center ${displayImage ? 'cursor-zoom-in' : ''}`}
-                  >
-                    {displayImage ? (
-                      <img src={displayImage} alt={item.product.name} className="w-full h-full object-cover" />
-                    ) : (
-                      <Package className="h-6 w-6 text-gray-400" />
-                    )}
-                  </div>
+                  <TableThumbnail
+                    url={displayImage || null}
+                    alt={item.product?.name || 'Product'}
+                    onPreview={(url) => setLightboxImage(url)}
+                    className="w-14 h-14 rounded-xl flex-shrink-0"
+                  />
                   <div className="flex-1 min-w-0">
-                    <div className="text-[14px] font-semibold text-[#2c6ecb]">
-                      {item.product.name}
-                    </div>
+                    <h4 
+                      className="text-[13px] sm:text-[13.5px] font-bold text-gray-900 dark:text-white leading-snug line-clamp-2 hover:text-[#2c6ecb] transition-colors"
+                      title={item.product?.name || 'Product'}
+                    >
+                      {item.product?.name || 'Product'}
+                    </h4>
 
-                    {/* Variant Badges / Attributes (Size, Color, etc.) */}
-                    {variantDetails.chips.length > 0 && (
-                      <div className="flex flex-wrap items-center gap-1.5 mt-1.5 mb-1">
-                        {variantDetails.chips.map((chip, cIdx) => (
-                          <span
-                            key={cIdx}
-                            className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[11.5px] font-semibold bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-700 shadow-2xs"
-                          >
-                            {chip.colorHex && (
-                              <span
-                                className="w-2.5 h-2.5 rounded-full border border-black/20 shrink-0"
-                                style={{ backgroundColor: chip.colorHex }}
-                              />
-                            )}
-                            <span className="text-gray-500 dark:text-gray-400 font-normal">{chip.label}:</span>
-                            <span className="font-bold text-gray-900 dark:text-white">{chip.value}</span>
-                          </span>
-                        ))}
-                      </div>
-                    )}
+                    {/* Variant Chips, Quantity & Pricing in compact aligned row */}
+                    <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                      {variantDetails.chips.length > 0 && variantDetails.chips.map((chip, cIdx) => (
+                        <span
+                          key={cIdx}
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold border ${
+                            chip.label.toLowerCase() === 'size'
+                              ? 'bg-indigo-50/80 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border-indigo-200/70 dark:border-indigo-800/60 font-bold'
+                              : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200/70 dark:border-gray-700/60'
+                          }`}
+                        >
+                          {chip.colorHex && (
+                            <span
+                              className="w-2.5 h-2.5 rounded-full border border-black/15 shadow-2xs shrink-0"
+                              style={{ backgroundColor: chip.colorHex }}
+                            />
+                          )}
+                          <span className="text-gray-500 dark:text-gray-400 font-normal">{chip.label}:</span>
+                          <span className="font-bold">{chip.value}</span>
+                        </span>
+                      ))}
+
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-gray-50 dark:bg-white/5 text-gray-700 dark:text-gray-300 border border-gray-200/60 dark:border-gray-800">
+                        <span className="text-gray-400 font-normal">Qty:</span>
+                        <span className="font-bold text-gray-900 dark:text-white">{item.quantity}</span>
+                      </span>
+
+                      {item.quantity > 1 && (
+                        <span className="text-[11px] text-gray-400 dark:text-gray-500">
+                          ({formatPrice(item.unit_price, settings.currency_symbol)} ea)
+                        </span>
+                      )}
+
+                      {variantDetails.sku && (
+                        <span className="text-[10.5px] font-mono text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-800/50 px-1.5 py-0.5 rounded">
+                          SKU: {variantDetails.sku}
+                        </span>
+                      )}
+                    </div>
 
                     {/* Modifiers if any */}
                     {item.selected_modifiers && item.selected_modifiers.length > 0 && (
@@ -283,22 +363,8 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
                         ))}
                       </div>
                     )}
-
-                    <div className="text-[12.5px] text-gray-500 dark:text-gray-400 mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1">
-                      <span>Qty: <strong className="font-bold text-gray-900 dark:text-white">{item.quantity}</strong></span>
-                      {item.quantity > 1 && (
-                        <span className="text-gray-400 dark:text-gray-500">
-                          ({formatPrice(item.unit_price, settings.currency_symbol)} each)
-                        </span>
-                      )}
-                      {variantDetails.sku && (
-                        <span className="text-[11px] font-mono text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-800/50 px-1.5 py-0.5 rounded">
-                          SKU: {variantDetails.sku}
-                        </span>
-                      )}
-                    </div>
                   </div>
-                  <div className="font-bold text-[14px] text-gray-900 dark:text-white text-right shrink-0">
+                  <div className="font-bold text-[13.5px] sm:text-[14px] text-gray-900 dark:text-white text-right shrink-0 pt-0.5">
                     {formatPrice(item.total, settings.currency_symbol)}
                   </div>
                 </div>
@@ -457,7 +523,7 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
                           <span className="text-xs font-bold text-gray-900 dark:text-white">{log.message}</span>
                           <div className="flex items-center gap-1.5 shrink-0">
                             <span className="text-[10px] text-gray-400 whitespace-nowrap">
-                              {new Intl.DateTimeFormat('en-PK', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Karachi' }).format(new Date(log.created_at))}
+                              {safeFormatLogDate(log.created_at)}
                             </span>
                             {isComment && !isEditing && (
                               <>
@@ -551,16 +617,10 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
       </div>
       )}
 
-      <Modal
-        variant="lightbox"
-        open={!!lightboxImage}
+      <ImagePreviewModal
+        url={lightboxImage}
         onClose={() => setLightboxImage(null)}
-        showClose
-      >
-        {lightboxImage && (
-          <img src={lightboxImage} alt="" className="max-w-full max-h-[90vh] object-contain rounded-xl" />
-        )}
-      </Modal>
+      />
     </div>
   );
 }

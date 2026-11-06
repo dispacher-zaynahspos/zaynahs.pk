@@ -325,18 +325,19 @@ async function listProducts(config, options) {
     const cost = Number(p.cost || sample.cost || Math.round(price * 0.6));
 
     let media = null;
-    if (!p.image_url) {
+    if (!p.image_url && !p.primary_image) {
       media = await findMediaItem(config, title);
     }
 
-    const imageUrl = p.image_url || media?.file_url;
+    const imageUrl = p.image_url || p.primary_image || media?.file_url;
     const altText = p.alt || media?.alt_text || `${title} for kids`;
     const description = p.description || media?.description || sample.description;
     const shortDesc = p.short_description || media?.caption || `Shop ${title}. Premium quality and comfort.`;
     const tags = p.tags || [title, "Kids Fashion", "Winter Wear", "Premium Wear"];
 
     const fbt = crossLinkPool.filter(id => id !== p.id);
-    const itemSizes = p.sizes || defaultSampleSizes;
+    const rawSizes = p.sizes || defaultSampleSizes;
+    const itemSizes = rawSizes.map((s, idx) => (typeof s === "string" ? { size: s, sort_order: idx + 1 } : s));
 
     productRows.push({
       id: p.id,
@@ -378,7 +379,7 @@ async function listProducts(config, options) {
         compare_price: comparePrice,
         stock: 100,
         active: true,
-        sort_order: s.sort_order,
+        sort_order: s.sort_order || 1,
         inventory_threshold: 0,
         show_image_swatch: false
       });
@@ -396,8 +397,25 @@ async function listProducts(config, options) {
       });
     }
 
-    const categoriesToMap = p.category_ids && Array.isArray(p.category_ids) && p.category_ids.length > 0
-      ? p.category_ids.map((cid, idx) => ({ category_id: cid, position: idx + 1 }))
+    if (Array.isArray(p.gallery_images)) {
+      p.gallery_images.forEach((gUrl, gIdx) => {
+        if (gUrl && gUrl !== imageUrl) {
+          imageRows.push({
+            id: crypto.randomUUID(),
+            product_id: p.id,
+            url: gUrl,
+            alt: `${altText} - View ${gIdx + 1}`,
+            sort_order: gIdx + 1,
+            is_primary: false,
+            mime_type: "image/webp"
+          });
+        }
+      });
+    }
+
+    const rawCats = p.category_ids || p.categories;
+    const categoriesToMap = rawCats && Array.isArray(rawCats) && rawCats.length > 0
+      ? rawCats.map((cid, idx) => ({ category_id: typeof cid === "object" ? cid.category_id : cid, position: idx + 1 }))
       : (sample.product_categories || []);
 
     for (const cat of categoriesToMap) {

@@ -4,6 +4,8 @@ import { formatPrice } from '@/lib/utils/whatsapp';
 import { getItemVariant } from '@/lib/utils/formatVariant';
 import { Package, Trash2 } from '@/components/common/Icons';
 
+import TableThumbnail from '@/components/admin/TableThumbnail';
+
 interface OrderItemCardProps {
   item: CartItem & { _isNew?: boolean };
   idx: number;
@@ -12,6 +14,7 @@ interface OrderItemCardProps {
   onQuantityChange: (idx: number, qty: number) => void;
   onRemoveItem: (idx: number) => void;
   onSelectOption: (idx: number, type: 'color' | 'size' | 'material' | 'customValue', value: string) => void;
+  onPreviewImage?: (url: string) => void;
 }
 
 export default function OrderItemCard({
@@ -22,6 +25,7 @@ export default function OrderItemCard({
   onQuantityChange,
   onRemoveItem,
   onSelectOption,
+  onPreviewImage,
 }: OrderItemCardProps) {
   const variantDetails = getItemVariant(item);
   const variantStr = variantDetails.summary;
@@ -32,20 +36,12 @@ export default function OrderItemCard({
     <div className="border border-gray-200 dark:border-gray-800 rounded-xl p-4 bg-white dark:bg-[#16162a] shadow-xs">
       {/* Top: image + name + variants */}
       <div className="flex items-start gap-3">
-        {displayImage ? (
-          <div className="h-14 w-14 bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden flex-shrink-0 border border-gray-200 dark:border-gray-700">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img 
-              src={displayImage} 
-              alt={item.product?.name || 'Product'} 
-              className="h-full w-full object-cover"
-            />
-          </div>
-        ) : (
-          <div className="h-14 w-14 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center flex-shrink-0 border border-gray-200 dark:border-gray-700">
-            <Package className="h-5 w-5 text-gray-400" />
-          </div>
-        )}
+        <TableThumbnail
+          url={displayImage || null}
+          alt={item.product?.name || 'Product'}
+          onPreview={(url) => onPreviewImage?.(url)}
+          className="h-14 w-14 rounded-xl flex-shrink-0"
+        />
         
         <div className="flex-1 min-w-0">
           <div className="flex items-start gap-2">

@@ -4,38 +4,43 @@
 
 ---
 
-## ✅ TEST 0 — Cache Targeted Revalidation (Run after any product/category/settings save)
+## ✅ TEST 0 — Cloudflare Edge Cache & Dynamic Bypass Verification (RULE CF-MANDATORY)
 
-> Verifies that Next.js ISR handles freshness correctly without full CF purge on entity saves.
-> CF html-pages rule = bypass — HTML never cached at Cloudflare edge.
+> Verifies that Cloudflare caches public HTML pages (30 days) to eliminate Vercel origin load, while bypassing dynamic user/admin routes.
+> See full rollback guide: `docs/CLOUDFLARE_CACHE_UNDO.md`.
 
 ```bash
-# 1. Verify HTML pages are BYPASSED at Cloudflare (not cached)
+# 1. Verify Catalog Pages are CACHED at Cloudflare (HIT on second request)
 curl -sI https://DOMAIN.com/ | grep -i "cf-cache-status"
-# Expected: cf-cache-status: BYPASS or MISS — never HIT for HTML
+# Expected: cf-cache-status: HIT (or MISS on first request, HIT on warm)
 
 curl -sI https://DOMAIN.com/shop | grep -i "cf-cache-status"
-# Expected: cf-cache-status: BYPASS or MISS
+# Expected: cf-cache-status: HIT
 
-# 2. Verify static assets ARE cached
-curl -sI https://DOMAIN.com/_next/static/chunks/main.js | grep -i "cf-cache-status"
-# Expected: cf-cache-status: HIT (after first request)
+# 2. Verify Dynamic / Cart / Checkout routes are NEVER cached (BYPASS / DYNAMIC)
+curl -sI https://DOMAIN.com/cart | grep -i "cf-cache-status"
+# Expected: cf-cache-status: DYNAMIC or BYPASS
 
-# 3. Product price change test
+curl -sI https://DOMAIN.com/checkout | grep -i "cf-cache-status"
+# Expected: cf-cache-status: DYNAMIC or BYPASS
+
+curl -sI https://DOMAIN.com/admin/login | grep -i "cf-cache-status"
+# Expected: cf-cache-status: DYNAMIC or BYPASS
+
+# 3. Product price change test (Instant Purge Verification)
 # a) Change product price in admin → save
 # b) curl -s https://DOMAIN.com/product/SLUG | grep -i "price"  → new price ✅
-# c) curl -s https://DOMAIN.com/shop | grep -i "SLUG"  → new price ✅
-# d) NO manual purge needed — if it doesn't update, check webhook + revalidateTag
+# c) Webhook clears Next.js tag + purges Cloudflare edge in < 1s
 
-# 4. Settings/theme change → should still do full purge
-# Change any setting → save → check ALL pages show updated (full zone purge still happens for settings)
+# 4. Emergency Undo / Rollback Verification
+# npm run cf:rules:undo  → wipes rules and purges cache across all stores
 ```
 
 **Pass criteria:**
-- HTML pages: `cf-cache-status: BYPASS` or `MISS` ✅
-- Static assets: `cf-cache-status: HIT` after first load ✅
-- Product price change reflects on storefront within 5s ✅
-- No manual Purge Cache button press needed for product/category saves ✅
+- Public pages (`/`, `/shop`, `/product/*`): `cf-cache-status: HIT` ✅
+- Dynamic pages (`/cart`, `/checkout`, `/admin/*`): `cf-cache-status: DYNAMIC` or `BYPASS` ✅
+- Product price change reflects on storefront immediately ✅
+- Undo command `npm run cf:rules:undo` immediately restores non-cached delivery ✅
 
 ---
 

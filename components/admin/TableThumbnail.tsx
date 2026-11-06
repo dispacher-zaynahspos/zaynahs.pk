@@ -1,18 +1,25 @@
 import React from 'react';
-import { Eye } from '@/components/common/Icons';
+import { Eye, Package } from '@/components/common/Icons';
 
 interface TableThumbnailProps {
   url: string | null;
   alt: string;
   onPreview: (url: string) => void;
   className?: string; // Optional override for outer div
+  fallbackIcon?: React.ReactNode;
 }
 
-export default function TableThumbnail({ url, alt, onPreview, className = "h-10 w-10" }: TableThumbnailProps) {
+export default function TableThumbnail({ 
+  url, 
+  alt, 
+  onPreview, 
+  className = "h-10 w-10",
+  fallbackIcon 
+}: TableThumbnailProps) {
   if (!url) {
     return (
       <div className={`relative rounded-lg overflow-hidden bg-gray-50 dark:bg-gray-800 border border-gray-150 dark:border-gray-700 flex-shrink-0 flex items-center justify-center text-[10px] text-gray-400 font-bold ${className}`}>
-        No Img
+        {fallbackIcon || <Package className="h-5 w-5 text-gray-400" />}
       </div>
     );
   }

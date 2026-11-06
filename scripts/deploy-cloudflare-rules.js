@@ -202,6 +202,9 @@ async function deployRules() {
     // Ensure browser_cache_ttl is set to 0 (Respect origin) so clients never get stuck with 4h disk cache
     await configureBrowserCacheTTL();
 
+    // Auto-disable ECH, HTTP/3, and 0-RTT to eliminate ERR_CONNECTION_RESET on Chrome (DPI/firewall compatibility)
+    await configureFirewallCompatibility();
+
     // Auto deploy the DNS record as requested by the user
     console.log('Deploying google-site-verification DNS record...');
     await deployDNSRecord();
@@ -236,6 +239,24 @@ async function configureBrowserCacheTTL() {
     }
   } catch (e) {
     console.warn('Failed to configure browser_cache_ttl:', e.message);
+  }
+}
+
+async function configureFirewallCompatibility() {
+  for (const [setting, val] of [['ech', 'off'], ['http3', 'off'], ['0rtt', 'off']]) {
+    try {
+      await fetch(`https://api.cloudflare.com/client/v4/zones/${zoneId}/settings/${setting}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${apiToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ value: val })
+      });
+      console.log(`SUCCESS: Cloudflare ${setting} set to ${val} for regional firewall/ISP compatibility!`);
+    } catch (e) {
+      // silent or warning
+    }
   }
 }
 

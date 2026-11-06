@@ -77,7 +77,7 @@ export default function AbandonedCartTable({
         <>
           {/* Desktop Table */}
           <div className="hidden md:block">
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto overscroll-x-contain overscroll-y-auto touch-pan-y">
               <table className="w-full text-left text-sm text-gray-700 dark:text-gray-300">
                 <thead className="text-[11px] font-bold text-gray-400 uppercase bg-gray-50/50 dark:bg-white/5 border-b border-gray-100 dark:border-gray-800">
                   <tr>

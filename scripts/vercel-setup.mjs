@@ -56,7 +56,14 @@ const vercel = async (path, init = {}) => {
 
 // Keys we never push to the runtime env (not needed by the app at runtime).
 // Everything else present in the env file is pushed (matches existing stores).
-const SKIP = new Set(['ADMIN_PASSWORD', 'ADMIN_EMAIL']);
+const SKIP = new Set([
+  'ADMIN_PASSWORD',
+  'ADMIN_EMAIL',
+  // Account-migration metadata — never part of the app runtime env
+  'VERCEL_TOKEN_TV_VERCEL',
+  'VERCEL_ACCOUNT_LABEL',
+  'VERCEL_TEAM_SLUG',
+]);
 
 async function main() {
   console.log(`\n▲ vercel-setup.mjs — project "${PROJECT}"${TEAM ? ` (team ${TEAM})` : ''}`);

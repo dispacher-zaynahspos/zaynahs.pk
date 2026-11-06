@@ -4,8 +4,13 @@
 @variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --font-heading: var(--font-heading), sans-serif;
-  --font-body: var(--font-body), sans-serif;
+  /* Font vars — set here since next/font/google removed (CF Workers incompatible).
+     Fonts loaded via CDN <link> in app/layout.tsx head. */
+  --font-heading: 'Plus Jakarta Sans', sans-serif;
+  --font-body: 'Outfit', sans-serif;
+  --font-card-poppins: 'Poppins', sans-serif;
+  --font-card-inter: 'Inter', sans-serif;
+
 
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
@@ -332,36 +337,29 @@ select.customizer-page-select option {
 
 /* Root smooth scrolling physics and momentum */
 html {
-  overflow-x: hidden;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 body {
-  overflow-x: hidden;
   min-height: 100%;
 }
 
-/* Momentum scrolling for iOS & touch devices with no bounce jitter */
+/* Momentum scrolling for iOS & touch devices — natural fluid momentum without gesture trapping */
 .overflow-y-auto,
 .overflow-y-scroll,
-.overflow-x-auto,
-.overflow-x-scroll,
 .overflow-auto,
 .touch-scroll {
   -webkit-overflow-scrolling: touch;
-  overscroll-behavior-y: contain;
 }
 
-/* Catalog & Product Grid Virtual Rendering Optimization:
-   When many products are loaded via Load More or Infinite Scroll (e.g. 100+ items on page 7),
-   content-visibility: auto skips layout and paint of offscreen cards, boosting scroll FPS
-   from 20-30fps to a buttery smooth 60/120fps with zero layout shift. */
-.z-card-container,
-.pc {
-  content-visibility: auto;
-  contain-intrinsic-size: auto 380px;
+/* Horizontal scrollers must allow vertical wheel/touch scrolling to chain to parent page */
+.overflow-x-auto,
+.overflow-x-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  overscroll-behavior-y: auto;
 }
 
 /* Modals and dialog overlays: hardware paint hint without trapping fixed descendants */
@@ -630,9 +628,17 @@ main#admin-main-content:has(.fixed.z-50) {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
 }
 
-/* Prevent rubber-band bounce while allowing smooth momentum scrolling on admin main content */
+/* Prevent rubber-band bounce while allowing smooth momentum scrolling on admin main content (RULE M7) */
 #admin-main-content {
-  overscroll-behavior-y: contain;
+  overscroll-behavior-y: none;
+}
+
+/* Ensure horizontal table containers never capture vertical scroll / wheel events in admin */
+.admin-shell .overflow-x-auto,
+.admin-shell .overflow-x-scroll {
+  overscroll-behavior-x: contain;
+  overscroll-behavior-y: auto !important;
+  touch-action: pan-y pinch-zoom;
 }
 
 

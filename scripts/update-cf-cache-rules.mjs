@@ -107,6 +107,15 @@ async function processStore(store) {
       console.warn(`[${store.name}] browser_cache_ttl setting warning:`, e.message);
     }
 
+    // Auto-disable ECH, HTTP/3, and 0-RTT to eliminate ERR_CONNECTION_RESET on Chrome (DPI/firewall compatibility)
+    for (const [setting, val] of [['ech', 'off'], ['http3', 'off'], ['0rtt', 'off']]) {
+      try {
+        await cfReq(store.token, `/zones/${store.zoneId}/settings/${setting}`, 'PATCH', { value: val });
+      } catch (e) {
+        // setting might not be supported on non-standard accounts
+      }
+    }
+
     return {
       Store: store.name,
       ZoneId: store.zoneId,

@@ -323,12 +323,13 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
               {/* Qty + Add to Cart — sticky to bottom so it stays reachable while scrolling.
                   Solid bg (no backdrop-blur) per RULE M10b. */}
               <div className="sticky bottom-0 -mx-5 px-5 py-3 mt-auto bg-white dark:bg-[#16162a] border-t border-gray-100 dark:border-gray-800 flex gap-3 items-center">
-                <div className="flex items-center border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden bg-white dark:bg-[#1a1a2e]">
+                <div className="flex items-center border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden bg-white dark:bg-[#16162a]">
                   <button
                     type="button"
                     onClick={() => setQuantity(q => Math.max(1, q - 1))}
                     disabled={quantity <= 1}
-                    className="p-2.5 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5 disabled:opacity-40 cursor-pointer"
+                    aria-label="Decrease quantity"
+                    className="p-2.5 text-gray-700 dark:text-gray-300 hover:text-gray-950 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 active:bg-gray-200 dark:active:bg-white/15 disabled:opacity-30 cursor-pointer transition-colors"
                   >
                     <Minus className="w-4 h-4" />
                   </button>
@@ -339,7 +340,8 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
                     type="button"
                     onClick={() => setQuantity(q => q + 1)}
                     disabled={quantity >= stockAvailable}
-                    className="p-2.5 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5 disabled:opacity-40 cursor-pointer"
+                    aria-label="Increase quantity"
+                    className="p-2.5 text-gray-700 dark:text-gray-300 hover:text-gray-950 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 active:bg-gray-200 dark:active:bg-white/15 disabled:opacity-30 cursor-pointer transition-colors"
                   >
                     <Plus className="w-4 h-4" />
                   </button>

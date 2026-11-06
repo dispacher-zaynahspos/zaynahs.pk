@@ -92,7 +92,7 @@ export const mapSettings = (row: SettingsRow): StoreSettings => ({
   header_show_newsletter: row.header_show_newsletter ?? true,
   header_newsletter_text: row.header_newsletter_text ?? 'Summer sale discount off 50%. Shop Sale',
   header_social_enabled: row.header_social_enabled ?? true,
-  header_social_show_mobile: row.header_social_show_mobile ?? false,
+  header_social_show_mobile: row.header_social_show_mobile ?? true,
   header_top_bar_bg: row.header_top_bar_bg ?? '#d97706',
   header_top_bar_text_color: row.header_top_bar_text_color ?? '#ffffff',
   header_bg: row.header_bg ?? '#ffffff',

@@ -57,7 +57,7 @@ export function useSettingsHeaderFooter({ initialSettings }: UseSettingsHeaderFo
   const [headerTopBarEmail, setHeaderTopBarEmail] = useState(initialSettings.header_top_bar_email ?? 'contact@store.com');
   const [headerShowNewsletter, setHeaderShowNewsletter] = useState(initialSettings.header_show_newsletter ?? true);
   const [headerSocialEnabled, setHeaderSocialEnabled] = useState(initialSettings.header_social_enabled ?? true);
-  const [headerSocialShowMobile, setHeaderSocialShowMobile] = useState(initialSettings.header_social_show_mobile ?? false);
+  const [headerSocialShowMobile, setHeaderSocialShowMobile] = useState(initialSettings.header_social_show_mobile ?? true);
 
   // Floating Contacts States
   const [floatingSnapchatEnabled, setFloatingSnapchatEnabled] = useState(initialSettings.floating_snapchat_enabled ?? false);

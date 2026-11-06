@@ -81,7 +81,8 @@ export default function CartItemCard({ item, compact = false, settings, removeIt
                     if (item.quantity <= 1) { removeItem(item.id); toast.success('Item removed'); }
                     else updateQuantity(item.id, item.quantity - 1);
                   }}
-                  className="flex h-8 w-8 items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer text-gray-500 dark:text-gray-400 active:scale-95"
+                  aria-label="Decrease quantity"
+                  className="flex h-8 w-8 items-center justify-center text-gray-600 dark:text-gray-400 hover:text-gray-950 dark:hover:text-white hover:bg-gray-200/70 dark:hover:bg-white/10 active:bg-gray-300/70 dark:active:bg-white/15 transition-colors cursor-pointer"
                 >
                   <Minus className="h-3.5 w-3.5" />
                 </button>
@@ -89,7 +90,8 @@ export default function CartItemCard({ item, compact = false, settings, removeIt
                 <button
                   type="button"
                   onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                  className="flex h-8 w-8 items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer text-gray-500 dark:text-gray-400 active:scale-95"
+                  aria-label="Increase quantity"
+                  className="flex h-8 w-8 items-center justify-center text-gray-600 dark:text-gray-400 hover:text-gray-950 dark:hover:text-white hover:bg-gray-200/70 dark:hover:bg-white/10 active:bg-gray-300/70 dark:active:bg-white/15 transition-colors cursor-pointer"
                 >
                   <Plus className="h-3.5 w-3.5" />
                 </button>

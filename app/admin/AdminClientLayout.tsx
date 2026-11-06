@@ -14,6 +14,7 @@ import { AdminMobileDrawer } from '@/components/admin/layout/AdminMobileDrawer';
 import { AdminMobileBottomBar } from '@/components/admin/layout/AdminMobileBottomBar';
 import { AdminHeader } from '@/components/admin/layout/AdminHeader';
 import { AdminCommandPalette } from '@/components/admin/layout/AdminCommandPalette';
+import { resetBodyScrollLock } from '@/lib/hooks/useBodyScrollLock';
 
 function AdminLayoutContent({
   children,
@@ -146,6 +147,9 @@ function AdminLayoutContent({
     async function fetchTodayCounts() {
       try {
         const supabase = createClient();
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
+
         const [ordersRes, pendingRes, leadsRes, cartsRes, pendingCartsRes, settingsFetch] =
           await Promise.all([
             supabase.from('orders').select('id', { count: 'exact', head: true }).gte('created_at', startISO),
@@ -292,15 +296,25 @@ function AdminLayoutContent({
   useEffect(() => {
     // Safety: ensure background body scroll lock is not orphaned on navigation if no modal is open
     if (typeof document !== 'undefined') {
-      const activeModal = document.querySelector('[role="dialog"], [aria-modal="true"]');
-      if (!activeModal && document.body.style.position === 'fixed') {
-        document.body.style.position = '';
-        document.body.style.overflow = '';
-        document.body.style.top = '';
-        document.body.style.width = '';
+      const activeModal = document.querySelector('[role="dialog"], [aria-modal="true"], .modal-overlay');
+      if (!activeModal) {
+        resetBodyScrollLock();
       }
     }
   }, [pathname]);
+
+  // Window focus safety: recover scroll if an overlay abruptly vanished
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const checkOrphanedLock = () => {
+      const activeModal = document.querySelector('[role="dialog"], [aria-modal="true"], .modal-overlay');
+      if (!activeModal && (document.body.style.position === 'fixed' || document.body.style.overflow === 'hidden')) {
+        resetBodyScrollLock();
+      }
+    };
+    window.addEventListener('focus', checkOrphanedLock);
+    return () => window.removeEventListener('focus', checkOrphanedLock);
+  }, []);
 
   const getPageTitle = () => {
     if (!mounted) return 'Console';
@@ -366,7 +380,7 @@ function AdminLayoutContent({
 
         <main
           id="admin-main-content"
-          className="flex-1 min-h-0 w-full max-w-full px-3 sm:px-4 md:px-5 pt-3 sm:pt-4 pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))] md:pb-8 overflow-y-auto overflow-x-hidden overscroll-y-contain bg-slate-50 text-gray-900 transition-colors duration-200"
+          className="flex-1 min-h-0 w-full max-w-full px-3 sm:px-4 md:px-5 pt-3 sm:pt-4 pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))] md:pb-8 overflow-y-auto overflow-x-hidden overscroll-y-none bg-slate-50 text-gray-900 transition-colors duration-200"
           style={{ WebkitOverflowScrolling: 'touch' }}
         >
           {children}

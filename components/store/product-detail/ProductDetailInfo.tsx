@@ -265,8 +265,10 @@ export default function ProductDetailInfo({
           <span className="text-sm font-bold text-gray-700 dark:text-gray-300">Quantity</span>
           <div className="flex items-center border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden bg-white dark:bg-[#16162a]">
             <button
+              type="button"
               onClick={() => setQuantity(q => Math.max(1, q - 1))}
-              className="p-2.5 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5 active:bg-gray-100 dark:active:bg-white/10 cursor-pointer disabled:opacity-50"
+              aria-label="Decrease quantity"
+              className="p-2.5 text-gray-700 dark:text-gray-300 hover:text-gray-950 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 active:bg-gray-200 dark:active:bg-white/15 disabled:opacity-30 cursor-pointer transition-colors"
               disabled={quantity <= 1}
             >
               <Minus className="h-4 w-4" />
@@ -275,8 +277,10 @@ export default function ProductDetailInfo({
               {quantity}
             </span>
             <button
+              type="button"
               onClick={() => setQuantity(q => q + 1)}
-              className="p-2.5 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5 active:bg-gray-100 dark:active:bg-white/10 cursor-pointer disabled:opacity-50"
+              aria-label="Increase quantity"
+              className="p-2.5 text-gray-700 dark:text-gray-300 hover:text-gray-950 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 active:bg-gray-200 dark:active:bg-white/15 disabled:opacity-30 cursor-pointer transition-colors"
               disabled={quantity >= stockAvailable}
             >
               <Plus className="h-4 w-4" />

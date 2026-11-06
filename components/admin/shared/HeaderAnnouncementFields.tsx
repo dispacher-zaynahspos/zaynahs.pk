@@ -25,7 +25,7 @@ export default function HeaderAnnouncementFields({
   const showTopBar = settings.header_show_top_bar ?? D.header_show_top_bar;
   const showNewsletter = settings.header_show_newsletter ?? D.header_show_newsletter;
   const socialEnabled = settings.header_social_enabled !== false;
-  const socialOnMobile = settings.header_social_show_mobile === true;
+  const socialOnMobile = settings.header_social_show_mobile !== false;
 
   const Toggle = ({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) =>
     variant === 'checkbox' ? (
@@ -100,7 +100,7 @@ export default function HeaderAnnouncementFields({
           <span className="text-xs font-bold text-gray-700 dark:text-gray-300 block">Show Social Icons</span>
           <span className="text-[10px] text-gray-400">Right side of the bar — uses your Footer social links</span>
         </div>
-        <Toggle checked={socialEnabled} onChange={(v) => onUpdate({ header_social_enabled: v })} />
+        <Toggle checked={socialEnabled} onChange={(v) => onUpdate({ header_social_enabled: v, ...(v ? { header_social_show_mobile: true } : {}) })} />
       </div>
 
       {socialEnabled && (

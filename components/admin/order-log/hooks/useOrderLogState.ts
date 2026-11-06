@@ -9,8 +9,16 @@ import {
 import { Order, StoreSettings } from '@/lib/types';
 import { toast } from 'sonner';
 import { createClient } from '@/lib/supabase/client';
-import { mapOrderRow, isOrderPaid, OrderRow } from '../orderLogUtils';
+import { mapOrderRow, isOrderPaid, isOrderUnfulfilled, isOrderFulfilled, OrderRow } from '../orderLogUtils';
 import { useOrderLogBulkActions } from './useOrderLogBulkActions';
+
+export interface CustomerFilter {
+  id?: string;
+  phone?: string;
+  name?: string;
+}
+
+const ORDERS_FILTER_STORAGE_KEY = 'admin_orders_filter_state';
 
 interface UseOrderLogStateProps {
   initialOrders: Order[];
@@ -44,6 +52,8 @@ export function useOrderLogState({ initialOrders, settings }: UseOrderLogStatePr
   const [dateFilter, setDateFilter] = useState<string>('today');
   const [customStartDate, setCustomStartDate] = useState('');
   const [customEndDate, setCustomEndDate] = useState('');
+  const [selectedCustomer, setSelectedCustomer] = useState<CustomerFilter | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -51,8 +61,10 @@ export function useOrderLogState({ initialOrders, settings }: UseOrderLogStatePr
   const [totalRows, setTotalRows] = useState(0);
 
   useEffect(() => {
-    setOrders(initialOrders);
-  }, [initialOrders]);
+    if (!selectedCustomer && !searchQuery.trim()) {
+      setOrders(initialOrders);
+    }
+  }, [initialOrders, selectedCustomer, searchQuery]);
 
   // Global order search: when the user types a query, search the FULL orders table
   // (ignoring the date window) instead of only filtering the current date-paginated
@@ -88,11 +100,66 @@ export function useOrderLogState({ initialOrders, settings }: UseOrderLogStatePr
     }
   };
 
+  const fetchOrdersForCustomer = async (cust: CustomerFilter) => {
+    setIsRefreshing(true);
+    try {
+      const supabase = createClient();
+      let query = supabase
+        .from('orders')
+        .select('*', { count: 'exact' })
+        .is('deleted_at', null)
+        .order('created_at', { ascending: false });
+
+      if (cust.id && cust.phone) {
+        const safePhone = cust.phone.replace(/[%,()*:]/g, ' ').trim();
+        query = query.or(`customer_id.eq.${cust.id},customer_phone.ilike.%${safePhone}%`);
+      } else if (cust.id) {
+        query = query.eq('customer_id', cust.id);
+      } else if (cust.phone) {
+        const safePhone = cust.phone.replace(/[%,()*:]/g, ' ').trim();
+        query = query.ilike('customer_phone', `%${safePhone}%`);
+      } else if (cust.name) {
+        const safeName = cust.name.replace(/[%,()*:]/g, ' ').trim();
+        query = query.ilike('customer_name', `%${safeName}%`);
+      }
+
+      const { data, error, count } = await query;
+      if (error) throw error;
+      if (data) {
+        setOrders(data.map(mapOrderRow));
+        setTotalRows(count ?? data.length);
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to load customer orders');
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  const clearCustomerFilter = () => {
+    setSelectedCustomer(null);
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      params.delete('customerId');
+      params.delete('customerPhone');
+      params.delete('customerName');
+      const newQs = params.toString();
+      const newUrl = window.location.pathname + (newQs ? '?' + newQs : '');
+      window.history.replaceState(null, '', newUrl);
+    }
+    fetchOrdersByDate(dateFilter, customStartDate, customEndDate, 1, rowsPerPage);
+  };
+
   useEffect(() => {
+    if (!isInitialized) return;
     const term = searchQuery.trim();
-    // Empty query → restore the date-filtered list.
     if (!term) {
-      fetchOrdersByDate(dateFilter, customStartDate, customEndDate, 1, rowsPerPage);
+      if (selectedCustomer) {
+        fetchOrdersForCustomer(selectedCustomer);
+      } else {
+        fetchOrdersByDate(dateFilter, customStartDate, customEndDate, 1, rowsPerPage);
+      }
       return;
     }
     const t = setTimeout(() => {
@@ -100,46 +167,192 @@ export function useOrderLogState({ initialOrders, settings }: UseOrderLogStatePr
     }, 300);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchQuery]);
+  }, [isInitialized, searchQuery]);
 
-  // Sync dateFilter with URL search param
+  // Sync filters with URL search params and restore from sessionStorage on mount
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
+    if (typeof window === 'undefined') return;
+
+    const params = new URLSearchParams(window.location.search);
+    const hasUrlParams =
+      params.has('timeRange') ||
+      params.has('tab') ||
+      params.has('search') ||
+      params.has('customerId') ||
+      params.has('customerPhone') ||
+      params.has('customerName') ||
+      params.has('startDate') ||
+      params.has('endDate') ||
+      params.has('page');
+
+    if (hasUrlParams) {
       const timeParam = params.get('timeRange');
-      if (timeParam && ['today', 'yesterday', 'tomorrow', 'last7', 'last30', 'custom'].includes(timeParam)) {
+      if (timeParam && ['today', 'yesterday', 'tomorrow', 'last7', 'last30', 'custom', 'all'].includes(timeParam)) {
         setDateFilter(timeParam);
       }
+      const sDate = params.get('startDate');
+      if (sDate) setCustomStartDate(sDate);
+      const eDate = params.get('endDate');
+      if (eDate) setCustomEndDate(eDate);
+
+      const tabParam = params.get('tab') as 'all' | 'unfulfilled' | 'unpaid' | 'open' | 'archived' | null;
+      if (tabParam && ['all', 'unfulfilled', 'unpaid', 'open', 'archived'].includes(tabParam)) {
+        setActiveTab(tabParam);
+      }
+
+      const qParam = params.get('search');
+      if (qParam) {
+        setSearchQuery(qParam);
+        setIsSearchExpanded(true);
+      }
+
+      const pageParam = params.get('page');
+      if (pageParam && !isNaN(Number(pageParam))) {
+        setCurrentPage(Math.max(1, Number(pageParam)));
+      }
+
+      const cId = params.get('customerId') || undefined;
+      const cPhone = params.get('customerPhone') || undefined;
+      const cName = params.get('customerName') || undefined;
+      if (cId || cPhone || cName) {
+        const cust: CustomerFilter = { id: cId, phone: cPhone, name: cName };
+        setSelectedCustomer(cust);
+        fetchOrdersForCustomer(cust);
+      }
+    } else {
+      // Restore from sessionStorage when navigating back or reopening orders
+      try {
+        const savedRaw = sessionStorage.getItem(ORDERS_FILTER_STORAGE_KEY);
+        if (savedRaw) {
+          const saved = JSON.parse(savedRaw);
+          if (saved.dateFilter && ['today', 'yesterday', 'tomorrow', 'last7', 'last30', 'custom', 'all'].includes(saved.dateFilter)) {
+            setDateFilter(saved.dateFilter);
+          }
+          if (saved.customStartDate) setCustomStartDate(saved.customStartDate);
+          if (saved.customEndDate) setCustomEndDate(saved.customEndDate);
+          if (saved.activeTab && ['all', 'unfulfilled', 'unpaid', 'open', 'archived'].includes(saved.activeTab)) {
+            setActiveTab(saved.activeTab);
+          }
+          if (saved.searchQuery) {
+            setSearchQuery(saved.searchQuery);
+            setIsSearchExpanded(true);
+          }
+          if (saved.selectedCustomer) {
+            setSelectedCustomer(saved.selectedCustomer);
+            fetchOrdersForCustomer(saved.selectedCustomer);
+          }
+          if (saved.currentPage && typeof saved.currentPage === 'number') {
+            setCurrentPage(saved.currentPage);
+          }
+        }
+      } catch (e) {
+        console.error('Failed to parse saved order filters', e);
+      }
     }
+
     const handlePopState = () => {
-      const params = new URLSearchParams(window.location.search);
-      const timeParam = params.get('timeRange');
-      if (timeParam && ['today', 'yesterday', 'tomorrow', 'last7', 'last30', 'custom'].includes(timeParam)) {
+      const p = new URLSearchParams(window.location.search);
+      const timeParam = p.get('timeRange');
+      if (timeParam && ['today', 'yesterday', 'tomorrow', 'last7', 'last30', 'custom', 'all'].includes(timeParam)) {
         setDateFilter(timeParam);
       } else {
         setDateFilter('today');
       }
+      const tabParam = p.get('tab') as 'all' | 'unfulfilled' | 'unpaid' | 'open' | 'archived' | null;
+      if (tabParam && ['all', 'unfulfilled', 'unpaid', 'open', 'archived'].includes(tabParam)) {
+        setActiveTab(tabParam);
+      } else {
+        setActiveTab('all');
+      }
+      const qParam = p.get('search');
+      setSearchQuery(qParam || '');
+      const cId = p.get('customerId') || undefined;
+      const cPhone = p.get('customerPhone') || undefined;
+      const cName = p.get('customerName') || undefined;
+      if (cId || cPhone || cName) {
+        const cust: CustomerFilter = { id: cId, phone: cPhone, name: cName };
+        setSelectedCustomer(cust);
+        fetchOrdersForCustomer(cust);
+      } else {
+        setSelectedCustomer(null);
+      }
     };
+
     window.addEventListener('popstate', handlePopState);
+    setIsInitialized(true);
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
+  // Save state to sessionStorage and update URL query params whenever filters change
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      if (dateFilter === 'today') {
-        params.delete('timeRange');
-      } else {
-        params.set('timeRange', dateFilter);
-      }
-      const newQs = params.toString();
-      const newUrl = window.location.pathname + (newQs ? '?' + newQs : '');
-      window.history.replaceState(null, '', newUrl);
-    }
-  }, [dateFilter]);
+    if (!isInitialized || typeof window === 'undefined') return;
 
-  // Fetch orders from Supabase with date constraints + pagination
-  const fetchOrdersByDate = async (filter: string, startDate?: string, endDate?: string, page = 1, rpp = 50) => {
+    try {
+      const stateToSave = {
+        dateFilter,
+        customStartDate,
+        customEndDate,
+        activeTab,
+        searchQuery,
+        selectedCustomer,
+        currentPage,
+        rowsPerPage,
+      };
+      sessionStorage.setItem(ORDERS_FILTER_STORAGE_KEY, JSON.stringify(stateToSave));
+    } catch {
+      // ignore
+    }
+
+    const params = new URLSearchParams();
+    if (dateFilter && dateFilter !== 'today') {
+      params.set('timeRange', dateFilter);
+    }
+    if (customStartDate) params.set('startDate', customStartDate);
+    if (customEndDate) params.set('endDate', customEndDate);
+    if (activeTab && activeTab !== 'all') {
+      params.set('tab', activeTab);
+    }
+    if (searchQuery.trim()) {
+      params.set('search', searchQuery.trim());
+    }
+    if (selectedCustomer?.id) {
+      params.set('customerId', selectedCustomer.id);
+    }
+    if (selectedCustomer?.phone) {
+      params.set('customerPhone', selectedCustomer.phone);
+    }
+    if (selectedCustomer?.name) {
+      params.set('customerName', selectedCustomer.name);
+    }
+    if (currentPage > 1) {
+      params.set('page', String(currentPage));
+    }
+
+    const newQs = params.toString();
+    const newUrl = window.location.pathname + (newQs ? '?' + newQs : '');
+    window.history.replaceState(null, '', newUrl);
+  }, [
+    isInitialized,
+    dateFilter,
+    customStartDate,
+    customEndDate,
+    activeTab,
+    searchQuery,
+    selectedCustomer,
+    currentPage,
+    rowsPerPage,
+  ]);
+
+  // Fetch orders from Supabase with date constraints + tab/status filtering + pagination
+  const fetchOrdersByDate = async (
+    filter: string,
+    startDate?: string,
+    endDate?: string,
+    page = 1,
+    rpp = 50,
+    tab = activeTab,
+    stFilter = statusFilter
+  ) => {
     setIsRefreshing(true);
     try {
       const supabase = createClient();
@@ -150,8 +363,27 @@ export function useOrderLogState({ initialOrders, settings }: UseOrderLogStatePr
         .from('orders')
         .select('*', { count: 'exact', head: false })
         .is('deleted_at', null)
-        .order('created_at', { ascending: false })
-        .range(from, to);
+        .order('created_at', { ascending: false });
+
+      // Tab filters on DB level so pagination & counts are exact
+      if (tab === 'unfulfilled') {
+        query = query
+          .in('status', ['pending', 'placed', 'confirmed'])
+          .or('fulfillment_status.is.null,fulfillment_status.neq.fulfilled');
+      } else if (tab === 'unpaid') {
+        query = query
+          .neq('payment_status', 'paid')
+          .not('status', 'in', '("cancelled","refunded")');
+      } else if (tab === 'open') {
+        query = query.not('status', 'in', '("delivered","cancelled","refunded")');
+      } else if (tab === 'archived') {
+        query = query.in('status', ['delivered', 'cancelled', 'refunded']);
+      }
+
+      // Status dropdown filter on DB
+      if (stFilter && stFilter !== 'all') {
+        query = query.eq('status', stFilter);
+      }
 
       const now = Date.now();
       const DAY = 86400000;
@@ -172,6 +404,8 @@ export function useOrderLogState({ initialOrders, settings }: UseOrderLogStatePr
         if (endDate) query = query.lte('created_at', pktEndISOFromYMD(endDate));
       }
 
+      query = query.range(from, to);
+
       const { data, error, count } = await query;
       if (error) throw error;
       if (data) setOrders(data.map(mapOrderRow));
@@ -185,19 +419,25 @@ export function useOrderLogState({ initialOrders, settings }: UseOrderLogStatePr
   };
 
   useEffect(() => {
+    if (!isInitialized) return;
+    if (selectedCustomer) return;
+    if (searchQuery.trim()) return;
+
     setCurrentPage(1);
-    fetchOrdersByDate(dateFilter, customStartDate, customEndDate, 1, rowsPerPage);
-  }, [dateFilter, customStartDate, customEndDate]);
+    fetchOrdersByDate(dateFilter, customStartDate, customEndDate, 1, rowsPerPage, activeTab, statusFilter);
+  }, [isInitialized, dateFilter, customStartDate, customEndDate, activeTab, statusFilter]);
 
   const goToPage = (page: number) => {
     setCurrentPage(page);
-    fetchOrdersByDate(dateFilter, customStartDate, customEndDate, page, rowsPerPage);
+    if (selectedCustomer || searchQuery.trim()) return;
+    fetchOrdersByDate(dateFilter, customStartDate, customEndDate, page, rowsPerPage, activeTab, statusFilter);
   };
 
   const handleRowsPerPageChange = (newRpp: number) => {
     setRowsPerPage(newRpp);
     setCurrentPage(1);
-    fetchOrdersByDate(dateFilter, customStartDate, customEndDate, 1, newRpp);
+    if (selectedCustomer || searchQuery.trim()) return;
+    fetchOrdersByDate(dateFilter, customStartDate, customEndDate, 1, newRpp, activeTab, statusFilter);
   };
 
   // Realtime subscription setup
@@ -235,9 +475,18 @@ export function useOrderLogState({ initialOrders, settings }: UseOrderLogStatePr
   const filteredOrders = orders.filter(o => {
     if (o.deleted_at || (o.status as string) === 'trash' || (o.status as string) === 'deleted') return false;
 
+    if (selectedCustomer) {
+      const matchId = selectedCustomer.id && o.customer_id === selectedCustomer.id;
+      const cleanFilterPhone = selectedCustomer.phone ? selectedCustomer.phone.replace(/\D/g, '') : '';
+      const cleanOrderPhone = o.customer_phone ? o.customer_phone.replace(/\D/g, '') : '';
+      const matchPhone = cleanFilterPhone && cleanOrderPhone && (cleanOrderPhone.includes(cleanFilterPhone) || cleanFilterPhone.includes(cleanOrderPhone));
+      const matchName = selectedCustomer.name && o.customer_name && o.customer_name.toLowerCase().trim() === selectedCustomer.name.toLowerCase().trim();
+
+      if (!matchId && !matchPhone && !matchName) return false;
+    }
+
     if (activeTab === 'unfulfilled') {
-      if (o.fulfillment_status === 'fulfilled') return false;
-      if (['delivered', 'cancelled', 'refunded'].includes(o.status)) return false;
+      if (!isOrderUnfulfilled(o)) return false;
     } else if (activeTab === 'unpaid') {
       if (isOrderPaid(o)) return false;
       if (['cancelled', 'refunded'].includes(o.status)) return false;
@@ -256,15 +505,14 @@ export function useOrderLogState({ initialOrders, settings }: UseOrderLogStatePr
       (o.customer_phone && o.customer_phone.toLowerCase().includes(searchQuery.toLowerCase()));
     if (!matchesSearch) return false;
 
+    // When customer filter, search query, or all-time filter is active, skip date-window filter
+    if (selectedCustomer || searchQuery.trim() || dateFilter === 'all') {
+      return true;
+    }
+
     const orderTime = new Date(o.created_at).getTime();
     const now = Date.now();
     const DAY = 86400000;
-
-    // When a search query is active we search across ALL dates (results are fetched
-    // globally), so skip the date-window filter to avoid hiding valid matches.
-    if (searchQuery.trim()) {
-      return true;
-    }
 
     // All boundaries use PKT (UTC+5) days — matches the server fetch + badge count.
     if (dateFilter === 'today') {
@@ -307,6 +555,29 @@ export function useOrderLogState({ initialOrders, settings }: UseOrderLogStatePr
     return 0;
   });
 
+  // Cache the active filtered orders in sessionStorage for 0ms order-detail adjacent swapping
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (!sortedOrders || sortedOrders.length === 0) return;
+
+    try {
+      const orderIds = sortedOrders.map(o => o.id);
+      const ordersMap: Record<string, Order> = {};
+      // Cache up to 100 orders so sessionStorage remains light (~50-100KB)
+      sortedOrders.slice(0, 100).forEach(o => {
+        ordersMap[o.id] = o;
+      });
+
+      sessionStorage.setItem('admin_active_orders_cache', JSON.stringify({
+        orderIds,
+        orders: ordersMap,
+        timestamp: Date.now(),
+      }));
+    } catch {
+      // ignore storage quota error
+    }
+  }, [sortedOrders]);
+
   const bulkActions = useOrderLogBulkActions(
     selectedOrderIds,
     setSelectedOrderIds,
@@ -341,6 +612,9 @@ export function useOrderLogState({ initialOrders, settings }: UseOrderLogStatePr
     setCustomStartDate,
     customEndDate,
     setCustomEndDate,
+    selectedCustomer,
+    setSelectedCustomer,
+    clearCustomerFilter,
     currentPage,
     rowsPerPage,
     totalRows,

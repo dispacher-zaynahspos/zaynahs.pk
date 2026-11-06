@@ -54,6 +54,18 @@ export const mapOrderRow = (row: OrderRow): Order => ({
   updated_at: row.updated_at
 });
 
+export const isOrderFulfilled = (order: Order): boolean => {
+  if (order.status === 'cancelled') return false;
+  if (order.fulfillment_status === 'fulfilled') return true;
+  if (['shipped', 'out_for_delivery', 'delivered'].includes(order.status)) return true;
+  return false;
+};
+
+export const isOrderUnfulfilled = (order: Order): boolean => {
+  if (order.status === 'cancelled' || order.status === 'refunded') return false;
+  return !isOrderFulfilled(order);
+};
+
 export const isOrderPaid = (order: Order) => {
   // Authoritative real column (backfilled). Fall back to legacy notes-sniffing only if unset.
   if (order.payment_status) return order.payment_status === 'paid';

@@ -33,7 +33,7 @@ npm run clone:setup -- --store=lobo --deploy --yes
 | 8 | cf:rules | `deploy-cloudflare-rules.js` | 4 cache rules + proxy on |
 | 9 | verify | `post-deploy-fix.mjs` | HTTP 200 + webhook test |
 
-**Individual phase npm scripts** (manual/debug): `npm run db:schema`, `db:webhooks`, `db:admin`, `db:brand`, `vercel:setup`, `cf:dns`, `cf:rules`, `check:schema`.
+**Individual phase npm scripts** (manual/debug): `npm run db:schema`, `db:webhooks`, `db:admin`, `db:brand`, `vercel:setup`, `cf:dns`, `cf:rules`, `cf:rules:all`, `cf:rules:undo` (see `docs/CLOUDFLARE_CACHE_UNDO.md`), `check:schema`.
 
 > **Sirf baqi manual kaam** (API se automate nahi hota): (a) Supabase project create karna + uski keys `env-backups/<store>.env.local` me daalna, (b) domain ke **nameservers registrar (PKNIC for .pk) par Cloudflare NS** pe point karna. Baqi sab ek command. NS switch hone tak `https://<project>.vercel.app` par test karo.
 

@@ -34,15 +34,14 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || 'Authentication failed');
+        toast.error(data.error || 'Invalid email or password');
+        return;
       }
 
       toast.success('Logged in successfully!');
       window.location.href = '/admin/dashboard';
-    } catch (err) {
-      console.error('Login error:', err);
-      const errMsg = err instanceof Error ? err.message : 'Authentication failed';
-      toast.error(errMsg);
+    } catch {
+      toast.error('Network error or server unavailable');
     } finally {
       setLoading(false);
     }

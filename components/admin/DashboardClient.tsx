@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import Link from 'next/link';
+import { ShoppingBag, FolderOpen, ClipboardList, TrendingUp, ChevronRight } from '@/components/common/Icons';
 import { formatPrice } from '@/lib/utils/whatsapp';
 
 import {
@@ -18,7 +20,7 @@ import {
   InventorySnapshotCard,
 } from './dashboard';
 
-export default function DashboardClient({ orders, products, customers, settings }: DashboardClientProps) {
+export default function DashboardClient({ orders, products, categories = [], customers, settings }: DashboardClientProps) {
   const [dateFilter, setDateFilter] = useState<DateRange>('last30');
 
   const now = new Date();
@@ -171,17 +173,69 @@ export default function DashboardClient({ orders, products, customers, settings 
     { key: 'last7', label: '7d' },
     { key: 'last30', label: '30d' },
     { key: 'thisMonth', label: 'Month' },
+    { key: 'all', label: 'All' },
+  ];
+
+  const filterLabel = useMemo(() => {
+    switch (dateFilter) {
+      case 'today': return 'Today';
+      case 'last7': return 'Last 7 Days';
+      case 'last30': return 'Last 30 Days';
+      case 'thisMonth': return 'This Month';
+      case 'all': return 'All Time';
+      default: return '';
+    }
+  }, [dateFilter]);
+
+  const cleanProductsCount = products.filter(p => !p.deleted_at).length;
+  const cleanCategoriesCount = categories.filter(c => !(c as unknown as { deleted_at?: string }).deleted_at).length;
+  const filteredSales = metrics.sales;
+  const filteredOrdersCount = currentOrders.length;
+
+  const primaryStats = [
+    { 
+      label: 'Total Products', 
+      value: cleanProductsCount.toLocaleString(), 
+      icon: ShoppingBag, 
+      color: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20', 
+      glow: 'from-blue-500/15 via-blue-500/5 to-transparent',
+      href: '/admin/products' 
+    },
+    { 
+      label: 'Total Categories', 
+      value: cleanCategoriesCount.toLocaleString(), 
+      icon: FolderOpen, 
+      color: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20', 
+      glow: 'from-amber-500/15 via-amber-500/5 to-transparent',
+      href: '/admin/categories' 
+    },
+    { 
+      label: `Orders (${filterLabel})`, 
+      value: filteredOrdersCount.toLocaleString(), 
+      icon: ClipboardList, 
+      color: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20', 
+      glow: 'from-emerald-500/15 via-emerald-500/5 to-transparent',
+      href: '/admin/orders' 
+    },
+    { 
+      label: `Sales (${filterLabel})`, 
+      value: formatPrice(filteredSales, settings.currency_symbol), 
+      icon: TrendingUp, 
+      color: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20', 
+      glow: 'from-rose-500/15 via-rose-500/5 to-transparent',
+      href: '/admin/orders' 
+    },
   ];
 
   const chartEmpty = chartData.length === 0 || chartData.every(d => d.revenue === 0 && d.cogs === 0 && d.profit === 0);
 
   return (
     <div className="space-y-6">
-      {/* Filter bar - Modern segmented pill container */}
+      {/* Top Filter Bar - Controls the Entire Dashboard */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-lg font-black text-gray-900 dark:text-white tracking-tight">Business Performance</h2>
-          <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Real-time revenue, margins, and sales metrics</p>
+          <h2 className="text-xl font-black text-gray-900 dark:text-white tracking-tight">Business Performance</h2>
+          <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Real-time revenue, margins, and sales metrics ({filterLabel})</p>
         </div>
         <div className="inline-flex items-center p-1 bg-gray-100/80 dark:bg-[#16162a] border border-gray-200/80 dark:border-gray-800/80 rounded-2xl shadow-xs self-start sm:self-auto overflow-x-auto max-w-full">
           {filters.map(f => {
@@ -202,6 +256,36 @@ export default function DashboardClient({ orders, products, customers, settings 
             );
           })}
         </div>
+      </div>
+
+      {/* 4 Primary Stat Cards - Fully Synchronized with Selected Filter */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
+        {primaryStats.map((stat, i) => {
+          const Icon = stat.icon;
+          return (
+            <Link
+              key={i}
+              href={stat.href}
+              className="relative overflow-hidden bg-white dark:bg-[#16162a] p-5 md:p-6 rounded-2xl border border-gray-200/80 dark:border-gray-800/80 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-between group text-gray-900 dark:text-white"
+            >
+              <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl ${stat.glow} rounded-bl-full pointer-events-none opacity-80 group-hover:opacity-100 transition-opacity`} />
+              
+              <div className="space-y-1.5 relative z-10 min-w-0 pr-3">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                  {stat.label}
+                  <ChevronRight className="h-3 w-3 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-gray-400" />
+                </span>
+                <p className="text-2xl md:text-3xl font-black text-gray-900 dark:text-white tracking-tight truncate">
+                  {stat.value}
+                </p>
+              </div>
+
+              <div className={`relative z-10 h-12 w-12 rounded-2xl border flex items-center justify-center ${stat.color} group-hover:scale-110 group-hover:rotate-3 transition-all duration-200 flex-shrink-0 shadow-xs`}>
+                <Icon className="h-6 w-6" />
+              </div>
+            </Link>
+          );
+        })}
       </div>
 
       {/* Metric cards */}

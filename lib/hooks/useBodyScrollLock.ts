@@ -72,6 +72,28 @@ function releaseLock() {
   window.scrollTo(0, savedScrollY);
 }
 
+export function resetBodyScrollLock(): void {
+  lockCount = 0;
+  if (typeof document === 'undefined') return;
+  const body = document.body;
+  if (savedBodyStyle) {
+    body.style.position = savedBodyStyle.position;
+    body.style.top = savedBodyStyle.top;
+    body.style.left = savedBodyStyle.left;
+    body.style.right = savedBodyStyle.right;
+    body.style.width = savedBodyStyle.width;
+    body.style.overflow = savedBodyStyle.overflow;
+    savedBodyStyle = null;
+  } else {
+    body.style.position = '';
+    body.style.top = '';
+    body.style.left = '';
+    body.style.right = '';
+    body.style.width = '';
+    body.style.overflow = '';
+  }
+}
+
 export function useBodyScrollLock(active: boolean = true): void {
   useEffect(() => {
     if (!active || typeof window === 'undefined') return;

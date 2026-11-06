@@ -231,6 +231,29 @@ export async function revalidateProduct(slug: string, action: 'UPDATED' | 'DELET
   }
 }
 
+/**
+ * RULE C10 — fallback for DB triggers that send only `{ type, table }` (no row data).
+ * When the changed product slug is unknown we cannot target one page, so refresh the
+ * whole product surface: all product pages + listings + a full edge purge.
+ */
+export async function revalidateAllProducts() {
+  try {
+    const { revalidateTag, revalidatePath } = await getCacheMethods();
+    revalidateTag('products');
+    revalidateTag('homepage');
+    revalidateTag('reviews');
+
+    revalidatePath('/');
+    revalidatePath('/shop');
+    revalidatePath('/product/[slug]', 'page');
+
+    await purgeCloudflareEverything();
+    console.log('[revalidate] All product pages refreshed (webhook payload had no slug)');
+  } catch (error) {
+    console.error('Error in revalidateAllProducts:', error);
+  }
+}
+
 export async function revalidateBanner() {
   try {
     const { revalidateTag, revalidatePath } = await getCacheMethods();

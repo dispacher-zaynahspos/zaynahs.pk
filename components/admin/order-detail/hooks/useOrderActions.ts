@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Order, StatusLogItem } from '@/lib/types';
 import { updateOrderDetailsSafe, deleteOrderSafe, setPaymentStatusSafe, setFulfillmentStatusSafe } from '@/lib/services/orders';
@@ -21,6 +21,15 @@ export function useOrderActions(
   const [trackingNumber, setTrackingNumber] = useState(order.tracking_number || '');
   const [courierName, setCourierName] = useState(order.courier_name || '');
   const [trackingUrl, setTrackingUrl] = useState(order.tracking_url || '');
+
+  useEffect(() => {
+    setStaffNoteInput(order.staff_notes || '');
+    setTrackingNumber(order.tracking_number || '');
+    setCourierName(order.courier_name || '');
+    setTrackingUrl(order.tracking_url || '');
+    setIsEditingTracking(false);
+    setEditingCommentId(null);
+  }, [order.id, order.staff_notes, order.tracking_number, order.courier_name, order.tracking_url]);
 
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editingCommentText, setEditingCommentText] = useState('');

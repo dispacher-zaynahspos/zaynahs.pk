@@ -320,17 +320,47 @@ export default function ProductForm({ categories, initialProduct, aiEnabled }: P
         onClose={() => p.setIsMediaModalOpen(false)}
         multiple={true}
         onSelect={(selectedUrls: string[]) => {
-          const newImages = selectedUrls.map((url: string, idx: number) => {
-            const existing = p.images.find(img => img.url === url);
-            if (existing) return existing;
-            return {
-              url,
-              alt: '',
-              sort_order: p.images.length + idx + 1,
-              is_primary: p.images.length === 0 && idx === 0
+          // Keep all existing images and append newly selected non-duplicate images
+          const existingUrls = new Set(p.images.map(img => img.url));
+          const newlyAdded: typeof p.images = [];
+
+          for (const url of selectedUrls) {
+            if (!existingUrls.has(url)) {
+              existingUrls.add(url);
+              newlyAdded.push({
+                url,
+                alt: '',
+                sort_order: p.images.length + newlyAdded.length + 1,
+                is_primary: p.images.length === 0 && newlyAdded.length === 0
+              });
+            }
+          }
+
+          if (newlyAdded.length > 0) {
+            const isSizeChart = (url?: string, alt?: string) => {
+              const u = (url || '').toLowerCase();
+              const a = (alt || '').toLowerCase();
+              return (
+                u.includes('gemini_generated_image_os2sl0os2sl0os2s') ||
+                u.includes('size_chart') ||
+                u.includes('size-chart') ||
+                a.includes('measurement guide') ||
+                a.includes('size chart')
+              );
             };
-          });
-          p.setImages(newImages);
+
+            const regularImages = p.images.filter(img => !isSizeChart(img.url, img.alt));
+            const sizeCharts = p.images.filter(img => isSizeChart(img.url, img.alt));
+
+            // Combine: regular images + newly added images + size chart always at the end
+            const combined = [...regularImages, ...newlyAdded, ...sizeCharts].map((img, idx) => ({
+              ...img,
+              sort_order: idx + 1,
+              is_primary: idx === 0
+            }));
+
+            p.setImages(combined);
+          }
           p.setIsMediaModalOpen(false);
         }}
       />

@@ -82,6 +82,32 @@ export default function OrderLog({ initialOrders, settings, initialFailedAttempt
         settings={settings}
       />
 
+      {/* Customer Filter Active Banner */}
+      {o.selectedCustomer && (
+        <div className="flex items-center justify-between gap-3 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/60 rounded-xl px-4 py-2.5 text-xs text-blue-900 dark:text-blue-200 animate-fade-in shadow-xs">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse shrink-0" />
+            <span className="truncate">
+              Showing orders for customer: <strong className="font-bold text-blue-950 dark:text-white">{o.selectedCustomer.name || o.selectedCustomer.phone}</strong>
+              {o.selectedCustomer.phone && (
+                <span className="ml-1 text-[11.5px] text-blue-600 dark:text-blue-400 font-mono">({o.selectedCustomer.phone})</span>
+              )}
+              <span className="ml-2 text-gray-500 dark:text-gray-400 font-normal">
+                ({o.totalRows} {o.totalRows === 1 ? 'order' : 'orders'})
+              </span>
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={o.clearCustomerFilter}
+            className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white dark:bg-blue-900/80 text-blue-700 dark:text-blue-200 hover:bg-blue-100 dark:hover:bg-blue-800 text-xs font-bold transition-all shadow-xs cursor-pointer border border-blue-200 dark:border-blue-800"
+            title="Clear customer filter and return to all orders"
+          >
+            <span>✕ Clear filter</span>
+          </button>
+        </div>
+      )}
+
       {/* Filter Tabs Row */}
       <div className="filter-tabs-row flex items-center gap-2 border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] rounded-t-xl px-3 py-1 select-none">
         {/* Scrollable tabs — kept separate from the action icons so tabs never clip */}
@@ -176,10 +202,14 @@ export default function OrderLog({ initialOrders, settings, initialFailedAttempt
             >
               <option value="all">All Statuses</option>
               <option value="pending">Pending</option>
+              <option value="placed">Placed</option>
               <option value="confirmed">Confirmed</option>
+              <option value="processing">Processing</option>
               <option value="shipped">Shipped</option>
+              <option value="out_for_delivery">Out for Delivery</option>
               <option value="delivered">Delivered</option>
               <option value="cancelled">Cancelled</option>
+              <option value="refunded">Refunded</option>
             </select>
           </div>
 

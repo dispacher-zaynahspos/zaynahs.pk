@@ -9,8 +9,9 @@ import { useSettings } from '@/lib/hooks/useSettings';
 interface PurgeCacheButtonProps {
   className?: string;
   label?: string;
-  variant?: 'outline' | 'ghost';
+  variant?: 'outline' | 'ghost' | 'minimal';
   showTimestamps?: boolean;
+  iconOnly?: boolean;
 }
 
 const formatTime = (isoString?: string) => {
@@ -19,7 +20,13 @@ const formatTime = (isoString?: string) => {
   return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 };
 
-export default function PurgeCacheButton({ className, label = 'Purge Cache', variant = 'outline', showTimestamps = true }: PurgeCacheButtonProps) {
+export default function PurgeCacheButton({ 
+  className, 
+  label = 'Purge Cache', 
+  variant = 'outline', 
+  showTimestamps = true,
+  iconOnly = false,
+}: PurgeCacheButtonProps) {
   const [isPurging, setIsPurging] = useState(false);
   const { settings } = useSettings();
   
@@ -62,6 +69,21 @@ export default function PurgeCacheButton({ className, label = 'Purge Cache', var
 
   const appliedStyles = variant === 'ghost' ? ghostStyles : outlineStyles;
   const tooltipText = `Purge Edge & CDN Cache\nLast purged: A (Vercel): ${formatTime(vercelTime)} | B (Cloudflare): ${formatTime(cfTime)}`;
+
+  if (iconOnly || variant === 'minimal') {
+    return (
+      <button
+        type="button"
+        onClick={handlePurge}
+        disabled={isPurging}
+        title={tooltipText}
+        aria-label="Purge Edge & CDN Cache"
+        className={`h-9 w-9 flex items-center justify-center rounded-xl text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/5 active:scale-95 transition-colors cursor-pointer disabled:opacity-50 shrink-0 ${className || ''}`}
+      >
+        <RefreshCw className={`h-4.5 w-4.5 ${isPurging ? 'animate-spin text-[#e94560]' : ''}`} />
+      </button>
+    );
+  }
 
   return (
     <div className={`flex items-center gap-1.5 sm:gap-2 shrink-0 ${className || ''}`}>

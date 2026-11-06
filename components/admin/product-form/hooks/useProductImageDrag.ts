@@ -46,6 +46,8 @@ export function useProductImageDrag({ initialProduct }: UseProductImageDragProps
       const reordered = arrayMove(images, oldIndex, newIndex);
       const updated = reordered.map((img, idx) => ({
         ...img,
+        sort_order: idx + 1,
+        is_primary: idx === 0,
         sortOrder: idx + 1,
         isPrimary: idx === 0,
       }));
@@ -56,7 +58,13 @@ export function useProductImageDrag({ initialProduct }: UseProductImageDragProps
   const handleRemoveImage = (index: number, url: string) => {
     setImages(prev => {
       const filtered = prev.filter((_, i) => i !== index);
-      return filtered.map((img, idx) => ({ ...img, isPrimary: idx === 0 }));
+      return filtered.map((img, idx) => ({
+        ...img,
+        sort_order: idx + 1,
+        is_primary: idx === 0,
+        sortOrder: idx + 1,
+        isPrimary: idx === 0,
+      }));
     });
   };
 

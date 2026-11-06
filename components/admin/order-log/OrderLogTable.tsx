@@ -1,13 +1,14 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import EmptyState from '@/components/common/EmptyState';
-import { Package } from '@/components/common/Icons';
+import { Package, Eye } from '@/components/common/Icons';
 import { Order, StoreSettings } from '@/lib/types';
 import { formatPrice } from '@/lib/utils/whatsapp';
 import { getItemVariant } from '@/lib/utils/formatVariant';
-import { isOrderPaid, getOrderPaymentMethod, getDeliveryStatus } from './orderLogUtils';
+import { isOrderPaid, isOrderUnfulfilled, getOrderPaymentMethod, getDeliveryStatus } from './orderLogUtils';
+import { OrderQuickViewModal } from './OrderQuickViewModal';
 
 interface OrderLogTableProps {
   sortedOrders: Order[];
@@ -35,6 +36,7 @@ export function OrderLogTable({
   goToPage,
 }: OrderLogTableProps) {
   const router = useRouter();
+  const [quickViewOrder, setQuickViewOrder] = useState<Order | null>(null);
 
   const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.checked) {
@@ -66,7 +68,7 @@ export function OrderLogTable({
 
   return (
     <div className="bg-white dark:bg-[#16162a] rounded-b-xl border-x border-b border-gray-200 dark:border-gray-800 shadow-xs overflow-hidden transition-colors">
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto overscroll-x-contain overscroll-y-auto touch-pan-y">
         <table className="w-full text-left text-sm text-gray-700 dark:text-gray-300">
           <thead className="hidden md:table-header-group text-[12.5px] font-semibold text-gray-500 bg-gray-50/50 dark:bg-white/5 border-b border-gray-200 dark:border-gray-800 select-none">
             <tr>
@@ -93,7 +95,26 @@ export function OrderLogTable({
             {sortedOrders.map(order => (
               <tr
                 key={order.id}
-                onClick={() => router.push(`/admin/orders/detail?id=${order.id}`)}
+                onClick={() => {
+                  if (typeof window !== 'undefined') {
+                    sessionStorage.setItem('admin_orders_return_url', window.location.pathname + window.location.search);
+                    try {
+                      const orderIds = sortedOrders.map(o => o.id);
+                      const ordersMap: Record<string, Order> = {};
+                      sortedOrders.slice(0, 100).forEach(o => {
+                        ordersMap[o.id] = o;
+                      });
+                      sessionStorage.setItem('admin_active_orders_cache', JSON.stringify({
+                        orderIds,
+                        orders: ordersMap,
+                        timestamp: Date.now(),
+                      }));
+                    } catch {
+                      // ignore
+                    }
+                  }
+                  router.push(`/admin/orders/detail?id=${order.id}`);
+                }}
                 className="block md:table-row mb-4 md:mb-0 border md:border-0 rounded-lg md:rounded-none shadow-sm md:shadow-none md:shadow-xs bg-white dark:bg-[#16162a] hover:bg-gray-50/50 dark:hover:bg-white/3 transition-all cursor-pointer align-middle"
               >
                 <td className="block md:table-cell py-2 px-4 md:py-3" onClick={(e) => e.stopPropagation()}>
@@ -167,7 +188,7 @@ export function OrderLogTable({
                         <span className="w-2.5 h-2.5 rounded-full bg-red-500 dark:bg-red-400 flex-shrink-0" />
                         Cancelled
                       </span>
-                    ) : ['pending', 'placed', 'confirmed'].includes(order.status) ? (
+                    ) : isOrderUnfulfilled(order) ? (
                       <span className="inline-flex items-center gap-1.5 bg-[#fff4c4] text-[#7c5c00] rounded px-2 py-0.5 text-[12px] font-bold">
                         <span className="w-2.5 h-2.5 rounded-full border-[1.5px] border-[#b98900] flex items-center justify-center flex-shrink-0">
                           <span className="text-[7px] leading-none text-[#b98900] font-normal">○</span>
@@ -183,32 +204,24 @@ export function OrderLogTable({
                   </td>
                 )}
                 {visibleColumns.includes('items') && (
-                  <td className="block md:table-cell py-1 px-4 md:py-3 text-xs text-gray-500 max-w-[260px]">
+                  <td className="block md:table-cell py-1 px-4 md:py-3 text-xs text-gray-500 whitespace-nowrap">
                     <span className="md:hidden font-semibold text-gray-400 mr-2">Items:</span>
-                    <div className="flex flex-col gap-1">
+                    <div className="inline-flex items-center gap-2">
                       <span className="font-semibold text-gray-800 dark:text-gray-200">
-                        {order.items.length} item{order.items.length !== 1 ? 's' : ''}
+                        {order.items.length} {order.items.length === 1 ? 'item' : 'items'}
                       </span>
-                      <div className="flex flex-wrap gap-1">
-                        {order.items.map((item, i) => {
-                          const v = getItemVariant(item);
-                          return (
-                            <span
-                              key={i}
-                              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200/70 dark:border-gray-700/70"
-                              title={`${item.product?.name || 'Item'}${v.summary ? ` (${v.summary})` : ''} × ${item.quantity}`}
-                            >
-                              <span className="truncate max-w-[120px]">{item.product?.name || 'Item'}</span>
-                              {v.shortSummary && (
-                                <span className="font-bold text-indigo-600 dark:text-indigo-400 text-[10px]">({v.shortSummary})</span>
-                              )}
-                              {item.quantity > 1 && (
-                                <span className="text-gray-400 font-semibold">×{item.quantity}</span>
-                              )}
-                            </span>
-                          );
-                        })}
-                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setQuickViewOrder(order);
+                        }}
+                        className="w-6 h-6 rounded flex items-center justify-center text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer shrink-0"
+                        title="Quick preview articles & variations"
+                        aria-label="Quick preview articles"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   </td>
                 )}
@@ -269,6 +282,15 @@ export function OrderLogTable({
           </div>
         </div>
       </div>
+
+      <OrderQuickViewModal
+        order={quickViewOrder}
+        ordersList={sortedOrders}
+        onSelectOrder={setQuickViewOrder}
+        open={!!quickViewOrder}
+        onClose={() => setQuickViewOrder(null)}
+        settings={settings}
+      />
     </div>
   );
 }
