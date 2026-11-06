@@ -342,3 +342,25 @@ done
 2. **ISR Writes near 200K:** Audit `lib/revalidate.ts` — replace any `revalidatePath` on storefront pages with `revalidateTag`.
 3. **Fluid CPU near 4h:** Find `export const revalidate = 0` on storefront pages → change to `revalidate = 2592000`.
 4. **Fast Origin Transfer near 10GB:** `cf-cache-status: MISS` on storefront = CF rules broken → `npm run stores:sync-cf` immediately.
+
+---
+
+## 🚀 RULE CF-WORKERS-MIGRATION — Zero Vercel Architecture (Cloudflare Workers $5 Paid)
+
+> **Master Mandate:** Vercel limits and dependency are permanently eliminated by migrating Next.js compute to Cloudflare Workers ($5 Paid plan), keeping PostgreSQL database in Supabase and media in Cloudflare R2. Full guide lives in `docs/CLOUDFLARE_WORKERS_MIGRATION_GUIDE.md`.
+
+1. **Target Architecture:**
+   - **Next.js App & Admin:** Cloudflare Workers ($5 Paid) via `@opennextjs/cloudflare`.
+   - **Database & Auth:** Supabase (PostgreSQL + RLS).
+   - **Media Storage:** Cloudflare R2 (`img.<domain>`).
+   - **Vercel:** Permanently disconnected and removed once production cutover is complete.
+2. **Safety First Policy:**
+   - Live Vercel store remains completely untouched and active during the entire development, configuration, and staging phase.
+   - The Cloudflare Worker is deployed to a preview/staging subdomain first.
+   - Domain DNS cutover (`GO CUTOVER`) is only permitted after all 5 verification gates pass:
+     1. Storefront SSR browsing & category filters
+     2. Admin dashboard login & settings mutation
+     3. End-to-end checkout & order persistence in Supabase
+     4. WhatsApp order redirection
+     5. High-resolution image serving from R2
+
