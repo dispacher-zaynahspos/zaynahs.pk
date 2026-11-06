@@ -118,49 +118,94 @@ function getCloudflareConfigs(): Array<{ zoneId: string; apiToken: string; name?
  * Purges ONLY the specified URLs without wiping the rest of the zone or triggering full-site cache misses.
  * Automatically enforces HTTPS and purges both www and non-www variants to eliminate domain/protocol mismatch.
  */
-export async function purgeCloudflareUrls(urls: string[]): Promise<void> {
-  if (!urls || urls.length === 0) return;
+/**
+ * Targeted Purge on Cloudflare Edge:
+ * Purges specified Cache-Tags AND specific file URLs with automatic retry (up to 3 attempts).
+ * Next.js cache has ALREADY been refreshed before this is called.
+ */
+export async function purgeCloudflareTargeted({
+  tags = [],
+  urls = [],
+  prefixes = [],
+}: {
+  tags?: string[];
+  urls?: string[];
+  prefixes?: string[];
+}): Promise<void> {
   const cfConfigs = getCloudflareConfigs();
   if (cfConfigs.length === 0) return;
 
   const targetFiles = new Set<string>();
   for (const rawUrl of urls) {
     if (!rawUrl) continue;
-    // Always force HTTPS
     const httpsUrl = rawUrl.replace(/^http:\/\//, 'https://');
-    targetFiles.add(httpsUrl);
-    if (httpsUrl.includes('://www.')) {
-      targetFiles.add(httpsUrl.replace('://www.', '://'));
-    } else {
-      targetFiles.add(httpsUrl.replace('://', '://www.'));
-    }
+    const withSlash = httpsUrl.endsWith('/') ? httpsUrl : `${httpsUrl}/`;
+    const noSlash = httpsUrl.endsWith('/') ? httpsUrl.slice(0, -1) : httpsUrl;
+
+    [withSlash, noSlash].forEach((u) => {
+      targetFiles.add(u);
+      if (u.includes('://www.')) {
+        targetFiles.add(u.replace('://www.', '://'));
+      } else {
+        targetFiles.add(u.replace('://', '://www.'));
+      }
+    });
   }
+
   const fileList = Array.from(targetFiles);
+  const cleanTags = Array.from(new Set(tags.filter(Boolean)));
+  const cleanPrefixes = Array.from(new Set(prefixes.filter(Boolean)));
+
+  const payload: Record<string, unknown> = {};
+  if (fileList.length > 0) payload.files = fileList;
+  if (cleanTags.length > 0) payload.tags = cleanTags;
+  if (cleanPrefixes.length > 0) payload.prefixes = cleanPrefixes;
+
+  if (Object.keys(payload).length === 0) return;
 
   for (const cfg of cfConfigs) {
-    try {
-      const res = await fetch(
-        `https://api.cloudflare.com/client/v4/zones/${cfg.zoneId}/purge_cache`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${cfg.apiToken}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ files: fileList }),
+    let attempts = 0;
+    const MAX_RETRIES = 3;
+    while (attempts < MAX_RETRIES) {
+      attempts++;
+      try {
+        const res = await fetch(
+          `https://api.cloudflare.com/client/v4/zones/${cfg.zoneId}/purge_cache`,
+          {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${cfg.apiToken}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+          }
+        );
+        const data = await res.json();
+        if (res.ok && data.success) {
+          console.log(
+            `[revalidate] Targeted CF purge succeeded (attempt ${attempts}) on ${cfg.name || cfg.zoneId} (tags: ${cleanTags.length}, files: ${fileList.length})`
+          );
+          break;
+        } else {
+          console.error(
+            `[revalidate] CF purge error (attempt ${attempts}) on ${cfg.name || cfg.zoneId}:`,
+            data.errors || data
+          );
+          if (attempts < MAX_RETRIES) await new Promise((r) => setTimeout(r, 800 * attempts));
         }
-      );
-
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        console.error(`Failed targeted CF purge for ${cfg.name || cfg.zoneId}:`, data);
-      } else {
-        console.log(`[revalidate] Targeted CF purge for ${fileList.length} URLs on ${cfg.name || cfg.zoneId}`);
+      } catch (err) {
+        console.error(
+          `[revalidate] CF purge network error (attempt ${attempts}) on ${cfg.name || cfg.zoneId}:`,
+          err
+        );
+        if (attempts < MAX_RETRIES) await new Promise((r) => setTimeout(r, 800 * attempts));
       }
-    } catch (error) {
-      console.error(`Error in targeted CF purge for ${cfg.name || cfg.zoneId}:`, error);
     }
   }
+}
+
+export async function purgeCloudflareUrls(urls: string[]): Promise<void> {
+  return purgeCloudflareTargeted({ urls });
 }
 
 async function purgeCloudflareEverything() {
@@ -171,33 +216,42 @@ async function purgeCloudflareEverything() {
   }
 
   for (const cfg of cfConfigs) {
-    try {
-      const res = await fetch(
-        `https://api.cloudflare.com/client/v4/zones/${cfg.zoneId}/purge_cache`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${cfg.apiToken}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ purge_everything: true }),
-        }
-      );
+    let attempts = 0;
+    const MAX_RETRIES = 3;
+    while (attempts < MAX_RETRIES) {
+      attempts++;
+      try {
+        const res = await fetch(
+          `https://api.cloudflare.com/client/v4/zones/${cfg.zoneId}/purge_cache`,
+          {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${cfg.apiToken}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ purge_everything: true }),
+          }
+        );
 
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        console.error(`Failed to purge Cloudflare for ${cfg.name || cfg.zoneId}:`, data);
-      } else {
-        console.log(`Successfully purged Cloudflare for ${cfg.name || cfg.zoneId}`);
+        const data = await res.json();
+        if (res.ok && data.success) {
+          console.log(`Successfully purged Cloudflare everything on attempt ${attempts} for ${cfg.name || cfg.zoneId}`);
+          break;
+        } else {
+          console.error(`Failed to purge Cloudflare for ${cfg.name || cfg.zoneId} (attempt ${attempts}):`, data);
+          if (attempts < MAX_RETRIES) await new Promise((r) => setTimeout(r, 800 * attempts));
+        }
+      } catch (error) {
+        console.error(`Error purging Cloudflare for ${cfg.name || cfg.zoneId} (attempt ${attempts}):`, error);
+        if (attempts < MAX_RETRIES) await new Promise((r) => setTimeout(r, 800 * attempts));
       }
-    } catch (error) {
-      console.error(`Error purging Cloudflare for ${cfg.name || cfg.zoneId}:`, error);
     }
   }
 }
 
 export async function revalidateProduct(slug: string, action: 'UPDATED' | 'DELETED' = 'UPDATED') {
   try {
+    // 1. Next.js cache refresh FIRST
     const { revalidateTag, revalidatePath } = await getCacheMethods();
     const safeTag = slug.replace(/[^a-zA-Z0-9-_]/g, '_');
     revalidateTag(`product-${slug}`);
@@ -213,15 +267,17 @@ export async function revalidateProduct(slug: string, action: 'UPDATED' | 'DELET
     if (action !== 'DELETED') {
       revalidatePath(`/product/${slug}`);
       revalidatePath('/product/[slug]', 'page');
-      // Route group `(store)` is part of the route-file structure used by revalidatePath
       revalidatePath('/(store)/product/[slug]', 'page');
     }
 
-    // Reliable complete Cloudflare zone purge on every product save (RULE C10)
-    await purgeCloudflareEverything();
-
     const siteUrl = await resolveSiteUrl();
     const productUrl = `${siteUrl}/product/${slug}`;
+
+    // 2. Cloudflare targeted purge SECOND (Next.js is already fresh)
+    await purgeCloudflareTargeted({
+      tags: ['product', 'products', `product-${slug}`],
+      urls: [productUrl, `${siteUrl}/`, `${siteUrl}/shop`],
+    });
 
     if (action === 'DELETED') {
       await notifyGoogleIndexing(productUrl, 'URL_DELETED');
@@ -236,10 +292,13 @@ export async function revalidateProduct(slug: string, action: 'UPDATED' | 'DELET
   }
 }
 
+/** Public wrapper so route handlers can schedule a follow-up edge purge. */
+export async function purgeAllCloudflareZones(): Promise<void> {
+  await purgeCloudflareEverything();
+}
+
 /**
- * RULE C10 — fallback for DB triggers that send only `{ type, table }` (no row data).
- * When the changed product slug is unknown we cannot target one page, so refresh the
- * whole product surface: all product pages + listings + a full edge purge.
+ * Fallback for DB triggers that send only `{ type, table }` (no row data).
  */
 export async function revalidateAllProducts() {
   try {
@@ -253,11 +312,12 @@ export async function revalidateAllProducts() {
     revalidatePath('/shop');
     revalidatePath('/(store)/shop', 'page');
     revalidatePath('/product/[slug]', 'page');
-    // Route group `(store)` is part of the route-file structure used by revalidatePath
     revalidatePath('/(store)/product/[slug]', 'page');
 
-    await purgeCloudflareEverything();
-    console.log('[revalidate] All product pages refreshed (webhook payload had no slug)');
+    await purgeCloudflareTargeted({
+      tags: ['products', 'homepage', 'shop'],
+    });
+    console.log('[revalidate] All product tags refreshed via targeted CF purge');
   } catch (error) {
     console.error('Error in revalidateAllProducts:', error);
   }
@@ -265,6 +325,7 @@ export async function revalidateAllProducts() {
 
 export async function revalidateBanner() {
   try {
+    // 1. Next.js refresh FIRST
     const { revalidateTag, revalidatePath } = await getCacheMethods();
     revalidateTag('banners');
     revalidateTag('homepage');
@@ -277,8 +338,13 @@ export async function revalidateBanner() {
     revalidatePath('/shop');
     revalidatePath('/admin', 'layout');
 
-    // Reliable complete Cloudflare zone purge on banner/homepage-section save (RULE C10)
-    await purgeCloudflareEverything();
+    const siteUrl = await resolveSiteUrl();
+
+    // 2. Cloudflare targeted purge SECOND
+    await purgeCloudflareTargeted({
+      tags: ['homepage', 'banners'],
+      urls: [`${siteUrl}/`],
+    });
 
     console.log('[revalidate] Banners & homepage revalidated');
   } catch (error) {
@@ -289,6 +355,7 @@ export async function revalidateBanner() {
 
 export async function revalidateCategory(slug: string, action: 'UPDATED' | 'DELETED' = 'UPDATED') {
   try {
+    // 1. Next.js refresh FIRST
     const { revalidateTag, revalidatePath } = await getCacheMethods();
     revalidateTag(`category-${slug}`);
     revalidateTag('categories');
@@ -299,11 +366,14 @@ export async function revalidateCategory(slug: string, action: 'UPDATED' | 'DELE
     revalidatePath('/admin', 'layout');
     if (action !== 'DELETED') revalidatePath(`/category/${slug}`);
 
-    // Reliable complete Cloudflare zone purge on category save (RULE C10)
-    await purgeCloudflareEverything();
-
     const siteUrl = await resolveSiteUrl();
-    const categoryUrl = `${siteUrl}/shop?category=${slug}`;
+    const categoryUrl = `${siteUrl}/category/${slug}`;
+
+    // 2. Cloudflare targeted purge SECOND
+    await purgeCloudflareTargeted({
+      tags: ['category', 'categories', `category-${slug}`],
+      urls: [categoryUrl, `${siteUrl}/shop`, `${siteUrl}/`],
+    });
 
     if (action === 'DELETED') {
       await notifyGoogleIndexing(categoryUrl, 'URL_DELETED');
@@ -320,6 +390,7 @@ export async function revalidateCategory(slug: string, action: 'UPDATED' | 'DELE
 
 export async function revalidateHomepage() {
   try {
+    // 1. Next.js refresh FIRST
     const { revalidateTag, revalidatePath } = await getCacheMethods();
     revalidateTag('homepage');
     revalidateTag('products');
@@ -328,15 +399,17 @@ export async function revalidateHomepage() {
     revalidatePath('/');
     revalidatePath('/shop');
 
-    // Reliable complete Cloudflare zone purge on homepage save (RULE C10)
-    await purgeCloudflareEverything();
-
     const dynamicSiteUrl = await resolveSiteUrl();
     const urls = [
       `${dynamicSiteUrl}/`,
       `${dynamicSiteUrl}/shop`,
-      `${dynamicSiteUrl}/store`,
     ];
+
+    // 2. Cloudflare targeted purge SECOND
+    await purgeCloudflareTargeted({
+      tags: ['homepage', 'banners'],
+      urls: [`${dynamicSiteUrl}/`],
+    });
 
     for (const url of urls) {
       await notifyGoogleIndexing(url, 'URL_UPDATED');

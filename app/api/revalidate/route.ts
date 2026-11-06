@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse, after } from 'next/server';
 import { revalidatePath, revalidateTag } from 'next/cache';
 import {
   revalidateProduct,
   revalidateAllProducts,
+  purgeAllCloudflareZones,
   revalidateBanner,
   revalidateCategory,
   revalidateHomepage,
@@ -16,6 +17,9 @@ import { syncProductToMeta } from '@/lib/meta/syncProduct';
  * POST endpoint for Supabase database update webhooks.
  * Authenticates using x-revalidate-secret header and triggers Next.js and Cloudflare cache revalidation.
  */
+// The delayed follow-up edge purge runs via `after()` (waitUntil); give it room.
+export const maxDuration = 30;
+
 export async function POST(req: NextRequest) {
   try {
     // 1. Verify REVALIDATE_SECRET
@@ -136,6 +140,15 @@ export async function POST(req: NextRequest) {
       console.log(`[Webhook Revalidate] Table ${table} has no specific handler. Revalidating settings completely.`);
       await revalidateSettings();
     }
+
+    // RULE C10/D12: the first visit after invalidation can still receive Next's
+    // stale-while-revalidate payload, which Cloudflare would then re-cache for
+    // 30 days. Purge the edge a second time after the origin has regenerated so
+    // the fresh HTML is what gets cached.
+    after(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 8000));
+      await purgeAllCloudflareZones();
+    });
 
     return NextResponse.json({ revalidated: true, table, type });
   } catch (error: unknown) {

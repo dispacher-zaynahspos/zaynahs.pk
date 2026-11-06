@@ -42,7 +42,7 @@ export function StoreFrontProductGridSection({
   // row is never half-empty when more products exist. Defaults keep the old
   // behavior (manual limit 8, fill ON).
   const fillRowsEnabled = section.settings?.fill_rows !== false;
-  const { columns, width } = useCatalogColumns({
+  const { columns, width, fill } = useCatalogColumns({
     mode: section.settings?.columns_mode || 'manual',
     mobile: Number(section.settings?.columns_mobile) || 2,
     tablet: Number(section.settings?.columns_tablet) || 3,
@@ -145,8 +145,9 @@ export function StoreFrontProductGridSection({
   }, [filteredProducts, sortMethod, manualProductIds, source, selectedCategoryId, getValidCategoryIds]);
 
   const displayProducts = React.useMemo(() => {
-    return sectionProducts.slice(0, effectiveLimit);
-  }, [sectionProducts, effectiveLimit]);
+    const visible = fill(effectiveLimit, sectionProducts.length, fillRowsEnabled);
+    return sectionProducts.slice(0, visible);
+  }, [sectionProducts, effectiveLimit, fill, fillRowsEnabled]);
 
   const viewAllLink = (() => {
     if (section.settings?.viewAllUrl) {

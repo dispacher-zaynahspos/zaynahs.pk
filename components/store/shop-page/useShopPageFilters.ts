@@ -267,13 +267,10 @@ const CATEGORY_SLUG_ALIASES: Record<string, string> = {
     setLoadMoreLimit(targetLimitFromUrl);
   }, [targetLimitFromUrl]);
 
-  const totalPages = Math.max(1, Math.ceil(totalResults / PAGE_SIZE));
-  const numberedPage = Math.min(pageFromUrl, totalPages);
-
   // Fill-rows (RULE DS24): round the cumulative visible count up to a full row so
   // the last row is never half-empty when more products exist. Default ON.
   const fillRowsEnabled = activeSettings?.shop_fill_rows !== false;
-  const { fill } = useCatalogColumns({
+  const { fill, columns } = useCatalogColumns({
     mode: activeSettings?.shop_columns_mode || 'manual',
     mobile: activeSettings?.shop_columns_mobile || 2,
     tablet: tabletColsOverride ?? activeSettings?.shop_columns_tablet ?? 3,
@@ -282,23 +279,30 @@ const CATEGORY_SLUG_ALIASES: Record<string, string> = {
     minDesktop: activeSettings?.shop_min_card_desktop,
   });
 
+  const effectivePageSize = fillRowsEnabled && columns > 1
+    ? Math.ceil(PAGE_SIZE / columns) * columns
+    : PAGE_SIZE;
+
+  const totalPages = Math.max(1, Math.ceil(totalResults / effectivePageSize));
+  const numberedPage = Math.min(pageFromUrl, totalPages);
+
   const displayProducts = useMemo(() => {
     if (paginationMode === 'numbered') {
-      // Show ONLY the current page slice (classic 1 2 3 pagination)
-      const start = (numberedPage - 1) * PAGE_SIZE;
-      return filteredProducts.slice(start, start + PAGE_SIZE);
+      // Show ONLY the current page slice (classic 1 2 3 pagination), aligned to full rows
+      const start = (numberedPage - 1) * effectivePageSize;
+      return filteredProducts.slice(start, start + effectivePageSize);
     }
     // infinite / load_more: cumulative slice, rounded up to a full row
     const visible = fill(loadMoreLimit, filteredProducts.length, fillRowsEnabled);
     return filteredProducts.slice(0, visible);
-  }, [filteredProducts, loadMoreLimit, paginationMode, numberedPage, PAGE_SIZE, fill, fillRowsEnabled]);
+  }, [filteredProducts, loadMoreLimit, paginationMode, numberedPage, effectivePageSize, fill, fillRowsEnabled]);
 
   // hasMore only applies to infinite + load_more (numbered uses page buttons)
   const hasMore = paginationMode !== 'numbered' && displayProducts.length < totalResults;
 
   const currentPage = paginationMode === 'numbered'
     ? numberedPage
-    : Math.ceil(displayProducts.length / PAGE_SIZE);
+    : Math.ceil(displayProducts.length / effectivePageSize);
 
   const {
     handleCategorySelect,

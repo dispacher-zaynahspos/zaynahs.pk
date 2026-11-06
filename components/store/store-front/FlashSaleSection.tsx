@@ -187,7 +187,8 @@ export function FlashSaleSection({ section, products, currencySymbol, settings, 
   const bottomEnableViewAll = section.settings?.bottomEnableViewAll === true;
   const bottomEnableLoadMore = section.settings?.bottomEnableLoadMore === true;
 
-  const displayProducts = allMatchedProducts.slice(0, effectiveLimit);
+  const visible = fill(effectiveLimit, allMatchedProducts.length, fillRowsEnabled);
+  const displayProducts = allMatchedProducts.slice(0, visible);
   const hasMore = displayProducts.length < allMatchedProducts.length;
 
   if (displayProducts.length === 0) {

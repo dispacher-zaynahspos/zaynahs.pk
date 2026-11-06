@@ -169,6 +169,42 @@ const nextConfig: NextConfig = {
         ],
       },
       {
+        source: '/product/:slug*',
+        headers: [
+          {
+            key: 'Cache-Tag',
+            value: 'product, products',
+          },
+        ],
+      },
+      {
+        source: '/category/:slug*',
+        headers: [
+          {
+            key: 'Cache-Tag',
+            value: 'category, categories',
+          },
+        ],
+      },
+      {
+        source: '/shop',
+        headers: [
+          {
+            key: 'Cache-Tag',
+            value: 'shop, products',
+          },
+        ],
+      },
+      {
+        source: '/',
+        headers: [
+          {
+            key: 'Cache-Tag',
+            value: 'homepage, banners',
+          },
+        ],
+      },
+      {
         source: '/((?!api|_next|static|fonts|storage|cart|checkout|account|login|admin).*)',
         headers: [
           {

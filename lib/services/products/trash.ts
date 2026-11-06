@@ -101,6 +101,12 @@ export const restoreProduct = async (id: string): Promise<void> => {
 export const hardDeleteProduct = async (id: string): Promise<void> => {
   try {
     const supabase = staticSupabase;
+    const { data: prodData } = await supabase
+      .from('products')
+      .select('slug')
+      .eq('id', id)
+      .maybeSingle();
+
     const { error } = await supabase
       .from('products')
       .delete()
@@ -108,7 +114,11 @@ export const hardDeleteProduct = async (id: string): Promise<void> => {
 
     if (error) throw error;
 
-    revalidateTagSafe('products');
+    if (prodData?.slug) {
+      await revalidateProduct(prodData.slug, 'DELETED');
+    } else {
+      revalidateTagSafe('products');
+    }
   } catch (error) {
     console.error('[products] hardDeleteProduct failed:', error);
     throw error;

@@ -93,10 +93,9 @@ function buildCacheRules() {
       action: 'set_cache_settings',
       action_parameters: {
         cache: true,
-        // 30 days — safe because every admin write purges the edge
-        // (revalidateStorefrontEdge + purge_everything). A short TTL only
-        // increases Vercel origin hits/bandwidth, which is what we are avoiding.
-        edge_ttl: { mode: 'override_origin', default: 2592000 },
+        // 10 minutes (600s) safety net — self-heals any unpurged query URLs or edge cases
+        // while targeted tag/URL purge delivers instant updates on admin saves.
+        edge_ttl: { mode: 'override_origin', default: 600 },
         browser_ttl: { mode: 'override_origin', default: 0 },
       },
     },

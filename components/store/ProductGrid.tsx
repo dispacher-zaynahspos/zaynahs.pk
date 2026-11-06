@@ -37,11 +37,14 @@ export default function ProductGrid({
   const effectiveGap = gridGap || settings?.shop_grid_gap || 'normal';
 
   const ellaVariant = getEllaCardVariant(settings?.card_style);
+  const productMap = React.useMemo(() => new Map(products.map((p) => [p.id, p])), [products]);
+  const cardProducts = React.useMemo(() => products.map((p) => toCardProduct(p, settings)), [products, settings]);
+
   if (ellaVariant) {
     return (
       <EllaProductGrid
         variant={ellaVariant}
-        products={products.map((product) => toCardProduct(product, settings))}
+        products={cardProducts}
         settings={settings}
         currencySymbol={currencySymbol}
         cols={{
@@ -53,7 +56,7 @@ export default function ProductGrid({
           minDesktop: minCardDesktop,
         }}
         renderProduct={(cardProduct) => {
-          const product = products.find((item) => item.id === cardProduct.id) || products[0];
+          const product = productMap.get(cardProduct.id) || products[0];
           return product ? (
             <ProductCard
               key={product.id}

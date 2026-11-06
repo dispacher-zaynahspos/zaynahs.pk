@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { useSearchParams, usePathname } from 'next/navigation';
 import { Category, Collection } from '@/lib/types';
 import { trackEvent } from '@/lib/trackEvent';
@@ -235,7 +235,7 @@ export function useShopUrlParamsSync({
     setLoadMoreLimit(PAGE_SIZE);
   };
 
-  const handleLoadMore = () => {
+  const handleLoadMore = useCallback(() => {
     const nextPage = currentPage + 1;
     const params = currentParams();
     if (nextPage > 1) {
@@ -245,7 +245,7 @@ export function useShopUrlParamsSync({
     }
     updateUrl(params);
     setLoadMoreLimit(nextPage * PAGE_SIZE);
-  };
+  }, [currentPage, PAGE_SIZE]);
 
   // Numbered pagination: jump to an exact page (classic 1 2 3). Scrolls to top.
   const handleGoToPage = (page: number) => {

@@ -34,7 +34,7 @@ interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
-const getProductSeoMeta = cache(async (productId: string) => {
+const fetchProductSeoMeta = async (productId: string) => {
   const { data } = await supabaseAdmin
     .from('seo_meta')
     .select('*')
@@ -42,6 +42,21 @@ const getProductSeoMeta = cache(async (productId: string) => {
     .eq('entity_id', productId)
     .maybeSingle();
   return data;
+};
+
+const getProductSeoMeta = cache(async (productId: string) => {
+  if (typeof window !== 'undefined') return fetchProductSeoMeta(productId);
+  try {
+    const { unstable_cache } = await import('next/cache');
+    const cachedFn = unstable_cache(
+      () => fetchProductSeoMeta(productId),
+      [`product-seo-meta-${productId}`],
+      { revalidate: 2592000, tags: [`product-${productId}`, 'seo_meta'] }
+    );
+    return await cachedFn();
+  } catch {
+    return fetchProductSeoMeta(productId);
+  }
 });
 
 function cleanMetaDescription(htmlText: string, siteUrl: string): string {

@@ -68,6 +68,53 @@ export const createOrder = async (order: {
 
     console.log('[orders] Step 1: customerId resolved to', customerId);
 
+    // ── Server-side Stock & Price Validation ─────────────────────────────
+    if (order.items && order.items.length > 0) {
+      const productIds = Array.from(
+        new Set(order.items.map((it) => it.product?.id).filter(Boolean))
+      ) as string[];
+
+      if (productIds.length > 0) {
+        const { data: dbProducts, error: pErr } = await supabaseAdmin
+          .from('products')
+          .select('id, name, price, stock, is_active, deleted_at, is_service, product_variants(id, stock, price, active)')
+          .in('id', productIds);
+
+        if (!pErr && dbProducts) {
+          const productMap = new Map(dbProducts.map((p) => [p.id, p]));
+
+          for (const item of order.items) {
+            const pId = item.product?.id;
+            if (!pId) continue;
+            const dbProduct = productMap.get(pId);
+            if (!dbProduct || !dbProduct.is_active || dbProduct.deleted_at) {
+              throw new Error(`Product "${item.product?.name || 'Selected product'}" is no longer available.`);
+            }
+
+            const qty = item.quantity || 1;
+            const variantId = item.selected_variant?.id;
+
+            if (variantId && Array.isArray(dbProduct.product_variants)) {
+              const dbVariant = dbProduct.product_variants.find((v: { id: string }) => v.id === variantId);
+              if (dbVariant) {
+                if (dbVariant.active === false) {
+                  throw new Error(`Selected variant of "${dbProduct.name}" is no longer available.`);
+                }
+                if (!dbProduct.is_service && typeof dbVariant.stock === 'number' && dbVariant.stock < qty) {
+                  throw new Error(`Insufficient stock for "${dbProduct.name}" (${dbVariant.stock} available).`);
+                }
+                continue;
+              }
+            }
+
+            if (!dbProduct.is_service && typeof dbProduct.stock === 'number' && dbProduct.stock < qty) {
+              throw new Error(`Insufficient stock for "${dbProduct.name}" (${dbProduct.stock} available).`);
+            }
+          }
+        }
+      }
+    }
+
     // Auto-create/lookup guest customer record if phone or email is provided and customer is not logged in
     if (!customerId && (order.customerPhone || order.customerEmail)) {
       try {

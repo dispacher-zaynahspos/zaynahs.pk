@@ -1,20 +1,3 @@
-## [2026-11-06] Vercel Account Migration — Transfer the Project, Don't Re-Import It
-
-**Symptom:**
-Moving one store's Vercel project to a brand-new Vercel account looked like it required re-importing the repo and re-adding the custom domain. Re-adding the domain failed with `verified: false` and a new `_vercel` TXT challenge — and the store's Cloudflare token had no DNS edit permission, blocking the whole migration.
-
-**Root Cause:**
-A freshly imported project is treated as a new domain claimant. Vercel therefore issues a fresh ownership TXT record, even though the same domain was already verified on the old project/account.
-
-**Fix (Permanent):**
-1. **Use the project transfer API** — create a transfer request from the source team (`POST /projects/{id}/transfer-request`), then accept it with the destination team (`PUT /projects/transfer-request/{code}`). Project ID, Git link, env vars, deployments and **custom-domain verification are preserved** (verified `true` immediately), so no DNS/TXT change is needed.
-2. **Do not delete the old account's domain registry entry until after acceptance**; clean it up afterwards as a separate step.
-3. **Keep both tokens** in `env-backups/<store>.env.local`: active `VERCEL_TOKEN` + `VERCEL_TEAM_ID` for the new account, and a rollback-only `VERCEL_TOKEN_<LABEL>` for the old one. Never hardcode account/team/project IDs in docs — env-backups is the source of truth.
-4. **Re-push the full env set** to the transferred project (transfers can carry an older env snapshot) and trigger one deploy from Git to prove the new account builds.
-5. A duplicate project created during the attempt must be deleted (`DELETE /v9/projects/{id}`) — one project per store (RULE V-PROJ1).
-
----
-
 ## [2026-10-15] Admin Customizer Styles Not Reflecting on Live Store — ThemeStyleRegistry CSS `!important` Override
 
 **Symptom:**

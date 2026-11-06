@@ -34,7 +34,7 @@ interface ProductCardProps {
   ellaCardVariant?: CardVariant;
 }
 
-export default function ProductCard({ product, currencySymbol = 'Rs.', settings, priority = false, ellaCardVariant }: ProductCardProps) {
+function ProductCardInner({ product, currencySymbol = 'Rs.', settings, priority = false, ellaCardVariant }: ProductCardProps) {
   const addItem = useCartStore(state => state.addItem);
   const fallbackPlaceholder = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%23f3f4f6'/%3E%3C/svg%3E";
   const primaryImage = getPresetImageUrl(product.images?.find(img => img.is_primary)?.url || product.images?.[0]?.url || fallbackPlaceholder, 'card');
@@ -506,3 +506,6 @@ export default function ProductCard({ product, currencySymbol = 'Rs.', settings,
     </>
   );
 }
+
+const ProductCard = React.memo(ProductCardInner);
+export default ProductCard;
