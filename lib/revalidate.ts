@@ -261,13 +261,9 @@ export async function revalidateProduct(slug: string, action: 'UPDATED' | 'DELET
     revalidateTag('reviews');
 
     revalidatePath('/');
-    revalidatePath('/(store)', 'page');
     revalidatePath('/shop');
-    revalidatePath('/(store)/shop', 'page');
     if (action !== 'DELETED') {
       revalidatePath(`/product/${slug}`);
-      revalidatePath('/product/[slug]', 'page');
-      revalidatePath('/(store)/product/[slug]', 'page');
     }
 
     const siteUrl = await resolveSiteUrl();
@@ -308,11 +304,7 @@ export async function revalidateAllProducts() {
     revalidateTag('reviews');
 
     revalidatePath('/');
-    revalidatePath('/(store)', 'page');
     revalidatePath('/shop');
-    revalidatePath('/(store)/shop', 'page');
-    revalidatePath('/product/[slug]', 'page');
-    revalidatePath('/(store)/product/[slug]', 'page');
 
     await purgeCloudflareTargeted({
       tags: ['products', 'homepage', 'shop'],

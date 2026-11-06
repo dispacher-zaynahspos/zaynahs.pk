@@ -121,8 +121,6 @@ When `vercel --prod` is run from a machine without `.vercel/` config, Vercel cre
 
    > **Rule:** A project entry in this table requires a real custom domain. Any Vercel project with only a `.vercel.app` domain is by definition an orphan and must be deleted.
 
-   > **Moving a project between Vercel accounts (generic flow):** never re-import the repo into a new account (that loses domain verification and forces a fresh DNS TXT challenge). Instead create a transfer request from the source team (`POST /projects/{id}/transfer-request`), then accept it with the destination team (`PUT /projects/transfer-request/{code}`). Project ID, Git link, env vars and custom-domain verification move with the project. Account/team/project IDs are **never hardcoded in docs or code** — always read them from `env-backups/<store>.env.local` (`VERCEL_TOKEN`, `VERCEL_TEAM_ID`, `VERCEL_PROJECT_NAME`). Keep the previous token as a rollback-only key (e.g. `VERCEL_TOKEN_<ACCOUNT_LABEL>`), never as the active `VERCEL_TOKEN`.
-
 6. **If a duplicate/orphan project is discovered** (no custom domain, named `zaynahsestore-tv-main` or otherwise):
    - Check it has NO custom domain: `curl /v9/projects/<id>/domains`
    - If domain present → move domain to correct project first
@@ -233,3 +231,114 @@ For each store in the sequence, execute and document these 5 steps before touchi
 5. **If a store's CF `cf-cache-status` shows DYNAMIC or persistent MISS**, investigate immediately — likely cache rules are missing or the zone is in "Development Mode" (disables caching).
 6. **Never shorten the `html-pages` TTL to "fix" staleness.** It is 30 days on purpose: every admin write purges the edge (`revalidateStorefrontEdge` → `purge_everything`), so freshness does **not** depend on the TTL. A short TTL multiplies Vercel origin hits and burns bandwidth (the reason this rule caches HTML at all). If a store shows stale content, debug the purge path (webhook secret, `revalidateTag`, CF token) — not the TTL.
 7. **ONE shared source for the rules** — `scripts/lib/cf-cache-rules.js`. Both `deploy-cloudflare-rules.js` (clone setup, single store) and `update-cf-cache-rules.mjs` (`cf:rules:all`) import `buildCacheRules()` from it (RULE SSOT1). Never paste the rule array into another script.
+
+---
+
+## 🚨 RULE QUOTA1 — Vercel Free Tier Quota Protection (PERMANENT, HARD LIMIT)
+
+> **Post-mortem (2026-11-06):** 3 metrics exceeded on the TotVogue team account with only ~9K requests/day — far less than 100K. Root cause was NOT traffic — it was unnecessary ISR writes, Fluid CPU overuse, and cache miss rate. This rule prevents recurrence.
+
+### Why It Happened (Root Causes)
+
+| Metric | Limit | Used | Root Cause |
+|--------|-------|------|-----------|
+| **ISR Writes** | 200K/mo | **278K ❌ OVER** | Supabase webhook fires on every DB change → `revalidatePath` on EVERY storefront page → each path = 1 ISR Write × N pages × 5 stores = budget blown |
+| **Fluid Active CPU** | 4h/mo | **4h 21m ❌ OVER** | `/shop`, `/reviews`, `/wishlist` with `revalidate = 0` = every visitor hits Vercel Functions, consuming Fluid CPU |
+| **Fast Origin Transfer** | 10 GB/mo | **9.17 GB ⚠️ 92%** | Cloudflare cache miss rate too high — pages keep hitting Vercel origin, each transferring 100–300KB HTML |
+
+### Hard Limits Table (Free Tier Monthly Budget)
+
+| Resource | Monthly Limit | Safe Target (60%) | Action if Exceeded |
+|----------|--------------|-------------------|--------------------|
+| ISR Writes | 200,000 | ≤ 120,000 | Reduce revalidatePath calls → use revalidateTag |
+| ISR Reads | 1,000,000 | ≤ 600,000 | Increase CF cache TTL, check for MISS |
+| Fast Origin Transfer | 10 GB | ≤ 6 GB | Verify CF `html-pages` rule is HIT |
+| Fast Data Transfer | 100 GB | ≤ 60 GB | Normal with CF caching; spike = bot traffic |
+| Function Invocations | 1,000,000 | ≤ 600,000 | Move `revalidate = 0` pages to ISR |
+| Fluid Active CPU | 4 hours | ≤ 2 hours | No `revalidate = 0` on storefront pages |
+| CDN Requests | 1,000,000 | ≤ 600,000 | Normal |
+| Build Minutes | 100h | ≤ 50h | Batch changes, single final deploy (RULE VERCEL-QUOTA) |
+
+### 🔴 The 5 Red Lines — Never Cross
+
+**RED LINE 1 — No `revalidate = 0` on ANY storefront page** (except `/cart`, `/checkout`, `/account`)
+```ts
+// ❌ FORBIDDEN — burns Fluid CPU on every visitor request
+export const revalidate = 0; // in app/(store)/shop/page.tsx
+
+// ✅ CORRECT — 30 days ISR, CF + revalidateTag purge on admin save
+export const revalidate = 2592000; // in app/(store)/shop/page.tsx
+```
+
+**RED LINE 2 — No `revalidatePath` in webhook/admin for pages that already use `revalidateTag`**
+```ts
+// ❌ FORBIDDEN — 1 ISR Write PER PATH called
+revalidatePath('/shop');
+revalidatePath('/');
+revalidatePath('/product/shirt-xyz');
+
+// ✅ CORRECT — 1 write for the tag, purges ALL pages tagged with it
+revalidateTag('products');
+revalidateTag('homepage');
+```
+
+**RED LINE 3 — No `revalidatePath('/', 'layout')` from admin**
+Marks the ENTIRE app layout stale = 1 ISR Write for every page simultaneously. Never use.
+
+**RED LINE 4 — No revalidation on order placement or stock updates**
+Orders come constantly. Each triggering ISR = budget gone. RULE C15 applies. Stock is server-validated at checkout instead.
+
+**RED LINE 5 — Cloudflare `html-pages` cache rule MUST be active on ALL stores**
+Without it, every visitor = 1 Vercel origin hit = Fast Origin Transfer usage.
+With it: 100K visitors/day → ~200 Vercel hits/day (99.8% CF HIT ratio).
+
+### How 100K/day Traffic Works on Free Tier
+
+```
+100,000 visitors/day
+        │
+        ▼
+Cloudflare Edge (html-pages rule, 30-day TTL)
+        │
+        ├── CACHE HIT (~99.8%) = 99,800 req → 0 Vercel hits, 0 ISR, 0 CPU
+        │
+        └── CACHE MISS (~0.2%) = 200 req → Vercel ISR (served from cache)
+                └── 1 ISR Read per miss, 1 ISR Write per tag revalidation only
+```
+
+Vercel quota ∝ Cloudflare MISS rate, NOT total traffic.
+CF caching ON = 100K visitors = ~200 Vercel requests.
+CF caching OFF = 100K visitors = 100K Vercel requests → all limits blown within 1 day.
+
+### Weekly Quota Health Check
+
+```bash
+# 1. Verify CF cache HIT on all stores
+for domain in totvogue.pk zaynahs.pk lobo.pk minimahal.com littlemister.pk; do
+  echo -n "$domain: "
+  curl -sI "https://$domain/" | grep -i "cf-cache-status"
+done
+# Must show: cf-cache-status: HIT for all stores
+# If MISS/DYNAMIC → CF rules broken → run: npm run stores:sync-cf
+
+# 2. ISR Write budget → check Vercel dashboard
+# https://vercel.com/totvogues-projects/~/usage#isr-writes
+# Target: < 120K at any point in the month
+
+# 3. Per admin save, should trigger ≤ 5 revalidateTag calls, ZERO revalidatePath on storefront
+```
+
+### Agent Checklist Before Any Cache/Revalidation Code Change
+
+- [ ] Is this a storefront page? → `revalidate = 2592000` ONLY. Never `0`.
+- [ ] Is this a revalidation call in admin mutation? → `revalidateTag(tag)` only, never `revalidatePath` for storefront pages.
+- [ ] Does this trigger on order/stock update? → NO revalidation (RULE C15).
+- [ ] After change, CF shows HIT on warm request? → Verify before push.
+- [ ] Monthly ISR Writes < 120K? → Check Vercel dashboard before deploying new revalidation logic.
+
+### Emergency Response (Quota Near Limit Mid-Month)
+
+1. **Fast fix:** `npm run stores:sync-cf` → ensures CF rules active on all stores. 1 missing store can blow entire account budget.
+2. **ISR Writes near 200K:** Audit `lib/revalidate.ts` — replace any `revalidatePath` on storefront pages with `revalidateTag`.
+3. **Fluid CPU near 4h:** Find `export const revalidate = 0` on storefront pages → change to `revalidate = 2592000`.
+4. **Fast Origin Transfer near 10GB:** `cf-cache-status: MISS` on storefront = CF rules broken → `npm run stores:sync-cf` immediately.

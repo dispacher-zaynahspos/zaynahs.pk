@@ -159,8 +159,23 @@ export default function ScrollRestorer() {
     // 4. Fresh navigation → ONLY scroll to top when route/pathname actually changed!
     // (e.g. navigating from / to /shop, or /shop to /product/xyz)
     // NEVER scroll to top on in-page query changes (page=2, filter changes, load more) which must preserve scroll!
+    //
+    // SAFARI/BRAVE FIX (Problem A): When navigating forward, browsers retain the
+    // previous page's scroll offset during the client-side route transition.
+    // Because Next.js App Router does soft navigation, the new page DOM mounts
+    // while the old scrollY (~3500px) is still active. We call scrollTo immediately
+    // (synchronous, in this effect) AND also schedule another call after two rAF
+    // cycles to ensure it fires after any layout paint that may re-apply scroll.
     if (isNewRoute || isFirstLoad) {
       window.scrollTo({ top: 0, behavior: 'instant' });
+      // Double-fire after layout to cover Safari's deferred scroll clamp
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          if (!isPopRef.current) {
+            window.scrollTo({ top: 0, behavior: 'instant' });
+          }
+        });
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentKey]);

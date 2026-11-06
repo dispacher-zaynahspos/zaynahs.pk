@@ -10,8 +10,6 @@ Cross-check this before ANY multi-store operation (purge, webhook, migration, cr
 | LittleMister | `ljknmwianiswkalifueb` | `063a3d5c72d44b3654aa60b17ed94863` | www.littlemister.pk | `zaynahs_secret_cache_revalidate_2026` | `eestore` |
 | Lobo | `kixsxgyfiovtaxsuflfy` | `645e99188d3241324e154045a4c9a8db` | www.lobo.pk | `zaynahs_secret_cache_revalidate_2026` | `lobo-pk` |
 
-> Vercel **account/team IDs are never listed here** — `env-backups/*.env.local` is the single source of truth for the active Vercel account (`VERCEL_TOKEN`, `VERCEL_TEAM_ID`, `VERCEL_PROJECT_NAME`). Docs stay clone-agnostic: no account-specific IDs or labels.
-
 ## Rules governing this table
 - `REVALIDATE_SECRET` is the ONLY value shared across all stores — see RULE D8, [05-database-supabase.md](05-database-supabase.md).
 - Every other credential (Supabase ref/keys, Cloudflare zone/token, Vercel project name, GitHub token, site URL) MUST be unique per store — see RULE CRED1, [22-credentials-management.md](22-credentials-management.md).

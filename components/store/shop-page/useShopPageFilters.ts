@@ -10,6 +10,7 @@ import { useSettings } from '@/lib/hooks/useSettings';
 import { SORT_OPTIONS, getSortLabel, toNumber, extractUsedVariants, filterProductsList } from './shopFilterUtils';
 import { useShopUrlParamsSync } from './hooks/useShopUrlParamsSync';
 import { useCatalogColumns } from '@/lib/hooks/useCatalogColumns';
+import { SCROLL_KEY, isSameStorePath, ScrollRestoreData } from '@/lib/hooks/useScrollRestoration';
 
 export { SORT_OPTIONS, getSortLabel };
 
@@ -261,11 +262,67 @@ const CATEGORY_SLUG_ALIASES: Record<string, string> = {
 
   const pageFromUrl = isNaN(urlPage) ? 1 : Math.max(1, urlPage);
   const targetLimitFromUrl = pageFromUrl * PAGE_SIZE;
-  const [loadMoreLimit, setLoadMoreLimit] = useState(() => targetLimitFromUrl);
 
+  // Shop page load-more limit — URL drives initial value (page=N * PAGE_SIZE).
+  // BACK NAV RESTORE (Problem B fix): When user clicks Load More N times, goes into
+  // a product, then presses Back — the shop remounts with PAGE_SIZE items only.
+  // The clicked card (#product-card-id) no longer exists, so ScrollRestorer falls back
+  // to scrollY clamped to the short page → footer/banner. Fix: save loadMoreLimit to
+  // sessionStorage on every change, restore it on back navigation so ALL batches are
+  // in the DOM immediately when the page remounts. ScrollRestorer then finds the card.
+  //
+  // HYDRATION-SAFE: useState initializer runs only on client. We read sessionStorage
+  // here directly (not in a useEffect) because useState initializer is never called
+  // on the server — no hydration mismatch. This gives us the correct item count on
+  // the FIRST render, so the card exists in DOM immediately when ScrollRestorer runs.
+  const SHOP_LIMIT_KEY = `shop_load_more_limit:${typeof window !== 'undefined' ? window.location.pathname + window.location.search : ''}`;
+
+  const [loadMoreLimit, setLoadMoreLimit] = useState<number>(() => {
+    // On initial render (SSR pass): use URL-driven value
+    if (typeof window === 'undefined') return targetLimitFromUrl;
+    // Check if this is a back navigation
+    try {
+      const currentPath = window.location.pathname + (window.location.search || '');
+      const rawScroll = sessionStorage.getItem(SCROLL_KEY);
+      let isReturnNav = false;
+      if (rawScroll) {
+        const scrollData: ScrollRestoreData = JSON.parse(rawScroll);
+        if (
+          isSameStorePath(scrollData?.path, currentPath) &&
+          scrollData?.timestamp &&
+          Date.now() - scrollData.timestamp < 30 * 60 * 1000
+        ) {
+          isReturnNav = true;
+        }
+      }
+      if (!isReturnNav) {
+        const navEntries = performance?.getEntriesByType?.('navigation') as PerformanceNavigationTiming[];
+        if (navEntries?.[0]?.type === 'back_forward') isReturnNav = true;
+      }
+      if (!isReturnNav) {
+        const cleanSearch = window.location.search.replace(/^\?/, '');
+        const liveKey = `scroll:${window.location.pathname}?${cleanSearch}`;
+        if (sessionStorage.getItem(liveKey)) isReturnNav = true;
+      }
+      if (isReturnNav) {
+        const saved = sessionStorage.getItem(SHOP_LIMIT_KEY);
+        if (saved) {
+          const parsed = parseInt(saved, 10);
+          if (Number.isFinite(parsed) && parsed > 0) return Math.max(parsed, targetLimitFromUrl);
+        }
+      }
+    } catch {}
+    return targetLimitFromUrl;
+  });
+
+  // Persist loadMoreLimit to sessionStorage whenever it changes
   useEffect(() => {
-    setLoadMoreLimit(targetLimitFromUrl);
-  }, [targetLimitFromUrl]);
+    try {
+      sessionStorage.setItem(SHOP_LIMIT_KEY, String(loadMoreLimit));
+    } catch {}
+  // SHOP_LIMIT_KEY is derived from pathname+search and stable within a page session
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loadMoreLimit]);
 
   // Fill-rows (RULE DS24): round the cumulative visible count up to a full row so
   // the last row is never half-empty when more products exist. Default ON.

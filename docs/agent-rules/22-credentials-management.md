@@ -83,21 +83,6 @@ VERCEL_PROJECT_NAME=<name>    ← Exact project name from vercel.com dashboard
 | MiniMahal | `mini-mahal-e-store` |
 | LittleMister | `eestore` |
 | Lobo | `lobo-pk` |
-
-### Dual Vercel credentials — active vs rollback (generic convention)
-When a store's Vercel project is moved to another account, keep BOTH tokens in that store's `env-backups/<store>.env.local` — never delete the old one until the migration is verified:
-```
-# ACCOUNT 1 — legacy/rollback only (name it after the account, e.g. VERCEL_TOKEN_TV_VERCEL)
-VERCEL_TOKEN_<LABEL>=vcp_...
-# ACCOUNT 2 — ACTIVE account (scripts read this key)
-VERCEL_TOKEN=vcp_...
-VERCEL_TEAM_ID=<destination team id, from the Vercel dashboard/API>
-```
-Rules:
-- Scripts (`vercel-setup.mjs`, `post-deploy-fix.mjs`, `stores-bulk-ops.mjs`) read only `VERCEL_TOKEN` + `VERCEL_TEAM_ID` — never the legacy key.
-- The legacy token exists solely so a failed migration can be rolled back; it must NOT be pushed into the Vercel runtime env (`vercel-setup.mjs` skips `VERCEL_TOKEN_*` metadata keys).
-- Account/team/project IDs are never hardcoded in docs — always read them from the store's env file.
-- If the project is transferred again, rotate both keys and update [07](07-deployment-vercel-cloudflare.md) + [26](26-project-reference-table.md) in the same task.
 > Always verify with `grep "VERCEL_PROJECT_NAME" env-backups/*.env.local` — the file is the source of truth.
 
 ### Verify before every deploy

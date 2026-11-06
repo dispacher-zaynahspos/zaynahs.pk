@@ -5,7 +5,7 @@ import { getProducts } from '@/lib/services/products';
 import { getSettings } from '@/lib/services/settings';
 import { getDomainBrand } from '@/lib/utils/getDomainBrand';
 
-export const revalidate = 0; // Dynamic server rendering
+export const revalidate = 2592000; // 30 days ISR — webhooks purge on admin save (RULE QUOTA1)
 
 export async function generateMetadata(): Promise<Metadata> {
   const brand = await getDomainBrand();
