@@ -207,9 +207,14 @@ export async function revalidateProduct(slug: string, action: 'UPDATED' | 'DELET
     revalidateTag('reviews');
 
     revalidatePath('/');
+    revalidatePath('/(store)', 'page');
     revalidatePath('/shop');
+    revalidatePath('/(store)/shop', 'page');
     if (action !== 'DELETED') {
       revalidatePath(`/product/${slug}`);
+      revalidatePath('/product/[slug]', 'page');
+      // Route group `(store)` is part of the route-file structure used by revalidatePath
+      revalidatePath('/(store)/product/[slug]', 'page');
     }
 
     // Reliable complete Cloudflare zone purge on every product save (RULE C10)
@@ -244,8 +249,12 @@ export async function revalidateAllProducts() {
     revalidateTag('reviews');
 
     revalidatePath('/');
+    revalidatePath('/(store)', 'page');
     revalidatePath('/shop');
+    revalidatePath('/(store)/shop', 'page');
     revalidatePath('/product/[slug]', 'page');
+    // Route group `(store)` is part of the route-file structure used by revalidatePath
+    revalidatePath('/(store)/product/[slug]', 'page');
 
     await purgeCloudflareEverything();
     console.log('[revalidate] All product pages refreshed (webhook payload had no slug)');
