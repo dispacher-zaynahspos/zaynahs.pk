@@ -55,7 +55,7 @@ export default async function ReviewsPage({ searchParams }: PageProps) {
       const brand = await getDomainBrand();
       siteUrl = `${brand.protocol}://${brand.domain}`;
     } catch {
-      siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.totvogue.pk';
+      siteUrl = process.env.NEXT_PUBLIC_SITE_URL || '';
     }
   }
 

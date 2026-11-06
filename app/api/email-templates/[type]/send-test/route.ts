@@ -43,7 +43,7 @@ const mockData: Record<string, unknown> = {
           id: 'prod-1',
           name: 'Blue Cotton Kurta',
           price: 1200,
-          images: [{ url: 'https://ziucrfpebpxijqhwmqre.supabase.co/storage/v1/object/public/product-images/sample1.webp', isPrimary: true }]
+          images: [{ url: 'https://placehold.co/600x600/png?text=Sample+1', isPrimary: true }]
         },
         selectedVariant: {
           color: 'Blue',
@@ -60,7 +60,7 @@ const mockData: Record<string, unknown> = {
           id: 'prod-2',
           name: 'Classic Leather Wallet',
           price: 700,
-          images: [{ url: 'https://ziucrfpebpxijqhwmqre.supabase.co/storage/v1/object/public/product-images/sample2.webp', isPrimary: true }]
+          images: [{ url: 'https://placehold.co/600x600/png?text=Sample+2', isPrimary: true }]
         },
         selectedVariant: {},
         selectedModifiers: [{ name: 'Gift Wrap' }]

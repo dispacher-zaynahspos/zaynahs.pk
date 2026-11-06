@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { StoreSettings } from '@/lib/types';
 import { isFeatureEnabled } from '@/lib/features/premium';
-import { useCartStore } from '@/store/cartStore';
+import { useCartStore } from '@/lib/store/cartStore';
 import { generateWhatsAppMessage, buildWhatsAppURL, formatPrice } from '@/lib/utils/whatsapp';
 import { createOrder } from '@/lib/services/orders';
 import { trackEvent } from '@/lib/trackEvent';

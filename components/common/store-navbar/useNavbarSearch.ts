@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { useSearchStore } from '@/store/searchStore';
+import { useSearchStore } from '@/lib/store/searchStore';
 import { Product } from '@/lib/types';
 import { rankProducts } from '@/lib/services/product-search/useInMemoryProductSearch';
 import { expandSynonyms } from '@/components/store/shop-page/searchSynonyms';

@@ -36,11 +36,17 @@ async function getInstagramThumbnail(code: string): Promise<string> {
 export async function POST(request: NextRequest) {
   const _denied = await requireAdmin(request);
   if (_denied) return _denied;
-  const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
-    process.env.SUPABASE_SERVICE_ROLE_KEY || 'placeholder',
-    { auth: { autoRefreshToken: false, persistSession: false } }
-  );
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !serviceKey) {
+    return NextResponse.json(
+      { error: 'Storage is not configured (Supabase env missing)' },
+      { status: 500 }
+    );
+  }
+  const supabaseAdmin = createClient(supabaseUrl, serviceKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
 
   try {
     const { imageUrl, videoUrl, folder = 'social' } = await request.json();

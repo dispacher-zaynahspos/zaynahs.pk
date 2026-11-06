@@ -13,7 +13,7 @@ import {
   ExternalLink,
 } from '@/components/common/Icons';
 import { Product, ProductVariant, StoreSettings } from '@/lib/types';
-import { useCartStore } from '@/store/cartStore';
+import { useCartStore } from '@/lib/store/cartStore';
 import { getSharedAspectClass } from '@/lib/utils/styles';
 import { formatPrice } from '@/lib/utils/whatsapp';
 import { toast } from 'sonner';

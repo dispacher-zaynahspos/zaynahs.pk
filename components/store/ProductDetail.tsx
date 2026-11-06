@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { ChevronLeft } from '@/components/common/Icons';
 import { StoreSettings, Product, ProductVariant, ProductModifier } from '@/lib/types';
 import { getProductsClient } from '@/lib/services/products-client';
-import { useCartStore } from '@/store/cartStore';
+import { useCartStore } from '@/lib/store/cartStore';
 import { cleanWhatsAppPhone } from '@/lib/utils/whatsapp';
 import { toast } from 'sonner';
 import { trackEvent } from '@/lib/trackEvent';

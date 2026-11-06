@@ -42,8 +42,16 @@ export async function getDomainBrand(): Promise<{ name: string; tagline: string;
 
 export function cleanBrandName(text: string | null | undefined, currentBrandName: string): string {
   if (!text) return '';
-  // Case-insensitive replacement for legacy hardcoded names in DB
-  return text
-    .replace(/Zaynahs\s*E-Store/gi, currentBrandName)
-    .replace(/Zaynahs/gi, currentBrandName);
+  // Legacy hardcoded names come from the environment — never from source.
+  // LEGACY_BRAND_NAMES="OldBrand,OldBrand E-Store"
+  const legacy = (process.env.LEGACY_BRAND_NAMES || '')
+    .split(',')
+    .map((n) => n.trim())
+    .filter(Boolean)
+    .sort((a, b) => b.length - a.length); // longest first: "OldBrand E-Store" before "OldBrand"
+
+  return legacy.reduce(
+    (acc, name) => acc.replace(new RegExp(name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), currentBrandName),
+    text
+  );
 }

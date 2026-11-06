@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2, Check, X, Package, ChevronLeft, Upload } from '@/components/common/Icons';
-import { usePostExCityFetcher } from '@/hooks/usePostExCityFetcher';
+import { usePostExCityFetcher } from '@/lib/hooks/usePostExCityFetcher';
 import { EditableRow, PostExBookingManifestTableProps } from './types';
 import PostExRowDetailsModal from './PostExRowDetailsModal';
 import { PostExDesktopTable } from './PostExDesktopTable';

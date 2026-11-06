@@ -1,5 +1,10 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
+import {
+  isAdminWorkerEntry,
+  isBlockedOnStoreWorker,
+  resolveWorkerRole,
+} from '@/lib/config/worker-role';
 
 /**
  * Server-side gate for the admin UI.
@@ -14,9 +19,30 @@ import { createServerClient } from '@supabase/ssr';
  * security gate must never fail open.
  */
 export async function middleware(req: NextRequest) {
-  const res = NextResponse.next();
-  res.headers.set('X-Robots-Tag', 'noindex, nofollow, noarchive');
   const { pathname } = req.nextUrl;
+
+  // --- Worker role gate (universal separation) -------------------------------
+  // WORKER_ROLE is set per deployment in the generated Wrangler config.
+  // Unset (Vercel / local dev / single Worker) resolves to `all` → no change.
+  const role = resolveWorkerRole({ host: req.headers.get('host') });
+
+  // Admin Worker: the bare admin host belongs to the admin app.
+  if (role === 'admin' && isAdminWorkerEntry(pathname)) {
+    return NextResponse.redirect(new URL('/admin', req.url));
+  }
+
+  // Store Worker: the admin surface is not part of this deployment.
+  if (role === 'store' && isBlockedOnStoreWorker(pathname)) {
+    const notFound = new NextResponse(null, { status: 404 });
+    notFound.headers.set('X-Robots-Tag', 'noindex, nofollow, noarchive');
+    return notFound;
+  }
+
+  const res = NextResponse.next();
+  const isAdminSurface = pathname.startsWith('/admin') || pathname.startsWith('/api/admin');
+  if (isAdminSurface) {
+    res.headers.set('X-Robots-Tag', 'noindex, nofollow, noarchive');
+  }
 
   // --- Canonical host is owned by EXACTLY ONE layer: the Vercel domain-level
   // redirect (apex -> www, matching NEXT_PUBLIC_SITE_URL=https://www.<domain>).
@@ -89,5 +115,8 @@ export const config = {
   // only needs to run on the admin UI (auth gate + Supabase session refresh).
   // Scoping to /admin avoids running the edge auth check on every storefront
   // request and removes any chance of a middleware-emitted host/redirect loop.
-  matcher: ['/admin', '/admin/:path*'],
+  //
+  // `/` is included solely so the admin Worker can redirect the bare admin host
+  // to /admin. In `all` mode (Vercel) it is a plain pass-through.
+  matcher: ['/', '/admin', '/admin/:path*'],
 };

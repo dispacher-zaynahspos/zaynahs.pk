@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic';
 import { toast } from 'sonner';
 import { formatPrice } from '@/lib/utils/whatsapp';
 import { useMobileCardFocus } from '@/lib/hooks/useMobileCardFocus';
-import { useCartStore } from '@/store/cartStore';
+import { useCartStore } from '@/lib/store/cartStore';
 import { useWishlist } from '@/components/store/product-card/hooks/useWishlist';
 import { flyToCart } from '@/lib/utils/flyAnimation';
 import { ProductCardBadges } from '@/components/store/product-card/ProductCardBadges';

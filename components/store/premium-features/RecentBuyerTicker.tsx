@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { Product, StoreSettings } from '@/lib/types';
 import { CheckCircle2, ShoppingBag, X } from '@/components/common/Icons';
-import { useCartStore } from '@/store/cartStore';
+import { useCartStore } from '@/lib/store/cartStore';
 
 interface RecentBuyerTickerProps {
   settings: StoreSettings;

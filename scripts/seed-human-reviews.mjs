@@ -26,7 +26,7 @@ function loadEnv() {
 const env = loadEnv();
 const supabaseUrl = env.NEXT_PUBLIC_SUPABASE_URL || env.SUPABASE_URL;
 const serviceKey = env.SUPABASE_SERVICE_ROLE_KEY;
-const siteUrl = env.NEXT_PUBLIC_SITE_URL || 'https://www.totvogue.pk';
+const siteUrl = env.NEXT_PUBLIC_SITE_URL;
 const revalidateSecret = env.REVALIDATE_SECRET;
 const cfZone = env.CLOUDFLARE_ZONE_ID;
 const cfToken = env.CLOUDFLARE_API_TOKEN;

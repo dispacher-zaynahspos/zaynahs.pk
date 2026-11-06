@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { getSharedAspectClass, getSharedTitleClampClass } from '@/lib/utils/styles';
 import { Product, StoreSettings } from '@/lib/types';
-import { useCartStore } from '@/store/cartStore';
+import { useCartStore } from '@/lib/store/cartStore';
 import { toast } from 'sonner';
 import dynamic from 'next/dynamic';
 import { flyToCart } from '@/lib/utils/flyAnimation';

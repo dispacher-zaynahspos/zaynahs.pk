@@ -10,7 +10,7 @@ export const HEADER_ANNOUNCEMENT_LABELS = {
   showTopBar: 'Show Contact Announcement Bar',
   showNewsletter: 'Show Marketing Announcement Bar',
   topBarPhone: 'Top Bar Phone / WhatsApp',
-  topBarPhonePlaceholder: 'e.g. 0328-4114551',
+  topBarPhonePlaceholder: 'e.g. 0300-1234567',
   topBarEmail: 'Top Bar Email',
   topBarEmailPlaceholder: 'e.g. support@store.com',
   newsletterText: 'Announcement Text (one line per rotating message)',

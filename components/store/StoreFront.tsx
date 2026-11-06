@@ -5,7 +5,7 @@ import { Product, Category, StoreSettings, Review, HomepageSection, Collection }
 import CategoryFilter from './CategoryFilter';
 import ProductGrid from './ProductGrid';
 import { getContentWidthClass, CATALOG_SECTION_PADDING } from '@/lib/utils/responsiveGrid';
-import { useSearchStore } from '@/store/searchStore';
+import { useSearchStore } from '@/lib/store/searchStore';
 import { useScrollRestoration, SCROLL_KEY, isSameStorePath, ScrollRestoreData } from '@/lib/hooks/useScrollRestoration';
 import { useSettings } from '@/lib/hooks/useSettings';
 import {

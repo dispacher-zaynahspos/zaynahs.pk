@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { StoreSettings } from '@/lib/types';
 import { isFeatureEnabled } from '@/lib/features/premium';
-import { useCartStore } from '@/store/cartStore';
+import { useCartStore } from '@/lib/store/cartStore';
 
 export function useCartTimer(settings: StoreSettings) {
   const items = useCartStore((state) => state.items);

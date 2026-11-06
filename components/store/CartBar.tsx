@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ShoppingBag, ArrowRight } from '@/components/common/Icons';
-import { useCartStore } from '@/store/cartStore';
+import { useCartStore } from '@/lib/store/cartStore';
 import { formatPrice } from '@/lib/utils/whatsapp';
 
 interface CartBarProps {

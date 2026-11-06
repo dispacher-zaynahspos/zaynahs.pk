@@ -81,7 +81,7 @@ export default function HeroBannerSettings({
   const handleAddSlide = () => {
     const newSlide: HeroSlide = {
       id: 'slide_' + Math.random().toString(36).substring(2, 9),
-      image_url: 'https://ziucrfpebpxijqhwmqre.supabase.co/storage/v1/object/public/product-images/placeholder.jpg',
+      image_url: '',
       tagline: 'NEW ARRIVALS',
       title: 'New Slider Collection',
       subtitle: 'Premium collections now streaming live.',

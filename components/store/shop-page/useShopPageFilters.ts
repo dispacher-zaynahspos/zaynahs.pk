@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { Product, Category, Collection, StoreSettings } from '@/lib/types';
-import { useCartStore } from '@/store/cartStore';
+import { useCartStore } from '@/lib/store/cartStore';
 import { SHOP_CATEGORY_ID as SYSTEM_CATEGORY_ID } from '@/lib/config/singleton-ids';
 import { trackEvent } from '@/lib/trackEvent';
 import { useSettings } from '@/lib/hooks/useSettings';

@@ -4,7 +4,7 @@ import React from 'react';
 import { StoreSettings } from '@/lib/types';
 import { isFeatureEnabled } from '@/lib/features/premium';
 import { cleanWhatsAppPhone } from '@/lib/utils/whatsapp';
-import { useCartStore } from '@/store/cartStore';
+import { useCartStore } from '@/lib/store/cartStore';
 import { usePathname } from 'next/navigation';
 
 import { InstagramIcon, TiktokIcon, SnapchatIcon, TwitterIcon, WhatsAppIcon } from '@/components/common/Icons';
