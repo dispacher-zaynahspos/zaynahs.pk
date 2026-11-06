@@ -7,7 +7,7 @@ Everything that is not a route and not a presentational component.
 | Folder/file | Contents |
 |---|---|
 | `brand/` (target) | brand registry + single resolver |
-| `platform/` (target) | Cloudflare/Vercel adapters — only place with platform code |
+| `platform/` | Cloudflare/Vercel/R2 adapters — only place with platform code |
 | `services/` | data logic per domain (products, orders, settings, reviews, ...) |
 | `supabase/` | `client`, `server`, `admin` clients only |
 | `auth/` | `requireAdmin`, guards |

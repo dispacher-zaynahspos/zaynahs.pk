@@ -45,7 +45,7 @@ zaynahs.pk/
 
 ## 2. Target tree (after universal refactor)
 
-> Done: `lib/brand/` + `lib/store/` + `lib/hooks/` (2026-11-06). Remaining: `lib/platform/`.
+> Done: `lib/brand/`, `lib/store/`, `lib/hooks/`, `lib/platform/` (2026-11-06).
 
 ```
 zaynahs.pk/

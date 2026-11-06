@@ -55,7 +55,21 @@ npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY --config ...
 | `ASSETS` | Assets | static output |
 | `R2_IMAGES_BUCKET` | R2 | image uploads (Phase 2) |
 
-## 6. Cron
+## 6. Images (R2)
+
+```bash
+node scripts/r2-migrate-images.mjs --env=.env.local --dry-run   # 459 objects / 31.6 MB
+node scripts/r2-migrate-images.mjs --env=.env.local --apply     # idempotent, batched
+```
+
+- Keys are prefix-preserving (`product-images/<path>`), so `/storage/*` keeps working.
+- Cutover switch: set `R2_PUBLIC_BASE=https://img.<host>` → `/storage/*` serves R2.
+  Rollback = clear the variable. **No database row is ever rewritten.**
+- New uploads: `R2_UPLOAD_ENABLED=true` (Supabase remains the fallback on failure).
+- Workers runtime note: `sharp` cannot run in the Workers runtime — the upload
+  route needs the edge-safe path before Worker cutover (open item).
+
+## 7. Cron
 
 Vercel cron → Cloudflare cron triggers in the same Worker config:
 `/api/cron/abandoned-cart`, `/api/cron/review-requests`.

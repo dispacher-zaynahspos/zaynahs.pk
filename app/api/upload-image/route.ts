@@ -10,6 +10,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth/requireAdmin';
 import sharp from 'sharp';
 import { createClient } from '@supabase/supabase-js';
+import { isR2UploadEnabled, uploadObjectToR2 } from '@/lib/platform/r2';
 
 const MAX_KB = 50;
 const MAX_DIM = 1200;
@@ -50,6 +51,21 @@ export async function POST(request: NextRequest) {
       const baseName = file.name.replace(/\.[^/.]+$/, '').replace(/[^a-z0-9_\-]/gi, '_');
       const ext = file.name.split('.').pop() || 'mp4';
       const fileName = `${folder}/${baseName}_${Date.now()}.${ext}`;
+
+      // R2 first (when enabled); Supabase stays the fallback so uploads never break.
+      if (isR2UploadEnabled()) {
+        const r2 = await uploadObjectToR2({
+          key: `product-images/${fileName}`,
+          body: new Uint8Array(inputBuffer),
+          contentType: file.type || 'video/mp4',
+        });
+        if (r2.ok) {
+          const finalSizeKb = Math.round(inputBuffer.length / 1024);
+          console.log(`[api/upload-image] ✓ Video→R2: ${file.name} → ${r2.key} (${finalSizeKb} KB)`);
+          return NextResponse.json({ url: r2.url, sizeKb: finalSizeKb, format: ext, storage: 'r2' });
+        }
+        console.warn('[api/upload-image] R2 video upload failed, falling back to Supabase:', r2.error);
+      }
 
       const { error: uploadError } = await supabaseAdmin.storage
         .from('product-images')
@@ -137,12 +153,28 @@ export async function POST(request: NextRequest) {
     // Generate file path
     const baseName = file.name.replace(/\.[^/.]+$/, '').replace(/[^a-z0-9_\-]/gi, '_');
     const fileName = `${folder}/${baseName}_${Date.now()}.${outputFormat}`;
+    const contentType = isFavicon ? 'image/png' : 'image/webp';
+
+    // R2 first (when enabled); Supabase stays the fallback so uploads never break.
+    if (isR2UploadEnabled()) {
+      const r2 = await uploadObjectToR2({
+        key: `product-images/${fileName}`,
+        body: new Uint8Array(outputBuffer),
+        contentType,
+      });
+      if (r2.ok) {
+        const finalSizeKb = Math.round(outputBuffer.length / 1024);
+        console.log(`[api/upload-image] ✓ Image→R2: ${file.name} → ${r2.key} (${finalSizeKb} KB)`);
+        return NextResponse.json({ url: r2.url, sizeKb: finalSizeKb, format: outputFormat, storage: 'r2' });
+      }
+      console.warn('[api/upload-image] R2 upload failed, falling back to Supabase:', r2.error);
+    }
 
     // Upload to Supabase Storage
     const { error: uploadError } = await supabaseAdmin.storage
       .from('product-images')
       .upload(fileName, outputBuffer, {
-        contentType: isFavicon ? 'image/png' : 'image/webp',
+        contentType,
         upsert: true,
       });
 

@@ -222,16 +222,34 @@ const nextConfig: NextConfig = {
     return rules;
   },
   async rewrites() {
-    const supabaseUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ziucrfpebpxijqhwmqre.supabase.co').replace(/\/+$/, '');
+    const supabaseUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL || '').replace(/\/+$/, '');
+    const r2Base = (process.env.R2_PUBLIC_BASE || '').replace(/\/+$/, '');
+
+    // Reverse proxy for storage images. One switch flips every stored
+    // Supabase URL to R2 without touching the database (reversible mapping):
+    //   R2_PUBLIC_BASE set  -> /storage/* served from R2
+    //   R2_PUBLIC_BASE empty-> /storage/* served from Supabase
+    const storageDestination = r2Base
+      ? `${r2Base}/:path*`
+      : supabaseUrl
+        ? `${supabaseUrl}/storage/v1/object/public/:path*`
+        : '';
+
+    const storageRewrites = storageDestination
+      ? [
+          {
+            source: '/storage/v1/object/public/:path*',
+            destination: storageDestination,
+          },
+          {
+            source: '/storage/:path*',
+            destination: storageDestination,
+          },
+        ]
+      : [];
+
     return [
-      {
-        source: '/storage/v1/object/public/:path*',
-        destination: `${supabaseUrl}/storage/v1/object/public/:path*`,
-      },
-      {
-        source: '/storage/:path*',
-        destination: `${supabaseUrl}/storage/v1/object/public/:path*`,
-      },
+      ...storageRewrites,
       {
         source: '/:key.txt',
         destination: '/api/indexnow/key?key=:key',

@@ -99,11 +99,24 @@ Supabase DB webhook just points at the Zaynahs Worker for this brand.
 ## 6. Images
 
 - `img.<domain>` = R2 custom domain, `Cache-Control: public, max-age=31536000, immutable`
-- New uploads: `/<store>/<yyyy>/<uuid>.<ext>` → never overwritten, never stale
-- `app/api/upload-image` writes to R2 when `R2_IMAGES_BUCKET` is bound, else Supabase (current behaviour)
-- Migration: copy Supabase objects → R2 in batches, **render-time mapping** only
-  (old URL → new URL in the image resolver). **No DB row is rewritten.**
-- Reversible: mapping is a lookup; delete the map ⇒ old URLs work again.
+- New uploads: `product-images/<yyyy>/<uuid>.<ext>` → never overwritten, never stale
+- `app/api/upload-image` writes to R2 when `R2_UPLOAD_ENABLED=true` (Supabase stays fallback)
+- Migration: copy Supabase objects → R2 **prefix-preserving** (`product-images/...` → same key)
+
+### Reversible render-time mapping (no DB rewrite)
+
+```
+R2_PUBLIC_BASE=""                    → /storage/* proxies to Supabase   (today)
+R2_PUBLIC_BASE=https://img.<host>    → /storage/* proxies to R2         (after cutover)
+```
+
+One env switch flips every stored Supabase URL to R2 — database rows are never
+rewritten, so rollback is instant (clear the variable).
+
+```bash
+node scripts/r2-migrate-images.mjs --env=.env.local --dry-run   # count + size
+node scripts/r2-migrate-images.mjs --env=.env.local --apply     # idempotent copy
+```
 
 ---
 

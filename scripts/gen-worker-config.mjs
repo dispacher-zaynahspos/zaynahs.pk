@@ -75,7 +75,7 @@ function compatDate() {
   return d.toISOString().slice(0, 10);
 }
 
-function buildConfigs(ctx) {
+function buildConfigs(ctx, split) {
   const {
     slug,
     siteUrl,
@@ -93,24 +93,10 @@ function buildConfigs(ctx) {
     compatibility_flags: ['nodejs_compat', 'global_fetch_strictly_public'],
     assets: { directory: '.open-next/assets', binding: 'ASSETS' },
     observability: { enabled: true },
-  };
-
-  const store = {
-    $schema: 'node_modules/wrangler/config-schema.json',
-    name: `${slug}-store`,
-    ...base,
-    vars: {
-      WORKER_ROLE: 'store',
-      NEXT_PUBLIC_SITE_URL: siteUrl.replace(/\/+$/, ''),
-      ADMIN_HOST: adminHost,
-      IMG_HOST: imgHost,
-      NEXT_INC_CACHE_R2_BUCKET: cacheBucket,
-    },
-    routes: [
-      { pattern: siteHost, custom_domain: true },
-      { pattern: `www.${siteHost}`, custom_domain: true },
+    r2_buckets: [
+      { binding: 'NEXT_INC_CACHE_R2_BUCKET', bucket_name: cacheBucket },
+      { binding: 'R2_IMAGES_BUCKET', bucket_name: imageBucket },
     ],
-    r2_buckets: [{ binding: 'NEXT_INC_CACHE_R2_BUCKET', bucket_name: cacheBucket }],
     durable_objects: {
       bindings: [
         { name: 'NEXT_CACHE_DO_QUEUE', class_name: 'DOQueueHandler' },
@@ -121,10 +107,45 @@ function buildConfigs(ctx) {
     workers_dev: true,
   };
 
+  const vars = {
+    WORKER_ROLE: 'all',
+    NEXT_PUBLIC_SITE_URL: siteUrl.replace(/\/+$/, ''),
+    ADMIN_HOST: adminHost,
+    IMG_HOST: imgHost,
+    NEXT_INC_CACHE_R2_BUCKET: cacheBucket,
+    R2_IMAGES_BUCKET: imageBucket,
+  };
+
+  const single = {
+    $schema: 'node_modules/wrangler/config-schema.json',
+    name: slug,
+    ...base,
+    vars,
+    routes: [
+      { pattern: siteHost, custom_domain: true },
+      { pattern: `www.${siteHost}`, custom_domain: true },
+      { pattern: adminHost, custom_domain: true },
+    ],
+  };
+
+  if (!split) return { single };
+
+  const store = {
+    $schema: single.$schema,
+    name: `${slug}-store`,
+    ...base,
+    vars: { ...vars, WORKER_ROLE: 'store' },
+    routes: [
+      { pattern: siteHost, custom_domain: true },
+      { pattern: `www.${siteHost}`, custom_domain: true },
+    ],
+  };
+
   const admin = {
-    ...store,
+    $schema: single.$schema,
     name: `${slug}-admin`,
-    vars: { ...store.vars, WORKER_ROLE: 'admin' },
+    ...base,
+    vars: { ...vars, WORKER_ROLE: 'admin' },
     routes: [{ pattern: adminHost, custom_domain: true }],
   };
 
@@ -132,17 +153,17 @@ function buildConfigs(ctx) {
 }
 
 function writeConfigs(outDir, configs, printOnly) {
-  const storePath = join(outDir, 'wrangler.store.jsonc');
-  const adminPath = join(outDir, 'wrangler.admin.jsonc');
   const header =
     '// GENERATED FILE — do not edit.\n' +
     '// Regenerate: npm run worker:config -- --store=<store>\n';
 
+  const files = Object.entries(configs).map(([key, cfg]) => [
+    join(outDir, key === 'single' ? 'wrangler.jsonc' : `wrangler.${key}.jsonc`),
+    cfg,
+  ]);
+
   if (!printOnly) mkdirSync(outDir, { recursive: true });
-  for (const [path, cfg] of [
-    [storePath, configs.store],
-    [adminPath, configs.admin],
-  ]) {
+  for (const [path, cfg] of files) {
     const body = header + JSON.stringify(cfg, null, 2) + '\n';
     if (printOnly) {
       console.log(`\n--- ${path} ---\n${body}`);
@@ -150,7 +171,7 @@ function writeConfigs(outDir, configs, printOnly) {
       writeFileSync(path, body, 'utf8');
     }
   }
-  return { storePath, adminPath };
+  return files;
 }
 
 function main() {
@@ -182,18 +203,17 @@ function main() {
     date: compatDate(),
   };
 
-  const configs = buildConfigs(ctx);
+  const configs = buildConfigs(ctx, Boolean(args.split));
   const outDir = join(ROOT, 'worker-config', slug);
-  const { storePath, adminPath } = writeConfigs(outDir, configs, Boolean(args.print));
+  const files = writeConfigs(outDir, configs, Boolean(args.print));
 
-  console.log(`\n✔ store: ${ctx.slug}-store`);
+  console.log(`\n✔ worker(s): ${Object.values(configs).map((c) => c.name).join(', ')}`);
   console.log(`  site   : ${ctx.siteHost}`);
   console.log(`  admin  : ${ctx.adminHost}`);
   console.log(`  images : ${ctx.imgHost}`);
   console.log(`  buckets: ${ctx.cacheBucket}, ${ctx.imageBucket}`);
   if (!args.print) {
-    console.log(`\n  wrote ${storePath}`);
-    console.log(`  wrote ${adminPath}`);
+    for (const [filePath] of files) console.log(`  wrote ${filePath}`);
   }
 
   console.log(

@@ -48,6 +48,20 @@ Every variable: name, purpose, owner, secret or public. **Never put values in th
 | `CLOUDFLARE_API_TOKEN` | cache rules, DNS, purge | **yes** |
 | `CF_ACCOUNT_ID` | account (Workers/R2) | no |
 
+## R2 (images + ISR cache)
+| Name | Purpose | Secret |
+|---|---|---|
+| `R2_ACCOUNT_ID` | account owning the buckets | no |
+| `R2_ENDPOINT` | `https://<account>.r2.cloudflarestorage.com` | no |
+| `R2_API_TOKEN` | account API token (bucket admin) | **yes** |
+| `R2_USER_API_TOKEN` | user API token (bucket admin) | **yes** |
+| `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` | S3 credentials — object read/write | **yes** |
+| `R2_USER_ACCESS_KEY_ID` / `R2_USER_SECRET_ACCESS_KEY` | alternate S3 credentials | **yes** |
+| `R2_IMAGES_BUCKET` | public media bucket | no |
+| `NEXT_INC_CACHE_R2_BUCKET` | OpenNext incremental cache | no |
+| `R2_PUBLIC_BASE` | public image base (`https://img.<host>`); empty → serve `/storage/*` from Supabase | no |
+| `R2_UPLOAD_ENABLED` | `true` → new uploads go to R2 (Supabase stays fallback) | no |
+
 ## Vercel (legacy platform)
 | Name | Purpose | Secret |
 |---|---|---|
