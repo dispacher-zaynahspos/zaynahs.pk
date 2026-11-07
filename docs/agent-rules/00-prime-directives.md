@@ -20,6 +20,19 @@ These are always active, on every task, no exceptions.
       ```
 11. **Instant 0ms UI Navigation & Tabs (RULE F1)** — Every page, category, mobile bottom nav, product tab (Reviews, Specs, Description), and admin tab across all functional areas and stores MUST strictly implement the 0ms instant opening standard (`loading.tsx` skeletons, `<Link prefetch={true}>`, `React.cache()`, `Promise.all()`, and shallow URL routing `scroll: false`). Never allow frozen screens or sequential waterfalls. Full details in [03-frontend-nextjs-react.md](03-frontend-nextjs-react.md) RULE F1 and `docs/UI_PERFORMANCE_GUIDE.md` Section 8.
 12. **One-By-One Store Rollout vs Normal Deployments (RULE ROLLOUT1)** — Store registry is NEVER hardcoded (always read dynamically from `env-backups/*.env.local`). Gated 1-by-1 rollout applies strictly to **BIG / HIGH-IMPACT** changes (core edge caching/Cloudflare rules, architectural overhauls, DB migrations affecting data, checkout engine changes). Multi-store rollouts for these critical changes proceed strictly **ONE STORE AT A TIME (1-by-1)** in order (Canary/Pilot first ➔ clones from `env-backups/` ➔ flagship last), passing all 5 verification gates before touching the next. **Normal / routine tasks** (UI fixes, styling, standard updates) apply normally across stores without 1-by-1 gating. Full details in [07-deployment-vercel-cloudflare.md](07-deployment-vercel-cloudflare.md) RULE ROLLOUT1.
+13. **Dual Deployment Law & Strict S5 Storage Ban (RULE DUAL-TARGET)**:
+    - **When the user requests "Cloudflare S5", "S5 Plan", "Workers Paid", or "Zero Vercel":**
+      - **0% Vercel:** Vercel is completely cut out.
+      - **0% Supabase Storage:** Supabase Storage is strictly banned and completely eliminated. Never upload or serve media from Supabase storage on S5.
+      - **100% Cloudflare R2:** All images, videos, banners, and review photos MUST use Cloudflare R2 (`img.<domain>`) with mandatory Sharp WebP compression (≤80KB).
+      - **Supabase Scope:** Strictly restricted to PostgreSQL Database + Auth ONLY.
+      - **Webhooks:** Supabase triggers ping Cloudflare Workers directly (`https://<domain>/api/revalidate`).
+      - **1-Command Setup:** `npm run clone:setup -- --store=<store> --skip-vercel --yes`.
+    - **When the user requests "Vercel", "Vercel deploy", or "Legacy Setup":**
+      - Compute: Vercel Serverless.
+      - Database, Auth & Storage: Supabase (PostgreSQL + Auth + Supabase Storage bucket `product-images`).
+      - **1-Command Setup:** `npm run clone:setup -- --store=<store> --deploy --yes`.
+    - **Upfront Intake:** Always collect the target architecture and all required credentials in ONE step before running the 1-command orchestrator (see `docs/CLONE_SETUP_INTAKE.md`).
 
 ## Reference doc links used across all rule files
 - `docs/SCHEMA_CHANGE_LOG.md`

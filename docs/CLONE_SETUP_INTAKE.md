@@ -36,14 +36,17 @@ User ke response ke mutabiq credentials table bhejo direct links ke saath:
 | 6 | `CLOUDFLARE_API_TOKEN` | https://dash.cloudflare.com/profile/api-tokens | **Workers:Edit, R2:Edit, Zone:Edit, DNS:Edit, Cache:Edit** |
 | 7 | `CLOUDFLARE_ZONE_ID` | https://dash.cloudflare.com → domain → Overview | Zone ID |
 | 8 | `CF_ACCOUNT_ID` | https://dash.cloudflare.com → domain → Overview | Account ID |
-| 9 | `GITHUB_USERNAME` + `GITHUB_REPO` | https://github.com | Repo owner + repo name |
-| 10 | `GITHUB_TOKEN` | https://github.com/settings/tokens/new | `repo`, `workflow` |
-| 11 | `NEXT_PUBLIC_SITE_URL` | e.g. `https://www.<domain>.pk` | Final canonical URL |
-| 12 | `NEXT_PUBLIC_BRAND_NAME` | e.g. `<BrandName>.pk` | Brand name |
-| 13 | `NEXT_PUBLIC_ADMIN_EMAIL` | Admin login email(s) | Comma-separated |
-| 14 | `REVALIDATE_SECRET` | Strong secret string | Shared across clones |
+| 9 | `R2_ACCESS_KEY_ID` | Cloudflare Dashboard → R2 → Manage R2 API Tokens | S3 Access Key ID (Media & Cache) |
+| 10 | `R2_SECRET_ACCESS_KEY` | Cloudflare Dashboard → R2 → Manage R2 API Tokens | S3 Secret Access Key |
+| 11 | `R2_IMAGES_BUCKET` | Cloudflare Dashboard → R2 | e.g. `<store>-images` |
+| 12 | `GITHUB_USERNAME` + `GITHUB_REPO` | https://github.com | Repo owner + repo name |
+| 13 | `GITHUB_TOKEN` | https://github.com/settings/tokens/new | `repo`, `workflow` |
+| 14 | `NEXT_PUBLIC_SITE_URL` | e.g. `https://www.<domain>.pk` | Final canonical URL |
+| 15 | `NEXT_PUBLIC_BRAND_NAME` | e.g. `<BrandName>.pk` | Brand name |
+| 16 | `NEXT_PUBLIC_ADMIN_EMAIL` | Admin login email(s) | Comma-separated |
+| 17 | `REVALIDATE_SECRET` | Strong secret string | Shared across clones |
 
-*(Note: Option A mein Vercel tokens ki koi zaroorat nahi hai).*
+*(Note: Option A mein Vercel tokens aur Supabase Storage ki ZERO zaroorat hai — 0% Vercel, 0% Supabase Storage).*
 
 ### Additional for Option B (Vercel Legacy):
 - `VERCEL_TOKEN`, `VERCEL_PROJECT_NAME`, `VERCEL_TEAM_ID` (from https://vercel.com/account/tokens).

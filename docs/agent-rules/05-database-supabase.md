@@ -239,9 +239,13 @@ Non-negotiables for every migration that touches a table:
 
 ---
 
-## RULE D20 — Supabase Scope on Workers Paid ($5): Database & Auth ONLY
+## RULE D20 — Supabase Scope on Workers Paid ($5): Database & Auth ONLY (0% Supabase Storage)
 When a store operates on the Cloudflare Workers ($5 Paid) Zero-Vercel Architecture:
-1. **Supabase Scope**: Supabase is strictly dedicated to **PostgreSQL Database + Auth ONLY**. Storage is cutover to Cloudflare R2 (`img.<domain>`).
-2. **Direct Edge Webhooks**: All Supabase database triggers/webhooks ping the Cloudflare Worker directly (`https://<domain>/api/revalidate`) with zero middleman.
-3. **Universal Domain Mandate**: Webhook targets and docs must never hardcode specific domain names — use `<domain>` / `<domain>.pk` universally.
+1. **Supabase Scope (Strict)**: Supabase is strictly dedicated to **PostgreSQL Database + Auth ONLY**.
+2. **0% Supabase Storage Mandate**: **NEVER use Supabase Storage** for images, videos, banners, or reviews on the S5 plan. Any new uploads, media registration, or product listings MUST bypass Supabase Storage and upload directly to Cloudflare R2 (`img.<domain>`).
+3. **0% Vercel Compute**: Vercel is completely disconnected and eliminated from the deployment pipeline.
+4. **Direct Edge Webhooks**: All Supabase database triggers/webhooks ping the Cloudflare Worker directly (`https://<domain>/api/revalidate`) with zero middleman.
+5. **Universal Domain Mandate**: Webhook targets and docs must never hardcode specific domain names — use `<domain>` / `<domain>.pk` and `img.<domain>` universally.
+6. **Dual Architecture Compatibility**: If the user explicitly asks for Legacy Vercel mode, Supabase Storage bucket `product-images` is permitted. Otherwise, S5 Workers standard applies strictly.
+
 

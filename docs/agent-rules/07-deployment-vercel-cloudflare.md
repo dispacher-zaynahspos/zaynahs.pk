@@ -346,24 +346,30 @@ done
 ---
 
 ## 🚀 RULE CF-WORKERS-MIGRATION — Zero Vercel Architecture (Cloudflare Workers $5 Paid)
+> **Master Mandate:** The project officially supports TWO deployment paths:
+> 1. **Cloudflare Workers $5 Paid Standard (S5 Plan — Zero Vercel):** When the user requests S5 / Cloudflare Workers, Vercel is 100% cut out (0% Vercel), Supabase Storage is 100% banned (0% Supabase Storage), Supabase is DB+Auth only, all media is Cloudflare R2 (`img.<domain>`), and webhooks ping Cloudflare Worker directly.
+> 2. **Legacy Vercel Mode:** When the user explicitly requests Vercel, compute uses Vercel Serverless and storage uses Supabase Storage.
+> 1-Command setup (`clone:setup`) supports both targets seamlessly via `CLONE_SETUP_INTAKE.md`. Full guide lives in `docs/CLOUDFLARE_WORKERS_MIGRATION_GUIDE.md`.
 
-> **Master Mandate:** Vercel limits and dependency are permanently eliminated by migrating Next.js compute to Cloudflare Workers ($5 Paid plan). Supabase is strictly restricted to **PostgreSQL Database + Auth ONLY**, product images/media cutover to **Cloudflare R2 (`img.<domain>`)**, and database webhooks ping Cloudflare Worker directly (`https://<domain>/api/revalidate`). Full guide lives in `docs/CLOUDFLARE_WORKERS_MIGRATION_GUIDE.md`.
+1. **Target Architecture Comparison:**
+   | Component | Cloudflare S5 Paid (Standard) | Legacy Vercel Mode |
+   |---|---|---|
+   | **Compute (Store + Admin)** | Cloudflare Workers ($5 Paid) via `@opennextjs/cloudflare` | Vercel Serverless Functions |
+   | **Database & Auth** | Supabase (PostgreSQL + RLS ONLY) | Supabase (PostgreSQL + RLS) |
+   | **Media / Storage** | **Cloudflare R2 (`img.<domain>`) ONLY (0% Supabase Storage)** | Supabase Storage (`product-images`) |
+   | **Edge Caching** | Cloudflare Edge Cache Rules (30-day HTML) | Cloudflare Edge + Vercel Edge Cache |
+   | **Webhooks** | Supabase triggers → `https://<domain>/api/revalidate` | Supabase triggers → `https://<domain>/api/revalidate` |
+   | **1-Command Setup** | `npm run clone:setup -- --store=<store> --skip-vercel --yes` | `npm run clone:setup -- --store=<store> --deploy --yes` |
 
-1. **Target Architecture:**
-   - **Next.js App & Admin:** Cloudflare Workers ($5 Paid) via `@opennextjs/cloudflare`.
-   - **Database & Auth:** Supabase (PostgreSQL + RLS ONLY — Storage eliminated).
-   - **Media Storage:** Cloudflare R2 (`img.<domain>`). Zero egress fees.
-   - **Database Webhooks:** Supabase triggers ping Cloudflare Worker directly (`https://<domain>/api/revalidate`).
-   - **Vercel:** Permanently disconnected and removed once production cutover is complete.
-2. **Safety First Policy:**
-   - Live Vercel store remains completely untouched and active during the entire development, configuration, and staging phase.
-   - The Cloudflare Worker is deployed to a preview/staging subdomain first (`https://<store>-preview.workers.dev`).
+2. **Safety First Policy on S5 Cutover:**
+   - Live store remains untouched and active during the configuration and staging phase.
+   - The Cloudflare Worker is deployed to a preview subdomain first (`https://<store>-preview.workers.dev`).
    - Domain DNS cutover (`GO CUTOVER`) is only permitted after all 5 verification gates pass:
      1. Storefront SSR browsing & category filters
      2. Admin dashboard login & settings mutation
      3. End-to-end checkout & order persistence in Supabase
      4. WhatsApp order redirection
-     5. High-resolution image serving from R2
+     5. High-resolution WebP image serving from Cloudflare R2 (`img.<domain>`)
 3. **Universal Domain Mandate (RULE 18):**
    - NEVER hardcode specific store domains in markdown documentation or rule files.
    - Always use universal placeholders: `<domain>`, `<domain>.pk`, `img.<domain>`, and `<store>`.
