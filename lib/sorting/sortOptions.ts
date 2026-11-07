@@ -110,13 +110,13 @@ function manualCompare<T extends SortableItem>(
   const orderA =
     typeof posA === 'number'
       ? posA
-      : typeof a.sort_order === 'number' && a.sort_order > 0
+      : typeof a.sort_order === 'number' && a.sort_order !== 0
         ? a.sort_order
         : MANUAL_FALLBACK;
   const orderB =
     typeof posB === 'number'
       ? posB
-      : typeof b.sort_order === 'number' && b.sort_order > 0
+      : typeof b.sort_order === 'number' && b.sort_order !== 0
         ? b.sort_order
         : MANUAL_FALLBACK;
   if (orderA !== orderB) return orderA - orderB;

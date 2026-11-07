@@ -59,7 +59,7 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
 
   // Embla carousel (shared wiring: swipe ⇄ activeIdx)
   const { emblaRef, emblaApi } = useEmblaGallery(activeIdx, setActiveIdx, {
-    loop: true,
+    loop: images.length > 1,
     startIndex: initialActiveIdx.current,
   });
 
@@ -148,7 +148,7 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
                         alt={img.alt || product.name}
                         fill
                         sizes="(max-width: 640px) 100vw, 50vw"
-                        className="relative z-[1] object-cover"
+                        className="z-[1] object-cover"
                         priority={i === 0}
                       />
                     </div>
