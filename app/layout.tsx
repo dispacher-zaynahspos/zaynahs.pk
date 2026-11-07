@@ -185,7 +185,7 @@ export default async function RootLayout({
       suppressHydrationWarning
       className="h-full antialiased overflow-x-clip"
     >
-      <head>
+      <head suppressHydrationWarning>
         <ThemeStyleRegistry settings={settings} />
       </head>
       <body suppressHydrationWarning className="font-body min-h-full flex flex-col bg-gray-50 dark:bg-[#0f0f1b] text-gray-900 dark:text-gray-100 overflow-x-clip">

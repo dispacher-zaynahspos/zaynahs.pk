@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 
 export default function ChunkErrorListener() {
   useEffect(() => {
-    // 0. Silently strip _r cache buster parameter from address bar upon successful load
+    // 0. Cleanly strip any legacy _r cache buster parameter from address bar
     if (typeof window !== 'undefined') {
       try {
         const url = new URL(window.location.href);
@@ -16,60 +16,57 @@ export default function ChunkErrorListener() {
       } catch {}
     }
 
-    const handleChunkError = (message?: string) => {
-      if (!message) return;
-      const lower = message.toLowerCase();
-      if (
-        lower.includes('chunkloaderror') ||
-        lower.includes('loading chunk') ||
-        lower.includes('failed to load chunk') ||
-        lower.includes('failed to fetch dynamically imported module') ||
-        lower.includes('load chunk') ||
-        lower.includes('_next/static/chunks')
-      ) {
-        console.warn('[ChunkErrorListener] Chunk load error detected! Reloading page to fetch latest build...');
-        
-        // Use session storage to prevent infinite reloading loop
-        const reloadKey = 'last_chunk_error_reload';
-        const now = Date.now();
-        const lastReload = sessionStorage.getItem(reloadKey);
-        
-        // Only allow reload if the last one was more than 10 seconds ago
-        if (!lastReload || now - parseInt(lastReload, 10) > 10000) {
-          sessionStorage.setItem(reloadKey, now.toString());
-          // Force a cache-busting reload to bypass stale browser cache
-          const currentUrl = new URL(window.location.href);
-          currentUrl.searchParams.set('_r', now.toString());
-          window.location.href = currentUrl.toString();
+    const isRealChunkError = (errObj?: { name?: string; message?: string }, rawMessage?: string): boolean => {
+      if (errObj?.name === 'ChunkLoadError') return true;
+      const msg = (errObj?.message || rawMessage || '').toLowerCase();
+      if (!msg) return false;
+      return (
+        msg.includes('chunkloaderror') ||
+        (msg.includes('loading chunk') && msg.includes('failed')) ||
+        msg.includes('failed to load chunk') ||
+        msg.includes('failed to fetch dynamically imported module')
+      );
+    };
+
+    const handleChunkError = (errObj?: { name?: string; message?: string }, rawMessage?: string) => {
+      if (!isRealChunkError(errObj, rawMessage)) return;
+
+      console.warn('[ChunkErrorListener] Genuine ChunkLoadError detected. Attempting single recovery reload...');
+
+      // STRICT PROTECTION: Reload AT MOST ONCE per browser session.
+      // If a reload already occurred, NEVER reload again to prevent infinite loops.
+      const sessionKey = 'chunk_error_recovered_session';
+      try {
+        const alreadyReloaded = sessionStorage.getItem(sessionKey);
+        if (alreadyReloaded) {
+          console.warn('[ChunkErrorListener] Already reloaded once in this session. Suppressing further reloads.');
+          return;
         }
-      }
+        sessionStorage.setItem(sessionKey, '1');
+      } catch {}
+
+      // Clean reload without polluting the address bar
+      window.location.reload();
     };
 
     const onError = (event: ErrorEvent | Event) => {
-      // 1. Check for resource load failure on <script> tags (capture phase)
-      if ('target' in event && event.target instanceof HTMLScriptElement) {
-        const src = event.target.src || '';
-        if (src.includes('_next/static/chunks') || src.includes('/_next/static/')) {
-          handleChunkError(`_next/static/chunks load failed: ${src}`);
-          return;
-        }
-      }
-      // 2. Check for ErrorEvent message or error
       if ('message' in event) {
         const errorEvent = event as ErrorEvent;
-        const errObj = errorEvent.error as { message?: string; toString?: () => string } | undefined;
-        handleChunkError(errorEvent.message || errObj?.message || errObj?.toString?.());
+        const errObj = errorEvent.error as { name?: string; message?: string } | undefined;
+        handleChunkError(errObj, errorEvent.message);
       }
     };
 
     const onUnhandledRejection = (event: PromiseRejectionEvent) => {
       const reason = event.reason;
-      const message = reason?.message || reason?.toString?.();
-      handleChunkError(message);
+      if (reason && typeof reason === 'object') {
+        handleChunkError(reason as { name?: string; message?: string }, reason.message);
+      } else if (typeof reason === 'string') {
+        handleChunkError(undefined, reason);
+      }
     };
 
-    // Note: useCapture=true is required because script element errors DO NOT BUBBLE.
-    window.addEventListener('error', onError, true);
+    window.addEventListener('error', onError);
     window.addEventListener('unhandledrejection', onUnhandledRejection);
 
     // Unregister legacy/stale service workers to prevent stale cache & WebView bugs
@@ -82,7 +79,7 @@ export default function ChunkErrorListener() {
     }
 
     return () => {
-      window.removeEventListener('error', onError, true);
+      window.removeEventListener('error', onError);
       window.removeEventListener('unhandledrejection', onUnhandledRejection);
     };
   }, []);
