@@ -266,6 +266,85 @@ async function revalidateAndPurge(config, slugs) {
   }
 }
 
+async function ensureWebpR2(rawUrl, config) {
+  if (!rawUrl || typeof rawUrl !== "string") return rawUrl;
+
+  // Already WebP on img.<domain>
+  if (rawUrl.includes("img.") && rawUrl.endsWith(".webp")) {
+    return rawUrl;
+  }
+
+  try {
+    const sharp = require("sharp");
+    const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
+
+    const accessKeyId = process.env.R2_ACCESS_KEY_ID;
+    const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
+    const accountId = process.env.R2_ACCOUNT_ID || process.env.CF_ACCOUNT_ID;
+    const bucket = process.env.R2_IMAGES_BUCKET || "totvogue-images";
+    let publicBase = process.env.R2_PUBLIC_BASE;
+    if (!publicBase && config?.siteUrl) {
+      try {
+        const h = new URL(config.siteUrl).hostname.replace(/^www\./, "");
+        publicBase = `https://img.${h}`;
+      } catch {}
+    }
+    publicBase = publicBase || "https://img.totvogue.pk";
+
+    if (!accessKeyId || !secretAccessKey || !accountId) {
+      return rawUrl;
+    }
+
+    console.log(`[R2 Optimizer] Downloading & converting to WebP: ${rawUrl}`);
+    let inputBuffer;
+    if (rawUrl.startsWith("http")) {
+      const res = await fetch(rawUrl);
+      if (!res.ok) return rawUrl;
+      inputBuffer = Buffer.from(await res.arrayBuffer());
+    } else if (fs.existsSync(rawUrl)) {
+      inputBuffer = fs.readFileSync(rawUrl);
+    } else {
+      return rawUrl;
+    }
+
+    const webpBuffer = await sharp(inputBuffer)
+      .rotate()
+      .resize(1200, 1200, { fit: "inside", withoutEnlargement: true })
+      .webp({ quality: 80, effort: 4 })
+      .toBuffer();
+
+    let baseName = "image";
+    try {
+      const urlObj = new URL(rawUrl.startsWith("http") ? rawUrl : "https://local/" + rawUrl);
+      baseName = path.basename(urlObj.pathname).replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9_-]/g, "_");
+    } catch {}
+    const r2Key = `product-images/${baseName}-${Date.now()}.webp`;
+
+    const s3 = new S3Client({
+      region: "auto",
+      endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+      credentials: { accessKeyId, secretAccessKey }
+    });
+
+    await s3.send(
+      new PutObjectCommand({
+        Bucket: bucket,
+        Key: r2Key,
+        Body: webpBuffer,
+        ContentType: "image/webp",
+        CacheControl: "public, max-age=31536000, immutable"
+      })
+    );
+
+    const finalUrl = `${publicBase.replace(/\/+$/, "")}/${r2Key}`;
+    console.log(`[R2 Optimizer] ✓ WebP uploaded to R2: ${finalUrl} (${Math.round(webpBuffer.length / 1024)} KB)`);
+    return finalUrl;
+  } catch (err) {
+    console.warn(`[R2 Optimizer] Warning: could not convert to R2 WebP:`, err.message);
+    return rawUrl;
+  }
+}
+
 async function listProducts(config, options) {
   const { sample: sampleQuery, items, linkTogether = true, linkWith = [] } = options;
 
@@ -385,11 +464,12 @@ async function listProducts(config, options) {
       });
     }
 
-    if (imageUrl) {
+    const optimizedPrimary = await ensureWebpR2(imageUrl, config);
+    if (optimizedPrimary) {
       imageRows.push({
         id: crypto.randomUUID(),
         product_id: p.id,
-        url: imageUrl,
+        url: optimizedPrimary,
         alt: altText,
         sort_order: 0,
         is_primary: true,
@@ -398,19 +478,21 @@ async function listProducts(config, options) {
     }
 
     if (Array.isArray(p.gallery_images)) {
-      p.gallery_images.forEach((gUrl, gIdx) => {
-        if (gUrl && gUrl !== imageUrl) {
+      for (let gIdx = 0; gIdx < p.gallery_images.length; gIdx++) {
+        const rawGUrl = p.gallery_images[gIdx];
+        if (rawGUrl && rawGUrl !== imageUrl) {
+          const optimizedGUrl = await ensureWebpR2(rawGUrl, config);
           imageRows.push({
             id: crypto.randomUUID(),
             product_id: p.id,
-            url: gUrl,
+            url: optimizedGUrl,
             alt: `${altText} - View ${gIdx + 1}`,
             sort_order: gIdx + 1,
             is_primary: false,
             mime_type: "image/webp"
           });
         }
-      });
+      }
     }
 
     const rawCats = p.category_ids || p.categories;

@@ -136,11 +136,17 @@ Verified 2026-10. ALL media uploads go through a single system — never a bespo
 - **Zero-Block Pixels**: All marketing tracking scripts in `components/Pixels.tsx` must use `strategy="lazyOnload"` (never `afterInteractive`) to prevent main-thread contention during hydration, eliminating TBT.
 - **Zero-Block Fonts**: Theme font stylesheets in `ThemeStyleRegistry.tsx` must render as `<link rel="preconnect">` + `<link rel="stylesheet">`, never inline `@import url(...)` inside `<style>` blocks which halt CSSOM layout.
 
-## RULE S10 — Cloudflare R2 Cutover on Workers Paid ($5)
-When a store migrates to Cloudflare Workers ($5 Paid) Zero-Vercel Architecture:
-1. **Supabase Scope Restriction**: Supabase is strictly restricted to **PostgreSQL Database + Auth ONLY**. Storage is phased out.
-2. **Media in Cloudflare R2**: All new image uploads and product media cutover from Supabase Storage to Cloudflare R2 (`img.<domain>`).
-3. **Zero Egress & Bandwidth Fees**: Cloudflare R2 provides zero egress fees and unlimited scale, eliminating storage quotas and bandwidth costs.
-4. **Universal Domain Standard**: Never hardcode store domains in storage configs or rules — always use `img.<domain>` and `<domain>`.
-5. **Database Webhooks Direct to Cloudflare**: All Supabase database triggers/webhooks ping the Cloudflare Worker directly (`https://<domain>/api/revalidate`) with zero middleman.
+## RULE S10 — Cloudflare Workers $5 Paid Storage Policy (PERMANENT)
+On the **Cloudflare Workers $5 Paid Architecture**:
+1. **Supabase Scope**: Strictly restricted to **PostgreSQL Database + Auth ONLY**.
+2. **Permanent Storage Ban on Supabase**: **NEVER use Supabase Storage for images/media** on Cloudflare Workers $5 Paid. Supabase storage is strictly legacy-Vercel only.
+3. **Cloudflare R2 as Single Storage Origin**: All image uploads, product media, banners, and reviews must upload directly to Cloudflare R2 served via `img.<domain>`.
+4. **Zero Egress & Unlimited Bandwidth**: Cloudflare R2 provides zero egress fees, eliminating all Supabase bandwidth and storage quota limits.
+5. **Universal Domain Resolution**: Media host is always resolved dynamically as `img.<domain>` (e.g. `img.totvogue.pk`, `img.zaynahs.pk`) — never hardcoded.
+
+## RULE S11 — Mandatory WebP Conversion Pipeline
+- Every image uploaded (whether client or server or script) MUST pass through WebP compression (≤80KB, max 1200px) before being saved to R2/Storage.
+- Raw uncompressed PNG/JPEG files (>200KB) are strictly forbidden from entering the storage bucket.
+- Scripts (`store-list-product.cjs`, import tools) must run Sharp compression to WebP before writing image rows to DB.
+
 

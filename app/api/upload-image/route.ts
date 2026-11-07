@@ -45,6 +45,30 @@ export async function POST(request: NextRequest) {
       const ext = file.name.split('.').pop() || 'mp4';
       const fileName = `${folder}/${baseName}_${Date.now()}.${ext}`;
 
+      // Upload video to Cloudflare R2 if configured
+      const { isR2Enabled, uploadToR2 } = await import('@/lib/storage/r2');
+      if (isR2Enabled()) {
+        try {
+          const r2Result = await uploadToR2({
+            buffer: inputBuffer,
+            fileName,
+            contentType: file.type || 'video/mp4',
+          });
+          console.log(`[api/upload-image] ✓ Video R2: ${file.name} → ${r2Result.url} (${r2Result.sizeKb} KB)`);
+          return NextResponse.json({
+            url: r2Result.url,
+            sizeKb: r2Result.sizeKb,
+            format: ext,
+          });
+        } catch (r2Error) {
+          console.error('[api/upload-image] Video R2 upload failed:', r2Error);
+          return NextResponse.json(
+            { error: r2Error instanceof Error ? r2Error.message : 'R2 video upload failed' },
+            { status: 500 }
+          );
+        }
+      }
+
       const { error: uploadError } = await supabaseAdmin.storage
         .from('product-images')
         .upload(fileName, inputBuffer, {
@@ -132,7 +156,31 @@ export async function POST(request: NextRequest) {
     const baseName = file.name.replace(/\.[^/.]+$/, '').replace(/[^a-z0-9_\-]/gi, '_');
     const fileName = `${folder}/${baseName}_${Date.now()}.${outputFormat}`;
 
-    // Upload to Supabase Storage
+    // Upload to Cloudflare R2 if configured (Workers $5 Paid Standard)
+    const { isR2Enabled, uploadToR2 } = await import('@/lib/storage/r2');
+    if (isR2Enabled()) {
+      try {
+        const r2Result = await uploadToR2({
+          buffer: outputBuffer,
+          fileName,
+          contentType: isFavicon ? 'image/png' : 'image/webp',
+        });
+        console.log(`[api/upload-image] ✓ R2: ${file.name} → ${r2Result.url} (${r2Result.sizeKb} KB)`);
+        return NextResponse.json({
+          url: r2Result.url,
+          sizeKb: r2Result.sizeKb,
+          format: outputFormat,
+        });
+      } catch (r2Error) {
+        console.error('[api/upload-image] R2 upload failed:', r2Error);
+        return NextResponse.json(
+          { error: r2Error instanceof Error ? r2Error.message : 'R2 upload failed' },
+          { status: 500 }
+        );
+      }
+    }
+
+    // Fallback: Upload to Supabase Storage (Legacy Vercel)
     const { error: uploadError } = await supabaseAdmin.storage
       .from('product-images')
       .upload(fileName, outputBuffer, {
@@ -150,7 +198,7 @@ export async function POST(request: NextRequest) {
       .getPublicUrl(fileName);
 
     const finalSizeKb = Math.round(outputBuffer.length / 1024);
-    console.log(`[api/upload-image] ✓ ${file.name} → ${fileName} (${finalSizeKb} KB)`);
+    console.log(`[api/upload-image] ✓ Supabase: ${file.name} → ${fileName} (${finalSizeKb} KB)`);
 
     return NextResponse.json({
       url: data.publicUrl,
