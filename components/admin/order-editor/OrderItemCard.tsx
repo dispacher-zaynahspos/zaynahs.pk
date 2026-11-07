@@ -30,7 +30,8 @@ export default function OrderItemCard({
   const variantDetails = getItemVariant(item);
   const variantStr = variantDetails.summary;
 
-  const displayImage = variantDetails.imageUrl || item.product?.images?.[0]?.url;
+  const firstImg = item.product?.images?.[0];
+  const displayImage = variantDetails.imageUrl || (typeof firstImg === 'string' ? firstImg : firstImg?.url);
 
   return (
     <div className="border border-gray-200 dark:border-gray-800 rounded-xl p-4 bg-white dark:bg-[#16162a] shadow-xs">

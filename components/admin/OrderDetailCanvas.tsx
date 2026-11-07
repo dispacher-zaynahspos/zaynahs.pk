@@ -292,10 +292,10 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
                 Unfulfilled ({order.items.length})
               </span>
             </div>
-            
             {order.items.map((item, idx) => {
               const variantDetails = getItemVariant(item);
-              const displayImage = variantDetails.imageUrl || item.product.images?.[0]?.url;
+              const firstImg = item.product?.images?.[0];
+              const displayImage = variantDetails.imageUrl || (typeof firstImg === 'string' ? firstImg : firstImg?.url);
 
               return (
                 <div key={idx} className="flex items-start gap-3.5 p-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] last:border-b-0">

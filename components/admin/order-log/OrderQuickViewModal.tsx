@@ -123,12 +123,20 @@ export function OrderQuickViewModal({
   const getItemImage = (item: CartItem): string | undefined => {
     const v = getItemVariant(item);
     if (v.imageUrl) return v.imageUrl;
+    const rawItem = item as unknown as Record<string, unknown>;
+    if (typeof rawItem.imageUrl === 'string' && rawItem.imageUrl) return rawItem.imageUrl;
+    if (typeof rawItem.image_url === 'string' && rawItem.image_url) return rawItem.image_url;
+    if (typeof rawItem.image === 'string' && rawItem.image) return rawItem.image;
     const imgs = item.product?.images;
     if (imgs && imgs.length > 0) {
       const first = imgs[0];
       return typeof first === 'string' ? first : first.url;
     }
-    return (item.product as unknown as { image_url?: string })?.image_url;
+    const rawProd = item.product as unknown as Record<string, unknown> | undefined;
+    if (typeof rawProd?.image_url === 'string' && rawProd.image_url) return rawProd.image_url;
+    if (typeof rawProd?.image === 'string' && rawProd.image) return rawProd.image;
+    if (typeof rawProd?.thumbnail === 'string' && rawProd.thumbnail) return rawProd.thumbnail;
+    return undefined;
   };
 
   const totalQuantity = (order.items || []).reduce((acc, i) => acc + (i.quantity || 1), 0);
