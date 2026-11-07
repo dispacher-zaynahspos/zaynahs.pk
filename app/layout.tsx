@@ -1,34 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import { Plus_Jakarta_Sans, Outfit, Poppins, Inter } from 'next/font/google';
 import { Toaster } from 'sonner';
 import { ThemeProvider } from '@/components/common/ThemeProvider';
 import "./globals.css";
-
-const jakarta = Plus_Jakarta_Sans({
-  subsets: ['latin'],
-  variable: '--font-heading',
-  display: 'swap',
-});
-
-const outfit = Outfit({
-  subsets: ['latin'],
-  variable: '--font-body',
-  display: 'swap',
-});
-
-const poppins = Poppins({
-  subsets: ['latin'],
-  weight: ['400', '500', '600'],
-  variable: '--font-card-poppins',
-  display: 'swap',
-});
-
-const inter = Inter({
-  subsets: ['latin'],
-  weight: ['400', '500', '600'],
-  variable: '--font-card-inter',
-  display: 'swap',
-});
+import '@fontsource-variable/plus-jakarta-sans';
+import '@fontsource-variable/outfit';
 
 import ThemeStyleRegistry from '@/components/common/ThemeStyleRegistry';
 import { getSettings } from '@/lib/services/settings';
@@ -208,12 +183,12 @@ export default async function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${jakarta.variable} ${outfit.variable} ${poppins.variable} ${inter.variable} h-full antialiased overflow-x-clip`}
+      className="h-full antialiased overflow-x-clip"
     >
       <head>
         <ThemeStyleRegistry settings={settings} />
       </head>
-      <body suppressHydrationWarning className={`${jakarta.variable} ${outfit.variable} ${poppins.variable} ${inter.variable} font-body min-h-full flex flex-col bg-gray-50 dark:bg-[#0f0f1b] text-gray-900 dark:text-gray-100 overflow-x-clip`}>
+      <body suppressHydrationWarning className="font-body min-h-full flex flex-col bg-gray-50 dark:bg-[#0f0f1b] text-gray-900 dark:text-gray-100 overflow-x-clip">
         {/* Conditional Script Injection for Tracking Pixels */}
         <Pixels />
         <ThemeProvider
