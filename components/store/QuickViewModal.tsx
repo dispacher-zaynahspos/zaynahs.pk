@@ -148,7 +148,7 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
                         alt={img.alt || product.name}
                         fill
                         sizes="(max-width: 640px) 100vw, 50vw"
-                        className="object-cover"
+                        className="relative z-[1] object-cover"
                         priority={i === 0}
                       />
                     </div>
