@@ -60,6 +60,7 @@ export const ProductCardMedia: React.FC<ProductCardMediaProps> = ({
         priority={priority}
         loading={priority ? undefined : 'lazy'}
         onLoad={() => setIsLoaded(true)}
+        onError={() => setIsLoaded(true)}
       />
       {showSecond && secondImage && (
         <Image

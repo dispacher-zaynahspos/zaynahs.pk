@@ -52,6 +52,15 @@ export function MediaCard({
   hasSelection = false,
 }: MediaCardProps) {
   const [imageLoaded, setImageLoaded] = React.useState(false);
+  const [imageError, setImageError] = React.useState(false);
+  const imgRef = React.useRef<HTMLImageElement>(null);
+
+  React.useEffect(() => {
+    if (imgRef.current?.complete && imgRef.current?.naturalWidth > 0) {
+      setImageLoaded(true);
+    }
+  }, [item.file_url]);
+
   const isGenerating = generatingId === item.id;
   const isVideo = item.mime_type?.startsWith('video/') || item.file_url.match(/\.(mp4|mov|webm)$/i);
   const isBulkDone = bulkCompletedIds.includes(item.id);
@@ -75,41 +84,45 @@ export function MediaCard({
           : 'border-gray-100 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700'
       }`}
     >
-      {/* Checkbox */}
+      {/* Checkbox Selector */}
       {showCheckbox && (
-        mode === 'selector' ? (
-          isSelected && (
-            <div className="absolute inset-0 bg-blue-600/10 flex items-center justify-center z-10 pointer-events-none">
-              <div className="h-6 w-6 rounded-full bg-blue-600 flex items-center justify-center shadow-lg">
-                <Check className="h-3.5 w-3.5 text-white" />
-              </div>
-            </div>
-          )
-        ) : (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggle();
+          }}
+          aria-label={isSelected ? 'Deselect media' : 'Select media'}
+          aria-checked={isSelected}
+          role="checkbox"
+          title={isSelected ? 'Deselect image' : 'Select image'}
+          className={`absolute top-2.5 left-2.5 z-30 p-1 -m-1 rounded-xl cursor-pointer focus:outline-none group/selector select-none transition-all duration-150 ${
+            mode === 'selector' && !isSelected ? 'opacity-85 hover:opacity-100' : 'opacity-100'
+          }`}
+        >
           <div
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggle();
-            }}
-            className={`absolute top-2.5 left-2.5 z-10 p-1.5 rounded-xl cursor-pointer transition-all duration-200 flex items-center justify-center ${
+            className={`w-6 h-6 rounded-lg flex items-center justify-center transition-all duration-150 shadow-md ${
               isSelected
-                ? 'bg-blue-600 text-white shadow-md ring-2 ring-white/90 scale-105'
-                : 'bg-black/50 hover:bg-black/75 backdrop-blur-xs text-white hover:scale-110 shadow-xs'
+                ? 'bg-blue-600 border-2 border-white text-white scale-105 shadow-blue-500/40 ring-2 ring-blue-500/30'
+                : 'bg-black/55 hover:bg-black/80 backdrop-blur-md border-2 border-white/90 hover:border-white text-transparent hover:scale-110 shadow-black/40'
             }`}
-            title={isSelected ? 'Deselect image' : 'Select image'}
           >
-            <input
-              type="checkbox"
-              checked={isSelected}
-              onChange={(e) => {
-                e.stopPropagation();
-                onToggle();
-              }}
-              onClick={(e) => e.stopPropagation()}
-              className="h-4 w-4 rounded border-white/60 cursor-pointer accent-blue-600 block"
-            />
+            {isSelected ? (
+              <Check className="w-3.5 h-3.5 text-white stroke-[3]" />
+            ) : (
+              <div className="w-2 h-2 rounded-xs opacity-0 group-hover/selector:opacity-40 bg-white transition-opacity" />
+            )}
           </div>
-        )
+        </button>
+      )}
+
+      {/* Selector Mode Center Highlight (when selected in picker) */}
+      {showCheckbox && mode === 'selector' && isSelected && (
+        <div className="absolute inset-0 bg-blue-600/10 flex items-center justify-center z-10 pointer-events-none">
+          <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center shadow-lg ring-2 ring-white">
+            <Check className="h-4 w-4 text-white stroke-[3]" />
+          </div>
+        </div>
       )}
 
       {/* Selected Tint */}
@@ -136,21 +149,29 @@ export function MediaCard({
         </>
       ) : (
         <>
-          {!imageLoaded && (
-            <div className="absolute inset-0 bg-gray-100 dark:bg-gray-800/60 animate-pulse pointer-events-none" />
+          {!imageLoaded && !imageError && (
+            <div className="absolute inset-0 bg-gray-100 dark:bg-gray-800/60 animate-pulse pointer-events-none z-[1] transition-opacity duration-300" />
           )}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
+            ref={imgRef}
             src={item.file_url}
             alt={item.alt_text || item.title || item.original_filename || 'Media'}
-            loading={index !== undefined && index < 8 ? 'eager' : 'lazy'}
-            fetchPriority={index !== undefined && index < 4 ? 'high' : 'auto'}
+            loading={index !== undefined && index < 20 ? 'eager' : 'lazy'}
+            fetchPriority={index !== undefined && index < 6 ? 'high' : 'auto'}
             decoding="async"
             onLoad={() => setImageLoaded(true)}
-            className={`absolute inset-0 w-full h-full object-cover z-0 transition-opacity duration-200 ${
-              imageLoaded ? 'opacity-100' : 'opacity-0'
-            }`}
+            onError={() => {
+              setImageError(true);
+              setImageLoaded(true);
+            }}
+            className="absolute inset-0 w-full h-full object-cover z-0"
           />
+          {imageError && (
+            <div className="absolute inset-0 bg-gray-100 dark:bg-gray-850 flex flex-col items-center justify-center p-2 text-center z-[1] text-gray-400">
+              <span className="text-[10px] font-mono line-clamp-2 px-1">{item.original_filename || 'Image unavailable'}</span>
+            </div>
+          )}
         </>
       )}
 

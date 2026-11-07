@@ -7,6 +7,7 @@ import ProductGrid from './ProductGrid';
 import { getContentWidthClass, CATALOG_SECTION_PADDING } from '@/lib/utils/responsiveGrid';
 import { useSearchStore } from '@/store/searchStore';
 import { useScrollRestoration, SCROLL_KEY, isSameStorePath, ScrollRestoreData } from '@/lib/hooks/useScrollRestoration';
+import { getNavigationSnapshot, saveNavigationSnapshot } from '@/lib/navigation/navigationMemory';
 import { useSettings } from '@/lib/hooks/useSettings';
 import {
   FlashSaleSection,
@@ -59,8 +60,19 @@ export default function StoreFront({
   viewportMode,
 }: StoreFrontProps) {
   const searchQuery = useSearchStore((state) => state.searchQuery);
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string | undefined>(undefined);
   useScrollRestoration();
+
+  // Restore active category on back navigation (RULE N1 / SSOT)
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | undefined>(() => {
+    if (typeof window === 'undefined') return undefined;
+    const snap = getNavigationSnapshot();
+    return snap?.activeCategoryId;
+  });
+
+  const handleSelectCategory = useCallback((catId: string | undefined) => {
+    setSelectedCategoryId(catId);
+    saveNavigationSnapshot({ activeCategoryId: catId });
+  }, []);
 
   const allProducts = initialProducts;
   const { settings: liveSettings } = useSettings(settings);
@@ -79,92 +91,61 @@ export default function StoreFront({
     ] as HomepageSection[];
   }, [sections, isPreview, activeSectionId]);
 
-  // Per-section Load More limits — persisted in sessionStorage so back navigation
-  // restores all previously loaded products (prevents card-not-found scroll failures).
-  // ONLY restore on back navigation (popstate) — fresh loads start clean.
-  //
-  // HYDRATION-SAFE: initial state MUST be identical on server and client ({}),
-  // otherwise the server HTML (base limit cards) and client first render
-  // (restored larger limit cards) diverge → React #418 hydration mismatch.
-  // Restoration from sessionStorage is therefore deferred to a post-mount effect.
-  const [loadMoreLimits, setLoadMoreLimits] = useState<Record<string, number>>({});
-
-  // Restore saved limits AFTER hydration (return from product detail or back/forward navigation).
-  useEffect(() => {
+  // Per-section Load More limits — restored SYNCHRONOUSLY in useState initializer
+  // before the first paint (RULE N4: Zero banner/footer landing guarantee).
+  const [loadMoreLimits, setLoadMoreLimits] = useState<Record<string, number>>(() => {
+    if (typeof window === 'undefined') return {};
     try {
-      const currentPath = window.location.pathname + (window.location.search || '');
-      const rawScroll = sessionStorage.getItem(SCROLL_KEY);
-      let isReturnNavigation = false;
-      let limitsToRestore: Record<string, number> | null = null;
-
-      if (rawScroll) {
-        try {
-          const scrollData: ScrollRestoreData = JSON.parse(rawScroll);
-          if (
-            isSameStorePath(scrollData?.path, currentPath) &&
-            scrollData?.timestamp &&
-            Date.now() - scrollData.timestamp < 30 * 60 * 1000
-          ) {
-            isReturnNavigation = true;
-            if (scrollData.loadMoreLimits && Object.keys(scrollData.loadMoreLimits).length > 0) {
-              limitsToRestore = scrollData.loadMoreLimits;
-            }
-          }
-        } catch {}
+      const snap = getNavigationSnapshot();
+      if (snap?.loadMoreLimits && Object.keys(snap.loadMoreLimits).length > 0) {
+        return snap.loadMoreLimits;
       }
-
-      // Also check performance navigation timing (for browser bfcache / hard back)
-      const navEntries = performance?.getEntriesByType?.('navigation') as PerformanceNavigationTiming[];
-      if (navEntries?.[0]?.type === 'back_forward') {
-        isReturnNavigation = true;
-      }
-
-      // Also check live scroll key
-      const cleanSearch = window.location.search.replace(/^\?/, '');
-      const liveKey = `scroll:${window.location.pathname}?${cleanSearch}`;
-      if (sessionStorage.getItem(liveKey)) {
-        isReturnNavigation = true;
-      }
-
-      if (isReturnNavigation) {
-        if (!limitsToRestore) {
-          const saved = sessionStorage.getItem(LOAD_MORE_KEY);
-          if (saved) {
-            const parsed = JSON.parse(saved);
-            if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 0) {
-              limitsToRestore = parsed;
-            }
-          }
+      const rawLimits = sessionStorage.getItem(LOAD_MORE_KEY);
+      if (rawLimits) {
+        const parsed = JSON.parse(rawLimits);
+        if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 0) {
+          return parsed;
         }
-        if (limitsToRestore) {
-          setLoadMoreLimits(limitsToRestore);
-        }
-      } else {
-        // Fresh arrival at storefront (not returning via back): clear saved limits
-        sessionStorage.removeItem(LOAD_MORE_KEY);
       }
     } catch {}
-    // Run once on mount only.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return {};
+  });
+
+  // Post-mount sync & cleanup
+  useEffect(() => {
+    try {
+      const snap = getNavigationSnapshot();
+      if (snap?.loadMoreLimits && Object.keys(snap.loadMoreLimits).length > 0) {
+        setLoadMoreLimits(snap.loadMoreLimits);
+      }
+    } catch {}
   }, []);
 
-  // Persist loadMoreLimits changes to sessionStorage
+  // Persist loadMoreLimits changes to sessionStorage and active navigation snapshot
   useEffect(() => {
     try {
       if (Object.keys(loadMoreLimits).length > 0) {
         sessionStorage.setItem(LOAD_MORE_KEY, JSON.stringify(loadMoreLimits));
+        saveNavigationSnapshot({ loadMoreLimits });
       }
     } catch {}
   }, [loadMoreLimits]);
 
   const handleLoadMore = useCallback((sectionId: string, baseLimit: number) => {
-    // Grow by one batch (baseLimit = the layout's computed per-batch target, which
-    // is already columns-aware so each batch stays full rows).
     const step = baseLimit && baseLimit > 0 ? baseLimit : 8;
-    setLoadMoreLimits((prev) => ({
-      ...prev,
-      [sectionId]: (prev[sectionId] || step) + step,
-    }));
+    setLoadMoreLimits((prev) => {
+      const current = prev[sectionId] || step;
+      const next = current + step;
+      const updated = {
+        ...prev,
+        [sectionId]: next,
+      };
+      try {
+        sessionStorage.setItem(LOAD_MORE_KEY, JSON.stringify(updated));
+        saveNavigationSnapshot({ loadMoreLimits: updated });
+      } catch {}
+      return updated;
+    });
   }, []);
 
   const getValidCategoryIds = (catIdOrSlug: string) => {
@@ -222,7 +203,7 @@ export default function StoreFront({
           <CategoryFilter
             categories={categories}
             selectedCategoryId={selectedCategoryId}
-            onSelectCategory={setSelectedCategoryId}
+            onSelectCategory={handleSelectCategory}
           />
         )}
       </div>

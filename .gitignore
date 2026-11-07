@@ -66,4 +66,5 @@ online_viewer_net*.html
 json
 env-backups/
 gen images/
+.test-artifacts/
 

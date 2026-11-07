@@ -101,6 +101,7 @@ export default function ProductDetailGallery({
                   priority={i === 0}
                   draggable={false}
                   onLoad={() => setLoadedSlides(prev => ({ ...prev, [i]: true }))}
+                  onError={() => setLoadedSlides(prev => ({ ...prev, [i]: true }))}
                 />
               </div>
             ))}

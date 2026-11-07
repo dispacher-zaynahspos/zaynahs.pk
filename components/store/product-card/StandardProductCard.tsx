@@ -218,6 +218,7 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
           priority={false}
           loading="lazy"
           onLoad={() => setIsImgLoaded(true)}
+          onError={() => setIsImgLoaded(true)}
         />
 
         {/* Second image (hover/touch swap) */}

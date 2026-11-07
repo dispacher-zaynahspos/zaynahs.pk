@@ -28,12 +28,21 @@ export function ImageLoadingPlaceholder({
   className = '',
 }: ImageLoadingPlaceholderProps) {
   const currentStyle = style || 'shimmer';
+  const [timedOut, setTimedOut] = React.useState(false);
+
+  React.useEffect(() => {
+    if (isLoaded) return;
+    const timer = setTimeout(() => setTimedOut(true), 1200);
+    return () => clearTimeout(timer);
+  }, [isLoaded]);
+
+  const effectiveLoaded = isLoaded || timedOut;
 
   return (
     <div
       aria-hidden="true"
       className={`absolute inset-0 z-[2] overflow-hidden bg-gray-100 dark:bg-[#16162a] transition-opacity duration-300 pointer-events-none select-none flex items-center justify-center ${
-        isLoaded ? 'opacity-0' : 'opacity-100'
+        effectiveLoaded ? 'opacity-0' : 'opacity-100'
       } ${className}`}
     >
       {currentStyle === 'shimmer' && (

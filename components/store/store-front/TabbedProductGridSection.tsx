@@ -5,6 +5,7 @@ import { HomepageSection, Product, StoreSettings } from '@/lib/types';
 import ProductGrid from '../ProductGrid';
 import { SectionWrapper } from './SectionWrapper';
 import { useCatalogColumns } from '@/lib/hooks/useCatalogColumns';
+import { getNavigationSnapshot, saveNavigationSnapshot } from '@/lib/navigation/navigationMemory';
 
 interface Tab {
   id: string;
@@ -27,7 +28,27 @@ export function TabbedProductGridSection({ section, allProducts, activeSettings 
     { id: 'best', label: 'Best Sellers', source: 'featured' },
   ];
 
-  const [activeTabId, setActiveTabId] = useState<string>(tabs[0]?.id || 'new');
+  const [activeTabId, setActiveTabId] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      const snap = getNavigationSnapshot();
+      if (snap?.activeTab && tabs.some((t) => t.id === snap.activeTab)) {
+        return snap.activeTab;
+      }
+      try {
+        const saved = sessionStorage.getItem(`tabbed_grid_tab_${section.id}`);
+        if (saved && tabs.some((t) => t.id === saved)) return saved;
+      } catch {}
+    }
+    return tabs[0]?.id || 'new';
+  });
+
+  const handleTabChange = (tabId: string) => {
+    setActiveTabId(tabId);
+    try {
+      sessionStorage.setItem(`tabbed_grid_tab_${section.id}`, tabId);
+      saveNavigationSnapshot({ activeTab: tabId });
+    } catch {}
+  };
   const limitPerTab = Number(s.limit_per_tab) || 8;
 
   const activeTab = tabs.find((t) => t.id === activeTabId) || tabs[0];
@@ -108,7 +129,7 @@ export function TabbedProductGridSection({ section, allProducts, activeSettings 
             <button
               key={tab.id}
               type="button"
-              onClick={() => setActiveTabId(tab.id)}
+              onClick={() => handleTabChange(tab.id)}
               className={`px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex-shrink-0 ${
                 activeTabId === tab.id
                   ? 'text-white shadow-sm'

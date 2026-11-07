@@ -15,6 +15,7 @@ import variants from './card-variants.json';
 import type { CardProduct, CardVariant } from './types';
 import { getSharedTitleClampClass } from '@/lib/utils/styles';
 import type { StoreSettings } from '@/lib/types';
+import { saveScrollPosition } from '@/lib/navigation/navigationMemory';
 
 const QuickViewModal = dynamic(() => import('@/components/store/QuickViewModal'), { ssr: false, loading: () => null });
 
@@ -76,11 +77,15 @@ export function ProductCard({ product: p, variant, limit, currencySymbol, cardMo
   const img1 = (p.swatchNode !== undefined ? (p.image || p.swatches[sel]?.image) : (p.swatches[sel]?.image || p.image)) as string;
   const [imgLoaded, setImgLoaded] = useState(false);
   const prevImgRef = useRef(img1);
+  const mainImgRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
     if (prevImgRef.current !== img1) {
       prevImgRef.current = img1;
       setImgLoaded(false);
+    }
+    if (mainImgRef.current?.complete && mainImgRef.current?.naturalWidth > 0) {
+      setImgLoaded(true);
     }
   }, [img1]);
 
@@ -89,7 +94,7 @@ export function ProductCard({ product: p, variant, limit, currencySymbol, cardMo
   const titleClampClass = getSharedTitleClampClass(settings?.title_line_limit);
   const vendor = <div className="el vendor">{p.vendor}</div>;
   const rating = <div className="el rating">{stars}{!!p.rating && <small>({p.reviewCount ?? p.rating})</small>}</div>;
-  const title = <Link className={`el title ttl ${titleClampClass}`} href={p.href}>{p.title}</Link>;
+  const title = <Link className={`el title ttl ${titleClampClass}`} href={p.href} onClick={() => saveScrollPosition(p.id)}>{p.title}</Link>;
   const desc = <div className="el desc">{p.description}</div>;
   const price = (
     <div className={`el price${sale ? ' on-sale' : ''}`}>
@@ -159,7 +164,7 @@ export function ProductCard({ product: p, variant, limit, currencySymbol, cardMo
     <>
       <article className={`pc${hasHoveredVariant ? ' has-hovered-variant' : ''}`} id={`product-card-${p.id}`} data-product-id={p.id} ref={cardRef} onPointerDown={(e) => { if (e.pointerType === 'touch') setManualFocus(); }}>
         <div className="pc-media">
-          <Link className="ovl" href={p.href} aria-label={p.title} />
+          <Link className="ovl" href={p.href} aria-label={p.title} onClick={() => saveScrollPosition(p.id)} />
           <ImageLoadingPlaceholder
             style={originalSettings?.image_loading_style}
             logoUrl={originalSettings?.logo_url}
@@ -167,12 +172,14 @@ export function ProductCard({ product: p, variant, limit, currencySymbol, cardMo
             isLoaded={imgLoaded}
           />
           <img
+            ref={mainImgRef}
             className="i1"
             src={img1}
             alt=""
             loading="lazy"
             decoding="async"
             onLoad={() => setImgLoaded(true)}
+            onError={() => setImgLoaded(true)}
           />
           {p.image2 && !userSelected && hoveredSwatch === null && <img className="i2" src={p.image2} alt="" loading="lazy" decoding="async" />}
           {p.source ? (

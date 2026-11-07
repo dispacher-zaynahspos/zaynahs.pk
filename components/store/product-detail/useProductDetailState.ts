@@ -4,6 +4,10 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Product, StoreSettings, ProductVariant, ProductModifier } from '@/lib/types';
 import { getProductsByIdsClient } from '@/lib/services/products-client';
 import { trackEvent } from '@/lib/trackEvent';
+import {
+  getProductDetailSnapshot,
+  saveProductDetailSnapshot,
+} from '@/lib/navigation/navigationMemory';
 
 interface UseProductDetailStateProps {
   product: Product;
@@ -17,12 +21,29 @@ export function useProductDetailState({ product, settings }: UseProductDetailSta
       : [{ id: 'dummy', product_id: product.id, url: "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%23f3f4f6'/%3E%3C/svg%3E", alt: product.name, sort_order: 0, is_primary: true, created_at: '' }];
   }, [product.images, product.id, product.name]);
 
-  const [activeImage, setActiveImage] = useState(images.find(img => img.is_primary)?.url || images?.[0]?.url);
-  const [activeImageIndex, setActiveImageIndex] = useState(
-    Math.max(0, images.findIndex(img => img.url === (images.find(i => i.is_primary)?.url || images?.[0]?.url)))
-  );
+  const initialSnapshot = useMemo(() => {
+    return getProductDetailSnapshot(product.id);
+  }, [product.id]);
 
-  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | undefined>(undefined);
+  const initialVariant = useMemo(() => {
+    if (!initialSnapshot?.variantId || !product.variants?.length) return undefined;
+    return product.variants.find(v => v.id === initialSnapshot.variantId && v.active);
+  }, [initialSnapshot, product.variants]);
+
+  const [activeImageIndex, setActiveImageIndex] = useState(() => {
+    if (typeof initialSnapshot?.activeImageIndex === 'number' && initialSnapshot.activeImageIndex >= 0 && initialSnapshot.activeImageIndex < images.length) {
+      return initialSnapshot.activeImageIndex;
+    }
+    const primaryIdx = images.findIndex(img => img.url === (images.find(i => i.is_primary)?.url || images?.[0]?.url));
+    return Math.max(0, primaryIdx);
+  });
+
+  const [activeImage, setActiveImage] = useState(() => {
+    if (initialSnapshot?.activeImageUrl) return initialSnapshot.activeImageUrl;
+    return images[activeImageIndex]?.url || images[0]?.url;
+  });
+
+  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | undefined>(initialVariant);
   const [selectedModifiers, setSelectedModifiers] = useState<ProductModifier[]>([]);
   const [quantity, setQuantity] = useState(1);
   const [activeDetailTab, setActiveDetailTab] = useState<'description' | 'faq' | 'returns'>('description');
@@ -200,6 +221,20 @@ export function useProductDetailState({ product, settings }: UseProductDetailSta
       currency: settings.currency || 'PKR'
     });
   }, [selectedVariant, mounted, product.name, product.price, settings.currency]);
+
+  useEffect(() => {
+    if (!mounted) return;
+    saveProductDetailSnapshot(product.id, {
+      variantId: selectedVariant?.id,
+      color: selectedVariant?.color,
+      size: selectedVariant?.size,
+      material: selectedVariant?.material,
+      customValue: selectedVariant?.custom_value,
+      activeImageIndex,
+      activeImageUrl: activeImage,
+      quantity,
+    });
+  }, [selectedVariant, activeImageIndex, activeImage, quantity, mounted, product.id]);
 
   return {
     images,
