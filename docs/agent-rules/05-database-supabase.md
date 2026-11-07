@@ -236,3 +236,12 @@ Non-negotiables for every migration that touches a table:
   revoke the table grant first, then re-grant the safe columns.
 - Verify before closing a task: `npm run security:lock` (apply, idempotent) then
   `npm run security:verify`, and `npm run check:setup` must stay green.
+
+---
+
+## RULE D20 — Supabase Scope on Workers Paid ($5): Database & Auth ONLY
+When a store operates on the Cloudflare Workers ($5 Paid) Zero-Vercel Architecture:
+1. **Supabase Scope**: Supabase is strictly dedicated to **PostgreSQL Database + Auth ONLY**. Storage is cutover to Cloudflare R2 (`img.<domain>`).
+2. **Direct Edge Webhooks**: All Supabase database triggers/webhooks ping the Cloudflare Worker directly (`https://<domain>/api/revalidate`) with zero middleman.
+3. **Universal Domain Mandate**: Webhook targets and docs must never hardcode specific domain names — use `<domain>` / `<domain>.pk` universally.
+

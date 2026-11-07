@@ -135,3 +135,12 @@ Verified 2026-10. ALL media uploads go through a single system — never a bespo
 - **Hero LCP Preload**: Slide #1 on Hero Banner must have `fetchPriority="high"`, `decoding="sync"`, and responsive `<source>` with `'banner'` preset for mobile (<768px). Guarantees LCP < 1.8s even on throttled 4G.
 - **Zero-Block Pixels**: All marketing tracking scripts in `components/Pixels.tsx` must use `strategy="lazyOnload"` (never `afterInteractive`) to prevent main-thread contention during hydration, eliminating TBT.
 - **Zero-Block Fonts**: Theme font stylesheets in `ThemeStyleRegistry.tsx` must render as `<link rel="preconnect">` + `<link rel="stylesheet">`, never inline `@import url(...)` inside `<style>` blocks which halt CSSOM layout.
+
+## RULE S10 — Cloudflare R2 Cutover on Workers Paid ($5)
+When a store migrates to Cloudflare Workers ($5 Paid) Zero-Vercel Architecture:
+1. **Supabase Scope Restriction**: Supabase is strictly restricted to **PostgreSQL Database + Auth ONLY**. Storage is phased out.
+2. **Media in Cloudflare R2**: All new image uploads and product media cutover from Supabase Storage to Cloudflare R2 (`img.<domain>`).
+3. **Zero Egress & Bandwidth Fees**: Cloudflare R2 provides zero egress fees and unlimited scale, eliminating storage quotas and bandwidth costs.
+4. **Universal Domain Standard**: Never hardcode store domains in storage configs or rules — always use `img.<domain>` and `<domain>`.
+5. **Database Webhooks Direct to Cloudflare**: All Supabase database triggers/webhooks ping the Cloudflare Worker directly (`https://<domain>/api/revalidate`) with zero middleman.
+
