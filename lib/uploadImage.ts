@@ -64,14 +64,17 @@ export const uploadImage = async (file: File | Blob, bucket: string, customName?
       } else {
         // Server-side conversion using sharp
         try {
-          const sharp = (await import('sharp')).default;
-          const arrayBuffer = await file.arrayBuffer();
-          const buffer = Buffer.from(arrayBuffer);
-          const webpBuffer = await sharp(buffer)
-            .webp({ quality: 80 })
-            .toBuffer();
-          webpFile = new Blob([new Uint8Array(webpBuffer)], { type: 'image/webp' });
-          fileExtension = 'webp';
+          const { loadSharp } = await import('@/lib/platform/sharp-loader');
+          const sharp = await loadSharp();
+          if (sharp) {
+            const arrayBuffer = await file.arrayBuffer();
+            const buffer = Buffer.from(arrayBuffer);
+            const webpBuffer = await sharp(buffer)
+              .webp({ quality: 80 })
+              .toBuffer();
+            webpFile = new Blob([new Uint8Array(webpBuffer)], { type: 'image/webp' });
+            fileExtension = 'webp';
+          }
         } catch (err) {
           console.warn('[uploadImage] Server side sharp compression failed, using original:', err);
         }
