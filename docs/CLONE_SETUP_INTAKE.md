@@ -1,94 +1,99 @@
-# 🧩 CLONE SETUP — Agent Intake Flow (universal, all IDEs/agents)
+# 🧩 CLONE SETUP — Agent Intake Flow (Universal Standards)
 
-> **Trigger:** jab user kahe **"clone setup"** / **"/clone setup"** / **"new store setup"** / **"naya clone banao"** — koi bhi coding agent (OpenCode, Cursor, Claude Code, Copilot, etc.) **ye exact flow** follow kare. Ye `scripts/clone-setup.mjs` (One-Command Clone Setup) ka human-facing intake hai.
+> **Trigger:** Jab bhi user kahe **"clone setup"** / **"/clone setup"** / **"new store setup"** / **"naya clone banao"** — koi bhi coding agent (Antigravity, Cursor, Claude Code, Copilot, etc.) **ye exact flow** follow kare.
 
-## STEP 1 — Agent user ko required credentials ki list de (ye table + direct links bhejo)
+---
 
-User ko ye maango, har ek ke **direct link** ke saath. User sab paste kar de to STEP 2.
+## 🛑 STEP 0 — MANDATORY FIRST STEP (Poocho Kahan Aur Kaise Setup Karna Hai)
 
-| # | Credential (env key) | Direct link (yahan se lo) | Permissions / Scope |
-|---|----------------------|---------------------------|---------------------|
-| 1 | `SUPABASE_MGMT_TOKEN` | https://supabase.com/dashboard/account/tokens → "Generate new token" | Full (project create + SQL) |
-| 2 | `SUPABASE_PROJECT_REF` | https://supabase.com/dashboard/project/_/settings/general → **Reference ID** | — |
-| 3 | `NEXT_PUBLIC_SUPABASE_URL` | https://supabase.com/dashboard/project/_/settings/api → **Project URL** | — |
-| 4 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | https://supabase.com/dashboard/project/_/settings/api → **anon public** | — |
-| 5 | `SUPABASE_SERVICE_ROLE_KEY` | https://supabase.com/dashboard/project/_/settings/api → **service_role** (secret) | — |
-| 6 | `VERCEL_TOKEN` | https://vercel.com/account/tokens → "Create Token" | **Full Account** (ya team), no expiry |
-| 7 | `VERCEL_PROJECT_NAME` | https://vercel.com/dashboard → project → name copy | — |
-| 8 | `VERCEL_TEAM_ID` *(sirf team)* | https://vercel.com/account → Team Settings → **Team ID** | — |
-| 9 | `GITHUB_USERNAME` + `GITHUB_REPO` | https://github.com → repo owner + repo name | — |
-| 10 | `GITHUB_TOKEN` | https://github.com/settings/tokens/new?scopes=repo,workflow,admin:repo_hooks&description=clone-setup (scopes pre-selected) | **`repo`, `workflow`, `admin:repo_hooks`** |
-| 11 | `CLOUDFLARE_API_TOKEN` | https://dash.cloudflare.com/profile/api-tokens → "Create Custom Token" | **Zone:Edit, DNS:Edit, Cache Rules:Edit, Zone Settings:Edit, Cache Purge:Purge, Analytics:Read** → Zone Resources: **All zones** |
-| 12 | `CLOUDFLARE_ZONE_ID` | https://dash.cloudflare.com → domain → **Overview** (right sidebar) → Zone ID | — |
-| 13 | `CF_ACCOUNT_ID` | https://dash.cloudflare.com → domain → **Overview** (right sidebar) → Account ID | — |
-| 14 | `NEXT_PUBLIC_SITE_URL` | Final site URL, e.g. `https://www.yourstore.pk` (koi redirect nahi) | — |
-| 15 | `NEXT_PUBLIC_BRAND_NAME` | Store brand name, e.g. `Yourstore.pk` | — |
-| 16 | `NEXT_PUBLIC_ADMIN_EMAIL` | Admin login email(s), comma-separated | — |
-| 17 | `REVALIDATE_SECRET` | Koi bhi strong string (sab stores ek jaisa chalega) | — |
-| — | *(optional)* `GEMINI_API_KEY` | https://aistudio.google.com/app/apikey → "Create API key" | AI listings/SEO automation |
-| — | *(optional)* `GOOGLE_SITE_VERIFICATION` | https://search.google.com/search-console → property → HTML tag | SEO |
-| — | *(optional)* `NEXT_PUBLIC_META_PIXEL_ID`, `META_*` | https://business.facebook.com/events_manager | Pixel/catalog |
+Agent foran setup shuru nahi karega, balki **pehle user se poochega**:
 
-> **Links note:** Supabase ke `/project/_/...` links me `_` khud-ba-khud selected project pe resolve ho jaata hai (pehle us project ko dashboard me open/select kar lo). GitHub link scopes pre-ticked aata hai — bas "Generate token" dabao.
+1. **Store & Domain Name:**
+   - *"Kis store aur domain ke liye clone setup karna hai?"* (e.g. `<store>`, `<domain>.pk`)
+2. **Architecture Target:**
+   - **Option A (Standard & Recommended):** **Cloudflare Workers ($5 Paid) — Zero Vercel**
+     - Compute: Cloudflare Workers (300+ edge nodes, 0ms cold start)
+     - Database & Auth: Supabase (PostgreSQL + RLS ONLY)
+     - Media / Images: Cloudflare R2 (`img.<domain>`) — Supabase Storage phased out (0 egress fees)
+     - Webhooks: Supabase triggers direct to `https://<domain>/api/revalidate`
+     - Vercel: 0% / Disconnected
+   - **Option B (Legacy):** **Vercel + Supabase** (Agar user explicitly Vercel chahe)
 
+---
 
-> **Non-API prerequisites (user khud karega):** (a) Supabase/Vercel/Cloudflare accounts + domain banwana (billing), (b) domain Cloudflare pe add karke uske **nameservers registrar (PKNIC for .pk) par Cloudflare NS** pe point karna. In ke baghair baqi sab agent karega.
+## STEP 1 — Required Credentials Intake
 
-## STEP 2 — Agent env file banaye
-Jab user saari values de de, agent `env-backups/<store>.env.local` likhe (same keys), aur confirm kare ke required 12 keys (table #1–7, 11–12, 14–15, 17) maujood hain. `.env.example` canonical key list hai.
+User ke response ke mutabiq credentials table bhejo direct links ke saath:
 
-## STEP 3 — Agent setup chalaye (ek command)
+### Required for Option A (Cloudflare Workers $5 Paid — Zero Vercel):
+| # | Credential (env key) | Direct Link | Permissions / Scope |
+|---|----------------------|-------------|---------------------|
+| 1 | `SUPABASE_MGMT_TOKEN` | https://supabase.com/dashboard/account/tokens | Full (project create + SQL) |
+| 2 | `SUPABASE_PROJECT_REF` | https://supabase.com/dashboard/project/_/settings/general | Reference ID |
+| 3 | `NEXT_PUBLIC_SUPABASE_URL` | https://supabase.com/dashboard/project/_/settings/api | Project URL |
+| 4 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | https://supabase.com/dashboard/project/_/settings/api | anon public |
+| 5 | `SUPABASE_SERVICE_ROLE_KEY` | https://supabase.com/dashboard/project/_/settings/api | service_role (secret) |
+| 6 | `CLOUDFLARE_API_TOKEN` | https://dash.cloudflare.com/profile/api-tokens | **Workers:Edit, R2:Edit, Zone:Edit, DNS:Edit, Cache:Edit** |
+| 7 | `CLOUDFLARE_ZONE_ID` | https://dash.cloudflare.com → domain → Overview | Zone ID |
+| 8 | `CF_ACCOUNT_ID` | https://dash.cloudflare.com → domain → Overview | Account ID |
+| 9 | `GITHUB_USERNAME` + `GITHUB_REPO` | https://github.com | Repo owner + repo name |
+| 10 | `GITHUB_TOKEN` | https://github.com/settings/tokens/new | `repo`, `workflow` |
+| 11 | `NEXT_PUBLIC_SITE_URL` | e.g. `https://www.<domain>.pk` | Final canonical URL |
+| 12 | `NEXT_PUBLIC_BRAND_NAME` | e.g. `<BrandName>.pk` | Brand name |
+| 13 | `NEXT_PUBLIC_ADMIN_EMAIL` | Admin login email(s) | Comma-separated |
+| 14 | `REVALIDATE_SECRET` | Strong secret string | Shared across clones |
+
+*(Note: Option A mein Vercel tokens ki koi zaroorat nahi hai).*
+
+### Additional for Option B (Vercel Legacy):
+- `VERCEL_TOKEN`, `VERCEL_PROJECT_NAME`, `VERCEL_TEAM_ID` (from https://vercel.com/account/tokens).
+
+---
+
+## STEP 2 — Agent Env Backup File Banaye
+
+User ki di hui values se `env-backups/<store>.env.local` create karo aur verify karo ke required keys mojud hain.
+
+---
+
+## STEP 3 — Setup Command Execute Karo (1-Command Orchestrator)
+
+### For Option A (Cloudflare Workers $5 Paid):
+```bash
+# 1. DB Schema + Triggers + Admin + Brand setup
+npm run clone:setup -- --store=<store> --skip-vercel --yes
+
+# 2. Deploy Cloudflare Worker & Cache Shield
+node scripts/stores-bulk-ops.mjs sync-cf
+```
+
+### For Option B (Legacy Vercel):
 ```bash
 npm run clone:setup -- --store=<store> --deploy --yes
 ```
-Ye idempotent orchestrator chalata hai: preflight → db:schema → db:webhooks → db:admin → db:brand → vercel (env+deploy) → cf:dns → cf:rules → verify.
 
-## STEP 4 — Agent user ko bataye
-- Agar `clone:setup` ne Cloudflare zone **pending** dikhaya → user ko nameservers registrar par switch karne ko kahe (agent ne NS values output ki hongi).
-- Tab tak test URL: `https://<VERCEL_PROJECT_NAME>.vercel.app`.
-- NS propagate hote hi custom domain live.
+---
 
-## Rules agent ke liye
-- Secrets kabhi chat/logs/commit me plaintext mat chhodo (sirf `env-backups/` me, jo `.gitignore` me hai).
-- Already-live store par `--skip-db` do (warna `db:brand` brand text overwrite kar dega).
-- Fresh clone ke baad `npm run check:setup` green hona chahiye (RULE SYNC1).
+## STEP 4 — Post-Setup Health Sweep (MANDATORY)
 
-## STEP 5 — Agent MANDATORY post-setup verification (RULE C12 + CF-MANDATORY)
-**Clone setup tabhi complete maano jab ye sab green ho:**
+Setup tabhi complete maana jayega jab ye 4 checks green hon:
 
-### 5a. CF Cache Rules verified
-```bash
-# Verify CF cache rules exist on the new store
-node scripts/update-cf-cache-rules.mjs --store=<store>
-# Expected: DEPLOYED ✅, RulesCount: 4
-```
-Agar 0 rules → `clone-setup.mjs` ka `cf:rules` step fail hua tha. Re-run karein.
-
-### 5b. Cache headers correct
-```bash
-curl -sI https://www.<domain>/ | grep -i "cache-control\|stale-while-revalidate\|cf-cache"
-# Expected:
-#   cache-control: ...s-maxage=300...
-#   stale-while-revalidate should be ≤ 300 (NOT 31535700!)
-#   cf-cache-status: HIT (2nd request pe)
-```
-Agar `stale-while-revalidate=31535700` dikhe → `unstable_cache revalidate` galat hai (86400 nahi, 300 hona chahiye).
-
-### 5c. Admin save → storefront freshness test
-```bash
-# 1. Admin se koi setting change karo (e.g. ticker text)
-# 2. 30 seconds wait karo
-# 3. Storefront pe check karo — change dikhna chahiye
-# Agar nahi dikhe → revalidateTag bug hai (C12.1 check karo)
-```
-
-### 5d. Webhook test
-```bash
-curl -X POST https://www.<domain>/api/revalidate \
-  -H "Content-Type: application/json" \
-  -H "x-revalidate-secret: $REVALIDATE_SECRET" \
-  -d '{"type":"UPDATE","table":"store_settings","record":{}}'
-# Expected: {"revalidated":true,"table":"store_settings","type":"UPDATE"}
-```
-
-> **Ye steps skip karna BANNED hai.** 2026-10 me 4 stores bina CF rules ke ship ho gaye the — admin changes storefront pe nazar nahi aate the weeks tak. RULE C12 + CF-MANDATORY ka reference: `docs/agent-rules/08-caching-isr-ssr.md` aur `docs/agent-rules/07-deployment-vercel-cloudflare.md`.
+1. **Edge Cache / Worker Status:**
+   ```bash
+   curl -sI "https://www.<domain>/" | grep -i "server\|x-opennext\|cache"
+   # Must return HTTP 200 OK
+   ```
+2. **Revalidation Webhook Check:**
+   ```bash
+   curl -X POST "https://www.<domain>/api/revalidate" \
+     -H "Content-Type: application/json" \
+     -H "x-revalidate-secret: $REVALIDATE_SECRET" \
+     -d '{"type":"UPDATE","table":"store_settings","record":{}}'
+   # Expected: {"revalidated":true,"table":"store_settings","type":"UPDATE"}
+   ```
+3. **Database Relational Orders Check:**
+   `scripts/verify-store-network.mjs` chala kar real relational checkout verify karo.
+4. **Setup Sync Verification:**
+   ```bash
+   npm run check:setup && npx tsc --noEmit
+   ```
