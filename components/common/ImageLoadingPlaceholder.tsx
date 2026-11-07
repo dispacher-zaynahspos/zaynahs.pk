@@ -41,7 +41,7 @@ export function ImageLoadingPlaceholder({
   return (
     <div
       aria-hidden="true"
-      className={`absolute inset-0 z-[2] overflow-hidden bg-gray-100 dark:bg-[#16162a] transition-opacity duration-300 pointer-events-none select-none flex items-center justify-center ${
+      className={`absolute inset-0 z-0 overflow-hidden bg-gray-100 dark:bg-[#16162a] transition-opacity duration-300 pointer-events-none select-none flex items-center justify-center ${
         effectiveLoaded ? 'opacity-0' : 'opacity-100'
       } ${className}`}
     >

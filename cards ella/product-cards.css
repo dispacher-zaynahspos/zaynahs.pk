@@ -10,7 +10,7 @@
 @media(hover:hover){[data-lift=on] .pc:hover{transform:translateY(-3px)}}
 .pc-media{position:relative;width:100%;aspect-ratio:var(--ratio,3/4);overflow:hidden;background:#f3f3f3;container-type:inline-size}
 [data-ratio=auto] .pc-media{aspect-ratio:auto}[data-ratio=auto] .i1{position:static;height:auto}
-.pc-media img{position:absolute;inset:0;width:100%;height:100%;object-fit:var(--fit,cover);display:block}
+.pc-media img{position:absolute;inset:0;width:100%;height:100%;object-fit:var(--fit,cover);display:block;z-index:1}
 .i1{transition:transform .5s cubic-bezier(.16,1,.3,1)}.i2{opacity:0;transition:opacity .35s,transform .35s cubic-bezier(.16,1,.3,1)}
 [data-hover=none] .i2{display:none}
 [data-hover=second_image] :is(html:not(.touch) .pc:hover,.pc.active,.pc.is-in-focus) .i2{opacity:1}
@@ -20,7 +20,7 @@
 [data-hover=blur_crossfade] .i2{transform:scale(1.05)}[data-hover=blur_crossfade] :is(html:not(.touch) .pc:hover,.pc.active,.pc.is-in-focus) .i2{opacity:1;transform:none}
 [data-hover=flip_3d] .pc-media{perspective:800px}[data-hover=flip_3d] .i2{transform:rotateY(90deg)}[data-hover=flip_3d] :is(html:not(.touch) .pc:hover,.pc.active,.pc.is-in-focus) .i2{opacity:1;transform:none}
 [data-hover=zoom] .i2{display:none}[data-hover=zoom] :is(html:not(.touch) .pc:hover,.pc.active,.pc.is-in-focus) .i1{transform:scale(1.06)}
-.ovl{position:absolute;inset:0;z-index:1}.badge{position:absolute;z-index:3;line-height:1.3}
+.ovl{position:absolute;inset:0;z-index:5}.badge{position:absolute;z-index:3;line-height:1.3}
 .pc-actions{position:absolute;inset:0;z-index:25;pointer-events:none;opacity:0;transition:opacity .3s cubic-bezier(.16,1,.3,1),transform .3s cubic-bezier(.16,1,.3,1);will-change:opacity,transform}
 :is(html:not(.touch) .pc:hover,.pc.active,.pc.is-in-focus) .pc-actions{opacity:1;transform:none!important}:is(html:not(.touch) .pc:hover,.pc.active,.pc.is-in-focus) .pc-actions .act{pointer-events:auto}
 .pc-actions .act{position:absolute;width:var(--a,40px);height:var(--a,40px);display:grid;place-items:center;border-radius:50%;background:#fff;box-shadow:0 1px 4px #0002;color:#1f1f1f;pointer-events:none;max-width:100%}
