@@ -4,6 +4,18 @@ import { useEffect } from 'react';
 
 export default function ChunkErrorListener() {
   useEffect(() => {
+    // 0. Silently strip _r cache buster parameter from address bar upon successful load
+    if (typeof window !== 'undefined') {
+      try {
+        const url = new URL(window.location.href);
+        if (url.searchParams.has('_r')) {
+          url.searchParams.delete('_r');
+          const cleanUrl = url.pathname + (url.search ? url.search : '') + url.hash;
+          window.history.replaceState({}, '', cleanUrl);
+        }
+      } catch {}
+    }
+
     const handleChunkError = (message?: string) => {
       if (!message) return;
       const lower = message.toLowerCase();
