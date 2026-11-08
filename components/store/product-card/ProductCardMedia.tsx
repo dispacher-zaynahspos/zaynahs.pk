@@ -60,7 +60,7 @@ export const ProductCardMedia: React.FC<ProductCardMediaProps> = ({
         fill
         unoptimized
         sizes="(max-width: 768px) 50vw, 25vw"
-        className={`${fitClass} pointer-events-none${
+        className={`relative z-[1] ${fitClass} pointer-events-none${
           isZoom ? ' hover-zoom' : ''
         }${showSecond ? ' hover-fade-out' : ' transition-opacity duration-200'}`}
         priority={priority}

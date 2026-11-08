@@ -238,3 +238,16 @@ Non-negotiables for every migration that touches a table:
   revoke the table grant first, then re-grant the safe columns.
 - Verify before closing a task: `npm run security:lock` (apply, idempotent) then
   `npm run security:verify`, and `npm run check:setup` must stay green.
+
+---
+
+## RULE D20 — Supabase Scope on Workers Paid ($5): Database & Auth ONLY (0% Supabase Storage)
+When a store operates on the Cloudflare Workers ($5 Paid) Zero-Vercel Architecture:
+1. **Supabase Scope (Strict)**: Supabase is strictly dedicated to **PostgreSQL Database + Auth ONLY**.
+2. **0% Supabase Storage Mandate**: **NEVER use Supabase Storage** for images, videos, banners, or reviews on the S5 plan. Any new uploads, media registration, or product listings MUST bypass Supabase Storage and upload directly to Cloudflare R2 (`img.<domain>`).
+3. **0% Vercel Compute**: Vercel is completely disconnected and eliminated from the deployment pipeline.
+4. **Direct Edge Webhooks**: All Supabase database triggers/webhooks ping the Cloudflare Worker directly (`https://<domain>/api/revalidate`) with zero middleman.
+5. **Universal Domain Mandate**: Webhook targets and docs must never hardcode specific domain names — use `<domain>` / `<domain>.pk` and `img.<domain>` universally.
+6. **Dual Architecture Compatibility**: If the user explicitly asks for Legacy Vercel mode, Supabase Storage bucket `product-images` is permitted. Otherwise, S5 Workers standard applies strictly.
+
+

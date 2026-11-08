@@ -35,25 +35,17 @@ export const getOptimizedImageUrl = (url: string, width: number, quality = 80): 
     if (!isSupabase && !isRelativeStorage) return url;
 
     if (isRelativeStorage) {
-      const u = new URL(url, 'https://dummy.local');
+      const supabaseUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ziucrfpebpxijqhwmqre.supabase.co').replace(/\/+$/, '');
+      const pathAfterStorage = url.replace(/^\/storage\//, '');
+      const fullUrl = `${supabaseUrl}/storage/v1/object/public/${pathAfterStorage}`;
+      const u = new URL(fullUrl);
       if (!u.searchParams.has('width')) u.searchParams.set('width', String(width));
       if (!u.searchParams.has('quality')) u.searchParams.set('quality', String(quality));
-      const qs = u.searchParams.toString();
-      return `${u.pathname}${qs ? `?${qs}` : ''}`;
+      return u.toString();
     }
 
     const u = new URL(url);
     if (!u.hostname.includes('supabase.co')) return url;
-
-    // Convert direct Supabase storage URL to domain-proxied edge-cached /storage/
-    const publicStoragePrefix = '/storage/v1/object/public/';
-    if (u.pathname.includes(publicStoragePrefix)) {
-      const pathAfterPublic = u.pathname.substring(u.pathname.indexOf(publicStoragePrefix) + publicStoragePrefix.length);
-      if (!u.searchParams.has('width')) u.searchParams.set('width', String(width));
-      if (!u.searchParams.has('quality')) u.searchParams.set('quality', String(quality));
-      const qs = u.searchParams.toString();
-      return `/storage/${pathAfterPublic}${qs ? `?${qs}` : ''}`;
-    }
 
     if (!u.searchParams.has('width')) u.searchParams.set('width', String(width));
     if (!u.searchParams.has('quality')) u.searchParams.set('quality', String(quality));

@@ -1,6 +1,5 @@
 import { ImageResponse } from 'next/og';
 
-export const runtime = 'edge';
 
 /**
  * Dynamic branded Open Graph image generator.

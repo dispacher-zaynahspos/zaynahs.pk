@@ -58,8 +58,7 @@ export default function ChunkErrorListener() {
       }
     };
 
-    // Note: useCapture=true is required because script element errors DO NOT BUBBLE.
-    window.addEventListener('error', onError, true);
+    window.addEventListener('error', onError);
     window.addEventListener('unhandledrejection', onUnhandledRejection);
 
     // Unregister legacy/stale service workers to prevent stale cache & WebView bugs
@@ -72,7 +71,7 @@ export default function ChunkErrorListener() {
     }
 
     return () => {
-      window.removeEventListener('error', onError, true);
+      window.removeEventListener('error', onError);
       window.removeEventListener('unhandledrejection', onUnhandledRejection);
     };
   }, []);

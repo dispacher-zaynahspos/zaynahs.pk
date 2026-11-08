@@ -1,6 +1,6 @@
-# 🧩 CLONE SETUP — Agent Intake Flow (universal, all IDEs/agents)
+# 🧩 CLONE SETUP — Agent Intake Flow (Universal Standards)
 
-> **Trigger:** jab user kahe **"clone setup"** / **"/clone setup"** / **"new store setup"** / **"naya clone banao"** — koi bhi coding agent (OpenCode, Cursor, Claude Code, Copilot, etc.) **ye exact flow** follow kare. Ye `scripts/clone-setup.mjs` (One-Command Clone Setup) ka human-facing intake hai.
+> **Trigger:** Jab bhi user kahe **"clone setup"** / **"/clone setup"** / **"new store setup"** / **"naya clone banao"** — koi bhi coding agent (Antigravity, Cursor, Claude Code, Copilot, etc.) **ye exact flow** follow kare.
 
 ## STEP 0 — Target Architecture Confirmation
 Agent pehle user se poochhe ya verify kare:
@@ -16,7 +16,7 @@ Agent pehle user se poochhe ya verify kare:
 
 ## STEP 1 — Agent user ko required credentials ki list de (ye table + direct links bhejo)
 
-User ko ye maango, har ek ke **direct link** ke saath. User sab paste kar de to STEP 2.
+## 🛑 STEP 0 — MANDATORY FIRST STEP (Poocho Kahan Aur Kaise Setup Karna Hai)
 
 | # | Credential (env key) | Direct link (yahan se lo) | Permissions / Scope | Notes |
 |---|----------------------|---------------------------|---------------------|-------|
@@ -46,7 +46,16 @@ User ko ye maango, har ek ke **direct link** ke saath. User sab paste kar de to 
 | — | *(optional)* `GOOGLE_SITE_VERIFICATION` | https://search.google.com/search-console → property → HTML tag | SEO | Optional |
 | — | *(optional)* `NEXT_PUBLIC_META_PIXEL_ID`, `META_*` | https://business.facebook.com/events_manager | Pixel/catalog | Optional |
 
-> **Links note:** Supabase ke `/project/_/...` links me `_` khud-ba-khud selected project pe resolve ho jaata hai (pehle us project ko dashboard me open/select kar lo). GitHub link scopes pre-ticked aata hai — bas "Generate token" dabao.
+1. **Store & Domain Name:**
+   - *"Kis store aur domain ke liye clone setup karna hai?"* (e.g. `<store>`, `<domain>.pk`)
+2. **Architecture Target:**
+   - **Option A (Standard & Recommended):** **Cloudflare Workers ($5 Paid) — Zero Vercel**
+     - Compute: Cloudflare Workers (300+ edge nodes, 0ms cold start)
+     - Database & Auth: Supabase (PostgreSQL + RLS ONLY)
+     - Media / Images: Cloudflare R2 (`img.<domain>`) — Supabase Storage phased out (0 egress fees)
+     - Webhooks: Supabase triggers direct to `https://<domain>/api/revalidate`
+     - Vercel: 0% / Disconnected
+   - **Option B (Legacy):** **Vercel + Supabase** (Agar user explicitly Vercel chahe)
 
 > **Non-API prerequisites (user khud karega):** (a) Supabase/Cloudflare accounts + domain banwana (billing), (b) domain Cloudflare pe add karke uske **nameservers registrar (PKNIC for .pk) par Cloudflare NS** pe point karna. In ke baghair baqi sab agent karega.
 
@@ -74,47 +83,26 @@ npm run clone:setup -- --store=<store> --deploy --yes
 - Agar `clone:setup` ne Cloudflare zone **pending** dikhaya → user ko nameservers registrar par switch karne ko kahe (agent ne NS values output ki hongi).
 - NS propagate hote hi custom domain live.
 
-## Rules agent ke liye
-- Secrets kabhi chat/logs/commit me plaintext mat chhodo (sirf `env-backups/` me, jo `.gitignore` me hai).
-- Already-live store par `--skip-db` do (warna `db:brand` brand text overwrite kar dega).
-- Fresh clone ke baad `npm run check:setup` green hona chahiye (RULE SYNC1).
+## STEP 4 — Post-Setup Health Sweep (MANDATORY)
 
-## STEP 5 — Agent MANDATORY post-setup verification (RULE C12 + CF-MANDATORY)
-**Clone setup tabhi complete maano jab ye sab green ho:**
+Setup tabhi complete maana jayega jab ye 4 checks green hon:
 
-### 5a. CF Cache Rules verified
-```bash
-# Verify CF cache rules exist on the new store
-node scripts/update-cf-cache-rules.mjs --store=<store>
-# Expected: DEPLOYED ✅, RulesCount: 4
-```
-Agar 0 rules → `clone-setup.mjs` ka `cf:rules` step fail hua tha. Re-run karein.
-
-### 5b. Cache headers correct
-```bash
-curl -sI https://www.<domain>/ | grep -i "cache-control\|stale-while-revalidate\|cf-cache"
-# Expected:
-#   cache-control: ...s-maxage=300...
-#   stale-while-revalidate should be ≤ 300 (NOT 31535700!)
-#   cf-cache-status: HIT (2nd request pe)
-```
-Agar `stale-while-revalidate=31535700` dikhe → `unstable_cache revalidate` galat hai (86400 nahi, 300 hona chahiye).
-
-### 5c. Admin save → storefront freshness test
-```bash
-# 1. Admin se koi setting change karo (e.g. ticker text)
-# 2. 30 seconds wait karo
-# 3. Storefront pe check karo — change dikhna chahiye
-# Agar nahi dikhe → revalidateTag bug hai (C12.1 check karo)
-```
-
-### 5d. Webhook test
-```bash
-curl -X POST https://www.<domain>/api/revalidate \
-  -H "Content-Type: application/json" \
-  -H "x-revalidate-secret: $REVALIDATE_SECRET" \
-  -d '{"type":"UPDATE","table":"store_settings","record":{}}'
-# Expected: {"revalidated":true,"table":"store_settings","type":"UPDATE"}
-```
-
-> **Ye steps skip karna BANNED hai.** 2026-10 me 4 stores bina CF rules ke ship ho gaye the — admin changes storefront pe nazar nahi aate the weeks tak. RULE C12 + CF-MANDATORY ka reference: `docs/agent-rules/08-caching-isr-ssr.md` aur `docs/agent-rules/07-deployment-vercel-cloudflare.md`.
+1. **Edge Cache / Worker Status:**
+   ```bash
+   curl -sI "https://www.<domain>/" | grep -i "server\|x-opennext\|cache"
+   # Must return HTTP 200 OK
+   ```
+2. **Revalidation Webhook Check:**
+   ```bash
+   curl -X POST "https://www.<domain>/api/revalidate" \
+     -H "Content-Type: application/json" \
+     -H "x-revalidate-secret: $REVALIDATE_SECRET" \
+     -d '{"type":"UPDATE","table":"store_settings","record":{}}'
+   # Expected: {"revalidated":true,"table":"store_settings","type":"UPDATE"}
+   ```
+3. **Database Relational Orders Check:**
+   `scripts/verify-store-network.mjs` chala kar real relational checkout verify karo.
+4. **Setup Sync Verification:**
+   ```bash
+   npm run check:setup && npx tsc --noEmit
+   ```

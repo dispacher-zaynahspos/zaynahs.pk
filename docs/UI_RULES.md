@@ -222,9 +222,14 @@ All save/cancel action bars across the Admin Console must be sticky at the botto
   - Zero hardcoded colors. When a merchant adjusts brand colors or button border radii in Settings or Customizer, all animations automatically conform immediately across all clone stores.
 - **SSOT Component**: Reusable component `<AddToCartButton />` (`components/store/AddToCartButton.tsx`). Configurable in Admin Settings (`/admin/settings?tab=products`) and Customizer (`ProductDetailPageSettings.tsx`).
 
-
-
-
-
-
-
+## 21. Universal Navigation Memory & Back State Restoration Standard (RULE N5)
+- **Zero Banner / Footer Landings**:
+  - When customers expand listings with "Load More", click a product card, and press browser "Back", the page MUST NEVER collapse or dump the buyer at the top banner or bottom footer.
+  - Initial batch limits (`loadMoreLimits`), active category tabs (`selectedCategoryId`, `activeTabId`), and scroll coordinates are restored synchronously on the first React paint via `lib/navigation/navigationMemory.ts`.
+- **Card Viewport Centering & Pulse Focus Ring**:
+  - The clicked product card (`#product-card-${productId}`) is smoothly or instantly centered in the viewport (`scrollIntoView({ block: 'center', behavior: 'instant' })`).
+  - It receives `.focus({ preventScroll: true })` and the `.scroll-restore-highlight` pulsing ring (`outline: 2.5px solid var(--color-primary); outline-offset: 4px; border-radius: 14px;`) so the customer immediately reorients themselves.
+- **Product Detail Option Selections Memory**:
+  - Variant attributes (selected size, color) and active gallery index are cached per-product. Navigating to related products and hitting Back seamlessly preserves user selections.
+- **Forward Navigation Scroll-to-Top**:
+  - Forward navigations to new routes explicitly reset scroll to `(0, 0)`.

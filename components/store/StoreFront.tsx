@@ -68,6 +68,18 @@ export default function StoreFront({
   const searchQuery = useSearchStore((state) => state.searchQuery);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | undefined>(undefined);
 
+  // Restore active category on back navigation (RULE N1 / SSOT)
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | undefined>(() => {
+    if (typeof window === 'undefined') return undefined;
+    const snap = getNavigationSnapshot();
+    return snap?.activeCategoryId;
+  });
+
+  const handleSelectCategory = useCallback((catId: string | undefined) => {
+    setSelectedCategoryId(catId);
+    saveNavigationSnapshot({ activeCategoryId: catId });
+  }, []);
+
   const allProducts = initialProducts;
   const { settings: liveSettings } = useSettings(settings);
   const activeSettings = isPreview ? settings : (liveSettings ?? settings);
@@ -206,7 +218,7 @@ export default function StoreFront({
           <CategoryFilter
             categories={categories}
             selectedCategoryId={selectedCategoryId}
-            onSelectCategory={setSelectedCategoryId}
+            onSelectCategory={handleSelectCategory}
           />
         )}
       </div>

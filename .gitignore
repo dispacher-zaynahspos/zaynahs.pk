@@ -67,6 +67,7 @@ online_viewer_net*.html
 json
 env-backups/
 gen images/
+.test-artifacts/
 
 # generated per-store Worker configs (domains live in env, never in source)
 worker-config/

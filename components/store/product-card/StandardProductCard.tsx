@@ -220,7 +220,7 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
           fill
           unoptimized
           sizes="(max-width: 768px) 50vw, 25vw"
-          className={`${imageFit} object-center pointer-events-none${isZoom ? ' hover-zoom' : ''}${showSecond ? ' hover-fade-out' : ' transition-opacity duration-200'}`}
+          className={`relative z-[1] ${imageFit} object-center pointer-events-none${isZoom ? ' hover-zoom' : ''}${showSecond ? ' hover-fade-out' : ' transition-opacity duration-200'}`}
           priority={false}
           loading="lazy"
           onLoad={() => setIsImgLoaded(true)}

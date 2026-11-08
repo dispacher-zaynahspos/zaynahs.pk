@@ -9,15 +9,23 @@
 
 ## 🚀 ONE-COMMAND CLONE SETUP (do this first)
 
-Agar store ka `env-backups/<store>.env.local` ready hai (saari keys bhari hui), to **poora bring-up ek command se** — DB schema + webhooks + admin + brand + Vercel env + Cloudflare DNS + cache rules + verify, sahi order mein:
+Agar store ka `env-backups/<store>.env.local` ready hai (saari keys bhari hui), to **poora bring-up ek command se** — DB schema + webhooks + admin + brand + compute + Cloudflare DNS + cache rules + verify, sahi order mein:
 
+### Standard Architecture (Cloudflare Workers $5 Paid — Zero Vercel):
 ```bash
-npm run clone:setup -- --store=lobo --deploy --yes
+npm run clone:setup -- --store=<store> --skip-vercel --yes
+```
+- **Compute:** Cloudflare Workers ($5 Paid) via `@opennextjs/cloudflare`.
+- **Database & Auth:** Supabase (PostgreSQL + RLS ONLY).
+- **Media Storage:** Cloudflare R2 (`img.<domain>`). Supabase Storage eliminated.
+- **Webhooks:** Supabase triggers direct to `https://<domain>/api/revalidate`.
+
+### Legacy Option (Vercel + Supabase):
+```bash
+npm run clone:setup -- --store=<store> --deploy --yes
 ```
 
-- `--store=<name>` → `env-backups/<name>.env.local` use karta hai (`.env.local` ko temporarily swap karke restore kar deta hai). Ya `--env=path`, ya kuch na do to active `.env.local`.
-- `--deploy` → Vercel production deploy bhi trigger karta hai (chhodo to sirf env push).
-- `--yes` → confirmation skip.
+- `--store=<name>` → `env-backups/<name>.env.local` use karta hai.
 - Phase controls: `--skip-db --skip-vercel --skip-cloudflare --skip-verify`, ya `--only=db|vercel|cloudflare|verify`.
 
 **Steps jo ye chalata hai (sab idempotent — dubara chalana safe):**
@@ -28,31 +36,28 @@ npm run clone:setup -- --store=lobo --deploy --yes
 | 3 | db:webhooks | `setup-triggers.mjs` | 21 `revalidate-*` triggers (real URL + secret) |
 | 4 | db:admin | `create-admin.mjs` | Supabase Auth admin user |
 | 5 | db:brand | `seed-brand.mjs` | brand text (settings/ai/seo) |
-| 6 | vercel | `vercel-setup.mjs` | saari env vars push (+ `--deploy`) |
-| 7 | cf:dns | `cloudflare-dns.mjs` | `A @ → 76.76.21.21` + `CNAME www → cname.vercel-dns.com` (proxied) |
+| 6 | vercel | `vercel-setup.mjs` | saari env vars push (legacy Vercel target only) |
+| 7 | cf:dns | `cloudflare-dns.mjs` | Cloudflare DNS records (proxied) |
 | 8 | cf:rules | `deploy-cloudflare-rules.js` | 4 cache rules + proxy on |
 | 9 | verify | `post-deploy-fix.mjs` | HTTP 200 + webhook test |
 
-**Individual phase npm scripts** (manual/debug): `npm run db:schema`, `db:webhooks`, `db:admin`, `db:brand`, `vercel:setup`, `cf:dns`, `cf:rules`, `cf:rules:all`, `cf:rules:undo` (see `docs/CLOUDFLARE_CACHE_UNDO.md`), `check:schema`.
+**Individual phase npm scripts** (manual/debug): `npm run db:schema`, `db:webhooks`, `db:admin`, `db:brand`, `cf:dns`, `cf:rules`, `cf:rules:all`, `cf:rules:undo`, `check:setup`.
 
-> **Sirf baqi manual kaam** (API se automate nahi hota): (a) Supabase project create karna + uski keys `env-backups/<store>.env.local` me daalna, (b) domain ke **nameservers registrar (PKNIC for .pk) par Cloudflare NS** pe point karna. Baqi sab ek command. NS switch hone tak `https://<project>.vercel.app` par test karo.
+> **Sirf baqi manual kaam** (API se automate nahi hota): (a) Supabase project create karna + uski keys `env-backups/<store>.env.local` me daalna, (b) domain ke **nameservers registrar par Cloudflare NS** pe point karna. Baqi sab ek command.
 
-> ⚠️ **FRESH clone ke liye hai.** Step 5 (`db:brand`) brand text (store_settings/ai_settings/seo_meta) ko generated defaults se **overwrite** karta hai. Pehle se LIVE store par chalana ho to `--skip-db` do (ya sirf zaroori `--only=` phase) taake customized content na mite.
-
-
-Manual step-by-step reference (jab zaroorat ho) neeche hai.
+> ⚠️ **FRESH clone ke liye hai.** Step 5 (`db:brand`) brand text ko generated defaults se **overwrite** karta hai. Pehle se LIVE store par chalana ho to `--skip-db` do taake customized content na mite.
 
 ---
 
-
 ## 🏪 Current Active Projects
 
-| Store | GitHub Repo | Site | env-backup file |
-|-------|-------------|------|-----------------|
-| TotVogue | `totvoguepk-bot/zaynahsestore-tv` | www.totvogue.pk | `env-backups/totvogue.env.local` |
-| Zaynahs | `dispacher-zaynahspos/zaynahs.pk` | www.zaynahs.pk | `env-backups/zaynahs.env.local` |
-| MiniMahal | `infominimahal-bit/mini-mahal-e-store` | www.minimahal.com | `env-backups/minimahal.env.local` |
-| LittleMister | `littlemisterpk-cell/eestore` | www.littlemister.pk | `env-backups/littlemister.env.local` |
+| Store | GitHub Repo | Site | env-backup file | Hosting Engine |
+|-------|-------------|------|-----------------|----------------|
+| TotVogue | `totvoguepk-bot/zaynahsestore-tv` | www.totvogue.pk | `env-backups/totvogue.env.local` | Cloudflare Workers ($5 Paid) |
+| Zaynahs | `dispacher-zaynahspos/zaynahs.pk` | www.zaynahs.pk | `env-backups/zaynahs.env.local` | Vercel (Standby) |
+| MiniMahal | `infominimahal-bit/mini-mahal-e-store` | www.minimahal.com | `env-backups/minimahal.env.local` | Vercel |
+| LittleMister | `littlemisterpk-cell/eestore` | www.littlemister.pk | `env-backups/littlemister.env.local` | Vercel |
+| Lobo | `infolobopk-lgtm/lobo.pk` | www.lobo.pk | `env-backups/lobo.env.local` | Vercel |
 
 **REVALIDATE_SECRET (all projects — universal):** `zaynahs_secret_cache_revalidate_2026`
 

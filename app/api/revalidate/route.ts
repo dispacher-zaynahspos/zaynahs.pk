@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
     // If this is a manual deploy ping from Vercel (or a manual curl)
     if (type === 'deploy' || table === 'deploy') {
       console.log('[Webhook Revalidate] Received manual/Vercel deploy trigger. Purging everything.');
-      await revalidateHomepage();
+      await Promise.all([revalidateHomepage(), revalidateAllProducts()]);
       return NextResponse.json({ message: 'Deployment cache purge successful' });
     }
 

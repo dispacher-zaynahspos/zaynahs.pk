@@ -217,7 +217,7 @@ export function HeroSlideItem({
 
         {/* Background Image with Responsive Mobile/Tablet/Desktop Sources */}
         {(desktopImage || mobileImage || tabletImage) && (
-          <picture className={`absolute inset-0 w-full h-full pointer-events-none select-none z-0 ${imageAnimationClass}`}>
+          <picture className={`absolute inset-0 w-full h-full pointer-events-none select-none z-[1] ${imageAnimationClass}`}>
             {slide.mobile_image_url ? (
               <source
                 media="(max-width: 767px)"
