@@ -18,18 +18,15 @@ export default function ChunkErrorListener() {
 
       console.warn('[ChunkErrorListener] Genuine chunk load error detected! Checking reload guard...');
       
-      const reloadKey = 'chunk_last_reload_time';
-      const lastReload = Number(sessionStorage.getItem(reloadKey) || 0);
-      const now = Date.now();
-      
-      // If already reloaded in the last 15 seconds, suppress rapid infinite reload loop
-      if (now - lastReload < 15000) {
-        console.warn('[ChunkErrorListener] Reload already attempted within last 15s. Suppressing rapid loop.');
+      const reloadKey = 'chunk_listener_reloaded_once';
+      // If already reloaded once in this session, do NOT reload again
+      if (sessionStorage.getItem(reloadKey)) {
+        console.warn('[ChunkErrorListener] Reload already attempted this session. Suppressing reload loop.');
         return;
       }
       
-      sessionStorage.setItem(reloadKey, String(now));
-      // Force reload to fetch fresh HTML document referencing latest chunk hashes
+      sessionStorage.setItem(reloadKey, 'true');
+      // Clean reload without query param pollution
       window.location.reload();
     };
 

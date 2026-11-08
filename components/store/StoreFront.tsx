@@ -86,32 +86,24 @@ export default function StoreFront({
     ] as HomepageSection[];
   }, [sections, isPreview, activeSectionId]);
 
-  // Per-section Load More limits — restored SYNCHRONOUSLY in useState initializer
-  // before the first paint (RULE N4: Zero banner/footer landing guarantee).
-  const [loadMoreLimits, setLoadMoreLimits] = useState<Record<string, number>>(() => {
-    if (typeof window === 'undefined') return {};
-    try {
-      const snap = getNavigationSnapshot();
-      if (snap?.loadMoreLimits && Object.keys(snap.loadMoreLimits).length > 0) {
-        return snap.loadMoreLimits;
-      }
-      const rawLimits = sessionStorage.getItem(LOAD_MORE_KEY);
-      if (rawLimits) {
-        const parsed = JSON.parse(rawLimits);
-        if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 0) {
-          return parsed;
-        }
-      }
-    } catch {}
-    return {};
-  });
+  // Per-section Load More limits — initialize with empty object to ensure clean SSR/client hydration (prevents React error #418).
+  // Saved limits are restored immediately in useEffect post-hydration.
+  const [loadMoreLimits, setLoadMoreLimits] = useState<Record<string, number>>({});
 
-  // Post-mount sync & cleanup
+  // Post-mount sync & restore
   useEffect(() => {
     try {
       const snap = getNavigationSnapshot();
       if (snap?.loadMoreLimits && Object.keys(snap.loadMoreLimits).length > 0) {
         setLoadMoreLimits(snap.loadMoreLimits);
+        return;
+      }
+      const rawLimits = sessionStorage.getItem(LOAD_MORE_KEY);
+      if (rawLimits) {
+        const parsed = JSON.parse(rawLimits);
+        if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 0) {
+          setLoadMoreLimits(parsed);
+        }
       }
     } catch {}
   }, []);

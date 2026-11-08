@@ -16,30 +16,25 @@ export default function GlobalError({
   useEffect(() => {
     console.error('Storefront Error Boundary caught an error:', error);
 
-    // Auto-reload on ChunkLoadError (caused by Vercel/Cloudflare cache mismatch)
-    const errString = (error.message?.toLowerCase() || '') + (error.stack?.toLowerCase() || '');
-    if (
-      errString.includes('chunkloaderror') || 
-      errString.includes('failed to fetch dynamically imported module') ||
-      errString.includes('_next/static/chunks') ||
-      errString.includes('loading chunk') ||
-      errString.includes('failed to load chunk')
-    ) {
-      setIsChunkError(true);
-      console.warn('ChunkLoadError detected in Error Boundary. Forcing silent reload...');
-      
-      const reloadKey = 'last_chunk_error_reload_boundary';
-      const now = Date.now();
-      const lastReload = sessionStorage.getItem(reloadKey);
-      
-      if (!lastReload || now - parseInt(lastReload, 10) > 10000) {
-        sessionStorage.setItem(reloadKey, now.toString());
-        const currentUrl = new URL(window.location.href);
-        currentUrl.searchParams.set('_r', now.toString());
-        window.location.href = currentUrl.toString();
-        return; // Don't show any UI
+    // Only auto-reload on genuine ChunkLoadError (e.g. dynamic import failure after deployment)
+    // NEVER match error.stack or generic chunk paths (which caused infinite reload loops on React error #418).
+    const msg = error.message?.toLowerCase() || '';
+    const isChunkErr =
+      error.name === 'ChunkLoadError' ||
+      msg.includes('chunkloaderror') ||
+      msg.includes('failed to load chunk') ||
+      msg.includes('failed to fetch dynamically imported module');
+
+    if (isChunkErr) {
+      const reloadKey = 'chunk_boundary_reloaded_once';
+      // Only reload once per session to prevent infinite reload loops
+      if (!sessionStorage.getItem(reloadKey)) {
+        sessionStorage.setItem(reloadKey, 'true');
+        setIsChunkError(true);
+        console.warn('Genuine ChunkLoadError detected in Error Boundary. Reloading once...');
+        window.location.reload();
+        return;
       }
-      // If we already reloaded recently, fall through and show the error page
       setIsChunkError(false);
     }
   }, [error]);
