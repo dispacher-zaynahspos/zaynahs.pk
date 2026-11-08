@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import {
   isSameStorePath,
@@ -12,18 +12,19 @@ import {
 } from '@/lib/navigation/navigationMemory';
 import { resetBodyScrollLock } from '@/lib/hooks/useBodyScrollLock';
 
+const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
+
 /**
  * Storefront scroll & state restoration (Single Source of Truth).
  * 
- * BACK/FORWARD: Restore the exact saved product card into viewport center.
- *   - Uses MutationObserver + polling to wait for lazy grids/product cards to appear
- *   - Prevents "header flash → footer jump" via visual cloak
- *   - Focuses card with visible focus ring and settles layout for up to 2s
- *   - Aborts at once if user interacts (wheel, touch, key)
+ * OPENING NEW PAGES (Products, Shop, Categories):
+ *   - Instantly resets viewport to top (0px) BEFORE PAINT via useIsomorphicLayoutEffect.
+ *   - Guarantees ZERO flashing/jumping to footer when opening any product.
  * 
- * FORWARD NAV: Scroll to top instantly (RULE N3).
- * 
- * Takes over from the browser via history.scrollRestoration = 'manual'.
+ * BACK / FORWARD HISTORY DESTINATIONS:
+ *   - On listing pages (Home, Shop): Restores exact scroll position + centers & highlights active card.
+ *   - On product pages: Restores that product page's scroll position or opens at top.
+ *   - Takes over from browser via history.scrollRestoration = 'manual'.
  */
 export default function ScrollRestorer() {
   const pathname = usePathname();
@@ -97,8 +98,8 @@ export default function ScrollRestorer() {
     };
   }, [currentKey]);
 
-  // ── Main route/URL change handler ──────────────────────────────────────
-  useEffect(() => {
+  // ── Synchronous pre-paint route/URL change handler (RULE N1 & N3) ───────
+  useIsomorphicLayoutEffect(() => {
     // Cancel any previous restoration in progress
     cancelActiveRestore();
 
@@ -127,36 +128,41 @@ export default function ScrollRestorer() {
     }
 
     const currentPath = window.location.pathname + window.location.search;
-    
-    // Check all indicators of a back/pop navigation (popstate, nav timing, referrer, session)
+    const isProductPage = pathname.startsWith('/product/');
+
+    // Genuine history navigation indicator (popstate, nav timing)
     const isNavBackForward =
       typeof window !== 'undefined' &&
       ((performance.getEntriesByType?.('navigation')?.[0] as PerformanceNavigationTiming)?.type === 'back_forward' ||
        (window.performance?.navigation?.type === 2));
 
-    const snap = getNavigationSnapshot(currentPath);
-    let targetCardId = snap?.clickedCardId;
-    let targetScrollY = snap?.scrollY;
-
-    // Fallback: check last_clicked_card_id if path matches and recent (<15 mins)
-    if (!targetCardId && typeof window !== 'undefined') {
-      try {
-        const lastCard = sessionStorage.getItem('last_clicked_card_id');
-        const lastPath = sessionStorage.getItem('last_clicked_card_path');
-        const lastTime = Number(sessionStorage.getItem('last_clicked_card_time') || 0);
-        if (lastCard && (!lastPath || isSameStorePath(lastPath, currentPath)) && Date.now() - lastTime < 15 * 60 * 1000) {
-          targetCardId = lastCard;
-        }
-      } catch {}
+    const wasPop = isPopRef.current || isPopNavigation() || isNavBackForward;
+    isPopRef.current = false;
+    if (wasPop) {
+      setTimeout(clearPopNavigation, 600);
+    } else {
+      clearPopNavigation();
     }
 
-    const isFromProductPage = typeof document !== 'undefined' && document.referrer && document.referrer.includes('/product/');
-    const wasPop = isPopRef.current || isPopNavigation() || isNavBackForward || (isFromProductPage && !!targetCardId);
-    isPopRef.current = false;
-    clearPopNavigation();
+    // 2. PRODUCT CARD & STATE RESTORATION — ONLY on back/forward navigation to a LISTING PAGE!
+    // (Never search for listing product cards on /product/... detail pages)
+    if (wasPop && !isProductPage) {
+      const snap = getNavigationSnapshot(currentPath);
+      let targetCardId = snap?.clickedCardId;
+      let targetScrollY = snap?.scrollY;
 
-    // 2. PRODUCT CARD & STATE RESTORATION — ONLY on back/forward navigation
-    if (wasPop) {
+      // Fallback: check last_clicked_card_id ONLY if saved path strictly matches current listing path
+      if (!targetCardId && typeof window !== 'undefined') {
+        try {
+          const lastCard = sessionStorage.getItem('last_clicked_card_id');
+          const lastPath = sessionStorage.getItem('last_clicked_card_path');
+          const lastTime = Number(sessionStorage.getItem('last_clicked_card_time') || 0);
+          if (lastCard && lastPath && isSameStorePath(lastPath, currentPath) && Date.now() - lastTime < 15 * 60 * 1000) {
+            targetCardId = lastCard;
+          }
+        } catch {}
+      }
+
       if (targetCardId) {
         startCardRestore({
           clickedCardId: targetCardId,
@@ -185,17 +191,39 @@ export default function ScrollRestorer() {
       }
     }
 
-    // 3. Fresh navigation → ALWAYS scroll to top of new page (RULE N3)
-    // Strictly guarded by !wasPop so it NEVER fights back/forward navigation!
-    if (!wasPop && (isNewRoute || isFirstLoad)) {
-      window.scrollTo({ top: 0, behavior: 'instant' });
-      // Double-fire after layout to cover Safari's deferred scroll clamp
+    // 3. History navigation to a PRODUCT DETAIL PAGE:
+    if (wasPop && isProductPage) {
+      const snap = getNavigationSnapshot(currentPath);
+      if (typeof snap?.scrollY === 'number' && snap.scrollY > 0) {
+        window.scrollTo({ top: snap.scrollY, behavior: 'instant' });
+      } else {
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+        if (typeof document !== 'undefined') {
+          document.documentElement.scrollTop = 0;
+          document.body.scrollTop = 0;
+        }
+      }
+      return;
+    }
+
+    // 4. FRESH FORWARD NAVIGATION (Opening a product, clicking nav link, opening shop/category):
+    // ALWAYS start at the TOP of the new page instantly BEFORE PAINT (RULE N3).
+    // Because this runs in useIsomorphicLayoutEffect, the browser renders frame 0 directly at top 0!
+    // ZERO jumping to footer!
+    if (!wasPop) {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      if (typeof document !== 'undefined') {
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+      }
       requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          if (!isPopRef.current && !isPopNavigation()) {
-            window.scrollTo({ top: 0, behavior: 'instant' });
+        if (!isPopRef.current && !isPopNavigation()) {
+          window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+          if (typeof document !== 'undefined') {
+            document.documentElement.scrollTop = 0;
+            document.body.scrollTop = 0;
           }
-        });
+        }
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -287,6 +315,10 @@ export default function ScrollRestorer() {
       const verifySettle = () => {
         settleFrames++;
         if (state.cancelled || settleFrames > 3) {
+          try {
+            sessionStorage.removeItem('last_clicked_card_id');
+            sessionStorage.removeItem('last_clicked_card_path');
+          } catch {}
           cleanup(false);
           return;
         }

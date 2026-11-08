@@ -10,8 +10,13 @@ import { useSettings } from '@/lib/hooks/useSettings';
 import { SORT_OPTIONS, getSortLabel, toNumber, extractUsedVariants, filterProductsList } from './shopFilterUtils';
 import { useShopUrlParamsSync } from './hooks/useShopUrlParamsSync';
 import { useCatalogColumns } from '@/lib/hooks/useCatalogColumns';
-import { SCROLL_KEY, isSameStorePath, ScrollRestoreData } from '@/lib/hooks/useScrollRestoration';
-import { getNavigationSnapshot, saveNavigationSnapshot } from '@/lib/navigation/navigationMemory';
+import {
+  SCROLL_KEY,
+  isSameStorePath,
+  type ScrollRestoreData,
+  getNavigationSnapshot,
+  saveNavigationSnapshot,
+} from '@/lib/navigation/navigationMemory';
 
 export { SORT_OPTIONS, getSortLabel };
 

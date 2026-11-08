@@ -8,7 +8,7 @@ import { ProductCardActions } from './ProductCardActions';
 import { ProductCardBadges } from './ProductCardBadges';
 import { ImageLoadingPlaceholder } from '@/components/common/ImageLoadingPlaceholder';
 import { formatPrice } from '@/lib/utils/whatsapp';
-import { saveScrollPosition } from '@/lib/hooks/useScrollRestoration';
+import { saveScrollPosition } from '@/lib/navigation/navigationMemory';
 import { useMobileCardFocus } from '@/lib/hooks/useMobileCardFocus';
 
 interface StandardProductCardProps {

@@ -12,7 +12,7 @@ import { flyToCart } from '@/lib/utils/flyAnimation';
 import { getSharedAspectClass } from '@/lib/utils/styles';
 import { getPresetImageUrl } from '@/lib/utils/imageUrl';
 import { useWishlist } from '@/components/store/product-card/hooks/useWishlist';
-import { saveScrollPosition } from '@/lib/hooks/useScrollRestoration';
+import { saveScrollPosition } from '@/lib/navigation/navigationMemory';
 import { ProductCardBadges } from '@/components/store/product-card/ProductCardBadges';
 
 interface ShopProductListCardProps {

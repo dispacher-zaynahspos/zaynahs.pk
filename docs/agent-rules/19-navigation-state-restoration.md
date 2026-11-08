@@ -1,10 +1,11 @@
 # 19 — Navigation & State Restoration Rules (MANDATORY for new pages)
 
-## RULE N1 — Storefront scroll & focus restoration
-- **Mechanism**: When a customer clicks a product card on a listing page (Homepage/Shop/Wishlist), call `saveScrollPosition(product.id)` — stores current page path, `scrollY`, and the product ID in `sessionStorage`.
-- On return, `useScrollRestoration()` checks the path; if matched, restores scroll instantly via double `requestAnimationFrame` (`window.scrollTo({ top, behavior: 'instant' })`) and focuses the active product card.
-- The restored card gets a temporary CSS highlight class `scroll-restore-highlight` (subtle pulsing border/glow).
-- **Rule**: Never remove `useScrollRestoration` or the `id={product-card-${product.id}}` bindings from product card templates. Any new storefront listing/grid page MUST call `useScrollRestoration()` and bind the click save handlers.
+## RULE N1 — Storefront scroll & focus restoration (Single Source of Truth)
+- **Engine**: Single canonical module `lib/navigation/navigationMemory.ts` + `<ScrollRestorer />` in `app/(store)/layout.tsx`. Zero duplicate hook files.
+- **Card Click**: When a customer clicks any product card link, call `saveScrollPosition(product.id)` from `@/lib/navigation/navigationMemory`. Stores page path, scrollY, active limits, and product ID in navigation snapshots.
+- **Back Return**: On browser back, `<ScrollRestorer />` in store layout centers the clicked card into the viewport (`card.scrollIntoView({ block: 'center' })`) and triggers `.scroll-restore-highlight` (Shopify pulse focus ring).
+- **Forward Navigation**: Fresh forward navigations (opening a product, clicking nav link) synchronously pin the viewport to `(0, 0)` before paint — zero footer flash, zero bounce.
+- **Rule**: Every product card link MUST call `onClick={() => saveScrollPosition(product.id)}` from `@/lib/navigation/navigationMemory`. Never create duplicate restoration hooks.
 
 ## RULE N2 — Admin URL-based tab persistence
 - **Mechanism**: Any admin page with multiple tabs (settings, reviews, leads, customers, trash, media) must persist the active tab ID in the URL (`?tab=tabId`).

@@ -6,7 +6,6 @@ import { Heart, ShoppingBag } from '@/components/common/Icons';
 import { Product, StoreSettings } from '@/lib/types';
 import ProductGrid from './ProductGrid';
 import WishlistRecommendations from '@/components/store/wishlist/WishlistRecommendations';
-import { useScrollRestoration } from '@/lib/hooks/useScrollRestoration';
 
 interface WishlistContainerProps {
   products: Product[];
@@ -17,7 +16,6 @@ export default function WishlistContainer({ products, settings }: WishlistContai
   const [mounted, setMounted] = useState(false);
   const [wishlistIds, setWishlistIds] = useState<string[]>([]);
   const [wishlistedProducts, setWishlistedProducts] = useState<Product[]>([]);
-  useScrollRestoration();
 
   useEffect(() => {
     setMounted(true);

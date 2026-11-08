@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { Product, StoreSettings } from '@/lib/types';
-import { saveScrollPosition } from '@/lib/hooks/useScrollRestoration';
+import { saveScrollPosition } from '@/lib/navigation/navigationMemory';
 import { useMobileCardFocus } from '@/lib/hooks/useMobileCardFocus';
 import { formatPrice } from '@/lib/utils/whatsapp';
 import { normalizeCardStyle, getCardStyleClass } from '@/lib/utils/cardStyles';

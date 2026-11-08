@@ -9,7 +9,6 @@ import { useSearchStore } from '@/lib/store/searchStore';
 import {
   saveNavigationSnapshot,
   getNavigationSnapshot,
-  useScrollRestoration,
   SCROLL_KEY,
   isSameStorePath,
   isPopNavigation,
@@ -68,7 +67,6 @@ export default function StoreFront({
 }: StoreFrontProps) {
   const searchQuery = useSearchStore((state) => state.searchQuery);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | undefined>(undefined);
-  useScrollRestoration();
 
   const allProducts = initialProducts;
   const { settings: liveSettings } = useSettings(settings);
@@ -94,15 +92,19 @@ export default function StoreFront({
   // Post-mount sync & restore (SSOT: only active on back/pop navigation)
   useEffect(() => {
     try {
+      const snap = getNavigationSnapshot();
+      const currentPath = typeof window !== 'undefined' ? window.location.pathname + (window.location.search || '') : '';
+      const isMatchingPath = Boolean(snap && isSameStorePath(snap.path, currentPath));
+      const hasPendingCardSnapshot = Boolean(isMatchingPath && snap?.clickedCardId);
+
       const isNavBack =
         isPopNavigation() ||
         (typeof window !== 'undefined' &&
           ((performance.getEntriesByType?.('navigation')?.[0] as PerformanceNavigationTiming)?.type === 'back_forward' ||
            (window.performance?.navigation?.type === 2))) ||
-        (typeof document !== 'undefined' && document.referrer && document.referrer.includes('/product/'));
+        hasPendingCardSnapshot;
 
       if (isNavBack) {
-        const snap = getNavigationSnapshot();
         if (snap?.loadMoreLimits && Object.keys(snap.loadMoreLimits).length > 0) {
           setLoadMoreLimits(snap.loadMoreLimits);
           return;

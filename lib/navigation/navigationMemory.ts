@@ -54,6 +54,14 @@ export interface NavigationSnapshot {
   productState?: ProductSelectionsState;
 }
 
+export interface ScrollRestoreData {
+  scrollY: number;
+  productId?: string;
+  path: string;
+  timestamp: number;
+  loadMoreLimits?: Record<string, number>;
+}
+
 // In-memory popstate flag active during history navigation
 let isPopNavigationActive = false;
 
@@ -327,6 +335,7 @@ export const saveScrollPosition = (productId: string) => {
       sessionStorage.setItem('last_clicked_card_id', productId);
       sessionStorage.setItem('last_clicked_card_path', window.location.pathname + (window.location.search || ''));
       sessionStorage.setItem('last_clicked_card_time', String(Date.now()));
+      clearPopNavigation();
     } catch {}
   }
   saveNavigationSnapshot({ clickedCardId: productId });

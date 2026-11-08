@@ -17,7 +17,7 @@ import { ProductCardShowcases } from './product-card/ProductCardShowcases';
 import { StandardProductCard } from './product-card/StandardProductCard';
 import { ProductCardStyleInjector } from './product-card/ProductCardStyles';
 import { EllaProductCard, EllaProductGrid, getEllaCardVariant, toCardProduct, type CardVariant } from '@/components/product-cards';
-import { saveScrollPosition } from '@/lib/hooks/useScrollRestoration';
+import { saveScrollPosition } from '@/lib/navigation/navigationMemory';
 
 
 // Lazy load QuickViewModal to reduce initial JS bundle
