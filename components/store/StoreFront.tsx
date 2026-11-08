@@ -96,44 +96,51 @@ export default function StoreFront({
     ] as HomepageSection[];
   }, [sections, isPreview, activeSectionId]);
 
-  // Per-section Load More limits — initialize with empty object to ensure clean SSR/client hydration (prevents React error #418).
-  // Saved limits are restored immediately in useEffect post-hydration ONLY on history back/forward return.
-  const [loadMoreLimits, setLoadMoreLimits] = useState<Record<string, number>>({});
-
-  // Post-mount sync & restore (SSOT: only active on back/pop navigation)
-  useEffect(() => {
+  // Per-section Load More limits.
+  // CRITICAL (scroll restore fix): We MUST initialize synchronously from sessionStorage
+  // during the useState initializer — NOT in a useEffect — so cards exist in the DOM on
+  // the FIRST render. ScrollRestorer's useIsomorphicLayoutEffect fires before any useEffect,
+  // so if limits start as {} and are restored asynchronously the clicked card won't be in
+  // the DOM yet, causing the scroll restore to fall back to a clamped scrollY.
+  //
+  // Safety: useState initializer only runs client-side. No SSR/hydration mismatch.
+  const [loadMoreLimits, setLoadMoreLimits] = useState<Record<string, number>>(() => {
+    if (typeof window === 'undefined') return {};
     try {
-      const snap = getNavigationSnapshot();
-      const currentPath = typeof window !== 'undefined' ? window.location.pathname + (window.location.search || '') : '';
-      const isMatchingPath = Boolean(snap && isSameStorePath(snap.path, currentPath));
-      const hasPendingCardSnapshot = Boolean(isMatchingPath && snap?.clickedCardId);
+      // Detect back/forward navigation using performance API (available synchronously)
+      const navEntries = performance?.getEntriesByType?.('navigation') as PerformanceNavigationTiming[];
+      const isBackForward =
+        navEntries?.[0]?.type === 'back_forward' ||
+        (window.performance?.navigation?.type === 2);
 
-      const isNavBack =
-        isPopNavigation() ||
-        (typeof window !== 'undefined' &&
-          ((performance.getEntriesByType?.('navigation')?.[0] as PerformanceNavigationTiming)?.type === 'back_forward' ||
-           (window.performance?.navigation?.type === 2))) ||
-        hasPendingCardSnapshot;
+      // Check for a saved snapshot for this path
+      const currentPath = window.location.pathname + (window.location.search || '');
+      const snap = getNavigationSnapshot(currentPath);
+      const hasPendingCard = Boolean(snap?.clickedCardId && isSameStorePath(snap?.path ?? '', currentPath));
+      const isPopNav = isPopNavigation();
+
+      const isNavBack = isBackForward || isPopNav || hasPendingCard;
 
       if (isNavBack) {
+        // Try snapshot first (most reliable)
         if (snap?.loadMoreLimits && Object.keys(snap.loadMoreLimits).length > 0) {
-          setLoadMoreLimits(snap.loadMoreLimits);
-          return;
+          return snap.loadMoreLimits;
         }
+        // Fallback to sessionStorage
         const rawLimits = sessionStorage.getItem(LOAD_MORE_KEY);
         if (rawLimits) {
           const parsed = JSON.parse(rawLimits);
           if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 0) {
-            setLoadMoreLimits(parsed);
-            return;
+            return parsed;
           }
         }
       } else {
-        // Fresh arrival / intentional navigation: clear stale load-more counts so customizer limits take effect instantly
+        // Fresh / intentional navigation: clear stale limits so customizer values take effect immediately
         sessionStorage.removeItem(LOAD_MORE_KEY);
       }
     } catch {}
-  }, []);
+    return {};
+  });
 
   // Persist loadMoreLimits changes to sessionStorage and active navigation snapshot
   useEffect(() => {

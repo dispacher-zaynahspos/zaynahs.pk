@@ -30,14 +30,16 @@ export function getSharedAspectClass(ratio?: string): string {
 export function getSharedTitleClampClass(limit?: string | number): string {
   const normalized = String(limit || '2').toLowerCase().trim();
   switch (normalized) {
-    case '1': 
-      return 'title-clamp-1 line-clamp-1 min-h-[14px] sm:min-h-[16px]';
-    case 'none': 
+    case '1':
+      // 1 line × (11px × 1.375 leading-snug) ≈ 15px mobile; (12px × 1.375) ≈ 16.5px desktop
+      return 'title-clamp-1 line-clamp-1 min-h-[16px] sm:min-h-[18px]';
+    case 'none':
     case 'unlimited':
     case '0':
       return 'title-clamp-none line-clamp-none';
     case '2':
     default:
-      return 'title-clamp-2 line-clamp-2 min-h-[28px] sm:min-h-[32px]';
+      // 2 lines × (11px × 1.375 leading-snug) ≈ 30px mobile; (12px × 1.375) ≈ 33px desktop
+      return 'title-clamp-2 line-clamp-2 min-h-[30px] sm:min-h-[33px]';
   }
 }

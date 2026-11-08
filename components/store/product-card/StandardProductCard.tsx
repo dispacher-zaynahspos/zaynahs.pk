@@ -124,7 +124,7 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
             key="title"
             href={productUrl}
             onClick={handleClick}
-            className={`product-card-title relative z-[2] font-semibold text-[11px] sm:text-xs text-gray-900 dark:text-white leading-tight pb-0.5 ${titleClampClass}`}
+            className={`product-card-title relative z-[2] font-semibold text-[11px] sm:text-xs text-gray-900 dark:text-white leading-snug ${titleClampClass}`}
           >
             {product.name}
           </Link>

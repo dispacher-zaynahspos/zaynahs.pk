@@ -11,12 +11,12 @@ import { SORT_OPTIONS, getSortLabel, toNumber, extractUsedVariants, filterProduc
 import { useShopUrlParamsSync } from './hooks/useShopUrlParamsSync';
 import { useCatalogColumns } from '@/lib/hooks/useCatalogColumns';
 import {
-  SCROLL_KEY,
   isSameStorePath,
-  type ScrollRestoreData,
+  isPopNavigation,
   getNavigationSnapshot,
   saveNavigationSnapshot,
 } from '@/lib/navigation/navigationMemory';
+
 
 export { SORT_OPTIONS, getSortLabel };
 
@@ -286,40 +286,41 @@ const CATEGORY_SLUG_ALIASES: Record<string, string> = {
   const [loadMoreLimit, setLoadMoreLimit] = useState<number>(() => {
     // On initial render (SSR pass): use URL-driven value
     if (typeof window === 'undefined') return targetLimitFromUrl;
-    // Check if this is a back navigation
+    // Check if this is a back navigation using RELIABLE signals only
     try {
       const currentPath = window.location.pathname + (window.location.search || '');
       const snap = getNavigationSnapshot(currentPath);
-      if (snap?.loadMoreLimits?.shop) {
-        return Math.max(snap.loadMoreLimits.shop, targetLimitFromUrl);
-      }
-      const rawScroll = sessionStorage.getItem(SCROLL_KEY);
-      let isReturnNav = false;
-      if (rawScroll) {
-        const scrollData: ScrollRestoreData = JSON.parse(rawScroll);
-        if (
-          isSameStorePath(scrollData?.path, currentPath) &&
-          scrollData?.timestamp &&
-          Date.now() - scrollData.timestamp < 30 * 60 * 1000
-        ) {
-          isReturnNav = true;
-        }
-      }
-      if (!isReturnNav) {
-        const navEntries = performance?.getEntriesByType?.('navigation') as PerformanceNavigationTiming[];
-        if (navEntries?.[0]?.type === 'back_forward') isReturnNav = true;
-      }
-      if (!isReturnNav) {
-        const cleanSearch = window.location.search.replace(/^\?/, '');
-        const liveKey = `scroll:${window.location.pathname}?${cleanSearch}`;
-        if (sessionStorage.getItem(liveKey)) isReturnNav = true;
-      }
+
+      // 1. Performance API (most reliable — set by browser itself, not our code)
+      const navEntries = performance?.getEntriesByType?.('navigation') as PerformanceNavigationTiming[];
+      const isBackForward =
+        navEntries?.[0]?.type === 'back_forward' ||
+        (window.performance?.navigation?.type === 2);
+
+      // 2. Snapshot has a clicked card waiting to be restored (product back-nav)
+      const hasPendingCard = Boolean(
+        snap?.clickedCardId && isSameStorePath(snap?.path ?? '', currentPath)
+      );
+
+      // 3. popstate flag from navigationMemory (set by browser popstate event)
+      const isPopNav = isPopNavigation();
+
+      const isReturnNav = isBackForward || hasPendingCard || isPopNav;
+
       if (isReturnNav) {
+        // Try snapshot first (most reliable — saved when user left the page)
+        if (snap?.loadMoreLimits?.shop) {
+          return Math.max(snap.loadMoreLimits.shop, targetLimitFromUrl);
+        }
+        // Fallback: check SHOP_LIMIT_KEY (saved on every load-more action)
         const saved = sessionStorage.getItem(SHOP_LIMIT_KEY);
         if (saved) {
           const parsed = parseInt(saved, 10);
           if (Number.isFinite(parsed) && parsed > 0) return Math.max(parsed, targetLimitFromUrl);
         }
+      } else {
+        // Fresh / intentional navigation: clear stale shop limit so PAGE_SIZE takes effect
+        sessionStorage.removeItem(SHOP_LIMIT_KEY);
       }
     } catch {}
     return targetLimitFromUrl;
