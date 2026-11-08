@@ -322,6 +322,13 @@ export function getProductDetailSnapshot(productId: string): (ProductSelectionsS
  * Must be attached to EVERY clickable card element (overlay link, title link, media link).
  */
 export const saveScrollPosition = (productId: string) => {
+  if (typeof window !== 'undefined') {
+    try {
+      sessionStorage.setItem('last_clicked_card_id', productId);
+      sessionStorage.setItem('last_clicked_card_path', window.location.pathname + (window.location.search || ''));
+      sessionStorage.setItem('last_clicked_card_time', String(Date.now()));
+    } catch {}
+  }
   saveNavigationSnapshot({ clickedCardId: productId });
 };
 

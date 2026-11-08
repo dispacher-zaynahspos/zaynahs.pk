@@ -127,16 +127,36 @@ export default function ScrollRestorer() {
     }
 
     const currentPath = window.location.pathname + window.location.search;
-    const wasPop = isPopRef.current || isPopNavigation();
+    
+    // Check all indicators of a back/pop navigation (popstate, nav timing, referrer, session)
+    const isNavBackForward =
+      typeof window !== 'undefined' &&
+      ((performance.getEntriesByType?.('navigation')?.[0] as PerformanceNavigationTiming)?.type === 'back_forward' ||
+       (window.performance?.navigation?.type === 2));
+
+    const snap = getNavigationSnapshot(currentPath);
+    let targetCardId = snap?.clickedCardId;
+    let targetScrollY = snap?.scrollY;
+
+    // Fallback: check last_clicked_card_id if path matches and recent (<15 mins)
+    if (!targetCardId && typeof window !== 'undefined') {
+      try {
+        const lastCard = sessionStorage.getItem('last_clicked_card_id');
+        const lastPath = sessionStorage.getItem('last_clicked_card_path');
+        const lastTime = Number(sessionStorage.getItem('last_clicked_card_time') || 0);
+        if (lastCard && (!lastPath || isSameStorePath(lastPath, currentPath)) && Date.now() - lastTime < 15 * 60 * 1000) {
+          targetCardId = lastCard;
+        }
+      } catch {}
+    }
+
+    const isFromProductPage = typeof document !== 'undefined' && document.referrer && document.referrer.includes('/product/');
+    const wasPop = isPopRef.current || isPopNavigation() || isNavBackForward || (isFromProductPage && !!targetCardId);
     isPopRef.current = false;
     clearPopNavigation();
 
     // 2. PRODUCT CARD & STATE RESTORATION — ONLY on back/forward navigation
     if (wasPop) {
-      const snap = getNavigationSnapshot(currentPath);
-      const targetCardId = snap?.clickedCardId;
-      const targetScrollY = snap?.scrollY;
-
       if (targetCardId) {
         startCardRestore({
           clickedCardId: targetCardId,
@@ -227,7 +247,11 @@ export default function ScrollRestorer() {
       window.removeEventListener('touchstart', onUserInterrupt);
       window.removeEventListener('keydown', onUserInterrupt);
       if (removeFromStorage) {
-        try { sessionStorage.removeItem(SCROLL_KEY); } catch {}
+        try {
+          sessionStorage.removeItem(SCROLL_KEY);
+          sessionStorage.removeItem('last_clicked_card_id');
+          sessionStorage.removeItem('last_clicked_card_path');
+        } catch {}
       }
       if (activeRestoreRef.current === state) {
         activeRestoreRef.current = null;
@@ -244,23 +268,26 @@ export default function ScrollRestorer() {
 
       // Visual highlight with prominent focus ring
       card.classList.add('scroll-restore-highlight');
-      setTimeout(() => card.classList.remove('scroll-restore-highlight'), 1800);
+      setTimeout(() => card.classList.remove('scroll-restore-highlight'), 2200);
 
-      // Keep card centered for up to 2 seconds while images and fonts settle
+      // Keep card centered for up to 1.5 seconds while images and fonts settle
       let settleCount = 0;
       const settle = () => {
-        if (state.cancelled || settleCount >= 30) return;
-        settleCount++;
-        const rect = card.getBoundingClientRect();
-        const idealTop = (window.innerHeight - rect.height) / 2;
-        if (Math.abs(rect.top - idealTop) > 40) {
-          card.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' as ScrollBehavior });
+        if (state.cancelled || settleCount >= 45) {
+          cleanup(true);
+          return;
         }
-        requestAnimationFrame(settle);
+        settleCount++;
+        if (card.isConnected) {
+          const rect = card.getBoundingClientRect();
+          const idealTop = (window.innerHeight - rect.height) / 2;
+          if (Math.abs(rect.top - idealTop) > 30) {
+            card.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' as ScrollBehavior });
+          }
+        }
+        state.rafId = requestAnimationFrame(settle);
       };
-      requestAnimationFrame(settle);
-
-      cleanup(true);
+      state.rafId = requestAnimationFrame(settle);
     };
 
     const tryFindCard = (): boolean => {
@@ -299,10 +326,12 @@ export default function ScrollRestorer() {
       if (tries < 180) { // ~3 seconds max
         state.rafId = requestAnimationFrame(tick);
       } else {
-        // Fallback: card was not found, scroll to saved Y and reveal
+        // Fallback: card was not found, scroll to saved Y only if page is actually tall enough
         if (data.scrollY && data.scrollY > 0) {
           const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-          window.scrollTo({ top: Math.min(data.scrollY, Math.max(0, maxScroll)), behavior: 'instant' });
+          if (maxScroll > 150) {
+            window.scrollTo({ top: Math.min(data.scrollY, maxScroll), behavior: 'instant' });
+          }
         }
         revealPage();
         cleanup(true);

@@ -130,13 +130,30 @@ export default function ProductGridSettings({
           onUpdateSection({
             settings: {
               ...settings,
+              limit_mode: 'manual',
               products_per_page_desktop: val,
               limit: val,
             }
           });
         }}
-        onChangeTablet={(val) => handleSettingsChange('products_per_page_tablet', val)}
-        onChangeMobile={(val) => handleSettingsChange('products_per_page_mobile', val)}
+        onChangeTablet={(val) => {
+          onUpdateSection({
+            settings: {
+              ...settings,
+              limit_mode: 'manual',
+              products_per_page_tablet: val,
+            }
+          });
+        }}
+        onChangeMobile={(val) => {
+          onUpdateSection({
+            settings: {
+              ...settings,
+              limit_mode: 'manual',
+              products_per_page_mobile: val,
+            }
+          });
+        }}
       />
 
       <CatalogLimitControl

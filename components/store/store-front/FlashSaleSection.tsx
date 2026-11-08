@@ -169,7 +169,9 @@ export function FlashSaleSection({ section, products, currencySymbol, settings, 
     return fallback;
   }, [width, section.settings]);
 
-  const fillRowsEnabled = section.settings?.fill_rows !== false;
+  const fillRowsEnabled = section.settings?.limit_mode === 'auto'
+    ? section.settings?.fill_rows !== false
+    : section.settings?.fill_rows === true;
   const batchStep = React.useMemo(() => {
     const s = section.settings || {};
     let target = deviceBatchLimit;
@@ -187,7 +189,9 @@ export function FlashSaleSection({ section, products, currencySymbol, settings, 
   const bottomEnableViewAll = section.settings?.bottomEnableViewAll === true;
   const bottomEnableLoadMore = section.settings?.bottomEnableLoadMore === true;
 
-  const visible = fill(effectiveLimit, allMatchedProducts.length, fillRowsEnabled);
+  const visible = fillRowsEnabled
+    ? fill(effectiveLimit, allMatchedProducts.length, true)
+    : Math.min(effectiveLimit, allMatchedProducts.length);
   const displayProducts = allMatchedProducts.slice(0, visible);
   const hasMore = displayProducts.length < allMatchedProducts.length;
 

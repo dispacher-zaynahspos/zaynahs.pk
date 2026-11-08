@@ -33,7 +33,9 @@ export function TabbedProductGridSection({ section, allProducts, activeSettings 
   const activeTab = tabs.find((t) => t.id === activeTabId) || tabs[0];
 
   // Fill-rows + per-layout auto/manual limit (RULE DS24). Columns-aware.
-  const fillRowsEnabled = s.fill_rows !== false;
+  const fillRowsEnabled = s.limit_mode === 'auto'
+    ? s.fill_rows !== false
+    : s.fill_rows === true;
   const { columns, width } = useCatalogColumns({
     mode: s.columns_mode || 'manual',
     mobile: Number(s.columns_mobile) || 2,

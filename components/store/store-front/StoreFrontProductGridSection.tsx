@@ -37,11 +37,11 @@ export function StoreFrontProductGridSection({
   const bottomEnableInfiniteScroll = section.settings?.bottomEnableInfiniteScroll === true;
   const displayMode = section.settings?.display_mode || 'grid';
 
-  // Fill-rows + per-layout auto/manual limit (RULE DS24). Columns-aware so the
-  // visible count follows the chosen columns (auto = cols × rows) and the last
-  // row is never half-empty when more products exist. Defaults keep the old
-  // behavior (manual limit 8, fill ON).
-  const fillRowsEnabled = section.settings?.fill_rows !== false;
+  // Fill-rows: in 'auto' mode, fills full rows (cols * rows). In 'manual' mode,
+  // strictly respects the user-defined products per page limit unless fill_rows is explicitly true.
+  const fillRowsEnabled = section.settings?.limit_mode === 'auto'
+    ? section.settings?.fill_rows !== false
+    : section.settings?.fill_rows === true;
   const { columns, width, fill } = useCatalogColumns({
     mode: section.settings?.columns_mode || 'manual',
     mobile: Number(section.settings?.columns_mobile) || 2,
@@ -145,7 +145,9 @@ export function StoreFrontProductGridSection({
   }, [filteredProducts, sortMethod, manualProductIds, source, selectedCategoryId, getValidCategoryIds]);
 
   const displayProducts = React.useMemo(() => {
-    const visible = fill(effectiveLimit, sectionProducts.length, fillRowsEnabled);
+    const visible = fillRowsEnabled
+      ? fill(effectiveLimit, sectionProducts.length, true)
+      : Math.min(effectiveLimit, sectionProducts.length);
     return sectionProducts.slice(0, visible);
   }, [sectionProducts, effectiveLimit, fill, fillRowsEnabled]);
 

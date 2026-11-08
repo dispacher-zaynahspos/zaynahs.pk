@@ -105,11 +105,33 @@ export default function TabbedProductGridSettings({
             tabletLimit={Number(s.products_per_page_tablet) || Number(s.limit_per_tab) || 8}
             mobileLimit={Number(s.products_per_page_mobile) || Number(s.limit_per_tab) || 6}
             onChangeDesktop={(val) => {
-              setSetting('products_per_page_desktop', val);
-              setSetting('limit_per_tab', val);
+              onUpdateSection({
+                settings: {
+                  ...s,
+                  limit_mode: 'manual',
+                  products_per_page_desktop: val,
+                  limit_per_tab: val,
+                }
+              });
             }}
-            onChangeTablet={(val) => setSetting('products_per_page_tablet', val)}
-            onChangeMobile={(val) => setSetting('products_per_page_mobile', val)}
+            onChangeTablet={(val) => {
+              onUpdateSection({
+                settings: {
+                  ...s,
+                  limit_mode: 'manual',
+                  products_per_page_tablet: val,
+                }
+              });
+            }}
+            onChangeMobile={(val) => {
+              onUpdateSection({
+                settings: {
+                  ...s,
+                  limit_mode: 'manual',
+                  products_per_page_mobile: val,
+                }
+              });
+            }}
           />
           <CatalogLimitControl
             label="Auto / Manual Limit Mode"
