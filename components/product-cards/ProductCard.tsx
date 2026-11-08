@@ -10,6 +10,7 @@ import { useWishlist } from '@/components/store/product-card/hooks/useWishlist';
 import { flyToCart } from '@/lib/utils/flyAnimation';
 import { ProductCardBadges } from '@/components/store/product-card/ProductCardBadges';
 import { ImageLoadingPlaceholder } from '@/components/common/ImageLoadingPlaceholder';
+import { saveScrollPosition } from '@/lib/navigation/navigationMemory';
 import variants from './card-variants.json';
 
 import type { CardProduct, CardVariant } from './types';
@@ -89,7 +90,7 @@ export function ProductCard({ product: p, variant, limit, currencySymbol, cardMo
   const titleClampClass = getSharedTitleClampClass(settings?.title_line_limit);
   const vendor = <div className="el vendor">{p.vendor}</div>;
   const rating = <div className="el rating">{stars}{!!p.rating && <small>({p.reviewCount ?? p.rating})</small>}</div>;
-  const title = <Link className={`el title ttl ${titleClampClass}`} href={p.href}>{p.title}</Link>;
+  const title = <Link className={`el title ttl ${titleClampClass}`} href={p.href} onClick={() => saveScrollPosition(p.id)}>{p.title}</Link>;
   const desc = <div className="el desc">{p.description}</div>;
   const price = (
     <div className={`el price${sale ? ' on-sale' : ''}`}>
@@ -159,7 +160,7 @@ export function ProductCard({ product: p, variant, limit, currencySymbol, cardMo
     <>
       <article className={`pc${hasHoveredVariant ? ' has-hovered-variant' : ''}`} id={`product-card-${p.id}`} data-product-id={p.id} ref={cardRef} onPointerDown={(e) => { if (e.pointerType === 'touch') setManualFocus(); }}>
         <div className="pc-media">
-          <Link className="ovl" href={p.href} aria-label={p.title} />
+          <Link className="ovl" href={p.href} aria-label={p.title} onClick={() => saveScrollPosition(p.id)} />
           <ImageLoadingPlaceholder
             style={originalSettings?.image_loading_style}
             logoUrl={originalSettings?.logo_url}

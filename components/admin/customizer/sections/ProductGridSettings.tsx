@@ -5,6 +5,7 @@ import { SHOP_CATEGORY_ID } from '@/lib/config/singleton-ids';
 import { HomepageSection, Category, Product } from '@/lib/types';
 import ManualProductPicker from './product-grid/ManualProductPicker';
 import BottomGridActions from './product-grid/BottomGridActions';
+import ResponsiveProductsPerPageControl from '../shared/ResponsiveProductsPerPageControl';
 import ResponsiveGridColumnsControl from '../shared/ResponsiveGridColumnsControl';
 import GridGapControl from '../shared/GridGapControl';
 import ContentWidthControl from '../shared/ContentWidthControl';
@@ -118,13 +119,42 @@ export default function ProductGridSettings({
         />
       )}
 
+      <ResponsiveProductsPerPageControl
+        label="Products per Page Limit"
+        description="Number of products shown initially and per Load More batch for each device."
+        viewportMode={viewportMode}
+        desktopLimit={Number(settings.products_per_page_desktop) || Number(settings.limit) || 8}
+        tabletLimit={Number(settings.products_per_page_tablet) || Number(settings.limit) || 6}
+        mobileLimit={Number(settings.products_per_page_mobile) || Number(settings.limit) || 4}
+        onChangeDesktop={(val) => {
+          onUpdateSection({
+            settings: {
+              ...settings,
+              products_per_page_desktop: val,
+              limit: val,
+            }
+          });
+        }}
+        onChangeTablet={(val) => handleSettingsChange('products_per_page_tablet', val)}
+        onChangeMobile={(val) => handleSettingsChange('products_per_page_mobile', val)}
+      />
+
       <CatalogLimitControl
+        label="Limit Mode (Auto / Manual)"
         mode={settings.limit_mode || 'manual'}
         onChangeMode={(m) => handleSettingsChange('limit_mode', m)}
         rows={Number(settings.limit_rows) || 2}
         onChangeRows={(r) => handleSettingsChange('limit_rows', r)}
-        manual={Number(settings.limit) || 8}
-        onChangeManual={(v) => handleSettingsChange('limit', v)}
+        manual={Number(settings.products_per_page_desktop) || Number(settings.limit) || 8}
+        onChangeManual={(v) => {
+          onUpdateSection({
+            settings: {
+              ...settings,
+              limit: v,
+              products_per_page_desktop: v,
+            }
+          });
+        }}
         previewColumns={Number(settings.columns_desktop) || 4}
       />
       {/* Responsive Columns per Device (Mobile: 1-3, Tablet: 2-4, Desktop: 2-8) */}

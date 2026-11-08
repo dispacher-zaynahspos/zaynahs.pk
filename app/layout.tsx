@@ -211,6 +211,12 @@ export default async function RootLayout({
       className={`${jakarta.variable} ${outfit.variable} ${poppins.variable} ${inter.variable} h-full antialiased overflow-x-clip`}
     >
       <head>
+        <script
+          id="name-shim"
+          dangerouslySetInnerHTML={{
+            __html: 'window.__name=window.__name||function(e,t){try{Object.defineProperty(e,"name",{value:t,configurable:!0})}catch(r){}return e};',
+          }}
+        />
         <ThemeStyleRegistry settings={settings} />
       </head>
       <body suppressHydrationWarning className={`${jakarta.variable} ${outfit.variable} ${poppins.variable} ${inter.variable} font-body min-h-full flex flex-col bg-gray-50 dark:bg-[#0f0f1b] text-gray-900 dark:text-gray-100 overflow-x-clip`}>

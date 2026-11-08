@@ -5,19 +5,23 @@ import { usePathname, useSearchParams } from 'next/navigation';
 import {
   isSameStorePath,
   SCROLL_KEY,
-  ScrollRestoreData
-} from '@/lib/hooks/useScrollRestoration';
+  getNavigationSnapshot,
+  isPopNavigation,
+  clearPopNavigation,
+  type NavigationSnapshot,
+} from '@/lib/navigation/navigationMemory';
 import { resetBodyScrollLock } from '@/lib/hooks/useBodyScrollLock';
 
 /**
- * Storefront scroll restoration (single source of truth).
+ * Storefront scroll & state restoration (Single Source of Truth).
  * 
  * BACK/FORWARD: Restore the exact saved product card into viewport center.
- *   - Uses MutationObserver to wait for lazy grids/product cards to appear
- *   - Prevents the "header flash → footer jump" by holding scroll position
- *     until the target card is found or a final fallback triggers
+ *   - Uses MutationObserver + polling to wait for lazy grids/product cards to appear
+ *   - Prevents "header flash → footer jump" via visual cloak
+ *   - Focuses card with visible focus ring and settles layout for up to 2s
+ *   - Aborts at once if user interacts (wheel, touch, key)
  * 
- * FRESH NAV: Scroll to top (RULE N3).
+ * FORWARD NAV: Scroll to top instantly (RULE N3).
  * 
  * Takes over from the browser via history.scrollRestoration = 'manual'.
  */
@@ -117,35 +121,40 @@ export default function ScrollRestorer() {
       if (el) {
         el.scrollIntoView();
         isPopRef.current = false;
+        clearPopNavigation();
         return;
       }
     }
 
     const currentPath = window.location.pathname + window.location.search;
-    const wasPop = isPopRef.current;
+    const wasPop = isPopRef.current || isPopNavigation();
     isPopRef.current = false;
+    clearPopNavigation();
 
-    // 2. PRODUCT CARD RESTORATION — ONLY on back/forward navigation
-    // Never on fresh page loads (prevents overlay blocking the initial page render)
+    // 2. PRODUCT CARD & STATE RESTORATION — ONLY on back/forward navigation
     if (wasPop) {
-      const raw = sessionStorage.getItem(SCROLL_KEY);
-      if (raw) {
-        try {
-          const data: ScrollRestoreData = JSON.parse(raw);
-          if (isSameStorePath(data.path, currentPath)) {
-            // Ignore stale data (> 30 mins)
-            if (!data.timestamp || Date.now() - data.timestamp > 30 * 60 * 1000) {
-              sessionStorage.removeItem(SCROLL_KEY);
-            } else {
-              startCardRestore(data);
-              return;
-            }
-          }
-        } catch {}
+      const snap = getNavigationSnapshot(currentPath);
+      const targetCardId = snap?.clickedCardId;
+      const targetScrollY = snap?.scrollY;
+
+      if (targetCardId) {
+        startCardRestore({
+          clickedCardId: targetCardId,
+          scrollY: targetScrollY ?? 0,
+          path: currentPath,
+          timestamp: snap?.timestamp ?? Date.now(),
+        });
+        return;
       }
 
-      // 3. Page-level popstate restore (fallback when no specific card was clicked)
-      const liveKey = `scroll:${window.location.pathname}?${window.location.search.replace(/^\?/, '')}`;
+      if (typeof targetScrollY === 'number' && targetScrollY > 0) {
+        startScrollYRestore(targetScrollY);
+        return;
+      }
+
+      // Check legacy liveKey
+      const cleanSearch = window.location.search.replace(/^\?/, '');
+      const liveKey = `scroll:${window.location.pathname}?${cleanSearch}`;
       const saved = sessionStorage.getItem(liveKey);
       if (saved != null) {
         const target = parseInt(saved, 10);
@@ -156,22 +165,14 @@ export default function ScrollRestorer() {
       }
     }
 
-    // 4. Fresh navigation → ONLY scroll to top when route/pathname actually changed!
-    // (e.g. navigating from / to /shop, or /shop to /product/xyz)
-    // NEVER scroll to top on in-page query changes (page=2, filter changes, load more) which must preserve scroll!
-    //
-    // SAFARI/BRAVE FIX (Problem A): When navigating forward, browsers retain the
-    // previous page's scroll offset during the client-side route transition.
-    // Because Next.js App Router does soft navigation, the new page DOM mounts
-    // while the old scrollY (~3500px) is still active. We call scrollTo immediately
-    // (synchronous, in this effect) AND also schedule another call after two rAF
-    // cycles to ensure it fires after any layout paint that may re-apply scroll.
-    if (isNewRoute || isFirstLoad) {
+    // 3. Fresh navigation → ALWAYS scroll to top of new page (RULE N3)
+    // Strictly guarded by !wasPop so it NEVER fights back/forward navigation!
+    if (!wasPop && (isNewRoute || isFirstLoad)) {
       window.scrollTo({ top: 0, behavior: 'instant' });
       // Double-fire after layout to cover Safari's deferred scroll clamp
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          if (!isPopRef.current) {
+          if (!isPopRef.current && !isPopNavigation()) {
             window.scrollTo({ top: 0, behavior: 'instant' });
           }
         });
@@ -181,7 +182,7 @@ export default function ScrollRestorer() {
   }, [currentKey]);
 
   // ── Product card restoration (find card by ID, scrollIntoView center) ──
-  function startCardRestore(data: ScrollRestoreData) {
+  function startCardRestore(data: Partial<NavigationSnapshot>) {
     const state = {
       rafId: null as number | null,
       observer: null as MutationObserver | null,
@@ -191,11 +192,9 @@ export default function ScrollRestorer() {
     activeRestoreRef.current = state;
 
     // ── VISUAL CLOAK: overlay div covers screen to prevent banner/footer flash ──
-    // Uses an overlay instead of opacity:0 so lazy images keep loading behind it.
     const overlay = document.createElement('div');
     overlay.id = 'scroll-restore-cloak';
     overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:var(--bg-body,#fff);pointer-events:none;transition:opacity 120ms ease-out;';
-    // Match dark mode
     if (document.documentElement.classList.contains('dark')) {
       overlay.style.background = '#0f0f1b';
     }
@@ -206,7 +205,7 @@ export default function ScrollRestorer() {
       setTimeout(() => { overlay.remove(); }, 150);
     };
 
-    // User interaction aborts restoration & reveals page
+    // User interaction aborts restoration & reveals page immediately
     const onUserInterrupt = () => {
       if (state.cancelled) return;
       state.cancelled = true;
@@ -216,6 +215,7 @@ export default function ScrollRestorer() {
     window.addEventListener('wheel', onUserInterrupt, { passive: true, once: true });
     window.addEventListener('touchmove', onUserInterrupt, { passive: true, once: true });
     window.addEventListener('touchstart', onUserInterrupt, { passive: true, once: true });
+    window.addEventListener('keydown', onUserInterrupt, { passive: true, once: true });
 
     const cleanup = (removeFromStorage: boolean) => {
       state.cancelled = true;
@@ -225,6 +225,7 @@ export default function ScrollRestorer() {
       window.removeEventListener('wheel', onUserInterrupt);
       window.removeEventListener('touchmove', onUserInterrupt);
       window.removeEventListener('touchstart', onUserInterrupt);
+      window.removeEventListener('keydown', onUserInterrupt);
       if (removeFromStorage) {
         try { sessionStorage.removeItem(SCROLL_KEY); } catch {}
       }
@@ -234,25 +235,25 @@ export default function ScrollRestorer() {
     };
 
     const applyCardFocus = (card: HTMLElement) => {
-      // Instantly center the card (page is still hidden)
+      // Instantly center the card (page is still hidden behind cloak)
       card.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' as ScrollBehavior });
       card.focus?.({ preventScroll: true });
 
       // Now reveal the page — user sees the card centered, never the banner/footer
       revealPage();
 
-      // Visual highlight
+      // Visual highlight with prominent focus ring
       card.classList.add('scroll-restore-highlight');
-      setTimeout(() => card.classList.remove('scroll-restore-highlight'), 1600);
+      setTimeout(() => card.classList.remove('scroll-restore-highlight'), 1800);
 
-      // Keep card centered for a few frames while images/layout settles
+      // Keep card centered for up to 2 seconds while images and fonts settle
       let settleCount = 0;
       const settle = () => {
-        if (state.cancelled || settleCount >= 15) return;
+        if (state.cancelled || settleCount >= 30) return;
         settleCount++;
         const rect = card.getBoundingClientRect();
         const idealTop = (window.innerHeight - rect.height) / 2;
-        if (Math.abs(rect.top - idealTop) > 60) {
+        if (Math.abs(rect.top - idealTop) > 40) {
           card.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' as ScrollBehavior });
         }
         requestAnimationFrame(settle);
@@ -264,9 +265,12 @@ export default function ScrollRestorer() {
 
     const tryFindCard = (): boolean => {
       if (state.cancelled) return false;
-      if (data.productId) {
-        const card = document.getElementById(`product-card-${data.productId}`);
-        if (card) {
+      const cardId = data.clickedCardId;
+      if (cardId) {
+        const card = document.getElementById(`product-card-${cardId}`) ||
+          document.querySelector(`[data-product-id="${cardId}"]`) ||
+          document.querySelector(`article#product-card-${cardId}`);
+        if (card instanceof HTMLElement) {
           applyCardFocus(card);
           return true;
         }
@@ -292,13 +296,11 @@ export default function ScrollRestorer() {
       tries++;
       if (tryFindCard()) return;
 
-      // When we have a productId, do NOT fall back to scrollY early!
-      // Keep looking for the card — the page stays hidden so no banner/footer flash.
-      if (tries < 300) { // ~5 seconds max
+      if (tries < 180) { // ~3 seconds max
         state.rafId = requestAnimationFrame(tick);
       } else {
-        // Final fallback: card was never found, scroll to saved Y and reveal
-        if (data.scrollY > 0) {
+        // Fallback: card was not found, scroll to saved Y and reveal
+        if (data.scrollY && data.scrollY > 0) {
           const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
           window.scrollTo({ top: Math.min(data.scrollY, Math.max(0, maxScroll)), behavior: 'instant' });
         }
@@ -308,20 +310,18 @@ export default function ScrollRestorer() {
     };
     state.rafId = requestAnimationFrame(tick);
 
-    // Hard timeout safety net: if nothing worked in 6s, reveal and stop
+    // Hard timeout safety net: if nothing worked in 4s, reveal and stop
     state.timeoutId = setTimeout(() => {
       if (!state.cancelled) {
-        // One final attempt to find the card
         if (tryFindCard()) return;
-        // If still not found, scroll to saved Y and reveal anyway
-        if (data.scrollY > 0) {
+        if (data.scrollY && data.scrollY > 0) {
           const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
           window.scrollTo({ top: Math.min(data.scrollY, Math.max(0, maxScroll)), behavior: 'instant' });
         }
         revealPage();
         cleanup(true);
       }
-    }, 6000);
+    }, 4000);
   }
 
   // ── Generic scrollY restoration (for pages without product card data) ──
@@ -334,7 +334,7 @@ export default function ScrollRestorer() {
     };
     activeRestoreRef.current = state;
 
-    // ── VISUAL CLOAK: overlay div covers screen to prevent banner/footer flash ──
+    // Visual cloak
     const overlay = document.createElement('div');
     overlay.id = 'scroll-restore-cloak';
     overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:var(--bg-body,#fff);pointer-events:none;transition:opacity 120ms ease-out;';
@@ -356,6 +356,7 @@ export default function ScrollRestorer() {
       window.removeEventListener('wheel', onUserInterrupt);
       window.removeEventListener('touchmove', onUserInterrupt);
       window.removeEventListener('touchstart', onUserInterrupt);
+      window.removeEventListener('keydown', onUserInterrupt);
       if (activeRestoreRef.current === state) activeRestoreRef.current = null;
     };
 
@@ -367,6 +368,7 @@ export default function ScrollRestorer() {
     window.addEventListener('wheel', onUserInterrupt, { passive: true, once: true });
     window.addEventListener('touchmove', onUserInterrupt, { passive: true, once: true });
     window.addEventListener('touchstart', onUserInterrupt, { passive: true, once: true });
+    window.addEventListener('keydown', onUserInterrupt, { passive: true, once: true });
 
     let tries = 0;
     const attemptScroll = () => {

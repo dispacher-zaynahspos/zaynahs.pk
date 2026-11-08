@@ -11,6 +11,7 @@ import { SORT_OPTIONS, getSortLabel, toNumber, extractUsedVariants, filterProduc
 import { useShopUrlParamsSync } from './hooks/useShopUrlParamsSync';
 import { useCatalogColumns } from '@/lib/hooks/useCatalogColumns';
 import { SCROLL_KEY, isSameStorePath, ScrollRestoreData } from '@/lib/hooks/useScrollRestoration';
+import { getNavigationSnapshot, saveNavigationSnapshot } from '@/lib/navigation/navigationMemory';
 
 export { SORT_OPTIONS, getSortLabel };
 
@@ -283,6 +284,10 @@ const CATEGORY_SLUG_ALIASES: Record<string, string> = {
     // Check if this is a back navigation
     try {
       const currentPath = window.location.pathname + (window.location.search || '');
+      const snap = getNavigationSnapshot(currentPath);
+      if (snap?.loadMoreLimits?.shop) {
+        return Math.max(snap.loadMoreLimits.shop, targetLimitFromUrl);
+      }
       const rawScroll = sessionStorage.getItem(SCROLL_KEY);
       let isReturnNav = false;
       if (rawScroll) {
@@ -315,10 +320,11 @@ const CATEGORY_SLUG_ALIASES: Record<string, string> = {
     return targetLimitFromUrl;
   });
 
-  // Persist loadMoreLimit to sessionStorage whenever it changes
+  // Persist loadMoreLimit to sessionStorage and navigationMemory snapshot
   useEffect(() => {
     try {
       sessionStorage.setItem(SHOP_LIMIT_KEY, String(loadMoreLimit));
+      saveNavigationSnapshot({ loadMoreLimits: { shop: loadMoreLimit } });
     } catch {}
   // SHOP_LIMIT_KEY is derived from pathname+search and stable within a page session
   // eslint-disable-next-line react-hooks/exhaustive-deps
