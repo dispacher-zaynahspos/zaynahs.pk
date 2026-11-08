@@ -16,7 +16,6 @@ import variants from './card-variants.json';
 import type { CardProduct, CardVariant } from './types';
 import { getSharedTitleClampClass } from '@/lib/utils/styles';
 import type { StoreSettings } from '@/lib/types';
-import { saveScrollPosition } from '@/lib/navigation/navigationMemory';
 
 const QuickViewModal = dynamic(() => import('@/components/store/QuickViewModal'), { ssr: false, loading: () => null });
 

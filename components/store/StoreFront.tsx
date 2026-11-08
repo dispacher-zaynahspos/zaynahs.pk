@@ -66,7 +66,6 @@ export default function StoreFront({
   viewportMode,
 }: StoreFrontProps) {
   const searchQuery = useSearchStore((state) => state.searchQuery);
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string | undefined>(undefined);
 
   // Restore active category on back navigation (RULE N1 / SSOT)
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | undefined>(() => {

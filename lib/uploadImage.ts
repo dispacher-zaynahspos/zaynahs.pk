@@ -215,7 +215,7 @@ export const uploadImage = async (file: File | Blob, bucket: string, customName?
       throw new Error('Failed to retrieve public URL after upload');
     }
 
-    const fileUrl = data.publicUrl;
+    fileUrl = data.publicUrl;
 
     // 7. Save to media_library table
     const { error: dbError } = await supabase
