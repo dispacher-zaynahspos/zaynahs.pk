@@ -21,12 +21,25 @@ export async function POST(request: Request) {
     console.log(`[Media Upload API] Processing file: ${file.name}, size: ${file.size} bytes, skipMediaLibrary: ${skipMediaLibrary}`);
 
     if (skipMediaLibrary) {
-      // Direct server-side upload using supabaseAdmin (bypasses browser RLS and media_library table)
+      // Direct server-side upload (bypasses browser RLS and media_library table)
       const timestamp = Date.now();
       const randomStr = Math.random().toString(36).substring(2, 7);
       const fileName = `review-photo-${timestamp}-${randomStr}.webp`;
       const arrayBuffer = await file.arrayBuffer();
       const uint8Array = new Uint8Array(arrayBuffer);
+
+      const { isR2UploadEnabled, uploadObjectToR2 } = await import('@/lib/platform/r2');
+      if (isR2UploadEnabled()) {
+        const r2 = await uploadObjectToR2({
+          key: `product-images/${fileName}`,
+          body: uint8Array,
+          contentType: 'image/webp',
+        });
+        if (!r2.ok) {
+          throw new Error(`R2 upload failed: ${r2.error}`);
+        }
+        return NextResponse.json({ url: r2.url, success: true });
+      }
 
       const { error: uploadErr } = await supabaseAdmin.storage
         .from(bucket)

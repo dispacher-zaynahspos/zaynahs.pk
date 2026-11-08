@@ -135,3 +135,18 @@ Verified 2026-10. ALL media uploads go through a single system — never a bespo
 - **Hero LCP Preload**: Slide #1 on Hero Banner must have `fetchPriority="high"`, `decoding="sync"`, and responsive `<source>` with `'banner'` preset for mobile (<768px). Guarantees LCP < 1.8s even on throttled 4G.
 - **Zero-Block Pixels**: All marketing tracking scripts in `components/Pixels.tsx` must use `strategy="lazyOnload"` (never `afterInteractive`) to prevent main-thread contention during hydration, eliminating TBT.
 - **Zero-Block Fonts**: Theme font stylesheets in `ThemeStyleRegistry.tsx` must render as `<link rel="preconnect">` + `<link rel="stylesheet">`, never inline `@import url(...)` inside `<style>` blocks which halt CSSOM layout.
+
+## RULE S10 — Dual-Architecture Storage Law & Strict S5 Supabase Storage Ban
+- **Mode A (Cloudflare Workers $5 Paid Plan — Modern / Primary)**:
+  - **Zero Supabase Storage**: Under the S5 plan, Supabase Storage usage is **strictly 0% (banned)**. Supabase is Postgres Database & Auth ONLY.
+  - **100% Cloudflare R2**: All media files reside in Cloudflare R2 bucket (`totvogue-images`) delivered via custom edge domain (`https://img.<domain>/...`).
+  - **Egress & Cost**: Zero egress fees, unlimited image delivery, zero Vercel image units.
+  - **Upload Routing**: `app/api/upload-image/route.ts` and `lib/uploadImage.ts` upload directly to R2. If R2 is enabled and fails, the server throws an explicit 500 error — silent fallback to uncompressed Supabase storage is strictly forbidden.
+- **Mode B (Legacy Vercel Free Mode)**:
+  - Vercel Serverless + Supabase Storage `product-images` bucket. Only used when explicitly selected by the user for free-tier setups without R2.
+
+## RULE S11 — Mandatory WebP Conversion & Zero Silent Fallback
+- **Universal WebP Enforcement**: Every single uploaded image (PNG, JPEG, HEIC, WebP) must undergo server/client compression to WebP (target ≤80KB, max dimension 1600px, quality 80–85).
+- **Favicons Exception**: Favicons convert to PNG ≤128px.
+- **Zero Silent Fallback**: If Sharp conversion fails or image encoding encounters an error, the system must throw a clear, visible error toast instead of silently uploading uncompressed 2MB+ PNGs.
+

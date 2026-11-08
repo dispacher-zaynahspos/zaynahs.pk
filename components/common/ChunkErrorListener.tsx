@@ -7,53 +7,55 @@ export default function ChunkErrorListener() {
     const handleChunkError = (message?: string) => {
       if (!message) return;
       const lower = message.toLowerCase();
-      if (
+      // Strictly match actual chunk loading errors, never generic stack traces or scripts
+      const isChunkError =
         lower.includes('chunkloaderror') ||
         lower.includes('loading chunk') ||
         lower.includes('failed to load chunk') ||
-        lower.includes('failed to fetch dynamically imported module') ||
-        lower.includes('load chunk') ||
-        lower.includes('_next/static/chunks')
-      ) {
-        console.warn('[ChunkErrorListener] Chunk load error detected! Reloading page to fetch latest build...');
-        
-        // Use session storage to prevent infinite reloading loop
-        const reloadKey = 'last_chunk_error_reload';
-        const now = Date.now();
-        const lastReload = sessionStorage.getItem(reloadKey);
-        
-        // Only allow reload if the last one was more than 10 seconds ago
-        if (!lastReload || now - parseInt(lastReload, 10) > 10000) {
-          sessionStorage.setItem(reloadKey, now.toString());
-          // Force a cache-busting reload to bypass stale browser cache
-          const currentUrl = new URL(window.location.href);
-          currentUrl.searchParams.set('_r', now.toString());
-          window.location.href = currentUrl.toString();
-        }
+        lower.includes('failed to fetch dynamically imported module');
+
+      if (!isChunkError) return;
+
+      console.warn('[ChunkErrorListener] Genuine chunk load error detected! Checking reload guard...');
+      
+      const reloadKey = 'chunk_reload_lock_active';
+      // If already reloaded in this session for a chunk error, do NOT loop again
+      if (sessionStorage.getItem(reloadKey)) {
+        console.warn('[ChunkErrorListener] Reload already attempted this session. Suppressing infinite reload loop.');
+        return;
       }
+      
+      sessionStorage.setItem(reloadKey, 'true');
+      // Clean reload without injecting ?_r= query params into the address bar
+      window.location.reload();
     };
 
     const onError = (event: ErrorEvent | Event) => {
-      // 1. Check for resource load failure on <script> tags (capture phase)
+      // 1. Script tag load failure (e.g. 404 on hashed chunk)
       if ('target' in event && event.target instanceof HTMLScriptElement) {
         const src = event.target.src || '';
-        if (src.includes('_next/static/chunks') || src.includes('/_next/static/')) {
-          handleChunkError(`_next/static/chunks load failed: ${src}`);
+        if (src.includes('/_next/static/chunks/') && event.type === 'error') {
+          handleChunkError(`ChunkLoadError: Failed to load script chunk ${src}`);
           return;
         }
       }
-      // 2. Check for ErrorEvent message or error
+      // 2. ErrorEvent check
       if ('message' in event) {
         const errorEvent = event as ErrorEvent;
-        const errObj = errorEvent.error as { message?: string; toString?: () => string } | undefined;
-        handleChunkError(errorEvent.message || errObj?.message || errObj?.toString?.());
+        const errObj = errorEvent.error as { name?: string; message?: string } | undefined;
+        if (errObj?.name === 'ChunkLoadError' || errorEvent.message?.includes('ChunkLoadError')) {
+          handleChunkError(errorEvent.message || errObj?.message);
+        }
       }
     };
 
     const onUnhandledRejection = (event: PromiseRejectionEvent) => {
       const reason = event.reason;
+      const name = reason?.name;
       const message = reason?.message || reason?.toString?.();
-      handleChunkError(message);
+      if (name === 'ChunkLoadError' || message?.includes('ChunkLoadError')) {
+        handleChunkError(message);
+      }
     };
 
     // Note: useCapture=true is required because script element errors DO NOT BUBBLE.

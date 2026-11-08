@@ -9,6 +9,7 @@ in the same task.
 | File | Read it when |
 |---|---|
 | `ARCHITECTURE.md` | before any structural work |
+| `DUAL_HOSTING_SETUP_GUIDE.md` | choosing/deploying Vercel Free ($0) vs Cloudflare Workers ($5/mo) |
 | `CACHE-AND-REVALIDATION.md` | touching caching, ISR, admin saves, webhooks |
 | `DEPLOY-CLOUDFLARE.md` | deploying, migrating platform, rollback |
 | `ENV.md` | adding/renaming a variable |

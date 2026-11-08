@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth/requireAdmin';
-import sharp from 'sharp';
 import { createClient } from '@supabase/supabase-js';
+import { loadSharp } from '@/lib/platform/sharp-loader';
 
 const MAX_KB = 50;
 const MAX_DIM = 1200;
@@ -120,11 +120,17 @@ export async function POST(request: NextRequest) {
     const arrayBuffer = await fetchResponse.arrayBuffer();
     const inputBuffer = Buffer.from(arrayBuffer);
 
-    // Process with Sharp
-    let sharpInstance = sharp(inputBuffer, { failOnError: false });
+    // Process with Sharp (Node only — edge runtimes store the original)
+    const sharp = await loadSharp();
+    if (!sharp) {
+      return NextResponse.json(
+        { error: 'Image processing is unavailable on this runtime' },
+        { status: 501 }
+      );
+    }
 
     // Get metadata for dimension checks
-    const meta = await sharpInstance.metadata();
+    const meta = await sharp(inputBuffer, { failOnError: false }).metadata();
     const origW = meta.width ?? 800;
     const origH = meta.height ?? 800;
 

@@ -1,4 +1,5 @@
 import { createClient as createBrowserClient } from '@/lib/supabase/client';
+import { loadSharp } from '@/lib/platform/sharp-loader';
 
 /**
  * Validates, compresses, and uploads an image file to Supabase storage, converting it to WebP.
@@ -64,7 +65,8 @@ export const uploadImage = async (file: File | Blob, bucket: string, customName?
       } else {
         // Server-side conversion using sharp
         try {
-          const sharp = (await import('sharp')).default;
+          const sharp = await loadSharp();
+          if (!sharp) throw new Error('sharp unavailable on this runtime');
           const arrayBuffer = await file.arrayBuffer();
           const buffer = Buffer.from(arrayBuffer);
           const webpBuffer = await sharp(buffer)
@@ -95,7 +97,62 @@ export const uploadImage = async (file: File | Blob, bucket: string, customName?
       webpFileName = `${sanitizedName}-${timestamp}-2.${fileExtension}`;
     }
 
-    // 5. Upload file to Supabase storage
+    if (isBrowser) {
+      // Browser delegates to /api/upload-image to ensure R2 routing, secrets protection, and strict WebP
+      const formData = new FormData();
+      const sendFile = file instanceof File ? file : new File([file], `${sanitizedName}.${fileExtension}`, { type: file.type || 'image/webp' });
+      formData.append('file', sendFile);
+      formData.append('folder', bucket);
+      const res = await fetch('/api/upload-image', {
+        method: 'POST',
+        body: formData,
+      });
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.error || `Upload failed with status ${res.status}`);
+      }
+      const data = await res.json();
+      return data.url;
+    }
+
+    // 5. Upload file (R2 primary under S5; Supabase fallback under legacy mode B)
+    const { isR2UploadEnabled, uploadObjectToR2 } = await import('@/lib/platform/r2');
+    if (isR2UploadEnabled()) {
+      const arrayBuffer = await webpFile.arrayBuffer();
+      const r2 = await uploadObjectToR2({
+        key: `${bucket}/${webpFileName}`,
+        body: new Uint8Array(arrayBuffer),
+        contentType: webpFile.type || 'image/webp',
+      });
+      if (!r2.ok) {
+        throw new Error(`R2 upload failed: ${r2.error}`);
+      }
+      const fileUrl = r2.url;
+
+      // Register in media_library (DB only)
+      try {
+        await supabase
+          .from('media_library')
+          .insert({
+            original_filename: file instanceof File ? file.name : (customName || 'unknown'),
+            seo_filename: webpFileName,
+            file_url: fileUrl,
+            alt_text: originalName.replace(/-/g, ' '),
+            title: originalName.replace(/-/g, ' '),
+            bucket: bucket,
+            ai_generated: false,
+            ai_enabled: true,
+            file_size: webpFile.size,
+            mime_type: webpFile.type || 'image/webp'
+          });
+      } catch (dbError) {
+        console.warn('[uploadImage] Error saving to media_library table:', dbError);
+      }
+
+      return fileUrl;
+    }
+
+    // Mode B Legacy Vercel mode: Upload to Supabase storage
     const { error: uploadError } = await supabase.storage
       .from(bucket)
       .upload(webpFileName, webpFile, {
@@ -193,6 +250,20 @@ export const uploadReviewImage = async (file: File): Promise<string> => {
     const timestamp = Date.now();
     const randomStr = Math.random().toString(36).substring(2, 7);
     const fileName = `review-photo-${timestamp}-${randomStr}.webp`;
+
+    const { isR2UploadEnabled, uploadObjectToR2 } = await import('@/lib/platform/r2');
+    if (isR2UploadEnabled()) {
+      const arrayBuffer = await webpFile.arrayBuffer();
+      const r2 = await uploadObjectToR2({
+        key: `product-images/${fileName}`,
+        body: new Uint8Array(arrayBuffer),
+        contentType: 'image/webp',
+      });
+      if (!r2.ok) {
+        throw new Error(`R2 upload failed: ${r2.error}`);
+      }
+      return r2.url;
+    }
 
     const { error: uploadError } = await supabase.storage
       .from('product-images')

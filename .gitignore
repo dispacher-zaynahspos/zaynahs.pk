@@ -70,4 +70,6 @@ gen images/
 # generated per-store Worker configs (domains live in env, never in source)
 worker-config/
 .dev.vars*
+.open-next/
+.wrangler/
 

@@ -181,9 +181,21 @@ async function main() {
               manifest.skipped.push(key);
               return;
             }
-            const sourceUrl = `${supabaseUrl}/storage/v1/object/public/${bucket}/${encodeURI(obj.path)}`;
-            const download = await fetch(sourceUrl);
-            if (!download.ok) throw new Error(`download ${download.status}`);
+            const sourceUrl = `${supabaseUrl}/storage/v1/object/authenticated/${bucket}/${encodeURI(obj.path)}`;
+            let download = null;
+            for (let attempt = 1; attempt <= 3; attempt++) {
+              try {
+                download = await fetch(sourceUrl, {
+                  headers: { Authorization: `Bearer ${serviceKey}`, apikey: serviceKey },
+                  signal: AbortSignal.timeout(20000),
+                });
+                if (download && download.ok) break;
+              } catch (err) {
+                if (attempt === 3) throw err;
+                await new Promise((r) => setTimeout(r, 1000 * attempt));
+              }
+            }
+            if (!download || !download.ok) throw new Error(`download ${download?.status || 'failed'}`);
             const body = Buffer.from(await download.arrayBuffer());
             const put = await client.fetch(s3Url(key), {
               method: 'PUT',

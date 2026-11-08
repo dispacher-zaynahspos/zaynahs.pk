@@ -28,8 +28,10 @@ reviews           → getGlobalReviews() → {reviews:[], total:0} on error (gra
 Every product with variants MUST track stock per variant in `product_variants.stock`.
 `products.stock` = sum of all variant stocks (or direct stock if no variants).
 
-## RULE D2 — Image storage
-All images → Supabase Storage bucket `product-images`. Public URL stored in `product_images.url`. Never store base64 in DB. (Full storage rules: [11-storage-images.md](11-storage-images.md).)
+## RULE D2 — Image storage (Mode A R2 vs Mode B Supabase)
+- **Mode A (S5 Cloudflare Workers Paid Plan — Modern/Primary)**: Supabase is DB & Auth ONLY. Supabase Storage is 0% (strictly BANNED). All image URLs point to Cloudflare R2 on `https://img.<domain>/...` with zero egress cost.
+- **Mode B (Legacy Vercel Free Mode)**: Images stored in Supabase Storage bucket `product-images`. Public URL stored in `product_images.url`.
+- Under NO circumstance may base64 be stored in DB. (Full storage rules: [11-storage-images.md](11-storage-images.md).)
 
 ## RULE D3 — Settings singleton
 `store_settings` always has exactly ONE row. ID: `00000000-0000-4000-8000-000000000001`. Never create a second row.

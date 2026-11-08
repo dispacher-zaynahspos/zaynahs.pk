@@ -61,6 +61,21 @@ The agent automatically:
 
 Full details: `docs/NEW_PROJECT_SETUP_GUIDE.md#agent-automation--full-setup-flow`.
 
+## RULE DUAL-DEPLOY — S5 Workers Paid Plan vs Legacy Vercel Mode
+- **Mode A (S5 Cloudflare Workers Paid Plan — Modern/Primary)**:
+  - **Zero Vercel Traffic**: All storefront, static, SSR, ISR, and admin traffic routes through Cloudflare Workers.
+  - **Setup Command**: `npm run clone:setup -- --store=<store> --skip-vercel --yes` (skips Vercel provisioning).
+  - **Worker Deployment**:
+    ```bash
+    npx @opennextjs/cloudflare build
+    npx wrangler deploy --config worker-config/<store>/wrangler.jsonc
+    ```
+  - **Media**: 100% Cloudflare R2 on `img.<domain>`, 0% Supabase Storage.
+- **Mode B (Legacy Vercel Free Mode)**:
+  - **Setup Command**: `npm run clone:setup -- --store=<store> --deploy --yes`
+  - **Deployment**: Vercel Git integration or `vercel --prod`.
+  - **Media**: Supabase Storage bucket `product-images`.
+
 ---
 
 ## RULE CLONE1 — Mandatory Autonomous Clone Setup by Agent (STRICT)

@@ -30,7 +30,7 @@ function parseArgs(argv) {
 }
 
 function loadEnvFile(filePath) {
-  if (!existsSync(filePath)) {
+  iبببbzb f(!existsSync(filePath)) {
     throw new Error(`Env file not found: ${filePath}`);
   }
   const env = {};
@@ -112,8 +112,6 @@ function buildConfigs(ctx, split) {
     NEXT_PUBLIC_SITE_URL: siteUrl.replace(/\/+$/, ''),
     ADMIN_HOST: adminHost,
     IMG_HOST: imgHost,
-    NEXT_INC_CACHE_R2_BUCKET: cacheBucket,
-    R2_IMAGES_BUCKET: imageBucket,
   };
 
   const single = {
@@ -218,10 +216,10 @@ function main() {
 
   console.log(
     '\nSecrets to set per Worker (names only, never in vars):\n' +
-      '  NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY,\n' +
-      '  SUPABASE_SERVICE_ROLE_KEY, REVALIDATE_SECRET, CRON_SECRET,\n' +
-      '  NEXT_PUBLIC_ADMIN_EMAIL, NEXT_PUBLIC_BRAND_NAME,\n' +
-      '  R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, CLOUDFLARE_API_TOKEN\n'
+    '  NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY,\n' +
+    '  SUPABASE_SERVICE_ROLE_KEY, REVALIDATE_SECRET, CRON_SECRET,\n' +
+    '  NEXT_PUBLIC_ADMIN_EMAIL, NEXT_PUBLIC_BRAND_NAME,\n' +
+    '  R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, CLOUDFLARE_API_TOKEN\n'
   );
 }
 

@@ -111,12 +111,19 @@ export const deleteProductImage = async (url: string): Promise<void> => {
 };
 
 export const isOwnStorageUrl = (url: string) => {
+  if (!url) return false;
+  const cleanUrl = url.replace(/^https?:\/\//, '').toLowerCase();
+
+  const r2Base = process.env.R2_PUBLIC_BASE || process.env.NEXT_PUBLIC_R2_PUBLIC_BASE;
+  if (r2Base) {
+    const cleanR2 = r2Base.replace(/^https?:\/\//, '').toLowerCase();
+    if (cleanUrl.startsWith(cleanR2)) return true;
+  }
+  if (cleanUrl.includes('img.') && (cleanUrl.includes('/product-images/') || cleanUrl.includes('.webp'))) return true;
+
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   if (!supabaseUrl) return false;
-  
   const cleanSupabase = supabaseUrl.replace(/^https?:\/\//, '').toLowerCase();
-  const cleanUrl = url.replace(/^https?:\/\//, '').toLowerCase();
-  
   return cleanUrl.startsWith(cleanSupabase) && cleanUrl.includes('/product-images/');
 };
 
@@ -133,20 +140,8 @@ export const processImageUrl = async (url: string, prefix: string, folder: strin
     const ext = blob.type.split('/')[1] || 'jpg';
     const file = new File([blob], `${prefix}-${Date.now()}.${ext}`, { type: blob.type });
     
-    // Upload using supabase client directly
-    const supabase = createClient();
-    const fileName = `${folder}/${file.name}`;
-    const { error } = await supabase.storage
-      .from('product-images')
-      .upload(fileName, file, {
-        contentType: file.type,
-        upsert: true
-      });
-      
-    if (error) throw error;
-    
-    const { data } = supabase.storage.from('product-images').getPublicUrl(fileName);
-    return data.publicUrl;
+    // Route through server upload pipeline (handles WebP + R2 under S5 mode)
+    return await uploadViaServer(file, folder);
   } catch (error) {
     console.error('Failed to download/upload image:', error);
     return url; // Fallback to original URL if upload fails
