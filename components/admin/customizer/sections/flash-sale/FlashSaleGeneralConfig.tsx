@@ -150,7 +150,12 @@ export default function FlashSaleGeneralConfig({
       <hr className="border-gray-200 dark:border-gray-800" />
 
       {/* Bottom Grid Actions — shared SSOT component (RULE SSOT-CATALOG-LAYOUTS Family F) */}
-      <BottomGridActions settings={settings} handleSettingsChange={handleSettingsChange} viewportMode={viewportMode} />
+      <BottomGridActions
+        settings={settings}
+        handleSettingsChange={handleSettingsChange}
+        onUpdateSettings={(updates) => onUpdateSection({ settings: { ...settings, ...updates } })}
+        viewportMode={viewportMode}
+      />
     </div>
   );
 }

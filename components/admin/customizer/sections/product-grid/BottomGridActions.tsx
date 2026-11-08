@@ -4,16 +4,27 @@ import React from 'react';
 import ResponsiveProductsPerPageControl from '@/components/admin/customizer/shared/ResponsiveProductsPerPageControl';
 
 interface BottomGridActionsProps {
-  settings: Record<string, string | number | boolean | undefined>;
-  handleSettingsChange: (key: string, value: string | number | boolean) => void;
+  settings: Record<string, any>;
+  handleSettingsChange: (key: string, value: any) => void;
+  onUpdateSettings?: (updates: Record<string, any>) => void;
   viewportMode?: 'desktop' | 'tablet' | 'mobile';
+  hideProductsPerPage?: boolean;
 }
 
 export default function BottomGridActions({
   settings,
   handleSettingsChange,
+  onUpdateSettings,
   viewportMode = 'desktop',
+  hideProductsPerPage = false,
 }: BottomGridActionsProps) {
+  const applyLimitBatch = (updates: Record<string, any>) => {
+    if (onUpdateSettings) {
+      onUpdateSettings(updates);
+    } else {
+      Object.entries(updates).forEach(([k, v]) => handleSettingsChange(k, v));
+    }
+  };
   return (
     <div className="space-y-3">
       <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Bottom Grid Actions</p>
@@ -167,21 +178,36 @@ export default function BottomGridActions({
         </div>
       )}
 
-      {/* Responsive Products per Page / Load More Batch Limit */}
-      <div className="pt-2 border-t border-gray-200 dark:border-gray-800">
-        <ResponsiveProductsPerPageControl
-          viewportMode={viewportMode}
-          desktopLimit={Number(settings.products_per_page_desktop) || Number(settings.limit) || 12}
-          tabletLimit={Number(settings.products_per_page_tablet) || Number(settings.limit) || 8}
-          mobileLimit={Number(settings.products_per_page_mobile) || Number(settings.limit) || 6}
-          onChangeDesktop={(val) => {
-            handleSettingsChange('products_per_page_desktop', val);
-            handleSettingsChange('limit', val);
-          }}
-          onChangeTablet={(val) => handleSettingsChange('products_per_page_tablet', val)}
-          onChangeMobile={(val) => handleSettingsChange('products_per_page_mobile', val)}
-        />
-      </div>
+      {/* Responsive Products per Page / Load More Batch Limit (rendered only when not handled by primary section) */}
+      {!hideProductsPerPage && (
+        <div className="pt-2 border-t border-gray-200 dark:border-gray-800">
+          <ResponsiveProductsPerPageControl
+            viewportMode={viewportMode}
+            desktopLimit={Number(settings.products_per_page_desktop) || Number(settings.limit) || 8}
+            tabletLimit={Number(settings.products_per_page_tablet) || Number(settings.limit) || 6}
+            mobileLimit={Number(settings.products_per_page_mobile) || Number(settings.limit) || 4}
+            onChangeDesktop={(val) => {
+              applyLimitBatch({
+                limit_mode: 'manual',
+                products_per_page_desktop: val,
+                limit: val,
+              });
+            }}
+            onChangeTablet={(val) => {
+              applyLimitBatch({
+                limit_mode: 'manual',
+                products_per_page_tablet: val,
+              });
+            }}
+            onChangeMobile={(val) => {
+              applyLimitBatch({
+                limit_mode: 'manual',
+                products_per_page_mobile: val,
+              });
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }

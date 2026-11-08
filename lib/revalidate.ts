@@ -331,11 +331,17 @@ export async function revalidateBanner() {
     revalidatePath('/admin', 'layout');
 
     const siteUrl = await resolveSiteUrl();
+    const purgeUrls = [`${siteUrl}/`];
+    if (siteUrl.includes('://www.')) {
+      purgeUrls.push(siteUrl.replace('://www.', '://') + '/');
+    } else if (!siteUrl.includes('localhost') && !siteUrl.includes('.workers.dev')) {
+      purgeUrls.push(siteUrl.replace('://', '://www.') + '/');
+    }
 
     // 2. Cloudflare targeted purge SECOND
     await purgeCloudflareTargeted({
       tags: ['homepage', 'banners'],
-      urls: [`${siteUrl}/`],
+      urls: purgeUrls,
     });
 
     console.log('[revalidate] Banners & homepage revalidated');

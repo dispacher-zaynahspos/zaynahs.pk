@@ -289,6 +289,7 @@ export default function ProductGridSettings({
         settings={settings}
         handleSettingsChange={handleSettingsChange}
         viewportMode={viewportMode}
+        hideProductsPerPage={true}
       />
       </div>
       </AccordionGroup>

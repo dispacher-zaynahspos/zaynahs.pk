@@ -12,6 +12,7 @@ import {
   useScrollRestoration,
   SCROLL_KEY,
   isSameStorePath,
+  isPopNavigation,
   type NavigationSnapshot,
 } from '@/lib/navigation/navigationMemory';
 import { useSettings } from '@/lib/hooks/useSettings';
@@ -87,23 +88,36 @@ export default function StoreFront({
   }, [sections, isPreview, activeSectionId]);
 
   // Per-section Load More limits — initialize with empty object to ensure clean SSR/client hydration (prevents React error #418).
-  // Saved limits are restored immediately in useEffect post-hydration.
+  // Saved limits are restored immediately in useEffect post-hydration ONLY on history back/forward return.
   const [loadMoreLimits, setLoadMoreLimits] = useState<Record<string, number>>({});
 
-  // Post-mount sync & restore
+  // Post-mount sync & restore (SSOT: only active on back/pop navigation)
   useEffect(() => {
     try {
-      const snap = getNavigationSnapshot();
-      if (snap?.loadMoreLimits && Object.keys(snap.loadMoreLimits).length > 0) {
-        setLoadMoreLimits(snap.loadMoreLimits);
-        return;
-      }
-      const rawLimits = sessionStorage.getItem(LOAD_MORE_KEY);
-      if (rawLimits) {
-        const parsed = JSON.parse(rawLimits);
-        if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 0) {
-          setLoadMoreLimits(parsed);
+      const isNavBack =
+        isPopNavigation() ||
+        (typeof window !== 'undefined' &&
+          ((performance.getEntriesByType?.('navigation')?.[0] as PerformanceNavigationTiming)?.type === 'back_forward' ||
+           (window.performance?.navigation?.type === 2))) ||
+        (typeof document !== 'undefined' && document.referrer && document.referrer.includes('/product/'));
+
+      if (isNavBack) {
+        const snap = getNavigationSnapshot();
+        if (snap?.loadMoreLimits && Object.keys(snap.loadMoreLimits).length > 0) {
+          setLoadMoreLimits(snap.loadMoreLimits);
+          return;
         }
+        const rawLimits = sessionStorage.getItem(LOAD_MORE_KEY);
+        if (rawLimits) {
+          const parsed = JSON.parse(rawLimits);
+          if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 0) {
+            setLoadMoreLimits(parsed);
+            return;
+          }
+        }
+      } else {
+        // Fresh arrival / intentional navigation: clear stale load-more counts so customizer limits take effect instantly
+        sessionStorage.removeItem(LOAD_MORE_KEY);
       }
     } catch {}
   }, []);

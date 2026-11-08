@@ -211,7 +211,12 @@ export default function ScrollRestorer() {
     };
     activeRestoreRef.current = state;
 
-    // ── VISUAL CLOAK: overlay div covers screen to prevent banner/footer flash ──
+    // 1. Instantly anchor the document at saved scroll position before anything paints
+    if (typeof data.scrollY === 'number' && data.scrollY > 0) {
+      window.scrollTo({ top: data.scrollY, behavior: 'instant' });
+    }
+
+    // ── VISUAL CLOAK: subtle cloak prevents banner flash while card settles ──
     const overlay = document.createElement('div');
     overlay.id = 'scroll-restore-cloak';
     overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:var(--bg-body,#fff);pointer-events:none;transition:opacity 120ms ease-out;';
@@ -222,22 +227,30 @@ export default function ScrollRestorer() {
 
     const revealPage = () => {
       overlay.style.opacity = '0';
-      setTimeout(() => { overlay.remove(); }, 150);
+      setTimeout(() => { overlay.remove(); }, 120);
     };
 
-    // User interaction aborts restoration & reveals page immediately
+    // User gesture grace period: ignore swipe momentum & trackpad inertia during first 450ms
+    let allowUserInterrupt = false;
+    const graceTimer = setTimeout(() => {
+      allowUserInterrupt = true;
+    }, 450);
+
     const onUserInterrupt = () => {
+      if (!allowUserInterrupt) return;
       if (state.cancelled) return;
       state.cancelled = true;
       revealPage();
-      cleanup(true);
+      cleanup(false);
     };
-    window.addEventListener('wheel', onUserInterrupt, { passive: true, once: true });
-    window.addEventListener('touchmove', onUserInterrupt, { passive: true, once: true });
-    window.addEventListener('touchstart', onUserInterrupt, { passive: true, once: true });
-    window.addEventListener('keydown', onUserInterrupt, { passive: true, once: true });
+
+    window.addEventListener('wheel', onUserInterrupt, { passive: true });
+    window.addEventListener('touchmove', onUserInterrupt, { passive: true });
+    window.addEventListener('touchstart', onUserInterrupt, { passive: true });
+    window.addEventListener('keydown', onUserInterrupt, { passive: true });
 
     const cleanup = (removeFromStorage: boolean) => {
+      clearTimeout(graceTimer);
       state.cancelled = true;
       if (state.rafId) cancelAnimationFrame(state.rafId);
       if (state.observer) state.observer.disconnect();
@@ -259,42 +272,42 @@ export default function ScrollRestorer() {
     };
 
     const applyCardFocus = (card: HTMLElement) => {
-      // Instantly center the card (page is still hidden behind cloak)
+      // Instantly center the card
       card.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' as ScrollBehavior });
       card.focus?.({ preventScroll: true });
 
-      // Now reveal the page — user sees the card centered, never the banner/footer
-      revealPage();
-
       // Visual highlight with prominent focus ring
       card.classList.add('scroll-restore-highlight');
-      setTimeout(() => card.classList.remove('scroll-restore-highlight'), 2200);
+      setTimeout(() => card.classList.remove('scroll-restore-highlight'), 2400);
 
-      // Keep card centered for up to 1.5 seconds while images and fonts settle
-      let settleCount = 0;
-      const settle = () => {
-        if (state.cancelled || settleCount >= 45) {
-          cleanup(true);
+      revealPage();
+
+      // Verify alignment across 2 layout frames as fonts/images finish hydration
+      let settleFrames = 0;
+      const verifySettle = () => {
+        settleFrames++;
+        if (state.cancelled || settleFrames > 3) {
+          cleanup(false);
           return;
         }
-        settleCount++;
         if (card.isConnected) {
           const rect = card.getBoundingClientRect();
-          const idealTop = (window.innerHeight - rect.height) / 2;
-          if (Math.abs(rect.top - idealTop) > 30) {
+          const inView = rect.top >= 0 && rect.bottom <= window.innerHeight;
+          if (!inView) {
             card.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' as ScrollBehavior });
           }
         }
-        state.rafId = requestAnimationFrame(settle);
+        state.rafId = requestAnimationFrame(verifySettle);
       };
-      state.rafId = requestAnimationFrame(settle);
+      state.rafId = requestAnimationFrame(verifySettle);
     };
 
     const tryFindCard = (): boolean => {
       if (state.cancelled) return false;
       const cardId = data.clickedCardId;
       if (cardId) {
-        const card = document.getElementById(`product-card-${cardId}`) ||
+        const card =
+          document.getElementById(`product-card-${cardId}`) ||
           document.querySelector(`[data-product-id="${cardId}"]`) ||
           document.querySelector(`article#product-card-${cardId}`);
         if (card instanceof HTMLElement) {
@@ -308,7 +321,7 @@ export default function ScrollRestorer() {
     // Try immediately
     if (tryFindCard()) return;
 
-    // Watch DOM for card appearing (lazy grids, SSR hydration, etc.)
+    // Watch DOM for card appearing (e.g. hydrated grids or load-more batch restoration)
     const observer = new MutationObserver(() => {
       if (state.cancelled) return;
       tryFindCard();
@@ -323,34 +336,24 @@ export default function ScrollRestorer() {
       tries++;
       if (tryFindCard()) return;
 
-      if (tries < 180) { // ~3 seconds max
+      if (tries < 120) { // ~2 seconds max
         state.rafId = requestAnimationFrame(tick);
       } else {
-        // Fallback: card was not found, scroll to saved Y only if page is actually tall enough
-        if (data.scrollY && data.scrollY > 0) {
-          const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-          if (maxScroll > 150) {
-            window.scrollTo({ top: Math.min(data.scrollY, maxScroll), behavior: 'instant' });
-          }
-        }
+        // Fallback: card was not found, reveal page without moving viewport
         revealPage();
-        cleanup(true);
+        cleanup(false);
       }
     };
     state.rafId = requestAnimationFrame(tick);
 
-    // Hard timeout safety net: if nothing worked in 4s, reveal and stop
+    // Hard timeout safety net: reveal and clean up smoothly
     state.timeoutId = setTimeout(() => {
       if (!state.cancelled) {
-        if (tryFindCard()) return;
-        if (data.scrollY && data.scrollY > 0) {
-          const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-          window.scrollTo({ top: Math.min(data.scrollY, Math.max(0, maxScroll)), behavior: 'instant' });
-        }
+        tryFindCard();
         revealPage();
-        cleanup(true);
+        cleanup(false);
       }
-    }, 4000);
+    }, 2500);
   }
 
   // ── Generic scrollY restoration (for pages without product card data) ──
