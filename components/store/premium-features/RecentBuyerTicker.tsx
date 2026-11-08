@@ -53,6 +53,7 @@ export default function RecentBuyerTicker({
               src={product.images[0].url}
               alt={product.name}
               fill
+              unoptimized
               sizes="48px"
               className="object-cover transition-transform duration-300 group-hover/link:scale-105"
             />

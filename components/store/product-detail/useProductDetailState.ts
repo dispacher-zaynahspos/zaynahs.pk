@@ -16,8 +16,9 @@ interface UseProductDetailStateProps {
 
 export function useProductDetailState({ product, settings }: UseProductDetailStateProps) {
   const images = useMemo(() => {
-    return product.images.length > 0
-      ? [...product.images].sort((a, b) => a.sort_order - b.sort_order)
+    const list = Array.isArray(product.images) ? product.images : [];
+    return list.length > 0
+      ? [...list].sort((a, b) => a.sort_order - b.sort_order)
       : [{ id: 'dummy', product_id: product.id, url: "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%23f3f4f6'/%3E%3C/svg%3E", alt: product.name, sort_order: 0, is_primary: true, created_at: '' }];
   }, [product.images, product.id, product.name]);
 

@@ -43,7 +43,7 @@ export function FailedAttemptsModal({
     if (phone.startsWith('03')) {
       phone = '92' + phone.slice(1);
     }
-    const storeName = settings.store_name || 'TotVogue';
+    const storeName = settings.store_name || process.env.NEXT_PUBLIC_BRAND_NAME || 'Online Store';
     const customerName = attempt.customer_name || 'there';
     const itemsList = (attempt.cart_items || [])
       .map((item) => {

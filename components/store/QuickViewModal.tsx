@@ -147,6 +147,7 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
                         src={getPresetImageUrl(img.url, 'card')}
                         alt={img.alt || product.name}
                         fill
+                        unoptimized
                         sizes="(max-width: 640px) 100vw, 50vw"
                         className="object-cover"
                         priority={i === 0}
@@ -204,6 +205,7 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
                         src={getPresetImageUrl(img.url, 'admin_thumb')}
                         alt={img.alt || `${product.name} thumbnail ${i + 1}`}
                         fill
+                        unoptimized
                         sizes="48px"
                         className="object-cover"
                       />

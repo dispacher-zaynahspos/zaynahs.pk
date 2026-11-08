@@ -63,6 +63,7 @@ export function ProductDetailStickyBar({
               src={activeImage}
               alt={product.name}
               fill
+              unoptimized
               sizes="40px"
               className="object-cover object-center"
             />

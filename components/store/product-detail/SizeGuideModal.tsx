@@ -28,9 +28,9 @@ export default function SizeGuideModal({ product, settings, open, onClose }: Siz
 
   if (!isFeatureEnabled(settings, 'size_guide') || !sizeGuide) return null;
 
-  const storeName = settings?.store_name || 'TotVogue.pk';
+  const storeName = settings?.store_name || process.env.NEXT_PUBLIC_BRAND_NAME || 'Online Store';
   const logoUrl = settings?.logo_url;
-  const storeTagline = settings?.tagline || 'Little Styles, Big Smiles';
+  const storeTagline = settings?.tagline || process.env.NEXT_PUBLIC_BRAND_TAGLINE || '';
   const measurementUnit = (sizeGuide?.unit || 'INCHES').toUpperCase();
 
   return (

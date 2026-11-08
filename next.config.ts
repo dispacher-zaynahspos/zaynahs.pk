@@ -10,24 +10,12 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: '*.supabase.co',
-        port: '',
-        pathname: '/**',
+        hostname: '**',
       },
       {
-        protocol: 'https',
-        hostname: 'images.unsplash.com',
-        port: '',
-        pathname: '/**',
+        protocol: 'http',
+        hostname: 'localhost',
       },
-      ...(process.env.NEXT_PUBLIC_IMAGE_HOSTNAME
-        ? [{
-            protocol: 'https' as const,
-            hostname: process.env.NEXT_PUBLIC_IMAGE_HOSTNAME as string,
-            port: '',
-            pathname: '/**',
-          }]
-        : []),
     ],
   },
   // Allow large HEIC/RAW file uploads to the image API route (up to 25MB)

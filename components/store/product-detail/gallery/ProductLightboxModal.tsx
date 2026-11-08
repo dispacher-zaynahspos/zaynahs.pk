@@ -94,6 +94,7 @@ export function ProductLightboxModal({
             src={images[activeImageIndex]?.url ?? activeImage}
             alt={activeAlt}
             fill
+            unoptimized
             sizes="90vw"
             className="object-contain pointer-events-none"
           />

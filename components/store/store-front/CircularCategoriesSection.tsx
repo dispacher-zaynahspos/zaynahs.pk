@@ -65,6 +65,7 @@ export function CircularCategoriesSection({ section, refEntities = [] }: Circula
                   src={getOptimizedImageUrl(item.imageUrl, 200)}
                   alt={item.title || 'Category'}
                   fill
+                  unoptimized
                   sizes={`${itemSize}px`}
                   className="object-cover transition-transform duration-300 group-hover:scale-110"
                 />

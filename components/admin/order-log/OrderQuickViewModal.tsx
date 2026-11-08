@@ -108,8 +108,9 @@ export function OrderQuickViewModal({
 
   // WhatsApp link for customer
   const cleanPhone = cleanWhatsAppPhone(order.customer_phone || '');
+  const storeBrandName = settings.store_name || process.env.NEXT_PUBLIC_BRAND_NAME || 'our store';
   const whatsAppUrl = cleanPhone 
-    ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(`Hello ${order.customer_name || 'Customer'}! Regarding your order ${order.order_number} on ${settings.store_name || 'TotVogue'}...`)}`
+    ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(`Hello ${order.customer_name || 'Customer'}! Regarding your order ${order.order_number} on ${storeBrandName}...`)}`
     : null;
 
   const handleOpenFullOrder = () => {

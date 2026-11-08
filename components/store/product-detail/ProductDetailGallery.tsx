@@ -52,6 +52,8 @@ export default function ProductDetailGallery({
 
   useEffect(() => {
     setMounted(true);
+    // Safety: mark slide 0 loaded immediately so priority / cached images are never blocked
+    setLoadedSlides(prev => ({ ...prev, 0: true }));
   }, []);
 
   // Embla carousel (shared wiring: swipe ⇄ activeImageIndex)
@@ -95,12 +97,14 @@ export default function ProductDetailGallery({
                   src={getPresetImageUrl(img.url, 'zoom')}
                   alt={img.alt || product.name}
                   fill
+                  unoptimized
                   sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 600px"
                   className={`object-contain p-2 sm:p-4 transition-transform duration-200 ease-out ${isZoomed && i === activeImageIndex ? 'scale-[1.75]' : 'scale-100'}`}
                   style={isZoomed && i === activeImageIndex ? { transformOrigin: `${zoomPos.x}% ${zoomPos.y}%` } : {}}
                   priority={i === 0}
                   draggable={false}
                   onLoad={() => setLoadedSlides(prev => ({ ...prev, [i]: true }))}
+                  onError={() => setLoadedSlides(prev => ({ ...prev, [i]: true }))}
                 />
               </div>
             ))}
@@ -188,6 +192,7 @@ export default function ProductDetailGallery({
                 src={getPresetImageUrl(img.url, 'admin_thumb')}
                 alt={img.alt || `${product.name} thumbnail ${i + 1}`}
                 fill
+                unoptimized
                 sizes="64px"
                 className="object-cover"
               />

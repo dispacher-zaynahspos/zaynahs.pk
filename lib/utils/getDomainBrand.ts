@@ -8,21 +8,31 @@ export async function getDomainBrand(): Promise<{ name: string; tagline: string;
 
     const settings = await getSettings().catch(() => null);
 
-    if (settings?.store_url) {
-      try {
-        const parsed = new URL(settings.store_url);
-        host = parsed.host;
-        protocol = parsed.protocol.replace(':', '');
-      } catch {}
-    } else if (process.env.NEXT_PUBLIC_SITE_URL) {
-      try {
-        const parsed = new URL(process.env.NEXT_PUBLIC_SITE_URL);
-        host = parsed.host;
-        protocol = parsed.protocol.replace(':', '');
-      } catch {}
-    } else if (process.env.VERCEL_URL) {
-      host = process.env.VERCEL_URL;
-      protocol = 'https';
+    if (
+      typeof window !== 'undefined' &&
+      window.location.host &&
+      !window.location.hostname.includes('localhost') &&
+      !window.location.hostname.includes('127.0.0.1')
+    ) {
+      host = window.location.host;
+      protocol = window.location.protocol.replace(':', '') || 'https';
+    } else {
+      if (settings?.store_url) {
+        try {
+          const parsed = new URL(settings.store_url);
+          host = parsed.host;
+          protocol = parsed.protocol.replace(':', '');
+        } catch {}
+      } else if (process.env.NEXT_PUBLIC_SITE_URL) {
+        try {
+          const parsed = new URL(process.env.NEXT_PUBLIC_SITE_URL);
+          host = parsed.host;
+          protocol = parsed.protocol.replace(':', '');
+        } catch {}
+      } else if (process.env.VERCEL_URL) {
+        host = process.env.VERCEL_URL;
+        protocol = 'https';
+      }
     }
 
     const config = getDomainConfig(host);

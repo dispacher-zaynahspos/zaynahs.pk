@@ -37,7 +37,8 @@ export default function WhatsAppLeadsTab({
   const getWhatsAppURL = (lead: WhatsAppSubscriber) => {
     const phone = cleanWhatsAppPhone(lead.phone);
     const greeting = lead.name ? `Dear ${lead.name}` : 'Hello';
-    const message = `${greeting}, thank you for subscribing at Zaynah's E-Store! We noticed you claimed a special coupon on our store. Let us know if you need any assistance placing your order.`;
+    const storeName = process.env.NEXT_PUBLIC_BRAND_NAME || 'our store';
+    const message = `${greeting}, thank you for subscribing at ${storeName}! We noticed you claimed a special coupon on our store. Let us know if you need any assistance placing your order.`;
     return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
   };
 

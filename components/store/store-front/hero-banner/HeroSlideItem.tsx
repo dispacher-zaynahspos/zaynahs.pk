@@ -241,9 +241,9 @@ export function HeroSlideItem({
               className={`${slideClass} w-full h-full ${objectFitClass} select-none pointer-events-none ${
                 hasVideo && loadedMedia[slide.id] ? 'opacity-0' : 'opacity-100'
               }`}
-              loading={idx === 0 ? 'eager' : 'lazy'}
+              loading="eager"
               fetchPriority={idx === 0 ? 'high' : 'auto'}
-              decoding={idx === 0 ? 'sync' : 'async'}
+              decoding="async"
             />
           </picture>
         )}

@@ -28,13 +28,17 @@ export const ProductCardMedia: React.FC<ProductCardMediaProps> = ({
 }) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const prevImageRef = useRef(activeImage);
+  const imgRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
     if (prevImageRef.current !== activeImage) {
       prevImageRef.current = activeImage;
       setIsLoaded(false);
     }
-  }, [activeImage]);
+    if (priority || imgRef.current?.complete) {
+      setIsLoaded(true);
+    }
+  }, [activeImage, priority]);
 
   const hoverStyle = settings?.image_hover_style ?? 'second_image';
   const isZoom = hoverStyle === 'zoom';
@@ -50,9 +54,11 @@ export const ProductCardMedia: React.FC<ProductCardMediaProps> = ({
         isLoaded={isLoaded}
       />
       <Image
+        ref={imgRef}
         src={activeImage}
         alt={productName}
         fill
+        unoptimized
         sizes="(max-width: 768px) 50vw, 25vw"
         className={`${fitClass} pointer-events-none${
           isZoom ? ' hover-zoom' : ''
@@ -60,12 +66,14 @@ export const ProductCardMedia: React.FC<ProductCardMediaProps> = ({
         priority={priority}
         loading={priority ? undefined : 'lazy'}
         onLoad={() => setIsLoaded(true)}
+        onError={() => setIsLoaded(true)}
       />
       {showSecond && secondImage && (
         <Image
           src={secondImage}
           alt={`${productName} alternate`}
           fill
+          unoptimized
           sizes="(max-width: 768px) 50vw, 25vw"
           className={`${fitClass} absolute inset-0 pointer-events-none hover-fade-in`}
           priority={priority}

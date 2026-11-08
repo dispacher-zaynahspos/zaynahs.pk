@@ -54,6 +54,7 @@ export default function ShopProductListCard({ product, settings, addItem }: Shop
           src={initialImage}
           alt={product.name}
           fill
+          unoptimized
           sizes="200px"
           className="object-cover transition-transform duration-500 group-hover:scale-105"
         />

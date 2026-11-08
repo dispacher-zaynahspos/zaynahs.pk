@@ -79,11 +79,15 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
 
   const [isImgLoaded, setIsImgLoaded] = React.useState(false);
   const prevImageRef = React.useRef(activeImage);
+  const primaryImgRef = React.useRef<HTMLImageElement>(null);
 
   React.useEffect(() => {
     if (prevImageRef.current !== activeImage) {
       prevImageRef.current = activeImage;
       setIsImgLoaded(false);
+    }
+    if (primaryImgRef.current?.complete) {
+      setIsImgLoaded(true);
     }
   }, [activeImage]);
 
@@ -210,14 +214,17 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
         />
         {/* Primary image */}
         <Image
+          ref={primaryImgRef}
           src={activeImage}
           alt={product.name}
           fill
+          unoptimized
           sizes="(max-width: 768px) 50vw, 25vw"
           className={`${imageFit} object-center pointer-events-none${isZoom ? ' hover-zoom' : ''}${showSecond ? ' hover-fade-out' : ' transition-opacity duration-200'}`}
           priority={false}
           loading="lazy"
           onLoad={() => setIsImgLoaded(true)}
+          onError={() => setIsImgLoaded(true)}
         />
 
         {/* Second image (hover/touch swap) */}
@@ -226,11 +233,13 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
             src={secondImage}
             alt={`${product.name} alternate`}
             fill
+            unoptimized
             sizes="(max-width: 768px) 50vw, 25vw"
             className={`${imageFit} object-center absolute inset-0 pointer-events-none hover-fade-in`}
             priority={false}
             loading="lazy"
-          />        )}
+          />
+        )}
 
         {/* Badges — SSOT ProductCardBadges with collision-free top-left clearance */}
         <ProductCardBadges

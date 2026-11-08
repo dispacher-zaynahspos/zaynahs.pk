@@ -77,11 +77,15 @@ export function ProductCard({ product: p, variant, limit, currencySymbol, cardMo
   const img1 = (p.swatchNode !== undefined ? (p.image || p.swatches[sel]?.image) : (p.swatches[sel]?.image || p.image)) as string;
   const [imgLoaded, setImgLoaded] = useState(false);
   const prevImgRef = useRef(img1);
+  const imgRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
     if (prevImgRef.current !== img1) {
       prevImgRef.current = img1;
       setImgLoaded(false);
+    }
+    if (imgRef.current?.complete) {
+      setImgLoaded(true);
     }
   }, [img1]);
 
@@ -168,12 +172,14 @@ export function ProductCard({ product: p, variant, limit, currencySymbol, cardMo
             isLoaded={imgLoaded}
           />
           <img
+            ref={imgRef}
             className="i1"
             src={img1}
             alt=""
             loading="lazy"
             decoding="async"
             onLoad={() => setImgLoaded(true)}
+            onError={() => setImgLoaded(true)}
           />
           {p.image2 && !userSelected && hoveredSwatch === null && <img className="i2" src={p.image2} alt="" loading="lazy" decoding="async" />}
           {p.source ? (

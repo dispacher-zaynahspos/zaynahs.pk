@@ -1,4 +1,4 @@
-import { getBrandRegistry, normalizeHost } from './registry';
+import { getBrandRegistry, normalizeHost, buildBrandForHost } from './registry';
 import type { BrandConfig, BrandResolution } from './types';
 
 /**
@@ -25,9 +25,17 @@ export function resolveBrandDetailed(host?: string | null): BrandResolution {
     return candidates.includes(normalized);
   });
 
-  return match
-    ? { brand: match, matched: true, host: normalized }
-    : { brand: fallback, matched: false, host: normalized };
+  if (match) {
+    return { brand: match, matched: true, host: normalized };
+  }
+
+  // If host is a real attached custom domain (not localhost), dynamically construct BrandConfig for it:
+  if (normalized !== 'localhost' && normalized !== '127.0.0.1') {
+    const dynamicBrand = buildBrandForHost(normalized);
+    return { brand: dynamicBrand, matched: true, host: normalized };
+  }
+
+  return { brand: fallback, matched: false, host: normalized };
 }
 
 export function resolveBrand(host?: string | null): BrandConfig {

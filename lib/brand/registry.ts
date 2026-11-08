@@ -95,6 +95,39 @@ export function buildDefaultBrand(): BrandConfig {
 }
 
 /**
+ * Dynamically builds a BrandConfig for any attached domain on the fly.
+ * Guarantees zero hardcoded domains — any attached domain is auto-configured.
+ */
+export function buildBrandForHost(rawHost: string): BrandConfig {
+  const norm = normalizeHost(rawHost);
+  const primaryHost = norm || 'store';
+  const slug = (process.env.BRAND_SLUG || '').trim() || slugFromHost(primaryHost);
+  const name =
+    (process.env.NEXT_PUBLIC_BRAND_NAME || '').trim() || titleFromHost(primaryHost);
+
+  return {
+    slug,
+    hosts: [primaryHost, `www.${primaryHost}`],
+    adminHost: (process.env.ADMIN_HOST || (primaryHost ? `admin.${primaryHost}` : '')).trim(),
+    imageHost: (process.env.IMG_HOST || (primaryHost ? `img.${primaryHost}` : '')).trim(),
+    name,
+    tagline: (process.env.NEXT_PUBLIC_BRAND_TAGLINE || '').trim(),
+    twitterHandle: (process.env.NEXT_PUBLIC_TWITTER_HANDLE || '').trim(),
+    locale: (process.env.BRAND_LOCALE || 'en-PK').trim(),
+    currency: (process.env.BRAND_CURRENCY || 'PKR').trim(),
+    whatsapp: (process.env.NEXT_PUBLIC_WHATSAPP || '').trim(),
+    supportEmail: (process.env.NEXT_PUBLIC_SUPPORT_EMAIL || '').trim(),
+    socialLinks: {
+      facebook: (process.env.NEXT_PUBLIC_FACEBOOK_URL || '').trim(),
+      instagram: (process.env.NEXT_PUBLIC_INSTAGRAM_URL || '').trim(),
+      tiktok: (process.env.NEXT_PUBLIC_TIKTOK_URL || '').trim(),
+      twitter: (process.env.NEXT_PUBLIC_TWITTER_URL || '').trim(),
+      youtube: (process.env.NEXT_PUBLIC_YOUTUBE_URL || '').trim(),
+    },
+  };
+}
+
+/**
  * All brands this deployment knows about. Today: exactly one (one Worker per
  * brand). Future multi-brand: merge entries from a brand config file here —
  * consumers stay unchanged.

@@ -119,6 +119,7 @@ export function ProductCardPreviewStudio({ settings, onUpdateSettings }: Product
                 src={primaryImg}
                 alt="Demo Product"
                 fill
+                unoptimized
                 sizes="240px"
                 className={`object-cover w-full h-full pointer-events-none ${
                   isZoom ? 'hover-zoom' : ''
@@ -132,6 +133,7 @@ export function ProductCardPreviewStudio({ settings, onUpdateSettings }: Product
                   src={secondaryImg}
                   alt="Demo Product Alternate"
                   fill
+                  unoptimized
                   sizes="240px"
                   className="object-cover w-full h-full absolute inset-0 pointer-events-none hover-fade-in"
                   priority

@@ -195,18 +195,19 @@ export default function ThemeStyleRegistry({ settings }: ThemeStyleRegistryProps
 
     /* Hardcoded color codes replacements to support saved preset styles */
     
-    /* Backgrounds hardcoded to secondary navy */
-    .bg-\\[\\#1a1a2e\\], .dark .bg-\\[\\#1a1a2e\\], 
-    [class~="bg-[#1a1a2e]"]:not([class*="dark:"]):not([class*="bg-[#1a1a2e]/"]):not([class*="hover:"]),
-    [class^="bg-[#1a1a2e]"]:not([class*="dark:"]):not([class*="bg-[#1a1a2e]/"]):not([class*="hover:"]),
-    [class*=" bg-[#1a1a2e]"]:not([class*="dark:"]):not([class*="bg-[#1a1a2e]/"]):not([class*="hover:"]),
+    /* Backgrounds hardcoded to secondary navy (protect hero-banner and headers) */
+    .bg-\\[\\#1a1a2e\\]:not(.hero-banner):not([class*="hero-banner"]),
+    .dark .bg-\\[\\#1a1a2e\\]:not(.hero-banner):not([class*="hero-banner"]), 
+    [class~="bg-[#1a1a2e]"]:not(.hero-banner):not([class*="hero-banner"]):not([class*="dark:"]):not([class*="bg-[#1a1a2e]/"]):not([class*="hover:"]),
+    [class^="bg-[#1a1a2e]"]:not(.hero-banner):not([class*="hero-banner"]):not([class*="dark:"]):not([class*="bg-[#1a1a2e]/"]):not([class*="hover:"]),
+    [class*=" bg-[#1a1a2e]"]:not(.hero-banner):not([class*="hero-banner"]):not([class*="dark:"]):not([class*="bg-[#1a1a2e]/"]):not([class*="hover:"]),
     .bg-secondary, .dark .bg-secondary,
     .btn-primary, [class*="btn-primary"] {
       background-color: var(--btn-primary-bg) !important;
       color: var(--btn-primary-text, #ffffff) !important;
     }
-    .bg-\\[\\#1a1a2e\\] *:not(.badge):not([class*="bg-"]):not(:hover),
-    [class~="bg-[#1a1a2e]"] *:not(.badge):not([class*="bg-"]):not(:hover),
+    .bg-\\[\\#1a1a2e\\]:not(.hero-banner):not([class*="hero-banner"]) *:not(.badge):not([class*="bg-"]):not(:hover),
+    [class~="bg-[#1a1a2e]"]:not(.hero-banner):not([class*="hero-banner"]) *:not(.badge):not([class*="bg-"]):not(:hover),
     .bg-secondary *:not(:hover), .dark .bg-secondary *:not(:hover),
     .btn-primary *:not(:hover), [class*="btn-primary"] *:not(:hover) {
       color: var(--btn-primary-text, #ffffff) !important;

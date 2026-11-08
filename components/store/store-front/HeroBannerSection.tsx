@@ -136,7 +136,7 @@ export function HeroBannerSection({ section, settings }: HeroBannerSectionProps)
   const bannerClassName = `hero-banner-${section.id}`;
 
   return (
-    <div key={carouselKey} className={`${bannerClassName} hero-banner relative w-full bg-[#1a1a2e] overflow-hidden group`}>
+    <div key={carouselKey} className={`${bannerClassName} hero-banner relative w-full bg-neutral-900 overflow-hidden group`}>
       <style
         dangerouslySetInnerHTML={{
           __html: `

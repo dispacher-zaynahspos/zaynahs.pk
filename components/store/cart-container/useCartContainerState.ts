@@ -375,8 +375,9 @@ export function useCartContainerState(
         return;
       }
 
+      const storeBrandName = settings.store_name || process.env.NEXT_PUBLIC_BRAND_NAME || 'Online Store';
       const fallbackMsg = [
-        `*Order Fallback — ${settings.store_name || 'TotVogue'}*`,
+        `*Order Fallback — ${storeBrandName}*`,
         '',
         `• Customer: ${firstName.trim()} ${lastName.trim()}`,
         `• Phone: ${phone.trim()}`,

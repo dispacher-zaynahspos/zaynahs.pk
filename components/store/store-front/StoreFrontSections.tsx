@@ -99,6 +99,7 @@ export function BrandsLogosSection({ section }: BrandsLogosSectionProps) {
               src={getOptimizedImageUrl(logoUrl, 160)}
               alt="Brand logo Partner"
               fill
+              unoptimized
               sizes="96px"
               className="object-contain animate-fade-in"
             />
@@ -213,6 +214,7 @@ export function CategoryGridSection({ section, refEntities = [] }: CategoryGridS
               src={item.imageUrl || ''}
               alt={item.title || 'Category'}
               fill
+              unoptimized
               sizes="(max-width: 768px) 50vw, 25vw"
               className="object-cover transition-transform duration-500 group-hover:scale-105"
             />
