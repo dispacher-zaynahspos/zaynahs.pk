@@ -50,12 +50,12 @@ Full-system audit + permanent fixes are documented in `docs/AUDIT_PASS{0..10}_*.
 | 11 | [11-storage-images.md](docs/agent-rules/11-storage-images.md) | S1–S11, bucket, compressor, media selector, edge delivery, RULE S10 (Strict S5 Supabase Storage Ban), RULE S11 (Mandatory WebP ≤80KB & Zero Silent Fallback) |
 | 12 | [12-testing-verification.md](docs/agent-rules/12-testing-verification.md) | Happy path + edge case rules |
 | 13 | [13-autonomy-boundaries.md](docs/agent-rules/13-autonomy-boundaries.md) | Auto-allowed / confirm-first / never-auto |
-| 14 | [14-design-system.md](docs/agent-rules/14-design-system.md) | Colors, tokens, DS1–DS25 (sticky bars, safe bounds, swatches, controls, linked image swap, zero card arrow clutter, mobile rating & swatch density, mandatory Ella engine for new cards, drop/fly animation & bucket bounce standard, unified catalog & grid layout controls, smart-fit proportional buttons & responsive alignment), anti-bloat |
+| 14 | [14-design-system.md](docs/agent-rules/14-design-system.md) | Colors, tokens, DS1–DS26 (sticky bars, safe bounds, swatches, controls, linked image swap, zero card arrow clutter, mobile rating & swatch density, mandatory Ella engine for new cards, drop/fly animation & bucket bounce standard, unified catalog & grid layout controls, smart-fit proportional buttons & responsive alignment, title clamp & descender protection), anti-bloat |
 | 15 | [15-shared-components-ui-modules.md](docs/agent-rules/15-shared-components-ui-modules.md) | Component library + mandatory module map |
 | 16 | [16-multi-system-architecture.md](docs/agent-rules/16-multi-system-architecture.md) | /store vs /admin boundaries |
 | 17 | [17-mobile-native-app-style.md](docs/agent-rules/17-mobile-native-app-style.md) | M1–M5, cards, touch, jitter prevention |
 | 18 | [18-multi-domain-rules.md](docs/agent-rules/18-multi-domain-rules.md) | getSiteUrl, brand, OG meta, no hardcoded domains |
-| 19 | [19-navigation-state-restoration.md](docs/agent-rules/19-navigation-state-restoration.md) | N1–N5, scroll/tab persistence, Load More guarantee & universal navigation memory SSOT |
+| 19 | [19-navigation-state-restoration.md](docs/agent-rules/19-navigation-state-restoration.md) | N1–N6, scroll/tab persistence, Load More guarantee, universal navigation memory SSOT & zero false-positive back-nav |
 | 20 | [20-error-diagnostics-matrix.md](docs/agent-rules/20-error-diagnostics-matrix.md) | Copy-pasted error → instant fix matrix |
 | 21 | [21-cloudflare-supabase-api-usage.md](docs/agent-rules/21-cloudflare-supabase-api-usage.md) | API-only ops, curl recipes, self-tests |
 | 22 | [22-credentials-management.md](docs/agent-rules/22-credentials-management.md) | CRED1, VERCEL1, env-backups structure |

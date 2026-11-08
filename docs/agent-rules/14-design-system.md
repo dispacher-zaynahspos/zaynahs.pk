@@ -463,5 +463,21 @@ Verified 2026-10. Across all stores (TotVogue, Zaynahs, MiniMahal, LittleMister,
    - **Secondary / Toggle Actions**: Muted border with subtle hover highlight (`border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800`).
    - **Destructive / Caution Actions**: Soft danger palette (`border border-red-200 dark:border-red-900/40 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10`).
 
+## RULE DS26 — Product Card Title Clamping & Descender Protection (MANDATORY)
+1. **The Descender Clipping Pitfall**:
+   - CSS `-webkit-line-clamp` combined with `overflow: hidden` strictly clips rendered pixels at the element's box edge.
+   - **Never place `pb-0.5` or bottom padding inside the clamped title `<Link>` or `<a>` tag**: Since `overflow: hidden` is on that same element, inner bottom padding cuts off the descenders (`g`, `j`, `p`, `q`, `y`) of the final visible line.
+   - Any bottom spacing MUST be placed on the outer parent/wrapper container (`mb-1` or `pb-1` on the title container), leaving the clamped text element free from clipping padding.
+2. **Line Height Standard (`leading-snug`)**:
+   - Never use `leading-tight` (1.25 line-height) on multi-line card titles. At `text-[11px]` or `text-xs`, tight line spacing leaves zero breathing space for Urdu/English mixed fonts and accents.
+   - Always use `leading-snug` (1.375 line-height) across all card archetypes.
+3. **Calibrated Min-Height SSOT (`getSharedTitleClampClass`)**:
+   - All product card styles must consume `getSharedTitleClampClass(limit)` from `@/lib/utils/styles`:
+     - 1 line: `min-h-[16px] sm:min-h-[18px]`
+     - 2 lines: `min-h-[30px] sm:min-h-[33px]`
+     - 3 lines: `min-h-[45px] sm:min-h-[50px]`
+   - Never hardcode arbitrary heights (such as `min-h-[28px]`, which is too short for 2 lines and causes vertical compression or line-cut jitter).
+
+
 
 

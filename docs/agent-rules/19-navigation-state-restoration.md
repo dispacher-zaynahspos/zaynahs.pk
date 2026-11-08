@@ -24,10 +24,10 @@
 - **Problem**: When a customer clicks "Load More" multiple times (e.g. 4 times), clicks on a product card, and then presses the browser Back button, client-side App Router remounts the listing. If expanded limits are not restored, only initial items render; the clicked card is absent from the DOM, causing scroll restoration to fail and dump the user at the top hero banner or bottom footer.
 - **Mechanism**:
   1. **Persistence on Save**: When clicking a product card, `saveScrollPosition(product.id)` bundles active batch limits (`loadMoreLimits` from `storefront_load_more_limits`) directly into the `store_scroll_restore` payload in `sessionStorage`.
-  2. **Hydration-Safe Restoration**: Listing pages (Homepage, Shop) initialize with SSR-safe base limits (`{}`), but immediately restore `loadMoreLimits` in a post-hydration `useEffect` if `store_scroll_restore` matches the current path.
-  3. **Zero Reliance on `performance.navigation`**: Never gate restoration on `performance.getEntriesByType('navigation')[0].type === 'back_forward'` alone, because Next.js App Router client-side history transitions never update this document-level entry.
+  2. **Synchronous Client useState Initializer**: Listing pages (`StoreFront.tsx`, `useShopPageFilters.ts`) MUST initialize `loadMoreLimits` synchronously within client-side `useState(() => ...)` initializer callback. Restoring in a post-hydration `useEffect` creates a fatal race condition: `<ScrollRestorer />` fires in `useIsomorphicLayoutEffect` (before `useEffect`), cannot find `#product-card-${productId}` in DOM, times out, and dumps the customer at the top or footer.
+  3. **Multi-Signal Back Navigation Detection**: Check both native browser `navigation` entries (`navEntries[0].type === 'back_forward'`), popstate history transition (`isPopNavigation()`), and active snapshot pending target card (`snap.clickedCardId && isSameStorePath(snap.path, currentPath)`).
   4. **Visual Cloak & MutationObserver**: `ScrollRestorer.tsx` holds a lightweight visual cloak while `MutationObserver` waits for the target card `#product-card-${productId}`. The instant the card enters the DOM, it centers the card in viewport center (`card.scrollIntoView({ block: 'center', behavior: 'instant' })`), pulses `scroll-restore-highlight`, and reveals the page smoothly.
-  5. **Fresh Arrival Reset**: When a user arrives fresh (clicking the Logo or top navbar "Home" / "Shop"), saved limits are cleared so fresh visits always start cleanly at the top.
+  5. **Fresh Arrival Reset**: When a user arrives fresh (clicking the Logo or top navbar "Home" / "Shop", or `!isNavBack`), saved limits in sessionStorage MUST be explicitly removed so fresh visits strictly adhere to the layout per-page limits configured in Customizer.
 - **Rule**: Every storefront grid or listing with Load More / Infinite Scroll MUST follow this guarantee so back navigation lands precisely where the customer left off.
 
 ## RULE N5 — Universal Navigation Memory & State Restoration Standard (MANDATORY)
@@ -48,4 +48,18 @@
   2. When a customer navigates from Product A to Related Product B and then clicks Back, Product A immediately restores the exact variant and gallery photo they had chosen.
 - **Bounded Storage & Lifecycle**:
   - Memory entries are strictly capped at 25 entries (FIFO eviction) and 30-minute expiration to prevent memory leaks and stale cross-session state.
+
+## RULE N6 — Zero False-Positive Back-Nav & Per-Page Limit Integrity (MANDATORY)
+- **The Core Flaw**: Never detect "back navigation" by checking if `scroll:${pathname}` or `store_scroll_restore` exists in `sessionStorage`. `<ScrollRestorer />` writes scroll coordinates to `sessionStorage` on EVERY user scroll event during standard browsing. Checking key presence turns EVERY normal reload or fresh link visit into a false-positive back-nav, which restores inflated load-more limits and shows far more products than the Customizer "per page" setting.
+- **Mandatory Signal Isolation**:
+  1. Back navigation is TRUE ONLY when at least one of these strictly validated signals evaluates true:
+     - `navEntries?.[0]?.type === 'back_forward'` (browser navigation history)
+     - `isPopNavigation()` (React / App Router popstate listener from `navigationMemory.ts`)
+     - `Boolean(snap?.clickedCardId && isSameStorePath(snap?.path, currentPath))` (explicit target card click waiting to be restored on matching path)
+  2. If `!isNavBack`:
+     - Explicitly purge stored limits: `sessionStorage.removeItem(LOAD_MORE_KEY)` and `sessionStorage.removeItem(SHOP_LIMIT_KEY)`.
+     - Immediately fall back to the initial layout limit configured in Admin / Theme Customizer (`initialLimit` / `PAGE_SIZE`).
+- **Synchronous vs Asynchronous Lifecycle**:
+  - Always read navigation snapshot in `useState(() => ...)` during initial client component mount.
+  - Never defer limit restoration to a post-paint `useEffect()`. If target cards are missing on first paint, `<ScrollRestorer />` times out, jumps to stale scroll coordinates, and leaves the user lost on the page.
 
