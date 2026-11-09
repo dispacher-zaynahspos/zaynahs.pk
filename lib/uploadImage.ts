@@ -63,83 +63,38 @@ export const uploadImage = async (file: File | Blob, bucket: string, customName?
           webpFile = fileToCompress;
         }
       } else {
-        // Server-side conversion using sharp (MANDATORY WebP)
-        try {
-          const sharp = await loadSharp();
-          if (!sharp) throw new Error('sharp unavailable on this runtime');
-          const arrayBuffer = await file.arrayBuffer();
-          const buffer = Buffer.from(arrayBuffer);
-          const webpBuffer = await sharp(buffer)
-            .rotate()
-            .resize(1200, 1200, { fit: 'inside', withoutEnlargement: true })
-            .webp({ quality: 80, effort: 4 })
-            .toBuffer();
-          webpFile = new Blob([new Uint8Array(webpBuffer)], { type: 'image/webp' });
-          fileExtension = 'webp';
-        } catch (err) {
-          console.error('[uploadImage] Server side sharp compression failed:', err);
-          throw new Error('WebP image compression failed: ' + (err instanceof Error ? err.message : String(err)));
+        // Server-side conversion using sharp when available
+        const sharp = await loadSharp();
+        if (sharp) {
+          try {
+            const arrayBuffer = await file.arrayBuffer();
+            const buffer = Buffer.from(arrayBuffer);
+            const webpBuffer = await sharp(buffer)
+              .rotate()
+              .resize(1200, 1200, { fit: 'inside', withoutEnlargement: true })
+              .webp({ quality: 80, effort: 4 })
+              .toBuffer();
+            webpFile = new Blob([new Uint8Array(webpBuffer)], { type: 'image/webp' });
+            fileExtension = 'webp';
+          } catch (err) {
+            console.error('[uploadImage] Server side sharp compression failed:', err);
+            if (fileExtension === 'webp' || file.type === 'image/webp') {
+              webpFile = file;
+            } else {
+              throw new Error('WebP image compression failed: ' + (err instanceof Error ? err.message : String(err)));
+            }
+          }
+        } else {
+          // Edge runtime (Cloudflare Workers): Sharp native bindings are not available.
+          console.warn('[uploadImage] Sharp unavailable on this runtime; preserving uploaded file');
+          webpFile = file;
         }
       }
     }
 
     // 4. Generate filename
-    let webpFileName = `${sanitizedName}-${timestamp}.${fileExtension}`;
+    const webpFileName = `${sanitizedName}-${timestamp}.${fileExtension}`;
     let fileUrl = '';
-
-    // 5. If R2 is enabled on server, upload directly to Cloudflare R2 (RULE S10)
-    if (!isBrowser) {
-      try {
-        const { isR2Enabled, uploadToR2 } = await import('@/lib/storage/r2');
-        if (isR2Enabled()) {
-          const arrayBuffer = await webpFile.arrayBuffer();
-          const r2Key = `${bucket}/${webpFileName}`;
-          const r2Result = await uploadToR2({
-            buffer: Buffer.from(arrayBuffer),
-            fileName: r2Key,
-            contentType: webpFile.type || 'image/webp',
-          });
-          fileUrl = r2Result.url;
-        }
-      } catch (r2Err) {
-        console.warn('[uploadImage] R2 upload failed or unconfigured, falling back to Supabase:', r2Err);
-      }
-    }
-
-    // Fallback: Upload to Supabase Storage if fileUrl was not set by R2
-    if (!fileUrl) {
-      const { data: existingFiles, error: listError } = await supabase.storage
-        .from(bucket)
-        .list('', { search: webpFileName });
-
-      if (listError) {
-        console.warn('[uploadImage] Error checking file existence, continuing:', listError);
-      }
-
-      const exists = existingFiles?.some(f => f.name === webpFileName);
-      if (exists) {
-        webpFileName = `${sanitizedName}-${timestamp}-2.${fileExtension}`;
-      }
-
-      const { error: uploadError } = await supabase.storage
-        .from(bucket)
-        .upload(webpFileName, webpFile, {
-          cacheControl: 'public, max-age=31536000',
-          upsert: false
-        });
-
-      if (uploadError) throw uploadError;
-
-      const { data } = supabase.storage
-        .from(bucket)
-        .getPublicUrl(webpFileName);
-
-      if (!data?.publicUrl) {
-        throw new Error('Failed to retrieve public URL after upload');
-      }
-
-      fileUrl = data.publicUrl;
-    }
 
     if (isBrowser) {
       // Browser delegates to /api/upload-image to ensure R2 routing, secrets protection, and strict WebP

@@ -48,7 +48,7 @@ export function useMediaDragAndDropUpload({
 
   // Real-progress upload via XMLHttpRequest (built-in — gives upload.onprogress).
   const uploadOne = (task: UploadTask) =>
-    new Promise<void>((resolve) => {
+    new Promise<void>(async (resolve) => {
       const { id, file } = task;
       const isVideo = file.type.startsWith('video/') || /\.(mp4|mov|webm|m4v|avi|mkv|ogv)$/i.test(file.name);
 
@@ -58,8 +58,22 @@ export function useMediaDragAndDropUpload({
         progress: 0,
       });
 
+      let uploadFile: File = file;
+      if (!isVideo && (file.type.startsWith('image/') || /\.(jpe?g|png|webp|avif|heic|heif)$/i.test(file.name)) && !file.type.includes('svg')) {
+        try {
+          const { compressImage } = await import('@/lib/utils/imageCompressor');
+          uploadFile = await compressImage(file, 200);
+        } catch (err) {
+          console.warn('[useMediaDragAndDropUpload] Client compression fallback to original:', err);
+        }
+      }
+
+      patch(setUploadTasks, id, {
+        stage: 'uploading',
+      });
+
       const form = new FormData();
-      form.append('file', file);
+      form.append('file', uploadFile);
       form.append('bucket', 'product-images');
 
       const xhr = new XMLHttpRequest();

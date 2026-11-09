@@ -7,15 +7,22 @@ type SupabaseGlobal = typeof globalThis & {
   [GLOBAL_KEY]?: SupabaseClient;
 };
 
+let cachedClient: SupabaseClient | null = null;
+
 export const createClient = (): SupabaseClient => {
+  if (cachedClient) return cachedClient;
   if (typeof window !== 'undefined') {
     const win = window as SupabaseGlobal;
     const existing = win[GLOBAL_KEY];
-    if (existing) return existing;
+    if (existing) {
+      cachedClient = existing;
+      return existing;
+    }
   }
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder';
   const client = createBrowserClient(supabaseUrl, supabaseAnonKey, { isSingleton: true });
+  cachedClient = client;
   if (typeof window !== 'undefined') {
     (window as SupabaseGlobal)[GLOBAL_KEY] = client;
   }
