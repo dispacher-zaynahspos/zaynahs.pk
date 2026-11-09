@@ -389,13 +389,17 @@ export const createOrder = async (order: {
       }
     }
 
-    // Non-blocking email dispatch: does not hold up customer HTTP response or checkout UI
-    import('@/lib/email/triggers')
-      .then(({ onOrderPlaced }) => {
-        onOrderPlaced(mapped, { email: order.customerEmail, name: order.customerName, phone: order.customerPhone })
-          .catch((err) => console.error('[Email Trigger] non-blocking onOrderPlaced failed:', err));
-      })
-      .catch((err) => console.error('[Email Trigger] dynamic import failed:', err));
+    // Await email dispatch with fail-safe error boundary so serverless runtime does not terminate before delivery completes
+    try {
+      const { onOrderPlaced } = await import('@/lib/email/triggers');
+      await onOrderPlaced(mapped, {
+        email: order.customerEmail || (mapped as unknown as { customer_email?: string })?.customer_email,
+        name: order.customerName,
+        phone: order.customerPhone,
+      });
+    } catch (emailErr) {
+      console.error('[Email Trigger] order creation onOrderPlaced failed:', emailErr);
+    }
 
     // Auto-login: after placing an order the customer's details are already known,
     // so establish a session for the linked customer if they weren't logged in.

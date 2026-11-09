@@ -89,7 +89,7 @@ export function HeroBannerSection({ section, settings }: HeroBannerSectionProps)
 
   const [emblaRef, emblaApi] = useEmblaCarousel(
     {
-      loop: slides.length > 1,
+      loop: slides.length > 2,
       align: 'center',
       skipSnaps: false,
       duration: emblaDuration,

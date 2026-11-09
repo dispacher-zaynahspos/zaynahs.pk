@@ -56,8 +56,10 @@ export default function ProductDetailGallery({
     setLoadedSlides(prev => ({ ...prev, 0: true }));
   }, []);
 
-  // Embla carousel (shared wiring: swipe ⇄ activeImageIndex)
-  const { emblaRef, emblaApi } = useEmblaGallery(activeImageIndex, setActiveImageIndex, { loop: true });
+  // Embla carousel (shared wiring: swipe ⇄ activeImageIndex, loop only when > 2 slides exist)
+  const { emblaRef, emblaApi } = useEmblaGallery(activeImageIndex, setActiveImageIndex, {
+    loop: images.length > 2,
+  });
 
   return (
     <div className="space-y-3">

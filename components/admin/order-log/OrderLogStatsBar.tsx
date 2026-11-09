@@ -149,6 +149,11 @@ export function OrderLogStatsBar({
               onChange={(e) => setCustomEndDate(e.target.value)}
               className="min-w-0 flex-1 sm:flex-initial box-border bg-transparent border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1 text-xs font-bold text-gray-900 dark:text-white focus:outline-none"
             />
+            {(!customStartDate || !customEndDate) && (
+              <span className="text-[11px] font-medium text-amber-600 dark:text-amber-400">
+                Select both dates to load orders
+              </span>
+            )}
           </div>
         )}
 

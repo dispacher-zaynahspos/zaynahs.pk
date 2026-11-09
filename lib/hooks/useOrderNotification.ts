@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import type { RealtimeChannel } from '@supabase/supabase-js';
+import { playOrderChime } from '@/lib/utils/orderChime';
 
 export function useOrderNotification() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -54,9 +55,7 @@ export function useOrderNotification() {
     const init = async () => {
       // Pehle existing order IDs fetch karo, tab subscribe karo
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) return;
-        const { data } = await supabase.from('orders').select('id');
+        const { data } = await supabase.from('orders').select('id').limit(200);
         if (data && mounted) data.forEach((row) => playedOrderIds.current.add(row.id));
       } catch {}
 
@@ -73,12 +72,7 @@ export function useOrderNotification() {
             if (!orderId || playedOrderIds.current.has(orderId)) return;
             playedOrderIds.current.add(orderId);
 
-            if (audioRef.current) {
-              try {
-                audioRef.current.currentTime = 0;
-                await audioRef.current.play();
-              } catch {}
-            }
+            playOrderChime();
 
             if (
               typeof window !== 'undefined' &&

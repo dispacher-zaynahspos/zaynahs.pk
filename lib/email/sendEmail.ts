@@ -76,9 +76,9 @@ export async function sendEmail({
     const customMessageId = `${randomId}@${emailDomain}`;
 
     const info = await transporter.sendMail({
-      from: `"${settings.smtp_from_name || settings.store_name}" <${settings.smtp_email}>`,
+      from: `"${smtp.smtp_from_name || settings.smtp_from_name || settings.store_name}" <${smtp.smtp_email}>`,
       to,
-      replyTo: settings.smtp_email,
+      replyTo: smtp.smtp_email,
       subject,
       text: htmlToText(htmlContent),
       html: htmlContent,

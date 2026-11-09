@@ -108,7 +108,7 @@ export const updateOrderStatus = async (id: string, status: Order['status']): Pr
     if (oldStatus !== status) {
       try {
         const { onOrderStatusChange } = await import('@/lib/email/triggers');
-        await onOrderStatusChange(mapped, { name: mapped.customer_name, phone: mapped.customer_phone }, status);
+        await onOrderStatusChange(mapped, { email: mapped.customer_email, name: mapped.customer_name, phone: mapped.customer_phone }, status);
       } catch (err) {
         console.error('[Email Trigger] failed in updateOrderStatus trigger:', err);
       }

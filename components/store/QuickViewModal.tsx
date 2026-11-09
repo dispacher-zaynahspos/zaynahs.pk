@@ -59,7 +59,7 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
 
   // Embla carousel (shared wiring: swipe ⇄ activeIdx)
   const { emblaRef, emblaApi } = useEmblaGallery(activeIdx, setActiveIdx, {
-    loop: images.length > 1,
+    loop: images.length > 2,
     startIndex: initialActiveIdx.current,
   });
 

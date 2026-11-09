@@ -29,7 +29,8 @@ async function getAdminEmail(): Promise<string> {
 // 5. Order Placed (checkout success) trigger
 export async function onOrderPlaced(order: TriggerOrder, customer: TriggerCustomer) {
   try {
-    let customerEmail = customer?.email || order?.shipping_address?.email;
+    const orderAny = order as unknown as { customer_email?: string; customerEmail?: string };
+    let customerEmail = customer?.email || orderAny?.customer_email || orderAny?.customerEmail || order?.shipping_address?.email;
     let resolvedCustomer = customer || {};
 
     if (!customerEmail && order.customerId) {
@@ -90,7 +91,8 @@ export async function notifyAdminNewOrder(order: TriggerOrder, customer: Trigger
 // 7. Order Status Changed trigger
 export async function onOrderStatusChange(order: TriggerOrder, customer: TriggerCustomer, newStatus: string) {
   try {
-    let customerEmail = customer?.email || order?.shipping_address?.email;
+    const orderAny = order as unknown as { customer_email?: string; customerEmail?: string };
+    let customerEmail = customer?.email || orderAny?.customer_email || orderAny?.customerEmail || order?.shipping_address?.email;
     let resolvedCustomer = customer || {};
 
     if (!customerEmail && order.customerId) {

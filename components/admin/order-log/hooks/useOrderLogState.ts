@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { createClient } from '@/lib/supabase/client';
 import { mapOrderRow, isOrderPaid, isOrderUnfulfilled, isOrderFulfilled, OrderRow } from '../orderLogUtils';
 import { useOrderLogBulkActions } from './useOrderLogBulkActions';
+import { playOrderChime } from '@/lib/utils/orderChime';
 
 export interface CustomerFilter {
   id?: string;
@@ -399,9 +400,14 @@ export function useOrderLogState({ initialOrders, settings }: UseOrderLogStatePr
       } else if (filter === 'last30') {
         query = query.gte('created_at', pktStartISO(now - 30 * DAY)).lte('created_at', pktEndISO(now));
       } else if (filter === 'custom') {
-        // Apply whichever bound(s) the admin has chosen (end date is inclusive).
-        if (startDate) query = query.gte('created_at', pktStartISOFromYMD(startDate));
-        if (endDate) query = query.lte('created_at', pktEndISOFromYMD(endDate));
+        // Strict date-to-date requirement: do not load all-time orders when dates are missing
+        if (!startDate || !endDate) {
+          setOrders([]);
+          setTotalRows(0);
+          setIsRefreshing(false);
+          return;
+        }
+        query = query.gte('created_at', pktStartISOFromYMD(startDate)).lte('created_at', pktEndISOFromYMD(endDate));
       }
 
       query = query.range(from, to);
@@ -422,6 +428,12 @@ export function useOrderLogState({ initialOrders, settings }: UseOrderLogStatePr
     if (!isInitialized) return;
     if (selectedCustomer) return;
     if (searchQuery.trim()) return;
+
+    if (dateFilter === 'custom' && (!customStartDate || !customEndDate)) {
+      setOrders([]);
+      setTotalRows(0);
+      return;
+    }
 
     setCurrentPage(1);
     fetchOrdersByDate(dateFilter, customStartDate, customEndDate, 1, rowsPerPage, activeTab, statusFilter);
@@ -455,6 +467,7 @@ export function useOrderLogState({ initialOrders, settings }: UseOrderLogStatePr
               if (prev.some(o => o.id === newOrder.id)) return prev;
               return [newOrder, ...prev];
             });
+            playOrderChime();
             toast.info(`New Order received: ${newOrder.order_number}`);
           } else if (payload.eventType === 'UPDATE') {
             const updatedOrder = mapOrderRow(payload.new as unknown as OrderRow);
