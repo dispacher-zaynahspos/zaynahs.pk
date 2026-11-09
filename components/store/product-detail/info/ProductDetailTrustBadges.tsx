@@ -59,7 +59,9 @@ export function ProductDetailTrustBadges({ settings, mounted }: ProductDetailTru
           </span>
           <PaymentBadges
             methods={settings.safe_checkout_methods}
-            className="flex flex-wrap items-center justify-center gap-2"
+            className="grid grid-cols-2 sm:flex sm:flex-wrap sm:justify-center gap-2"
+            pillClassName="w-full sm:w-auto"
+            autoSpanOdd
           />
         </div>
       )}

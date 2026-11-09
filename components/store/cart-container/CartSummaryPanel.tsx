@@ -216,7 +216,12 @@ export default function CartSummaryPanel({
             <Shield className="h-3 w-3" />
             {settings.safe_checkout_text || 'Guaranteed Safe Checkout'}
           </div>
-          <PaymentBadges methods={settings.safe_checkout_methods} className="flex flex-wrap gap-1.5" />
+          <PaymentBadges
+            methods={settings.safe_checkout_methods}
+            className="grid grid-cols-2 gap-2"
+            pillClassName="w-full"
+            autoSpanOdd
+          />
         </div>
       )}
     </div>

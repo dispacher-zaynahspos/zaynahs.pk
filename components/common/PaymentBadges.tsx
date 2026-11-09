@@ -5,14 +5,17 @@ import { getPaymentMethodIcon } from '@/lib/utils/paymentIcons';
 
 export { getPaymentMethodIcon };
 
-const renderPaymentBadgeByCode = (code: string, id: string) => {
+const renderPaymentBadgeByCode = (code: string, id: string, extraClass: string = '') => {
   const norm = code.toLowerCase().trim();
+
+  const isFullWidth = extraClass.includes('w-full');
+  const shrinkClass = isFullWidth ? '' : 'shrink-0';
 
   // Common high-contrast styling: pristine white card, crisp charcoal text, no invisible white-on-white text
   const localPillClass =
-    'h-6 sm:h-6.5 px-2.5 rounded-lg bg-white border border-gray-200/90 shadow-2xs flex items-center gap-1.5 select-none transition-all hover:scale-105 shrink-0';
+    `h-7 sm:h-7.5 px-2.5 rounded-lg bg-white border border-gray-200/90 shadow-2xs flex items-center justify-center gap-1.5 select-none transition-all hover:scale-[1.01] ${shrinkClass} ${extraClass}`.trim();
   const localTextClass =
-    'text-[10.5px] font-bold tracking-tight leading-none shrink-0';
+    'text-[10.5px] sm:text-[11px] font-bold tracking-tight leading-none truncate';
   const textStyle: React.CSSProperties = { color: '#111827' };
 
   // 1. REAL OFFICIAL LOCAL WALLET / BANK / COD ICONS (RULE SSOT)
@@ -68,7 +71,7 @@ const renderPaymentBadgeByCode = (code: string, id: string) => {
 
   // 2. INTERNATIONAL CARD & WALLET BADGES (Clean Uniform Cards)
   const baseCard =
-    'h-6 sm:h-6.5 px-2.5 rounded-lg text-[9px] font-extrabold flex items-center justify-center tracking-wider shadow-2xs select-none border border-black/5 transition-all hover:scale-105 shrink-0';
+    `h-7 sm:h-7.5 px-2.5 rounded-lg text-[9px] font-extrabold flex items-center justify-center tracking-wider shadow-2xs select-none border border-black/5 transition-all hover:scale-[1.01] ${shrinkClass} ${extraClass}`.trim();
 
   switch (norm) {
     case 'visa':
@@ -130,14 +133,25 @@ const renderPaymentBadgeByCode = (code: string, id: string) => {
 export interface PaymentBadgesProps {
   methods: string[];
   className?: string;
+  pillClassName?: string;
+  autoSpanOdd?: boolean;
 }
 
-export default function PaymentBadges({ methods, className = 'flex flex-wrap items-center gap-2' }: PaymentBadgesProps) {
+export default function PaymentBadges({
+  methods,
+  className = 'flex flex-wrap items-center gap-2',
+  pillClassName = '',
+  autoSpanOdd = false,
+}: PaymentBadgesProps) {
   if (!methods || methods.length === 0) return null;
 
   return (
     <div className={className}>
-      {methods.map((code) => renderPaymentBadgeByCode(code, code))}
+      {methods.map((code, idx) => {
+        const isLastOdd = autoSpanOdd && idx === methods.length - 1 && methods.length % 2 === 1;
+        const itemClass = [pillClassName, isLastOdd ? 'col-span-2' : ''].filter(Boolean).join(' ');
+        return renderPaymentBadgeByCode(code, `${code}-${idx}`, itemClass);
+      })}
     </div>
   );
 }
