@@ -7,7 +7,7 @@ import { Package, Eye, MessageSquare } from '@/components/common/Icons';
 import { Order, StoreSettings } from '@/lib/types';
 import { formatPrice } from '@/lib/utils/whatsapp';
 import { getItemVariant } from '@/lib/utils/formatVariant';
-import { isOrderPaid, isOrderUnfulfilled, getOrderPaymentMethod, getDeliveryStatus } from './orderLogUtils';
+import { isOrderPaid, isOrderUnfulfilled, getOrderPaymentMethod, getDeliveryStatus, hasTimelineNote, getTimelineNoteText } from './orderLogUtils';
 import { OrderQuickViewModal } from './OrderQuickViewModal';
 
 interface OrderLogTableProps {
@@ -119,14 +119,14 @@ export function OrderLogTable({
               >
                 <td className="block md:table-cell py-2 px-4 md:py-3" onClick={(e) => e.stopPropagation()}>
                   <div className="md:hidden flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-1.5">
+                    <div className="inline-flex items-center gap-1.5 leading-none">
                       <span className="font-bold text-gray-900 dark:text-white">Order {order.order_number}</span>
-                      {order.notes && order.notes.trim() ? (
+                      {hasTimelineNote(order) ? (
                         <span 
-                          title={`Customer Note: ${order.notes}`} 
-                          className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400 border border-amber-200 dark:border-amber-800/60 shrink-0"
+                          title={`Timeline Note: ${getTimelineNoteText(order)}`} 
+                          className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400 border border-amber-500/30 shrink-0 self-center transition-transform hover:scale-110 shadow-2xs cursor-help"
                         >
-                          <MessageSquare className="w-2.5 h-2.5" />
+                          <MessageSquare className="w-2.5 h-2.5 stroke-[2.2]" />
                         </span>
                       ) : null}
                     </div>
@@ -146,16 +146,16 @@ export function OrderLogTable({
                 </td>
                 {visibleColumns.includes('order') && (
                   <td className="hidden md:table-cell py-3 px-4 whitespace-nowrap min-w-[100px]">
-                    <div className="inline-flex items-center gap-1.5">
+                    <div className="inline-flex items-center gap-1.5 leading-none">
                       <span className="text-[#2c6ecb] font-semibold hover:underline">
                         {order.order_number}
                       </span>
-                      {order.notes && order.notes.trim() ? (
+                      {hasTimelineNote(order) ? (
                         <span 
-                          title={`Customer Note: ${order.notes}`} 
-                          className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400 border border-amber-200 dark:border-amber-800/60 shrink-0"
+                          title={`Timeline Note: ${getTimelineNoteText(order)}`} 
+                          className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400 border border-amber-500/30 shrink-0 self-center transition-transform hover:scale-110 shadow-2xs cursor-help"
                         >
-                          <MessageSquare className="w-2.5 h-2.5" />
+                          <MessageSquare className="w-2.5 h-2.5 stroke-[2.2]" />
                         </span>
                       ) : null}
                     </div>

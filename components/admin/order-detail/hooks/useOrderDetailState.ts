@@ -15,6 +15,7 @@ export function useOrderDetailState(initialOrder: Order) {
 
   const [order, setOrder] = useState<Order>(initialOrder);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isNavigatingOrder, setIsNavigatingOrder] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isEditingOrder, setIsEditingOrder] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -178,6 +179,7 @@ export function useOrderDetailState(initialOrder: Order) {
     setIsDropdownOpen(false);
     setIsFulfillDropdownOpen(false);
     setIsEditingOrder(false);
+    setIsNavigatingOrder(true);
 
     // Check in-memory cache first
     let targetOrder = cachedOrdersMapRef.current[targetId];
@@ -197,11 +199,14 @@ export function useOrderDetailState(initialOrder: Order) {
     }
 
     if (targetOrder) {
-      // 0ms instant swap!
       setOrder(targetOrder);
       setClientId(targetId);
       const newUrl = `/admin/orders/detail?id=${targetId}`;
       window.history.replaceState({ orderId: targetId }, '', newUrl);
+      // Fast micro-fade (80ms) for smooth skeleton transition without glitch
+      setTimeout(() => {
+        setIsNavigatingOrder(false);
+      }, 80);
       return;
     }
 
@@ -220,6 +225,7 @@ export function useOrderDetailState(initialOrder: Order) {
       console.error('Failed to load adjacent order:', err);
     } finally {
       setIsUpdating(false);
+      setIsNavigatingOrder(false);
     }
   }, [order.id]);
 
@@ -375,6 +381,7 @@ export function useOrderDetailState(initialOrder: Order) {
     router,
     order, setOrder,
     isUpdating,
+    isNavigatingOrder,
     isDropdownOpen, setIsDropdownOpen,
     isEditingOrder, setIsEditingOrder,
     handleOpenEditOrder,

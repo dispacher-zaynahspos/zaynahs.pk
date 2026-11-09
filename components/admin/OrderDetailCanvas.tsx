@@ -22,6 +22,7 @@ import { useOrderDetailState, OrderCustomerCard } from './order-detail';
 import { isOrderFulfilled, isOrderUnfulfilled } from '@/components/admin/order-log/orderLogUtils';
 import TableThumbnail from '@/components/admin/TableThumbnail';
 import ImagePreviewModal from '@/components/admin/ImagePreviewModal';
+import { DetailSkeleton } from '@/components/common/LoadingSkeleton';
 
 interface OrderDetailCanvasProps {
   order: Order;
@@ -34,6 +35,7 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
     router,
     order, setOrder,
     isUpdating,
+    isNavigatingOrder,
     isDropdownOpen, setIsDropdownOpen,
     isEditingOrder, setIsEditingOrder,
     handleOpenEditOrder,
@@ -288,7 +290,11 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
         </div>
       </div>
 
-      {isEditingOrder ? (
+      {isNavigatingOrder ? (
+        <div className="bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
+          <DetailSkeleton />
+        </div>
+      ) : isEditingOrder ? (
         <OrderEditor 
           order={order}
           settings={settings}
@@ -523,9 +529,16 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
                   {(order.fulfillment_status || 'unfulfilled').toUpperCase()}
                 </span>
                 {order.tracking_number && (
-                  <span className="text-[11px] font-mono bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 px-2 py-0.5 rounded border border-blue-200/60 dark:border-blue-800/60">
-                    TRK: {order.tracking_number}
-                  </span>
+                  <a
+                    href={order.tracking_url || `https://postex.pk/tracking?cn=${encodeURIComponent(order.tracking_number)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-[11px] font-mono font-bold bg-blue-50 hover:bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 dark:text-blue-300 px-2.5 py-0.5 rounded-md border border-blue-200/80 dark:border-blue-800/60 hover:underline transition-colors cursor-pointer group shadow-2xs"
+                    title="Track shipment on PostEx in new tab"
+                  >
+                    <span>TRK: {order.tracking_number}</span>
+                    <ExternalLink className="w-3 h-3 opacity-70 group-hover:opacity-100 transition-opacity shrink-0" />
+                  </a>
                 )}
               </div>
 

@@ -108,3 +108,26 @@ export const getDeliveryStatus = (status: Order['status']) => {
   if (status === 'out_for_delivery') return 'Out for delivery';
   return '';
 };
+
+export const hasTimelineNote = (order: Order): boolean => {
+  if (order.staff_notes && typeof order.staff_notes === 'string' && order.staff_notes.trim().length > 0) {
+    return true;
+  }
+  if (order.status_logs && Array.isArray(order.status_logs)) {
+    return order.status_logs.some(
+      (l) => l.type === 'staff_note' || l.message === 'Admin commented' || (Boolean(l.notes && l.notes.trim()) && l.type !== 'creation' && l.type !== 'status_change')
+    );
+  }
+  return false;
+};
+
+export const getTimelineNoteText = (order: Order): string => {
+  if (order.status_logs && Array.isArray(order.status_logs)) {
+    const noteLog = [...order.status_logs].reverse().find(
+      (l) => l.type === 'staff_note' || l.message === 'Admin commented' || (Boolean(l.notes && l.notes.trim()) && l.type !== 'creation')
+    );
+    if (noteLog?.notes && noteLog.notes.trim()) return noteLog.notes.trim();
+  }
+  if (order.staff_notes && order.staff_notes.trim()) return order.staff_notes.trim();
+  return 'Timeline note added';
+};
