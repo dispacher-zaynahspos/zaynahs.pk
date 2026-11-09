@@ -11,7 +11,8 @@ import {
   Check, 
   MoreHorizontal, 
   Trash2,
-  X 
+  X,
+  ExternalLink 
 } from '@/components/common/Icons';
 import { Order, StoreSettings } from '@/lib/types';
 import { formatPrice } from '@/lib/utils/whatsapp';
@@ -191,34 +192,21 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
             </div>
           </div>
 
-          {/* Right: Next / Prev Pagination + Smart More Actions (Upper Right) */}
+          {/* Right: Edit + Print + Smart More Actions (Upper Right) */}
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 ml-auto print:hidden">
-            {/* Pagination Controls */}
-            <div className="flex items-center border border-gray-200 dark:border-gray-800 rounded-lg sm:rounded-xl overflow-hidden bg-white dark:bg-[#16162a] shadow-2xs">
-              <button
-                onClick={handleNavigateNext}
-                disabled={!nextOrderId}
-                className="px-2 sm:px-2.5 py-1 sm:py-1.5 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer border-r border-gray-200 dark:border-gray-800 text-xs font-bold"
-                title={nextOrderId ? "Previous / Newer order (← Left Arrow)" : "No previous order"}
-                aria-label="Previous order"
-              >
-                &larr;
-              </button>
-              {currentIndexDisplay && (
-                <span className="px-2 sm:px-2.5 py-1 sm:py-1.5 text-[11px] sm:text-xs font-bold text-gray-600 dark:text-gray-300 border-r border-gray-200 dark:border-gray-800 select-none whitespace-nowrap bg-gray-50/50 dark:bg-white/[0.02]">
-                  {currentIndexDisplay}
-                </span>
-              )}
-              <button
-                onClick={handleNavigatePrev}
-                disabled={!prevOrderId}
-                className="px-2 sm:px-2.5 py-1 sm:py-1.5 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer text-xs font-bold"
-                title={prevOrderId ? "Next / Older order (→ Right Arrow)" : "No next order"}
-                aria-label="Next order"
-              >
-                &rarr;
-              </button>
-            </div>
+            <button
+              onClick={isEditingOrder ? handleCloseEditOrder : handleOpenEditOrder}
+              className="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-white dark:bg-[#16162a] text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 text-xs font-bold shadow-2xs transition-colors whitespace-nowrap cursor-pointer"
+            >
+              {isEditingOrder ? 'Cancel Edit' : 'Edit'}
+            </button>
+
+            <button
+              onClick={() => window.print()}
+              className="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-white dark:bg-[#16162a] text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 text-xs font-bold shadow-2xs transition-colors whitespace-nowrap cursor-pointer"
+            >
+              Print
+            </button>
 
             {/* Smart More actions Button - Top Right */}
             <div className="relative">
@@ -263,26 +251,39 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
           </div>
         </div>
 
-        {/* ROW 2: Date Info (Left) + Edit & Print Buttons (Right) */}
+        {/* ROW 2: Date Info (Left) + Smart Ergonomic Next/Prev Pagination (Right) */}
         <div className="flex items-center justify-between gap-2 pl-6 sm:pl-7">
           <p className="text-xs sm:text-[13px] text-gray-500 dark:text-gray-400 min-w-0 truncate">
             {safeFormatOrderDate(order.created_at)} from Online Store
           </p>
 
-          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 print:hidden ml-auto">
-            <button
-              onClick={isEditingOrder ? handleCloseEditOrder : handleOpenEditOrder}
-              className="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-white dark:bg-[#16162a] text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 text-xs font-bold shadow-2xs transition-colors whitespace-nowrap cursor-pointer"
-            >
-              {isEditingOrder ? 'Cancel Edit' : 'Edit'}
-            </button>
-
-            <button
-              onClick={() => window.print()}
-              className="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-white dark:bg-[#16162a] text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 text-xs font-bold shadow-2xs transition-colors whitespace-nowrap cursor-pointer"
-            >
-              Print
-            </button>
+          {/* Pagination Controls: positioned right for easy right-hand thumb reach */}
+          <div className="flex items-center shrink-0 print:hidden ml-auto">
+            <div className="flex items-center border border-gray-200 dark:border-gray-800 rounded-lg sm:rounded-xl overflow-hidden bg-white dark:bg-[#16162a] shadow-2xs">
+              <button
+                onClick={handleNavigateNext}
+                disabled={!nextOrderId}
+                className="px-2 sm:px-2.5 py-1 sm:py-1.5 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer border-r border-gray-200 dark:border-gray-800 text-xs font-bold"
+                title={nextOrderId ? "Previous / Newer order (← Left Arrow)" : "No previous order"}
+                aria-label="Previous order"
+              >
+                &larr;
+              </button>
+              {currentIndexDisplay && (
+                <span className="px-2 sm:px-2.5 py-1 sm:py-1.5 text-[11px] sm:text-xs font-bold text-gray-600 dark:text-gray-300 border-r border-gray-200 dark:border-gray-800 select-none whitespace-nowrap bg-gray-50/50 dark:bg-white/[0.02]">
+                  {currentIndexDisplay}
+                </span>
+              )}
+              <button
+                onClick={handleNavigatePrev}
+                disabled={!prevOrderId}
+                className="px-2 sm:px-2.5 py-1 sm:py-1.5 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer text-xs font-bold"
+                title={prevOrderId ? "Next / Older order (→ Right Arrow)" : "No next order"}
+                aria-label="Next order"
+              >
+                &rarr;
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -326,31 +327,44 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
             </div>
             {order.items.map((item, idx) => {
               const variantDetails = getItemVariant(item);
+              const rawItem = item as unknown as Record<string, unknown>;
+              const rawProd = item.product as unknown as Record<string, unknown> | undefined;
               const firstImg = item.product?.images?.[0];
-              const displayImage = variantDetails.imageUrl || (typeof firstImg === 'string' ? firstImg : firstImg?.url);
+              const displayImage = 
+                variantDetails.imageUrl || 
+                (typeof rawItem?.imageUrl === 'string' && rawItem.imageUrl) ||
+                (typeof rawItem?.image_url === 'string' && rawItem.image_url) ||
+                (typeof rawItem?.image === 'string' && rawItem.image) ||
+                (typeof rawItem?.thumbnail === 'string' && rawItem.thumbnail) ||
+                (typeof firstImg === 'string' ? firstImg : firstImg?.url) ||
+                (typeof rawProd?.image_url === 'string' && rawProd.image_url) ||
+                (typeof rawProd?.image === 'string' && rawProd.image) ||
+                (typeof rawProd?.thumbnail === 'string' && rawProd.thumbnail) ||
+                null;
+              const productId = item.product?.id || (rawItem?.product_id as string) || (rawItem?.productId as string) || (rawProd?.id as string);
 
               return (
-                <div key={idx} className="flex items-start gap-3.5 p-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] last:border-b-0">
+                <div key={idx} className="flex items-start gap-2.5 sm:gap-3 p-2.5 sm:p-3 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] last:border-b-0">
                   <TableThumbnail
-                    url={displayImage || null}
-                    alt={item.product?.name || 'Product'}
+                    url={displayImage}
+                    alt={item.product?.name || (rawItem?.title as string) || 'Product'}
                     onPreview={(url) => setLightboxImage(url)}
-                    className="w-14 h-14 rounded-xl flex-shrink-0"
+                    className="w-11 h-11 sm:w-12 sm:h-12 rounded-lg flex-shrink-0"
                   />
                   <div className="flex-1 min-w-0">
                     <h4 
-                      className="text-[13px] sm:text-[13.5px] font-bold text-gray-900 dark:text-white leading-snug line-clamp-2 hover:text-[#2c6ecb] transition-colors"
-                      title={item.product?.name || 'Product'}
+                      className="text-[12px] sm:text-[12.5px] font-bold text-gray-900 dark:text-white leading-tight line-clamp-2 hover:text-[#2c6ecb] transition-colors"
+                      title={item.product?.name || (rawItem?.title as string) || 'Product'}
                     >
-                      {item.product?.name || 'Product'}
+                      {item.product?.name || (rawItem?.title as string) || 'Product'}
                     </h4>
 
                     {/* Variant Chips, Quantity & Pricing in compact aligned row */}
-                    <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                    <div className="flex flex-wrap items-center gap-1 sm:gap-1.5 mt-1">
                       {variantDetails.chips.length > 0 && variantDetails.chips.map((chip, cIdx) => (
                         <span
                           key={cIdx}
-                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold border ${
+                          className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] sm:text-[10.5px] font-semibold border ${
                             chip.label.toLowerCase() === 'size'
                               ? 'bg-indigo-50/80 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border-indigo-200/70 dark:border-indigo-800/60 font-bold'
                               : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200/70 dark:border-gray-700/60'
@@ -358,7 +372,7 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
                         >
                           {chip.colorHex && (
                             <span
-                              className="w-2.5 h-2.5 rounded-full border border-black/15 shadow-2xs shrink-0"
+                              className="w-2 h-2 rounded-full border border-black/15 shadow-2xs shrink-0"
                               style={{ backgroundColor: chip.colorHex }}
                             />
                           )}
@@ -367,19 +381,19 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
                         </span>
                       ))}
 
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-gray-50 dark:bg-white/5 text-gray-700 dark:text-gray-300 border border-gray-200/60 dark:border-gray-800">
+                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] sm:text-[10.5px] font-semibold bg-gray-50 dark:bg-white/5 text-gray-700 dark:text-gray-300 border border-gray-200/60 dark:border-gray-800">
                         <span className="text-gray-400 font-normal">Qty:</span>
                         <span className="font-bold text-gray-900 dark:text-white">{item.quantity}</span>
                       </span>
 
                       {item.quantity > 1 && (
-                        <span className="text-[11px] text-gray-400 dark:text-gray-500">
+                        <span className="text-[10.5px] text-gray-400 dark:text-gray-500">
                           ({formatPrice(item.unit_price, settings.currency_symbol)} ea)
                         </span>
                       )}
 
                       {variantDetails.sku && (
-                        <span className="text-[10.5px] font-mono text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-800/50 px-1.5 py-0.5 rounded">
+                        <span className="text-[10px] font-mono text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-800/50 px-1 py-0.5 rounded">
                           SKU: {variantDetails.sku}
                         </span>
                       )}
@@ -387,7 +401,7 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
 
                     {/* Modifiers if any */}
                     {item.selected_modifiers && item.selected_modifiers.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-1 text-[11px] text-gray-500">
+                      <div className="flex flex-wrap gap-1 mt-1 text-[10.5px] text-gray-500">
                         {item.selected_modifiers.map((m, mIdx) => (
                           <span key={mIdx} className="bg-amber-50 dark:bg-amber-950/30 text-amber-800 dark:text-amber-300 px-1.5 py-0.5 rounded border border-amber-200 dark:border-amber-900/40">
                             +{m.name} ({formatPrice(m.price, settings.currency_symbol)})
@@ -396,8 +410,25 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
                       </div>
                     )}
                   </div>
-                  <div className="font-bold text-[13.5px] sm:text-[14px] text-gray-900 dark:text-white text-right shrink-0 pt-0.5">
-                    {formatPrice(item.total, settings.currency_symbol)}
+
+                  {/* Right: Price & Product Edit Redirect Link */}
+                  <div className="flex flex-col items-end justify-between shrink-0 text-right pt-0.5 min-h-[42px]">
+                    <div className="font-bold text-[13px] sm:text-[13.5px] text-gray-900 dark:text-white">
+                      {formatPrice(item.total, settings.currency_symbol)}
+                    </div>
+                    {productId ? (
+                      <a
+                        href={`/admin/products/${productId}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-[11px] font-medium text-gray-400 hover:text-indigo-600 dark:text-gray-500 dark:hover:text-indigo-400 transition-colors mt-1 p-0.5 rounded hover:bg-gray-100 dark:hover:bg-white/5 cursor-pointer"
+                        title="Edit product in new tab"
+                        aria-label="Edit product in new tab"
+                      >
+                        <span className="hidden sm:inline text-[10px]">Edit</span>
+                        <ExternalLink className="w-3.5 h-3.5 shrink-0" />
+                      </a>
+                    ) : null}
                   </div>
                 </div>
               );

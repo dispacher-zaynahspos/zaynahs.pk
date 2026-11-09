@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import EmptyState from '@/components/common/EmptyState';
-import { Package, Eye } from '@/components/common/Icons';
+import { Package, Eye, MessageSquare } from '@/components/common/Icons';
 import { Order, StoreSettings } from '@/lib/types';
 import { formatPrice } from '@/lib/utils/whatsapp';
 import { getItemVariant } from '@/lib/utils/formatVariant';
@@ -119,7 +119,17 @@ export function OrderLogTable({
               >
                 <td className="block md:table-cell py-2 px-4 md:py-3" onClick={(e) => e.stopPropagation()}>
                   <div className="md:hidden flex items-center justify-between mb-2">
-                    <span className="font-bold text-gray-900 dark:text-white">Order {order.order_number}</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-bold text-gray-900 dark:text-white">Order {order.order_number}</span>
+                      {order.notes && order.notes.trim() ? (
+                        <span 
+                          title={`Customer Note: ${order.notes}`} 
+                          className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400 border border-amber-200 dark:border-amber-800/60 shrink-0"
+                        >
+                          <MessageSquare className="w-2.5 h-2.5" />
+                        </span>
+                      ) : null}
+                    </div>
                     <input
                       type="checkbox"
                       checked={selectedOrderIds.includes(order.id)}
@@ -136,9 +146,19 @@ export function OrderLogTable({
                 </td>
                 {visibleColumns.includes('order') && (
                   <td className="hidden md:table-cell py-3 px-4 whitespace-nowrap min-w-[100px]">
-                    <span className="text-[#2c6ecb] font-semibold hover:underline">
-                      {order.order_number}
-                    </span>
+                    <div className="inline-flex items-center gap-1.5">
+                      <span className="text-[#2c6ecb] font-semibold hover:underline">
+                        {order.order_number}
+                      </span>
+                      {order.notes && order.notes.trim() ? (
+                        <span 
+                          title={`Customer Note: ${order.notes}`} 
+                          className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400 border border-amber-200 dark:border-amber-800/60 shrink-0"
+                        >
+                          <MessageSquare className="w-2.5 h-2.5" />
+                        </span>
+                      ) : null}
+                    </div>
                   </td>
                 )}
                 {visibleColumns.includes('date') && (

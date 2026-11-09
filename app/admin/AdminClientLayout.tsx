@@ -152,11 +152,18 @@ function AdminLayoutContent({
 
         const [ordersRes, pendingRes, leadsRes, cartsRes, pendingCartsRes, settingsFetch] =
           await Promise.all([
-            supabase.from('orders').select('id', { count: 'exact', head: true }).gte('created_at', startISO),
             supabase
               .from('orders')
               .select('id', { count: 'exact', head: true })
               .gte('created_at', startISO)
+              .is('deleted_at', null)
+              .neq('status', 'trash'),
+            supabase
+              .from('orders')
+              .select('id', { count: 'exact', head: true })
+              .gte('created_at', startISO)
+              .is('deleted_at', null)
+              .neq('status', 'trash')
               .in('status', ['pending', 'placed']),
             supabase
               .from('whatsapp_subscribers')

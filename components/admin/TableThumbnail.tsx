@@ -36,6 +36,9 @@ export default function TableThumbnail({
       <img
         src={url}
         alt={alt}
+        loading="lazy"
+        decoding="async"
+        referrerPolicy="no-referrer"
         onError={() => setHasError(true)}
         className="absolute inset-0 w-full h-full object-cover"
       />
