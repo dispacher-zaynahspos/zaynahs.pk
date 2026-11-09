@@ -63,3 +63,30 @@
   - Always read navigation snapshot in `useState(() => ...)` during initial client component mount.
   - Never defer limit restoration to a post-paint `useEffect()`. If target cards are missing on first paint, `<ScrollRestorer />` times out, jumps to stale scroll coordinates, and leaves the user lost on the page.
 
+## RULE N7 — Absolute Navigation Memory & Zero-Regression Guard (NON-NEGOTIABLE)
+This rule is permanent and MUST be strictly respected across all existing code, future refactors, and newly created pages/components:
+
+1. **Universal Product Card Click & ID Contract**:
+   - **Click Handler**: Every link or card opening a product (whether on Homepage, Shop, Category, Collections, PDP Related Products, PDP Recently Viewed, or Cart upsells) MUST attach `onClick={() => saveScrollPosition(product.id)}` from `@/lib/navigation/navigationMemory`.
+   - **Root Element ID**: Every product card archetype or template (Standard, Ella, Showcase, Custom) MUST provide `id={`product-card-${product.id}`}` and `data-product-id={product.id}` on its outer container.
+2. **Zero Route Discrimination in `<ScrollRestorer />`**:
+   - `ScrollRestorer.tsx` MUST NEVER filter by page type or exclude product pages (e.g. **NEVER add `!isProductPage`** or bypass card restoration on detail routes).
+   - If `snap?.clickedCardId` exists upon back/pop navigation, `startCardRestore()` MUST execute regardless of the route, ensuring the clicked card is located via `MutationObserver`, centered in the viewport, and highlighted with `.scroll-restore-highlight`.
+3. **Route-Group Loading Skeleton Isolation**:
+   - **NEVER** place route-specific mockups (such as Hero Banners, Category Circle Sliders, or Featured Grids) in a higher-level layout loading file like `app/(store)/loading.tsx`.
+   - Page-specific skeletons MUST live inside their own isolated route folder or route group:
+     - Homepage skeleton: `app/(store)/(home)/loading.tsx`
+     - Product detail skeleton: `app/(store)/product/[slug]/loading.tsx`
+     - Shop catalog skeleton: `app/(store)/shop/loading.tsx`
+     - Cart page skeleton: `app/(store)/cart/loading.tsx`
+   - This prevents the homepage skeleton from ever flashing or interjecting when navigating to product pages or other storefront routes.
+4. **Dual-Mode Limit Enforcement**:
+   - **Browser BACK Navigation**: Always restore expanded limits (`loadMoreLimits` / `shop_limit`) so DOM elements exist and the customer lands exactly on the clicked card.
+   - **Hard Refresh / Reload / Fresh Link Visit**: Always PURGE sessionStorage limits and strictly enforce the Customizer Per-Page layout limit.
+5. **Pre-Commit Verification Checklist (Zero-Regression Standard)**:
+   Any agent or developer modifying storefront navigation or layouts MUST verify:
+   - [ ] Clicking a product from Home, Shop, OR PDP Related Products and clicking Back lands cleanly on the clicked card with a centered viewport and focus ring.
+   - [ ] Navigating from Home to a product page displays ONLY the product skeleton, never the homepage banner/circles.
+   - [ ] Hard reload on Home or Shop displays strictly the Customizer-configured initial card limit.
+
+

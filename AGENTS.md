@@ -55,7 +55,7 @@ Full-system audit + permanent fixes are documented in `docs/AUDIT_PASS{0..10}_*.
 | 16 | [16-multi-system-architecture.md](docs/agent-rules/16-multi-system-architecture.md) | /store vs /admin boundaries |
 | 17 | [17-mobile-native-app-style.md](docs/agent-rules/17-mobile-native-app-style.md) | M1–M5, cards, touch, jitter prevention |
 | 18 | [18-multi-domain-rules.md](docs/agent-rules/18-multi-domain-rules.md) | getSiteUrl, brand, OG meta, no hardcoded domains |
-| 19 | [19-navigation-state-restoration.md](docs/agent-rules/19-navigation-state-restoration.md) | N1–N6, scroll/tab persistence, Load More guarantee, universal navigation memory SSOT & zero false-positive back-nav |
+| 19 | [19-navigation-state-restoration.md](docs/agent-rules/19-navigation-state-restoration.md) | N1–N7, scroll/tab persistence, Load More guarantee, universal navigation memory SSOT, zero false-positive back-nav & zero-regression guard |
 | 20 | [20-error-diagnostics-matrix.md](docs/agent-rules/20-error-diagnostics-matrix.md) | Copy-pasted error → instant fix matrix |
 | 21 | [21-cloudflare-supabase-api-usage.md](docs/agent-rules/21-cloudflare-supabase-api-usage.md) | API-only ops, curl recipes, self-tests |
 | 22 | [22-credentials-management.md](docs/agent-rules/22-credentials-management.md) | CRED1, VERCEL1, env-backups structure |
