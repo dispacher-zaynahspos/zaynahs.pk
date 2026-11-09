@@ -144,14 +144,14 @@ export default function ScrollRestorer() {
       clearPopNavigation();
     }
 
-    // 2. PRODUCT CARD & STATE RESTORATION — ONLY on back/forward navigation to a LISTING PAGE!
-    // (Never search for listing product cards on /product/... detail pages)
-    if (wasPop && !isProductPage) {
+    // 2. PRODUCT CARD & STATE RESTORATION on any back/forward navigation
+    // (Works across Homepage, Shop, Category pages, AND Product Detail Pages with Related/Recent products)
+    if (wasPop) {
       const snap = getNavigationSnapshot(currentPath);
       let targetCardId = snap?.clickedCardId;
       let targetScrollY = snap?.scrollY;
 
-      // Fallback: check last_clicked_card_id ONLY if saved path strictly matches current listing path
+      // Fallback: check last_clicked_card_id ONLY if saved path strictly matches current path
       if (!targetCardId && typeof window !== 'undefined') {
         try {
           const lastCard = sessionStorage.getItem('last_clicked_card_id');
@@ -189,21 +189,16 @@ export default function ScrollRestorer() {
           return;
         }
       }
-    }
 
-    // 3. History navigation to a PRODUCT DETAIL PAGE:
-    if (wasPop && isProductPage) {
-      const snap = getNavigationSnapshot(currentPath);
-      if (typeof snap?.scrollY === 'number' && snap.scrollY > 0) {
-        window.scrollTo({ top: snap.scrollY, behavior: 'instant' });
-      } else {
+      // Fallback for product page without saved scroll: open cleanly at top
+      if (isProductPage) {
         window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
         if (typeof document !== 'undefined') {
           document.documentElement.scrollTop = 0;
           document.body.scrollTop = 0;
         }
+        return;
       }
-      return;
     }
 
     // 4. FRESH FORWARD NAVIGATION (Opening a product, clicking nav link, opening shop/category):
