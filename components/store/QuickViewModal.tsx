@@ -139,10 +139,11 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
                 currentPrice={basePrice}
                 currentComparePrice={comparePrice}
               />
-              <div className={`relative w-full overflow-hidden touch-pan-y ${getSharedAspectClass(settings?.image_aspect_ratio)}`} ref={emblaRef}>
-                <div className="flex h-full">
-                  {images.map((img, i) => (
-                    <div key={img.id || i} className="relative flex-[0_0_100%] min-w-0 w-full h-full select-none overflow-hidden">
+              <div className={`relative w-full overflow-hidden ${getSharedAspectClass(settings?.image_aspect_ratio)}`}>
+                <div className="absolute inset-0 overflow-hidden touch-pan-y" ref={emblaRef}>
+                  <div className="flex h-full w-full">
+                    {images.map((img, i) => (
+                      <div key={img.id || i} className="relative flex-[0_0_100%] min-w-0 w-full h-full select-none overflow-hidden">
                       <Image
                         src={getPresetImageUrl(img.url, 'card')}
                         alt={img.alt || product.name}
@@ -187,6 +188,7 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
                     ))}
                   </div>
                 )}
+                </div>
               </div>
 
               {/* Thumbnails */}

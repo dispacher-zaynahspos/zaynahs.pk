@@ -217,7 +217,7 @@ export function HeroSlideItem({
 
         {/* Background Image with Responsive Mobile/Tablet/Desktop Sources */}
         {(desktopImage || mobileImage || tabletImage) && (
-          <picture className={`absolute inset-0 w-full h-full pointer-events-none select-none z-[1] ${imageAnimationClass}`}>
+          <picture className={`block absolute inset-0 w-full h-full pointer-events-none select-none z-[1] ${imageAnimationClass}`}>
             {slide.mobile_image_url ? (
               <source
                 media="(max-width: 767px)"
@@ -238,7 +238,7 @@ export function HeroSlideItem({
             <img
               src={getPresetImageUrl(desktopImage, 'hero')}
               alt={slide.title || section.title || settings.store_name}
-              className={`${slideClass} w-full h-full ${objectFitClass} select-none pointer-events-none ${
+              className={`${slideClass} block w-full h-full ${objectFitClass} select-none pointer-events-none ${
                 hasVideo && loadedMedia[slide.id] ? 'opacity-0' : 'opacity-100'
               }`}
               loading="eager"

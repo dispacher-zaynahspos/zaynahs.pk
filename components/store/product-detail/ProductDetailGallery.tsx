@@ -68,9 +68,9 @@ export default function ProductDetailGallery({
         ref={imgContainerRef}
         className={`relative w-full overflow-hidden rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-transparent group ${getSharedAspectClass(settings.image_aspect_ratio)}`}
       >
-        {/* Embla Viewport */}
-        <div className="overflow-hidden w-full h-full md:cursor-zoom-in touch-pan-y" ref={emblaRef} onClick={() => setLightboxOpen(true)}>
-          <div className="flex h-full">
+        {/* Embla Viewport — absolute inset-0 anchors to the aspect-ratio parent */}
+        <div className="absolute inset-0 overflow-hidden w-full h-full md:cursor-zoom-in touch-pan-y" ref={emblaRef} onClick={() => setLightboxOpen(true)}>
+          <div className="flex h-full w-full">
             {images.map((img, i) => (
               <div
                 key={img.id || i}

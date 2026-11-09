@@ -136,7 +136,7 @@ export function HeroBannerSection({ section, settings }: HeroBannerSectionProps)
   const bannerClassName = `hero-banner-${section.id}`;
 
   return (
-    <div key={carouselKey} className={`${bannerClassName} hero-banner relative w-full bg-neutral-900 overflow-hidden group`}>
+    <div key={carouselKey} className={`${bannerClassName} hero-banner relative w-full overflow-hidden group`}>
       <style
         dangerouslySetInnerHTML={{
           __html: `
@@ -166,9 +166,9 @@ export function HeroBannerSection({ section, settings }: HeroBannerSectionProps)
         }}
       />
       {/* Embla Viewport wrapper with touch-action: pan-y to prevent gesture conflicts on mobile */}
-      <div className="overflow-hidden min-h-[200px] h-full w-full [touch-action:pan-y] select-none" ref={emblaRef}>
+      <div className="absolute inset-0 overflow-hidden w-full h-full [touch-action:pan-y] select-none" ref={emblaRef}>
         {/* Track with GPU hardware acceleration to eliminate jitter */}
-        <div className="flex min-h-[200px] h-full w-full will-change-transform [backface-visibility:hidden] [transform:translateZ(0)]">
+        <div className="flex h-full w-full will-change-transform [backface-visibility:hidden] [transform:translateZ(0)]">
           {slides.map((slide, idx) => (
             <HeroSlideItem
               key={slide.id}
