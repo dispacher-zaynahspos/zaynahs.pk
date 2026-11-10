@@ -19,13 +19,26 @@ export const purgeAllCache = async () => {
 
 
       // 2. Perform real Cloudflare purge and capture response
-      const multiStoreConfigStr = process.env.MULTI_STORE_CLOUDFLARE_CONFIG;
-      let cfConfigs = [];
+      const cfCtx = (() => {
+        try {
+          const sym = Symbol.for('__cloudflare-context__');
+          return (globalThis as any)[sym];
+        } catch {
+          return null;
+        }
+      })();
+
+      const zoneId = (process.env.CLOUDFLARE_ZONE_ID || cfCtx?.env?.CLOUDFLARE_ZONE_ID || '')?.trim();
+      const apiToken = (process.env.CLOUDFLARE_API_TOKEN || cfCtx?.env?.CLOUDFLARE_API_TOKEN || '')?.trim();
+      const multiStoreConfigStr = process.env.MULTI_STORE_CLOUDFLARE_CONFIG || cfCtx?.env?.MULTI_STORE_CLOUDFLARE_CONFIG;
+
+      let cfConfigs: Array<{ zoneId: string; apiToken: string; name?: string }> = [];
 
       if (multiStoreConfigStr) {
         try {
-          const isBase64 = !multiStoreConfigStr.startsWith('[');
-          const decodedStr = isBase64 ? Buffer.from(multiStoreConfigStr, 'base64').toString('utf-8') : multiStoreConfigStr;
+          const str = String(multiStoreConfigStr).trim();
+          const isBase64 = !str.startsWith('[');
+          const decodedStr = isBase64 ? Buffer.from(str, 'base64').toString('utf-8') : str;
           cfConfigs = JSON.parse(decodedStr);
         } catch (e) {
           console.warn('Failed to parse MULTI_STORE_CLOUDFLARE_CONFIG', e);
@@ -33,18 +46,16 @@ export const purgeAllCache = async () => {
       }
 
       // Fallback to single store if multi-store config is missing
-      if (cfConfigs.length === 0) {
-        if (process.env.CLOUDFLARE_ZONE_ID && process.env.CLOUDFLARE_API_TOKEN) {
-          cfConfigs.push({
-            zoneId: process.env.CLOUDFLARE_ZONE_ID,
-            apiToken: process.env.CLOUDFLARE_API_TOKEN,
-            name: 'Current Store'
-          });
-        }
+      if (cfConfigs.length === 0 && zoneId && apiToken) {
+        cfConfigs.push({
+          zoneId,
+          apiToken,
+          name: 'Current Store',
+        });
       }
 
       if (cfConfigs.length === 0) {
-        throw new Error('Cloudflare credentials missing. Vercel cache cleared, but CDN purge skipped.');
+        throw new Error('Cloudflare credentials missing. Cache tags refreshed, but CDN purge skipped.');
       }
 
       const errors = [];

@@ -51,9 +51,23 @@ async function getCacheMethods(): Promise<{ revalidateTag: RevalidateTagFn; reva
   }
 }
 
+export function getCloudflareRuntimeContext(): {
+  env?: Record<string, any>;
+  ctx?: { waitUntil: (p: Promise<any>) => void };
+} | null {
+  try {
+    const sym = Symbol.for('__cloudflare-context__');
+    const ctx = (globalThis as any)[sym];
+    if (ctx && typeof ctx === 'object') return ctx;
+  } catch {}
+  return null;
+}
+
 async function resolveSiteUrl(): Promise<string> {
-  if (process.env.NEXT_PUBLIC_SITE_URL) {
-    return process.env.NEXT_PUBLIC_SITE_URL.replace(/\/+$/, '').replace(/^http:\/\//, 'https://');
+  const cfCtx = getCloudflareRuntimeContext();
+  const rawSiteUrl = process.env.NEXT_PUBLIC_SITE_URL || cfCtx?.env?.NEXT_PUBLIC_SITE_URL;
+  if (rawSiteUrl) {
+    return String(rawSiteUrl).replace(/\/+$/, '').replace(/^http:\/\//, 'https://');
   }
   try {
     const { supabaseAdmin } = await import('@/lib/supabase/admin');
@@ -70,27 +84,30 @@ async function resolveSiteUrl(): Promise<string> {
 }
 
 /**
- * TARGETED PURGE STRATEGY (RULE C9 updated — synced with RULE C10):
- * - Product/category/banner/homepage-section/vertical saves: Next.js revalidateTag/revalidatePath ONLY.
- *   Next.js ISR + stale-while-revalidate ensures CDN freshness — no full CF zone purge needed.
+ * TARGETED PURGE STRATEGY (RULE C9 updated — synced with RULE C10 & RULE DUAL-TARGET):
+ * - Works identically on Mode A (Cloudflare Workers $5 plan) and Mode B (Legacy Vercel).
+ * - Product/category/banner/homepage-section/vertical saves: Next.js revalidateTag/revalidatePath + Cloudflare Edge targeted purge.
  * - Global/layout-level saves (theme, store settings, storefrontEdge): purgeCloudflareEverything() — every page affected.
  * - Post-deploy + Manual "Purge Cache" button: purgeCloudflareEverything() always.
- * Rationale: full zone purge on every entity save caused unnecessary cache misses site-wide (RULE C10: targeted invalidation).
  */
 function getCloudflareConfigs(): Array<{ zoneId: string; apiToken: string; name?: string }> {
   const cfConfigs: Array<{ zoneId: string; apiToken: string; name?: string }> = [];
 
+  const cfCtx = getCloudflareRuntimeContext();
+
   // Direct store credentials always take precedence (RULE CRED-ENVBACKUP)
-  const zone = process.env.CLOUDFLARE_ZONE_ID?.trim();
-  const token = process.env.CLOUDFLARE_API_TOKEN?.trim();
+  // Check process.env (Vercel / Node) AND cfCtx.env (Cloudflare Workers)
+  const zone = (process.env.CLOUDFLARE_ZONE_ID || cfCtx?.env?.CLOUDFLARE_ZONE_ID || '')?.trim();
+  const token = (process.env.CLOUDFLARE_API_TOKEN || cfCtx?.env?.CLOUDFLARE_API_TOKEN || '')?.trim();
   if (zone && token) {
     cfConfigs.push({ zoneId: zone, apiToken: token, name: 'Current Store' });
   }
 
   // Fallback to MULTI_STORE_CLOUDFLARE_CONFIG only if direct env vars are absent
-  if (cfConfigs.length === 0 && process.env.MULTI_STORE_CLOUDFLARE_CONFIG) {
+  const multiStoreRaw = process.env.MULTI_STORE_CLOUDFLARE_CONFIG || cfCtx?.env?.MULTI_STORE_CLOUDFLARE_CONFIG;
+  if (cfConfigs.length === 0 && multiStoreRaw) {
     try {
-      const raw = process.env.MULTI_STORE_CLOUDFLARE_CONFIG.trim();
+      const raw = String(multiStoreRaw).trim();
       let parsed: unknown = null;
       if (raw.startsWith('[')) {
         parsed = JSON.parse(raw);
@@ -108,6 +125,10 @@ function getCloudflareConfigs(): Array<{ zoneId: string; apiToken: string; name?
     } catch (e) {
       console.warn('Failed to parse MULTI_STORE_CLOUDFLARE_CONFIG', e);
     }
+  }
+
+  if (cfConfigs.length === 0) {
+    console.warn(`[revalidate] Cloudflare credentials missing. Zone ID: ${Boolean(zone)}, Token: ${Boolean(token)}`);
   }
 
   return cfConfigs;
@@ -249,7 +270,11 @@ async function purgeCloudflareEverything() {
   }
 }
 
-export async function revalidateProduct(slug: string, action: 'UPDATED' | 'DELETED' = 'UPDATED') {
+export async function revalidateProduct(
+  slug: string,
+  action: 'UPDATED' | 'DELETED' = 'UPDATED',
+  categorySlugs?: string[]
+) {
   try {
     // 1. Next.js cache refresh FIRST
     const { revalidateTag, revalidatePath } = await getCacheMethods();
@@ -269,10 +294,17 @@ export async function revalidateProduct(slug: string, action: 'UPDATED' | 'DELET
     const siteUrl = await resolveSiteUrl();
     const productUrl = `${siteUrl}/product/${slug}`;
 
+    const purgeUrls = [productUrl, `${siteUrl}/`, `${siteUrl}/shop`];
+    if (categorySlugs && categorySlugs.length > 0) {
+      for (const cat of categorySlugs) {
+        if (cat) purgeUrls.push(`${siteUrl}/category/${cat}`);
+      }
+    }
+
     // 2. Cloudflare targeted purge SECOND (Next.js is already fresh)
     await purgeCloudflareTargeted({
-      tags: ['product', 'products', `product-${slug}`],
-      urls: [productUrl, `${siteUrl}/`, `${siteUrl}/shop`],
+      tags: ['product', 'products', `product-${slug}`, 'homepage'],
+      urls: purgeUrls,
     });
 
     if (action === 'DELETED') {
@@ -306,8 +338,10 @@ export async function revalidateAllProducts() {
     revalidatePath('/');
     revalidatePath('/shop');
 
+    const siteUrl = await resolveSiteUrl();
     await purgeCloudflareTargeted({
       tags: ['products', 'homepage', 'shop'],
+      urls: [`${siteUrl}/`, `${siteUrl}/shop`],
     });
     console.log('[revalidate] All product tags refreshed via targeted CF purge');
   } catch (error) {
@@ -561,10 +595,25 @@ export { purgeCloudflareEverything };
  * finishes) instead of after the save's await — but the admin UI no longer hangs.
  */
 export async function revalidateAfterResponse(task: () => Promise<void>): Promise<void> {
+  const cfCtx = getCloudflareRuntimeContext();
+  if (cfCtx?.ctx?.waitUntil && typeof cfCtx.ctx.waitUntil === 'function') {
+    try {
+      cfCtx.ctx.waitUntil(task());
+      return;
+    } catch (err) {
+      console.warn('[revalidateAfterResponse] Cloudflare waitUntil failed, falling back:', err);
+    }
+  }
+
   try {
     const { after } = await import('next/server');
-    after(task);
+    if (typeof after === 'function') {
+      after(task);
+      return;
+    }
   } catch {
-    await task();
+    // next/server after() unavailable or outside request scope
   }
+
+  await task();
 }

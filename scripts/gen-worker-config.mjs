@@ -30,7 +30,7 @@ function parseArgs(argv) {
 }
 
 function loadEnvFile(filePath) {
-  iبببbzb f(!existsSync(filePath)) {
+  if (!existsSync(filePath)) {
     throw new Error(`Env file not found: ${filePath}`);
   }
   const env = {};
@@ -88,10 +88,10 @@ function buildConfigs(ctx, split) {
   } = ctx;
 
   const base = {
-    main: '.open-next/worker.js',
+    main: '../../.open-next/worker.js',
     compatibility_date: date,
     compatibility_flags: ['nodejs_compat', 'global_fetch_strictly_public'],
-    assets: { directory: '.open-next/assets', binding: 'ASSETS' },
+    assets: { directory: '../../.open-next/assets', binding: 'ASSETS' },
     observability: { enabled: true },
     r2_buckets: [
       { binding: 'NEXT_INC_CACHE_R2_BUCKET', bucket_name: cacheBucket },
@@ -112,6 +112,8 @@ function buildConfigs(ctx, split) {
     NEXT_PUBLIC_SITE_URL: siteUrl.replace(/\/+$/, ''),
     ADMIN_HOST: adminHost,
     IMG_HOST: imgHost,
+    ...(ctx.zoneId ? { CLOUDFLARE_ZONE_ID: ctx.zoneId } : {}),
+    ...(ctx.multiStoreConfig ? { MULTI_STORE_CLOUDFLARE_CONFIG: ctx.multiStoreConfig } : {}),
   };
 
   const single = {
@@ -120,9 +122,9 @@ function buildConfigs(ctx, split) {
     ...base,
     vars,
     routes: [
-      { pattern: siteHost, custom_domain: true },
-      { pattern: `www.${siteHost}`, custom_domain: true },
-      { pattern: adminHost, custom_domain: true },
+      { pattern: `${siteHost}/*`, zone_name: siteHost },
+      { pattern: `www.${siteHost}/*`, zone_name: siteHost },
+      { pattern: `${adminHost}/*`, zone_name: siteHost },
     ],
   };
 
@@ -134,8 +136,8 @@ function buildConfigs(ctx, split) {
     ...base,
     vars: { ...vars, WORKER_ROLE: 'store' },
     routes: [
-      { pattern: siteHost, custom_domain: true },
-      { pattern: `www.${siteHost}`, custom_domain: true },
+      { pattern: `${siteHost}/*`, zone_name: siteHost },
+      { pattern: `www.${siteHost}/*`, zone_name: siteHost },
     ],
   };
 
@@ -144,7 +146,7 @@ function buildConfigs(ctx, split) {
     name: `${slug}-admin`,
     ...base,
     vars: { ...vars, WORKER_ROLE: 'admin' },
-    routes: [{ pattern: adminHost, custom_domain: true }],
+    routes: [{ pattern: `${adminHost}/*`, zone_name: siteHost }],
   };
 
   return { store, admin };
@@ -198,6 +200,8 @@ function main() {
     imgHost: (env.IMG_HOST || `img.${siteHost}`).trim(),
     cacheBucket: (env.NEXT_INC_CACHE_R2_BUCKET || `${slug}-next-cache`).trim(),
     imageBucket: (env.R2_IMAGES_BUCKET || `${slug}-images`).trim(),
+    zoneId: (env.CLOUDFLARE_ZONE_ID || '').trim(),
+    multiStoreConfig: (env.MULTI_STORE_CLOUDFLARE_CONFIG || '').trim(),
     date: compatDate(),
   };
 

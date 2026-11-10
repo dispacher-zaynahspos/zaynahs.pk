@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse, after } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { revalidatePath, revalidateTag } from 'next/cache';
 import {
   revalidateProduct,
@@ -8,7 +8,8 @@ import {
   revalidateCategory,
   revalidateHomepage,
   revalidateSettings,
-  revalidateVertical
+  revalidateVertical,
+  revalidateAfterResponse,
 } from '@/lib/revalidate';
 import { getProductById } from '@/lib/services/products';
 import { syncProductToMeta } from '@/lib/meta/syncProduct';
@@ -145,7 +146,7 @@ export async function POST(req: NextRequest) {
     // stale-while-revalidate payload, which Cloudflare would then re-cache for
     // 30 days. Purge the edge a second time after the origin has regenerated so
     // the fresh HTML is what gets cached.
-    after(async () => {
+    await revalidateAfterResponse(async () => {
       await new Promise((resolve) => setTimeout(resolve, 8000));
       await purgeAllCloudflareZones();
     });
