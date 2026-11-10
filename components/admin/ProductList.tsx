@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Product, StoreSettings } from '@/lib/types';
 import { deleteProductAction as deleteProduct, updateProductFieldsAction as updateProductFields } from '@/lib/services/products/actions';
@@ -10,7 +10,7 @@ import { useConfirm } from '@/components/admin/shared/AdminConfirmProvider';
 import ImportExportModal from '@/components/admin/ImportExportModal';
 import PaginationFooter from './PaginationFooter';
 import ImagePreviewModal from '@/components/admin/ImagePreviewModal';
-import { saveProductNavContext } from '@/lib/hooks/useProductNav';
+import { saveProductNavContext, getAdminNavContext } from '@/lib/hooks/useProductNav';
 import { applySort } from '@/lib/sorting/sortOptions';
 import { rankProducts } from '@/lib/services/product-search/useInMemoryProductSearch';
 import { 
@@ -28,27 +28,94 @@ export default function ProductList({ initialProducts, settings }: ProductListPr
   const router = useRouter();
   const { confirm } = useConfirm();
   const [products, setProducts] = useState<Product[]>(initialProducts);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = getAdminNavContext('/admin/products');
+      if (typeof saved?.searchQuery === 'string') return saved.searchQuery;
+    }
+    return '';
+  });
   const [syncingAll, setSyncingAll] = useState(false);
   const [syncingFailed, setSyncingFailed] = useState(false);
   const [syncingProductId, setSyncingProductId] = useState<string | null>(null);
   const [isImportExportOpen, setIsImportExportOpen] = useState(false);
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
-  const [sortBy, setSortBy] = useState<string>('newest');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
+  const [sortBy, setSortBy] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = getAdminNavContext('/admin/products');
+      if (saved?.sortBy) return saved.sortBy;
+    }
+    return 'newest';
+  });
+  const [selectedCategory, setSelectedCategory] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = getAdminNavContext('/admin/products');
+      if (saved?.selectedCategory) return saved.selectedCategory;
+    }
+    return 'all';
+  });
+  const [pageSize, setPageSize] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = getAdminNavContext('/admin/products');
+      if (saved?.pageSize && saved.pageSize > 0) return saved.pageSize;
+    }
+    return 20;
+  });
+  const [currentPage, setCurrentPage] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = getAdminNavContext('/admin/products');
+      if (saved?.page && saved.page > 0) return saved.page;
+    }
+    return 1;
+  });
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
 
   /** Save nav context then navigate to edit page */
   const handleEditProduct = (productId: string, allFiltered: Product[]) => {
+    const mainContent = document.getElementById('admin-main-content');
+    const scrollPos = mainContent ? mainContent.scrollTop : (typeof window !== 'undefined' ? window.scrollY : 0);
     saveProductNavContext({
       ids: allFiltered.map(p => p.id),
       source: 'Products',
       sourceUrl: '/admin/products',
+      lastOpenedId: productId,
+      page: currentPage,
+      pageSize,
+      searchQuery,
+      selectedCategory,
+      sortBy,
+      scrollPosition: scrollPos,
     });
     router.push(`/admin/products/${productId}`);
   };
+
+  /** Restore scroll & highlight on return to Products list */
+  useEffect(() => {
+    const saved = getAdminNavContext('/admin/products');
+    if (!saved?.lastOpenedId) return;
+
+    const targetId = saved.lastOpenedId;
+    const scrollPos = saved.scrollPosition;
+
+    const timer = setTimeout(() => {
+      const row = document.getElementById(`product-row-${targetId}`)
+               || document.getElementById(`product-card-${targetId}`);
+      if (row) {
+        row.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        row.classList.remove('scroll-restore-highlight');
+        void row.offsetWidth;
+        row.classList.add('scroll-restore-highlight');
+        setTimeout(() => row.classList.remove('scroll-restore-highlight'), 2500);
+      } else if (typeof scrollPos === 'number' && scrollPos > 0) {
+        const mainContent = document.getElementById('admin-main-content');
+        if (mainContent) {
+          mainContent.scrollTo({ top: scrollPos, behavior: 'smooth' });
+        }
+      }
+    }, 120);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const categoriesMap = new Map<string, string>();
   products.forEach(p => {

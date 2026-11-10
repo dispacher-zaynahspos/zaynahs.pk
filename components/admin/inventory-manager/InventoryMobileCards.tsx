@@ -84,6 +84,7 @@ export function InventoryMobileCards({
         return (
           <div 
             key={product.id}
+            id={`inventory-card-${product.id}`}
             className="bg-white dark:bg-[#16162a] p-4 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm space-y-4 text-gray-900 dark:text-white transition-colors"
           >
             {/* Product Header */}

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getProductNavContext } from '@/lib/hooks/useProductNav';
+import { getProductNavContext, updateProductNavContextCurrentId } from '@/lib/hooks/useProductNav';
 
 interface ProductNavButtonsProps {
   currentProductId: string;
@@ -36,9 +36,14 @@ export default function ProductNavButtons({ currentProductId }: ProductNavButton
       {/* Prev / Next buttons — same style as Orders */}
       <div className="flex items-center border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden shadow-sm">
         <button
-          onClick={() => { if (nav.prev) router.push(`/admin/products/${nav.prev}`); }}
+          onClick={() => {
+            if (nav.prev) {
+              updateProductNavContextCurrentId(nav.prev);
+              router.push(`/admin/products/${nav.prev}`);
+            }
+          }}
           disabled={!nav.prev}
-          className="px-2.5 py-1.5 bg-white dark:bg-[#16162a] text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors border-r border-gray-200 dark:border-gray-800"
+          className="px-2.5 py-1.5 bg-white dark:bg-[#16162a] text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors border-r border-gray-200 dark:border-gray-800 cursor-pointer"
           title="Previous product"
         >
           <svg className="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -46,9 +51,14 @@ export default function ProductNavButtons({ currentProductId }: ProductNavButton
           </svg>
         </button>
         <button
-          onClick={() => { if (nav.next) router.push(`/admin/products/${nav.next}`); }}
+          onClick={() => {
+            if (nav.next) {
+              updateProductNavContextCurrentId(nav.next);
+              router.push(`/admin/products/${nav.next}`);
+            }
+          }}
           disabled={!nav.next}
-          className="px-2.5 py-1.5 bg-white dark:bg-[#16162a] text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          className="px-2.5 py-1.5 bg-white dark:bg-[#16162a] text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
           title="Next product"
         >
           <svg className="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

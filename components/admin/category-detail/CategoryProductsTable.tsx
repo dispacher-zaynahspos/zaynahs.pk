@@ -280,6 +280,7 @@ function ProductRow({
   return (
     <React.Fragment>
       <tr
+        id={`product-row-${product.id}`}
         ref={setNodeRef}
         style={style}
         {...(isManual ? longPress : {})}

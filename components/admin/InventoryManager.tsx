@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Product, Category } from '@/lib/types';
 import { 
@@ -14,7 +14,7 @@ import {
   PackageOpen
 } from '@/components/common/Icons';
 import PaginationFooter from './PaginationFooter';
-import { saveProductNavContext } from '@/lib/hooks/useProductNav';
+import { saveProductNavContext, getAdminNavContext } from '@/lib/hooks/useProductNav';
 import EmptyState from '@/components/common/EmptyState';
 import AdminSearchInput from '@/components/admin/shared/AdminSearchInput';
 import ImagePreviewModal from '@/components/admin/ImagePreviewModal';
@@ -31,13 +31,37 @@ interface InventoryManagerProps {
 export default function InventoryManager({ products: initialProducts, categories }: InventoryManagerProps) {
   const router = useRouter();
   const [products, setProducts] = useState<Product[]>(initialProducts);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [searchQuery, setSearchQuery] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = getAdminNavContext('/admin/inventory');
+      if (typeof saved?.searchQuery === 'string') return saved.searchQuery;
+    }
+    return '';
+  });
+  const [selectedCategory, setSelectedCategory] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = getAdminNavContext('/admin/inventory');
+      if (saved?.selectedCategory) return saved.selectedCategory;
+    }
+    return 'all';
+  });
   const [showLowStockOnly, setShowLowStockOnly] = useState(false);
   const [expandedProducts, setExpandedProducts] = useState<Record<string, boolean>>({});
   const [selectedVariantIds, setSelectedVariantIds] = useState<string[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
+  const [pageSize, setPageSize] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = getAdminNavContext('/admin/inventory');
+      if (saved?.pageSize && saved.pageSize > 0) return saved.pageSize;
+    }
+    return 20;
+  });
+  const [currentPage, setCurrentPage] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = getAdminNavContext('/admin/inventory');
+      if (saved?.page && saved.page > 0) return saved.page;
+    }
+    return 1;
+  });
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
 
   // Staged pending changes state (key = productId or variantId, value = new edited number or raw string)
@@ -49,13 +73,49 @@ export default function InventoryManager({ products: initialProducts, categories
 
   /** Save inventory nav context then open product edit page */
   const handleEditProduct = (productId: string) => {
+    const mainContent = document.getElementById('admin-main-content');
+    const scrollPos = mainContent ? mainContent.scrollTop : (typeof window !== 'undefined' ? window.scrollY : 0);
     saveProductNavContext({
       ids: filteredProducts.map(p => p.id),
       source: 'Inventory',
       sourceUrl: '/admin/inventory',
+      lastOpenedId: productId,
+      page: currentPage,
+      pageSize,
+      searchQuery,
+      selectedCategory,
+      scrollPosition: scrollPos,
     });
     router.push(`/admin/products/${productId}`);
   };
+
+  /** Restore scroll & highlight on return to Inventory */
+  useEffect(() => {
+    const saved = getAdminNavContext('/admin/inventory');
+    if (!saved?.lastOpenedId) return;
+
+    const targetId = saved.lastOpenedId;
+    const scrollPos = saved.scrollPosition;
+
+    const timer = setTimeout(() => {
+      const row = document.getElementById(`inventory-row-${targetId}`)
+               || document.getElementById(`inventory-card-${targetId}`);
+      if (row) {
+        row.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        row.classList.remove('scroll-restore-highlight');
+        void row.offsetWidth;
+        row.classList.add('scroll-restore-highlight');
+        setTimeout(() => row.classList.remove('scroll-restore-highlight'), 2500);
+      } else if (typeof scrollPos === 'number' && scrollPos > 0) {
+        const mainContent = document.getElementById('admin-main-content');
+        if (mainContent) {
+          mainContent.scrollTo({ top: scrollPos, behavior: 'smooth' });
+        }
+      }
+    }, 120);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const toggleExpand = (productId: string) => {
     setExpandedProducts(prev => ({

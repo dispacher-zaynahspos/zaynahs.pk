@@ -58,7 +58,7 @@ export default function ProductListTable({
           <table className="w-full text-left text-sm text-gray-700 dark:text-gray-300">
             <thead className="text-[11px] font-black text-gray-400 dark:text-gray-400 uppercase tracking-wider bg-gray-50/80 dark:bg-white/2 border-b border-gray-100 dark:border-gray-800 select-none">
               <tr>
-                <th className="py-2.5 px-1.5 w-8 text-center">
+                <th className="py-2.5 px-1.5 w-8 text-center shrink-0">
                   <input
                     type="checkbox"
                     checked={paginatedProducts.length > 0 && paginatedProducts.every(p => selectedProductIds.includes(p.id))}
@@ -72,14 +72,14 @@ export default function ProductListTable({
                     className="rounded border-gray-300 text-[#e94560] focus:ring-[#e94560] h-3.5 w-3.5 cursor-pointer accent-[#e94560]"
                   />
                 </th>
-                <th className="py-2.5 px-3 min-w-[200px]">Product</th>
-                <th className="py-2.5 px-2 hidden 2xl:table-cell w-24">SKU</th>
-                <th className="py-2.5 px-2 w-20">Price</th>
-                <th className="py-2.5 px-2 hidden sm:table-cell w-24">Stock</th>
+                <th className="py-2.5 px-3 min-w-0">Product</th>
+                <th className="py-2.5 px-2 hidden 2xl:table-cell w-20">SKU</th>
+                <th className="py-2.5 px-2 w-20 whitespace-nowrap">Price</th>
+                <th className="py-2.5 px-2 hidden lg:table-cell w-24">Stock</th>
                 <th className="py-2.5 px-1 hidden md:table-cell text-center w-14">Visible</th>
                 <th className="py-2.5 px-1 hidden xl:table-cell text-center w-14">Featured</th>
-                {settings.meta_sync_enabled && <th className="py-2.5 px-2 text-center w-24 whitespace-nowrap">Meta Sync</th>}
-                <th className="py-2.5 px-1.5 text-center w-18">Actions</th>
+                {settings.meta_sync_enabled && <th className="py-2.5 px-2 text-center w-22 whitespace-nowrap hidden lg:table-cell">Meta Sync</th>}
+                <th className="py-2.5 px-1.5 text-center w-16">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-gray-800/60 font-medium">
@@ -89,9 +89,10 @@ export default function ProductListTable({
                 return (
                   <tr 
                     key={product.id} 
+                    id={`product-row-${product.id}`}
                     className={`hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors ${selectedProductIds.includes(product.id) ? 'bg-indigo-50/30 dark:bg-indigo-950/20' : ''}`}
                   >
-                    <td className="py-2.5 px-1.5 w-8 text-center">
+                    <td className="py-2.5 px-1.5 w-8 text-center shrink-0">
                       <input
                         type="checkbox"
                         checked={selectedProductIds.includes(product.id)}
@@ -113,7 +114,11 @@ export default function ProductListTable({
                           onPreview={setPreviewImageUrl} 
                         />
                         <div className="min-w-0 flex-1">
-                          <p className="font-bold text-gray-900 dark:text-white text-xs md:text-sm truncate" title={product.name}>
+                          <p 
+                            className="font-bold text-gray-900 dark:text-white text-xs md:text-sm truncate cursor-pointer hover:text-[#e94560] transition-colors" 
+                            title={product.name}
+                            onClick={() => handleEditProduct(product.id, filteredProducts)}
+                          >
                             {(product.name || '').replace(/^[\s*#-]+/, '').replace(/[*_~`]/g, '').trim()}
                           </p>
                           {product.product_categories && product.product_categories.length > 0 ? (
@@ -141,7 +146,7 @@ export default function ProductListTable({
                     <td className="py-2.5 px-2 font-black text-gray-900 dark:text-white text-xs md:text-sm whitespace-nowrap w-20">
                       {formatPrice(product.price, settings.currency_symbol)}
                     </td>
-                    <td className="py-2.5 px-2 font-semibold text-xs hidden sm:table-cell w-24">
+                    <td className="py-2.5 px-2 font-semibold text-xs hidden lg:table-cell w-24">
                       {product.has_variants && product.variants ? (
                         <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-black bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 whitespace-nowrap">
                           Variants ({product.variants.reduce((sum, v) => sum + v.stock, 0)})
@@ -201,7 +206,7 @@ export default function ProductListTable({
                       </div>
                     </td>
                     {settings.meta_sync_enabled && (
-                      <td className="py-2.5 px-2 text-center w-24 whitespace-nowrap">
+                      <td className="py-2.5 px-2 text-center w-22 whitespace-nowrap hidden lg:table-cell">
                         {product.meta_sync_status === 'synced' ? (
                           <span suppressHydrationWarning={true} className="inline-flex items-center gap-1.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 rounded-full border border-emerald-300 dark:border-emerald-800 shadow-2xs" title={product.meta_last_synced_at ? `Synced at: ${new Date(product.meta_last_synced_at).toLocaleString()}` : 'Synced with Meta Catalog'}>
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block animate-pulse" />
@@ -220,7 +225,7 @@ export default function ProductListTable({
                         )}
                       </td>
                     )}
-                    <td className="py-2.5 px-1.5 text-center w-18">
+                    <td className="py-2.5 px-1.5 text-center w-16">
                       <div className="flex items-center justify-center gap-1">
                         {settings.meta_sync_enabled && (
                           <button 
@@ -301,6 +306,7 @@ export default function ProductListTable({
           return (
             <div 
               key={product.id} 
+              id={`product-card-${product.id}`}
               className="bg-white dark:bg-[#16162a] p-4 rounded-2xl border border-gray-200/80 dark:border-gray-800/80 shadow-xs space-y-3 transition-all"
             >
               <div className="flex items-start gap-3">

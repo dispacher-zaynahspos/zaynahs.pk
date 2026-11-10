@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { ArrowLeft, ExternalLink } from '@/components/common/Icons';
 import ProductForm from '@/components/admin/ProductForm';
 import ProductNavButtons from '@/components/admin/ProductNavButtons';
+import ProductEditBackButton from '@/components/admin/ProductEditBackButton';
 import { getProductById } from '@/lib/services/products';
 import { getAllCategories } from '@/lib/services/categories';
 
@@ -42,15 +43,8 @@ export default async function EditProductPage({ params }: PageProps) {
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
-          {/* Back to source (Products / Inventory / Category) */}
-          <Link
-            href="/admin/products"
-            id="product-edit-back-btn"
-            className="flex items-center gap-2 px-4 py-2 border border-gray-200 dark:border-gray-800 rounded-xl bg-white dark:bg-[#16162a] text-gray-700 dark:text-gray-200 text-xs font-bold transition-all hover:bg-gray-50 dark:hover:bg-gray-800 shadow-sm cursor-pointer"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            <span>Back to Products</span>
-          </Link>
+          {/* Back to source (Products / Inventory / Category) with memory preservation */}
+          <ProductEditBackButton currentProductId={id} />
 
           {/* Prev / Next navigation — reads sessionStorage context set by source page */}
           <ProductNavButtons currentProductId={id} />

@@ -52,12 +52,12 @@ export function InventoryTable({
         <table className="w-full text-left text-sm text-gray-700 dark:text-gray-300">
           <thead className="bg-gray-50 dark:bg-[#0f0f1b] border-b border-gray-200 dark:border-gray-800 font-bold uppercase text-[10px] tracking-wider text-gray-500">
             <tr>
-              <th className="py-2.5 px-2 w-8 text-center"></th>
-              <th className="py-2.5 px-3">Product</th>
-              <th className="py-2.5 px-3 w-28">SKU</th>
-              <th className="py-2.5 px-3 w-36">Stock Level</th>
-              <th className="py-2.5 px-3 w-32">Alert Threshold</th>
-              <th className="py-2.5 px-4 text-right min-w-[170px] whitespace-nowrap">Status</th>
+              <th className="py-2.5 px-2 w-8 text-center shrink-0"></th>
+              <th className="py-2.5 px-3 min-w-0">Product</th>
+              <th className="py-2.5 px-3 w-24">SKU</th>
+              <th className="py-2.5 px-3 w-28">Stock Level</th>
+              <th className="py-2.5 px-3 w-28">Alert Threshold</th>
+              <th className="py-2.5 px-3 text-right w-28 whitespace-nowrap">Status</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 dark:divide-gray-800 text-xs">
@@ -98,8 +98,11 @@ export function InventoryTable({
               
               return (
                 <React.Fragment key={product.id}>
-                  <tr className="hover:bg-gray-50/50 dark:hover:bg-[#1d1d36]/30 transition-colors">
-                    <td className="py-2.5 px-2 text-center w-8">
+                  <tr 
+                    id={`inventory-row-${product.id}`}
+                    className="hover:bg-gray-50/50 dark:hover:bg-[#1d1d36]/30 transition-colors"
+                  >
+                    <td className="py-2.5 px-2 text-center w-8 shrink-0">
                       {product.has_variants ? (
                         <button
                           type="button"
@@ -114,15 +117,21 @@ export function InventoryTable({
                         </button>
                       ) : null}
                     </td>
-                    <td className="py-2.5 px-3 font-semibold text-gray-900 dark:text-white">
-                      <div className="flex items-center gap-2.5">
+                    <td className="py-2.5 px-3 font-semibold text-gray-900 dark:text-white min-w-0">
+                      <div className="flex items-center gap-2.5 min-w-0">
                         <TableThumbnail 
                           url={product.images?.[0]?.url || null} 
                           alt={product.name} 
                           onPreview={setPreviewImageUrl} 
                         />
-                        <div className="min-w-0">
-                          <div className="text-xs font-bold text-gray-900 dark:text-white truncate max-w-[200px] xl:max-w-xs">{product.name}</div>
+                        <div className="min-w-0 flex-1">
+                          <div 
+                            className="text-xs font-bold text-gray-900 dark:text-white truncate cursor-pointer hover:text-[#e94560] transition-colors"
+                            onClick={() => handleEditProduct(product.id)}
+                            title={product.name}
+                          >
+                            {product.name}
+                          </div>
                           {product.product_categories && product.product_categories.length > 0 ? (
                             <div className="flex flex-wrap gap-1 mt-0.5">
                               {product.product_categories.map((pc) => pc.category ? (

@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 import { Search } from '@/components/common/Icons';
 import { SORT_OPTIONS } from '@/lib/sorting/sortOptions';
 import PaginationFooter from './PaginationFooter';
-import { saveProductNavContext } from '@/lib/hooks/useProductNav';
+import { saveProductNavContext, getAdminNavContext } from '@/lib/hooks/useProductNav';
 import ImagePreviewModal from '@/components/admin/ImagePreviewModal';
 import MediaSelectorModal from './MediaSelectorModal';
 import {
@@ -74,13 +74,47 @@ export default function CategoryDetailManager({ category, initialProducts }: Cat
   } = state;
 
   const handleEditProduct = (productId: string, allFiltered: Product[]) => {
+    const mainContent = document.getElementById('admin-main-content');
+    const scrollPos = mainContent ? mainContent.scrollTop : (typeof window !== 'undefined' ? window.scrollY : 0);
     saveProductNavContext({
       ids: allFiltered.map(p => p.id),
       source: category.name,
       sourceUrl: `/admin/categories/${category.id}`,
+      lastOpenedId: productId,
+      page: currentPage,
+      pageSize,
+      scrollPosition: scrollPos,
     });
     router.push(`/admin/products/${productId}`);
   };
+
+  /** Restore scroll & highlight on return to Category view */
+  React.useEffect(() => {
+    const saved = getAdminNavContext(`/admin/categories/${category.id}`);
+    if (!saved?.lastOpenedId) return;
+
+    const targetId = saved.lastOpenedId;
+    const scrollPos = saved.scrollPosition;
+
+    const timer = setTimeout(() => {
+      const row = document.getElementById(`product-row-${targetId}`)
+               || document.getElementById(`category-product-row-${targetId}`);
+      if (row) {
+        row.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        row.classList.remove('scroll-restore-highlight');
+        void row.offsetWidth;
+        row.classList.add('scroll-restore-highlight');
+        setTimeout(() => row.classList.remove('scroll-restore-highlight'), 2500);
+      } else if (typeof scrollPos === 'number' && scrollPos > 0) {
+        const mainContent = document.getElementById('admin-main-content');
+        if (mainContent) {
+          mainContent.scrollTo({ top: scrollPos, behavior: 'smooth' });
+        }
+      }
+    }, 120);
+
+    return () => clearTimeout(timer);
+  }, [category.id]);
 
   const assignedProductIds = new Set(products.map(p => p.id));
   const availableProducts = allStoreProducts.filter(p => !assignedProductIds.has(p.id));
