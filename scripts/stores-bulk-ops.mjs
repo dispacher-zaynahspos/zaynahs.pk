@@ -114,6 +114,72 @@ function resolveRemote(storeName, activeRemotes) {
   return null;
 }
 
+async function runPreflightCheck() {
+  console.log('\n===============================================================');
+  console.log('🛡️  PREFLIGHT: VERIFYING MASTER SCHEMA, MIGRATIONS & SETUP SYNC');
+  console.log('===============================================================\n');
+
+  try {
+    execSync('node scripts/check-setup-sync.mjs', { stdio: 'inherit', cwd: ROOT });
+    console.log('✅ Preflight check passed! All 168 migrations, master schema & triggers in sync.\n');
+  } catch (err) {
+    console.error('❌ PREFLIGHT FAILED: Master schema or migrations out of sync!');
+    throw err;
+  }
+}
+
+async function runDeployWorkers() {
+  console.log('\n===============================================================');
+  console.log('⚡ DEPLOYING CLOUDFLARE WORKERS ($5 PAID PLAN / MODE A)');
+  console.log('===============================================================\n');
+
+  // 1. Identify which target stores have worker configs or can run on Workers
+  const workerStores = [];
+  for (const store of stores) {
+    const configDir = path.join(ROOT, 'worker-config', store.name);
+    const configFile = path.join(configDir, 'wrangler.jsonc');
+
+    // Always ensure worker config is generated and up to date
+    try {
+      execSync(`node scripts/gen-worker-config.mjs --store=${store.name}`, { stdio: 'pipe', cwd: ROOT });
+    } catch {}
+
+    if (fs.existsSync(configFile)) {
+      workerStores.push({ store, configFile });
+    }
+  }
+
+  if (workerStores.length === 0) {
+    console.log('ℹ️ No Cloudflare Worker stores configured for target list.');
+    return;
+  }
+
+  // 2. Build OpenNext once for all workers
+  console.log('▶ Building OpenNext Cloudflare bundle (once for all workers)...');
+  const buildStart = Date.now();
+  try {
+    execSync('npx @opennextjs/cloudflare build', { stdio: 'inherit', cwd: ROOT });
+    const buildElapsed = ((Date.now() - buildStart) / 1000).toFixed(1);
+    console.log(`✅ OpenNext build complete in ${buildElapsed}s.\n`);
+  } catch (err) {
+    console.error('❌ OpenNext build failed:', err.message);
+    throw err;
+  }
+
+  // 3. Deploy worker for each target store with CI=true
+  for (const { store, configFile } of workerStores) {
+    console.log(`▶ [${store.name}] Deploying Cloudflare Worker via Wrangler...`);
+    const deployStart = Date.now();
+    try {
+      execSync(`CI=true npx wrangler deploy --config "${configFile}"`, { stdio: 'inherit', cwd: ROOT });
+      const deployElapsed = ((Date.now() - deployStart) / 1000).toFixed(1);
+      console.log(`✅ [${store.name}] Worker deployed successfully in ${deployElapsed}s.\n`);
+    } catch (err) {
+      console.error(`❌ [${store.name}] Worker deployment failed:`, err.message);
+    }
+  }
+}
+
 async function runPush() {
   console.log('\n===============================================================');
   console.log('🚀 PUSHING TO ALL STORE REMOTES IN PARALLEL');
@@ -316,7 +382,13 @@ async function runVerify() {
 async function main() {
   const command = process.argv[2] || 'all';
 
+  const skipVercel = process.argv.includes('--skip-vercel');
+  const skipWorkers = process.argv.includes('--skip-workers');
+
   switch (command) {
+    case 'preflight':
+      await runPreflightCheck();
+      break;
     case 'push':
       await runPush();
       break;
@@ -325,6 +397,12 @@ async function main() {
       break;
     case 'sync-cf':
       await runSyncCf();
+      break;
+    case 'workers':
+      await runPreflightCheck();
+      await runDeployWorkers();
+      await runPurge();
+      await runVerify();
       break;
     case 'wait':
       await runWaitBuilds();
@@ -336,17 +414,26 @@ async function main() {
       await runVerify();
       break;
     case 'all':
-      console.log(`\n🔥🔥🔥 STARTING 1-CLICK ALL-STORES AUTOMATED PIPELINE 🔥🔥🔥\n`);
-      await runPush();
-      await runSyncEnvs();
+    case 'deploy':
+      console.log(`\n🔥🔥🔥 STARTING 1-CLICK ALL-STORES AUTOMATED PIPELINE (VERCEL + CLOUDFLARE) 🔥🔥🔥\n`);
+      await runPreflightCheck();
+      if (!skipVercel) {
+        await runPush();
+        await runSyncEnvs();
+      }
+      if (!skipWorkers) {
+        await runDeployWorkers();
+      }
       await runSyncCf();
-      await runWaitBuilds();
+      if (!skipVercel) {
+        await runWaitBuilds();
+      }
       await runPurge();
       await runVerify();
       console.log(`\n🏁 1-CLICK PIPELINE FINISHED.\n`);
       break;
     default:
-      console.log(`Usage: node scripts/stores-bulk-ops.mjs [push|sync-envs|sync-cf|wait|purge|verify|all]`);
+      console.log(`Usage: node scripts/stores-bulk-ops.mjs [preflight|push|sync-envs|workers|sync-cf|wait|purge|verify|all]`);
       process.exit(1);
   }
 }

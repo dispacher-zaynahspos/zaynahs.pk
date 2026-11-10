@@ -112,16 +112,16 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
   return (
     <div className="max-w-full sm:max-w-6xl mx-auto space-y-6 pb-20 font-sans overflow-x-hidden w-full">
       
-      {/* Detail Topbar - Executive Shopify Polaris Style with Smart Compact Actions */}
+      {/* Detail Topbar - Ultra-Smart Sticky Header (Executive Desktop + Native Mobile App) */}
       <div 
-        className="flex flex-col gap-2.5 sm:gap-3 mb-6 pb-4 border-b border-gray-200/80 dark:border-gray-800"
+        className="sticky -top-3 sm:-top-4 z-30 bg-slate-50/95 dark:bg-[#0c0c16]/95 backdrop-blur-md -mx-3 sm:-mx-4 md:-mx-5 px-3 sm:px-4 md:px-5 pt-2.5 sm:pt-3 pb-2.5 sm:pb-3 mb-4 sm:mb-6 border-b border-gray-200/80 dark:border-gray-800 shadow-2xs transition-colors"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
-        {/* ROW 1: Left = Back Arrow + Order Number + (Desktop Badges) | Right = Edit, Print, More Actions */}
-        <div className="flex items-center justify-between gap-2">
-          {/* Left: Back Arrow + Order Number */}
-          <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0">
+        {/* DESKTOP (sm+): 1 SINGLE SLEEK EXECUTIVE ROW */}
+        <div className="hidden sm:flex items-center justify-between gap-3">
+          {/* Left: Back Arrow + Order Number + Status Badges + Date */}
+          <div className="flex items-center gap-2 min-w-0">
             <button 
               onClick={() => {
                 if (isEditingOrder) {
@@ -141,23 +141,23 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
                 }
                 router.push('/admin/orders');
               }}
-              className="p-1 -ml-1 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 transition-colors print:hidden cursor-pointer shrink-0"
+              className="p-1 -ml-1 text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-200/60 dark:hover:bg-gray-800 rounded-lg transition-colors print:hidden cursor-pointer shrink-0"
               title={isEditingOrder ? "Back to order detail" : "Back to orders"}
             >
               <ArrowLeft className="h-5 w-5" />
             </button>
             
             <div className="flex items-center gap-1.5 shrink-0">
-              <span className="text-gray-400 dark:text-gray-500 shrink-0">
-                <Package className="h-4 sm:h-4.5 w-4 sm:w-4.5" />
+              <span className="text-gray-400 dark:text-gray-500">
+                <Package className="h-4.5 w-4.5" />
               </span>
-              <span className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white leading-none tracking-tight whitespace-nowrap">
+              <span className="text-xl font-black text-gray-900 dark:text-white leading-none tracking-tight whitespace-nowrap">
                 {order.order_number}
               </span>
             </div>
 
-            {/* Desktop Status Badges (Inline on sm+) */}
-            <div className="hidden sm:inline-flex items-center gap-1.5 shrink-0 whitespace-nowrap ml-1">
+            {/* Status Badges */}
+            <div className="inline-flex items-center gap-1.5 shrink-0 whitespace-nowrap ml-1">
               {isPaid ? (
                 <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 border border-emerald-200/80 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/60 rounded-[5px] px-1.5 py-0.5 text-[10.5px] font-semibold leading-tight">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
@@ -190,20 +190,53 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
                 </span>
               )}
             </div>
+
+            {/* Subtle Divider + Date */}
+            <span className="w-px h-3.5 bg-gray-300 dark:bg-gray-700 mx-1 shrink-0" />
+            <span className="text-xs text-gray-500 dark:text-gray-400 font-medium truncate min-w-0">
+              {safeFormatOrderDate(order.created_at)} from Online Store
+            </span>
           </div>
 
-          {/* Right: Edit + Print + Smart More Actions (Upper Right) */}
-          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 ml-auto print:hidden">
+          {/* Right: Pagination (< 2 of 7 >) + Edit + Print + More Actions */}
+          <div className="flex items-center gap-2 shrink-0 ml-auto print:hidden">
+            {/* Desktop Pagination */}
+            <div className="flex items-center border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden bg-white dark:bg-[#16162a] shadow-2xs">
+              <button
+                onClick={handleNavigateNext}
+                disabled={!nextOrderId}
+                className="w-7 h-7 flex items-center justify-center text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white disabled:opacity-30 disabled:cursor-not-allowed border-r border-gray-200 dark:border-gray-800 text-xs font-bold transition-colors cursor-pointer"
+                title={nextOrderId ? "Previous / Newer order" : "No previous order"}
+                aria-label="Previous order"
+              >
+                &larr;
+              </button>
+              {currentIndexDisplay && (
+                <span className="px-2 h-7 flex items-center justify-center text-[11px] font-bold text-gray-700 dark:text-gray-300 border-r border-gray-200 dark:border-gray-800 select-none whitespace-nowrap bg-gray-50/50 dark:bg-white/[0.02]">
+                  {currentIndexDisplay}
+                </span>
+              )}
+              <button
+                onClick={handleNavigatePrev}
+                disabled={!prevOrderId}
+                className="w-7 h-7 flex items-center justify-center text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white disabled:opacity-30 disabled:cursor-not-allowed text-xs font-bold transition-colors cursor-pointer"
+                title={prevOrderId ? "Next / Older order" : "No next order"}
+                aria-label="Next order"
+              >
+                &rarr;
+              </button>
+            </div>
+
             <button
               onClick={isEditingOrder ? handleCloseEditOrder : handleOpenEditOrder}
-              className="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-white dark:bg-[#16162a] text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 text-xs font-bold shadow-2xs transition-colors whitespace-nowrap cursor-pointer"
+              className="px-2.5 py-1 rounded-lg bg-white dark:bg-[#16162a] text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 text-xs font-bold shadow-2xs transition-colors whitespace-nowrap cursor-pointer h-7 flex items-center"
             >
               {isEditingOrder ? 'Cancel' : 'Edit'}
             </button>
 
             <button
               onClick={() => window.print()}
-              className="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-white dark:bg-[#16162a] text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 text-xs font-bold shadow-2xs transition-colors whitespace-nowrap cursor-pointer"
+              className="px-2.5 py-1 rounded-lg bg-white dark:bg-[#16162a] text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 text-xs font-bold shadow-2xs transition-colors whitespace-nowrap cursor-pointer h-7 flex items-center"
             >
               Print
             </button>
@@ -212,11 +245,10 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
             <div className="relative">
               <button
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-[#f6f6f7] dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700 text-xs font-bold shadow-2xs transition-colors flex items-center gap-1.5 whitespace-nowrap cursor-pointer"
+                className="px-2.5 py-1 rounded-lg bg-[#f6f6f7] dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700 text-xs font-bold shadow-2xs transition-colors flex items-center gap-1.5 whitespace-nowrap cursor-pointer h-7"
                 title="More actions"
               >
-                <span className="hidden sm:inline">More actions</span>
-                <span className="sm:hidden">More</span>
+                <span>More actions</span>
                 <ChevronDown className="h-3.5 w-3.5 opacity-70" />
               </button>
 
@@ -251,101 +283,160 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
           </div>
         </div>
 
-        {/* ROW 2 ON MOBILE: Status Badges (Left) + Thumb-Reach Pagination Switcher (Right) */}
-        <div className="sm:hidden flex items-center justify-between gap-2 pt-0.5">
-          <div className="inline-flex items-center gap-1.5 shrink-0 whitespace-nowrap">
-            {isPaid ? (
-              <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 border border-emerald-200/80 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/60 rounded-[5px] px-1.5 py-0.5 text-[10.5px] font-semibold leading-tight">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-                Paid
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1 bg-slate-100 text-slate-700 border border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 rounded-[5px] px-1.5 py-0.5 text-[10.5px] font-semibold leading-tight">
-                <span className="w-1.5 h-1.5 rounded-full bg-slate-400 shrink-0" />
-                Unpaid
-              </span>
-            )}
-
-            {order.status === 'cancelled' ? (
-              <span className="inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-[10.5px] font-bold uppercase tracking-wide bg-rose-600 text-white shadow-2xs">
-                <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0" />
-                Cancelled
-              </span>
-            ) : isOrderUnfulfilled(order) ? (
-              <span className="inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-[10.5px] font-extrabold uppercase tracking-wide bg-amber-500 text-white shadow-2xs ring-1 ring-amber-600/30">
-                <span className="relative flex h-1.5 w-1.5 shrink-0">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-white"></span>
-                </span>
-                Unfulfilled
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-[10.5px] font-extrabold uppercase tracking-wide bg-emerald-600 text-white shadow-2xs ring-1 ring-emerald-700/30">
-                <Check className="h-3 w-3 stroke-[3] text-white shrink-0" />
-                Fulfilled
-              </span>
-            )}
-          </div>
-
-          {/* Mobile Pagination (right-thumb reach) */}
-          <div className="flex items-center border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden bg-white dark:bg-[#16162a] shadow-2xs shrink-0">
-            <button
-              onClick={handleNavigateNext}
-              disabled={!nextOrderId}
-              className="w-7 h-7 flex items-center justify-center text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed border-r border-gray-200 dark:border-gray-800 text-xs font-bold"
-              title={nextOrderId ? "Previous / Newer order" : "No previous order"}
-              aria-label="Previous order"
-            >
-              &larr;
-            </button>
-            {currentIndexDisplay && (
-              <span className="px-2 h-7 flex items-center justify-center text-[10.5px] font-bold text-gray-600 dark:text-gray-300 border-r border-gray-200 dark:border-gray-800 select-none whitespace-nowrap bg-gray-50/50 dark:bg-white/[0.02]">
-                {currentIndexDisplay}
-              </span>
-            )}
-            <button
-              onClick={handleNavigatePrev}
-              disabled={!prevOrderId}
-              className="w-7 h-7 flex items-center justify-center text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed text-xs font-bold"
-              title={prevOrderId ? "Next / Older order" : "No next order"}
-              aria-label="Next order"
-            >
-              &rarr;
-            </button>
-          </div>
-        </div>
-
-        {/* SUB-ROW: Date Info (Left) + Desktop Pagination (Right) */}
-        <div className="flex items-center justify-between gap-2 pt-0.5 text-xs text-gray-500 dark:text-gray-400">
-          <p className="min-w-0 truncate text-[11px] sm:text-[12.5px] pl-0.5 sm:pl-7">
-            {safeFormatOrderDate(order.created_at)} from Online Store
-          </p>
-
-          {/* Desktop Pagination Controls */}
-          <div className="hidden sm:flex items-center shrink-0 print:hidden ml-auto">
-            <div className="flex items-center border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden bg-white dark:bg-[#16162a] shadow-2xs">
-              <button
-                onClick={handleNavigateNext}
-                disabled={!nextOrderId}
-                className="px-2.5 py-1.5 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer border-r border-gray-200 dark:border-gray-800 text-xs font-bold"
-                title={nextOrderId ? "Previous / Newer order" : "No previous order"}
-                aria-label="Previous order"
+        {/* MOBILE (<sm): 2 ULTRA-COMPACT SMART ROWS */}
+        <div className="sm:hidden flex flex-col gap-1.5">
+          {/* Row 1: Back + Order Number + Status Badges | Pagination + More Dropdown */}
+          <div className="flex items-center justify-between gap-1.5">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <button 
+                onClick={() => {
+                  if (isEditingOrder) {
+                    handleCloseEditOrder();
+                    return;
+                  }
+                  if (typeof window !== 'undefined') {
+                    const returnUrl = sessionStorage.getItem('admin_orders_return_url');
+                    if (returnUrl) {
+                      router.push(returnUrl);
+                      return;
+                    }
+                    if (window.history.length > 1) {
+                      router.back();
+                      return;
+                    }
+                  }
+                  router.push('/admin/orders');
+                }}
+                className="p-1 -ml-1 text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors print:hidden cursor-pointer shrink-0"
+                title={isEditingOrder ? "Back to order detail" : "Back to orders"}
               >
-                &larr;
+                <ArrowLeft className="h-5 w-5" />
               </button>
-              {currentIndexDisplay && (
-                <span className="px-2.5 py-1.5 text-xs font-bold text-gray-600 dark:text-gray-300 border-r border-gray-200 dark:border-gray-800 select-none whitespace-nowrap bg-gray-50/50 dark:bg-white/[0.02]">
-                  {currentIndexDisplay}
-                </span>
-              )}
+              
+              <span className="text-base font-black text-gray-900 dark:text-white leading-none tracking-tight shrink-0">
+                {order.order_number}
+              </span>
+
+              {/* Status Badges */}
+              <div className="inline-flex items-center gap-1 shrink-0 whitespace-nowrap ml-0.5">
+                {isPaid ? (
+                  <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 border border-emerald-200/80 dark:bg-emerald-950/40 dark:text-emerald-300 rounded-[4px] px-1.5 py-0.5 text-[10px] font-semibold leading-tight">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                    Paid
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 bg-slate-100 text-slate-700 border border-slate-200 dark:bg-slate-800 dark:text-slate-300 rounded-[4px] px-1.5 py-0.5 text-[10px] font-semibold leading-tight">
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-400 shrink-0" />
+                    Unpaid
+                  </span>
+                )}
+
+                {order.status === 'cancelled' ? (
+                  <span className="inline-flex items-center gap-1 rounded-[4px] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide bg-rose-600 text-white">
+                    Cancelled
+                  </span>
+                ) : isOrderUnfulfilled(order) ? (
+                  <span className="inline-flex items-center gap-1 rounded-[4px] px-1.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wide bg-amber-500 text-white ring-1 ring-amber-600/30">
+                    <span className="relative flex h-1.5 w-1.5 shrink-0">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-white"></span>
+                    </span>
+                    Unfulfilled
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 rounded-[4px] px-1.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wide bg-emerald-600 text-white ring-1 ring-emerald-700/30">
+                    <Check className="h-2.5 w-2.5 stroke-[3] text-white shrink-0" />
+                    Fulfilled
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Right: Mobile Pagination Switcher + More Dropdown */}
+            <div className="flex items-center gap-1 shrink-0 print:hidden">
+              <div className="flex items-center border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden bg-white dark:bg-[#16162a] shadow-2xs shrink-0">
+                <button
+                  onClick={handleNavigateNext}
+                  disabled={!nextOrderId}
+                  className="w-7 h-7 flex items-center justify-center text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed border-r border-gray-200 dark:border-gray-800 text-xs font-bold"
+                  title={nextOrderId ? "Previous / Newer order" : "No previous order"}
+                  aria-label="Previous order"
+                >
+                  &larr;
+                </button>
+                {currentIndexDisplay && (
+                  <span className="px-1.5 h-7 flex items-center justify-center text-[10px] font-bold text-gray-600 dark:text-gray-300 border-r border-gray-200 dark:border-gray-800 select-none whitespace-nowrap bg-gray-50/50 dark:bg-white/[0.02]">
+                    {currentIndexDisplay}
+                  </span>
+                )}
+                <button
+                  onClick={handleNavigatePrev}
+                  disabled={!prevOrderId}
+                  className="w-7 h-7 flex items-center justify-center text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed text-xs font-bold"
+                  title={prevOrderId ? "Next / Older order" : "No next order"}
+                  aria-label="Next order"
+                >
+                  &rarr;
+                </button>
+              </div>
+
+              {/* Mobile More Actions Dropdown */}
+              <div className="relative">
+                <button
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className="px-2 h-7 rounded-lg bg-[#f6f6f7] dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-700 text-xs font-bold shadow-2xs flex items-center gap-1 cursor-pointer"
+                  title="More actions"
+                >
+                  <span>More</span>
+                  <ChevronDown className="h-3 w-3 opacity-70" />
+                </button>
+
+                {isDropdownOpen && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)} />
+                    <div className="absolute right-0 mt-2 w-56 rounded-xl bg-white dark:bg-[#16162a] border border-gray-200 dark:border-gray-800 shadow-xl z-50 overflow-hidden py-1">
+                      <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase tracking-wider">Fulfillment</div>
+                      <button
+                        onClick={() => {
+                          router.push(`/admin/orders/postex-booking?id=${order.id}`);
+                          setIsDropdownOpen(false);
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm font-semibold hover:bg-gray-50 dark:hover:bg-white/5 text-gray-700 dark:text-gray-300 transition-colors"
+                      >
+                        Book at PostEx
+                      </button>
+                      <div className="border-t border-gray-100 dark:border-gray-800/60 my-1" />
+                      <button onClick={() => handleStatusChange('pending')} className="w-full text-left px-4 py-1.5 text-[13.5px] font-medium hover:bg-gray-50 text-amber-600">Mark as Pending</button>
+                      <button onClick={() => handleStatusChange('confirmed')} className="w-full text-left px-4 py-1.5 text-[13.5px] font-medium hover:bg-gray-50 text-blue-600">Mark as Confirmed</button>
+                      <button onClick={() => handleStatusChange('shipped')} className="w-full text-left px-4 py-1.5 text-[13.5px] font-medium hover:bg-gray-50 text-purple-600">Mark as Shipped</button>
+                      <button onClick={() => handleStatusChange('delivered')} className="w-full text-left px-4 py-1.5 text-[13.5px] font-medium hover:bg-gray-50 text-emerald-600">Mark as Delivered</button>
+                      <button onClick={() => handleStatusChange('cancelled')} className="w-full text-left px-4 py-1.5 text-[13.5px] font-medium hover:bg-gray-50 text-red-600">Mark as Cancelled</button>
+                      {order.tracking_number && (
+                        <button onClick={handleCancelShipment} disabled={isUpdating} className="w-full text-left px-4 py-2 text-[13.5px] font-medium text-orange-600">Cancel Shipment</button>
+                      )}
+                      <button onClick={() => { handleMoveToTrash(); setIsDropdownOpen(false); }} className="w-full text-left px-4 py-2 text-[13.5px] font-medium text-red-600">Move to Trash</button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Row 2: Date + Quick Edit & Print Chips */}
+          <div className="flex items-center justify-between text-[11px] text-gray-500 dark:text-gray-400 pl-0.5">
+            <span className="truncate">{safeFormatOrderDate(order.created_at)}</span>
+            <div className="flex items-center gap-1.5 shrink-0 print:hidden ml-2">
               <button
-                onClick={handleNavigatePrev}
-                disabled={!prevOrderId}
-                className="px-2.5 py-1.5 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer text-xs font-bold"
-                title={prevOrderId ? "Next / Older order" : "No next order"}
-                aria-label="Next order"
+                onClick={isEditingOrder ? handleCloseEditOrder : handleOpenEditOrder}
+                className="px-2 py-0.5 rounded-md bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 text-[10.5px] font-bold shadow-2xs cursor-pointer"
               >
-                &rarr;
+                {isEditingOrder ? 'Cancel' : 'Edit'}
+              </button>
+              <button
+                onClick={() => window.print()}
+                className="px-2 py-0.5 rounded-md bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 text-[10.5px] font-bold shadow-2xs cursor-pointer"
+              >
+                Print
               </button>
             </div>
           </div>
