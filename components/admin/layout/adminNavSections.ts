@@ -65,6 +65,26 @@ export function getNavSections(aiEnabled: boolean, metaSyncEnabled?: boolean): N
       ],
     },
     {
+      key: 'orders',
+      label: 'ORDERS',
+      items: [
+        {
+          label: 'Orders Log',
+          href: '/admin/orders',
+          icon: ClipboardList,
+          badgeKey: 'pending',
+          keywords: ['sales', 'receipts', 'purchases', 'pending orders', 'fulfill'],
+        },
+        {
+          label: 'Abandoned Carts',
+          href: '/admin/abandoned-carts',
+          icon: ShoppingCart,
+          badgeKey: 'pendingCarts',
+          keywords: ['checkout recovery', 'incomplete', 'dropoff', 'unpaid'],
+        },
+      ],
+    },
+    {
       key: 'catalog',
       label: 'CATALOG',
       items: [
@@ -120,26 +140,6 @@ export function getNavSections(aiEnabled: boolean, metaSyncEnabled?: boolean): N
               },
             ]
           : []),
-      ],
-    },
-    {
-      key: 'orders',
-      label: 'ORDERS',
-      items: [
-        {
-          label: 'Orders Log',
-          href: '/admin/orders',
-          icon: ClipboardList,
-          badgeKey: 'pending',
-          keywords: ['sales', 'receipts', 'purchases', 'pending orders', 'fulfill'],
-        },
-        {
-          label: 'Abandoned Carts',
-          href: '/admin/abandoned-carts',
-          icon: ShoppingCart,
-          badgeKey: 'pendingCarts',
-          keywords: ['checkout recovery', 'incomplete', 'dropoff', 'unpaid'],
-        },
       ],
     },
     {
