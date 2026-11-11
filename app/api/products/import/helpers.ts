@@ -1,5 +1,7 @@
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { isOwnStorageUrl } from '@/lib/services/storage';
+import { isR2UploadEnabled, uploadObjectToR2 } from '@/lib/platform/r2';
+import { loadSharp } from '@/lib/platform/sharp-loader';
 
 const IMAGE_FETCH_TIMEOUT_MS = 15000;
 
@@ -48,6 +50,107 @@ export async function fetchWithTimeout(url: string, timeoutMs: number = IMAGE_FE
   }
 }
 
+/**
+ * Uploads an image buffer to the active storage provider (R2 on Mode A, Supabase Storage on Mode B).
+ * Respects RULE S10 and RULE DUAL-TARGET.
+ */
+export async function uploadImportedMedia(
+  filePath: string,
+  buffer: Buffer,
+  contentType: string
+): Promise<string> {
+  if (isR2UploadEnabled()) {
+    const key = `product-images/${filePath.replace(/^\/+/, '')}`;
+    const r2Result = await uploadObjectToR2({
+      key,
+      body: new Uint8Array(buffer),
+      contentType,
+      cacheControl: 'public, max-age=31536000, immutable',
+    });
+    if (!r2Result.ok) {
+      throw new Error(`R2 upload failed during catalog import: ${r2Result.error}`);
+    }
+    return r2Result.url;
+  }
+
+  // Mode B (Legacy Vercel Free Mode only): Supabase Storage product-images bucket
+  const { error: uploadError } = await supabaseAdmin.storage
+    .from('product-images')
+    .upload(filePath, buffer, {
+      contentType,
+      cacheControl: 'public, max-age=31536000',
+      upsert: true,
+    });
+
+  if (uploadError) {
+    throw new Error(`Supabase storage upload failed during catalog import: ${uploadError.message}`);
+  }
+
+  const { data: pubUrlData } = supabaseAdmin.storage
+    .from('product-images')
+    .getPublicUrl(filePath);
+
+  return pubUrlData.publicUrl;
+}
+
+/**
+ * Ensures buffer is WebP if Sharp is available and input is not already WebP.
+ */
+export async function ensureWebPBuffer(
+  buffer: Buffer,
+  mimeType: string
+): Promise<{ buffer: Buffer; mimeType: string; extension: string }> {
+  let finalBuffer = buffer;
+  let finalMime = mimeType;
+  let ext = mimeType.split('/').pop()?.toLowerCase() || 'webp';
+  if (ext === 'jpeg') ext = 'jpg';
+
+  if (!mimeType.includes('webp')) {
+    try {
+      const sharp = await loadSharp();
+      if (sharp) {
+        finalBuffer = await sharp(buffer, { failOnError: false })
+          .rotate()
+          .resize(1200, 1200, { fit: 'inside', withoutEnlargement: true })
+          .webp({ quality: 80, effort: 4 })
+          .toBuffer();
+        finalMime = 'image/webp';
+        ext = 'webp';
+      }
+    } catch (sharpErr) {
+      console.warn('[Import API] Sharp conversion to WebP failed, preserving original format:', sharpErr);
+    }
+  }
+
+  return { buffer: finalBuffer, mimeType: finalMime, extension: ext };
+}
+
+/**
+ * Processes category image URL for catalog import.
+ * If external, downloads and uploads to target store's own active storage (R2 or Supabase).
+ */
+export async function processCategoryImageUrl(
+  url?: string | null,
+  slug?: string
+): Promise<string | null> {
+  if (!url) return null;
+  if (isOwnStorageUrl(url)) return url;
+
+  try {
+    const res = await fetchWithTimeout(url);
+    if (!res.ok) return url;
+    const arrayBuffer = await res.arrayBuffer();
+    const rawBuffer = Buffer.from(arrayBuffer);
+    const rawMime = res.headers.get('content-type') || 'image/webp';
+    const { buffer, mimeType, extension } = await ensureWebPBuffer(rawBuffer, rawMime);
+    const fileName = `categories/${slug || 'category'}-${Date.now()}.${extension}`;
+    return await uploadImportedMedia(fileName, buffer, mimeType);
+  } catch (err) {
+    console.warn('[Import API] Failed to download category image, falling back to original URL:', err);
+    return url;
+  }
+}
+
 export async function processProductImages(
   productId: string,
   finalName: string,
@@ -92,32 +195,21 @@ export async function processProductImages(
         if (!imageRes.ok) throw new Error('Failed to fetch image from URL');
 
         const arrayBuffer = await imageRes.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
+        const rawBuffer = Buffer.from(arrayBuffer);
+        const rawMime = imageRes.headers.get('content-type') || 'image/webp';
 
-        const mimeType = imageRes.headers.get('content-type') || 'image/webp';
+        const { buffer, mimeType, extension } = await ensureWebPBuffer(rawBuffer, rawMime);
+
         const sanitizedProdName = finalName
           .replace(/[^a-zA-Z0-9-_\s]/g, '')
           .trim()
           .replace(/\s+/g, '-')
           .toLowerCase();
         const timestamp = Date.now();
-        const extension = mimeType.split('/').pop() || 'webp';
         const fileName = `products/${productId}/${sanitizedProdName}-${timestamp}-${i}.${extension}`;
 
-        const { error: uploadError } = await supabaseAdmin.storage
-          .from('product-images')
-          .upload(fileName, buffer, {
-            contentType: mimeType,
-            cacheControl: 'public, max-age=31536000',
-            upsert: true
-          });
-
-        if (uploadError) throw uploadError;
-
-        const { data: pubUrlData } = supabaseAdmin.storage
-          .from('product-images')
-          .getPublicUrl(fileName);
-        publicUrl = pubUrlData.publicUrl;
+        // Upload to active storage (R2 on Mode A, Supabase on Mode B)
+        publicUrl = await uploadImportedMedia(fileName, buffer, mimeType);
 
         await supabaseAdmin
           .from('media_library')
@@ -132,7 +224,7 @@ export async function processProductImages(
             bucket: 'product-images',
             ai_generated: img.aiGenerated || false,
             ai_enabled: img.aiEnabled ?? true,
-            file_size: img.fileSize || buffer.length,
+            file_size: buffer.length,
             mime_type: mimeType
           });
       } else {
@@ -171,6 +263,7 @@ export async function processProductVariants(
     let varImageUrl = v.imageUrl || null;
 
     if (v.imageUrl && uploadedUrlsMap[v.imageUrl]) {
+      // Re-use already downloaded and uploaded URL from product images
       varImageUrl = uploadedUrlsMap[v.imageUrl];
     } else if (v.imageUrl && isOwnStorageUrl(v.imageUrl)) {
       varImageUrl = v.imageUrl;
@@ -202,33 +295,22 @@ export async function processProductVariants(
         const varImgRes = await fetchWithTimeout(v.imageUrl);
         if (varImgRes.ok) {
           const arrayBuffer = await varImgRes.arrayBuffer();
-          const buffer = Buffer.from(arrayBuffer);
-          const mimeType = varImgRes.headers.get('content-type') || 'image/webp';
+          const rawBuffer = Buffer.from(arrayBuffer);
+          const rawMime = varImgRes.headers.get('content-type') || 'image/webp';
 
-          const varExtension = mimeType.split('/').pop() || 'webp';
+          const { buffer, mimeType, extension } = await ensureWebPBuffer(rawBuffer, rawMime);
+
           const timestamp = Date.now();
           const optString = [v.color, v.size, v.material].filter(Boolean).join('-') || 'var';
-          const fileName = `products/${productId}/variants/${optString}-${timestamp}.${varExtension}`;
+          const fileName = `products/${productId}/variants/${optString}-${timestamp}.${extension}`;
 
-          const { error: uploadError } = await supabaseAdmin.storage
-            .from('product-images')
-            .upload(fileName, buffer, {
-              contentType: mimeType,
-              cacheControl: 'public, max-age=31536000',
-              upsert: true
-            });
-
-          if (uploadError) throw uploadError;
-
-          const { data: pubUrlData } = supabaseAdmin.storage
-            .from('product-images')
-            .getPublicUrl(fileName);
-          varImageUrl = pubUrlData.publicUrl;
+          // Upload to active storage (R2 on Mode A, Supabase on Mode B)
+          varImageUrl = await uploadImportedMedia(fileName, buffer, mimeType);
 
           await supabaseAdmin
             .from('media_library')
             .insert({
-              original_filename: `${slug}-variant-${optString}.${varExtension}`,
+              original_filename: `${slug}-variant-${optString}.${extension}`,
               seo_filename: fileName.split('/').pop(),
               file_url: varImageUrl,
               alt_text: `${finalName} Variant`,

@@ -114,17 +114,36 @@ export const isOwnStorageUrl = (url: string) => {
   if (!url) return false;
   const cleanUrl = url.replace(/^https?:\/\//, '').toLowerCase();
 
+  // 1. Check configured R2 Public Base (e.g. img.totvogue.pk)
   const r2Base = process.env.R2_PUBLIC_BASE || process.env.NEXT_PUBLIC_R2_PUBLIC_BASE;
   if (r2Base) {
-    const cleanR2 = r2Base.replace(/^https?:\/\//, '').toLowerCase();
-    if (cleanUrl.startsWith(cleanR2)) return true;
+    const cleanR2 = r2Base.replace(/^https?:\/\//, '').toLowerCase().replace(/\/+$/, '');
+    if (cleanR2 && cleanUrl.startsWith(cleanR2)) return true;
   }
-  if (cleanUrl.includes('img.') && (cleanUrl.includes('/product-images/') || cleanUrl.includes('.webp'))) return true;
 
+  // 1b. Check current store's brand domain (e.g. img.totvogue.pk if brand is totvogue.pk)
+  const brandDomain = process.env.NEXT_PUBLIC_BRAND_DOMAIN || process.env.NEXT_PUBLIC_SITE_URL;
+  if (brandDomain) {
+    const cleanBrand = brandDomain
+      .replace(/^https?:\/\//, '')
+      .toLowerCase()
+      .replace(/\/+$/, '')
+      .replace(/^www\./, '');
+    if (cleanBrand && (cleanUrl.startsWith(`img.${cleanBrand}`) || cleanUrl.startsWith(cleanBrand))) {
+      return true;
+    }
+  }
+
+  // 2. Check configured Supabase URL for this specific project
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  if (!supabaseUrl) return false;
-  const cleanSupabase = supabaseUrl.replace(/^https?:\/\//, '').toLowerCase();
-  return cleanUrl.startsWith(cleanSupabase) && cleanUrl.includes('/product-images/');
+  if (supabaseUrl) {
+    const cleanSupabase = supabaseUrl.replace(/^https?:\/\//, '').toLowerCase().replace(/\/+$/, '');
+    if (cleanSupabase && cleanUrl.startsWith(cleanSupabase) && cleanUrl.includes('/product-images/')) {
+      return true;
+    }
+  }
+
+  return false;
 };
 
 export const processImageUrl = async (url: string, prefix: string, folder: string = 'categories'): Promise<string> => {

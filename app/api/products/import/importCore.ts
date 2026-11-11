@@ -1,6 +1,6 @@
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { SHOP_CATEGORY_ID } from '@/lib/config/singleton-ids';
-import { processProductImages, processProductVariants } from './helpers';
+import { processProductImages, processProductVariants, processCategoryImageUrl } from './helpers';
 
 export interface ImportProductResult {
   success: boolean;
@@ -116,13 +116,14 @@ export async function importSingleProductCore(
             active: true,
             sort_order: 0
           };
+          const catImageUrl = await processCategoryImageUrl(catData.image_url, catData.slug);
           const { data: newCat, error: catErr } = await supabaseAdmin
             .from('categories')
             .insert({
               name: catData.name,
               slug: catData.slug,
               description: catData.description || null,
-              image_url: catData.image_url || null,
+              image_url: catImageUrl || null,
               active: catData.active ?? true,
               sort_order: catData.sort_order || 0
             })
@@ -317,13 +318,14 @@ export async function importSingleProductCore(
             categoryIdsToLink.push(existingCat.id);
           }
         } else {
+          const junctionCatImageUrl = await processCategoryImageUrl(catItem.image_url, catItem.slug);
           const { data: newCat, error: catCreateErr } = await supabaseAdmin
             .from('categories')
             .insert({
               name: catItem.name,
               slug: catItem.slug,
               description: catItem.description || null,
-              image_url: catItem.image_url || null,
+              image_url: junctionCatImageUrl || null,
               active: catItem.active ?? true,
               sort_order: catItem.sort_order || 0
             })

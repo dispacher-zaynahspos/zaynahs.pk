@@ -150,3 +150,12 @@ Verified 2026-10. ALL media uploads go through a single system — never a bespo
 - **Favicons Exception**: Favicons convert to PNG ≤128px.
 - **Zero Silent Fallback**: If Sharp conversion fails or image encoding encounters an error, the system must throw a clear, visible error toast instead of silently uploading uncompressed 2MB+ PNGs.
 
+## RULE S12 — Cross-Platform Catalog Import/Export & Media Isolation (Mode A R2 ↔ Mode B Supabase Storage)
+- **Zero External Hotlinks on Catalog Import**: When importing products (whether from another store on Mode A R2, Mode B Supabase, or external sources), media files (product images, variant images, category images) must **never remain hotlinked to the old store**. Every external media file must be fetched, verified/converted to WebP, uploaded into the target store's own active storage (R2 on Mode A, Supabase Storage on Mode B), and registered in `media_library` with the target store's own public URL.
+- **Strict Store Ownership Verification (`isOwnStorageUrl`)**: `isOwnStorageUrl` must strictly verify ownership against the target store's configured URLs (`process.env.R2_PUBLIC_BASE`, `NEXT_PUBLIC_R2_PUBLIC_BASE`, `NEXT_PUBLIC_BRAND_DOMAIN`, or `NEXT_PUBLIC_SUPABASE_URL`). It is **strictly forbidden** to use generic substring heuristics (e.g. matching any `img.` string) which wrongly treat foreign stores' R2 media as local, preventing them from being downloaded.
+- **Dual-Target Import Storage Engine (`uploadImportedMedia`)**: The catalog import pipeline in `app/api/products/import/helpers.ts` must dynamically adapt to the target store's hosting mode:
+  - On **Mode A (Cloudflare Workers / R2)**: Calls `uploadObjectToR2` to save files under `product-images/...` and generates edge-cached URLs (`https://img.<domain>/...`).
+  - On **Mode B (Legacy Vercel Free)**: Uploads to Supabase Storage `product-images` bucket.
+  - Zero silent fallback from Mode A to Supabase Storage.
+- **Media Re-use Mapping**: If multiple variants share the same source image as a product image, the import engine maps it via `uploadedUrlsMap` so the asset is downloaded and uploaded exactly once to avoid redundant network/storage overhead.
+
