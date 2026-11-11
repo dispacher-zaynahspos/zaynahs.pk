@@ -84,9 +84,21 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
     const d = new Date(dateVal);
     if (isNaN(d.getTime())) return 'Recently';
     try {
-      return `${d.toLocaleString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} at ${d.toLocaleString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }).toLowerCase()}`;
+      const datePart = new Intl.DateTimeFormat('en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+        timeZone: 'Asia/Karachi',
+      }).format(d);
+      const timePart = new Intl.DateTimeFormat('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+        timeZone: 'Asia/Karachi',
+      }).format(d).toLowerCase();
+      return `${datePart} at ${timePart}`;
     } catch {
-      return d.toLocaleDateString();
+      return d.toLocaleDateString('en-PK', { timeZone: 'Asia/Karachi' });
     }
   };
 
@@ -103,7 +115,7 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
         timeZone: 'Asia/Karachi',
       }).format(d);
     } catch {
-      return d.toLocaleDateString();
+      return d.toLocaleDateString('en-PK', { timeZone: 'Asia/Karachi' });
     }
   };
 
@@ -115,10 +127,11 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
       className="max-w-full sm:max-w-6xl mx-auto flex flex-col gap-3 sm:gap-4 pb-20 font-sans w-full touch-pan-y"
     >
 
-      {/* Detail Topbar - Executive Shopify Polaris Style (Ultra-Compact Sticky & Smart) */}
-      <div
-        className="sticky top-0 z-30 bg-slate-50 dark:bg-[#0c0c16] -mt-3 sm:-mt-4 pt-3 sm:pt-4 pb-2 border-b border-gray-200 dark:border-white/10 -mx-3 sm:-mx-4 md:-mx-5 px-3 sm:px-4 md:px-5 flex flex-col gap-1.5 sm:gap-2 shadow-xs"
-      >
+      {/* Detail Topbar - Executive Shopify Polaris Style (Hidden when editing order to eliminate duplicate headers) */}
+      {!isEditingOrder && (
+        <div
+          className="sticky top-0 z-30 bg-slate-50 dark:bg-[#0c0c16] -mt-3 sm:-mt-4 pt-3 sm:pt-4 pb-2 border-b border-gray-200 dark:border-white/10 -mx-3 sm:-mx-4 md:-mx-5 px-3 sm:px-4 md:px-5 flex flex-col gap-1.5 sm:gap-2 shadow-xs"
+        >
         {/* DESKTOP (sm+): 1 Single Sleek 40px Row with Everything Aligned */}
         <div className="hidden sm:flex items-center justify-between gap-3 min-w-0 h-9">
           {/* Left: Back + Package Icon + Order Number + Status Badges + Divider + Date */}
@@ -435,6 +448,7 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
           </div>
         </div>
       </div>
+      )}
 
       {isEditingOrder ? (
         <OrderEditor

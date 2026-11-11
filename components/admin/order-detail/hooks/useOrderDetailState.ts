@@ -16,12 +16,17 @@ export function useOrderDetailState(initialOrder: Order) {
   const [isUpdating, setIsUpdating] = useState(false);
   const [isNavigatingOrder, setIsNavigatingOrder] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isEditingOrder, setIsEditingOrder] = useState(() => {
+  const [isEditingOrder, setIsEditingOrder] = useState(false);
+
+  // Sync edit query param cleanly on client after mount (avoids React hydration mismatch #418)
+  useEffect(() => {
     if (typeof window !== 'undefined') {
-      return new URLSearchParams(window.location.search).get('edit') === 'true';
+      const isEditParam = new URLSearchParams(window.location.search).get('edit') === 'true';
+      if (isEditParam) {
+        setIsEditingOrder(true);
+      }
     }
-    return false;
-  });
+  }, []);
 
   const handleOpenEditOrder = useCallback(() => {
     setIsEditingOrder(true);
