@@ -107,18 +107,20 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
   };
 
   return (
-    <div className="max-w-full sm:max-w-6xl mx-auto space-y-6 pb-20 font-sans overflow-x-hidden w-full">
+    <div
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      className="max-w-full sm:max-w-6xl mx-auto flex flex-col gap-3 sm:gap-4 pb-20 font-sans w-full"
+    >
 
-      {/* Detail Topbar - Executive Shopify Polaris Style (Sticky & Smart) */}
+      {/* Detail Topbar - Executive Shopify Polaris Style (Ultra-Compact Sticky & Smart) */}
       <div
-        className="sticky top-0 z-30 bg-slate-50/95 dark:bg-[#0c0c16]/95 backdrop-blur-md pt-2 pb-3 mb-6 border-b border-gray-200/80 dark:border-white/10 -mx-4 px-4 sm:-mx-6 sm:px-6 flex flex-col gap-2.5 sm:gap-3 transition-all shadow-2xs"
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
+        className="sticky top-0 z-30 bg-slate-50/95 dark:bg-[#0c0c16]/95 backdrop-blur-md -mt-3 sm:-mt-4 pt-3 sm:pt-4 pb-2 border-b border-gray-200/90 dark:border-white/10 -mx-3 sm:-mx-4 md:-mx-5 px-3 sm:px-4 md:px-5 flex flex-col gap-1.5 sm:gap-2 transition-all shadow-xs"
       >
-        {/* ROW 1: Order ID + Status Badges (Left) & Edit + Print + Smart More Actions (Right) */}
-        <div className="flex items-center justify-between gap-2 min-w-0">
-          {/* Left: Back Arrow + Order Number + Smart Status Badges */}
-          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-wrap">
+        {/* DESKTOP (sm+): 1 Single Sleek 40px Row with Everything Aligned */}
+        <div className="hidden sm:flex items-center justify-between gap-3 min-w-0 h-9">
+          {/* Left: Back + Package Icon + Order Number + Status Badges + Divider + Date */}
+          <div className="flex items-center gap-2 min-w-0">
             <button
               onClick={() => {
                 if (isEditingOrder) {
@@ -138,85 +140,116 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
                 }
                 router.push('/admin/orders');
               }}
-              className="p-1 -ml-1 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 transition-colors print:hidden cursor-pointer shrink-0"
+              className="p-1 rounded-lg text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors shrink-0"
               title={isEditingOrder ? "Back to order detail" : "Back to orders"}
             >
-              <ArrowLeft className="h-5 w-5" />
+              <ArrowLeft className="h-4.5 w-4.5" />
             </button>
 
             <div className="flex items-center gap-1.5 shrink-0">
               <span className="text-gray-400 dark:text-gray-500 shrink-0">
-                <Package className="h-4.5 w-4.5" />
+                <Package className="h-4 w-4" />
               </span>
-              <span className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white leading-none tracking-tight whitespace-nowrap">
+              <span className="text-lg font-black text-gray-900 dark:text-white leading-none tracking-tight whitespace-nowrap">
                 {order.order_number}
               </span>
             </div>
 
-            {/* Status Badges - Smartly placed right next to Order ID on desktop */}
-            <div className="hidden sm:inline-flex items-center gap-1.5 shrink-0 whitespace-nowrap">
-              {/* Unpaid / Paid Badge - Small, subtle & clean color change */}
+            {/* Inline Status Badges */}
+            <div className="inline-flex items-center gap-1.5 shrink-0 whitespace-nowrap">
               {isPaid ? (
-                <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 border border-emerald-200/80 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/60 rounded-[5px] px-1.5 py-0.5 text-[10.5px] font-semibold leading-tight">
+                <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 border border-emerald-200/80 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/60 rounded-[5px] px-1.5 py-0.5 text-[10px] font-semibold leading-tight">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
                   Paid
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1 bg-slate-100 text-slate-700 border border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 rounded-[5px] px-1.5 py-0.5 text-[10.5px] font-semibold leading-tight">
+                <span className="inline-flex items-center gap-1 bg-slate-100 text-slate-700 border border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 rounded-[5px] px-1.5 py-0.5 text-[10px] font-semibold leading-tight">
                   <span className="w-1.5 h-1.5 rounded-full bg-slate-400 shrink-0" />
                   Unpaid
                 </span>
               )}
 
-              {/* Fulfillment Status Badge - HIGH VISIBILITY & PROMINENT HIGHLIGHT */}
               {order.status === 'cancelled' ? (
-                <span className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide bg-rose-600 text-white shadow-2xs">
+                <span className="inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide bg-rose-600 text-white shadow-2xs">
                   <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0" />
                   Cancelled
                 </span>
               ) : isOrderUnfulfilled(order) ? (
-                <span className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-0.5 text-xs font-extrabold uppercase tracking-wide bg-amber-500 text-white shadow-2xs ring-1 ring-amber-600/30">
-                  <span className="relative flex h-2 w-2 shrink-0">
+                <span className="inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide bg-amber-500 text-white shadow-2xs ring-1 ring-amber-600/30">
+                  <span className="relative flex h-1.5 w-1.5 shrink-0">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-white"></span>
                   </span>
                   Unfulfilled
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-0.5 text-xs font-extrabold uppercase tracking-wide bg-emerald-600 text-white shadow-2xs ring-1 ring-emerald-700/30">
+                <span className="inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide bg-emerald-600 text-white shadow-2xs ring-1 ring-emerald-700/30">
                   <Check className="h-3 w-3 stroke-[3] text-white shrink-0" />
                   Fulfilled
                 </span>
               )}
             </div>
+
+            <span className="text-gray-300 dark:text-gray-700">|</span>
+
+            {/* Muted Date on Desktop */}
+            <span suppressHydrationWarning className="text-xs text-gray-500 dark:text-gray-400 truncate">
+              {safeFormatOrderDate(order.created_at)} from Online Store
+            </span>
           </div>
 
-          {/* Right: Edit + Print + Smart More Actions (Upper Right) */}
-          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 ml-auto print:hidden">
+          {/* Right: Pagination + Edit + Print + More Actions */}
+          <div className="flex items-center gap-2 shrink-0 ml-auto print:hidden">
+            {/* Desktop Pagination */}
+            <div className="flex items-center border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden bg-white dark:bg-[#16162a] shadow-2xs">
+              <button
+                onClick={handleNavigateNext}
+                disabled={!nextOrderId}
+                className="w-7 h-7 flex items-center justify-center text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed border-r border-gray-200 dark:border-gray-800 text-xs font-bold"
+                title={nextOrderId ? "Previous / Newer order" : "No previous order"}
+                aria-label="Previous order"
+              >
+                &larr;
+              </button>
+              {currentIndexDisplay && (
+                <span className="px-2 h-7 flex items-center justify-center text-[10.5px] font-bold text-gray-600 dark:text-gray-300 border-r border-gray-200 dark:border-gray-800 select-none whitespace-nowrap bg-gray-50/50 dark:bg-white/[0.02]">
+                  {currentIndexDisplay}
+                </span>
+              )}
+              <button
+                onClick={handleNavigatePrev}
+                disabled={!prevOrderId}
+                className="w-7 h-7 flex items-center justify-center text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed text-xs font-bold"
+                title={prevOrderId ? "Next / Older order" : "No next order"}
+                aria-label="Next order"
+              >
+                &rarr;
+              </button>
+            </div>
+
             <button
               onClick={isEditingOrder ? handleCloseEditOrder : handleOpenEditOrder}
-              className="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-white dark:bg-[#16162a] text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 text-xs font-bold shadow-2xs transition-colors whitespace-nowrap cursor-pointer"
+              className="px-2.5 h-7 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 text-xs font-bold shadow-2xs transition-colors whitespace-nowrap cursor-pointer flex items-center"
             >
               {isEditingOrder ? 'Cancel Edit' : 'Edit'}
             </button>
 
             <button
               onClick={() => window.print()}
-              className="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-white dark:bg-[#16162a] text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 text-xs font-bold shadow-2xs transition-colors whitespace-nowrap cursor-pointer"
+              className="px-2.5 h-7 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 text-xs font-bold shadow-2xs transition-colors whitespace-nowrap cursor-pointer flex items-center"
             >
               Print
             </button>
 
-            {/* Smart More actions Button - Top Right */}
+            {/* More Actions Dropdown */}
             <div className="relative">
               <button
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-[#f6f6f7] dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700 text-xs font-bold shadow-2xs transition-colors flex items-center gap-1.5 whitespace-nowrap cursor-pointer"
+                className="px-2.5 h-7 rounded-lg bg-[#f6f6f7] dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-700 hover:bg-gray-200 text-xs font-bold shadow-2xs transition-colors flex items-center gap-1 whitespace-nowrap cursor-pointer"
                 title="More actions"
               >
-                <span className="hidden sm:inline">More actions</span>
-                <span className="sm:hidden">More</span>
-                <ChevronDown className="h-3.5 w-3.5 opacity-70" />
+                <span>More actions</span>
+                <ChevronDown className="h-3 w-3 opacity-70" />
               </button>
 
               {isDropdownOpen && (
@@ -250,98 +283,145 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
           </div>
         </div>
 
-        {/* ROW 2 ON MOBILE: Status Badges (Left) + Thumb-Reach Pagination Switcher (Right) */}
-        <div className="sm:hidden flex items-center justify-between gap-2 pt-0.5">
-          <div className="inline-flex items-center gap-1.5 shrink-0 whitespace-nowrap">
-            {isPaid ? (
-              <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 border border-emerald-200/80 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/60 rounded-[5px] px-1.5 py-0.5 text-[10.5px] font-semibold leading-tight">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-                Paid
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1 bg-slate-100 text-slate-700 border border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 rounded-[5px] px-1.5 py-0.5 text-[10.5px] font-semibold leading-tight">
-                <span className="w-1.5 h-1.5 rounded-full bg-slate-400 shrink-0" />
-                Unpaid
-              </span>
-            )}
+        {/* MOBILE (<sm): Smart 2-Row Ultra-Compact Header (~50px total) */}
+        <div className="sm:hidden flex flex-col gap-1">
+          {/* Row 1: Back + ID + Badges (Left) | Edit + Print + More (Right) */}
+          <div className="flex items-center justify-between gap-1.5 min-w-0">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <button
+                onClick={() => {
+                  if (isEditingOrder) {
+                    handleCloseEditOrder();
+                    return;
+                  }
+                  if (typeof window !== 'undefined') {
+                    const returnUrl = sessionStorage.getItem('admin_orders_return_url');
+                    if (returnUrl) {
+                      router.push(returnUrl);
+                      return;
+                    }
+                    if (window.history.length > 1) {
+                      router.back();
+                      return;
+                    }
+                  }
+                  router.push('/admin/orders');
+                }}
+                className="p-1 -ml-1 text-gray-500 hover:text-gray-800 transition-colors shrink-0"
+                title={isEditingOrder ? "Back to order detail" : "Back to orders"}
+              >
+                <ArrowLeft className="h-4.5 w-4.5" />
+              </button>
 
-            {order.status === 'cancelled' ? (
-              <span className="inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-[10.5px] font-bold uppercase tracking-wide bg-rose-600 text-white shadow-2xs">
-                <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0" />
-                Cancelled
+              <span className="text-base font-black text-gray-900 dark:text-white leading-none whitespace-nowrap">
+                {order.order_number}
               </span>
-            ) : isOrderUnfulfilled(order) ? (
-              <span className="inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-[10.5px] font-extrabold uppercase tracking-wide bg-amber-500 text-white shadow-2xs ring-1 ring-amber-600/30">
-                <span className="relative flex h-1.5 w-1.5 shrink-0">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-white"></span>
-                </span>
-                Unfulfilled
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-[10.5px] font-extrabold uppercase tracking-wide bg-emerald-600 text-white shadow-2xs ring-1 ring-emerald-700/30">
-                <Check className="h-3 w-3 stroke-[3] text-white shrink-0" />
-                Fulfilled
-              </span>
-            )}
+
+              {/* Status Badges */}
+              <div className="inline-flex items-center gap-1 shrink-0">
+                {isPaid ? (
+                  <span className="inline-flex items-center gap-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200/80 rounded px-1 py-0.2 text-[9.5px] font-semibold leading-tight">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                    Paid
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-0.5 bg-slate-100 text-slate-700 border border-slate-200 rounded px-1 py-0.2 text-[9.5px] font-semibold leading-tight">
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-400 shrink-0" />
+                    Unpaid
+                  </span>
+                )}
+                {isOrderUnfulfilled(order) ? (
+                  <span className="inline-flex items-center rounded px-1.5 py-0.2 text-[9.5px] font-extrabold uppercase bg-amber-500 text-white shadow-2xs">
+                    Unfulfilled
+                  </span>
+                ) : order.status === 'cancelled' ? (
+                  <span className="inline-flex items-center rounded px-1.5 py-0.2 text-[9.5px] font-bold uppercase bg-rose-600 text-white shadow-2xs">
+                    Cancelled
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center rounded px-1.5 py-0.2 text-[9.5px] font-extrabold uppercase bg-emerald-600 text-white shadow-2xs">
+                    Fulfilled
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Quick Actions Right */}
+            <div className="flex items-center gap-1 shrink-0 print:hidden">
+              <button
+                onClick={isEditingOrder ? handleCloseEditOrder : handleOpenEditOrder}
+                className="px-2 h-6 rounded-md bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 text-[10.5px] font-bold shadow-2xs cursor-pointer flex items-center"
+              >
+                {isEditingOrder ? 'Cancel' : 'Edit'}
+              </button>
+              <button
+                onClick={() => window.print()}
+                className="px-2 h-6 rounded-md bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 text-[10.5px] font-bold shadow-2xs cursor-pointer flex items-center"
+              >
+                Print
+              </button>
+              <div className="relative">
+                <button
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className="px-2 h-6 rounded-md bg-[#f6f6f7] dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-700 text-[10.5px] font-bold shadow-2xs flex items-center gap-0.5 cursor-pointer"
+                  title="More actions"
+                >
+                  <span>More</span>
+                  <ChevronDown className="h-3 w-3 opacity-70" />
+                </button>
+                {isDropdownOpen && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)} />
+                    <div className="absolute right-0 mt-2 w-52 rounded-xl bg-white dark:bg-[#16162a] border border-gray-200 dark:border-gray-800 shadow-xl z-50 overflow-hidden py-1 text-xs">
+                      <button
+                        onClick={() => {
+                          router.push(`/admin/orders/postex-booking?id=${order.id}`);
+                          setIsDropdownOpen(false);
+                        }}
+                        className="w-full text-left px-3.5 py-2 font-semibold hover:bg-gray-50 text-gray-700 dark:text-gray-300"
+                      >
+                        Book at PostEx
+                      </button>
+                      <div className="border-t border-gray-100 my-1" />
+                      <button onClick={() => handleStatusChange('pending')} className="w-full text-left px-3.5 py-1.5 font-medium hover:bg-gray-50 text-amber-600">Mark as Pending</button>
+                      <button onClick={() => handleStatusChange('confirmed')} className="w-full text-left px-3.5 py-1.5 font-medium hover:bg-gray-50 text-blue-600">Mark as Confirmed</button>
+                      <button onClick={() => handleStatusChange('shipped')} className="w-full text-left px-3.5 py-1.5 font-medium hover:bg-gray-50 text-purple-600">Mark as Shipped</button>
+                      <button onClick={() => handleStatusChange('delivered')} className="w-full text-left px-3.5 py-1.5 font-medium hover:bg-gray-50 text-emerald-600">Mark as Delivered</button>
+                      <button onClick={() => handleStatusChange('cancelled')} className="w-full text-left px-3.5 py-1.5 font-medium hover:bg-gray-50 text-red-600">Mark as Cancelled</button>
+                      {order.tracking_number && (
+                        <button onClick={handleCancelShipment} disabled={isUpdating} className="w-full text-left px-3.5 py-1.5 font-medium text-orange-600">Cancel Shipment</button>
+                      )}
+                      <button onClick={() => { handleMoveToTrash(); setIsDropdownOpen(false); }} className="w-full text-left px-3.5 py-1.5 font-medium text-red-600">Move to Trash</button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
           </div>
 
-          {/* Mobile Pagination (right-thumb reach) */}
-          <div className="flex items-center border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden bg-white dark:bg-[#16162a] shadow-2xs shrink-0">
-            <button
-              onClick={handleNavigateNext}
-              disabled={!nextOrderId}
-              className="w-7 h-7 flex items-center justify-center text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed border-r border-gray-200 dark:border-gray-800 text-xs font-bold"
-              title={nextOrderId ? "Previous / Newer order" : "No previous order"}
-              aria-label="Previous order"
-            >
-              &larr;
-            </button>
-            {currentIndexDisplay && (
-              <span className="px-2 h-7 flex items-center justify-center text-[10.5px] font-bold text-gray-600 dark:text-gray-300 border-r border-gray-200 dark:border-gray-800 select-none whitespace-nowrap bg-gray-50/50 dark:bg-white/[0.02]">
-                {currentIndexDisplay}
-              </span>
-            )}
-            <button
-              onClick={handleNavigatePrev}
-              disabled={!prevOrderId}
-              className="w-7 h-7 flex items-center justify-center text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed text-xs font-bold"
-              title={prevOrderId ? "Next / Older order" : "No next order"}
-              aria-label="Next order"
-            >
-              &rarr;
-            </button>
-          </div>
-        </div>
-
-        {/* SUB-ROW: Date Info (Left) + Desktop Pagination (Right) */}
-        <div className="flex items-center justify-between gap-2 pt-0.5 text-xs text-gray-500 dark:text-gray-400">
-          <p suppressHydrationWarning className="min-w-0 truncate text-[11px] sm:text-[12.5px] pl-0.5 sm:pl-7">
-            {safeFormatOrderDate(order.created_at)} from Online Store
-          </p>
-
-          {/* Desktop Pagination Controls */}
-          <div className="hidden sm:flex items-center shrink-0 print:hidden ml-auto">
-            <div className="flex items-center border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden bg-white dark:bg-[#16162a] shadow-2xs">
+          {/* Row 2: Date Info (Left) + Thumb-Reach Pagination Switcher (Right) */}
+          <div className="flex items-center justify-between text-[11px] text-gray-500 dark:text-gray-400 pl-0.5">
+            <span suppressHydrationWarning className="truncate">{safeFormatOrderDate(order.created_at)}</span>
+            <div className="flex items-center border border-gray-200 dark:border-gray-800 rounded-md overflow-hidden bg-white dark:bg-[#16162a] shadow-2xs shrink-0 ml-2">
               <button
                 onClick={handleNavigateNext}
                 disabled={!nextOrderId}
-                className="px-2.5 py-1.5 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer border-r border-gray-200 dark:border-gray-800 text-xs font-bold"
-                title={nextOrderId ? "Previous / Newer order" : "No previous order"}
+                className="w-6 h-6 flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed border-r border-gray-200 text-xs font-bold"
+                title={nextOrderId ? "Previous order" : "No previous order"}
                 aria-label="Previous order"
               >
                 &larr;
               </button>
               {currentIndexDisplay && (
-                <span className="px-2.5 py-1.5 text-xs font-bold text-gray-600 dark:text-gray-300 border-r border-gray-200 dark:border-gray-800 select-none whitespace-nowrap bg-gray-50/50 dark:bg-white/[0.02]">
+                <span className="px-1.5 h-6 flex items-center justify-center text-[10px] font-bold text-gray-600 border-r border-gray-200 select-none whitespace-nowrap bg-gray-50/50">
                   {currentIndexDisplay}
                 </span>
               )}
               <button
                 onClick={handleNavigatePrev}
                 disabled={!prevOrderId}
-                className="px-2.5 py-1.5 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer text-xs font-bold"
-                title={prevOrderId ? "Next / Older order" : "No next order"}
+                className="w-6 h-6 flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed text-xs font-bold"
+                title={prevOrderId ? "Next order" : "No next order"}
                 aria-label="Next order"
               >
                 &rarr;
@@ -364,64 +444,67 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
           onCancel={handleCloseEditOrder}
         />
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_310px] gap-4 items-start">
-          <div className="flex flex-col gap-4">
-            <div className="bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
-              <div className="px-4 py-3.5 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center bg-white dark:bg-[#16162a]">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_310px] gap-3 sm:gap-4 items-start">
+          <div className="flex flex-col gap-3 sm:gap-4">
+            {/* Products Card - High Density Native App Style */}
+            <div className="bg-white dark:bg-[#16162a] rounded-xl sm:rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+              <div className="px-3.5 py-2.5 sm:px-4 sm:py-3 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center bg-white dark:bg-[#16162a]">
                 {isOrderUnfulfilled(order) ? (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-extrabold uppercase tracking-wide bg-amber-500 text-white shadow-2xs ring-1 ring-amber-600/30">
-                    <span className="relative flex h-2 w-2 shrink-0">
+                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md text-[11px] sm:text-xs font-extrabold uppercase tracking-wide bg-amber-500 text-white shadow-2xs ring-1 ring-amber-600/30">
+                    <span className="relative flex h-1.5 w-1.5 sm:h-2 sm:w-2 shrink-0">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 sm:h-2 sm:w-2 bg-white"></span>
                     </span>
                     Unfulfilled ({order.items.length})
                   </span>
                 ) : order.status === 'cancelled' ? (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wide bg-rose-600 text-white shadow-2xs">
+                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md text-[11px] sm:text-xs font-bold uppercase tracking-wide bg-rose-600 text-white shadow-2xs">
                     <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0" />
                     Cancelled ({order.items.length})
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-extrabold uppercase tracking-wide bg-emerald-600 text-white shadow-2xs ring-1 ring-emerald-700/30">
-                    <Check className="h-3.5 w-3.5 stroke-[3] text-white shrink-0" />
+                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md text-[11px] sm:text-xs font-extrabold uppercase tracking-wide bg-emerald-600 text-white shadow-2xs ring-1 ring-emerald-700/30">
+                    <Check className="h-3 w-3 sm:h-3.5 sm:w-3.5 stroke-[3] text-white shrink-0" />
                     Fulfilled ({order.items.length})
                   </span>
                 )}
               </div>
+
+              {/* Items List - Compact High Density so multiple products fit easily on mobile */}
               {order.items.map((item, idx) => {
                 const variantDetails = getItemVariant(item);
                 const firstImg = item.product?.images?.[0];
                 const displayImage = variantDetails.imageUrl || (typeof firstImg === 'string' ? firstImg : firstImg?.url);
 
                 return (
-                  <div key={idx} className="flex items-start gap-3.5 p-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] last:border-b-0">
+                  <div key={idx} className="flex items-center sm:items-start gap-2.5 sm:gap-3.5 px-3 py-2 sm:px-4 sm:py-3 border-b border-gray-100 dark:border-gray-800/80 bg-white dark:bg-[#16162a] last:border-b-0">
                     <TableThumbnail
                       url={displayImage || null}
                       alt={item.product?.name || 'Product'}
                       onPreview={(url) => setLightboxImage(url)}
-                      className="w-14 h-14 rounded-xl flex-shrink-0"
+                      className="w-11 h-11 sm:w-13 sm:h-13 rounded-lg flex-shrink-0"
                     />
                     <div className="flex-1 min-w-0">
                       <h4
-                        className="text-[13px] sm:text-[13.5px] font-bold text-gray-900 dark:text-white leading-snug line-clamp-2 hover:text-[#2c6ecb] transition-colors"
+                        className="text-xs sm:text-[13.5px] font-bold text-gray-900 dark:text-white leading-snug line-clamp-1 sm:line-clamp-2 hover:text-[#2c6ecb] transition-colors"
                         title={item.product?.name || 'Product'}
                       >
                         {item.product?.name || 'Product'}
                       </h4>
 
                       {/* Variant Chips, Quantity & Pricing in compact aligned row */}
-                      <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                      <div className="flex flex-wrap items-center gap-1 sm:gap-1.5 mt-0.5 sm:mt-1">
                         {variantDetails.chips.length > 0 && variantDetails.chips.map((chip, cIdx) => (
                           <span
                             key={cIdx}
-                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold border ${chip.label.toLowerCase() === 'size'
+                            className={`inline-flex items-center gap-1 px-1.5 py-0.2 rounded text-[10px] sm:text-[11px] font-semibold border ${chip.label.toLowerCase() === 'size'
                                 ? 'bg-indigo-50/80 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border-indigo-200/70 dark:border-indigo-800/60 font-bold'
                                 : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200/70 dark:border-gray-700/60'
                               }`}
                           >
                             {chip.colorHex && (
                               <span
-                                className="w-2.5 h-2.5 rounded-full border border-black/15 shadow-2xs shrink-0"
+                                className="w-2 h-2 rounded-full border border-black/15 shadow-2xs shrink-0"
                                 style={{ backgroundColor: chip.colorHex }}
                               />
                             )}
@@ -430,19 +513,19 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
                           </span>
                         ))}
 
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-gray-50 dark:bg-white/5 text-gray-700 dark:text-gray-300 border border-gray-200/60 dark:border-gray-800">
+                        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[10px] sm:text-[11px] font-semibold bg-gray-50 dark:bg-white/5 text-gray-700 dark:text-gray-300 border border-gray-200/60 dark:border-gray-800">
                           <span className="text-gray-400 font-normal">Qty:</span>
                           <span className="font-bold text-gray-900 dark:text-white">{item.quantity}</span>
                         </span>
 
                         {item.quantity > 1 && (
-                          <span className="text-[11px] text-gray-400 dark:text-gray-500">
+                          <span className="text-[10px] sm:text-[11px] text-gray-400 dark:text-gray-500">
                             ({formatPrice(item.unit_price, settings.currency_symbol)} ea)
                           </span>
                         )}
 
                         {variantDetails.sku && (
-                          <span className="text-[10.5px] font-mono text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-800/50 px-1.5 py-0.5 rounded">
+                          <span className="text-[9.5px] sm:text-[10px] font-mono text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-800/50 px-1 py-0.2 rounded">
                             SKU: {variantDetails.sku}
                           </span>
                         )}
@@ -450,16 +533,16 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
 
                       {/* Modifiers if any */}
                       {item.selected_modifiers && item.selected_modifiers.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mt-1 text-[11px] text-gray-500">
+                        <div className="flex flex-wrap gap-1 mt-0.5 text-[10px] text-gray-500">
                           {item.selected_modifiers.map((m, mIdx) => (
-                            <span key={mIdx} className="bg-amber-50 dark:bg-amber-950/30 text-amber-800 dark:text-amber-300 px-1.5 py-0.5 rounded border border-amber-200 dark:border-amber-900/40">
+                            <span key={mIdx} className="bg-amber-50 dark:bg-amber-950/30 text-amber-800 dark:text-amber-300 px-1 py-0.2 rounded border border-amber-200 dark:border-amber-900/40">
                               +{m.name} ({formatPrice(m.price, settings.currency_symbol)})
                             </span>
                           ))}
                         </div>
                       )}
                     </div>
-                    <div className="font-bold text-[13.5px] sm:text-[14px] text-gray-900 dark:text-white text-right shrink-0 pt-0.5">
+                    <div className="font-bold text-xs sm:text-sm text-gray-900 dark:text-white text-right shrink-0 whitespace-nowrap pl-2">
                       {formatPrice(item.total, settings.currency_symbol)}
                     </div>
                   </div>

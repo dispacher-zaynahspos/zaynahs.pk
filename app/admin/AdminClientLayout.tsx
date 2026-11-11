@@ -387,7 +387,7 @@ function AdminLayoutContent({
 
         <main
           id="admin-main-content"
-          className="flex-1 min-h-0 w-full max-w-full px-3 sm:px-4 md:px-5 pt-3 sm:pt-4 pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))] md:pb-8 overflow-y-auto overflow-x-hidden overscroll-y-none bg-slate-50 text-gray-900 transition-colors duration-200"
+          className="flex-1 min-h-0 w-full max-w-full px-3 sm:px-4 md:px-5 pt-3 sm:pt-4 pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))] md:pb-8 overflow-y-auto overflow-x-clip overscroll-y-none bg-slate-50 text-gray-900 transition-colors duration-200"
           style={{ WebkitOverflowScrolling: 'touch' }}
         >
           {children}

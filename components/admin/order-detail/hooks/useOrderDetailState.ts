@@ -313,12 +313,21 @@ export function useOrderDetailState(initialOrder: Order) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [nextOrderId, prevOrderId, navigateToOrder, isEditingOrder, lightboxImage]);
 
-  // 5. Touch swipe navigation for mobile
+  // 5. Touch swipe navigation for mobile (Left = Older/Next order, Right = Newer/Prev order)
+  const nextOrderIdRef = useRef(nextOrderId);
+  const prevOrderIdRef = useRef(prevOrderId);
+  useEffect(() => {
+    nextOrderIdRef.current = nextOrderId;
+    prevOrderIdRef.current = prevOrderId;
+  }, [nextOrderId, prevOrderId]);
+
   const touchStartXRef = useRef<number | null>(null);
   const touchStartYRef = useRef<number | null>(null);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     if (isEditingOrder || lightboxImage) return;
+    const target = e.target as HTMLElement | null;
+    if (target?.closest('input, textarea, select, button, a, [role="dialog"], .prevent-swipe')) return;
     const touch = e.touches[0];
     touchStartXRef.current = touch.clientX;
     touchStartYRef.current = touch.clientY;
@@ -332,17 +341,61 @@ export function useOrderDetailState(initialOrder: Order) {
     touchStartXRef.current = null;
     touchStartYRef.current = null;
 
-    // Horizontal swipe threshold: > 60px horizontal, < 40px vertical
-    if (Math.abs(deltaX) > 60 && Math.abs(deltaY) < 40) {
-      if (deltaX > 0 && nextOrderId) {
-        // Swiped right -> newer/previous order
-        navigateToOrder(nextOrderId);
-      } else if (deltaX < 0 && prevOrderId) {
-        // Swiped left -> older/next order
-        navigateToOrder(prevOrderId);
+    // Standard horizontal swipe gesture:
+    // Minimum 40px horizontal travel, and horizontal distance > vertical distance
+    const absX = Math.abs(deltaX);
+    const absY = Math.abs(deltaY);
+    if (absX >= 40 && absX > absY * 1.1) {
+      if (deltaX > 0 && nextOrderIdRef.current) {
+        // Swiped right -> newer/previous order (← Left)
+        navigateToOrder(nextOrderIdRef.current);
+      } else if (deltaX < 0 && prevOrderIdRef.current) {
+        // Swiped left -> older/next order (→ Right)
+        navigateToOrder(prevOrderIdRef.current);
       }
     }
-  }, [nextOrderId, prevOrderId, navigateToOrder]);
+  }, [navigateToOrder]);
+
+  // Global window touch listener so swiping anywhere on mobile screen effortlessly switches orders
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    let startX: number | null = null;
+    let startY: number | null = null;
+
+    const onTouchStartWindow = (e: TouchEvent) => {
+      if (isEditingOrder || lightboxImage) return;
+      const target = e.target as HTMLElement | null;
+      if (target?.closest('input, textarea, select, button, a, [role="dialog"], .prevent-swipe')) return;
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+    };
+
+    const onTouchEndWindow = (e: TouchEvent) => {
+      if (startX === null || startY === null) return;
+      const touch = e.changedTouches[0];
+      const deltaX = touch.clientX - startX;
+      const deltaY = touch.clientY - startY;
+      startX = null;
+      startY = null;
+
+      const absX = Math.abs(deltaX);
+      const absY = Math.abs(deltaY);
+      if (absX >= 40 && absX > absY * 1.1) {
+        if (deltaX > 0 && nextOrderIdRef.current) {
+          navigateToOrder(nextOrderIdRef.current);
+        } else if (deltaX < 0 && prevOrderIdRef.current) {
+          navigateToOrder(prevOrderIdRef.current);
+        }
+      }
+    };
+
+    window.addEventListener('touchstart', onTouchStartWindow, { passive: true });
+    window.addEventListener('touchend', onTouchEndWindow, { passive: true });
+    return () => {
+      window.removeEventListener('touchstart', onTouchStartWindow);
+      window.removeEventListener('touchend', onTouchEndWindow);
+    };
+  }, [isEditingOrder, lightboxImage, navigateToOrder]);
 
   const paymentMethod = (() => {
     const notesText = order.notes || '';
