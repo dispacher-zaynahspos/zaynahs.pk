@@ -108,8 +108,8 @@ export default function OrderLog({ initialOrders, settings, initialFailedAttempt
         </div>
       )}
 
-      {/* Sticky Filter Tabs & Controls Toolbar */}
-      <div className="sticky top-[calc(3.5rem+env(safe-area-inset-top,0px))] md:top-14 z-20">
+      {/* Sticky Filter Tabs & Controls Toolbar (Flush with AdminHeader, zero gap) */}
+      <div className="sticky top-0 z-20 -mt-3 sm:-mt-4 pt-3 sm:pt-4 -mx-3 sm:-mx-4 md:-mx-5 px-3 sm:px-4 md:px-5 bg-slate-50 dark:bg-[#0c0c16] pb-2">
         {/* Filter Tabs Row */}
         <div className="filter-tabs-row flex items-center gap-2 border border-gray-200 dark:border-gray-800 bg-white/95 dark:bg-[#16162a]/95 backdrop-blur-md rounded-t-xl px-3 py-1 select-none shadow-xs">
           {/* Scrollable tabs — kept separate from the action icons so tabs never clip */}

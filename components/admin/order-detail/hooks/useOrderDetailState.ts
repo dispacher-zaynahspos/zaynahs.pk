@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { getOrderById } from '@/lib/services/orders';
 import { getAllProductsAdmin } from '@/lib/services/products';
 import { Order, Product } from '@/lib/types';
 import { useOrderCustomerEditing } from './useOrderCustomerEditing';
@@ -181,6 +180,14 @@ export function useOrderDetailState(initialOrder: Order) {
     setIsEditingOrder(false);
     setIsNavigatingOrder(true);
 
+    // Scroll to top of order detail
+    if (typeof document !== 'undefined') {
+      const mainEl = document.getElementById('admin-main-content');
+      if (mainEl && mainEl.scrollTop > 0) {
+        mainEl.scrollTop = 0;
+      }
+    }
+
     // Check in-memory cache first
     let targetOrder = cachedOrdersMapRef.current[targetId];
 
@@ -203,31 +210,19 @@ export function useOrderDetailState(initialOrder: Order) {
       setClientId(targetId);
       const newUrl = `/admin/orders/detail?id=${targetId}`;
       window.history.replaceState({ orderId: targetId }, '', newUrl);
-      // Fast micro-fade (80ms) for smooth skeleton transition without glitch
+      router.replace(newUrl, { scroll: false });
       setTimeout(() => {
         setIsNavigatingOrder(false);
-      }, 80);
+      }, 100);
       return;
     }
 
-    // Fallback: fetch from DB only if completely missing from cache
-    try {
-      setIsUpdating(true);
-      const fresh = await getOrderById(targetId);
-      if (fresh) {
-        setOrder(fresh);
-        setClientId(targetId);
-        cachedOrdersMapRef.current[targetId] = fresh;
-        const newUrl = `/admin/orders/detail?id=${targetId}`;
-        window.history.replaceState({ orderId: targetId }, '', newUrl);
-      }
-    } catch (err) {
-      console.error('Failed to load adjacent order:', err);
-    } finally {
-      setIsUpdating(false);
+    // Fallback: use router.push which fetches on server with full admin privileges
+    router.push(`/admin/orders/detail?id=${targetId}`);
+    setTimeout(() => {
       setIsNavigatingOrder(false);
-    }
-  }, [order.id]);
+    }, 200);
+  }, [order.id, router]);
 
   const handleNavigateNext = useCallback(() => {
     if (nextOrderId) navigateToOrder(nextOrderId);
@@ -266,13 +261,6 @@ export function useOrderDetailState(initialOrder: Order) {
       setClientId(urlId);
       if (cachedOrdersMapRef.current[urlId]) {
         setOrder(cachedOrdersMapRef.current[urlId]);
-      } else {
-        getOrderById(urlId).then((fresh) => {
-          if (fresh) {
-            setOrder(fresh);
-            cachedOrdersMapRef.current[urlId] = fresh;
-          }
-        }).catch(console.error);
       }
     }
   }, [searchParams, clientId, order.id, isEditingOrder]);
@@ -323,9 +311,10 @@ export function useOrderDetailState(initialOrder: Order) {
 
   const touchStartXRef = useRef<number | null>(null);
   const touchStartYRef = useRef<number | null>(null);
+  const isSwipingRef = useRef(false);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    if (isEditingOrder || lightboxImage) return;
+    if (isEditingOrder || lightboxImage || isSwipingRef.current) return;
     const target = e.target as HTMLElement | null;
     if (target?.closest('input, textarea, select, button, a, [role="dialog"], .prevent-swipe')) return;
     const touch = e.touches[0];
@@ -334,7 +323,7 @@ export function useOrderDetailState(initialOrder: Order) {
   }, [isEditingOrder, lightboxImage]);
 
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
-    if (touchStartXRef.current === null || touchStartYRef.current === null) return;
+    if (touchStartXRef.current === null || touchStartYRef.current === null || isSwipingRef.current) return;
     const touch = e.changedTouches[0];
     const deltaX = touch.clientX - touchStartXRef.current;
     const deltaY = touch.clientY - touchStartYRef.current;
@@ -342,60 +331,27 @@ export function useOrderDetailState(initialOrder: Order) {
     touchStartYRef.current = null;
 
     // Standard horizontal swipe gesture:
-    // Minimum 40px horizontal travel, and horizontal distance > vertical distance
+    // Minimum 45px horizontal travel, clearly horizontal (absX > absY * 1.3)
     const absX = Math.abs(deltaX);
     const absY = Math.abs(deltaY);
-    if (absX >= 40 && absX > absY * 1.1) {
-      if (deltaX > 0 && nextOrderIdRef.current) {
-        // Swiped right -> newer/previous order (← Left)
-        navigateToOrder(nextOrderIdRef.current);
-      } else if (deltaX < 0 && prevOrderIdRef.current) {
-        // Swiped left -> older/next order (→ Right)
+    if (absX >= 45 && absX > absY * 1.3) {
+      if (deltaX < 0 && prevOrderIdRef.current) {
+        // Swiped left (finger moves right to left) -> Next / Older order (same as clicking →)
+        isSwipingRef.current = true;
         navigateToOrder(prevOrderIdRef.current);
+        setTimeout(() => {
+          isSwipingRef.current = false;
+        }, 350);
+      } else if (deltaX > 0 && nextOrderIdRef.current) {
+        // Swiped right (finger moves left to right) -> Prev / Newer order (same as clicking ←)
+        isSwipingRef.current = true;
+        navigateToOrder(nextOrderIdRef.current);
+        setTimeout(() => {
+          isSwipingRef.current = false;
+        }, 350);
       }
     }
   }, [navigateToOrder]);
-
-  // Global window touch listener so swiping anywhere on mobile screen effortlessly switches orders
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    let startX: number | null = null;
-    let startY: number | null = null;
-
-    const onTouchStartWindow = (e: TouchEvent) => {
-      if (isEditingOrder || lightboxImage) return;
-      const target = e.target as HTMLElement | null;
-      if (target?.closest('input, textarea, select, button, a, [role="dialog"], .prevent-swipe')) return;
-      startX = e.touches[0].clientX;
-      startY = e.touches[0].clientY;
-    };
-
-    const onTouchEndWindow = (e: TouchEvent) => {
-      if (startX === null || startY === null) return;
-      const touch = e.changedTouches[0];
-      const deltaX = touch.clientX - startX;
-      const deltaY = touch.clientY - startY;
-      startX = null;
-      startY = null;
-
-      const absX = Math.abs(deltaX);
-      const absY = Math.abs(deltaY);
-      if (absX >= 40 && absX > absY * 1.1) {
-        if (deltaX > 0 && nextOrderIdRef.current) {
-          navigateToOrder(nextOrderIdRef.current);
-        } else if (deltaX < 0 && prevOrderIdRef.current) {
-          navigateToOrder(prevOrderIdRef.current);
-        }
-      }
-    };
-
-    window.addEventListener('touchstart', onTouchStartWindow, { passive: true });
-    window.addEventListener('touchend', onTouchEndWindow, { passive: true });
-    return () => {
-      window.removeEventListener('touchstart', onTouchStartWindow);
-      window.removeEventListener('touchend', onTouchEndWindow);
-    };
-  }, [isEditingOrder, lightboxImage, navigateToOrder]);
 
   const paymentMethod = (() => {
     const notesText = order.notes || '';

@@ -115,7 +115,7 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
 
       {/* Detail Topbar - Executive Shopify Polaris Style (Ultra-Compact Sticky & Smart) */}
       <div
-        className="sticky top-0 z-30 bg-slate-50/95 dark:bg-[#0c0c16]/95 backdrop-blur-md -mt-3 sm:-mt-4 pt-3 sm:pt-4 pb-2 border-b border-gray-200/90 dark:border-white/10 -mx-3 sm:-mx-4 md:-mx-5 px-3 sm:px-4 md:px-5 flex flex-col gap-1.5 sm:gap-2 transition-all shadow-xs"
+        className="sticky top-0 z-30 bg-slate-50 dark:bg-[#0c0c16] -mt-3 sm:-mt-4 pt-3 sm:pt-4 pb-2 border-b border-gray-200 dark:border-white/10 -mx-3 sm:-mx-4 md:-mx-5 px-3 sm:px-4 md:px-5 flex flex-col gap-1.5 sm:gap-2 shadow-xs"
       >
         {/* DESKTOP (sm+): 1 Single Sleek 40px Row with Everything Aligned */}
         <div className="hidden sm:flex items-center justify-between gap-3 min-w-0 h-9">
@@ -284,9 +284,9 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
         </div>
 
         {/* MOBILE (<sm): Smart 2-Row Ultra-Compact Header (~50px total) */}
-        <div className="sm:hidden flex flex-col gap-1">
-          {/* Row 1: Back + ID + Badges (Left) | Edit + Print + More (Right) */}
-          <div className="flex items-center justify-between gap-1.5 min-w-0">
+        <div className="sm:hidden flex flex-col gap-1.5">
+          {/* Row 1: Back + ID (Left) | Edit + Print + More (Right) */}
+          <div className="flex items-center justify-between gap-2 min-w-0">
             <div className="flex items-center gap-1.5 min-w-0">
               <button
                 onClick={() => {
@@ -316,54 +316,26 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
               <span className="text-base font-black text-gray-900 dark:text-white leading-none whitespace-nowrap">
                 {order.order_number}
               </span>
-
-              {/* Status Badges */}
-              <div className="inline-flex items-center gap-1 shrink-0">
-                {isPaid ? (
-                  <span className="inline-flex items-center gap-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200/80 rounded px-1 py-0.2 text-[9.5px] font-semibold leading-tight">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-                    Paid
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-0.5 bg-slate-100 text-slate-700 border border-slate-200 rounded px-1 py-0.2 text-[9.5px] font-semibold leading-tight">
-                    <span className="w-1.5 h-1.5 rounded-full bg-slate-400 shrink-0" />
-                    Unpaid
-                  </span>
-                )}
-                {isOrderUnfulfilled(order) ? (
-                  <span className="inline-flex items-center rounded px-1.5 py-0.2 text-[9.5px] font-extrabold uppercase bg-amber-500 text-white shadow-2xs">
-                    Unfulfilled
-                  </span>
-                ) : order.status === 'cancelled' ? (
-                  <span className="inline-flex items-center rounded px-1.5 py-0.2 text-[9.5px] font-bold uppercase bg-rose-600 text-white shadow-2xs">
-                    Cancelled
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center rounded px-1.5 py-0.2 text-[9.5px] font-extrabold uppercase bg-emerald-600 text-white shadow-2xs">
-                    Fulfilled
-                  </span>
-                )}
-              </div>
             </div>
 
             {/* Quick Actions Right */}
             <div className="flex items-center gap-1 shrink-0 print:hidden">
               <button
                 onClick={isEditingOrder ? handleCloseEditOrder : handleOpenEditOrder}
-                className="px-2 h-6 rounded-md bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 text-[10.5px] font-bold shadow-2xs cursor-pointer flex items-center"
+                className="px-2.5 h-6 rounded-md bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 text-[11px] font-bold shadow-2xs cursor-pointer flex items-center active:scale-95 transition-all"
               >
                 {isEditingOrder ? 'Cancel' : 'Edit'}
               </button>
               <button
                 onClick={() => window.print()}
-                className="px-2 h-6 rounded-md bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 text-[10.5px] font-bold shadow-2xs cursor-pointer flex items-center"
+                className="px-2.5 h-6 rounded-md bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 text-[11px] font-bold shadow-2xs cursor-pointer flex items-center active:scale-95 transition-all"
               >
                 Print
               </button>
               <div className="relative">
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="px-2 h-6 rounded-md bg-[#f6f6f7] dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-700 text-[10.5px] font-bold shadow-2xs flex items-center gap-0.5 cursor-pointer"
+                  className="px-2.5 h-6 rounded-md bg-[#f6f6f7] dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-700 text-[11px] font-bold shadow-2xs flex items-center gap-0.5 cursor-pointer active:scale-95 transition-all"
                   title="More actions"
                 >
                   <span>More</span>
@@ -399,10 +371,41 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
             </div>
           </div>
 
-          {/* Row 2: Date Info (Left) + Thumb-Reach Pagination Switcher (Right) */}
-          <div className="flex items-center justify-between text-[11px] text-gray-500 dark:text-gray-400 pl-0.5">
-            <span suppressHydrationWarning className="truncate">{safeFormatOrderDate(order.created_at)}</span>
-            <div className="flex items-center border border-gray-200 dark:border-gray-800 rounded-md overflow-hidden bg-white dark:bg-[#16162a] shadow-2xs shrink-0 ml-2">
+          {/* Row 2: Status Badges & Date (Left) | Pagination Switcher (Right) */}
+          <div className="flex items-center justify-between gap-2 min-w-0">
+            {/* Status Badges & Date */}
+            <div className="flex items-center gap-1.5 min-w-0 overflow-hidden">
+              {isPaid ? (
+                <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 border border-emerald-200/80 rounded px-1.5 py-0.5 text-[10px] font-semibold leading-tight shrink-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                  Paid
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 bg-slate-100 text-slate-700 border border-slate-200 rounded px-1.5 py-0.5 text-[10px] font-semibold leading-tight shrink-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-slate-400 shrink-0" />
+                  Unpaid
+                </span>
+              )}
+              {isOrderUnfulfilled(order) ? (
+                <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-extrabold uppercase bg-amber-500 text-white shadow-2xs shrink-0">
+                  Unfulfilled
+                </span>
+              ) : order.status === 'cancelled' ? (
+                <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-bold uppercase bg-rose-600 text-white shadow-2xs shrink-0">
+                  Cancelled
+                </span>
+              ) : (
+                <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-extrabold uppercase bg-emerald-600 text-white shadow-2xs shrink-0">
+                  Fulfilled
+                </span>
+              )}
+              <span suppressHydrationWarning className="text-[10.5px] text-gray-400 dark:text-gray-500 truncate ml-0.5">
+                {safeFormatOrderDate(order.created_at)}
+              </span>
+            </div>
+
+            {/* Pagination Switcher */}
+            <div className="flex items-center border border-gray-200 dark:border-gray-800 rounded-md overflow-hidden bg-white dark:bg-[#16162a] shadow-2xs shrink-0 ml-auto">
               <button
                 onClick={handleNavigateNext}
                 disabled={!nextOrderId}
