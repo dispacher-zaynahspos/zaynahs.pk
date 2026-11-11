@@ -123,6 +123,12 @@ export default function PostExBookingManifestTable({ orders, settings, onGoBack 
     if (settings.postex_auto_download_label && cns.length > 0) {
       window.open(`/api/courier/postex/labels?cns=${cns.join(',')}`, '_blank');
     }
+
+    if (orders.length === 1 && cns.length > 0) {
+      setTimeout(() => {
+        onGoBack();
+      }, 1000);
+    }
   };
 
   const activeDetail = detailRowId ? rows[detailRowId] : null;
@@ -149,10 +155,11 @@ export default function PostExBookingManifestTable({ orders, settings, onGoBack 
           </div>
           <button
             onClick={onGoBack}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 text-xs font-bold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 text-xs font-bold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+            title={orders.length === 1 ? `Return to order ${orders[0].orderNumber}` : "Go back"}
           >
             <ChevronLeft className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Go Back</span>
+            <span>{orders.length === 1 ? `Back to Order ${orders[0].orderNumber}` : 'Go Back'}</span>
           </button>
         </div>
       </div>
@@ -222,17 +229,21 @@ export default function PostExBookingManifestTable({ orders, settings, onGoBack 
                 )}
               </button>
             ) : (
-              <div className="flex items-center gap-2 text-sm font-bold text-emerald-600 dark:text-emerald-400">
-                <Check className="h-5 w-5" />
-                All bookings uploaded
-              </div>
+              <button
+                type="button"
+                onClick={onGoBack}
+                className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold transition-all shadow-md cursor-pointer w-full sm:w-auto"
+              >
+                <Check className="h-4 w-4 stroke-[3]" />
+                <span>{orders.length === 1 ? `Return to Order ${orders[0].orderNumber}` : 'Return to Orders'}</span>
+              </button>
             )}
             <button
               onClick={onGoBack}
-              className="flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 text-xs font-bold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+              className="flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 text-xs font-bold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer"
             >
               <ChevronLeft className="h-3.5 w-3.5" />
-              Go Back
+              <span>{orders.length === 1 ? `Back to Order ${orders[0].orderNumber}` : 'Go Back'}</span>
             </button>
           </div>
 
