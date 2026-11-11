@@ -46,6 +46,7 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
     handleNavigatePrev,
     handleTouchStart,
     handleTouchEnd,
+    handleTouchCancel,
     paymentMethod, isPaid,
     staffNoteInput, setStaffNoteInput,
     isEditingCustomer, setIsEditingCustomer,
@@ -110,7 +111,8 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
     <div
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
-      className="max-w-full sm:max-w-6xl mx-auto flex flex-col gap-3 sm:gap-4 pb-20 font-sans w-full"
+      onTouchCancel={handleTouchCancel}
+      className="max-w-full sm:max-w-6xl mx-auto flex flex-col gap-3 sm:gap-4 pb-20 font-sans w-full touch-pan-y"
     >
 
       {/* Detail Topbar - Executive Shopify Polaris Style (Ultra-Compact Sticky & Smart) */}
@@ -203,10 +205,10 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
             {/* Desktop Pagination */}
             <div className="flex items-center border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden bg-white dark:bg-[#16162a] shadow-2xs">
               <button
-                onClick={handleNavigateNext}
-                disabled={!nextOrderId}
-                className="w-7 h-7 flex items-center justify-center text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed border-r border-gray-200 dark:border-gray-800 text-xs font-bold"
-                title={nextOrderId ? "Previous / Newer order" : "No previous order"}
+                onClick={handleNavigatePrev}
+                disabled={!prevOrderId}
+                className="w-7 h-7 flex items-center justify-center text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed border-r border-gray-200 dark:border-gray-800 text-xs font-bold transition-colors cursor-pointer"
+                title={prevOrderId ? "Previous order (←)" : "No previous order"}
                 aria-label="Previous order"
               >
                 &larr;
@@ -217,10 +219,10 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
                 </span>
               )}
               <button
-                onClick={handleNavigatePrev}
-                disabled={!prevOrderId}
-                className="w-7 h-7 flex items-center justify-center text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed text-xs font-bold"
-                title={prevOrderId ? "Next / Older order" : "No next order"}
+                onClick={handleNavigateNext}
+                disabled={!nextOrderId}
+                className="w-7 h-7 flex items-center justify-center text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed text-xs font-bold transition-colors cursor-pointer"
+                title={nextOrderId ? "Next order (→)" : "No next order"}
                 aria-label="Next order"
               >
                 &rarr;
@@ -407,10 +409,10 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
             {/* Pagination Switcher */}
             <div className="flex items-center border border-gray-200 dark:border-gray-800 rounded-md overflow-hidden bg-white dark:bg-[#16162a] shadow-2xs shrink-0 ml-auto">
               <button
-                onClick={handleNavigateNext}
-                disabled={!nextOrderId}
-                className="w-6 h-6 flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed border-r border-gray-200 text-xs font-bold"
-                title={nextOrderId ? "Previous order" : "No previous order"}
+                onClick={handleNavigatePrev}
+                disabled={!prevOrderId}
+                className="w-6 h-6 flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed border-r border-gray-200 text-xs font-bold transition-colors cursor-pointer"
+                title={prevOrderId ? "Previous order (←)" : "No previous order"}
                 aria-label="Previous order"
               >
                 &larr;
@@ -421,10 +423,10 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
                 </span>
               )}
               <button
-                onClick={handleNavigatePrev}
-                disabled={!prevOrderId}
-                className="w-6 h-6 flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed text-xs font-bold"
-                title={prevOrderId ? "Next order" : "No next order"}
+                onClick={handleNavigateNext}
+                disabled={!nextOrderId}
+                className="w-6 h-6 flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed text-xs font-bold transition-colors cursor-pointer"
+                title={nextOrderId ? "Next order (→)" : "No next order"}
                 aria-label="Next order"
               >
                 &rarr;

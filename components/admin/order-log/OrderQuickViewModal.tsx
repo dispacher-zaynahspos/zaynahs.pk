@@ -81,6 +81,69 @@ export function OrderQuickViewModal({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [open, prevOrder, nextOrder, handlePrev, handleNext]);
 
+  // Touch swipe navigation for mobile (Left swipe = Next order, Right swipe = Prev order)
+  const touchStartXRef = React.useRef<number | null>(null);
+  const touchStartYRef = React.useRef<number | null>(null);
+  const touchStartTimeRef = React.useRef<number>(0);
+  const isSwipingRef = React.useRef(false);
+  const articlesListRef = React.useRef<HTMLDivElement>(null);
+
+  // Reset scroll to top when order changes
+  useEffect(() => {
+    if (articlesListRef.current) {
+      articlesListRef.current.scrollTop = 0;
+    }
+  }, [order?.id]);
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (isSwipingRef.current) return;
+    const target = e.target as HTMLElement | null;
+    if (target?.closest('input, textarea, select, button, a, [role="dialog"], .prevent-swipe, [data-prevent-swipe]')) return;
+    const touch = e.touches[0];
+    touchStartXRef.current = touch.clientX;
+    touchStartYRef.current = touch.clientY;
+    touchStartTimeRef.current = Date.now();
+  }, []);
+
+  const handleTouchCancel = useCallback(() => {
+    touchStartXRef.current = null;
+    touchStartYRef.current = null;
+    touchStartTimeRef.current = 0;
+  }, []);
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (touchStartXRef.current === null || touchStartYRef.current === null || isSwipingRef.current) return;
+    const touch = e.changedTouches[0];
+    const deltaX = touch.clientX - touchStartXRef.current;
+    const deltaY = touch.clientY - touchStartYRef.current;
+    const elapsed = Date.now() - touchStartTimeRef.current;
+
+    touchStartXRef.current = null;
+    touchStartYRef.current = null;
+    touchStartTimeRef.current = 0;
+
+    const absX = Math.abs(deltaX);
+    const absY = Math.abs(deltaY);
+
+    if (elapsed < 600 && absX >= 35 && absX > absY * 1.15) {
+      if (deltaX < 0 && nextOrder) {
+        // Swiped LEFT -> Next order
+        isSwipingRef.current = true;
+        handleNext();
+        setTimeout(() => {
+          isSwipingRef.current = false;
+        }, 250);
+      } else if (deltaX > 0 && prevOrder) {
+        // Swiped RIGHT -> Previous order
+        isSwipingRef.current = true;
+        handlePrev();
+        setTimeout(() => {
+          isSwipingRef.current = false;
+        }, 250);
+      }
+    }
+  }, [handleNext, handlePrev, nextOrder, prevOrder]);
+
   if (!order) return null;
 
   const paid = isOrderPaid(order);
@@ -254,7 +317,12 @@ export function OrderQuickViewModal({
       </div>
 
       {/* Body: Products List as Primary Hero + Compact Shopify Metadata Strip */}
-      <div className="flex-1 min-h-0 flex flex-col p-3 sm:p-4 gap-2.5 overflow-hidden">
+      <div 
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+        onTouchCancel={handleTouchCancel}
+        className="flex-1 min-h-0 flex flex-col p-3 sm:p-4 gap-2.5 overflow-hidden touch-pan-y"
+      >
         
         {/* Section 1: Hero Products List with Maximized Scroll Space */}
         <div className="flex-1 min-h-0 flex flex-col">
@@ -267,7 +335,7 @@ export function OrderQuickViewModal({
             </span>
           </div>
 
-          <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain border border-gray-200 dark:border-gray-800 rounded-xl divide-y divide-gray-100 dark:divide-gray-800/80 bg-white dark:bg-[#16162a] shadow-xs [scrollbar-width:thin]">
+          <div ref={articlesListRef} className="flex-1 min-h-0 overflow-y-auto overscroll-contain border border-gray-200 dark:border-gray-800 rounded-xl divide-y divide-gray-100 dark:divide-gray-800/80 bg-white dark:bg-[#16162a] shadow-xs [scrollbar-width:thin]">
             {(!order.items || order.items.length === 0) ? (
               <div className="p-4 text-center text-xs text-gray-400">
                 No articles attached to this order.

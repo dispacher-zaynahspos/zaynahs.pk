@@ -55,12 +55,12 @@ export function useOrderDetailState(initialOrder: Order) {
   // Active filtered order list from sessionStorage (saved by OrderLog with active filters applied)
   const [activeOrderIds, setActiveOrderIds] = useState<string[]>([]);
   const cachedOrdersMapRef = useRef<Record<string, Order>>({});
+  const hasNavigatedRef = useRef(false);
+  const currentOrderIdRef = useRef(initialOrder.id);
 
   // Fallback DB-adjacent order IDs (used only if order is not in active filtered cache)
   const [dbPrevOrderId, setDbPrevOrderId] = useState<string | null>(null);
   const [dbNextOrderId, setDbNextOrderId] = useState<string | null>(null);
-
-  const [clientId, setClientId] = useState(searchParams.get('id') || initialOrder.id);
 
   // 1. Initialize active order list & cache on mount
   useEffect(() => {
@@ -85,15 +85,19 @@ export function useOrderDetailState(initialOrder: Order) {
     }
   }, [initialOrder]);
 
-  // Keep state in sync if initialOrder prop changes
+  // Keep state in sync ONLY on fresh initialOrder if client hasn't navigated
   useEffect(() => {
-    setOrder(initialOrder);
-    cachedOrdersMapRef.current[initialOrder.id] = initialOrder;
+    if (!hasNavigatedRef.current && initialOrder.id !== currentOrderIdRef.current) {
+      currentOrderIdRef.current = initialOrder.id;
+      setOrder(initialOrder);
+      cachedOrdersMapRef.current[initialOrder.id] = initialOrder;
+    }
   }, [initialOrder]);
 
   // Keep cache updated when current order changes (e.g. status change, note edit)
   useEffect(() => {
     if (!order?.id) return;
+    currentOrderIdRef.current = order.id;
     cachedOrdersMapRef.current[order.id] = order;
     try {
       const raw = sessionStorage.getItem('admin_active_orders_cache');
@@ -113,21 +117,21 @@ export function useOrderDetailState(initialOrder: Order) {
   const isInActiveList = activeOrderIds.length > 0 && activeOrderIds.includes(order.id);
   const activeIndex = isInActiveList ? activeOrderIds.indexOf(order.id) : -1;
 
-  // Next = newer order (earlier index 0..N-1)
-  // Prev = older order (later index)
-  const nextOrderId = isInActiveList
-    ? (activeIndex > 0 ? activeOrderIds[activeIndex - 1] : null)
-    : dbNextOrderId;
-
+  // Prev = previous order in list (Left arrow ←, index - 1 / newer)
+  // Next = next order in list (Right arrow →, index + 1 / older)
   const prevOrderId = isInActiveList
-    ? (activeIndex >= 0 && activeIndex < activeOrderIds.length - 1 ? activeOrderIds[activeIndex + 1] : null)
+    ? (activeIndex > 0 ? activeOrderIds[activeIndex - 1] : null)
     : dbPrevOrderId;
+
+  const nextOrderId = isInActiveList
+    ? (activeIndex >= 0 && activeIndex < activeOrderIds.length - 1 ? activeOrderIds[activeIndex + 1] : null)
+    : dbNextOrderId;
 
   const currentIndexDisplay = isInActiveList && activeOrderIds.length > 1
     ? `${activeIndex + 1} of ${activeOrderIds.length}`
     : null;
 
-  // 2. Fetch adjacent from DB ONLY if active filter list is absent / order is not in list (Zero DB hits when navigating filtered list)
+  // 2. Fetch adjacent from DB ONLY if active filter list is absent / order is not in list
   useEffect(() => {
     if (activeOrderIds.length > 0 && activeOrderIds.includes(order.id)) {
       return; // Already resolved via active filter cache!
@@ -140,20 +144,20 @@ export function useOrderDetailState(initialOrder: Order) {
       const [prevResult, nextResult] = await Promise.all([
         supabase
           .from('orders')
-          .select('id')
-          .lt('created_at', order.created_at)
-          .is('deleted_at', null)
-          .not('status', 'in', '("trash","deleted")')
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle(),
-        supabase
-          .from('orders')
-          .select('id')
+          .select('id, created_at')
           .gt('created_at', order.created_at)
           .is('deleted_at', null)
           .not('status', 'in', '("trash","deleted")')
           .order('created_at', { ascending: true })
+          .limit(1)
+          .maybeSingle(),
+        supabase
+          .from('orders')
+          .select('id, created_at')
+          .lt('created_at', order.created_at)
+          .is('deleted_at', null)
+          .not('status', 'in', '("trash","deleted")')
+          .order('created_at', { ascending: false })
           .limit(1)
           .maybeSingle(),
       ]);
@@ -170,9 +174,47 @@ export function useOrderDetailState(initialOrder: Order) {
     };
   }, [order.id, order.created_at, activeOrderIds]);
 
-  // 3. Instant 0ms Order Navigation without full-page server roundtrip
+  // 3. Background Prefetch adjacent orders into cache so navigation/swiping is ALWAYS 0ms instant
+  useEffect(() => {
+    const idsToPrefetch: string[] = [];
+    if (prevOrderId && !cachedOrdersMapRef.current[prevOrderId]) {
+      idsToPrefetch.push(prevOrderId);
+    }
+    if (nextOrderId && !cachedOrdersMapRef.current[nextOrderId]) {
+      idsToPrefetch.push(nextOrderId);
+    }
+    if (idsToPrefetch.length === 0) return;
+
+    let isMounted = true;
+    (async () => {
+      try {
+        const supabase = createClient();
+        const { data } = await supabase
+          .from('orders')
+          .select('*')
+          .in('id', idsToPrefetch);
+
+        if (isMounted && data && Array.isArray(data)) {
+          data.forEach(o => {
+            cachedOrdersMapRef.current[o.id] = o as Order;
+          });
+        }
+      } catch {
+        // Ignore prefetch error
+      }
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [prevOrderId, nextOrderId]);
+
+  // 4. Instant 0ms Order Navigation without full-page server roundtrip or ping-pong
   const navigateToOrder = useCallback(async (targetId: string | null) => {
-    if (!targetId || targetId === order.id) return;
+    if (!targetId || targetId === currentOrderIdRef.current) return;
+
+    hasNavigatedRef.current = true;
+    currentOrderIdRef.current = targetId;
 
     // Close any open popups/editors when switching orders
     setIsDropdownOpen(false);
@@ -180,7 +222,7 @@ export function useOrderDetailState(initialOrder: Order) {
     setIsEditingOrder(false);
     setIsNavigatingOrder(true);
 
-    // Scroll to top of order detail
+    // Scroll to top of order detail smoothly
     if (typeof document !== 'undefined') {
       const mainEl = document.getElementById('admin-main-content');
       if (mainEl && mainEl.scrollTop > 0) {
@@ -188,7 +230,18 @@ export function useOrderDetailState(initialOrder: Order) {
       }
     }
 
-    // Check in-memory cache first
+    const applyOrder = (target: Order) => {
+      setOrder(target);
+      currentOrderIdRef.current = target.id;
+      const newUrl = `/admin/orders/detail?id=${target.id}`;
+      // Update browser address bar and history WITHOUT triggering Next.js server roundtrip
+      window.history.replaceState({ orderId: target.id }, '', newUrl);
+      setTimeout(() => {
+        setIsNavigatingOrder(false);
+      }, 50);
+    };
+
+    // Check in-memory cache first (0ms instant)
     let targetOrder = cachedOrdersMapRef.current[targetId];
 
     // Check sessionStorage if not in memory
@@ -206,33 +259,43 @@ export function useOrderDetailState(initialOrder: Order) {
     }
 
     if (targetOrder) {
-      setOrder(targetOrder);
-      setClientId(targetId);
-      const newUrl = `/admin/orders/detail?id=${targetId}`;
-      window.history.replaceState({ orderId: targetId }, '', newUrl);
-      router.replace(newUrl, { scroll: false });
-      setTimeout(() => {
-        setIsNavigatingOrder(false);
-      }, 100);
+      applyOrder(targetOrder);
       return;
     }
 
-    // Fallback: use router.push which fetches on server with full admin privileges
+    // Fast client-side Supabase fetch (50ms instead of full Next.js page re-fetch)
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('id', targetId)
+        .single();
+
+      if (data && !error) {
+        const fetched = data as Order;
+        cachedOrdersMapRef.current[targetId] = fetched;
+        applyOrder(fetched);
+        return;
+      }
+    } catch {}
+
+    // Fallback: router.push if client fetch failed
     router.push(`/admin/orders/detail?id=${targetId}`);
     setTimeout(() => {
       setIsNavigatingOrder(false);
     }, 200);
-  }, [order.id, router]);
-
-  const handleNavigateNext = useCallback(() => {
-    if (nextOrderId) navigateToOrder(nextOrderId);
-  }, [nextOrderId, navigateToOrder]);
+  }, [router]);
 
   const handleNavigatePrev = useCallback(() => {
     if (prevOrderId) navigateToOrder(prevOrderId);
   }, [prevOrderId, navigateToOrder]);
 
-  // Handle URL change or browser popstate
+  const handleNavigateNext = useCallback(() => {
+    if (nextOrderId) navigateToOrder(nextOrderId);
+  }, [nextOrderId, navigateToOrder]);
+
+  // Handle URL change or browser popstate (e.g. user taps browser Back/Forward)
   useEffect(() => {
     const handlePopState = () => {
       const params = new URLSearchParams(window.location.search);
@@ -241,31 +304,15 @@ export function useOrderDetailState(initialOrder: Order) {
 
       setIsEditingOrder(isEditParam);
 
-      if (urlId && urlId !== order.id) {
+      if (urlId && urlId !== currentOrderIdRef.current) {
         navigateToOrder(urlId);
       }
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [order.id, navigateToOrder]);
+  }, [navigateToOrder]);
 
-  // Handle external searchParams sync if changed outside replaceState
-  useEffect(() => {
-    const isEditParam = searchParams.get('edit') === 'true';
-    if (isEditParam !== isEditingOrder) {
-      setIsEditingOrder(isEditParam);
-    }
-
-    const urlId = searchParams.get('id');
-    if (urlId && urlId !== clientId && urlId !== order.id) {
-      setClientId(urlId);
-      if (cachedOrdersMapRef.current[urlId]) {
-        setOrder(cachedOrdersMapRef.current[urlId]);
-      }
-    }
-  }, [searchParams, clientId, order.id, isEditingOrder]);
-
-  // 4. Keyboard Arrow Navigation (ArrowLeft = Newer / Prev, ArrowRight = Older / Next)
+  // 5. Keyboard Arrow Navigation (ArrowLeft = Previous order, ArrowRight = Next order)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isEditingOrder) {
@@ -285,70 +332,86 @@ export function useOrderDetailState(initialOrder: Order) {
       }
 
       if (e.key === 'ArrowLeft') {
-        if (nextOrderId) {
-          e.preventDefault();
-          navigateToOrder(nextOrderId);
-        }
-      } else if (e.key === 'ArrowRight') {
         if (prevOrderId) {
           e.preventDefault();
           navigateToOrder(prevOrderId);
+        }
+      } else if (e.key === 'ArrowRight') {
+        if (nextOrderId) {
+          e.preventDefault();
+          navigateToOrder(nextOrderId);
         }
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [nextOrderId, prevOrderId, navigateToOrder, isEditingOrder, lightboxImage]);
+  }, [nextOrderId, prevOrderId, navigateToOrder, isEditingOrder, lightboxImage, handleCloseEditOrder]);
 
-  // 5. Touch swipe navigation for mobile (Left = Older/Next order, Right = Newer/Prev order)
-  const nextOrderIdRef = useRef(nextOrderId);
+  // 6. Touch swipe navigation for mobile
+  // Swipe Left (finger moves ←) = Next order (→)
+  // Swipe Right (finger moves →) = Previous order (←)
   const prevOrderIdRef = useRef(prevOrderId);
+  const nextOrderIdRef = useRef(nextOrderId);
   useEffect(() => {
-    nextOrderIdRef.current = nextOrderId;
     prevOrderIdRef.current = prevOrderId;
-  }, [nextOrderId, prevOrderId]);
+    nextOrderIdRef.current = nextOrderId;
+  }, [prevOrderId, nextOrderId]);
 
   const touchStartXRef = useRef<number | null>(null);
   const touchStartYRef = useRef<number | null>(null);
+  const touchStartTimeRef = useRef<number>(0);
   const isSwipingRef = useRef(false);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     if (isEditingOrder || lightboxImage || isSwipingRef.current) return;
     const target = e.target as HTMLElement | null;
-    if (target?.closest('input, textarea, select, button, a, [role="dialog"], .prevent-swipe')) return;
+    if (target?.closest('input, textarea, select, button, a, [role="dialog"], .prevent-swipe, [data-prevent-swipe]')) return;
     const touch = e.touches[0];
     touchStartXRef.current = touch.clientX;
     touchStartYRef.current = touch.clientY;
+    touchStartTimeRef.current = Date.now();
   }, [isEditingOrder, lightboxImage]);
+
+  const handleTouchCancel = useCallback(() => {
+    touchStartXRef.current = null;
+    touchStartYRef.current = null;
+    touchStartTimeRef.current = 0;
+  }, []);
 
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
     if (touchStartXRef.current === null || touchStartYRef.current === null || isSwipingRef.current) return;
     const touch = e.changedTouches[0];
     const deltaX = touch.clientX - touchStartXRef.current;
     const deltaY = touch.clientY - touchStartYRef.current;
+    const elapsed = Date.now() - touchStartTimeRef.current;
+
     touchStartXRef.current = null;
     touchStartYRef.current = null;
+    touchStartTimeRef.current = 0;
 
-    // Standard horizontal swipe gesture:
-    // Minimum 45px horizontal travel, clearly horizontal (absX > absY * 1.3)
     const absX = Math.abs(deltaX);
     const absY = Math.abs(deltaY);
-    if (absX >= 45 && absX > absY * 1.3) {
-      if (deltaX < 0 && prevOrderIdRef.current) {
-        // Swiped left (finger moves right to left) -> Next / Older order (same as clicking →)
-        isSwipingRef.current = true;
-        navigateToOrder(prevOrderIdRef.current);
-        setTimeout(() => {
-          isSwipingRef.current = false;
-        }, 350);
-      } else if (deltaX > 0 && nextOrderIdRef.current) {
-        // Swiped right (finger moves left to right) -> Prev / Newer order (same as clicking ←)
+
+    // Effortless mobile flick gesture:
+    // - Under 600ms
+    // - At least 35px horizontal travel
+    // - Dominantly horizontal (absX > absY * 1.15)
+    if (elapsed < 600 && absX >= 35 && absX > absY * 1.15) {
+      if (deltaX < 0 && nextOrderIdRef.current) {
+        // Swiped LEFT (finger moves right to left) -> Next order (Right arrow →)
         isSwipingRef.current = true;
         navigateToOrder(nextOrderIdRef.current);
         setTimeout(() => {
           isSwipingRef.current = false;
-        }, 350);
+        }, 250);
+      } else if (deltaX > 0 && prevOrderIdRef.current) {
+        // Swiped RIGHT (finger moves left to right) -> Previous order (Left arrow ←)
+        isSwipingRef.current = true;
+        navigateToOrder(prevOrderIdRef.current);
+        setTimeout(() => {
+          isSwipingRef.current = false;
+        }, 250);
       }
     }
   }, [navigateToOrder]);
@@ -405,6 +468,7 @@ export function useOrderDetailState(initialOrder: Order) {
     navigateToOrder,
     handleTouchStart,
     handleTouchEnd,
+    handleTouchCancel,
     paymentMethod, isPaid,
     ...customerEditing,
     ...actions,
