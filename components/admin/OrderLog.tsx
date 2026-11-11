@@ -108,131 +108,134 @@ export default function OrderLog({ initialOrders, settings, initialFailedAttempt
         </div>
       )}
 
-      {/* Filter Tabs Row */}
-      <div className="filter-tabs-row flex items-center gap-2 border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] rounded-t-xl px-3 py-1 select-none">
-        {/* Scrollable tabs — kept separate from the action icons so tabs never clip */}
-        <div className="filter-tabs-scroll flex items-center flex-1 min-w-0 overflow-x-auto">
-          {([
-            { key: 'all', label: 'All' },
-            { key: 'unfulfilled', label: 'Unfulfilled' },
-            { key: 'unpaid', label: 'Unpaid' },
-            { key: 'open', label: 'Open' },
-            { key: 'archived', label: 'Archived' },
-          ] as const).map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => { o.setActiveTab(tab.key); o.setSelectedOrderIds([]); }}
-              className={`filter-tab shrink-0 whitespace-nowrap px-3 py-2.5 text-[13.5px] transition-all font-semibold border-b-2 mr-2 ${o.activeTab === tab.key
-                  ? 'border-gray-900 dark:border-white text-gray-900 dark:text-white'
-                  : 'border-transparent text-gray-500 hover:text-gray-900 dark:hover:text-white'
-                }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Right side icons — fixed, never part of the scroll track */}
-        <div className="flex items-center gap-1.5 py-1 shrink-0">
-          <button
-            onClick={() => o.setIsSearchExpanded(!o.isSearchExpanded)}
-            className={`table-ctrl-btn w-8 h-8 rounded-md border flex items-center justify-center transition-all ${o.isSearchExpanded
-                ? 'bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white'
-                : 'bg-white dark:bg-transparent border-gray-200 dark:border-gray-800 text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
-              }`}
-            title="Search"
-          >
-            <Search className="h-4 w-4" />
-          </button>
-          <button
-            onClick={() => o.setIsFiltersExpanded(!o.isFiltersExpanded)}
-            className={`table-ctrl-btn w-8 h-8 rounded-md border flex items-center justify-center transition-all ${o.isFiltersExpanded
-                ? 'bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white'
-                : 'bg-white dark:bg-transparent border-gray-200 dark:border-gray-800 text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
-              }`}
-            title="Filters"
-          >
-            <SlidersHorizontal className="h-4 w-4" />
-          </button>
-
-          <Link
-            href="/admin/reporting"
-            className="table-ctrl-btn w-8 h-8 rounded-md border border-gray-200 dark:border-gray-800 text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white flex items-center justify-center transition-all"
-            title="View reports"
-          >
-            <TrendingUp className="h-4 w-4" />
-          </Link>
-        </div>
-      </div>
-
-      {/* Expanded Search Input */}
-      {o.isSearchExpanded && (
-        <div className="bg-white dark:bg-[#16162a] border-x border-gray-200 dark:border-gray-800 px-4 py-3 flex gap-2 animate-fade-in border-b">
-          <AdminSearchInput
-            value={o.searchQuery}
-            onChange={o.setSearchQuery}
-            placeholder="Search by order no, customer or phone..."
-            className="flex-1 w-full"
-          />
-        </div>
-      )}
-
-      {/* Expanded Filters Panel */}
-      {o.isFiltersExpanded && (
-        <div className="bg-white dark:bg-[#16162a] border-x border-gray-200 dark:border-gray-800 px-4 py-3.5 flex flex-wrap items-center gap-3.5 animate-fade-in border-b">
-          <AdminDateFilter
-            value={o.dateFilter}
-            onChange={o.setDateFilter}
-            className="flex-1 sm:flex-initial"
-            options={[
-              { value: 'today', label: 'Today' },
-              { value: 'yesterday', label: 'Yesterday' },
-              { value: 'tomorrow', label: 'Tomorrow' },
-              { value: 'last7', label: 'Last 7 Days' },
-              { value: 'last30', label: 'Last 30 Days' },
-              { value: 'custom', label: 'Custom Range' }
-            ]}
-          />
-
-          <div className="flex items-center gap-1.5 bg-white dark:bg-[#16162a] border border-gray-200 dark:border-gray-800 rounded-xl px-3 py-1 flex-1 sm:flex-initial">
-            <select
-              value={o.statusFilter}
-              onChange={(e) => o.setStatusFilter(e.target.value)}
-              className="bg-transparent border-0 text-xs font-bold focus:outline-none text-gray-900 dark:text-white cursor-pointer py-1.5"
-            >
-              <option value="all">All Statuses</option>
-              <option value="pending">Pending</option>
-              <option value="placed">Placed</option>
-              <option value="confirmed">Confirmed</option>
-              <option value="processing">Processing</option>
-              <option value="shipped">Shipped</option>
-              <option value="out_for_delivery">Out for Delivery</option>
-              <option value="delivered">Delivered</option>
-              <option value="cancelled">Cancelled</option>
-              <option value="refunded">Refunded</option>
-            </select>
+      {/* Sticky Filter Tabs & Controls Toolbar */}
+      <div className="sticky top-[calc(3.5rem+env(safe-area-inset-top,0px))] md:top-14 z-20">
+        {/* Filter Tabs Row */}
+        <div className="filter-tabs-row flex items-center gap-2 border border-gray-200 dark:border-gray-800 bg-white/95 dark:bg-[#16162a]/95 backdrop-blur-md rounded-t-xl px-3 py-1 select-none shadow-xs">
+          {/* Scrollable tabs — kept separate from the action icons so tabs never clip */}
+          <div className="filter-tabs-scroll flex items-center flex-1 min-w-0 overflow-x-auto">
+            {([
+              { key: 'all', label: 'All' },
+              { key: 'unfulfilled', label: 'Unfulfilled' },
+              { key: 'unpaid', label: 'Unpaid' },
+              { key: 'open', label: 'Open' },
+              { key: 'archived', label: 'Archived' },
+            ] as const).map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => { o.setActiveTab(tab.key); o.setSelectedOrderIds([]); }}
+                className={`filter-tab shrink-0 whitespace-nowrap px-3 py-2.5 text-[13.5px] transition-all font-semibold border-b-2 mr-2 ${o.activeTab === tab.key
+                    ? 'border-gray-900 dark:border-white text-gray-900 dark:text-white'
+                    : 'border-transparent text-gray-500 hover:text-gray-900 dark:hover:text-white'
+                  }`}
+              >
+                {tab.label}
+              </button>
+            ))}
           </div>
 
-          {o.dateFilter === 'custom' && (
-            <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 ml-auto w-full sm:w-auto mt-2 sm:mt-0">
-              <span className="text-[10px] font-bold text-gray-400 uppercase">Range:</span>
-              <input
-                type="date"
-                value={o.customStartDate}
-                onChange={(e) => o.setCustomStartDate(e.target.value)}
-                className="bg-transparent border-0 text-xs font-bold text-gray-900 dark:text-white focus:outline-none"
-              />
-              <span className="text-gray-400">—</span>
-              <input
-                type="date"
-                value={o.customEndDate}
-                onChange={(e) => o.setCustomEndDate(e.target.value)}
-                className="bg-transparent border-0 text-xs font-bold text-gray-900 dark:text-white focus:outline-none"
-              />
-            </div>
-          )}
+          {/* Right side icons — fixed, never part of the scroll track */}
+          <div className="flex items-center gap-1.5 py-1 shrink-0">
+            <button
+              onClick={() => o.setIsSearchExpanded(!o.isSearchExpanded)}
+              className={`table-ctrl-btn w-8 h-8 rounded-md border flex items-center justify-center transition-all ${o.isSearchExpanded
+                  ? 'bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white'
+                  : 'bg-white dark:bg-transparent border-gray-200 dark:border-gray-800 text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
+                }`}
+              title="Search"
+            >
+              <Search className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => o.setIsFiltersExpanded(!o.isFiltersExpanded)}
+              className={`table-ctrl-btn w-8 h-8 rounded-md border flex items-center justify-center transition-all ${o.isFiltersExpanded
+                  ? 'bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white'
+                  : 'bg-white dark:bg-transparent border-gray-200 dark:border-gray-800 text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
+                }`}
+              title="Filters"
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+            </button>
+
+            <Link
+              href="/admin/reporting"
+              className="table-ctrl-btn w-8 h-8 rounded-md border border-gray-200 dark:border-gray-800 text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white flex items-center justify-center transition-all"
+              title="View reports"
+            >
+              <TrendingUp className="h-4 w-4" />
+            </Link>
+          </div>
         </div>
-      )}
+
+        {/* Expanded Search Input */}
+        {o.isSearchExpanded && (
+          <div className="bg-white/95 dark:bg-[#16162a]/95 backdrop-blur-md border-x border-gray-200 dark:border-gray-800 px-4 py-3 flex gap-2 animate-fade-in border-b shadow-xs">
+            <AdminSearchInput
+              value={o.searchQuery}
+              onChange={o.setSearchQuery}
+              placeholder="Search by order no, customer or phone..."
+              className="flex-1 w-full"
+            />
+          </div>
+        )}
+
+        {/* Expanded Filters Panel */}
+        {o.isFiltersExpanded && (
+          <div className="bg-white/95 dark:bg-[#16162a]/95 backdrop-blur-md border-x border-gray-200 dark:border-gray-800 px-4 py-3.5 flex flex-wrap items-center gap-3.5 animate-fade-in border-b shadow-xs">
+            <AdminDateFilter
+              value={o.dateFilter}
+              onChange={o.setDateFilter}
+              className="flex-1 sm:flex-initial"
+              options={[
+                { value: 'today', label: 'Today' },
+                { value: 'yesterday', label: 'Yesterday' },
+                { value: 'tomorrow', label: 'Tomorrow' },
+                { value: 'last7', label: 'Last 7 Days' },
+                { value: 'last30', label: 'Last 30 Days' },
+                { value: 'custom', label: 'Custom Range' }
+              ]}
+            />
+
+            <div className="flex items-center gap-1.5 bg-white dark:bg-[#16162a] border border-gray-200 dark:border-gray-800 rounded-xl px-3 py-1 flex-1 sm:flex-initial">
+              <select
+                value={o.statusFilter}
+                onChange={(e) => o.setStatusFilter(e.target.value)}
+                className="bg-transparent border-0 text-xs font-bold focus:outline-none text-gray-900 dark:text-white cursor-pointer py-1.5"
+              >
+                <option value="all">All Statuses</option>
+                <option value="pending">Pending</option>
+                <option value="placed">Placed</option>
+                <option value="confirmed">Confirmed</option>
+                <option value="processing">Processing</option>
+                <option value="shipped">Shipped</option>
+                <option value="out_for_delivery">Out for Delivery</option>
+                <option value="delivered">Delivered</option>
+                <option value="cancelled">Cancelled</option>
+                <option value="refunded">Refunded</option>
+              </select>
+            </div>
+
+            {o.dateFilter === 'custom' && (
+              <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 ml-auto w-full sm:w-auto mt-2 sm:mt-0">
+                <span className="text-[10px] font-bold text-gray-400 uppercase">Range:</span>
+                <input
+                  type="date"
+                  value={o.customStartDate}
+                  onChange={(e) => o.setCustomStartDate(e.target.value)}
+                  className="bg-transparent border-0 text-xs font-bold text-gray-900 dark:text-white focus:outline-none"
+                />
+                <span className="text-gray-400">—</span>
+                <input
+                  type="date"
+                  value={o.customEndDate}
+                  onChange={(e) => o.setCustomEndDate(e.target.value)}
+                  className="bg-transparent border-0 text-xs font-bold text-gray-900 dark:text-white focus:outline-none"
+                />
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Bulk Actions Panel Overlay */}
       <OrderLogBulkActions
