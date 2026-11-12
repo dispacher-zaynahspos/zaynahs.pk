@@ -116,4 +116,7 @@ Before completing any UI change in Admin/POS:
    - **Maximized Products Scroll Area**: The articles ordered list is the hero of the modal and takes primary vertical space (up to 380px–420px), displaying 5–6 products simultaneously with smooth internal scroll (`[scrollbar-width:thin]`).
    - **Smart Compact Metadata Strip**: Customer name, phone, delivery address, payment method, customer note (if present), and financial totals are consolidated into a sleek, unified, compact summary strip (~70px–90px) that NEVER gets cut off or pushed behind the footer.
    - **Stable Non-Jumping Dimensions**: Modal container height is strictly stable (`sm:!h-[670px]` desktop, `!h-[92dvh]` mobile) across navigation, keeping Next/Previous switcher buttons (`[ ← N of M → ]`) and Close button (`✕`) at the exact same screen coordinates.
+5. **Direct Product Editor Link & External Icon Standard**:
+   - Every ordered line item in Order Detail Canvas (`OrderDetailCanvas.tsx`) and Order Quick View Modal (`OrderQuickViewModal.tsx`) MUST render its product title as a direct clickable link to `/admin/products/[product_id]` opening in a new tab (`target="_blank" rel="noopener noreferrer"`).
+   - Accompany the title with a clean external link icon (`<ExternalLink className="w-3.5 h-3.5" />`). Admin merchants must never be forced to copy IDs or manually search the catalog to inspect or edit a product appearing in an order.
 

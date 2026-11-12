@@ -287,3 +287,28 @@ Full context: [07-deployment-vercel-cloudflare.md](07-deployment-vercel-cloudfla
 +* In Next.js App Router, an uncached `no-store` fetch causes Next.js to switch the entire page to dynamic SSR (`cache-control: private, no-store`, `x-vercel-cache: MISS`), forcing Vercel to run a full serverless function and burn 200–500ms of Fluid CPU on every cache miss.
 +* **Enforcement:** All DB queries on storefront pages must be wrapped in `unstable_cache` with tags.
 +* **Verification:** `npm run build` MUST compile `/product/[slug]` as **`● (SSG)`** (Prerendered as static HTML). It must NEVER be `ƒ (Dynamic)`.
++
++## RULE C18 — Full Catalog Purge Scope & Next.js SWR Edge Lock Prevention (MANDATORY)
++1. **Admin Purge Scope (`purgeAllCache`)**:
++   - `purgeAllCache()` (in `lib/services/cache.ts`) MUST NEVER omit the product catalog.
++   - It is strictly required to call:
++     - `revalidateAllProducts()`
++     - `revalidateTagSafe('products')`
++     - `revalidateTagSafe('categories')`
++     - `revalidateTagSafe('collections')`
++     - `revalidateTagSafe('reviews')`
++     - `revalidateTagSafe('banners')`
++     - `revalidateTagSafe('homepage_sections')`
++     - `revalidateTagSafe('verticals')`
++     - `revalidatePath('/shop')`
++     - `revalidatePath('/', 'layout')`
++   - Omitting `products` or `/shop` means Next.js's internal `unstable_cache` (`['products-list-v4-light']`) is never evicted, causing new products/price updates to remain invisible on the storefront.
++2. **Next.js SWR (Stale-While-Revalidate) Edge Lock Prevention**:
++   - In Next.js App Router, an invalidation marks the page as stale. The first incoming request is served stale while the origin regenerates in the background.
++   - Cloudflare caches that initial response at the edge for `edge_ttl` (10 minutes or 30 days), locking the old version in place.
++   - **Remedy**: Every admin write or manual purge MUST execute a **two-pass edge purge**:
++     - Pass 1: Next.js revalidation + immediate Cloudflare purge.
++     - Pass 2: Delayed Cloudflare purge after **3.5 seconds** (via `revalidateAfterResponse` / `waitUntil`), allowing origin regeneration to finish so Cloudflare caches only the freshly generated HTML.
++3. **Database Sort Order Invariant on New Listings**:
++   - New products must never be assigned a `sort_order` that pushes them below pinned older items.
++   - If older products have `sort_order = -1`, new featured/top arrivals must use a priority order (e.g. `sort_order <= -2`) to avoid being truncated by section display limits (e.g. `limit: 10`).
