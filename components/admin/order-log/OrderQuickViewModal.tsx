@@ -366,9 +366,22 @@ export function OrderQuickViewModal({
 
                     {/* Article Details & Variations */}
                     <div className="flex-1 min-w-0">
-                      <h4 className="text-[12.5px] sm:text-[13px] font-bold text-gray-900 dark:text-white leading-snug line-clamp-1 sm:line-clamp-2">
-                        {item.product?.name || (item as unknown as { title?: string }).title || 'Item'}
-                      </h4>
+                      {item.product?.id ? (
+                        <a
+                          href={`/admin/products/${item.product.id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 text-[12.5px] sm:text-[13px] font-bold text-gray-900 dark:text-white hover:text-[#2c6ecb] dark:hover:text-blue-400 leading-snug line-clamp-1 sm:line-clamp-2 transition-colors group cursor-pointer"
+                          title="Open product editor (new tab)"
+                        >
+                          <span>{item.product?.name || (item as unknown as { title?: string }).title || 'Item'}</span>
+                          <ExternalLink className="w-3.5 h-3.5 opacity-60 group-hover:opacity-100 text-blue-600 dark:text-blue-400 shrink-0 transition-opacity" />
+                        </a>
+                      ) : (
+                        <h4 className="text-[12.5px] sm:text-[13px] font-bold text-gray-900 dark:text-white leading-snug line-clamp-1 sm:line-clamp-2">
+                          {item.product?.name || (item as unknown as { title?: string }).title || 'Item'}
+                        </h4>
+                      )}
 
                       {/* Variation Chips */}
                       {variant.chips && variant.chips.length > 0 ? (

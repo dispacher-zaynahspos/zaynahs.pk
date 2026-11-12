@@ -11,7 +11,8 @@ import {
   Check,
   MoreHorizontal,
   Trash2,
-  X
+  X,
+  ExternalLink
 } from '@/components/common/Icons';
 import { Order, StoreSettings } from '@/lib/types';
 import { formatPrice } from '@/lib/utils/whatsapp';
@@ -504,12 +505,25 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
                       className="w-11 h-11 sm:w-13 sm:h-13 rounded-lg flex-shrink-0"
                     />
                     <div className="flex-1 min-w-0">
-                      <h4
-                        className="text-xs sm:text-[13.5px] font-bold text-gray-900 dark:text-white leading-snug line-clamp-1 sm:line-clamp-2 hover:text-[#2c6ecb] transition-colors"
-                        title={item.product?.name || 'Product'}
-                      >
-                        {item.product?.name || 'Product'}
-                      </h4>
+                      {item.product?.id ? (
+                        <a
+                          href={`/admin/products/${item.product.id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 text-xs sm:text-[13.5px] font-bold text-gray-900 dark:text-white hover:text-[#2c6ecb] dark:hover:text-blue-400 leading-snug line-clamp-1 sm:line-clamp-2 transition-colors group"
+                          title="Open product in editor (new tab)"
+                        >
+                          <span>{item.product?.name || 'Product'}</span>
+                          <ExternalLink className="w-3.5 h-3.5 opacity-60 group-hover:opacity-100 text-blue-600 dark:text-blue-400 shrink-0 transition-opacity" />
+                        </a>
+                      ) : (
+                        <h4
+                          className="text-xs sm:text-[13.5px] font-bold text-gray-900 dark:text-white leading-snug line-clamp-1 sm:line-clamp-2"
+                          title={item.product?.name || 'Product'}
+                        >
+                          {item.product?.name || 'Product'}
+                        </h4>
+                      )}
 
                       {/* Variant Chips, Quantity & Pricing in compact aligned row */}
                       <div className="flex flex-wrap items-center gap-1 sm:gap-1.5 mt-0.5 sm:mt-1">

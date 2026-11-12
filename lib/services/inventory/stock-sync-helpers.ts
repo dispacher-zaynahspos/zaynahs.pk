@@ -5,7 +5,7 @@
  * the build ("Server Actions must be async functions").
  */
 
-const CANCELLATION_STATUSES = new Set<string>(['cancelled', 'refunded']);
+const CANCELLATION_STATUSES = new Set<string>(['cancelled', 'refunded', 'returned']);
 
 /**
  * Guard: returns true if the status transition means stock should be restored.
