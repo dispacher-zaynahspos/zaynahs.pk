@@ -342,6 +342,7 @@ export default function ProductForm({ categories, initialProduct, aiEnabled }: P
               const a = (alt || '').toLowerCase();
               return (
                 u.includes('gemini_generated_image_os2sl0os2sl0os2s') ||
+                u.includes('photo-2026-11-01-09-46-43') ||
                 u.includes('size_chart') ||
                 u.includes('size-chart') ||
                 a.includes('measurement guide') ||

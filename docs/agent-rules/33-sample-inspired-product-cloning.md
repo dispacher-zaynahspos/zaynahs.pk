@@ -53,7 +53,7 @@ Whenever the merchant specifies a sample product (e.g., *"is sample article ko f
 ### B. Gallery Order Invariant (Size Chart is ALWAYS LAST):
 1. **Slot 1 (Primary)**: The article's main photo (`is_primary: true`).
 2. **Slots 2 .. N-1**: Real angles, model photos, detail close-up callouts, and flat lays.
-3. **Slot N (LAST SLIDE)**: The Size Measurement Guide image (`gemini_generated_image_os2sl0os2sl0os2s...`). The size chart MUST ALWAYS be positioned at the very last slide of the gallery.
+3. **Slot N (LAST SLIDE)**: The Size Measurement Guide image (`photo-2026-11-01-09-46-43-1793508433015.webp` with alt: "Detailed kids clothing size chart from TotVogue.pk showing measurements in inches for shirts, trousers, shoulders, sleeves, chest, and waist for ages 1 to 12 years."). The size chart MUST ALWAYS be positioned at the very last slide of the gallery.
 
 ### C. Unique Content for Every Article (Never Cloned):
 1. **Title / Name**: Dedicated, descriptive title matching garment motifs, colors, and characters.
