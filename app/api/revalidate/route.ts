@@ -147,7 +147,7 @@ export async function POST(req: NextRequest) {
     // 30 days. Purge the edge a second time after the origin has regenerated so
     // the fresh HTML is what gets cached.
     await revalidateAfterResponse(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 8000));
+      await new Promise((resolve) => setTimeout(resolve, 3500));
       await purgeAllCloudflareZones();
     });
 

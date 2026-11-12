@@ -127,10 +127,13 @@ Result: price change visible to customers in < 1 second, zero DB hits per page l
 - **Global zone purge reserved strictly for settings/theme**: Only `revalidateSettings()` (global colors, logo, root layout) and post-deployment emergency fixes call `purgeCloudflareEverything()` (`purge_everything: true`). Routine product/category saves must NEVER wipe the entire zone.
 - See full architecture in [docs/TARGETED_EDGE_CACHING_GUIDE.md](../../docs/TARGETED_EDGE_CACHING_GUIDE.md).
 
-## RULE C10 — Every admin write auto-invalidates ALL cache layers (STRICT)
+## RULE C10 — Every admin write auto-invalidates ALL cache layers (STRICT DUAL-PURGE)
 Manual "Purge Cache" button sirf **emergency** ke liye hai. **Normal save ke baad kabhi bhi manual purge zaroori na ho** — har admin write khud saari cache layers invalidate kare, ek hi **shared utility** (`lib/revalidate.ts`) ke through.
 - **Ek shared invalidation utility** (`lib/revalidate.ts`) har write path me call ho.
-- Ek save par saari layers invalidate hon: **Next.js Tags & Paths** (`revalidateTag` + `revalidatePath`), **Vercel Data Cache** (`unstable_cache` TTL ≤ 300s), aur **Cloudflare edge** (`purgeCloudflareEverything()`).
+- **Dual Platform Standard (Cloudflare Workers/Pages & Vercel)**: Chahe store Cloudflare Workers/Pages pe deploy ho ya Vercel pe, cache invalidation dono environments me seamlessly trigger hogi.
+- **Full Catalog Scope**: Admin manual purge (`purgeAllCache`) aur entity revalidation me sabhi core tags (`products`, `categories`, `collections`, `reviews`, `banners`, `homepage_sections`, `verticals`) aur paths (`/`, `/shop`, `/admin`) comprehensively revalidate honge.
+- **Two-Pass Edge Purge Standard (Eliminates SWR Stale Lock)**:
+  Next.js App Router ISR invalidation par pehli request pe stale HTML serve karta hai jabki background me fresh page regenerate hota hai. Cloudflare edge us pehle stale response ko dubara cache na kare, is liye har purge/revalidation ke baad **3.5 seconds** delay ke saath `revalidateAfterResponse` me 2nd-pass Cloudflare edge purge chalega. Is se edge hamesha origin ka 100% fresh HTML hi cache karega.
 - **No stale-data leakage**: save ke turant baad koi bhi layer purani value serve na kare.
 
 ## RULE C13 — Cloudflare Browser Cache TTL MUST be 0 (Respect Origin) (CRITICAL)

@@ -307,6 +307,17 @@ export async function revalidateProduct(
       urls: purgeUrls,
     });
 
+    // 3. Delayed follow-up purge: Next.js ISR serves stale HTML on the first request while
+    // background regenerating. Purge Cloudflare edge again after 3.5s so Cloudflare re-caches
+    // the newly regenerated FRESH HTML rather than being stuck on the stale SWR payload.
+    await revalidateAfterResponse(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 3500));
+      await purgeCloudflareTargeted({
+        tags: ['product', 'products', `product-${slug}`, 'homepage'],
+        urls: purgeUrls,
+      });
+    });
+
     if (action === 'DELETED') {
       await notifyGoogleIndexing(productUrl, 'URL_DELETED');
     } else {
@@ -405,6 +416,15 @@ export async function revalidateCategory(slug: string, action: 'UPDATED' | 'DELE
     await purgeCloudflareTargeted({
       tags: ['category', 'categories', `category-${slug}`],
       urls: [categoryUrl, `${siteUrl}/shop`, `${siteUrl}/`],
+    });
+
+    // 3. Delayed follow-up purge for SWR re-cached responses
+    await revalidateAfterResponse(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 3500));
+      await purgeCloudflareTargeted({
+        tags: ['category', 'categories', `category-${slug}`],
+        urls: [categoryUrl, `${siteUrl}/shop`, `${siteUrl}/`],
+      });
     });
 
     if (action === 'DELETED') {
