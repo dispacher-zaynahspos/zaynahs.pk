@@ -175,6 +175,10 @@ CREATE TABLE IF NOT EXISTS products (
   inventory_threshold INTEGER DEFAULT 0,
   variation_order TEXT[] DEFAULT NULL,
   sales_count INTEGER DEFAULT 0,
+  is_preorder BOOLEAN DEFAULT false,
+  preorder_end_date TIMESTAMPTZ,
+  preorder_dispatch_date TEXT,
+  preorder_limit INTEGER,
   deleted_at TIMESTAMPTZ DEFAULT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()

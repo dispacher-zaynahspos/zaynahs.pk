@@ -271,6 +271,7 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
         isInWishlist={isInWishlist}
         hasVariants={Boolean(product.has_variants)}
         isOutOfStock={isOutOfStock}
+        isPreorder={product.is_preorder}
         onToggleWishlist={onToggleWishlist}
         onOpenQuickView={onOpenQuickView}
         onAddToCart={onAddToCart}

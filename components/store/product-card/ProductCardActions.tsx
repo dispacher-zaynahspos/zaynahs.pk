@@ -142,6 +142,7 @@ interface ProductCardActionsProps {
   isInWishlist: boolean;
   hasVariants: boolean;
   isOutOfStock?: boolean;
+  isPreorder?: boolean;
   onToggleWishlist: (e: React.MouseEvent) => void;
   onOpenQuickView: (e: React.MouseEvent) => void;
   onAddToCart: (e: React.MouseEvent) => void;
@@ -169,7 +170,8 @@ export const ProductCardActions: React.FC<ProductCardActionsProps> = ({
   showQuickcart,
   isInWishlist,
   hasVariants,
-  isOutOfStock = false,
+  isOutOfStock: rawOutOfStock = false,
+  isPreorder = false,
   onToggleWishlist,
   onOpenQuickView,
   onAddToCart,
@@ -177,6 +179,7 @@ export const ProductCardActions: React.FC<ProductCardActionsProps> = ({
   variant = 'action-btn',
   className = '',
 }) => {
+  const isOutOfStock = isPreorder ? false : rawOutOfStock;
   const presetClass = `icon-preset-${iconStyle}`;
 
   // ── 1. SLIDE-DRAWER (Zara / Haute Editorial) ──────────────────────────────────

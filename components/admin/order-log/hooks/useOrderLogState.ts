@@ -141,16 +141,38 @@ export function useOrderLogState({ initialOrders, settings }: UseOrderLogStatePr
 
   const clearCustomerFilter = () => {
     setSelectedCustomer(null);
+    setDateFilter('today');
+    setCurrentPage(1);
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       params.delete('customerId');
       params.delete('customerPhone');
       params.delete('customerName');
+      params.delete('timeRange');
+      params.delete('startDate');
+      params.delete('endDate');
+      params.delete('page');
       const newQs = params.toString();
       const newUrl = window.location.pathname + (newQs ? '?' + newQs : '');
       window.history.replaceState(null, '', newUrl);
+
+      // Clean up sessionStorage so customer filter never gets restored
+      try {
+        const savedRaw = sessionStorage.getItem(ORDERS_FILTER_STORAGE_KEY);
+        if (savedRaw) {
+          const saved = JSON.parse(savedRaw);
+          delete saved.selectedCustomer;
+          saved.dateFilter = 'today';
+          delete saved.customStartDate;
+          delete saved.customEndDate;
+          saved.currentPage = 1;
+          sessionStorage.setItem(ORDERS_FILTER_STORAGE_KEY, JSON.stringify(saved));
+        }
+        sessionStorage.setItem('admin_orders_return_url', '/admin/orders');
+      } catch {}
     }
-    fetchOrdersByDate(dateFilter, customStartDate, customEndDate, 1, rowsPerPage);
+    fetchOrdersByDate('today', undefined, undefined, 1, rowsPerPage, activeTab, statusFilter);
+    toast.success('All orders restored');
   };
 
   useEffect(() => {
@@ -220,13 +242,20 @@ export function useOrderLogState({ initialOrders, settings }: UseOrderLogStatePr
         const cust: CustomerFilter = { id: cId, phone: cPhone, name: cName };
         setSelectedCustomer(cust);
         fetchOrdersForCustomer(cust);
+      } else {
+        setSelectedCustomer(null);
       }
     } else {
-      // Restore from sessionStorage when navigating back or reopening orders
+      // Direct navigation to /admin/orders without params: strictly ensure no leftover customer lock
+      setSelectedCustomer(null);
       try {
         const savedRaw = sessionStorage.getItem(ORDERS_FILTER_STORAGE_KEY);
         if (savedRaw) {
           const saved = JSON.parse(savedRaw);
+          if (saved.selectedCustomer) {
+            delete saved.selectedCustomer;
+            sessionStorage.setItem(ORDERS_FILTER_STORAGE_KEY, JSON.stringify(saved));
+          }
           if (saved.dateFilter && ['today', 'yesterday', 'tomorrow', 'last7', 'last30', 'custom', 'all'].includes(saved.dateFilter)) {
             setDateFilter(saved.dateFilter);
           }
@@ -238,10 +267,6 @@ export function useOrderLogState({ initialOrders, settings }: UseOrderLogStatePr
           if (saved.searchQuery) {
             setSearchQuery(saved.searchQuery);
             setIsSearchExpanded(true);
-          }
-          if (saved.selectedCustomer) {
-            setSelectedCustomer(saved.selectedCustomer);
-            fetchOrdersForCustomer(saved.selectedCustomer);
           }
           if (saved.currentPage && typeof saved.currentPage === 'number') {
             setCurrentPage(saved.currentPage);
@@ -296,7 +321,6 @@ export function useOrderLogState({ initialOrders, settings }: UseOrderLogStatePr
         customEndDate,
         activeTab,
         searchQuery,
-        selectedCustomer,
         currentPage,
         rowsPerPage,
       };

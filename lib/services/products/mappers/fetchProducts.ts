@@ -15,6 +15,7 @@ const LIGHT_SELECT = `
   reviews_count, sort_order, variation_order, deleted_at, created_at, updated_at,
   flash_sale_enabled, flash_sale_start_date, flash_sale_end_date,
   flash_sale_discount_type, flash_sale_discount_value,
+  is_preorder, preorder_end_date, preorder_dispatch_date, preorder_limit,
   product_images(*),
   product_variants(*),
   categories!category_id(*),

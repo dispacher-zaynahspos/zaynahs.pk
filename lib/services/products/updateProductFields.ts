@@ -40,6 +40,10 @@ export const updateProductFields = async (
     if (fields.flash_sale_end_date !== undefined) updatePayload.flash_sale_end_date = fields.flash_sale_end_date || null;
     if (fields.flash_sale_discount_type !== undefined) updatePayload.flash_sale_discount_type = fields.flash_sale_discount_type;
     if (fields.flash_sale_discount_value !== undefined) updatePayload.flash_sale_discount_value = fields.flash_sale_discount_value;
+    if (fields.is_preorder !== undefined) updatePayload.is_preorder = fields.is_preorder;
+    if (fields.preorder_end_date !== undefined) updatePayload.preorder_end_date = fields.preorder_end_date || null;
+    if (fields.preorder_dispatch_date !== undefined) updatePayload.preorder_dispatch_date = fields.preorder_dispatch_date || null;
+    if (fields.preorder_limit !== undefined) updatePayload.preorder_limit = fields.preorder_limit ?? null;
     if (fields.tags !== undefined) updatePayload.tags = fields.tags;
     if (fields.rating !== undefined) updatePayload.rating = fields.rating;
     if (fields.reviews_count !== undefined) updatePayload.reviews_count = fields.reviews_count;

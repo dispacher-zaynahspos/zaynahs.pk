@@ -97,6 +97,10 @@ export interface Product {
   flash_sale_end_date?: string;
   flash_sale_discount_type?: 'percentage' | 'fixed';
   flash_sale_discount_value?: number;
+  is_preorder?: boolean;
+  preorder_end_date?: string | null;
+  preorder_dispatch_date?: string | null;
+  preorder_limit?: number | null;
   meta_sync_status?: 'pending' | 'synced' | 'error';
   meta_sync_error?: string | null;
   meta_last_synced_at?: string | null;

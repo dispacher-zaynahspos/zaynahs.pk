@@ -38,7 +38,25 @@ export const ProductCardBadges: React.FC<ProductCardBadgesProps> = ({
     }
   }
 
-  if (isSoldOut) {
+  // 0. Pre-Order Badge (Overrides Sold Out) or Sold Out Badge
+  if (product.is_preorder) {
+    badges.push(
+      <span
+        key="preorder"
+        className={`${badgeClass} bdg-preorder`}
+        style={{
+          backgroundColor: '#4f46e5',
+          color: '#ffffff',
+          '--bdg-bg': '#4f46e5',
+          '--bdg-color': '#ffffff',
+          fontWeight: 800,
+          letterSpacing: '0.05em',
+        } as React.CSSProperties}
+      >
+        Pre-Order
+      </span>
+    );
+  } else if (isSoldOut) {
     badges.push(
       <span
         key="soldout"

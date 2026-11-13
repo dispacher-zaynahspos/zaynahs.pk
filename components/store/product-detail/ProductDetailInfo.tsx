@@ -127,6 +127,9 @@ export default function ProductDetailInfo({
           productComparePrice={product.compare_price}
           mounted={mounted}
           timeLeft={timeLeft}
+          isPreorder={product.is_preorder}
+          preorderEndDate={product.preorder_end_date}
+          preorderDispatchDate={product.preorder_dispatch_date}
         />
 
         {/* Short Description */}
@@ -286,7 +289,7 @@ export default function ProductDetailInfo({
               onClick={() => setQuantity(q => q + 1)}
               aria-label="Increase quantity"
               className="p-2.5 text-gray-700 dark:text-gray-300 hover:text-gray-950 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 active:bg-gray-200 dark:active:bg-white/15 disabled:opacity-30 cursor-pointer transition-colors"
-              disabled={quantity >= stockAvailable}
+              disabled={!product.is_preorder && stockAvailable > 0 && quantity >= stockAvailable}
             >
               <Plus className="h-4 w-4" />
             </button>
@@ -298,10 +301,13 @@ export default function ProductDetailInfo({
           <div className="flex-1 min-w-0">
             <AddToCartButton
               animation={settings.add_to_cart_animation || 'none'}
-              isOutOfStock={stockAvailable <= 0}
-              disabled={stockAvailable <= 0 || Boolean(product.has_variants && product.variants?.length && !selectedVariant)}
+              isOutOfStock={product.is_preorder ? false : stockAvailable <= 0}
+              disabled={Boolean(product.has_variants && product.variants?.length && !selectedVariant) || (!product.is_preorder && stockAvailable <= 0)}
               isFaded={Boolean(product.has_variants && product.variants?.length && !selectedVariant)}
-              label={Boolean(product.has_variants && product.variants?.length && !selectedVariant) ? 'Select an Option' : 'Add to Cart'}
+              label={Boolean(product.has_variants && product.variants?.length && !selectedVariant) 
+                ? 'Select an Option' 
+                : (product.is_preorder ? 'Pre-Book Now' : 'Add to Cart')}
+              addedLabel={product.is_preorder ? 'Pre-Booked!' : 'Added to Cart'}
               onAddToCart={onAddToCart}
               className="py-3.5"
             />
@@ -332,7 +338,7 @@ export default function ProductDetailInfo({
               className="inline-flex items-center justify-center gap-2 px-5 py-2 rounded-full border border-emerald-500/30 bg-emerald-50/70 hover:bg-[#25D366] text-[#0f6b32] hover:text-white dark:bg-emerald-950/30 dark:border-emerald-700/40 dark:text-emerald-300 dark:hover:bg-[#25D366] dark:hover:text-white text-xs font-bold transition-all duration-200 shadow-2xs hover:shadow-sm active:scale-95 group cursor-pointer"
             >
               <WhatsAppIcon className="h-4 w-4 fill-[#25D366] group-hover:fill-white transition-colors" />
-              <span>Order via WhatsApp</span>
+              <span>{product.is_preorder ? 'Pre-Book via WhatsApp' : 'Order via WhatsApp'}</span>
             </a>
           </div>
         )}

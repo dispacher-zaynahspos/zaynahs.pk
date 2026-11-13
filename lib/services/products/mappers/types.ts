@@ -121,6 +121,10 @@ export interface DBProductRow {
   flash_sale_end_date?: string | null;
   flash_sale_discount_type?: string | null;
   flash_sale_discount_value?: number | string | null;
+  is_preorder?: boolean | null;
+  preorder_end_date?: string | null;
+  preorder_dispatch_date?: string | null;
+  preorder_limit?: number | null;
   sort_order?: number | null;
   meta_sync_status?: string | null;
   meta_sync_error?: string | null;

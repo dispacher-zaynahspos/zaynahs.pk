@@ -84,6 +84,10 @@ export async function createProductAction(
         flash_sale_end_date: product.flash_sale_end_date || null,
         flash_sale_discount_type: product.flash_sale_discount_type || 'fixed',
         flash_sale_discount_value: product.flash_sale_discount_value || 0,
+        is_preorder: product.is_preorder || false,
+        preorder_end_date: product.preorder_end_date || null,
+        preorder_dispatch_date: product.preorder_dispatch_date || null,
+        preorder_limit: product.preorder_limit ?? null,
         tags: product.tags,
         rating: product.rating,
         reviews_count: product.reviews_count,
@@ -259,6 +263,10 @@ export async function updateProductAction(
     if (product.flash_sale_end_date !== undefined) updatePayload.flash_sale_end_date = product.flash_sale_end_date || null;
     if (product.flash_sale_discount_type !== undefined) updatePayload.flash_sale_discount_type = product.flash_sale_discount_type;
     if (product.flash_sale_discount_value !== undefined) updatePayload.flash_sale_discount_value = product.flash_sale_discount_value;
+    if (product.is_preorder !== undefined) updatePayload.is_preorder = product.is_preorder;
+    if (product.preorder_end_date !== undefined) updatePayload.preorder_end_date = product.preorder_end_date || null;
+    if (product.preorder_dispatch_date !== undefined) updatePayload.preorder_dispatch_date = product.preorder_dispatch_date || null;
+    if (product.preorder_limit !== undefined) updatePayload.preorder_limit = product.preorder_limit ?? null;
     if (product.tags !== undefined) updatePayload.tags = product.tags;
     if (product.rating !== undefined) updatePayload.rating = product.rating;
     if (product.reviews_count !== undefined) updatePayload.reviews_count = product.reviews_count;
@@ -476,6 +484,10 @@ export async function updateProductFieldsAction(
     if (fields.flash_sale_end_date !== undefined) updatePayload.flash_sale_end_date = fields.flash_sale_end_date || null;
     if (fields.flash_sale_discount_type !== undefined) updatePayload.flash_sale_discount_type = fields.flash_sale_discount_type;
     if (fields.flash_sale_discount_value !== undefined) updatePayload.flash_sale_discount_value = fields.flash_sale_discount_value;
+    if (fields.is_preorder !== undefined) updatePayload.is_preorder = fields.is_preorder;
+    if (fields.preorder_end_date !== undefined) updatePayload.preorder_end_date = fields.preorder_end_date || null;
+    if (fields.preorder_dispatch_date !== undefined) updatePayload.preorder_dispatch_date = fields.preorder_dispatch_date || null;
+    if (fields.preorder_limit !== undefined) updatePayload.preorder_limit = fields.preorder_limit ?? null;
     if (fields.tags !== undefined) updatePayload.tags = fields.tags;
     if (fields.rating !== undefined) updatePayload.rating = fields.rating;
     if (fields.reviews_count !== undefined) updatePayload.reviews_count = fields.reviews_count;

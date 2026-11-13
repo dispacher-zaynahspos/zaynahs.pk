@@ -11,6 +11,7 @@ import { ProductFormPricing } from './product-form/ProductFormPricing';
 import { ProductFormMediaSection } from './product-form/ProductFormMediaSection';
 import { ProductFormVariantsSection } from './product-form/ProductFormVariantsSection';
 import { ProductFormFlashSaleSection } from './product-form/ProductFormFlashSaleSection';
+import { ProductFormPreorderSection } from './product-form/ProductFormPreorderSection';
 import { ProductFormBoughtTogetherSection } from './product-form/ProductFormBoughtTogetherSection';
 import { ProductFormBadgeSection } from './product-form/ProductFormBadgeSection';
 import { ProductSaveBar } from './product-form/ProductSaveBar';
@@ -282,6 +283,17 @@ export default function ProductForm({ categories, initialProduct, aiEnabled }: P
               setFlashSaleDiscountType={p.setFlashSaleDiscountType}
               flashSaleDiscountValue={p.flashSaleDiscountValue}
               setFlashSaleDiscountValue={p.setFlashSaleDiscountValue}
+            />
+
+            <ProductFormPreorderSection
+              isPreorder={p.isPreorder}
+              setIsPreorder={p.setIsPreorder}
+              preorderEndDate={p.preorderEndDate}
+              setPreorderEndDate={p.setPreorderEndDate}
+              preorderDispatchDate={p.preorderDispatchDate}
+              setPreorderDispatchDate={p.setPreorderDispatchDate}
+              preorderLimit={p.preorderLimit}
+              setPreorderLimit={p.setPreorderLimit}
             />
 
             <ProductFormBoughtTogetherSection

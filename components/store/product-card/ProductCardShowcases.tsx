@@ -1500,6 +1500,7 @@ export const ProductCardShowcases: React.FC<ProductCardShowcaseProps> = ({
             showQuickcart={showQuickcart}
             isInWishlist={isInWishlist}
             hasVariants={product.has_variants}
+            isPreorder={product.is_preorder}
             onToggleWishlist={onToggleWishlist}
             onOpenQuickView={onOpenQuickView}
             onAddToCart={onAddToCart}

@@ -68,6 +68,10 @@ export function useProductFormState({ categories, initialProduct, aiEnabled }: U
   const [flashSaleEndDate, setFlashSaleEndDate] = useState(initialProduct?.flash_sale_end_date ? new Date(initialProduct.flash_sale_end_date).toISOString().slice(0, 16) : '');
   const [flashSaleDiscountType, setFlashSaleDiscountType] = useState<'percentage' | 'fixed'>(initialProduct?.flash_sale_discount_type ?? 'fixed');
   const [flashSaleDiscountValue, setFlashSaleDiscountValue] = useState(initialProduct?.flash_sale_discount_value ?? 0);
+  const [isPreorder, setIsPreorder] = useState(initialProduct?.is_preorder ?? false);
+  const [preorderEndDate, setPreorderEndDate] = useState(initialProduct?.preorder_end_date ? new Date(initialProduct.preorder_end_date).toISOString().slice(0, 16) : '');
+  const [preorderDispatchDate, setPreorderDispatchDate] = useState(initialProduct?.preorder_dispatch_date || '');
+  const [preorderLimit, setPreorderLimit] = useState<number | ''>(initialProduct?.preorder_limit ?? '');
   const [frequentlyBoughtTogetherIds, setFrequentlyBoughtTogetherIds] = useState(initialProduct?.frequently_bought_together_ids || []);
   const [productList, setProductList] = useState<Product[]>([]);
   const [categorySearchQuery, setCategorySearchQuery] = useState('');
@@ -201,6 +205,10 @@ export function useProductFormState({ categories, initialProduct, aiEnabled }: U
       flashSaleEndDate,
       flashSaleDiscountType,
       flashSaleDiscountValue,
+      isPreorder,
+      preorderEndDate,
+      preorderDispatchDate,
+      preorderLimit,
       tagInput,
       description,
       shortDescription,
@@ -294,6 +302,14 @@ export function useProductFormState({ categories, initialProduct, aiEnabled }: U
     setFlashSaleDiscountValue,
     frequentlyBoughtTogetherIds,
     setFrequentlyBoughtTogetherIds,
+    isPreorder,
+    setIsPreorder,
+    preorderEndDate,
+    setPreorderEndDate,
+    preorderDispatchDate,
+    setPreorderDispatchDate,
+    preorderLimit,
+    setPreorderLimit,
     productList,
     categorySearchQuery,
     setCategorySearchQuery,

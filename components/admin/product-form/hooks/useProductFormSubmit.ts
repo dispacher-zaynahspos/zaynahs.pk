@@ -34,6 +34,10 @@ interface ProductSubmitPayloadParams {
   flashSaleEndDate: string;
   flashSaleDiscountType: 'percentage' | 'fixed';
   flashSaleDiscountValue: number;
+  isPreorder: boolean;
+  preorderEndDate: string;
+  preorderDispatchDate: string;
+  preorderLimit: number | '';
   tagInput: string;
   description: string;
   shortDescription: string;
@@ -134,6 +138,12 @@ export function useProductFormSubmit() {
           : undefined,
         flash_sale_discount_type: params.flashSaleDiscountType,
         flash_sale_discount_value: params.flashSaleDiscountValue,
+        is_preorder: params.isPreorder,
+        preorder_end_date: params.preorderEndDate
+          ? new Date(params.preorderEndDate).toISOString()
+          : undefined,
+        preorder_dispatch_date: params.preorderDispatchDate.trim() || undefined,
+        preorder_limit: params.preorderLimit !== '' ? Number(params.preorderLimit) : undefined,
         tags: parsedTags,
         description: params.description.trim() || undefined,
         short_description: params.shortDescription.trim() || undefined,
