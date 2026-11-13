@@ -259,21 +259,26 @@ export default function VariantSelector({
                   relative flex items-center justify-center font-bold border transition-all duration-200 cursor-pointer overflow-hidden select-none swatch-btn
                   ${sSizeClass} ${shapeClass}
                   ${isSelected ? 'scale-105 shadow-sm font-black' : 'hover:scale-105'}
-                  ${!isSizeAvailable || !isSizeInStock ? 'opacity-40' : ''}
-                ` : `min-w-[52px] py-2.5 px-3 text-center rounded-xl text-sm font-semibold transition-all duration-200 border cursor-pointer ${!isSizeAvailable || !isSizeInStock ? 'opacity-40' : ''}`}
+                  ${!isSizeAvailable || !isSizeInStock ? 'opacity-50' : ''}
+                ` : `relative min-w-[52px] py-2.5 px-3 text-center rounded-xl text-sm font-semibold transition-all duration-200 border cursor-pointer overflow-hidden ${!isSizeAvailable || !isSizeInStock ? 'opacity-50' : ''}`}
                 style={showSwatches ? {
                   borderColor: isSelected ? 'var(--color-accent)' : UNSELECTED_SWATCH_BORDER,
-                  color: isSelected ? 'var(--color-text-accent)' : 'var(--color-text-primary)',
+                  color: isSelected ? 'var(--color-text-accent)' : (!isSizeAvailable || !isSizeInStock ? '#9ca3af' : 'var(--color-text-primary)'),
                   backgroundColor: isSelected ? 'color-mix(in srgb, var(--color-accent) 8%, transparent)' : 'var(--color-surface)',
                   boxShadow: isSelected ? '0 0 0 1.5px var(--color-accent)' : 'none',
                 } : {
                   backgroundColor: isSelected ? 'var(--btn-primary-bg)' : 'var(--color-surface)',
-                  color: isSelected ? 'var(--btn-primary-text)' : 'var(--color-text-primary)',
+                  color: isSelected ? 'var(--btn-primary-text)' : (!isSizeAvailable || !isSizeInStock ? '#9ca3af' : 'var(--color-text-primary)'),
                   borderColor: isSelected ? 'var(--btn-primary-bg)' : UNSELECTED_SWATCH_BORDER,
                   boxShadow: isSelected ? '0 0 0 2px var(--btn-primary-bg)' : 'none'
                 }}
               >
-                <span className={`whitespace-nowrap leading-none text-center ${!isSizeAvailable || !isSizeInStock ? 'line-through decoration-red-400' : ''}`}>{size}</span>
+                <span className={`whitespace-nowrap leading-none text-center ${!isSizeAvailable || !isSizeInStock ? 'line-through decoration-red-500 decoration-2' : ''}`}>{size}</span>
+                {(!isSizeAvailable || !isSizeInStock) && (
+                  <span className="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden">
+                    <span className="w-[150%] h-[2px] bg-red-500 -rotate-45 shadow-xs" />
+                  </span>
+                )}
               </button>
             );
           })}
@@ -289,6 +294,7 @@ export default function VariantSelector({
           {materials.map(mat => {
             const isSelected = selectedMaterial === mat;
             const sSizeClass = getSwatchClasses('text', responsiveSwatchSizes, mat);
+            const isMatInStock = activeVariants.some(v => v.material === mat && v.stock > 0);
             return (
               <button
                 key={mat}
@@ -298,20 +304,26 @@ export default function VariantSelector({
                   relative flex items-center justify-center font-bold border transition-all duration-200 cursor-pointer overflow-hidden select-none swatch-btn
                   ${sSizeClass} ${shapeClass}
                   ${isSelected ? 'scale-105 shadow-sm font-black' : 'hover:scale-105'}
-                ` : `min-w-[52px] py-2.5 px-3 text-center rounded-xl text-sm font-semibold transition-all duration-200 border cursor-pointer`}
+                  ${!isMatInStock ? 'opacity-50' : ''}
+                ` : `relative min-w-[52px] py-2.5 px-3 text-center rounded-xl text-sm font-semibold transition-all duration-200 border cursor-pointer overflow-hidden ${!isMatInStock ? 'opacity-50' : ''}`}
                 style={showSwatches ? {
                   borderColor: isSelected ? 'var(--color-accent)' : UNSELECTED_SWATCH_BORDER,
-                  color: isSelected ? 'var(--color-text-accent)' : 'var(--color-text-primary)',
+                  color: isSelected ? 'var(--color-text-accent)' : (!isMatInStock ? '#9ca3af' : 'var(--color-text-primary)'),
                   backgroundColor: isSelected ? 'color-mix(in srgb, var(--color-accent) 8%, transparent)' : 'var(--color-surface)',
                   boxShadow: isSelected ? '0 0 0 1.5px var(--color-accent)' : 'none',
                 } : {
                   backgroundColor: isSelected ? 'var(--btn-primary-bg)' : 'var(--color-surface)',
-                  color: isSelected ? 'var(--btn-primary-text)' : 'var(--color-text-primary)',
+                  color: isSelected ? 'var(--btn-primary-text)' : (!isMatInStock ? '#9ca3af' : 'var(--color-text-primary)'),
                   borderColor: isSelected ? 'var(--btn-primary-bg)' : UNSELECTED_SWATCH_BORDER,
                   boxShadow: isSelected ? '0 0 0 2px var(--btn-primary-bg)' : 'none'
                 }}
               >
-                <span className="whitespace-nowrap leading-none text-center">{mat}</span>
+                <span className={`whitespace-nowrap leading-none text-center ${!isMatInStock ? 'line-through decoration-red-500 decoration-2' : ''}`}>{mat}</span>
+                {!isMatInStock && (
+                  <span className="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden">
+                    <span className="w-[150%] h-[2px] bg-red-500 -rotate-45 shadow-xs" />
+                  </span>
+                )}
               </button>
             );
           })}
@@ -327,6 +339,7 @@ export default function VariantSelector({
           {customValues.map(val => {
             const isSelected = selectedCustomValue === val;
             const sSizeClass = getSwatchClasses('text', responsiveSwatchSizes, val);
+            const isCustomInStock = activeVariants.some(v => v.custom_value === val && v.stock > 0);
             return (
               <button
                 key={val}
@@ -336,20 +349,26 @@ export default function VariantSelector({
                   relative flex items-center justify-center font-bold border transition-all duration-200 cursor-pointer overflow-hidden select-none swatch-btn
                   ${sSizeClass} ${shapeClass}
                   ${isSelected ? 'scale-105 shadow-sm font-black' : 'hover:scale-105'}
-                ` : `min-w-[52px] py-2.5 px-3 text-center rounded-xl text-sm font-semibold transition-all duration-200 border cursor-pointer`}
+                  ${!isCustomInStock ? 'opacity-50' : ''}
+                ` : `relative min-w-[52px] py-2.5 px-3 text-center rounded-xl text-sm font-semibold transition-all duration-200 border cursor-pointer overflow-hidden ${!isCustomInStock ? 'opacity-50' : ''}`}
                 style={showSwatches ? {
                   borderColor: isSelected ? 'var(--color-accent)' : UNSELECTED_SWATCH_BORDER,
-                  color: isSelected ? 'var(--color-text-accent)' : 'var(--color-text-primary)',
+                  color: isSelected ? 'var(--color-text-accent)' : (!isCustomInStock ? '#9ca3af' : 'var(--color-text-primary)'),
                   backgroundColor: isSelected ? 'color-mix(in srgb, var(--color-accent) 8%, transparent)' : 'var(--color-surface)',
                   boxShadow: isSelected ? '0 0 0 1.5px var(--color-accent)' : 'none',
                 } : {
                   backgroundColor: isSelected ? 'var(--btn-primary-bg)' : 'var(--color-surface)',
-                  color: isSelected ? 'var(--btn-primary-text)' : 'var(--color-text-primary)',
+                  color: isSelected ? 'var(--btn-primary-text)' : (!isCustomInStock ? '#9ca3af' : 'var(--color-text-primary)'),
                   borderColor: isSelected ? 'var(--btn-primary-bg)' : UNSELECTED_SWATCH_BORDER,
                   boxShadow: isSelected ? '0 0 0 2px var(--btn-primary-bg)' : 'none'
                 }}
               >
-                <span className="whitespace-nowrap leading-none text-center">{val}</span>
+                <span className={`whitespace-nowrap leading-none text-center ${!isCustomInStock ? 'line-through decoration-red-500 decoration-2' : ''}`}>{val}</span>
+                {!isCustomInStock && (
+                  <span className="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden">
+                    <span className="w-[150%] h-[2px] bg-red-500 -rotate-45 shadow-xs" />
+                  </span>
+                )}
               </button>
             );
           })}

@@ -82,16 +82,26 @@ export function ProductDetailStickyBar({
         <div className="flex items-center gap-2 flex-shrink-0">
           {/* Direct WhatsApp Order CTA */}
           {enableQuickWhatsapp && (
-            <a
-              href={whatsappUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="relative flex h-10 w-10 items-center justify-center rounded-full bg-[#25D366] hover:bg-[#20bd5a] text-white shadow-md shadow-[#25D366]/20 active:scale-90 transition-all cursor-pointer flex-shrink-0"
-              title="Order via WhatsApp"
-              aria-label="Order via WhatsApp"
-            >
-              <MessageCircle className="h-4.5 w-4.5 fill-white" />
-            </a>
+            stockAvailable <= 0 && !product.is_preorder ? (
+              <div
+                className="relative flex h-10 w-10 items-center justify-center rounded-full bg-gray-200 dark:bg-gray-800 text-gray-400 opacity-60 cursor-not-allowed flex-shrink-0"
+                title="Out of Stock"
+                aria-label="Out of Stock"
+              >
+                <MessageCircle className="h-4.5 w-4.5 fill-gray-400" />
+              </div>
+            ) : (
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="relative flex h-10 w-10 items-center justify-center rounded-full bg-[#25D366] hover:bg-[#20bd5a] text-white shadow-md shadow-[#25D366]/20 active:scale-90 transition-all cursor-pointer flex-shrink-0"
+                title="Order via WhatsApp"
+                aria-label="Order via WhatsApp"
+              >
+                <MessageCircle className="h-4.5 w-4.5 fill-white" />
+              </a>
+            )
           )}
 
           {/* Smart Icon-Only Add to Bag CTA */}

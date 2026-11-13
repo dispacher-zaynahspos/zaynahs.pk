@@ -331,15 +331,21 @@ export default function ProductDetailInfo({
         {/* Instant WhatsApp Order CTA - Smart, compact & beautifully aligned */}
         {settings.enable_product_quick_whatsapp !== false && settings.whatsapp_number && (
           <div className="flex justify-center pt-0.5">
-            <a
-              href={whatsappUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 px-5 py-2 rounded-full border border-emerald-500/30 bg-emerald-50/70 hover:bg-[#25D366] text-[#0f6b32] hover:text-white dark:bg-emerald-950/30 dark:border-emerald-700/40 dark:text-emerald-300 dark:hover:bg-[#25D366] dark:hover:text-white text-xs font-bold transition-all duration-200 shadow-2xs hover:shadow-sm active:scale-95 group cursor-pointer"
-            >
-              <WhatsAppIcon className="h-4 w-4 fill-[#25D366] group-hover:fill-white transition-colors" />
-              <span>{product.is_preorder ? 'Pre-Book via WhatsApp' : 'Order via WhatsApp'}</span>
-            </a>
+            {stockAvailable <= 0 && !product.is_preorder ? (
+              <div className="inline-flex items-center justify-center gap-2 px-5 py-2 rounded-full border border-gray-200 bg-gray-100 text-gray-400 dark:border-gray-800 dark:bg-gray-900/50 dark:text-gray-500 text-xs font-bold select-none cursor-not-allowed">
+                <span>Out of Stock</span>
+              </div>
+            ) : (
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 px-5 py-2 rounded-full border border-emerald-500/30 bg-emerald-50/70 hover:bg-[#25D366] text-[#0f6b32] hover:text-white dark:bg-emerald-950/30 dark:border-emerald-700/40 dark:text-emerald-300 dark:hover:bg-[#25D366] dark:hover:text-white text-xs font-bold transition-all duration-200 shadow-2xs hover:shadow-sm active:scale-95 group cursor-pointer"
+              >
+                <WhatsAppIcon className="h-4 w-4 fill-[#25D366] group-hover:fill-white transition-colors" />
+                <span>{product.is_preorder ? 'Pre-Book via WhatsApp' : 'Order via WhatsApp'}</span>
+              </a>
+            )}
           </div>
         )}
       </div>

@@ -77,7 +77,7 @@ export const createOrder = async (order: {
       if (productIds.length > 0) {
         const { data: dbProducts, error: pErr } = await supabaseAdmin
           .from('products')
-          .select('id, name, price, stock, is_active, deleted_at, is_service, product_variants(id, stock, price, active)')
+          .select('id, name, price, stock, is_active, deleted_at, is_service, product_variants(id, stock, price, active, size, color, custom_value)')
           .in('id', productIds);
 
         if (!pErr && dbProducts) {
@@ -92,16 +92,34 @@ export const createOrder = async (order: {
             }
 
             const qty = item.quantity || 1;
-            const variantId = item.selected_variant?.id;
+            const variantId = item.selected_variant?.id || (item as unknown as { variant_id?: string })?.variant_id;
+            const variantLabel = item.selected_variant?.size || item.selected_variant?.custom_value || (item as unknown as { size?: string; variant_label?: string })?.size || (item as unknown as { variant_label?: string })?.variant_label;
 
-            if (variantId && Array.isArray(dbProduct.product_variants)) {
-              const dbVariant = dbProduct.product_variants.find((v: { id: string }) => v.id === variantId);
+            type DbVariant = {
+              id: string;
+              stock: number | null;
+              price: number | null;
+              active: boolean | null;
+              size?: string | null;
+              color?: string | null;
+              custom_value?: string | null;
+            };
+
+            const variants = (dbProduct.product_variants || []) as unknown as DbVariant[];
+
+            if (Array.isArray(variants) && variants.length > 0) {
+              const dbVariant = (variantId
+                ? variants.find((v) => v.id === variantId)
+                : null) || (variantLabel
+                ? variants.find((v) => v.size === variantLabel || v.custom_value === variantLabel)
+                : null);
+
               if (dbVariant) {
                 if (dbVariant.active === false) {
                   throw new Error(`Selected variant of "${dbProduct.name}" is no longer available.`);
                 }
                 if (!dbProduct.is_service && typeof dbVariant.stock === 'number' && dbVariant.stock < qty) {
-                  throw new Error(`Insufficient stock for "${dbProduct.name}" (${dbVariant.stock} available).`);
+                  throw new Error(`Insufficient stock for "${dbProduct.name} (${dbVariant.size || variantLabel || 'Variant'})" (${dbVariant.stock} available).`);
                 }
                 continue;
               }

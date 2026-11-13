@@ -87,6 +87,9 @@ export const ProductCardSwatches: React.FC<ProductCardSwatchesProps> = ({
             );
             const swatchBg = isImageSwatch ? {} : getSwatchStyle(resolvedColorHex);
             const visClass = getVisibilityClass(i);
+            const isOutOfStock = group.variants
+              .filter(o => o.color === v.color)
+              .every(o => o.stock !== undefined && o.stock <= 0);
 
             return (
               <button
@@ -104,6 +107,7 @@ export const ProductCardSwatches: React.FC<ProductCardSwatchesProps> = ({
                   relative items-center justify-center cursor-pointer flex-shrink-0 overflow-hidden transition-all duration-150 border swatch-btn
                   ${visClass} ${sSizeClass} ${shapeClass}
                   shadow-sm ${isActive ? 'scale-110' : 'hover:scale-110'}
+                  ${isOutOfStock ? 'opacity-40' : ''}
                 `}
                 style={{
                   ...swatchBg,
@@ -118,6 +122,11 @@ export const ProductCardSwatches: React.FC<ProductCardSwatchesProps> = ({
                     className="w-full h-full object-cover"
                     loading="lazy"
                   />
+                )}
+                {isOutOfStock && (
+                  <span className="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden">
+                    <span className="w-[150%] h-[1.5px] bg-red-500/90 -rotate-45 shadow-xs" />
+                  </span>
                 )}
               </button>
             );
@@ -156,6 +165,9 @@ export const ProductCardSwatches: React.FC<ProductCardSwatchesProps> = ({
                 : currentVariant?.custom_value === v.custom_value;
             const sSizeClass = getSwatchClasses('text', responsiveSwatchSizes, val || '');
             const visClass = getVisibilityClass(i);
+            const isOutOfStock = group.variants
+              .filter(o => (group.type === 'size' ? o.size : group.type === 'material' ? o.material : o.custom_value) === val)
+              .every(o => o.stock !== undefined && o.stock <= 0);
 
             return (
               <button
@@ -173,6 +185,7 @@ export const ProductCardSwatches: React.FC<ProductCardSwatchesProps> = ({
                   relative items-center justify-center font-bold transition-all duration-150 cursor-pointer flex-shrink-0 overflow-hidden select-none border swatch-btn
                   ${visClass} ${sSizeClass} ${shapeClass}
                   ${isActive ? 'scale-110 shadow-sm font-black' : 'hover:scale-110'}
+                  ${isOutOfStock ? 'opacity-40' : ''}
                 `}
                 style={{
                   borderColor: isActive ? 'var(--color-accent)' : 'var(--swatch-border-unselected, color-mix(in srgb, currentColor 28%, rgba(0, 0, 0, 0.22)))',
@@ -181,7 +194,12 @@ export const ProductCardSwatches: React.FC<ProductCardSwatchesProps> = ({
                   boxShadow: isActive ? '0 0 0 1px var(--color-accent)' : 'none',
                 }}
               >
-                <span className="whitespace-nowrap leading-none text-center">{val}</span>
+                <span className={`whitespace-nowrap leading-none text-center ${isOutOfStock ? 'line-through decoration-red-500 decoration-2' : ''}`}>{val}</span>
+                {isOutOfStock && (
+                  <span className="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden">
+                    <span className="w-[150%] h-[2px] bg-red-500 -rotate-45 shadow-xs" />
+                  </span>
+                )}
               </button>
             );
           })}
