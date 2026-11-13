@@ -348,6 +348,30 @@ export const deleteOrder = async (id: string): Promise<void> => {
 export const restoreOrder = async (id: string): Promise<void> => {
   try {
     const supabase = await createClient();
+
+    // ── INVENTORY SYNC: re-deduct stock if active order restored from trash ──
+    try {
+      const { data: orderSnap } = await supabaseAdmin
+        .from('orders')
+        .select('status, items')
+        .eq('id', id)
+        .single();
+      if (orderSnap && !['cancelled', 'refunded'].includes(orderSnap.status) && orderSnap.items?.length) {
+        await supabaseAdmin.rpc('restore_stock_on_cancel', {
+          p_order_id: id,
+          p_items: JSON.stringify(
+            (orderSnap.items as Array<any>).map((i) => ({
+              product_id: i.product?.id ?? i.product_id ?? null,
+              variant_id: i.selected_variant?.id ?? i.variant_id ?? null,
+              quantity: -Math.abs(i.quantity || 1), // negative = deduct
+            }))
+          ),
+        });
+      }
+    } catch (invErr) {
+      console.error('[inventory] re-deduct stock failed in restoreOrder:', invErr);
+    }
+
     const { error } = await supabase
       .from('orders')
       .update({ deleted_at: null })

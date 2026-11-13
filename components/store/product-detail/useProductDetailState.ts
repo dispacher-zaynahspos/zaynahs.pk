@@ -44,11 +44,48 @@ export function useProductDetailState({ product, settings }: UseProductDetailSta
     return images[activeImageIndex]?.url || images[0]?.url;
   });
 
+  const [variants, setVariants] = useState<ProductVariant[]>(() => product.variants || []);
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | undefined>(initialVariant);
   const [selectedModifiers, setSelectedModifiers] = useState<ProductModifier[]>([]);
   const [quantity, setQuantity] = useState(1);
   const [activeDetailTab, setActiveDetailTab] = useState<'description' | 'faq' | 'returns'>('description');
   const [isDescExpanded, setIsDescExpanded] = useState(false);
+
+  useEffect(() => {
+    setVariants(product.variants || []);
+  }, [product.variants]);
+
+  // Real-time stock sync on mount — eliminates stale cached stock values instantly
+  useEffect(() => {
+    let cancelled = false;
+    async function syncRealtimeStock() {
+      if (!product.id || !product.has_variants) return;
+      try {
+        const { createClient } = await import('@/lib/supabase/client');
+        const supabase = createClient();
+        const { data: liveVars } = await supabase
+          .from('product_variants')
+          .select('id, stock')
+          .eq('product_id', product.id);
+        if (!cancelled && liveVars && liveVars.length > 0) {
+          const liveStockMap = new Map(liveVars.map(v => [v.id, v.stock]));
+          setVariants(prev => prev.map(v => {
+            const freshStock = liveStockMap.get(v.id);
+            return freshStock !== undefined ? { ...v, stock: freshStock } : v;
+          }));
+          setSelectedVariant(prev => {
+            if (!prev) return prev;
+            const freshStock = liveStockMap.get(prev.id);
+            return freshStock !== undefined && freshStock !== prev.stock
+              ? { ...prev, stock: freshStock }
+              : prev;
+          });
+        }
+      } catch {}
+    }
+    syncRealtimeStock();
+    return () => { cancelled = true; };
+  }, [product.id, product.has_variants]);
 
   const handleVariantChange = useCallback((v?: ProductVariant) => {
     setSelectedVariant(v);
@@ -243,6 +280,7 @@ export function useProductDetailState({ product, settings }: UseProductDetailSta
     setActiveImage,
     activeImageIndex,
     setActiveImageIndex,
+    variants,
     selectedVariant,
     setSelectedVariant,
     selectedModifiers,

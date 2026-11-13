@@ -178,7 +178,7 @@ export default function AbandonedCartDetailDrawer({
                         <div className="flex-1 min-w-0">
                           {Boolean(item.product_id || (item.product as { id?: string })?.id) ? (
                             <a
-                              href={`/admin/products/editor?id=${item.product_id || (item.product as { id?: string })?.id}`}
+                              href={`/admin/products/${item.product_id || (item.product as { id?: string })?.id}`}
                               target="_blank"
                               rel="noreferrer"
                               className="text-xs font-bold text-gray-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400 line-clamp-2 inline-flex items-center gap-1 group"

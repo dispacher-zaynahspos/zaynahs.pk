@@ -102,12 +102,10 @@ export async function bulkHardDeleteReviews(ids: string[]): Promise<void> {
 // Orders bulk
 export async function bulkRestoreOrders(ids: string[]): Promise<void> {
   try {
-    const supabase = await createClient();
-    const { error } = await supabase
-      .from('orders')
-      .update({ deleted_at: null })
-      .in('id', ids);
-    if (error) throw error;
+    const { restoreOrder } = await import('@/lib/services/orders');
+    for (const id of ids) {
+      await restoreOrder(id);
+    }
   } catch (error) {
     console.error('[trash] bulkRestoreOrders failed:', error);
     throw error;

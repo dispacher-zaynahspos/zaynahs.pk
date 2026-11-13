@@ -38,6 +38,7 @@ export default function ProductDetail({ product, settings, averageRating, social
     setActiveImage,
     activeImageIndex,
     setActiveImageIndex,
+    variants,
     selectedVariant,
     setSelectedVariant,
     selectedModifiers,
@@ -115,19 +116,20 @@ export default function ProductDetail({ product, settings, averageRating, social
     });
   };
 
-  const activeVariants = product.variants.filter(v => v.active);
+  const currentProduct = { ...product, variants: variants || product.variants };
+  const activeVariants = currentProduct.variants.filter(v => v.active);
   const activePrices = activeVariants.map(v => v.price).filter((p): p is number => typeof p === 'number' && p > 0);
-  const minPrice = activePrices.length > 0 ? Math.min(...activePrices) : product.price;
-  const maxPrice = activePrices.length > 0 ? Math.max(...activePrices) : product.price;
+  const minPrice = activePrices.length > 0 ? Math.min(...activePrices) : currentProduct.price;
+  const maxPrice = activePrices.length > 0 ? Math.max(...activePrices) : currentProduct.price;
   const hasPriceRange = minPrice !== maxPrice;
 
-  const basePrice = selectedVariant?.price ?? product.price;
+  const basePrice = selectedVariant?.price ?? currentProduct.price;
   const modifiersTotal = selectedModifiers.reduce((sum, m) => sum + m.price, 0);
   const unitPrice = basePrice + modifiersTotal;
 
-  const stockAvailable = product.is_service
+  const stockAvailable = currentProduct.is_service
     ? 999
-    : (selectedVariant ? selectedVariant.stock : product.stock);
+    : (selectedVariant ? selectedVariant.stock : currentProduct.stock);
 
   const displayRating = (averageRating && averageRating.count > 0) ? averageRating.average : (product.rating ?? 5);
   const displayCount = (averageRating ? averageRating.count : (product.reviews_count ?? 0)) + socialProofCount;
@@ -232,7 +234,7 @@ export default function ProductDetail({ product, settings, averageRating, social
 
         {/* Product Info & Controls */}
         <ProductDetailInfo
-          product={product}
+          product={currentProduct}
           settings={settings}
           selectedVariant={selectedVariant}
           onVariantChange={handleVariantChange}

@@ -693,75 +693,104 @@ export async function bulkUpdateInventoryAction(payload: BulkInventoryPayload): 
   const supabase = supabaseAdmin;
   const productSlugsToRevalidate = new Set<string>();
 
-  // 1. Update Products
+  // Extract all touched product IDs
+  const directProductIds = (payload.products || []).map(p => p.id).filter(Boolean);
+  const variantProductIds = (payload.variants || []).map(v => v.productId).filter(Boolean) as string[];
+  const allTouchedProductIds = [...new Set([...directProductIds, ...variantProductIds])];
+
+  // 1. Batch fetch slugs for all touched products in ONE single query
+  if (allTouchedProductIds.length > 0) {
+    const { data: prods } = await supabase
+      .from('products')
+      .select('id, slug')
+      .in('id', allTouchedProductIds);
+    if (prods) {
+      prods.forEach(p => {
+        if (p.slug) productSlugsToRevalidate.add(p.slug);
+      });
+    }
+  }
+
+  // 2. Parallelize product updates in chunks (concurrency 15)
   if (payload.products && payload.products.length > 0) {
-    for (const item of payload.products) {
-      const updateData: Record<string, number> = {};
-      if (item.stock !== undefined) updateData.stock = item.stock;
-      if (item.inventoryThreshold !== undefined) updateData.inventory_threshold = item.inventoryThreshold;
-
-      if (Object.keys(updateData).length > 0) {
-        const { data: prod } = await supabase
-          .from('products')
-          .update(updateData)
-          .eq('id', item.id)
-          .select('slug')
-          .single();
-        if (prod?.slug) productSlugsToRevalidate.add(prod.slug);
-      }
+    const chunkSize = 15;
+    for (let i = 0; i < payload.products.length; i += chunkSize) {
+      const chunk = payload.products.slice(i, i + chunkSize);
+      await Promise.all(
+        chunk.map(async (item) => {
+          const updateData: Record<string, number> = {};
+          if (item.stock !== undefined) updateData.stock = item.stock;
+          if (item.inventoryThreshold !== undefined) updateData.inventory_threshold = item.inventoryThreshold;
+          if (Object.keys(updateData).length > 0) {
+            await supabase.from('products').update(updateData).eq('id', item.id);
+          }
+        })
+      );
     }
   }
 
-  // 2. Update Variants
+  // 3. Parallelize variant updates in chunks (concurrency 15)
   if (payload.variants && payload.variants.length > 0) {
-    for (const item of payload.variants) {
-      const updateData: Record<string, number> = {};
-      if (item.stock !== undefined) updateData.stock = item.stock;
-      if (item.inventoryThreshold !== undefined) updateData.inventory_threshold = item.inventoryThreshold;
-
-      if (Object.keys(updateData).length > 0) {
-        await supabase
-          .from('product_variants')
-          .update(updateData)
-          .eq('id', item.id);
-
-        if (item.productId) {
-          const { data: prod } = await supabase
-            .from('products')
-            .select('slug')
-            .eq('id', item.productId)
-            .single();
-          if (prod?.slug) productSlugsToRevalidate.add(prod.slug);
-        }
-      }
+    const chunkSize = 15;
+    for (let i = 0; i < payload.variants.length; i += chunkSize) {
+      const chunk = payload.variants.slice(i, i + chunkSize);
+      await Promise.all(
+        chunk.map(async (item) => {
+          const updateData: Record<string, number> = {};
+          if (item.stock !== undefined) updateData.stock = item.stock;
+          if (item.inventoryThreshold !== undefined) updateData.inventory_threshold = item.inventoryThreshold;
+          if (Object.keys(updateData).length > 0) {
+            await supabase.from('product_variants').update(updateData).eq('id', item.id);
+          }
+        })
+      );
     }
 
-    // Recompute total stock on parent products
+    // 4. Recompute total stock on parent products in ONE batched query
     const parentProductIds = [...new Set(payload.variants.map(v => v.productId).filter(Boolean))] as string[];
-    for (const parentId of parentProductIds) {
-      const { data: vars } = await supabase
+    if (parentProductIds.length > 0) {
+      const { data: allVars } = await supabase
         .from('product_variants')
-        .select('stock')
-        .eq('product_id', parentId);
-      if (vars) {
-        const totalStock = vars.reduce((sum, v) => sum + (v.stock || 0), 0);
-        await supabase
-          .from('products')
-          .update({ stock: totalStock })
-          .eq('id', parentId);
+        .select('product_id, stock')
+        .in('product_id', parentProductIds);
+      if (allVars) {
+        const stockMap = new Map<string, number>();
+        allVars.forEach(v => {
+          stockMap.set(v.product_id, (stockMap.get(v.product_id) || 0) + (v.stock || 0));
+        });
+        await Promise.all(
+          parentProductIds.map(parentId =>
+            supabase.from('products').update({ stock: stockMap.get(parentId) || 0 }).eq('id', parentId)
+          )
+        );
       }
     }
   }
 
-  // 3. Revalidate ISR cache
+  // 5. Invalidate Next.js cache tags
+  revalidateTagSafe('products');
+  revalidateTagSafe('categories');
+  revalidateTagSafe('homepage');
   for (const slug of productSlugsToRevalidate) {
-    try {
-      await revalidateProduct(slug);
-    } catch (err) {
-      console.warn('[inventory] Revalidate slug failed:', slug, err);
+    const safeTag = slug.replace(/[^a-zA-Z0-9-_]/g, '_');
+    revalidateTagSafe(`product-${slug}`);
+    revalidateTagSafe(`product-${safeTag}`);
+  }
+
+  // 6. Cloudflare Edge CDN Invalidation (RULE C10 / RULE C18):
+  // When multiple products (>5) are updated, do ONE global edge purge (fast, 0ms latency, no 429 rate limits)
+  // When 5 or fewer, targeted purge each product URL
+  if (productSlugsToRevalidate.size > 5) {
+    await revalidateStorefrontEdge('products', 'homepage', 'categories');
+  } else {
+    for (const slug of productSlugsToRevalidate) {
+      try {
+        await revalidateProduct(slug);
+      } catch (err) {
+        console.warn('[inventory] Revalidate slug failed:', slug, err);
+      }
     }
   }
-  revalidateTagSafe('products');
 }
 
 /**

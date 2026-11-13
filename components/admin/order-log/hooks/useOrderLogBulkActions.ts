@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { Order } from '@/lib/types';
 import { useConfirm } from '@/components/admin/shared/AdminConfirmProvider';
 import { createClient } from '@/lib/supabase/client';
+import { updateOrderStatusSafe, deleteOrderSafe } from '@/lib/services/orders';
 import { toast } from 'sonner';
 
 export function useOrderLogBulkActions(
@@ -102,28 +103,11 @@ export function useOrderLogBulkActions(
     if (!confirmed) return;
     setIsRefreshing(true);
     try {
-      const supabase = createClient();
       for (const id of selectedOrderIds) {
-        const { data: currentOrder } = await supabase
-          .from('orders')
-          .select('status, status_logs')
-          .eq('id', id)
-          .single();
-        const currentLogs = currentOrder?.status_logs || [];
-        const newLog = {
-          id: crypto.randomUUID(),
-          type: 'status_change',
-          message: `Order cancelled (Bulk Cancellation)`,
-          notes: `Status changed from ${currentOrder?.status} to cancelled`,
-          createdAt: new Date().toISOString(),
-        };
-        await supabase
-          .from('orders')
-          .update({
-            status: 'cancelled',
-            status_logs: [...currentLogs, newLog],
-          })
-          .eq('id', id);
+        const res = await updateOrderStatusSafe(id, 'cancelled');
+        if (!res.success) {
+          console.error(`Failed to cancel order ${id}:`, res.error);
+        }
       }
       toast.success(`Successfully cancelled ${selectedOrderIds.length} orders`);
       setSelectedOrderIds([]);
@@ -147,14 +131,12 @@ export function useOrderLogBulkActions(
     if (!confirmed) return;
     setIsRefreshing(true);
     try {
-      const supabase = createClient();
-      const nowIso = new Date().toISOString();
-      const { error } = await supabase
-        .from('orders')
-        .update({ deleted_at: nowIso })
-        .in('id', selectedOrderIds);
-
-      if (error) throw error;
+      for (const id of selectedOrderIds) {
+        const res = await deleteOrderSafe(id);
+        if (!res.success) {
+          console.error(`Failed to trash order ${id}:`, res.error);
+        }
+      }
 
       toast.success(`Moved ${selectedOrderIds.length} orders to trash`);
       setOrders((prev) => prev.filter((o) => !selectedOrderIds.includes(o.id)));
