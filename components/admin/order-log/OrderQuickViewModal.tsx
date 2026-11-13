@@ -268,8 +268,8 @@ export function OrderQuickViewModal({
                   </span>
                 </div>
               </div>
-              <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5 truncate">
-                {new Date(order.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} · {order.customer_name || 'Guest'}
+              <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5 truncate" suppressHydrationWarning>
+                <span suppressHydrationWarning>{new Date(order.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'Asia/Karachi' })}</span> · {order.customer_name || 'Guest'}
               </p>
             </div>
           </div>

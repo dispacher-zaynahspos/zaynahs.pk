@@ -25,67 +25,16 @@ interface UseOrderLogStateProps {
   settings: StoreSettings;
 }
 
-const getInitialOrderFilters = () => {
-  if (typeof window === 'undefined') {
-    return {
-      dateFilter: 'today',
-      customStartDate: '',
-      customEndDate: '',
-      activeTab: 'all' as const,
-      searchQuery: '',
-      currentPage: 1,
-    };
-  }
-  const params = new URLSearchParams(window.location.search);
-  const timeParam = params.get('timeRange');
-  const tabParam = params.get('tab') as 'all' | 'unfulfilled' | 'unpaid' | 'open' | 'archived' | null;
-  const qParam = params.get('search');
-  const pageParam = params.get('page');
-  const sDate = params.get('startDate');
-  const eDate = params.get('endDate');
-
-  let saved: Record<string, any> = {};
-  try {
-    saved = JSON.parse(sessionStorage.getItem(ORDERS_FILTER_STORAGE_KEY) || '{}');
-  } catch {}
-
-  const dateFilter = (timeParam && ['today', 'yesterday', 'tomorrow', 'last7', 'last30', 'custom', 'all'].includes(timeParam))
-    ? timeParam
-    : (saved.dateFilter && ['today', 'yesterday', 'tomorrow', 'last7', 'last30', 'custom', 'all'].includes(saved.dateFilter))
-      ? saved.dateFilter
-      : 'today';
-
-  const customStartDate = sDate || saved.customStartDate || '';
-  const customEndDate = eDate || saved.customEndDate || '';
-
-  const activeTab = (tabParam && ['all', 'unfulfilled', 'unpaid', 'open', 'archived'].includes(tabParam))
-    ? tabParam
-    : (saved.activeTab && ['all', 'unfulfilled', 'unpaid', 'open', 'archived'].includes(saved.activeTab))
-      ? saved.activeTab
-      : 'all';
-
-  const searchQuery = qParam || saved.searchQuery || '';
-  const currentPage = (pageParam && !isNaN(Number(pageParam)))
-    ? Math.max(1, Number(pageParam))
-    : (typeof saved.currentPage === 'number' && saved.currentPage > 0)
-      ? saved.currentPage
-      : 1;
-
-  return { dateFilter, customStartDate, customEndDate, activeTab, searchQuery, currentPage };
-};
-
 export function useOrderLogState({ initialOrders, settings }: UseOrderLogStateProps) {
   const router = useRouter();
   const [orders, setOrders] = useState<Order[]>(initialOrders);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const init = getInitialOrderFilters();
-
   // Layout and view states
   const [isFullWidth, setIsFullWidth] = useState(false);
-  const [activeTab, setActiveTab] = useState<'all' | 'unfulfilled' | 'unpaid' | 'open' | 'archived'>(init.activeTab);
+  const [activeTab, setActiveTab] = useState<'all' | 'unfulfilled' | 'unpaid' | 'open' | 'archived'>('all');
   const [selectedOrderIds, setSelectedOrderIds] = useState<string[]>([]);
-  const [isSearchExpanded, setIsSearchExpanded] = useState(Boolean(init.searchQuery));
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [isFiltersExpanded, setIsFiltersExpanded] = useState(false);
 
   // Order Creator Canvas
@@ -97,17 +46,17 @@ export function useOrderLogState({ initialOrders, settings }: UseOrderLogStatePr
   ]);
   const [sortKey] = useState<'date-desc' | 'date-asc' | 'order-asc' | 'order-desc' | 'customer-asc' | 'customer-desc' | 'total-desc' | 'total-asc'>('date-desc');
 
-  // Search & Filters inputs
-  const [searchQuery, setSearchQuery] = useState(init.searchQuery);
+  // Search & Filters inputs (initialized with deterministic defaults matching SSR)
+  const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [dateFilter, setDateFilter] = useState<string>(init.dateFilter);
-  const [customStartDate, setCustomStartDate] = useState(init.customStartDate);
-  const [customEndDate, setCustomEndDate] = useState(init.customEndDate);
+  const [dateFilter, setDateFilter] = useState<string>('today');
+  const [customStartDate, setCustomStartDate] = useState('');
+  const [customEndDate, setCustomEndDate] = useState('');
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerFilter | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
 
   // Pagination
-  const [currentPage, setCurrentPage] = useState(init.currentPage);
+  const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(50);
   const [totalRows, setTotalRows] = useState(0);
 

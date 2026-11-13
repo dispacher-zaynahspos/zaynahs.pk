@@ -184,9 +184,11 @@ export function OrderLogTable({
                   </td>
                 )}
                 {visibleColumns.includes('date') && (
-                  <td className="block md:table-cell py-1 px-4 md:py-3 text-xs text-gray-500 font-medium">
+                  <td className="block md:table-cell py-1 px-4 md:py-3 text-xs text-gray-500 font-medium" suppressHydrationWarning>
                     <span className="md:hidden font-semibold text-gray-400 mr-2">Date:</span>
-                    {new Date(order.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    <span suppressHydrationWarning>
+                      {new Date(order.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'Asia/Karachi' })}
+                    </span>
                   </td>
                 )}
                 {visibleColumns.includes('customer') && (

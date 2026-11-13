@@ -228,7 +228,7 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
                 &larr;
               </button>
               {currentIndexDisplay && (
-                <span className="px-2 h-7 flex items-center justify-center text-[10.5px] font-bold text-gray-600 dark:text-gray-300 border-r border-gray-200 dark:border-gray-800 select-none whitespace-nowrap bg-gray-50/50 dark:bg-white/[0.02]">
+                <span suppressHydrationWarning className="px-2 h-7 flex items-center justify-center text-[10.5px] font-bold text-gray-600 dark:text-gray-300 border-r border-gray-200 dark:border-gray-800 select-none whitespace-nowrap bg-gray-50/50 dark:bg-white/[0.02]">
                   {currentIndexDisplay}
                 </span>
               )}
@@ -432,7 +432,7 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
                 &larr;
               </button>
               {currentIndexDisplay && (
-                <span className="px-1.5 h-6 flex items-center justify-center text-[10px] font-bold text-gray-600 border-r border-gray-200 select-none whitespace-nowrap bg-gray-50/50">
+                <span suppressHydrationWarning className="px-1.5 h-6 flex items-center justify-center text-[10px] font-bold text-gray-600 border-r border-gray-200 select-none whitespace-nowrap bg-gray-50/50">
                   {currentIndexDisplay}
                 </span>
               )}
