@@ -279,8 +279,8 @@ export function OrderCustomerCard({
                       {addrParts.length > 0 && <>{addrParts.join(', ')}<br/></>}
                       {cityParts.length > 0 && <>{cityParts.join(' ')}<br/></>}
                       {coords && (
-                        <div className="text-[11.5px] text-gray-500 dark:text-gray-400 mt-1">
-                          GPS Location: <span className="font-mono bg-gray-50 dark:bg-gray-800 px-1 py-0.5 rounded border border-gray-100 dark:border-gray-700">{coords}</span>
+                        <div className="text-[11.5px] text-gray-500 dark:text-gray-400 mt-1 min-w-0">
+                          GPS Location: <span className="font-mono bg-gray-50 dark:bg-gray-800 px-1 py-0.5 rounded border border-gray-100 dark:border-gray-700 break-all [overflow-wrap:anywhere] inline-block">{coords}</span>
                         </div>
                       )}
                       {!addr && !city && <span className="text-gray-500 italic">No address provided</span>}

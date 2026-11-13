@@ -783,19 +783,90 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
             </div>
           </div>
 
-          <div className="flex flex-col gap-4">
-            <div className="bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm p-4">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-[13.5px] font-bold">Notes</span>
-                <button onClick={() => setIsEditingNotes(!isEditingNotes)}><Edit className="h-4 w-4 text-gray-500" /></button>
+          <div className="flex flex-col gap-4 min-w-0 max-w-full">
+            <div className="bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm p-4 min-w-0 max-w-full overflow-hidden">
+              <div className="flex justify-between items-center mb-2.5">
+                <span className="text-[13.5px] font-bold text-gray-900 dark:text-white">Notes</span>
+                <button 
+                  onClick={() => setIsEditingNotes(!isEditingNotes)}
+                  className="p-1 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors cursor-pointer"
+                  title="Edit customer note"
+                >
+                  <Edit className="h-4 w-4" />
+                </button>
               </div>
               {isEditingNotes ? (
-                <div className="space-y-2">
-                  <textarea value={editOtherNotes} onChange={e => setEditOtherNotes(e.target.value)} className="w-full text-xs p-2 border rounded bg-white dark:bg-gray-800" />
-                  <button onClick={handleSaveNotes} className="px-3 py-1 bg-blue-600 text-white text-xs rounded">Save</button>
+                <div className="space-y-2 min-w-0">
+                  <textarea 
+                    value={editOtherNotes} 
+                    onChange={e => setEditOtherNotes(e.target.value)} 
+                    placeholder="Enter customer note..."
+                    rows={3}
+                    className="w-full text-xs p-2.5 border border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-0 resize-y" 
+                  />
+                  <div className="flex items-center gap-2">
+                    <button 
+                      onClick={handleSaveNotes} 
+                      className="px-3.5 py-1.5 bg-[#008060] hover:bg-[#006e52] text-white text-xs font-bold rounded-lg transition-colors cursor-pointer shadow-xs"
+                    >
+                      Save Note
+                    </button>
+                    <button 
+                      onClick={() => setIsEditingNotes(false)} 
+                      className="px-3 py-1.5 border border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-300 text-xs font-semibold rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                  </div>
                 </div>
               ) : (
-                <p className="text-xs text-gray-600 dark:text-gray-400">{order.notes || 'No notes'}</p>
+                (() => {
+                  if (!order.notes) {
+                    return <p className="text-xs text-gray-500 dark:text-gray-400 italic">No notes</p>;
+                  }
+
+                  const lines = order.notes.split('\n').map(l => l.trim()).filter(Boolean);
+                  const customerNotes = lines
+                    .filter(l => l.toLowerCase().startsWith('notes:'))
+                    .map(l => l.substring('notes:'.length).trim())
+                    .filter(Boolean);
+
+                  return (
+                    <div className="space-y-2 text-xs min-w-0 max-w-full overflow-hidden break-words [overflow-wrap:anywhere]">
+                      {customerNotes.length > 0 && (
+                        <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/50 text-amber-900 dark:text-amber-200 min-w-0">
+                          <div className="text-[10px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 mb-1">
+                            Customer Instruction:
+                          </div>
+                          <p className="font-semibold text-xs leading-relaxed break-words [overflow-wrap:anywhere]">
+                            {customerNotes.join(' · ')}
+                          </p>
+                        </div>
+                      )}
+
+                      <div className="space-y-1.5 pt-1 text-gray-700 dark:text-gray-300 min-w-0">
+                        {lines.map((line, idx) => {
+                          const colonIdx = line.indexOf(':');
+                          if (colonIdx > 0) {
+                            const label = line.substring(0, colonIdx).trim();
+                            const val = line.substring(colonIdx + 1).trim();
+                            return (
+                              <div key={idx} className="flex flex-col sm:flex-row sm:items-baseline gap-0.5 sm:gap-2 text-[12px] min-w-0">
+                                <span className="font-bold text-gray-900 dark:text-white shrink-0 text-[11px]">{label}:</span>
+                                <span className="break-all [overflow-wrap:anywhere] min-w-0 text-gray-600 dark:text-gray-400 font-mono text-[11.5px]">{val}</span>
+                              </div>
+                            );
+                          }
+                          return (
+                            <div key={idx} className="break-words [overflow-wrap:anywhere] min-w-0 text-[12px] text-gray-700 dark:text-gray-300">
+                              {line}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()
               )}
             </div>
 
