@@ -7,7 +7,7 @@ import { updateProductFieldsAction as updateProductFields, updateProductVariantF
 import { updateCategorySafe } from '@/lib/services/categories';
 import { toast } from 'sonner';
 import { Search } from '@/components/common/Icons';
-import { SORT_OPTIONS } from '@/lib/sorting/sortOptions';
+import { SORT_OPTIONS, applySort } from '@/lib/sorting/sortOptions';
 import PaginationFooter from './PaginationFooter';
 import { saveProductNavContext, getAdminNavContext } from '@/lib/hooks/useProductNav';
 import ImagePreviewModal from '@/components/admin/ImagePreviewModal';
@@ -195,29 +195,14 @@ export default function CategoryDetailManager({ category, initialProducts }: Cat
         (v.custom_value && v.custom_value.toLowerCase().includes(q))
       );
       return nameMatch || skuMatch || variantMatch;
-    })
-    .sort((a, b) => {
-      if (sortBy === 'manual') return 0;
-      switch (sortBy) {
-        case 'newest':
-          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-        case 'oldest':
-          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-        case 'price_desc':
-          return b.price - a.price;
-        case 'price_asc':
-          return a.price - b.price;
-        case 'alpha_asc':
-          return a.name.localeCompare(b.name);
-        case 'alpha_desc':
-          return b.name.localeCompare(a.name);
-        default:
-          return 0;
-      }
     });
 
-  const totalFiltered = filteredProducts.length;
-  const paginatedProducts = filteredProducts.slice(
+  const sortedProducts = (sortBy === 'manual')
+    ? filteredProducts
+    : applySort(filteredProducts, sortBy);
+
+  const totalFiltered = sortedProducts.length;
+  const paginatedProducts = sortedProducts.slice(
     (currentPage - 1) * pageSize,
     currentPage * pageSize
   );
@@ -339,13 +324,9 @@ export default function CategoryDetailManager({ category, initialProducts }: Cat
           }}
           className="w-full sm:w-auto min-w-[180px] rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-[#0f0f1b] px-3.5 py-2.5 text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-200 focus:border-[#1a1a2e] dark:focus:border-gray-600 focus:outline-none cursor-pointer"
         >
-          <option value="manual">Manual Order</option>
-          <option value="newest">Newest First</option>
-          <option value="oldest">Oldest First</option>
-          <option value="price_desc">Price: High to Low</option>
-          <option value="price_asc">Price: Low to High</option>
-          <option value="alpha_asc">Alphabetically: A-Z</option>
-          <option value="alpha_desc">Alphabetically: Z-A</option>
+          {SORT_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
         </select>
       </div>
 

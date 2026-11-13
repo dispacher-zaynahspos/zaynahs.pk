@@ -354,6 +354,7 @@ export interface StoreSettings {
   related_grid_gap?: 'tight' | 'normal' | 'relaxed';
   recently_viewed_grid_gap?: 'tight' | 'normal' | 'relaxed';
   shop_show_breadcrumbs?: boolean;
+  shop_default_sort?: string;
   // Shop sidebar (filters) controls
   shop_sidebar_position?: 'left' | 'right' | 'drawer';
   shop_sidebar_sticky?: boolean;

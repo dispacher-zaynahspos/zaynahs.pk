@@ -19,6 +19,8 @@
 
 export type SortKey =
   | 'manual'
+  | 'featured'
+  | 'best_selling'
   | 'newest'
   | 'oldest'
   | 'price_desc'
@@ -34,6 +36,8 @@ export interface SortOption {
 /** Canonical option list (value + label). The ONLY place labels are defined. */
 export const SORT_OPTIONS: readonly SortOption[] = [
   { value: 'manual', label: 'Manual Order' },
+  { value: 'featured', label: 'Featured / Most Relevant' },
+  { value: 'best_selling', label: 'Best Selling' },
   { value: 'newest', label: 'Newest First' },
   { value: 'oldest', label: 'Oldest First' },
   { value: 'price_desc', label: 'Price: High to Low' },
@@ -62,12 +66,21 @@ const ALIAS_MAP: Record<string, SortKey> = {
   'name-desc': 'alpha_desc',
   // common synonyms
   recent: 'newest',
-  featured: 'manual',
   all: 'manual',
   a_to_z: 'alpha_asc',
   z_to_a: 'alpha_desc',
   price_low: 'price_asc',
   price_high: 'price_desc',
+  // Featured / relevance synonyms
+  relevance: 'featured',
+  most_relevant: 'featured',
+  relevant: 'featured',
+  // Best selling synonyms
+  most_selling: 'best_selling',
+  popular: 'best_selling',
+  bestselling: 'best_selling',
+  sales: 'best_selling',
+  top_selling: 'best_selling',
 };
 
 const VALID_KEYS = new Set<string>(SORT_OPTIONS.map((o) => o.value));
@@ -96,6 +109,11 @@ export interface SortableItem {
   created_at?: string | null;
   /** fallback global order (legacy); used only if no manualPositions provided */
   sort_order?: number | null;
+  is_featured?: boolean | null;
+  sales_count?: number | null;
+  order_count?: number | null;
+  reviews_count?: number | null;
+  rating?: number | null;
 }
 
 const MANUAL_FALLBACK = 999999;
@@ -148,6 +166,50 @@ export function applySort<T extends SortableItem>(
   switch (key) {
     case 'manual':
       list.sort((a, b) => manualCompare(a, b, manualPositions));
+      break;
+    case 'featured':
+      list.sort((a, b) => {
+        // 1. is_featured flag
+        const featA = a.is_featured ? 1 : 0;
+        const featB = b.is_featured ? 1 : 0;
+        if (featA !== featB) return featB - featA;
+        // 2. Reviews count & rating as quality proof
+        const revDiff = (Number(b.reviews_count) || 0) - (Number(a.reviews_count) || 0);
+        if (revDiff !== 0) return revDiff;
+        const rateDiff = (Number(b.rating) || 0) - (Number(a.rating) || 0);
+        if (rateDiff !== 0) return rateDiff;
+        // 3. Manual rank if scoped
+        const posA = manualPositions?.[a.id] ?? (a.sort_order && a.sort_order !== 0 ? a.sort_order : MANUAL_FALLBACK);
+        const posB = manualPositions?.[b.id] ?? (b.sort_order && b.sort_order !== 0 ? b.sort_order : MANUAL_FALLBACK);
+        if (posA !== posB) return posA - posB;
+        // 4. Stable tiebreaker
+        return idTiebreak(
+          new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime(),
+          a,
+          b
+        );
+      });
+      break;
+    case 'best_selling':
+      list.sort((a, b) => {
+        // 1. Real sales count from orders
+        const salesA = Number(a.sales_count ?? a.order_count ?? 0);
+        const salesB = Number(b.sales_count ?? b.order_count ?? 0);
+        if (salesA !== salesB) return salesB - salesA;
+        // 2. Social proof / reviews fallback
+        const revDiff = (Number(b.reviews_count) || 0) - (Number(a.reviews_count) || 0);
+        if (revDiff !== 0) return revDiff;
+        // 3. Featured fallback
+        const featA = a.is_featured ? 1 : 0;
+        const featB = b.is_featured ? 1 : 0;
+        if (featA !== featB) return featB - featA;
+        // 4. Stable tiebreaker
+        return idTiebreak(
+          new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime(),
+          a,
+          b
+        );
+      });
       break;
     case 'newest':
       list.sort((a, b) =>
@@ -219,6 +281,19 @@ export function buildOrderBy(
   switch (key) {
     case 'manual':
       return [{ column: manualColumn, ascending: true }, ...tiebreak];
+    case 'featured':
+      return [
+        { column: 'is_featured', ascending: false },
+        { column: 'reviews_count', ascending: false },
+        { column: manualColumn, ascending: true },
+        ...tiebreak,
+      ];
+    case 'best_selling':
+      return [
+        { column: 'sales_count', ascending: false },
+        { column: 'reviews_count', ascending: false },
+        ...tiebreak,
+      ];
     case 'newest':
       return [{ column: 'created_at', ascending: false }, { column: 'id', ascending: true }];
     case 'oldest':

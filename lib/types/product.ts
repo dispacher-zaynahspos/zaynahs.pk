@@ -103,6 +103,7 @@ export interface Product {
   deleted_at?: string | null;
   inventory_threshold?: number;
   sort_order?: number;
+  sales_count?: number;
   product_categories?: ProductCategoryRelation[];
   variation_order?: string[];
   created_at: string;

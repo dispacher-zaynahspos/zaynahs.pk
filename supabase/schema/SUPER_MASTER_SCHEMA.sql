@@ -174,6 +174,7 @@ CREATE TABLE IF NOT EXISTS products (
   meta_last_synced_at TIMESTAMPTZ,
   inventory_threshold INTEGER DEFAULT 0,
   variation_order TEXT[] DEFAULT NULL,
+  sales_count INTEGER DEFAULT 0,
   deleted_at TIMESTAMPTZ DEFAULT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -182,6 +183,9 @@ CREATE TABLE IF NOT EXISTS products (
 CREATE UNIQUE INDEX IF NOT EXISTS idx_products_slug ON products (LOWER(slug));
 CREATE INDEX IF NOT EXISTS idx_products_category ON products (category_id);
 CREATE INDEX IF NOT EXISTS idx_products_active_sort ON products (is_active, deleted_at, sort_order, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_products_sales_count ON products (sales_count DESC);
+CREATE INDEX IF NOT EXISTS idx_products_active_sales ON products (is_active, deleted_at, sales_count DESC, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_products_active_featured ON products (is_active, deleted_at, is_featured DESC, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_products_deleted_created ON products (deleted_at, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_products_category_active ON products (category_id, is_active, deleted_at);
 CREATE INDEX IF NOT EXISTS idx_products_featured ON products (is_featured) WHERE is_featured = true;
@@ -3063,6 +3067,11 @@ BEGIN
      GROUP BY product_id, variant_id
   LOOP
     PERFORM adjust_item_stock(v_row.product_id, v_row.variant_id, -v_row.qty);
+
+    UPDATE products
+       SET sales_count = COALESCE(sales_count, 0) + v_row.qty
+     WHERE id = v_row.product_id;
+
     v_count := v_count + 1;
   END LOOP;
 

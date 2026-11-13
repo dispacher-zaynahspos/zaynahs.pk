@@ -106,6 +106,7 @@ export interface DBProductRow {
   tags?: string[] | null;
   rating?: number | string | null;
   reviews_count?: number | null;
+  sales_count?: number | null;
   product_images?: DBProductImage[] | null;
   product_variants?: DBProductVariant[] | null;
   product_modifiers?: DBProductModifier[] | null;

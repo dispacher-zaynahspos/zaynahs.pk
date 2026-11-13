@@ -112,6 +112,7 @@ const CATEGORY_SLUG_ALIASES: Record<string, string> = {
   const [searchQuery, setSearchQuery] = useState(urlSearchQuery);
   const defaultSort =
     activeCategory?.active_sort_preference ||
+    settings?.shop_default_sort ||
     categories.find((c) => c.id === SYSTEM_CATEGORY_ID)?.active_sort_preference ||
     'manual';
   const [sortBy, setSortBy] = useState<string>(

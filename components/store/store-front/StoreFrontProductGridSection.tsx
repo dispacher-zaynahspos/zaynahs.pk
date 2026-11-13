@@ -7,6 +7,7 @@ import ProductGrid from '../ProductGrid';
 import ProductCard from '../ProductCard';
 import { SectionWrapper } from './SectionWrapper';
 import { useCatalogColumns } from '@/lib/hooks/useCatalogColumns';
+import { applySort } from '@/lib/sorting/sortOptions';
 
 interface StoreFrontProductGridSectionProps {
   section: HomepageSection;
@@ -123,7 +124,9 @@ export function StoreFrontProductGridSection({
       );
     }
 
-    if (sortMethod === 'recent') {
+    if (sortMethod === 'best_selling') {
+      prodList = applySort(prodList, 'best_selling');
+    } else if (sortMethod === 'recent') {
       prodList = [...prodList].sort(
         (a, b) => new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime()
       );

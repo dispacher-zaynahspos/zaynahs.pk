@@ -122,6 +122,7 @@ export const mapProduct = (row: DBProductRow): Product => {
     modifiers,
     rating: row.rating ? parseFloat(row.rating.toString()) : undefined,
     reviews_count: row.reviews_count !== null && row.reviews_count !== undefined ? row.reviews_count : undefined,
+    sales_count: row.sales_count !== null && row.sales_count !== undefined ? Number(row.sales_count) : 0,
     meta_sync_status: (row.meta_sync_status as Product['meta_sync_status']) || 'pending',
     meta_sync_error: row.meta_sync_error || undefined,
     meta_last_synced_at: row.meta_last_synced_at || undefined,

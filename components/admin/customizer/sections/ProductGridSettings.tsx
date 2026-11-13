@@ -99,7 +99,8 @@ export default function ProductGridSettings({
         >
           <option value="all">Default (as fetched)</option>
           <option value="manual">Manual Pick &amp; Sort</option>
-          <option value="featured">Featured Only</option>
+          <option value="featured">Featured / Most Relevant</option>
+          <option value="best_selling">Best Selling</option>
           <option value="recent">Newest First (Recent Added)</option>
           <option value="oldest">Oldest First</option>
           <option value="price_low">Price: Low to High</option>

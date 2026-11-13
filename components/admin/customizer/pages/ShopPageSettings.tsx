@@ -8,6 +8,7 @@ import FillRowsControl from '@/components/admin/customizer/shared/FillRowsContro
 import { Monitor, Tablet, Smartphone, Palette } from '@/components/common/Icons';
 import { AccordionGroup } from '@/components/admin/customizer/controls';
 import { SegmentedControl, ToggleControl } from '@/components/admin/customizer/controls';
+import { SORT_OPTIONS } from '@/lib/sorting/sortOptions';
 
 interface ShopPageSettingsProps {
   settings: StoreSettings;
@@ -48,6 +49,27 @@ export default function ShopPageSettings({
       {/* 1. Catalog Layout & Grid */}
       {(subTab === 'layout' || !subTab) && (
         <div className="space-y-4 pt-1">
+          {/* Default Catalog Sort Order */}
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-bold text-gray-500 dark:text-gray-400 block uppercase tracking-wider">
+              Default Catalog Sort Order
+            </label>
+            <select
+              value={settings.shop_default_sort || 'manual'}
+              onChange={(e) => onUpdateSettings({ shop_default_sort: e.target.value })}
+              className="w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#0f0f1b] px-3 py-2 text-xs font-semibold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white cursor-pointer"
+            >
+              {SORT_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+            <p className="text-[10px] text-gray-400 leading-normal">
+              Initial sort applied when customers first land on the shop catalog.
+            </p>
+          </div>
+
           <div className="space-y-1.5">
             <label className="text-[11px] font-bold text-gray-500 dark:text-gray-400 block uppercase tracking-wider">Default Variant Index</label>
             <select

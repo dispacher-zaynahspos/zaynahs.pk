@@ -35,10 +35,10 @@ const P = (id, over = {}) => ({
 
 console.log('applySort / sortOptions');
 
-test('SORT_OPTIONS has the 7 canonical keys', () => {
+test('SORT_OPTIONS has the 9 canonical keys', () => {
   assert.deepStrictEqual(
     SORT_OPTIONS.map((o) => o.value),
-    ['manual', 'newest', 'oldest', 'price_desc', 'price_asc', 'alpha_asc', 'alpha_desc']
+    ['manual', 'featured', 'best_selling', 'newest', 'oldest', 'price_desc', 'price_asc', 'alpha_asc', 'alpha_desc']
   );
 });
 
@@ -49,6 +49,10 @@ test('normalizeSortKey maps spec + legacy aliases', () => {
   assert.strictEqual(normalizeSortKey('price_low'), 'price_asc');
   assert.strictEqual(normalizeSortKey('recent'), 'newest');
   assert.strictEqual(normalizeSortKey('all'), 'manual');
+  assert.strictEqual(normalizeSortKey('most_relevant'), 'featured');
+  assert.strictEqual(normalizeSortKey('relevance'), 'featured');
+  assert.strictEqual(normalizeSortKey('popular'), 'best_selling');
+  assert.strictEqual(normalizeSortKey('most_selling'), 'best_selling');
   assert.strictEqual(normalizeSortKey(undefined), 'manual');
   assert.strictEqual(normalizeSortKey('garbage'), 'manual');
 });
@@ -56,6 +60,32 @@ test('normalizeSortKey maps spec + legacy aliases', () => {
 test('getSortLabel resolves through aliases', () => {
   assert.strictEqual(getSortLabel('name_asc'), 'Alphabetically: A-Z');
   assert.strictEqual(getSortLabel('price_desc'), 'Price: High to Low');
+  assert.strictEqual(getSortLabel('popular'), 'Best Selling');
+  assert.strictEqual(getSortLabel('relevance'), 'Featured / Most Relevant');
+});
+
+test('featured sorts by is_featured, reviews, and rating', () => {
+  const items = [
+    P('regular', { is_featured: false, reviews_count: 5 }),
+    P('featured_top', { is_featured: true, reviews_count: 10 }),
+    P('featured_low', { is_featured: true, reviews_count: 2 }),
+  ];
+  assert.deepStrictEqual(
+    applySort(items, 'featured').map((x) => x.id),
+    ['featured_top', 'featured_low', 'regular']
+  );
+});
+
+test('best_selling sorts by sales_count and reviews_count', () => {
+  const items = [
+    P('low_sales', { sales_count: 2, reviews_count: 1 }),
+    P('high_sales', { sales_count: 50, reviews_count: 10 }),
+    P('mid_sales', { sales_count: 15, reviews_count: 4 }),
+  ];
+  assert.deepStrictEqual(
+    applySort(items, 'best_selling').map((x) => x.id),
+    ['high_sales', 'mid_sales', 'low_sales']
+  );
 });
 
 test('applySort does not mutate input', () => {

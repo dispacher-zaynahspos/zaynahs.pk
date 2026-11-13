@@ -14,10 +14,12 @@
   - `SORT_OPTIONS` (value + label), `getSortLabel`, `normalizeSortKey`, `isValidSortKey`
   - `applySort(items, sortKey, manualPositions?)` — pure, returns a NEW array, stable `id` tiebreaker
   - `buildOrderBy(sortKey, manualColumn?)` — matching DB ORDER BY builder
-- Canonical keys: `manual · newest · oldest · price_desc · price_asc · alpha_asc · alpha_desc`.
-- `normalizeSortKey` maps legacy/spec aliases (`name_asc`→`alpha_asc`, `created-desc`→`newest`, `price_low`→`price_asc`, `recent`→`newest`, `all`/`featured`→`manual`, etc.) so NO data migration of saved `active_sort_preference` is ever needed.
+- Canonical keys: `manual · featured · best_selling · newest · oldest · price_desc · price_asc · alpha_asc · alpha_desc`.
+- `normalizeSortKey` maps legacy/spec aliases (`name_asc`→`alpha_asc`, `created-desc`→`newest`, `price_low`→`price_asc`, `recent`→`newest`, `relevance`/`most_relevant`→`featured`, `popular`/`most_selling`/`sales`→`best_selling`, `all`→`manual`, etc.) so NO data migration of saved `active_sort_preference` is ever needed.
+- `best_selling` calculates real sales from `products.sales_count` (populated from `order_items` and maintained by `deduct_stock_for_order` RPC) with reviews/featured/created fallback.
+- `featured` ranks by `is_featured`, review count, rating quality score, and category positions.
 - NEVER hardcode a sort `<option>` label or an inline sort switch/`.sort()` chain again. Every dropdown renders `SORT_OPTIONS.map(...)`; every in-memory sort calls `applySort`.
-- Current consumers (keep in sync): `shopFilterUtils.ts`, `ShopPageControls.tsx`, `CategoryDetailManager.tsx`, `ProductList.tsx` + `ProductListToolbar.tsx`. Storefront home sections keep their own `source`/`sortMethod` section semantics but should map labels through this SSOT where a dropdown is shown.
+- Current consumers (keep in sync): `shopFilterUtils.ts`, `ShopPageControls.tsx`, `CategoryDetailManager.tsx`, `ProductList.tsx` + `ProductListToolbar.tsx`, `ShopPageSettings.tsx`, and `ProductGridSettings.tsx`. Storefront home sections keep their own `source`/`sortMethod` section semantics but map labels through this SSOT where a dropdown is shown.
 
 ## RULE REORDER1 — One shared reorder UI (SSOT)
 - Any reorderable list MUST use the shared system — never a one-off drag/move UI:

@@ -183,10 +183,15 @@ export function filterProductsList({
   }
 
   // When a text query is active, rank by relevance (title → category → tags →
-  // short desc → long desc → variant) via the shared SSOT ranker — same order
-  // as the admin search engine. Facet-only browsing keeps the manual/applySort order.
+  // short desc → long desc → variant) via the shared SSOT ranker.
+  // If the user explicitly chose a specific sort (e.g. best_selling, price_asc, newest),
+  // apply that sort on the filtered search results.
   if (hasQuery) {
-    return rankProducts(list, q);
+    const ranked = rankProducts(list, q);
+    if (!sortBy || sortBy === 'manual' || sortBy === 'featured') {
+      return ranked;
+    }
+    return applySort(ranked, sortBy);
   }
 
   // Manual order: use THIS category's per-category position (SSOT), not a global rank.
