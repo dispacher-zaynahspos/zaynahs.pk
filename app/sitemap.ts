@@ -69,11 +69,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     });
   }
 
-  // 4. Add categories (filtering via shop page as per Rule #0)
+  // 4. Add categories (clean canonical /category/[slug] routes)
   if (categories) {
     categories.forEach((c) => {
       routes.push({
-        url: `${siteUrl}/shop?category=${c.slug}`,
+        url: `${siteUrl}/category/${c.slug}`,
         lastModified: c.updated_at ? new Date(c.updated_at) : new Date(),
         changeFrequency: 'weekly',
         priority: 0.8,

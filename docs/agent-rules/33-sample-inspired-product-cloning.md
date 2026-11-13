@@ -83,3 +83,14 @@ Whenever the merchant specifies a sample product (e.g., *"is sample article ko f
 - **Always trigger Edge Invalidation & CDN Purge on write**:
   - Revalidate Next.js ISR edge via `/api/revalidate` with `x-revalidate-secret`.
   - Purge Cloudflare cache via Cloudflare API.
+
+---
+
+## 🎯 RULE SEO-FORMULA — Universal E-Commerce Product Naming & SEO Standard (MANDATORY)
+Every product, category, and image listed across any store MUST strictly adhere to the unified Pakistani e-commerce SEO formula documented in `docs/SAMPLE_INSPIRED_PRODUCT_LISTING_GUIDE.md`:
+1. **Product Title (&le;60 chars)**: `[Gender] [Product] [Fabric] [Age/Size] – [Season] | [Brand]`
+   - Example: `Boys Fleece Tracksuit 2-12 Years – Winter | Store.pk`
+2. **Category Title**: `Buy [Keyword] Online in Pakistan | [Benefit] | [Brand]`
+3. **Category URL**: Dedicated clean canonical path `/category/[slug]` with `<h1>` and ItemList Schema.
+4. **Image SEO**: WebP &le;100KB, Alt text: `[Gender] [Color] [Product] [Age] Pakistan`.
+5. **No Hardcoding**: Brand name and domain MUST be resolved dynamically via `getDomainBrand()`.

@@ -21,6 +21,18 @@ import {
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
+  // Google Site Verification auto-responder (e.g. /googleac32472c67f64130.html)
+  if (/^\/google[a-z0-9]+\.html$/i.test(pathname)) {
+    const filename = pathname.slice(1);
+    return new NextResponse(`google-site-verification: ${filename}`, {
+      status: 200,
+      headers: {
+        'Content-Type': 'text/html; charset=UTF-8',
+        'Cache-Control': 'public, max-age=86400',
+      },
+    });
+  }
+
   // --- Worker role gate (universal separation) -------------------------------
   // WORKER_ROLE is set per deployment in the generated Wrangler config.
   // Unset (Vercel / local dev / single Worker) resolves to `all` → no change.

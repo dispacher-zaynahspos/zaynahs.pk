@@ -2,6 +2,7 @@ import React from 'react';
 import { Search, Zap, Loader2 } from '@/components/common/Icons';
 import { SizeGuide, Category } from '@/lib/types';
 import { ProductDescriptionEditor } from './ProductDescriptionEditor';
+import { ProductSEOHelper } from './ProductSEOHelper';
 
 type FlattenedCategory = Category & { _level: number };
 
@@ -73,15 +74,18 @@ export const ProductFormBasicInfo: React.FC<ProductFormBasicInfoProps> = ({
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div className="sm:col-span-2">
-          <label className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-1">Product Name *</label>
-          <input
-            type="text"
-            required
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="w-full rounded-lg border border-gray-200 bg-gray-50/50 px-3 py-2 text-xs font-semibold focus:border-[#e94560] focus:ring-1 focus:ring-[#e94560]/20 focus:bg-white focus:outline-none transition-all dark:border-gray-800 dark:bg-[#111124]"
-          />
+        <div className="sm:col-span-2 space-y-2">
+          <ProductSEOHelper currentTitle={name} onApplyTitle={(t) => setName(t)} />
+          <div>
+            <label className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-1">Product Name *</label>
+            <input
+              type="text"
+              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full rounded-lg border border-gray-200 bg-gray-50/50 px-3 py-2 text-xs font-semibold focus:border-[#e94560] focus:ring-1 focus:ring-[#e94560]/20 focus:bg-white focus:outline-none transition-all dark:border-gray-800 dark:bg-[#111124]"
+            />
+          </div>
         </div>
 
         <div>

@@ -40,8 +40,11 @@ export function useShopPageFilters({
   const pathname = usePathname();
   const addItem = useCartStore((state) => state.addItem);
 
-  // Read URL query parameters
-  const urlCategorySlug = searchParams.get('category') || undefined;
+  // Read URL query parameters or dedicated /category/[slug] path
+  const pathCategorySlug = pathname.startsWith('/category/')
+    ? decodeURIComponent(pathname.replace(/^\/category\//, '').split('?')[0].split('/')[0] || '')
+    : undefined;
+  const urlCategorySlug = searchParams.get('category') || pathCategorySlug || undefined;
   const urlCollectionSlug = searchParams.get('collection') || undefined;
   const urlSearchQuery = searchParams.get('search') || '';
   const urlPage = parseInt(searchParams.get('page') || '1', 10);

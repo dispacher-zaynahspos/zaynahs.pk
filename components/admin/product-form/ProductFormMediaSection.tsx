@@ -43,8 +43,11 @@ export const ProductFormMediaSection: React.FC<ProductFormMediaSectionProps> = (
 }) => {
   return (
     <div className="bg-white dark:bg-[#16162a] p-4 sm:p-5 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xs space-y-3 text-gray-900 dark:text-white transition-colors">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
         <h3 className="text-sm font-bold text-gray-900 dark:text-white tracking-tight">Product Images</h3>
+        <span className="text-[10px] text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800/60 px-2 py-0.5 rounded font-mono">
+          Alt: [Gender] [Color] [Product] [Age] Pakistan (&le;100KB WebP)
+        </span>
       </div>
 
       {images.length === 0 ? (
