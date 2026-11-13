@@ -76,6 +76,18 @@ Full details: `docs/NEW_PROJECT_SETUP_GUIDE.md#agent-automation--full-setup-flow
   - **Deployment**: Vercel Git integration or `vercel --prod`.
   - **Media**: Supabase Storage bucket `product-images`.
 
+## RULE TOTVOGUE-CF-ALWAYS — TotVogue Always Deploys to Cloudflare (MANDATORY)
+TotVogue (`totvogue.pk`) is permanently and strictly on **Mode A (Cloudflare Workers / Pages Paid Architecture)**:
+- **Zero Primary Vercel Reliance**: TotVogue's live production edge runs 100% on Cloudflare Workers / Pages via OpenNext (`@opennextjs/cloudflare`) and Wrangler (`worker-config/totvogue/wrangler.jsonc`), serving `totvogue.pk/*`, `www.totvogue.pk/*`, and `admin.totvogue.pk/*`.
+- **Mandatory Cloudflare Deployment**: Whenever changes are pushed or deployed for TotVogue, Cloudflare deployment MUST ALWAYS be run:
+  ```bash
+  npm run cf:deploy:totvogue
+  # Or via bulk ops targeting totvogue:
+  npm run deploy:workers -- --store=totvogue
+  ```
+- **Storage & Edge Caching**: 100% Cloudflare R2 on `img.totvogue.pk` with `totvogue-next-cache` and `totvogue-images`, 0% Supabase Storage. Durable Objects handle Next.js cache tags (`NEXT_CACHE_DO_QUEUE`, `NEXT_TAG_CACHE_DO_QUEUE`).
+- **Rule for All Agents & Automation**: Never bypass Cloudflare deployment for TotVogue. In any deployment or rollout involving TotVogue, the Cloudflare build and Wrangler deploy step is required and non-negotiable.
+
 ---
 
 ## RULE CLONE1 — Mandatory Autonomous Clone Setup by Agent (STRICT)
