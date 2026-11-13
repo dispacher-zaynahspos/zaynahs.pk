@@ -366,22 +366,27 @@ export function OrderQuickViewModal({
 
                     {/* Article Details & Variations */}
                     <div className="flex-1 min-w-0">
-                      {item.product?.id ? (
-                        <a
-                          href={`/admin/products/${item.product.id}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 text-[12.5px] sm:text-[13px] font-bold text-gray-900 dark:text-white hover:text-[#2c6ecb] dark:hover:text-blue-400 leading-snug line-clamp-1 sm:line-clamp-2 transition-colors group cursor-pointer"
-                          title="Open product editor (new tab)"
+                      <div className="flex items-start gap-1.5">
+                        <span
+                          className="text-[12.5px] sm:text-[13px] font-bold text-gray-900 dark:text-white leading-snug line-clamp-1 sm:line-clamp-2 select-text"
+                          title={item.product?.name || (item as unknown as { title?: string }).title || 'Item'}
                         >
-                          <span>{item.product?.name || (item as unknown as { title?: string }).title || 'Item'}</span>
-                          <ExternalLink className="w-3.5 h-3.5 opacity-60 group-hover:opacity-100 text-blue-600 dark:text-blue-400 shrink-0 transition-opacity" />
-                        </a>
-                      ) : (
-                        <h4 className="text-[12.5px] sm:text-[13px] font-bold text-gray-900 dark:text-white leading-snug line-clamp-1 sm:line-clamp-2">
                           {item.product?.name || (item as unknown as { title?: string }).title || 'Item'}
-                        </h4>
-                      )}
+                        </span>
+                        {item.product?.id && (
+                          <a
+                            href={`/admin/products/${item.product.id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center justify-center p-0.5 text-blue-600/70 hover:text-blue-600 dark:text-blue-400/70 dark:hover:text-blue-400 transition-colors shrink-0 mt-0.5 cursor-pointer"
+                            title="Open product editor (new tab)"
+                            aria-label={`Open ${item.product?.name || (item as unknown as { title?: string }).title || 'Item'} in editor (new tab)`}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" />
+                          </a>
+                        )}
+                      </div>
 
                       {/* Variation Chips */}
                       {variant.chips && variant.chips.length > 0 ? (
