@@ -23,8 +23,9 @@ export function useProductVariantsState({
   stock,
   inventoryThreshold,
 }: UseProductVariantsStateProps) {
-  const [variants, setVariants] = useState<Omit<ProductVariant, 'id' | 'product_id'>[]>(
+  const [variants, setVariants] = useState<(Omit<ProductVariant, 'id' | 'product_id'> & { id?: string })[]>(
     initialProduct?.variants.map(v => ({
+      id: v.id,
       color: v.color,
       size: v.size,
       material: v.material,

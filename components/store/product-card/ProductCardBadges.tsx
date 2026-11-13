@@ -21,6 +21,42 @@ export const ProductCardBadges: React.FC<ProductCardBadgesProps> = ({
   const badgeClass = "bdg pointer-events-none";
   const badges: React.ReactNode[] = [];
 
+  // 0. Sold Out Badge (Universal highest priority badge)
+  const isService = Boolean(product.is_service);
+  let isSoldOut = false;
+  if (!isService) {
+    if (product.has_variants && product.variants && product.variants.length > 0) {
+      const activeVariants = product.variants.filter((v: { is_active?: boolean; stock?: number }) => v.is_active !== false);
+      if (activeVariants.length > 0) {
+        isSoldOut = activeVariants.every((v: { stock?: number }) => (Number(v.stock) || 0) <= 0);
+      } else {
+        isSoldOut = (Number(product.stock) || 0) <= 0;
+      }
+    } else {
+      const stockCount = stock !== undefined ? Number(stock) : (Number(product.stock) || 0);
+      isSoldOut = stockCount <= 0;
+    }
+  }
+
+  if (isSoldOut) {
+    badges.push(
+      <span
+        key="soldout"
+        className={`${badgeClass} bdg-soldout`}
+        style={{
+          backgroundColor: '#111827',
+          color: '#ffffff',
+          '--bdg-bg': '#111827',
+          '--bdg-color': '#ffffff',
+          fontWeight: 800,
+          letterSpacing: '0.05em',
+        } as React.CSSProperties}
+      >
+        Sold Out
+      </span>
+    );
+  }
+
   // 1. Sale Discount Badge
   if (currentComparePrice && currentComparePrice > currentPrice) {
     const saleCustom = product.custom_badge?.name?.toLowerCase() === 'sale' ? product.custom_badge : null;
@@ -88,9 +124,9 @@ export const ProductCardBadges: React.FC<ProductCardBadgesProps> = ({
     );
   }
 
-  // 4. Limited Stock Badge
-  const stockCount = stock !== undefined ? stock : product.stock;
-  if (!product.is_service && stockCount > 0 && stockCount <= 8) {
+  // 4. Limited Stock Badge (only shown when in stock and limited)
+  const stockCount = stock !== undefined ? Number(stock) : (Number(product.stock) || 0);
+  if (!isSoldOut && !product.is_service && stockCount > 0 && stockCount <= 8) {
     badges.push(<span key="limited" className={`${badgeClass} bdg-new`}>Limited</span>);
   }
 

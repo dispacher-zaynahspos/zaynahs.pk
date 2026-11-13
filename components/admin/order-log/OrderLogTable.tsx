@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import EmptyState from '@/components/common/EmptyState';
 import { Package, Eye, MessageSquare } from '@/components/common/Icons';
@@ -9,6 +9,7 @@ import { formatPrice } from '@/lib/utils/whatsapp';
 import { getItemVariant } from '@/lib/utils/formatVariant';
 import { isOrderPaid, isOrderUnfulfilled, getOrderPaymentMethod, getDeliveryStatus, hasTimelineNote, getTimelineNoteText } from './orderLogUtils';
 import { OrderQuickViewModal } from './OrderQuickViewModal';
+import { saveOrderNavContext, getOrderNavContext, restoreOrderScrollAndHighlight } from '@/lib/hooks/useOrderNav';
 
 interface OrderLogTableProps {
   sortedOrders: Order[];
@@ -37,6 +38,16 @@ export function OrderLogTable({
 }: OrderLogTableProps) {
   const router = useRouter();
   const [quickViewOrder, setQuickViewOrder] = useState<Order | null>(null);
+
+  // Restore scroll position and highlight last opened order row upon return navigation
+  useEffect(() => {
+    if (sortedOrders.length > 0) {
+      const ctx = getOrderNavContext();
+      if (ctx?.lastOpenedId) {
+        restoreOrderScrollAndHighlight(ctx.lastOpenedId, ctx.scrollPosition);
+      }
+    }
+  }, [sortedOrders]);
 
   const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.checked) {
@@ -95,9 +106,20 @@ export function OrderLogTable({
             {sortedOrders.map(order => (
               <tr
                 key={order.id}
+                id={`order-row-${order.id}`}
                 onClick={() => {
                   if (typeof window !== 'undefined') {
-                    sessionStorage.setItem('admin_orders_return_url', window.location.pathname + window.location.search);
+                    const container = document.getElementById('admin-main-content');
+                    const scrollPos = container ? container.scrollTop : window.scrollY;
+                    saveOrderNavContext({
+                      ids: sortedOrders.map(o => o.id),
+                      lastOpenedId: order.id,
+                      scrollPosition: scrollPos,
+                      currentPage,
+                      rowsPerPage,
+                      sourceUrl: window.location.pathname + window.location.search,
+                    });
+
                     try {
                       const orderIds = sortedOrders.map(o => o.id);
                       const ordersMap: Record<string, Order> = {};

@@ -66,13 +66,20 @@ export function ProductCard({ product: p, variant, limit, currencySymbol, cardMo
         type: 'custom',
       });
     }
-    if (!p.source?.is_service && p.source?.stock && p.source.stock > 0 && p.source.stock <= 8) {
+    const isOutOfStock = p.source ? (!p.source.is_service && ((p.source.has_variants && p.source.variants?.length) ? p.source.variants.filter((v: { is_active?: boolean; stock?: number }) => v.is_active !== false).every((v: { stock?: number }) => (Number(v.stock) || 0) <= 0) : (Number(p.source.stock) || 0) <= 0)) : false;
+
+    if (isOutOfStock) {
+      allBadges.unshift({ text: 'Sold Out', type: 'soldout', bg: '#111827', color: '#ffffff' });
+    }
+    if (!isOutOfStock && !p.source?.is_service && p.source?.stock && p.source.stock > 0 && p.source.stock <= 8) {
       allBadges.push({ text: 'Limited', type: 'limited' });
     }
     if (p.badge && allBadges.length === 0) {
       allBadges.push({ text: p.badge, type: 'pct' });
     }
   }
+
+  const isOutOfStock = p.source ? (!p.source.is_service && ((p.source.has_variants && p.source.variants?.length) ? p.source.variants.filter((v: { is_active?: boolean; stock?: number }) => v.is_active !== false).every((v: { stock?: number }) => (Number(v.stock) || 0) <= 0) : (Number(p.source.stock) || 0) <= 0)) : false;
 
   const img1 = (p.swatchNode !== undefined ? (p.image || p.swatches[sel]?.image) : (p.swatches[sel]?.image || p.image)) as string;
   const [imgLoaded, setImgLoaded] = useState(false);
@@ -208,13 +215,45 @@ export function ProductCard({ product: p, variant, limit, currencySymbol, cardMo
           <div className="pc-actions">
             <button type="button" className={`act wish${isInWishlist ? ' on' : ''}`} aria-label="Add to wishlist" onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (onWishlist) { onWishlist(e, p); return; } toggleWishlist(e); }}><Svg d={D.heart} /><span className="lbl">Add to wishlist</span></button>
             <button type="button" className="act qv" aria-label="Quick view" onClick={e => { e.preventDefault(); e.stopPropagation(); if (onQuickView) { onQuickView(p); return; } setQuickViewOpen(true); }}><Svg d={D.eye} /><span className="lbl">Quick view</span></button>
-            {!v.cta && <button type="button" className="act cart" aria-label="Add to cart" onClick={e => { e.preventDefault(); e.stopPropagation(); if (onAddToCart) { onAddToCart(e, p); return; } handleDefaultAddToCart(e.currentTarget); }}><Svg d={D.bag} /><span className="lbl">ADD TO CART</span></button>}
+            {!v.cta && (
+              <button
+                type="button"
+                disabled={isOutOfStock}
+                className={`act cart${isOutOfStock ? ' disabled opacity-50 cursor-not-allowed' : ''}`}
+                aria-label={isOutOfStock ? "Sold out" : "Add to cart"}
+                onClick={e => {
+                  if (isOutOfStock) return;
+                  e.preventDefault();
+                  e.stopPropagation();
+                  if (onAddToCart) { onAddToCart(e, p); return; }
+                  handleDefaultAddToCart(e.currentTarget);
+                }}
+              >
+                <Svg d={D.bag} />
+                <span className="lbl">{isOutOfStock ? "SOLD OUT" : "ADD TO CART"}</span>
+              </button>
+            )}
             {!!v.hstars && <div className="hstars">{stars}</div>}
           </div>
         </div>
         <div className={`pc-body${v.lock ? " locked" : ""}`}>
           {body}
-          {!!v.cta && <button type="button" className="cta cart" onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (onAddToCart) { onAddToCart(e, p); return; } handleDefaultAddToCart(e.currentTarget); }}>ADD TO CART</button>}
+          {!!v.cta && (
+            <button
+              type="button"
+              disabled={isOutOfStock}
+              className={`cta cart${isOutOfStock ? ' opacity-60 cursor-not-allowed bg-gray-500' : ''}`}
+              onClick={(e) => {
+                if (isOutOfStock) return;
+                e.preventDefault();
+                e.stopPropagation();
+                if (onAddToCart) { onAddToCart(e, p); return; }
+                handleDefaultAddToCart(e.currentTarget);
+              }}
+            >
+              {isOutOfStock ? "SOLD OUT" : "ADD TO CART"}
+            </button>
+          )}
         </div>
       </article>
       {quickViewOpen && p.source && (originalSettings || settings) && (

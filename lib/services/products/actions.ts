@@ -174,13 +174,11 @@ export async function createProductAction(
 
     const updatedProduct = await getProductById(productId);
     if (!updatedProduct) throw new Error('Product created but could not be retrieved');
-    // Run the network-bound cache purge + search-engine ping AFTER the response is
-    // sent so the admin save returns instantly (RULE C10 / instant-save). The
-    // storefront reflects the change a moment later once the background task runs.
     revalidateTagSafe('products');
-    await revalidateAfterResponse(async () => {
-      await revalidateProduct(updatedProduct.slug);
-    });
+    const catSlugs = updatedProduct.category?.slug
+      ? [updatedProduct.category.slug]
+      : ((updatedProduct as { categories?: { slug?: string }[] }).categories || []).map(c => c.slug).filter((s): s is string => Boolean(s));
+    await revalidateProduct(updatedProduct.slug, 'UPDATED', catSlugs);
     return updatedProduct;
   } catch (error) {
     console.error('[products] createProductAction failed:', error);
@@ -318,16 +316,32 @@ export async function updateProductAction(
       const shouldManageVariants = product.has_variants === false || variants.length > 0;
 
       if (shouldManageVariants) {
-        const { error: varDelError } = await supabase
-          .from('product_variants')
-          .delete()
-          .eq('product_id', id);
-        if (varDelError) throw varDelError;
-
-        if ((product.has_variants ?? true) && variants.length > 0) {
-          const { error: varInsError } = await supabase
+        if (product.has_variants === false) {
+          // Switched to simple product — delete all variants
+          const { error: varDelError } = await supabase
             .from('product_variants')
-            .insert(variants.map(v => ({
+            .delete()
+            .eq('product_id', id);
+          if (varDelError) throw varDelError;
+        } else if (variants.length > 0) {
+          // RULE D15 / SSOT: Preserve existing variant UUIDs to avoid orphaning orders & breaking stock deduction!
+          const { data: existingVariants } = await supabase
+            .from('product_variants')
+            .select('id, size, color, material, custom_value')
+            .eq('product_id', id);
+
+          const existingMap = new Map<string, string>();
+          (existingVariants || []).forEach((ev) => {
+            const key = `${(ev.size || '').trim().toLowerCase()}_${(ev.color || '').trim().toLowerCase()}_${(ev.material || '').trim().toLowerCase()}_${(ev.custom_value || '').trim().toLowerCase()}`;
+            existingMap.set(key, ev.id);
+          });
+
+          const variantRows = variants.map((v) => {
+            const vAny = v as { id?: string; [key: string]: unknown };
+            const key = `${(v.size || '').trim().toLowerCase()}_${(v.color || '').trim().toLowerCase()}_${(v.material || '').trim().toLowerCase()}_${(v.custom_value || '').trim().toLowerCase()}`;
+            const preservedId = vAny.id || existingMap.get(key) || crypto.randomUUID();
+            return {
+              id: preservedId,
               product_id: id,
               color: v.color,
               size: v.size,
@@ -343,9 +357,26 @@ export async function updateProductAction(
               show_image_swatch: v.show_image_swatch,
               active: v.active,
               sort_order: v.sort_order,
-              inventory_threshold: v.inventory_threshold || 0
-            })));
-          if (varInsError) throw varInsError;
+              inventory_threshold: v.inventory_threshold || 0,
+            };
+          });
+
+          const activeIds = variantRows.map((vr) => vr.id);
+
+          // Delete only variants removed by the merchant
+          if (activeIds.length > 0) {
+            await supabase
+              .from('product_variants')
+              .delete()
+              .eq('product_id', id)
+              .not('id', 'in', `(${activeIds.map((i) => `"${i}"`).join(',')})`);
+          }
+
+          // Upsert preserved variants with stable UUIDs
+          const { error: varUpsertError } = await supabase
+            .from('product_variants')
+            .upsert(variantRows, { onConflict: 'id' });
+          if (varUpsertError) throw varUpsertError;
         }
       }
 
@@ -399,11 +430,13 @@ export async function updateProductAction(
 
     const updatedProduct = await getProductById(id);
     if (!updatedProduct) throw new Error('Product updated but could not be retrieved');
-    // Network-bound purge + indexing runs AFTER the response so the save is instant.
+    // RULE C10: Next.js revalidateTag/revalidatePath MUST run synchronously within Server Action
     revalidateTagSafe('products');
-    await revalidateAfterResponse(async () => {
-      await revalidateProduct(updatedProduct.slug);
-    });
+    revalidateTagSafe('categories');
+    const catSlugs = updatedProduct.category?.slug
+      ? [updatedProduct.category.slug]
+      : ((updatedProduct as { categories?: { slug?: string }[] }).categories || []).map(c => c.slug).filter((s): s is string => Boolean(s));
+    await revalidateProduct(updatedProduct.slug, 'UPDATED', catSlugs);
     return updatedProduct;
   } catch (error) {
     console.error('[products] updateProductAction failed:', error);
@@ -488,13 +521,11 @@ export async function updateProductFieldsAction(
       }
     }
 
-    if (prodData?.slug) {
-      const slug = prodData.slug;
-      await revalidateAfterResponse(async () => {
-        await revalidateProduct(slug);
-      });
-    }
     revalidateTagSafe('products');
+    revalidateTagSafe('categories');
+    if (prodData?.slug) {
+      await revalidateProduct(prodData.slug);
+    }
   } catch (error) {
     console.error('[products] updateProductFieldsAction failed:', error);
     throw error;
@@ -518,13 +549,11 @@ export async function deleteProductAction(id: string): Promise<void> {
 
     if (error) throw error;
 
-    if (prodData?.slug) {
-      const slug = prodData.slug;
-      await revalidateAfterResponse(async () => {
-        await revalidateProduct(slug);
-      });
-    }
     revalidateTagSafe('products');
+    revalidateTagSafe('categories');
+    if (prodData?.slug) {
+      await revalidateProduct(prodData.slug, 'DELETED');
+    }
   } catch (error) {
     console.error('[products] deleteProductAction failed:', error);
     throw error;
@@ -566,10 +595,9 @@ export async function updateProductVariantFieldsAction(
         .single();
 
       if (prodData?.slug) {
-        const slug = prodData.slug;
-        await revalidateAfterResponse(async () => {
-          await revalidateProduct(slug);
-        });
+        revalidateTagSafe('products');
+        revalidateTagSafe('categories');
+        await revalidateProduct(prodData.slug);
       }
     }
     revalidateTagSafe('products');

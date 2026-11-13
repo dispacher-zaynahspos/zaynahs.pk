@@ -62,26 +62,35 @@ Back navigation should **smoothly land on the exact product card** the user clic
 
 ## Files & Components
 
-### 1. `lib/hooks/useScrollRestoration.ts` — Data Store
+### 1. `lib/navigation/navigationMemory.ts` — Data Store (SSOT)
 ```typescript
-// Constants & types
-export const SCROLL_KEY = 'store_scroll_restore';
-export interface ScrollRestoreData {
-  scrollY: number;
-  productId: string;
+// Single Source of Truth for Storefront Navigation & Scroll Memory
+export const NAV_SNAPSHOTS_KEY = 'nav_memory_snapshots';
+export interface NavigationSnapshot {
   path: string;
   timestamp: number;
+  scrollY: number;
+  clickedCardId?: string;
+  loadMoreLimits?: Record<string, number>;
+  activeTab?: string;
+  filters?: Record<string, unknown>;
+  productState?: ProductSelectionsState;
 }
 
 // Path comparison (handles query params, trailing slashes)
 export function isSameStorePath(savedPath: string, currentPath: string): boolean
 
 // Called by product cards before navigation
-export const saveScrollPosition = (productId: string) => void
+export const saveScrollPosition = (productId?: string) => void
 
-// No-op hook for backward compat (all logic in ScrollRestorer)
-export const useScrollRestoration = () => {}
+// Navigation state retrieval & snapshot management
+export const getNavigationSnapshot = (pathname: string): NavigationSnapshot | null
 ```
+
+### 1b. `lib/hooks/useAdminNav.ts` — Admin Dashboard Navigation Memory (SSOT)
+- Universal engine for admin tables (`/admin/orders`, `/admin/abandoned-carts`, `/admin/products`, `/admin/inventory`, `/admin/reviews`, etc.)
+- Functions: `saveAdminNavContext`, `getAdminNavContext`, `getInitialAdminFilters`, `restoreAdminNavScrollAndHighlight`
+
 
 ### 2. `components/store/ScrollRestorer.tsx` — Restoration Engine
 - Mounted ONCE in the store layout (`app/(store)/layout.tsx`)
@@ -155,12 +164,15 @@ Any `wheel`, `touchmove`, or `touchstart` event during restoration:
 
 ## Implementation Steps
 
-### Step 1: Create Data Store
-Create `lib/hooks/useScrollRestoration.ts`:
-- Export `SCROLL_KEY`, `ScrollRestoreData` interface
-- Export `saveScrollPosition(productId)` function
-- Export `isSameStorePath(a, b)` for path comparison
-- Export `useScrollRestoration()` as no-op (backward compat)
+### Step 1: Use Canonical Data Stores
+Use `lib/navigation/navigationMemory.ts` (Storefront SSOT):
+- Exports `NAV_SNAPSHOTS_KEY`, `NavigationSnapshot` interface
+- Exports `saveScrollPosition(productId)` function
+- Exports `isSameStorePath(a, b)` for path comparison
+- Exports `getNavigationSnapshot(pathname)` for synchronous client state initialization
+
+For Admin pages, use `lib/hooks/useAdminNav.ts` (Admin SSOT):
+- Exports `saveAdminNavContext`, `getAdminNavContext`, `getInitialAdminFilters`, `restoreAdminNavScrollAndHighlight`
 
 ### Step 2: Create ScrollRestorer Component
 Create `components/store/ScrollRestorer.tsx`:

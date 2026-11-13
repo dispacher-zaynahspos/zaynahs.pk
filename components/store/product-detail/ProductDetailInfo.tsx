@@ -146,13 +146,18 @@ export default function ProductDetailInfo({
           </div>
         )}
 
-        {/* Stock status */}
-        {!product.is_service && settings.show_stock && (
+        {/* Stock status — ALWAYS visible when Sold Out */}
+        {!product.is_service && (
           <div className="text-xs font-semibold">
             {stockAvailable > 0 ? (
-              <span className="text-[#10b981]">In Stock ({stockAvailable} left)</span>
+              settings.show_stock ? (
+                <span className="text-[#10b981]">In Stock ({stockAvailable} left)</span>
+              ) : null
             ) : (
-              <span className="text-red-500">Out of Stock</span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 font-bold border border-red-200 dark:border-red-900/40">
+                <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-ping" />
+                Sold Out / Out of Stock
+              </span>
             )}
           </div>
         )}

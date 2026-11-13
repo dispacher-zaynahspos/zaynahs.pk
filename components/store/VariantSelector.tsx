@@ -204,6 +204,11 @@ export default function VariantSelector({
                       </svg>
                     </span>
                   )}
+                  {(!isColorAvailable || !isColorInStock) && (
+                    <span className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                      <span className="w-[140%] h-[1.5px] bg-red-500/80 -rotate-45" />
+                    </span>
+                  )}
                 </button>
               );
             }
@@ -221,7 +226,7 @@ export default function VariantSelector({
                   borderColor: isSelected ? 'var(--btn-primary-bg)' : UNSELECTED_SWATCH_BORDER,
                 }}
               >
-                {color}
+                <span className={!isColorAvailable || !isColorInStock ? 'line-through decoration-red-400' : ''}>{color}</span>
               </button>
             );
           })}

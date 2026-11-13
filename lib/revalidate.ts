@@ -272,16 +272,30 @@ async function purgeCloudflareEverything() {
 
 export async function revalidateProduct(
   slug: string,
-  action: 'UPDATED' | 'DELETED' = 'UPDATED',
+  actionOrCategorySlugs: 'UPDATED' | 'DELETED' | string[] = 'UPDATED',
   categorySlugs?: string[]
 ) {
+  let action: 'UPDATED' | 'DELETED' = 'UPDATED';
+  let resolvedCategorySlugs: string[] = [];
+
+  if (Array.isArray(actionOrCategorySlugs)) {
+    resolvedCategorySlugs = actionOrCategorySlugs;
+    action = 'UPDATED';
+  } else if (typeof actionOrCategorySlugs === 'string') {
+    action = actionOrCategorySlugs;
+    if (categorySlugs && Array.isArray(categorySlugs)) {
+      resolvedCategorySlugs = categorySlugs;
+    }
+  }
+
   try {
-    // 1. Next.js cache refresh FIRST
+    // 1. Next.js cache refresh FIRST (RULE C10 — strictly synchronous within server action)
     const { revalidateTag, revalidatePath } = await getCacheMethods();
     const safeTag = slug.replace(/[^a-zA-Z0-9-_]/g, '_');
     revalidateTag(`product-${slug}`);
     revalidateTag(`product-${safeTag}`);
     revalidateTag('products');
+    revalidateTag('categories');
     revalidateTag('homepage');
     revalidateTag('reviews');
 
@@ -291,19 +305,28 @@ export async function revalidateProduct(
       revalidatePath(`/product/${slug}`);
     }
 
+    if (resolvedCategorySlugs.length > 0) {
+      for (const cat of resolvedCategorySlugs) {
+        if (cat) {
+          revalidatePath(`/category/${cat}`);
+          revalidateTag(`category-${cat}`);
+        }
+      }
+    }
+
     const siteUrl = await resolveSiteUrl();
     const productUrl = `${siteUrl}/product/${slug}`;
 
     const purgeUrls = [productUrl, `${siteUrl}/`, `${siteUrl}/shop`];
-    if (categorySlugs && categorySlugs.length > 0) {
-      for (const cat of categorySlugs) {
+    if (resolvedCategorySlugs.length > 0) {
+      for (const cat of resolvedCategorySlugs) {
         if (cat) purgeUrls.push(`${siteUrl}/category/${cat}`);
       }
     }
 
     // 2. Cloudflare targeted purge SECOND (Next.js is already fresh)
     await purgeCloudflareTargeted({
-      tags: ['product', 'products', `product-${slug}`, 'homepage'],
+      tags: ['product', 'products', `product-${slug}`, 'categories', 'homepage'],
       urls: purgeUrls,
     });
 
@@ -313,7 +336,7 @@ export async function revalidateProduct(
     await revalidateAfterResponse(async () => {
       await new Promise((resolve) => setTimeout(resolve, 3500));
       await purgeCloudflareTargeted({
-        tags: ['product', 'products', `product-${slug}`, 'homepage'],
+        tags: ['product', 'products', `product-${slug}`, 'categories', 'homepage'],
         urls: purgeUrls,
       });
     });

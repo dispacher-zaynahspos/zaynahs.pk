@@ -176,9 +176,22 @@ export default function AbandonedCartDetailDrawer({
 
                         {/* Item details */}
                         <div className="flex-1 min-w-0">
-                          <h4 className="text-xs font-bold text-gray-900 dark:text-white line-clamp-2">
-                            {item.product?.name || 'Product'}
-                          </h4>
+                          {Boolean(item.product_id || (item.product as { id?: string })?.id) ? (
+                            <a
+                              href={`/admin/products/editor?id=${item.product_id || (item.product as { id?: string })?.id}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-xs font-bold text-gray-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400 line-clamp-2 inline-flex items-center gap-1 group"
+                              title="Edit product in admin"
+                            >
+                              <span>{item.product?.name || item.name || 'Product'}</span>
+                              <ExternalLink className="h-3 w-3 opacity-50 group-hover:opacity-100 transition-opacity shrink-0" />
+                            </a>
+                          ) : (
+                            <h4 className="text-xs font-bold text-gray-900 dark:text-white line-clamp-2">
+                              {item.product?.name || item.name || 'Product'}
+                            </h4>
+                          )}
                           {variantDetails.summary && (
                             <p className="text-[10px] text-gray-500 dark:text-gray-400 font-bold mt-0.5">
                               {variantDetails.summary}
@@ -289,16 +302,30 @@ export default function AbandonedCartDetailDrawer({
             <div className="space-y-6">
               
               {/* Action Pane */}
-              <div className="bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xs p-5 space-y-4">
+              <div className="bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xs p-5 space-y-3">
                 <h3 className="text-sm font-black text-gray-900 dark:text-white pb-3 border-b border-gray-100 dark:border-gray-800/80">
-                  Record Actions
+                  Recovery Actions
                 </h3>
+                {activeCart.customerPhone && (
+                  <a
+                    href={`https://wa.me/${activeCart.customerPhone.replace(/\D/g, '')}?text=${encodeURIComponent(
+                      `Hi ${activeCart.customerName || 'there'}, we noticed you left items in your shopping cart. Would you like assistance in completing your order?`
+                    )}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-colors cursor-pointer shadow-xs"
+                  >
+                    <ExternalLink className="h-3.5 w-3.5" />
+                    <span>Direct WhatsApp Recovery</span>
+                  </a>
+                )}
                 <button
+                  type="button"
                   onClick={() => handleDelete(activeCart.id)}
                   disabled={deleting === activeCart.id}
-                  className="w-full flex items-center justify-center gap-1.5 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl transition-colors cursor-pointer border-none"
+                  className="w-full flex items-center justify-center gap-1.5 px-4 py-2.5 bg-rose-50 dark:bg-rose-950/20 hover:bg-rose-100 dark:hover:bg-rose-900/30 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/40 text-xs font-bold rounded-xl transition-colors cursor-pointer"
                 >
-                  <Trash2 className="h-4 w-4" />
+                  <Trash2 className="h-3.5 w-3.5" />
                   <span>Delete Cart Record</span>
                 </button>
               </div>

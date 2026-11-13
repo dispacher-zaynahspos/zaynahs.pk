@@ -81,6 +81,17 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
   const prevImageRef = React.useRef(activeImage);
   const primaryImgRef = React.useRef<HTMLImageElement>(null);
 
+  const isOutOfStock = React.useMemo(() => {
+    if (product.is_service) return false;
+    if (product.has_variants && product.variants && product.variants.length > 0) {
+      const active = product.variants.filter((v: { is_active?: boolean; stock?: number }) => v.is_active !== false);
+      if (active.length > 0) {
+        return active.every((v: { stock?: number }) => (Number(v.stock) || 0) <= 0);
+      }
+    }
+    return (Number(product.stock) || 0) <= 0;
+  }, [product]);
+
   React.useEffect(() => {
     if (prevImageRef.current !== activeImage) {
       prevImageRef.current = activeImage;
@@ -259,6 +270,7 @@ export const StandardProductCard: React.FC<StandardProductCardProps> = ({
         showQuickcart={showQuickcart}
         isInWishlist={isInWishlist}
         hasVariants={Boolean(product.has_variants)}
+        isOutOfStock={isOutOfStock}
         onToggleWishlist={onToggleWishlist}
         onOpenQuickView={onOpenQuickView}
         onAddToCart={onAddToCart}

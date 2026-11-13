@@ -150,11 +150,20 @@ export function useAbandonedCartsData() {
   const selectedCart = carts.find(c => c.id === selectedCartId) || null;
 
   const filteredCarts = carts.filter(c => {
-    if (c.orderPlaced) return false;
-
     let matchesStatus = true;
-    if (statusFilter === 'pending') matchesStatus = !c.emailSent;
-    else if (statusFilter === 'emailed') matchesStatus = c.emailSent;
+    if (statusFilter === 'all') {
+      matchesStatus = !c.orderPlaced;
+    } else if (statusFilter === 'recoverable') {
+      matchesStatus = !c.orderPlaced && Boolean(c.customerPhone || c.customerEmail);
+    } else if (statusFilter === 'anonymous') {
+      matchesStatus = !c.orderPlaced && !c.customerPhone && !c.customerEmail;
+    } else if (statusFilter === 'recovered') {
+      matchesStatus = Boolean(c.orderPlaced);
+    } else if (statusFilter === 'pending') {
+      matchesStatus = !c.orderPlaced && !c.emailSent;
+    } else if (statusFilter === 'emailed') {
+      matchesStatus = !c.orderPlaced && Boolean(c.emailSent);
+    }
 
     const matchesSearch = 
       (c.customerName && c.customerName.toLowerCase().includes(searchQuery.toLowerCase())) ||

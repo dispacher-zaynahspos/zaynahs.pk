@@ -254,7 +254,7 @@ export const updateOrderDetails = async (
       }
     }
 
-    // ── INVENTORY SYNC: status → cancel/refund via updateOrderDetails ─
+    // ── INVENTORY SYNC: status → cancel/refund/return vs un-cancel via updateOrderDetails ─
     const statusChanged = updates.status !== undefined && oldStatus !== updates.status;
     if (statusChanged && updates.status) {
       if (shouldRestoreStock(oldStatus ?? '', updates.status)) {
@@ -265,6 +265,22 @@ export const updateOrderDetails = async (
           }
         } catch (invErr) {
           console.error('[inventory] restoreStockOnCancel failed in updateOrderDetails:', invErr);
+        }
+      } else if (shouldDeductStock(oldStatus ?? '', updates.status)) {
+        try {
+          const itemsForDeduct = updates.items ?? oldItems;
+          if (itemsForDeduct.length) {
+            await supabaseAdmin.rpc('restore_stock_on_cancel', {
+              p_order_id: id,
+              p_items: JSON.stringify(itemsForDeduct.map((i: any) => ({
+                product_id: i.product?.id ?? i.product_id ?? null,
+                variant_id: i.selected_variant?.id ?? i.variant_id ?? null,
+                quantity: -Math.abs(i.quantity || 1)
+              })))
+            });
+          }
+        } catch (invErr) {
+          console.error('[inventory] re-deduct failed after un-cancel in updateOrderDetails:', invErr);
         }
       }
     }

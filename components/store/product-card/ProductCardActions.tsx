@@ -141,6 +141,7 @@ interface ProductCardActionsProps {
   showQuickcart: boolean;
   isInWishlist: boolean;
   hasVariants: boolean;
+  isOutOfStock?: boolean;
   onToggleWishlist: (e: React.MouseEvent) => void;
   onOpenQuickView: (e: React.MouseEvent) => void;
   onAddToCart: (e: React.MouseEvent) => void;
@@ -168,6 +169,7 @@ export const ProductCardActions: React.FC<ProductCardActionsProps> = ({
   showQuickcart,
   isInWishlist,
   hasVariants,
+  isOutOfStock = false,
   onToggleWishlist,
   onOpenQuickView,
   onAddToCart,
@@ -204,16 +206,18 @@ export const ProductCardActions: React.FC<ProductCardActionsProps> = ({
           <div className="absolute inset-x-0 bottom-0 z-[25] overflow-hidden pointer-events-none">
             <button
               type="button"
+              disabled={isOutOfStock}
               onClick={(e) => {
+                if (isOutOfStock) return;
                 e.preventDefault();
                 e.stopPropagation();
                 onAddToCart(e);
               }}
               onPointerDown={(e) => e.stopPropagation()}
-              className="slide-drawer-btn pointer-events-auto w-full py-2 px-2.5 bg-gray-900/95 dark:bg-white/95 text-white dark:text-gray-900 text-[10px] sm:text-[10.5px] font-bold tracking-wider uppercase flex items-center justify-center gap-1.5 cursor-pointer shadow-md transition-all duration-300 whitespace-nowrap truncate"
+              className={`slide-drawer-btn pointer-events-auto w-full py-2 px-2.5 ${isOutOfStock ? 'bg-gray-700/90 text-gray-200 cursor-not-allowed opacity-80' : 'bg-gray-900/95 dark:bg-white/95 text-white dark:text-gray-900 cursor-pointer'} text-[10px] sm:text-[10.5px] font-bold tracking-wider uppercase flex items-center justify-center gap-1.5 shadow-md transition-all duration-300 whitespace-nowrap truncate`}
             >
               <CardCartIcon iconStyle={iconStyle} className="h-3.5 w-3.5 shrink-0" />
-              <span className="truncate">{hasVariants ? 'Choose Options' : '+ Quick Add'}</span>
+              <span className="truncate">{isOutOfStock ? 'Sold Out' : (hasVariants ? 'Choose Options' : '+ Quick Add')}</span>
             </button>
           </div>
         )}
@@ -265,15 +269,17 @@ export const ProductCardActions: React.FC<ProductCardActionsProps> = ({
         {showQuickcart && (
           <button
             type="button"
+            disabled={isOutOfStock}
             onClick={(e) => {
+              if (isOutOfStock) return;
               e.preventDefault();
               e.stopPropagation();
               onAddToCart(e);
             }}
             onPointerDown={(e) => e.stopPropagation()}
-            className="corner-fab-btn pointer-events-auto !absolute !right-2.5 !-bottom-4 sm:!-bottom-[18px] z-[30] h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-[var(--color-primary,#f85606)] text-white flex items-center justify-center shadow-lg hover:scale-110 active:scale-95 transition-transform duration-200 cursor-pointer"
-            aria-label={hasVariants ? "Choose Options" : "Add to Cart"}
-            title={hasVariants ? "Choose Options" : "Add to Cart"}
+            className={`corner-fab-btn pointer-events-auto !absolute !right-2.5 !-bottom-4 sm:!-bottom-[18px] z-[30] h-8 w-8 sm:h-9 sm:w-9 rounded-full ${isOutOfStock ? 'bg-gray-400 dark:bg-gray-700 cursor-not-allowed opacity-60' : 'bg-[var(--color-primary,#f85606)] cursor-pointer hover:scale-110 active:scale-95'} text-white flex items-center justify-center shadow-lg transition-transform duration-200`}
+            aria-label={isOutOfStock ? "Sold Out" : (hasVariants ? "Choose Options" : "Add to Cart")}
+            title={isOutOfStock ? "Sold Out" : (hasVariants ? "Choose Options" : "Add to Cart")}
           >
             <CardCartIcon iconStyle={iconStyle} className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           </button>
@@ -288,16 +294,18 @@ export const ProductCardActions: React.FC<ProductCardActionsProps> = ({
       <div className={`direct-btn-wrap w-full z-[25] mt-auto ${presetClass} ${className}`}>
         <button
           type="button"
+          disabled={isOutOfStock}
           onClick={(e) => {
+            if (isOutOfStock) return;
             e.preventDefault();
             e.stopPropagation();
             onAddToCart(e);
           }}
           onPointerDown={(e) => e.stopPropagation()}
-          className="direct-cart-btn pointer-events-auto w-full py-1.5 px-2.5 rounded-xl bg-[var(--color-primary,#e94560)] text-white text-[10.5px] sm:text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm hover:opacity-95 active:scale-[0.98] transition-all cursor-pointer whitespace-nowrap truncate"
+          className={`direct-cart-btn pointer-events-auto w-full py-1.5 px-2.5 rounded-xl ${isOutOfStock ? 'bg-gray-400 dark:bg-gray-700 text-gray-100 cursor-not-allowed opacity-75' : 'bg-[var(--color-primary,#e94560)] text-white hover:opacity-95 active:scale-[0.98] cursor-pointer'} text-[10.5px] sm:text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm transition-all whitespace-nowrap truncate`}
         >
           <CardCartIcon iconStyle={iconStyle} className="h-3.5 w-3.5 shrink-0" />
-          <span className="truncate">{hasVariants ? 'Choose Options' : 'Add to Cart'}</span>
+          <span className="truncate">{isOutOfStock ? 'Sold Out' : (hasVariants ? 'Choose Options' : 'Add to Cart')}</span>
         </button>
       </div>
     );
@@ -325,16 +333,18 @@ export const ProductCardActions: React.FC<ProductCardActionsProps> = ({
         {showQuickcart && (
           <button
             type="button"
+            disabled={isOutOfStock}
             onClick={(e) => {
+              if (isOutOfStock) return;
               e.preventDefault();
               e.stopPropagation();
               onAddToCart(e);
             }}
             onPointerDown={(e) => e.stopPropagation()}
-            className="split-btn-cart pointer-events-auto py-1.5 px-2 rounded-xl text-[10px] sm:text-[10.5px] font-bold flex items-center justify-center gap-1 bg-[var(--color-primary,#e94560)] text-white hover:opacity-95 shadow-xs transition-opacity cursor-pointer whitespace-nowrap truncate"
+            className={`split-btn-cart pointer-events-auto py-1.5 px-2 rounded-xl text-[10px] sm:text-[10.5px] font-bold flex items-center justify-center gap-1 ${isOutOfStock ? 'bg-gray-400 dark:bg-gray-700 text-gray-100 cursor-not-allowed opacity-75' : 'bg-[var(--color-primary,#e94560)] text-white hover:opacity-95 cursor-pointer'} shadow-xs transition-opacity whitespace-nowrap truncate`}
           >
             <CardCartIcon iconStyle={iconStyle} className="h-3 w-3 shrink-0" />
-            <span className="truncate">{hasVariants ? 'Options' : 'Add'}</span>
+            <span className="truncate">{isOutOfStock ? 'Sold Out' : (hasVariants ? 'Options' : 'Add')}</span>
           </button>
         )}
       </div>
@@ -392,16 +402,18 @@ export const ProductCardActions: React.FC<ProductCardActionsProps> = ({
         {showQuickcart && (
           <button
             type="button"
+            disabled={isOutOfStock}
             onClick={(e) => {
+              if (isOutOfStock) return;
               e.preventDefault();
               e.stopPropagation();
               onAddToCart(e);
             }}
             onPointerDown={(e) => e.stopPropagation()}
-            className="flex-1 py-1.5 px-2.5 rounded-xl bg-[#ffa41c] hover:bg-[#fa8900] active:scale-[0.98] text-gray-950 text-[11px] sm:text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer pointer-events-auto whitespace-nowrap truncate"
+            className={`flex-1 py-1.5 px-2.5 rounded-xl ${isOutOfStock ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 cursor-not-allowed opacity-75' : 'bg-[#ffa41c] hover:bg-[#fa8900] active:scale-[0.98] text-gray-950 cursor-pointer'} text-[11px] sm:text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm transition-all pointer-events-auto whitespace-nowrap truncate`}
           >
             <CardCartIcon iconStyle={iconStyle} className="h-3.5 w-3.5 shrink-0" />
-            <span className="truncate">{hasVariants ? 'Options' : 'Add to Cart'}</span>
+            <span className="truncate">{isOutOfStock ? 'Sold Out' : (hasVariants ? 'Options' : 'Add to Cart')}</span>
           </button>
         )}
         {showWishlist && (
@@ -429,15 +441,17 @@ export const ProductCardActions: React.FC<ProductCardActionsProps> = ({
       <div className={`pill-right-wrap z-[25] shrink-0 ${presetClass} ${className}`}>
         <button
           type="button"
+          disabled={isOutOfStock}
           onClick={(e) => {
+            if (isOutOfStock) return;
             e.preventDefault();
             e.stopPropagation();
             onAddToCart(e);
           }}
           onPointerDown={(e) => e.stopPropagation()}
-          className="py-1 px-2.5 rounded-full bg-[#f85606] hover:bg-[#e04e05] active:scale-95 text-white text-[10px] sm:text-[10.5px] font-black uppercase tracking-wider shadow-sm transition-transform cursor-pointer pointer-events-auto whitespace-nowrap"
+          className={`py-1 px-2.5 rounded-full ${isOutOfStock ? 'bg-gray-400 dark:bg-gray-700 cursor-not-allowed opacity-75' : 'bg-[#f85606] hover:bg-[#e04e05] active:scale-95 cursor-pointer'} text-white text-[10px] sm:text-[10.5px] font-black uppercase tracking-wider shadow-sm transition-transform pointer-events-auto whitespace-nowrap`}
         >
-          {hasVariants ? 'Options' : 'Buy Now'}
+          {isOutOfStock ? 'Sold Out' : (hasVariants ? 'Options' : 'Buy Now')}
         </button>
       </div>
     );
@@ -450,15 +464,17 @@ export const ProductCardActions: React.FC<ProductCardActionsProps> = ({
         {showQuickcart && (
           <button
             type="button"
+            disabled={isOutOfStock}
             onClick={(e) => {
+              if (isOutOfStock) return;
               e.preventDefault();
               e.stopPropagation();
               onAddToCart(e);
             }}
             onPointerDown={(e) => e.stopPropagation()}
-            className="flex-1 py-1 px-2 rounded-sm bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-[10px] font-bold uppercase tracking-wider hover:opacity-90 active:scale-95 transition-all cursor-pointer pointer-events-auto text-center whitespace-nowrap truncate"
+            className={`flex-1 py-1 px-2 rounded-sm ${isOutOfStock ? 'bg-gray-400 dark:bg-gray-700 text-gray-200 cursor-not-allowed opacity-75' : 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:opacity-90 active:scale-95 cursor-pointer'} text-[10px] font-bold uppercase tracking-wider transition-all pointer-events-auto text-center whitespace-nowrap truncate`}
           >
-            <span className="truncate">{hasVariants ? 'Options' : '+ Add'}</span>
+            <span className="truncate">{isOutOfStock ? 'Sold Out' : (hasVariants ? 'Options' : '+ Add')}</span>
           </button>
         )}
         {showQuickview && (
@@ -517,15 +533,17 @@ export const ProductCardActions: React.FC<ProductCardActionsProps> = ({
         {showQuickcart && (
           <button
             type="button"
+            disabled={isOutOfStock}
             onClick={(e) => {
+              if (isOutOfStock) return;
               e.preventDefault();
               e.stopPropagation();
               onAddToCart(e);
             }}
             onPointerDown={(e) => e.stopPropagation()}
-            className="hover:text-amber-600 transition-colors cursor-pointer pointer-events-auto whitespace-nowrap"
+            className={`whitespace-nowrap pointer-events-auto ${isOutOfStock ? 'text-gray-400 line-through cursor-not-allowed opacity-70' : 'hover:text-amber-600 transition-colors cursor-pointer'}`}
           >
-            {hasVariants ? 'Options' : '+ Bag'}
+            {isOutOfStock ? 'Sold Out' : (hasVariants ? 'Options' : '+ Bag')}
           </button>
         )}
       </div>
@@ -538,15 +556,17 @@ export const ProductCardActions: React.FC<ProductCardActionsProps> = ({
       <div className={`hang-tag-action-wrap z-[25] mt-auto ${presetClass} ${className}`}>
         <button
           type="button"
+          disabled={isOutOfStock}
           onClick={(e) => {
+            if (isOutOfStock) return;
             e.preventDefault();
             e.stopPropagation();
             onAddToCart(e);
           }}
           onPointerDown={(e) => e.stopPropagation()}
-          className="text-[11px] font-bold tracking-wide uppercase text-gray-800 dark:text-gray-200 underline underline-offset-4 hover:text-[#c0603a] transition-colors cursor-pointer pointer-events-auto whitespace-nowrap"
+          className={`text-[11px] font-bold tracking-wide uppercase ${isOutOfStock ? 'text-gray-400 line-through cursor-not-allowed opacity-70' : 'text-gray-800 dark:text-gray-200 underline underline-offset-4 hover:text-[#c0603a] cursor-pointer'} transition-colors pointer-events-auto whitespace-nowrap`}
         >
-          {hasVariants ? 'Choose Size →' : 'Quick Add +'}
+          {isOutOfStock ? 'Sold Out' : (hasVariants ? 'Choose Size →' : 'Quick Add +')}
         </button>
       </div>
     );
@@ -558,18 +578,20 @@ export const ProductCardActions: React.FC<ProductCardActionsProps> = ({
       <div className={`story-plus-wrap z-[25] shrink-0 ${presetClass} ${className}`}>
         <button
           type="button"
+          disabled={isOutOfStock}
           onClick={(e) => {
+            if (isOutOfStock) return;
             e.preventDefault();
             e.stopPropagation();
             onAddToCart(e);
           }}
           onPointerDown={(e) => e.stopPropagation()}
-          className="story-plus-btn h-7 px-2 rounded-full bg-white/90 text-gray-950 text-xs font-extrabold flex items-center justify-center gap-1 shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer pointer-events-auto whitespace-nowrap"
-          title={hasVariants ? "Choose Options" : "Add to Cart"}
+          className={`story-plus-btn h-7 px-2 rounded-full ${isOutOfStock ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 cursor-not-allowed opacity-70' : 'bg-white/90 text-gray-950 shadow-md hover:scale-105 active:scale-95 cursor-pointer'} text-xs font-extrabold flex items-center justify-center gap-1 transition-all pointer-events-auto whitespace-nowrap`}
+          title={isOutOfStock ? "Sold Out" : (hasVariants ? "Choose Options" : "Add to Cart")}
         >
-          <span className="text-sm font-black leading-none">+</span>
+          <span className="text-sm font-black leading-none">{isOutOfStock ? '✕' : '+'}</span>
           <span className="hidden group-hover:inline text-[9.5px] uppercase tracking-wider">
-            {hasVariants ? 'Options' : 'Add'}
+            {isOutOfStock ? 'Sold Out' : (hasVariants ? 'Options' : 'Add')}
           </span>
         </button>
       </div>
@@ -622,16 +644,18 @@ export const ProductCardActions: React.FC<ProductCardActionsProps> = ({
       {showQuickcart && (
         <button
           type="button"
+          disabled={isOutOfStock}
           onClick={(e) => {
+            if (isOutOfStock) return;
             e.preventDefault();
             e.stopPropagation();
             onAddToCart(e);
           }}
           onPointerDown={(e) => e.stopPropagation()}
           onPointerUp={(e) => e.stopPropagation()}
-          className={`${btnClass} pointer-events-auto`}
-          aria-label={hasVariants ? "Choose Options" : "Add to Cart"}
-          title={hasVariants ? "Choose Options" : "Add to Cart"}
+          className={`${btnClass} pointer-events-auto ${isOutOfStock ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
+          aria-label={isOutOfStock ? "Sold Out" : (hasVariants ? "Choose Options" : "Add to Cart")}
+          title={isOutOfStock ? "Sold Out" : (hasVariants ? "Choose Options" : "Add to Cart")}
         >
           <CardCartIcon iconStyle={iconStyle} className="h-3.5 w-3.5" />
         </button>
