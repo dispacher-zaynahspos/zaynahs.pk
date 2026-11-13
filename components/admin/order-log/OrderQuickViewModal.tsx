@@ -476,11 +476,17 @@ export function OrderQuickViewModal({
 
           {/* Row 2: Financial Summary Compact Bar */}
           <div className="flex items-center justify-between text-xs pt-1 border-t border-gray-200/60 dark:border-gray-800/60">
-            <div className="flex items-center gap-3 text-gray-500 dark:text-gray-400 text-[11px]">
+            <div className="flex items-center gap-3 text-gray-500 dark:text-gray-400 text-[11px] flex-wrap">
               <span>Subtotal: <strong className="text-gray-800 dark:text-gray-200">{formatPrice(order.subtotal || order.total, settings.currency_symbol)}</strong></span>
-              {order.shipping_amount !== undefined && order.shipping_amount > 0 && (
-                <span>Shipping: <strong className="text-gray-800 dark:text-gray-200">{formatPrice(order.shipping_amount, settings.currency_symbol)}</strong></span>
-              )}
+              {(() => {
+                const recordedShipping = order.shipping_amount !== undefined ? Number(order.shipping_amount) : 0;
+                const calculatedDifference = Math.max(0, Math.round(((order.total || 0) - (order.subtotal || 0) + (order.discount_amount || 0)) * 100) / 100);
+                const displayShipping = recordedShipping > 0 ? recordedShipping : calculatedDifference;
+                if (displayShipping > 0) {
+                  return <span>Shipping: <strong className="text-gray-800 dark:text-gray-200">{formatPrice(displayShipping, settings.currency_symbol)}</strong></span>;
+                }
+                return null;
+              })()}
               {order.discount_amount !== undefined && order.discount_amount > 0 && (
                 <span className="text-emerald-600 dark:text-emerald-400">Discount: -{formatPrice(order.discount_amount, settings.currency_symbol)}</span>
               )}

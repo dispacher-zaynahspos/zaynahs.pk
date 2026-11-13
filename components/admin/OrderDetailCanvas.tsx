@@ -596,10 +596,21 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
                   <span>−{formatPrice(order.discount_amount || 0, settings.currency_symbol)}</span>
                 </div>
               )}
-              <div className="flex justify-between py-1.5 text-[13px] text-gray-600 dark:text-gray-400">
-                <span>Shipping{order.shipping_method_name ? ` (${order.shipping_method_name})` : ''}</span>
-                <span>{formatPrice(order.shipping_amount || 0, settings.currency_symbol)}</span>
-              </div>
+              {(() => {
+                const recordedShipping = order.shipping_amount !== undefined ? Number(order.shipping_amount) : 0;
+                const calculatedDifference = Math.max(0, Math.round(((order.total || 0) - (order.subtotal || 0) + (order.discount_amount || 0)) * 100) / 100);
+                const displayShipping = recordedShipping > 0 ? recordedShipping : calculatedDifference;
+                const shippingLabel = order.shipping_method_name ? ` (${order.shipping_method_name})` : '';
+
+                return (
+                  <div className="flex justify-between py-1.5 text-[13px] text-gray-600 dark:text-gray-400">
+                    <span>Shipping{shippingLabel}</span>
+                    <span className={displayShipping > 0 ? 'font-medium text-gray-900 dark:text-white' : ''}>
+                      {formatPrice(displayShipping, settings.currency_symbol)}
+                    </span>
+                  </div>
+                );
+              })()}
               {(order.refund_amount ?? 0) > 0 && (
                 <div className="flex justify-between py-1.5 text-[13px] text-red-500">
                   <span>Refunded</span>

@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { getAllProductsAdmin } from '@/lib/services/products';
 import { Order, Product } from '@/lib/types';
+import { mapOrderRow, OrderRow } from '@/components/admin/order-log/orderLogUtils';
 import { useOrderCustomerEditing } from './useOrderCustomerEditing';
 import { useOrderActions } from './useOrderActions';
 
@@ -278,7 +279,7 @@ export function useOrderDetailState(initialOrder: Order) {
         .single();
 
       if (data && !error) {
-        const fetched = data as Order;
+        const fetched = mapOrderRow(data as unknown as OrderRow);
         cachedOrdersMapRef.current[targetId] = fetched;
         applyOrder(fetched);
         return;

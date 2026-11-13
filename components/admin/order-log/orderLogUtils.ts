@@ -9,6 +9,10 @@ export interface OrderRow {
   items?: CartItem[] | null;
   subtotal?: number | string | null;
   total?: number | string | null;
+  shipping_amount?: number | string | null;
+  shipping_method_name?: string | null;
+  discount_amount?: number | string | null;
+  discount_code?: string | null;
   status: string;
   payment_status?: string | null;
   fulfillment_status?: string | null;
@@ -36,6 +40,10 @@ export const mapOrderRow = (row: OrderRow): Order => ({
   items: (row.items || []) as CartItem[],
   subtotal: row.subtotal ? parseFloat(row.subtotal.toString()) : 0,
   total: row.total ? parseFloat(row.total.toString()) : 0,
+  shipping_amount: row.shipping_amount ? parseFloat(row.shipping_amount.toString()) : 0,
+  shipping_method_name: row.shipping_method_name || undefined,
+  discount_amount: row.discount_amount ? parseFloat(row.discount_amount.toString()) : 0,
+  discount_code: row.discount_code || undefined,
   status: row.status as Order['status'],
   payment_status: (row.payment_status as Order['payment_status']) || 'unpaid',
   fulfillment_status: (row.fulfillment_status as Order['fulfillment_status']) || 'unfulfilled',
