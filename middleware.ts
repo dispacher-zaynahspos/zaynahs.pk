@@ -21,10 +21,10 @@ import {
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Google Site Verification auto-responder (e.g. /googleac32472c67f64130.html)
-  if (/^\/google[a-z0-9]+\.html$/i.test(pathname)) {
-    const filename = pathname.slice(1);
-    return new NextResponse(`google-site-verification: ${filename}`, {
+  // Google Site Verification auto-responder (e.g. /googleac32472c67f64130.html or /googleac32472c67f64130)
+  if (/^\/google[a-z0-9]+(\.html)?$/i.test(pathname)) {
+    const code = pathname.replace(/^\//, '').replace(/\.html$/, '');
+    return new NextResponse(`google-site-verification: ${code}.html`, {
       status: 200,
       headers: {
         'Content-Type': 'text/html; charset=UTF-8',

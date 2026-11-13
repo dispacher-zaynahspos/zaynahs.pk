@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { getSettings } from '@/lib/services/settings';
@@ -170,12 +170,14 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
         />
       )}
-      <ShopPage
-        initialProducts={products}
-        categories={categories}
-        collections={collections}
-        settings={settings}
-      />
+      <Suspense fallback={<div className="min-h-screen py-10 flex items-center justify-center text-gray-400">Loading category...</div>}>
+        <ShopPage
+          initialProducts={products}
+          categories={categories}
+          collections={collections}
+          settings={settings}
+        />
+      </Suspense>
     </>
   );
 }
