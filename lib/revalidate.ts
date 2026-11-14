@@ -228,8 +228,76 @@ export async function purgeCloudflareTargeted({
 export async function purgeCloudflareUrls(urls: string[]): Promise<void> {
   return purgeCloudflareTargeted({ urls });
 }
+/**
+ * RULE C19 — Dual-Layer Cloudflare Worker Cache Purge.
+ * Purges the OpenNext Next.js Incremental Cache stored in the R2 bucket (NEXT_INC_CACHE_R2_BUCKET).
+ * Supports both Cloudflare Worker runtime binding and S3 API fallback for Server Actions / scripts.
+ */
+export async function purgeR2IncrementalCache(): Promise<void> {
+  try {
+    const cfCtx = getCloudflareRuntimeContext();
+    const r2Binding = cfCtx?.env?.NEXT_INC_CACHE_R2_BUCKET;
+
+    // Mode A: Worker runtime with native R2 binding
+    if (r2Binding && typeof r2Binding.list === 'function') {
+      let truncated = true;
+      let cursor: string | undefined = undefined;
+      while (truncated) {
+        const list: any = await r2Binding.list({ limit: 1000, cursor });
+        if (list.objects && list.objects.length > 0) {
+          const keys = list.objects.map((o: any) => o.key);
+          await r2Binding.delete(keys);
+        }
+        truncated = Boolean(list.truncated);
+        cursor = list.cursor;
+      }
+      console.log('[revalidate] Successfully wiped R2 NEXT_INC_CACHE_R2_BUCKET via native binding');
+      return;
+    }
+
+    // Fallback Mode: S3 Client for Node/Vercel/CLI
+    const accountId = process.env.CF_ACCOUNT_ID || process.env.CLOUDFLARE_ACCOUNT_ID;
+    const accessKeyId = process.env.R2_ACCESS_KEY_ID;
+    const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
+    const bucketName = process.env.NEXT_INC_CACHE_R2_BUCKET || 'totvogue-next-cache';
+
+    if (accountId && accessKeyId && secretAccessKey) {
+      const { S3Client, ListObjectsV2Command, DeleteObjectsCommand } = await import('@aws-sdk/client-s3');
+      const s3 = new S3Client({
+        region: 'auto',
+        endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+        credentials: { accessKeyId, secretAccessKey },
+      });
+
+      let hasMore = true;
+      while (hasMore) {
+        const listRes = await s3.send(
+          new ListObjectsV2Command({
+            Bucket: bucketName,
+            MaxKeys: 1000,
+          })
+        );
+        const contents = listRes.Contents || [];
+        if (contents.length === 0) break;
+
+        await s3.send(
+          new DeleteObjectsCommand({
+            Bucket: bucketName,
+            Delete: { Objects: contents.map((c: any) => ({ Key: c.Key })), Quiet: true },
+          })
+        );
+        hasMore = Boolean(listRes.IsTruncated);
+      }
+      console.log(`[revalidate] Successfully wiped R2 bucket "${bucketName}" via S3 API`);
+    }
+  } catch (err) {
+    console.warn('[revalidate] purgeR2IncrementalCache warning:', err);
+  }
+}
 
 async function purgeCloudflareEverything() {
+  await purgeR2IncrementalCache();
+
   const cfConfigs = getCloudflareConfigs();
   if (cfConfigs.length === 0) {
     console.warn('Cloudflare credentials missing. Skipping complete cache purge.');
@@ -324,7 +392,8 @@ export async function revalidateProduct(
       }
     }
 
-    // 2. Cloudflare targeted purge SECOND (Next.js is already fresh)
+    // 2. Wipe R2 cache & Cloudflare targeted purge SECOND (Next.js is already fresh)
+    await purgeR2IncrementalCache();
     await purgeCloudflareTargeted({
       tags: ['product', 'products', `product-${slug}`, 'categories', 'homepage'],
       urls: purgeUrls,
@@ -373,6 +442,7 @@ export async function revalidateAllProducts() {
     revalidatePath('/shop');
 
     const siteUrl = await resolveSiteUrl();
+    await purgeR2IncrementalCache();
     await purgeCloudflareTargeted({
       tags: ['products', 'homepage', 'shop'],
       urls: [`${siteUrl}/`, `${siteUrl}/shop`],
@@ -406,7 +476,8 @@ export async function revalidateBanner() {
       purgeUrls.push(siteUrl.replace('://', '://www.') + '/');
     }
 
-    // 2. Cloudflare targeted purge SECOND
+    // 2. Cloudflare targeted purge SECOND (with R2 cache wipe)
+    await purgeR2IncrementalCache();
     await purgeCloudflareTargeted({
       tags: ['homepage', 'banners'],
       urls: purgeUrls,
@@ -435,7 +506,8 @@ export async function revalidateCategory(slug: string, action: 'UPDATED' | 'DELE
     const siteUrl = await resolveSiteUrl();
     const categoryUrl = `${siteUrl}/category/${slug}`;
 
-    // 2. Cloudflare targeted purge SECOND
+    // 2. Cloudflare targeted purge SECOND (with R2 cache wipe)
+    await purgeR2IncrementalCache();
     await purgeCloudflareTargeted({
       tags: ['category', 'categories', `category-${slug}`],
       urls: [categoryUrl, `${siteUrl}/shop`, `${siteUrl}/`],
@@ -480,7 +552,8 @@ export async function revalidateHomepage() {
       `${dynamicSiteUrl}/shop`,
     ];
 
-    // 2. Cloudflare targeted purge SECOND
+    // 2. Cloudflare targeted purge SECOND (with R2 cache wipe)
+    await purgeR2IncrementalCache();
     await purgeCloudflareTargeted({
       tags: ['homepage', 'banners'],
       urls: [`${dynamicSiteUrl}/`],

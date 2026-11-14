@@ -87,6 +87,7 @@ The 5 original foundation themes (`style1`, `showcase_1`, `showcase_8`, `showcas
    - Placement: Top-left clearance (`top: 8px, left: 8px` on desktop; `top: 6px, left: 6px` on mobile), vertically stacked via `.bdg-container` with `gap: 3px` (mobile `2.5px`).
    - Dimensions & Typography: Smart rounded corners (`border-radius: 4px` desktop; `3.5px` mobile), bold uppercase text (`font-weight: 800`, `letter-spacing: 0.5px`, uppercase), compact mobile sizing (`8px` font, `2px 5.5px` padding) and balanced desktop sizing (`9.5px` font, `2.5px 7px` padding).
    - Collision clearance: `max-width: calc(100% - 46px)` so badges never collide with top-right quick action rails.
+4. **Sold Out Exclusivity (RULE DS-SOLDOUT-EXCLUSIVE)**: When a product is Out of Stock / Sold Out (`isSoldOut = true`), ALL other promotional badges (Sale discount `-24%`, Featured `FEATURED`, Custom badges, Limited stock) MUST be strictly suppressed. Exactly ONE single `Sold Out` badge (`#111827`, white text) renders on out-of-stock cards so shoppers never see stacked discount or featured tags on unavailable inventory.
 
 ## RULE DS3 — Skeleton loaders (MANDATORY)
 Never use a global `app/loading.tsx` — it blocks the ENTIRE UI (hides Navbar, Footer, etc.) and ruins perceived performance. ALWAYS use component-level skeletons (map `<ProductCardSkeleton />` / `<LoadingSkeleton />` inside the page layout) so the app layout stays visible while data fetches, rendering instantly.

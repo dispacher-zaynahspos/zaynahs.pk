@@ -312,3 +312,24 @@ Full context: [07-deployment-vercel-cloudflare.md](07-deployment-vercel-cloudfla
 +3. **Database Sort Order Invariant on New Listings**:
 +   - New products must never be assigned a `sort_order` that pushes them below pinned older items.
 +   - If older products have `sort_order = -1`, new featured/top arrivals must use a priority order (e.g. `sort_order <= -2`) to avoid being truncated by section display limits (e.g. `limit: 10`).
+
+## RULE C19 — Dual-Layer Cloudflare Worker Cache Purge & R2 Incremental Cache Wipe (MANDATORY)
+**Root cause (Cloudflare Workers vs Vercel architectural difference):**
+- On Vercel, `.next/cache` is wiped on every build/deployment, and Vercel's proprietary edge handles `revalidatePath` directly in serverless memory.
+- On Cloudflare Workers ($5 paid plan with OpenNext), Next.js ISR HTML/RSC and data cache are persisted in an external Cloudflare R2 bucket (`NEXT_INC_CACHE_R2_BUCKET`: `totvogue-next-cache`).
+- Over multiple deployments, thousands of cache objects (e.g. 32,725 objects / 5.1 GB) accumulate in the R2 bucket.
+- Whenever an admin purges cache or updates an item:
+  - Purging ONLY Cloudflare CDN Zone Cache (`api.cloudflare.com/client/v4/zones/.../purge_cache`) is strictly INSUFFICIENT.
+  - When Cloudflare CDN requests the fresh page from the Cloudflare Worker origin, the Worker reads from R2 `totvogue-next-cache`.
+  - Because R2 objects had 30-day ISR TTL, the Cloudflare Worker returned the stale cached HTML/RSC from weeks ago right back to Cloudflare CDN, locking the old content in place!
+
+### C19.1 — Dual-Layer Purge Requirement
+Every admin manual purge (`purgeAllCache` in `lib/services/cache.ts`) and multi-store purge (`npm run stores:purge` via `scripts/purge-all-caches.mjs`) MUST wipe BOTH layers:
+1. **Layer 1: OpenNext R2 Incremental Cache Bucket** (`NEXT_INC_CACHE_R2_BUCKET` / `${store}-next-cache`) via `purgeR2IncrementalCache()`.
+2. **Layer 2: Cloudflare CDN Edge Cache** via `api.cloudflare.com/client/v4/zones/${zoneId}/purge_cache`.
+
+### C19.2 — Implementation Standard
+- `lib/revalidate.ts` exposes `purgeR2IncrementalCache()` which uses the native Cloudflare Worker R2 binding (`cfCtx.env.NEXT_INC_CACHE_R2_BUCKET`) in production, with an S3 API fallback (`@aws-sdk/client-s3`) for Node/Server Actions/CLI scripts.
+- `scripts/purge-all-caches.mjs` automatically clears R2 bucket objects on `--dangerously-purge-everything` or `npm run stores:purge`.
+- `scripts/wipe-r2-cache.mjs` is the canonical dedicated maintenance tool to empty any store's next-cache bucket instantly (`node scripts/wipe-r2-cache.mjs --store=<name>`).
+- Deploys to Cloudflare Workers MUST never inherit old build prefixes; any deployment or cache purge sweeps both layers cleanly.

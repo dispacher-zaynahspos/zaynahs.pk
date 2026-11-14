@@ -75,77 +75,81 @@ export const ProductCardBadges: React.FC<ProductCardBadgesProps> = ({
     );
   }
 
-  // 1. Sale Discount Badge
-  if (currentComparePrice && currentComparePrice > currentPrice) {
-    const saleCustom = product.custom_badge?.name?.toLowerCase() === 'sale' ? product.custom_badge : null;
-    const saleBg = saleCustom?.bg_color || '#10b981';
-    const saleColor = saleCustom?.text_color || '#ffffff';
-    badges.push(
-      <span
-        key="sale"
-        className={`${badgeClass} bdg-sale`}
-        style={{
-          backgroundColor: saleBg,
-          color: saleColor,
-          '--bdg-bg': saleBg,
-          '--bdg-color': saleColor,
-        } as React.CSSProperties}
-      >
-        -{Math.round(((currentComparePrice - currentPrice) / currentComparePrice) * 100)}%
-      </span>
-    );
-  }
+  // RULE SOLDOUT-EXCLUSIVE: When a product is Sold Out, suppress all other badges (Sale, Featured, Custom, Limited)!
+  // Exactly 1 "Sold Out" badge appears on out-of-stock items.
+  if (!isSoldOut) {
+    // 1. Sale Discount Badge
+    if (currentComparePrice && currentComparePrice > currentPrice) {
+      const saleCustom = product.custom_badge?.name?.toLowerCase() === 'sale' ? product.custom_badge : null;
+      const saleBg = saleCustom?.bg_color || '#10b981';
+      const saleColor = saleCustom?.text_color || '#ffffff';
+      badges.push(
+        <span
+          key="sale"
+          className={`${badgeClass} bdg-sale`}
+          style={{
+            backgroundColor: saleBg,
+            color: saleColor,
+            '--bdg-bg': saleBg,
+            '--bdg-color': saleColor,
+          } as React.CSSProperties}
+        >
+          -{Math.round(((currentComparePrice - currentPrice) / currentComparePrice) * 100)}%
+        </span>
+      );
+    }
 
-  // 2. Featured Badge
-  if (product.is_featured) {
-    const featuredCustom = product.custom_badge?.name?.toLowerCase() === 'featured' ? product.custom_badge : null;
-    const featBg = featuredCustom?.bg_color || '#e94560';
-    const featColor = featuredCustom?.text_color || '#ffffff';
-    badges.push(
-      <span
-        key="featured"
-        className={`${badgeClass} bdg-featured`}
-        style={{
-          backgroundColor: featBg,
-          color: featColor,
-          '--bdg-bg': featBg,
-          '--bdg-color': featColor,
-        } as React.CSSProperties}
-      >
-        {featuredCustom?.name || 'FEATURED'}
-      </span>
-    );
-  }
+    // 2. Featured Badge
+    if (product.is_featured) {
+      const featuredCustom = product.custom_badge?.name?.toLowerCase() === 'featured' ? product.custom_badge : null;
+      const featBg = featuredCustom?.bg_color || '#e94560';
+      const featColor = featuredCustom?.text_color || '#ffffff';
+      badges.push(
+        <span
+          key="featured"
+          className={`${badgeClass} bdg-featured`}
+          style={{
+            backgroundColor: featBg,
+            color: featColor,
+            '--bdg-bg': featBg,
+            '--bdg-color': featColor,
+          } as React.CSSProperties}
+        >
+          {featuredCustom?.name || 'FEATURED'}
+        </span>
+      );
+    }
 
-  // 3. Custom Promotional Badge from /admin/badges
-  const customName = product.custom_badge?.name?.toLowerCase();
-  const isDuplicate =
-    (product.is_featured && customName === 'featured') ||
-    (Boolean(currentComparePrice && currentComparePrice > currentPrice) && customName === 'sale');
+    // 3. Custom Promotional Badge from /admin/badges
+    const customName = product.custom_badge?.name?.toLowerCase();
+    const isDuplicate =
+      (product.is_featured && customName === 'featured') ||
+      (Boolean(currentComparePrice && currentComparePrice > currentPrice) && customName === 'sale');
 
-  if (product.custom_badge && product.badge_enabled !== false && !isDuplicate) {
-    const custBg = product.custom_badge.bg_color || '#0f172a';
-    const custColor = product.custom_badge.text_color || '#ffffff';
-    badges.push(
-      <span
-        key="custom"
-        className={`${badgeClass} bdg-custom`}
-        style={{
-          backgroundColor: custBg,
-          color: custColor,
-          '--bdg-bg': custBg,
-          '--bdg-color': custColor,
-        } as React.CSSProperties}
-      >
-        {product.custom_badge.name}
-      </span>
-    );
-  }
+    if (product.custom_badge && product.badge_enabled !== false && !isDuplicate) {
+      const custBg = product.custom_badge.bg_color || '#0f172a';
+      const custColor = product.custom_badge.text_color || '#ffffff';
+      badges.push(
+        <span
+          key="custom"
+          className={`${badgeClass} bdg-custom`}
+          style={{
+            backgroundColor: custBg,
+            color: custColor,
+            '--bdg-bg': custBg,
+            '--bdg-color': custColor,
+          } as React.CSSProperties}
+        >
+          {product.custom_badge.name}
+        </span>
+      );
+    }
 
-  // 4. Limited Stock Badge (only shown when in stock and limited)
-  const stockCount = stock !== undefined ? Number(stock) : (Number(product.stock) || 0);
-  if (!isSoldOut && !product.is_service && stockCount > 0 && stockCount <= 8) {
-    badges.push(<span key="limited" className={`${badgeClass} bdg-new`}>Limited</span>);
+    // 4. Limited Stock Badge (only shown when in stock and limited)
+    const stockCount = stock !== undefined ? Number(stock) : (Number(product.stock) || 0);
+    if (!product.is_service && stockCount > 0 && stockCount <= 8) {
+      badges.push(<span key="limited" className={`${badgeClass} bdg-new`}>Limited</span>);
+    }
   }
 
   if (badges.length === 0) return null;

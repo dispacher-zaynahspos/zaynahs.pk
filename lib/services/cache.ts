@@ -7,6 +7,7 @@ import {
   revalidateAllProducts,
   revalidateTagSafe,
   purgeCloudflareEverything,
+  purgeR2IncrementalCache,
   revalidateAfterResponse,
 } from '@/lib/revalidate';
 import { safeAction } from '@/lib/utils/serverAction';
@@ -29,17 +30,21 @@ export const purgeAllCache = async () => {
       await revalidateTagSafe('homepage_sections');
       await revalidateTagSafe('verticals');
       
+      // RULE C19: Wipe OpenNext Next.js R2 ISR cache
+      await purgeR2IncrementalCache();
+
       const vercelTime = new Date().toISOString();
       const { error: vError } = await supabaseAdmin.from('store_settings').update({ last_vercel_purge: vercelTime }).eq('id', SETTINGS_ID);
       if (vError) console.error('Vercel time save error:', vError);
 
-      // 2. Perform real Cloudflare purge across all zones
+      // 2. Perform real Cloudflare purge across all zones (includes R2 + CDN)
       await purgeCloudflareEverything();
 
       // 3. Two-pass edge purge: Next.js ISR serves stale HTML while background regenerating.
       // Purge edge a second time 4 seconds later so Cloudflare re-caches the FRESH origin HTML.
       await revalidateAfterResponse(async () => {
         await new Promise((resolve) => setTimeout(resolve, 4000));
+        await purgeR2IncrementalCache();
         await purgeCloudflareEverything();
       });
 

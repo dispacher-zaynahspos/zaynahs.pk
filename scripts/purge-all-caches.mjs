@@ -50,8 +50,46 @@ async function purgeStore(file) {
 
   let cfStatus = 'SKIPPED (no creds)';
   let isrStatus = 'SKIPPED (no site)';
+  let r2Status = isFullPurge ? 'SKIPPED (no creds)' : 'PRESERVED (targeted)';
 
-  // 1. Cloudflare Purge
+  // 1. Wipe R2 Incremental Cache (RULE C19 - Dual-Layer Purge)
+  const accountId = env.CF_ACCOUNT_ID || env.CLOUDFLARE_ACCOUNT_ID;
+  const accessKeyId = env.R2_ACCESS_KEY_ID;
+  const secretAccessKey = env.R2_SECRET_ACCESS_KEY;
+  const r2Bucket = env.NEXT_INC_CACHE_R2_BUCKET || `${storeName}-next-cache`;
+
+  if (isFullPurge && accountId && accessKeyId && secretAccessKey) {
+    try {
+      const { S3Client, ListObjectsV2Command, DeleteObjectsCommand } = await import('@aws-sdk/client-s3');
+      const s3 = new S3Client({
+        region: 'auto',
+        endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+        credentials: { accessKeyId, secretAccessKey }
+      });
+
+      let totalDeleted = 0;
+      let hasMore = true;
+      while (hasMore) {
+        const listRes = await s3.send(new ListObjectsV2Command({
+          Bucket: r2Bucket,
+          MaxKeys: 1000
+        }));
+        const contents = listRes.Contents || [];
+        if (contents.length === 0) break;
+        await s3.send(new DeleteObjectsCommand({
+          Bucket: r2Bucket,
+          Delete: { Objects: contents.map(c => ({ Key: c.Key })), Quiet: true }
+        }));
+        totalDeleted += contents.length;
+        hasMore = Boolean(listRes.IsTruncated);
+      }
+      r2Status = totalDeleted > 0 ? `WIPED ${totalDeleted} OBJS ✅` : 'CLEAN (0 objs) ✅';
+    } catch (e) {
+      r2Status = `R2 ERR: ${e.message.slice(0, 30)}`;
+    }
+  }
+
+  // 2. Cloudflare Purge
   if (cfZone && cfToken) {
     try {
       const body = isFullPurge
@@ -84,7 +122,7 @@ async function purgeStore(file) {
     }
   }
 
-  // 2. Next.js Revalidate Webhook
+  // 3. Next.js Revalidate Webhook
   if (site && site.startsWith('http')) {
     try {
       const res = await fetch(`${site}/api/revalidate`, {
@@ -105,6 +143,7 @@ async function purgeStore(file) {
   return {
     Store: storeName,
     Domain: site || 'N/A',
+    'R2 Cache': r2Status,
     Cloudflare: cfStatus,
     'Next.js ISR': isrStatus
   };

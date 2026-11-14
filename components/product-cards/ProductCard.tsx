@@ -69,9 +69,9 @@ export function ProductCard({ product: p, variant, limit, currencySymbol, cardMo
     const isOutOfStock = p.source ? (!p.source.is_service && ((p.source.has_variants && p.source.variants?.length) ? p.source.variants.filter((v: { is_active?: boolean; stock?: number }) => v.is_active !== false).every((v: { stock?: number }) => (Number(v.stock) || 0) <= 0) : (Number(p.source.stock) || 0) <= 0)) : false;
 
     if (isOutOfStock) {
-      allBadges.unshift({ text: 'Sold Out', type: 'soldout', bg: '#111827', color: '#ffffff' });
-    }
-    if (!isOutOfStock && !p.source?.is_service && p.source?.stock && p.source.stock > 0 && p.source.stock <= 8) {
+      allBadges.length = 0;
+      allBadges.push({ text: 'Sold Out', type: 'soldout', bg: '#111827', color: '#ffffff' });
+    } else if (!p.source?.is_service && p.source?.stock && p.source.stock > 0 && p.source.stock <= 8) {
       allBadges.push({ text: 'Limited', type: 'limited' });
     }
     if (p.badge && allBadges.length === 0) {
