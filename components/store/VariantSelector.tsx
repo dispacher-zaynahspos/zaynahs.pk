@@ -219,14 +219,19 @@ export default function VariantSelector({
                 type="button"
                 onClick={() => handleColorClick(color)}
                 title={colorTitle}
-                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 border cursor-pointer ${!isColorAvailable || !isColorInStock ? 'opacity-40' : ''}`}
+                className={`relative px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 border cursor-pointer overflow-hidden ${!isColorAvailable || !isColorInStock ? 'opacity-40' : ''}`}
                 style={{
                   backgroundColor: isSelected ? 'var(--btn-primary-bg)' : 'var(--color-surface)',
-                  color: isSelected ? 'var(--btn-primary-text)' : 'var(--color-text-primary)',
+                  color: isSelected ? 'var(--btn-primary-text)' : (!isColorAvailable || !isColorInStock ? '#9ca3af' : 'var(--color-text-primary)'),
                   borderColor: isSelected ? 'var(--btn-primary-bg)' : UNSELECTED_SWATCH_BORDER,
                 }}
               >
-                <span className={!isColorAvailable || !isColorInStock ? 'line-through decoration-red-400' : ''}>{color}</span>
+                <span className="whitespace-nowrap leading-none text-center">{color}</span>
+                {(!isColorAvailable || !isColorInStock) && (
+                  <span className="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden">
+                    <span className="w-[150%] h-[2px] bg-red-500 -rotate-45 shadow-xs" />
+                  </span>
+                )}
               </button>
             );
           })}
@@ -273,7 +278,7 @@ export default function VariantSelector({
                   boxShadow: isSelected ? '0 0 0 2px var(--btn-primary-bg)' : 'none'
                 }}
               >
-                <span className={`whitespace-nowrap leading-none text-center ${!isSizeAvailable || !isSizeInStock ? 'line-through decoration-red-500 decoration-2' : ''}`}>{size}</span>
+                <span className="whitespace-nowrap leading-none text-center">{size}</span>
                 {(!isSizeAvailable || !isSizeInStock) && (
                   <span className="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden">
                     <span className="w-[150%] h-[2px] bg-red-500 -rotate-45 shadow-xs" />
@@ -318,7 +323,7 @@ export default function VariantSelector({
                   boxShadow: isSelected ? '0 0 0 2px var(--btn-primary-bg)' : 'none'
                 }}
               >
-                <span className={`whitespace-nowrap leading-none text-center ${!isMatInStock ? 'line-through decoration-red-500 decoration-2' : ''}`}>{mat}</span>
+                <span className="whitespace-nowrap leading-none text-center">{mat}</span>
                 {!isMatInStock && (
                   <span className="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden">
                     <span className="w-[150%] h-[2px] bg-red-500 -rotate-45 shadow-xs" />
@@ -363,7 +368,7 @@ export default function VariantSelector({
                   boxShadow: isSelected ? '0 0 0 2px var(--btn-primary-bg)' : 'none'
                 }}
               >
-                <span className={`whitespace-nowrap leading-none text-center ${!isCustomInStock ? 'line-through decoration-red-500 decoration-2' : ''}`}>{val}</span>
+                <span className="whitespace-nowrap leading-none text-center">{val}</span>
                 {!isCustomInStock && (
                   <span className="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden">
                     <span className="w-[150%] h-[2px] bg-red-500 -rotate-45 shadow-xs" />

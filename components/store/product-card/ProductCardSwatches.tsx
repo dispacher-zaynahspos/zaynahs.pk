@@ -194,7 +194,7 @@ export const ProductCardSwatches: React.FC<ProductCardSwatchesProps> = ({
                   boxShadow: isActive ? '0 0 0 1px var(--color-accent)' : 'none',
                 }}
               >
-                <span className={`whitespace-nowrap leading-none text-center ${isOutOfStock ? 'line-through decoration-red-500 decoration-2' : ''}`}>{val}</span>
+                <span className="whitespace-nowrap leading-none text-center">{val}</span>
                 {isOutOfStock && (
                   <span className="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden">
                     <span className="w-[150%] h-[2px] bg-red-500 -rotate-45 shadow-xs" />

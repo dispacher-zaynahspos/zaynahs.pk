@@ -27,7 +27,9 @@ export default function CartItemCard({ item, compact = false, settings, removeIt
   const variantStr = parts.join(' · ');
 
   const itemStock = item.selected_variant ? item.selected_variant.stock : item.product.stock;
-  const isSoldOut = !item.product.is_service && itemStock !== undefined && itemStock <= 0;
+  const isExempt = Boolean(item.product.is_service || item.product.is_preorder);
+  const isSoldOut = !isExempt && itemStock !== undefined && itemStock <= 0;
+  const isMaxStockReached = !isExempt && typeof itemStock === 'number' && item.quantity >= itemStock;
 
   return (
     <div className="flex items-start gap-4 py-3 border-b border-gray-100 dark:border-gray-800 last:border-0">
@@ -78,6 +80,11 @@ export default function CartItemCard({ item, compact = false, settings, removeIt
             Sold Out
           </span>
         )}
+        {!isExempt && typeof itemStock === 'number' && item.quantity > itemStock && (
+          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200 dark:border-amber-900/50 mt-1 w-fit">
+            Only {itemStock} left in stock
+          </span>
+        )}
 
         {!compact && (
           <div className="flex items-center justify-between mt-3">
@@ -98,16 +105,21 @@ export default function CartItemCard({ item, compact = false, settings, removeIt
                 <span className="w-8 text-center text-sm font-bold text-gray-900 dark:text-white select-none">{item.quantity}</span>
                 <button
                   type="button"
-                  disabled={isSoldOut}
+                  disabled={isSoldOut || isMaxStockReached}
                   onClick={() => {
                     if (isSoldOut) {
                       toast.error('This item is currently sold out');
                       return;
                     }
+                    if (isMaxStockReached) {
+                      toast.error(`Only ${itemStock} available in stock`);
+                      return;
+                    }
                     updateQuantity(item.id, item.quantity + 1);
                   }}
                   aria-label="Increase quantity"
-                  className={`flex h-8 w-8 items-center justify-center text-gray-600 dark:text-gray-400 hover:text-gray-950 dark:hover:text-white hover:bg-gray-200/70 dark:hover:bg-white/10 active:bg-gray-300/70 dark:active:bg-white/15 transition-colors cursor-pointer ${isSoldOut ? 'opacity-40 cursor-not-allowed' : ''}`}
+                  className={`flex h-8 w-8 items-center justify-center text-gray-600 dark:text-gray-400 hover:text-gray-950 dark:hover:text-white hover:bg-gray-200/70 dark:hover:bg-white/10 active:bg-gray-300/70 dark:active:bg-white/15 transition-colors cursor-pointer ${(isSoldOut || isMaxStockReached) ? 'opacity-30 cursor-not-allowed' : ''}`}
+                  title={isMaxStockReached ? `Only ${itemStock} available in stock` : undefined}
                 >
                   <Plus className="h-3.5 w-3.5" />
                 </button>

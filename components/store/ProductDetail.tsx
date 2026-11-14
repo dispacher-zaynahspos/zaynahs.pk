@@ -153,9 +153,25 @@ export default function ProductDetail({ product, settings, averageRating, social
     }
 
     const variantToUse = selectedVariant || undefined;
-    if (quantity > stockAvailable) {
-      toast.error(`Only ${stockAvailable} items left in stock`);
-      return;
+    const isExempt = Boolean(product.is_service || product.is_preorder);
+    const cartItemId = `${product.id}-${variantToUse?.id ?? 'base'}-${selectedModifiers.map(m => m.id).join('-')}`;
+    const cartItems = useCartStore.getState().items;
+    const inCartQty = cartItems.find(i => i.id === cartItemId)?.quantity || 0;
+
+    if (!isExempt) {
+      if (stockAvailable <= 0) {
+        toast.error('This item is currently out of stock');
+        return;
+      }
+      if (inCartQty >= stockAvailable) {
+        toast.error(`Already added maximum available stock (${stockAvailable}) to your cart`);
+        return;
+      }
+      if (inCartQty + quantity > stockAvailable) {
+        const canAdd = Math.max(0, stockAvailable - inCartQty);
+        toast.error(`Only ${canAdd} more item${canAdd > 1 ? 's' : ''} can be added (Stock: ${stockAvailable})`);
+        return;
+      }
     }
 
     const activeId = variantToUse?.id || product.id;
@@ -171,8 +187,12 @@ export default function ProductDetail({ product, settings, averageRating, social
     const sourceEl = (e?.currentTarget as HTMLElement) || (e?.target as HTMLElement) || (document.querySelector('.atc-btn') as HTMLElement) || null;
 
     flyToCart(sourceEl, imageUrl, product.id, settings.enable_fly_to_cart !== false, () => {
-      addItem(product, variantToUse, selectedModifiers, quantity);
-      toast.success(`${product.name} added to cart!`);
+      const added = addItem(product, variantToUse, selectedModifiers, quantity);
+      if (added !== false) {
+        toast.success(`${product.name} added to cart!`);
+      } else {
+        toast.error(`Maximum available stock (${stockAvailable}) reached in cart`);
+      }
     });
   };
 

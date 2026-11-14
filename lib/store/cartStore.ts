@@ -10,7 +10,7 @@ interface CartStore {
   items: CartItem[];
   cartCreatedAt: string | null;
   appliedCoupon: Coupon | null;
-  addItem: (product: Product, variant?: ProductVariant, modifiers?: ProductModifier[], qty?: number) => void;
+  addItem: (product: Product, variant?: ProductVariant, modifiers?: ProductModifier[], qty?: number) => boolean;
   removeItem: (cartItemId: string) => void;
   updateQuantity: (cartItemId: string, quantity: number) => void;
   clearCart: () => void;
@@ -41,21 +41,43 @@ export const useCartStore = create<CartStore>()(
         const unitPrice = calculateItemPrice(product, variant, modifiers);
         const cartItemId = `${product.id}-${variant?.id ?? 'base'}-${modifiers.map(m => m.id).join('-')}`;
 
+        const isExempt = Boolean(product.is_service || product.is_preorder);
+        const availableStock = isExempt
+          ? 999
+          : typeof variant?.stock === 'number'
+            ? variant.stock
+            : typeof product.stock === 'number'
+              ? product.stock
+              : 999;
+
+        if (!isExempt && availableStock <= 0) {
+          return false;
+        }
+
+        let added = true;
         set(state => {
           const isFirstItem = state.items.length === 0;
           const newCartCreatedAt = isFirstItem ? new Date().toISOString() : state.cartCreatedAt;
           
           const existing = state.items.find(i => i.id === cartItemId);
           if (existing) {
+            const currentQty = existing.quantity;
+            if (!isExempt && currentQty >= availableStock) {
+              added = false;
+              return state;
+            }
+            const newQty = isExempt ? currentQty + qty : Math.min(currentQty + qty, availableStock);
             return {
               cartCreatedAt: newCartCreatedAt,
               items: state.items.map(i =>
                 i.id === cartItemId
-                  ? { ...i, quantity: i.quantity + qty, total: unitPrice * (i.quantity + qty) }
+                  ? { ...i, quantity: newQty, total: unitPrice * newQty }
                   : i
               )
             };
           }
+
+          const initialQty = isExempt ? qty : Math.min(qty, availableStock);
           return {
             cartCreatedAt: newCartCreatedAt,
             items: [...state.items, {
@@ -63,12 +85,14 @@ export const useCartStore = create<CartStore>()(
               product,
               selected_variant: variant,
               selected_modifiers: modifiers,
-              quantity: qty,
+              quantity: initialQty,
               unit_price: unitPrice,
-              total: unitPrice * qty
+              total: unitPrice * initialQty
             }]
           };
         });
+
+        return added;
       },
 
       removeItem: (cartItemId) =>
@@ -87,13 +111,34 @@ export const useCartStore = create<CartStore>()(
           get().removeItem(cartItemId);
           return;
         }
-        set(state => ({
-          items: state.items.map(i =>
-            i.id === cartItemId
-              ? { ...i, quantity, total: i.unit_price * quantity }
-              : i
-          )
-        }));
+        set(state => {
+          const item = state.items.find(i => i.id === cartItemId);
+          if (!item) return state;
+
+          const isExempt = Boolean(item.product.is_service || item.product.is_preorder);
+          const availableStock = isExempt
+            ? 999
+            : typeof item.selected_variant?.stock === 'number'
+              ? item.selected_variant.stock
+              : typeof item.product.stock === 'number'
+                ? item.product.stock
+                : 999;
+
+          if (!isExempt && availableStock <= 0) {
+            return {
+              items: state.items.filter(i => i.id !== cartItemId)
+            };
+          }
+
+          const safeQty = isExempt ? quantity : Math.min(quantity, availableStock);
+          return {
+            items: state.items.map(i =>
+              i.id === cartItemId
+                ? { ...i, quantity: safeQty, total: i.unit_price * safeQty }
+                : i
+            )
+          };
+        });
       },
 
       clearCart: () => set({ items: [], cartCreatedAt: null, appliedCoupon: null }),
@@ -106,7 +151,7 @@ export const useCartStore = create<CartStore>()(
       name: CART_PERSIST_KEY,
       version: 1,
       // Fool-proof migration: existing browsers have camelCase cart items in localStorage.
-      // Convert them to snake_case on load so NO cart is ever wiped (RULE D13 + no data loss).
+      // Convert them to snake_case on load and clamp quantities to available stock (RULE D13 + stock integrity).
       migrate: (persisted: unknown, _version: number) => {
         if (
           persisted &&
@@ -114,17 +159,32 @@ export const useCartStore = create<CartStore>()(
           Array.isArray((persisted as { items?: unknown }).items)
         ) {
           const state = persisted as { items: Array<Record<string, unknown>> };
-          state.items = state.items.map((i) => ({
-            ...i,
-            selected_variant: i.selected_variant ?? i.selectedVariant,
-            selected_modifiers: i.selected_modifiers ?? i.selectedModifiers ?? [],
-            unit_price: i.unit_price ?? i.unitPrice,
-            total: i.total,
-            discount_amount: i.discount_amount ?? i.discountAmount,
-            discount_type: i.discount_type ?? i.discountType,
-            discount_value: i.discount_value ?? i.discountValue,
-            added_later: i.added_later ?? i.addedLater,
-          }));
+          state.items = state.items.map((i) => {
+            const variant = (i.selected_variant ?? i.selectedVariant) as ProductVariant | undefined;
+            const product = i.product as Product | undefined;
+            const isExempt = Boolean(product?.is_service || product?.is_preorder);
+            const rawStock = typeof variant?.stock === 'number'
+              ? variant.stock
+              : typeof product?.stock === 'number'
+                ? product.stock
+                : 999;
+            const currentQty = (i.quantity as number) || 1;
+            const safeQty = isExempt ? currentQty : Math.max(1, Math.min(currentQty, rawStock));
+            const unitPrice = ((i.unit_price ?? i.unitPrice) as number) || 0;
+
+            return {
+              ...i,
+              selected_variant: variant,
+              selected_modifiers: i.selected_modifiers ?? i.selectedModifiers ?? [],
+              unit_price: unitPrice,
+              quantity: safeQty,
+              total: unitPrice * safeQty,
+              discount_amount: i.discount_amount ?? i.discountAmount,
+              discount_type: i.discount_type ?? i.discountType,
+              discount_value: i.discount_value ?? i.discountValue,
+              added_later: i.added_later ?? i.addedLater,
+            };
+          });
         }
         return persisted as CartStore;
       },

@@ -6,6 +6,7 @@ import { ShoppingCart, MessageCircle } from '@/components/common/Icons';
 import { Product, ProductVariant } from '@/lib/types';
 import { formatPrice } from '@/lib/utils/whatsapp';
 import { AddToCartButton } from '@/components/store/AddToCartButton';
+import { useCartStore } from '@/lib/store/cartStore';
 
 interface ProductDetailStickyBarProps {
   product: Product;
@@ -105,15 +106,25 @@ export function ProductDetailStickyBar({
           )}
 
           {/* Smart Icon-Only Add to Bag CTA */}
-          <AddToCartButton
-            variant="icon"
-            animation={animation}
-            isOutOfStock={stockAvailable <= 0}
-            disabled={stockAvailable <= 0 || Boolean(product.has_variants && product.variants?.length && !selectedVariant)}
-            isFaded={Boolean(product.has_variants && product.variants?.length && !selectedVariant)}
-            onAddToCart={onAddToCart}
-            title={stockAvailable <= 0 ? 'Out of Stock' : (!selectedVariant && product.has_variants ? 'Select an Option' : 'Add to Bag')}
-          />
+          {(() => {
+            const cartItems = useCartStore.getState().items;
+            const cartItemId = `${product.id}-${selectedVariant?.id ?? 'base'}`;
+            const inCartQty = cartItems.find(i => i.id.startsWith(cartItemId))?.quantity || 0;
+            const isExempt = Boolean(product.is_service || product.is_preorder);
+            const isMaxInCart = !isExempt && stockAvailable > 0 && inCartQty >= stockAvailable;
+
+            return (
+              <AddToCartButton
+                variant="icon"
+                animation={animation}
+                isOutOfStock={stockAvailable <= 0}
+                disabled={stockAvailable <= 0 || isMaxInCart || Boolean(product.has_variants && product.variants?.length && !selectedVariant)}
+                isFaded={Boolean(product.has_variants && product.variants?.length && !selectedVariant)}
+                onAddToCart={onAddToCart}
+                title={stockAvailable <= 0 ? 'Out of Stock' : isMaxInCart ? `Max in Cart (${stockAvailable})` : (!selectedVariant && product.has_variants ? 'Select an Option' : 'Add to Bag')}
+              />
+            );
+          })()}
         </div>
       </div>
     </div>

@@ -20,6 +20,7 @@ import { formatPrice } from '@/lib/utils/whatsapp';
 import { ProductDetailPriceTimer } from './info/ProductDetailPriceTimer';
 import { ProductDetailTrustBadges } from './info/ProductDetailTrustBadges';
 import { AddToCartButton } from '@/components/store/AddToCartButton';
+import { useCartStore } from '@/lib/store/cartStore';
 
 interface ProductDetailInfoProps {
   product: Product;
@@ -267,51 +268,63 @@ export default function ProductDetailInfo({
       </div>
 
       {/* Action Row */}
-      <div className="border-t border-gray-100 dark:border-gray-800 pt-4 space-y-4">
-        {/* Quantity Selector */}
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-bold text-gray-700 dark:text-gray-300">Quantity</span>
-          <div className="flex items-center border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden bg-white dark:bg-[#16162a]">
-            <button
-              type="button"
-              onClick={() => setQuantity(q => Math.max(1, q - 1))}
-              aria-label="Decrease quantity"
-              className="p-2.5 text-gray-700 dark:text-gray-300 hover:text-gray-950 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 active:bg-gray-200 dark:active:bg-white/15 disabled:opacity-30 cursor-pointer transition-colors"
-              disabled={quantity <= 1}
-            >
-              <Minus className="h-4 w-4" />
-            </button>
-            <span className="px-4 text-sm font-bold text-gray-900 dark:text-white w-12 text-center select-none">
-              {quantity}
-            </span>
-            <button
-              type="button"
-              onClick={() => setQuantity(q => q + 1)}
-              aria-label="Increase quantity"
-              className="p-2.5 text-gray-700 dark:text-gray-300 hover:text-gray-950 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 active:bg-gray-200 dark:active:bg-white/15 disabled:opacity-30 cursor-pointer transition-colors"
-              disabled={!product.is_preorder && stockAvailable > 0 && quantity >= stockAvailable}
-            >
-              <Plus className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
+      {(() => {
+        const cartItems = useCartStore.getState().items;
+        const cartItemId = `${product.id}-${selectedVariant?.id ?? 'base'}-${selectedModifiers.map(m => m.id).join('-')}`;
+        const inCartQty = cartItems.find(i => i.id === cartItemId)?.quantity || 0;
+        const isExempt = Boolean(product.is_service || product.is_preorder);
+        const remainingStock = isExempt ? 999 : Math.max(0, stockAvailable - inCartQty);
+        const isMaxInCart = !isExempt && stockAvailable > 0 && inCartQty >= stockAvailable;
 
-        {/* Add to Cart & Wishlist buttons */}
-        <div className="flex gap-3">
-          <div className="flex-1 min-w-0">
-            <AddToCartButton
-              animation={settings.add_to_cart_animation || 'none'}
-              isOutOfStock={product.is_preorder ? false : stockAvailable <= 0}
-              disabled={Boolean(product.has_variants && product.variants?.length && !selectedVariant) || (!product.is_preorder && stockAvailable <= 0)}
-              isFaded={Boolean(product.has_variants && product.variants?.length && !selectedVariant)}
-              label={Boolean(product.has_variants && product.variants?.length && !selectedVariant) 
-                ? 'Select an Option' 
-                : (product.is_preorder ? 'Pre-Book Now' : 'Add to Cart')}
-              addedLabel={product.is_preorder ? 'Pre-Booked!' : 'Added to Cart'}
-              onAddToCart={onAddToCart}
-              className="py-3.5"
-            />
-          </div>
+        return (
+          <div className="border-t border-gray-100 dark:border-gray-800 pt-4 space-y-4">
+            {/* Quantity Selector */}
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-bold text-gray-700 dark:text-gray-300">Quantity</span>
+              <div className="flex items-center border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden bg-white dark:bg-[#16162a]">
+                <button
+                  type="button"
+                  onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                  aria-label="Decrease quantity"
+                  className="p-2.5 text-gray-700 dark:text-gray-300 hover:text-gray-950 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 active:bg-gray-200 dark:active:bg-white/15 disabled:opacity-30 cursor-pointer transition-colors"
+                  disabled={quantity <= 1}
+                >
+                  <Minus className="h-4 w-4" />
+                </button>
+                <span className="px-4 text-sm font-bold text-gray-900 dark:text-white w-12 text-center select-none">
+                  {quantity}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setQuantity(q => q + 1)}
+                  aria-label="Increase quantity"
+                  className="p-2.5 text-gray-700 dark:text-gray-300 hover:text-gray-950 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 active:bg-gray-200 dark:active:bg-white/15 disabled:opacity-30 cursor-pointer transition-colors"
+                  disabled={!isExempt && (quantity >= remainingStock || stockAvailable <= 0)}
+                  title={!isExempt && quantity >= remainingStock ? `Only ${stockAvailable} available in stock` : undefined}
+                >
+                  <Plus className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Add to Cart & Wishlist buttons */}
+            <div className="flex gap-3">
+              <div className="flex-1 min-w-0">
+                <AddToCartButton
+                  animation={settings.add_to_cart_animation || 'none'}
+                  isOutOfStock={product.is_preorder ? false : stockAvailable <= 0}
+                  disabled={Boolean(product.has_variants && product.variants?.length && !selectedVariant) || (!isExempt && (stockAvailable <= 0 || isMaxInCart))}
+                  isFaded={Boolean(product.has_variants && product.variants?.length && !selectedVariant)}
+                  label={Boolean(product.has_variants && product.variants?.length && !selectedVariant) 
+                    ? 'Select an Option' 
+                    : isMaxInCart
+                      ? `Max in Cart (${stockAvailable})`
+                      : (product.is_preorder ? 'Pre-Book Now' : 'Add to Cart')}
+                  addedLabel={product.is_preorder ? 'Pre-Booked!' : 'Added to Cart'}
+                  onAddToCart={onAddToCart}
+                  className="py-3.5"
+                />
+              </div>
 
           {mounted && (
             <button
@@ -349,6 +362,8 @@ export default function ProductDetailInfo({
           </div>
         )}
       </div>
+    );
+  })()}
 
       {/* Trust Badges Panel & Safe Checkout */}
       <ProductDetailTrustBadges settings={settings} mounted={mounted} />

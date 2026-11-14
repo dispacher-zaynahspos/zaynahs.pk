@@ -98,16 +98,37 @@ export default function QuickViewModal({ product, settings, onClose }: QuickView
       toast.error('Please select an option first');
       return;
     }
-    if (quantity > stockAvailable) {
-      toast.error(`Only ${stockAvailable} items left in stock`);
-      return;
+
+    const isExempt = Boolean(product.is_service || product.is_preorder);
+    const cartItemId = `${product.id}-${selectedVariant?.id ?? 'base'}`;
+    const cartItems = useCartStore.getState().items;
+    const inCartQty = cartItems.find(i => i.id.startsWith(cartItemId))?.quantity || 0;
+
+    if (!isExempt) {
+      if (stockAvailable <= 0) {
+        toast.error('This item is currently out of stock');
+        return;
+      }
+      if (inCartQty >= stockAvailable) {
+        toast.error(`Already added maximum available stock (${stockAvailable}) to your cart`);
+        return;
+      }
+      if (inCartQty + quantity > stockAvailable) {
+        const canAdd = Math.max(0, stockAvailable - inCartQty);
+        toast.error(`Only ${canAdd} more can be added (Stock: ${stockAvailable})`);
+        return;
+      }
     }
 
     // Trigger fly animation and defer addItem to bucket bounce
     const imageUrl = selectedVariant?.image_url || product.images?.find(img => img.is_primary)?.url || product.images?.[0]?.url;
     flyToCart(e.currentTarget as HTMLElement, imageUrl, product.id, settings?.enable_fly_to_cart !== false, () => {
-      addItem(product, selectedVariant, [], quantity);
-      toast.success(`${product.name} added to cart!`);
+      const added = addItem(product, selectedVariant, [], quantity);
+      if (added !== false) {
+        toast.success(`${product.name} added to cart!`);
+      } else {
+        toast.error(`Maximum available stock (${stockAvailable}) reached in cart`);
+      }
     });
 
     // Close modal after animation completes its journey so the customer sees the item sail into the cart

@@ -64,6 +64,21 @@ export function useCartContainerState(
     }
   }, [view]);
 
+  // Auto-clamp any legacy cart items where quantity exceeds current stock
+  useEffect(() => {
+    items.forEach(it => {
+      const stock = it.selected_variant ? it.selected_variant.stock : it.product.stock;
+      const isExempt = Boolean(it.product.is_service || it.product.is_preorder);
+      if (!isExempt && typeof stock === 'number') {
+        if (stock <= 0) {
+          removeItem(it.id);
+        } else if (it.quantity > stock) {
+          updateQuantity(it.id, stock);
+        }
+      }
+    });
+  }, []); // Run on mount
+
   const setView = (newView: CartView) => {
     setLocalView(newView);
     if (newView === 'checkout') {
@@ -179,6 +194,25 @@ export function useCartContainerState(
     e.preventDefault();
     // Double-submit guard: ignore re-entry while an order is already in flight
     if (loading) return;
+
+    // Strict client-side stock validation
+    for (const it of items) {
+      const stock = it.selected_variant ? it.selected_variant.stock : it.product.stock;
+      const isExempt = Boolean(it.product.is_service || it.product.is_preorder);
+      if (!isExempt && typeof stock === 'number') {
+        if (stock <= 0) {
+          toast.error(`"${it.product.name}" is sold out and has been removed.`);
+          removeItem(it.id);
+          return;
+        }
+        if (it.quantity > stock) {
+          toast.error(`"${it.product.name}" has only ${stock} available. Cart adjusted.`);
+          updateQuantity(it.id, stock);
+          return;
+        }
+      }
+    }
+
     if (!firstName.trim() || !lastName.trim()) {
       toast.error('Please enter your full name');
       return;
