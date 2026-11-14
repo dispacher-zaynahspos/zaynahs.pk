@@ -20,6 +20,7 @@ import {
   Tag
 } from '@/components/common/Icons';
 import { isOrderPaid, getOrderPaymentMethod } from './orderLogUtils';
+import { OrderStatusBadge } from '@/components/admin/order-detail/OrderStatusBadge';
 
 interface OrderQuickViewModalProps {
   order: Order | null;
@@ -242,30 +243,7 @@ export function OrderQuickViewModal({
                       Unpaid
                     </span>
                   )}
-                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-bold uppercase tracking-wide ${
-                    order.status === 'cancelled'
-                      ? 'bg-rose-600 text-white shadow-2xs'
-                      : ['pending', 'placed', 'confirmed'].includes(order.status)
-                      ? 'bg-amber-500 text-white shadow-2xs ring-1 ring-amber-600/30'
-                      : 'bg-emerald-600 text-white shadow-2xs'
-                  }`}>
-                    {order.status === 'cancelled' ? (
-                      'Cancelled'
-                    ) : ['pending', 'placed', 'confirmed'].includes(order.status) ? (
-                      <>
-                        <span className="relative flex h-1.5 w-1.5 shrink-0">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-white"></span>
-                        </span>
-                        Unfulfilled
-                      </>
-                    ) : (
-                      <>
-                        <Check className="h-3 w-3 stroke-[3] text-white shrink-0" />
-                        Fulfilled
-                      </>
-                    )}
-                  </span>
+                  <OrderStatusBadge status={order.status} size="sm" />
                 </div>
               </div>
               <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5 truncate" suppressHydrationWarning>

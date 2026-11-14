@@ -37,6 +37,7 @@ export function useOrderActions(
   const handleStatusChange = async (newStatus: Order['status']) => {
     try {
       setIsUpdating(true);
+      setIsDropdownOpen(false);
       const newLog: StatusLogItem = {
         id: crypto.randomUUID(),
         type: 'status_change',

@@ -18,7 +18,7 @@ import { Order, StoreSettings } from '@/lib/types';
 import { formatPrice } from '@/lib/utils/whatsapp';
 import { getItemVariant } from '@/lib/utils/formatVariant';
 import OrderEditor from './OrderEditor';
-import { useOrderDetailState, OrderCustomerCard } from './order-detail';
+import { useOrderDetailState, OrderCustomerCard, OrderStatusBadge } from './order-detail';
 import { isOrderFulfilled, isOrderUnfulfilled } from '@/components/admin/order-log/orderLogUtils';
 import TableThumbnail from '@/components/admin/TableThumbnail';
 import ImagePreviewModal from '@/components/admin/ImagePreviewModal';
@@ -185,25 +185,11 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
                 </span>
               )}
 
-              {order.status === 'cancelled' ? (
-                <span className="inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide bg-rose-600 text-white shadow-2xs">
-                  <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0" />
-                  Cancelled
-                </span>
-              ) : isOrderUnfulfilled(order) ? (
-                <span className="inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide bg-amber-500 text-white shadow-2xs ring-1 ring-amber-600/30">
-                  <span className="relative flex h-1.5 w-1.5 shrink-0">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-white"></span>
-                  </span>
-                  Unfulfilled
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide bg-emerald-600 text-white shadow-2xs ring-1 ring-emerald-700/30">
-                  <Check className="h-3 w-3 stroke-[3] text-white shrink-0" />
-                  Fulfilled
-                </span>
-              )}
+              <OrderStatusBadge
+                status={order.status}
+                isUpdating={isUpdating}
+                size="sm"
+              />
             </div>
 
             <span className="text-gray-300 dark:text-gray-700">|</span>
@@ -402,19 +388,11 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
                   Unpaid
                 </span>
               )}
-              {isOrderUnfulfilled(order) ? (
-                <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-extrabold uppercase bg-amber-500 text-white shadow-2xs shrink-0">
-                  Unfulfilled
-                </span>
-              ) : order.status === 'cancelled' ? (
-                <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-bold uppercase bg-rose-600 text-white shadow-2xs shrink-0">
-                  Cancelled
-                </span>
-              ) : (
-                <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-extrabold uppercase bg-emerald-600 text-white shadow-2xs shrink-0">
-                  Fulfilled
-                </span>
-              )}
+              <OrderStatusBadge
+                status={order.status}
+                isUpdating={isUpdating}
+                size="sm"
+              />
               <span suppressHydrationWarning className="text-[10.5px] text-gray-400 dark:text-gray-500 truncate ml-0.5">
                 {safeFormatOrderDate(order.created_at)}
               </span>
@@ -469,25 +447,12 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
             {/* Products Card - High Density Native App Style */}
             <div className="bg-white dark:bg-[#16162a] rounded-xl sm:rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
               <div className="px-3.5 py-2.5 sm:px-4 sm:py-3 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center bg-white dark:bg-[#16162a]">
-                {isOrderUnfulfilled(order) ? (
-                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md text-[11px] sm:text-xs font-extrabold uppercase tracking-wide bg-amber-500 text-white shadow-2xs ring-1 ring-amber-600/30">
-                    <span className="relative flex h-1.5 w-1.5 sm:h-2 sm:w-2 shrink-0">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 sm:h-2 sm:w-2 bg-white"></span>
-                    </span>
-                    Unfulfilled ({order.items.length})
-                  </span>
-                ) : order.status === 'cancelled' ? (
-                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md text-[11px] sm:text-xs font-bold uppercase tracking-wide bg-rose-600 text-white shadow-2xs">
-                    <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0" />
-                    Cancelled ({order.items.length})
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md text-[11px] sm:text-xs font-extrabold uppercase tracking-wide bg-emerald-600 text-white shadow-2xs ring-1 ring-emerald-700/30">
-                    <Check className="h-3 w-3 sm:h-3.5 sm:w-3.5 stroke-[3] text-white shrink-0" />
-                    Fulfilled ({order.items.length})
-                  </span>
-                )}
+                <OrderStatusBadge
+                  status={order.status}
+                  isUpdating={isUpdating}
+                  itemCount={order.items.length}
+                  size="md"
+                />
               </div>
 
               {/* Items List - Compact High Density so multiple products fit easily on mobile */}
@@ -675,12 +640,19 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-[13.5px] font-bold text-gray-800 dark:text-gray-200">Fulfillment</span>
-                  <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${order.fulfillment_status === 'fulfilled'
-                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-400 dark:border-emerald-500/30'
-                      : 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700'
-                    }`}>
-                    {(order.fulfillment_status || 'unfulfilled').toUpperCase()}
-                  </span>
+                  {isUpdating ? (
+                    <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full border bg-slate-800 text-white border-slate-700 inline-flex items-center gap-1.5 animate-pulse">
+                      <span className="w-2 h-2 border-2 border-white border-t-transparent rounded-full animate-spin shrink-0" />
+                      UPDATING...
+                    </span>
+                  ) : (
+                    <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${order.fulfillment_status === 'fulfilled'
+                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-400 dark:border-emerald-500/30'
+                        : 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700'
+                      }`}>
+                      {(order.fulfillment_status || 'unfulfilled').toUpperCase()}
+                    </span>
+                  )}
                   {order.tracking_number && (
                     <span className="text-[11px] font-mono bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 px-2 py-0.5 rounded border border-blue-200/60 dark:border-blue-800/60">
                       TRK: {order.tracking_number}
