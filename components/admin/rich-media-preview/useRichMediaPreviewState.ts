@@ -105,18 +105,17 @@ export function useRichMediaPreviewState({ url, item: initialItem }: Pick<RichMe
   const handleDownloadMedia = async (urlToDownload: string, filename: string) => {
     try {
       toast.loading('Downloading media...', { id: 'downloading' });
-      const downloadUrl = urlToDownload.includes('supabase.co') 
-        ? `${urlToDownload}${urlToDownload.includes('?') ? '&' : '?'}download=${encodeURIComponent(filename)}`
-        : urlToDownload;
+      const safeFilename = filename || urlToDownload.split('/').pop() || 'image.webp';
+      const downloadUrl = `/api/media/download?url=${encodeURIComponent(urlToDownload)}&filename=${encodeURIComponent(safeFilename)}`;
 
       const a = document.createElement('a');
       a.href = downloadUrl;
-      a.download = filename || 'download';
+      a.download = safeFilename;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       
-      toast.success('Media downloaded successfully', { id: 'downloading' });
+      toast.success('Media download started', { id: 'downloading' });
     } catch (error) {
       console.error('Download failed', error);
       toast.error('Failed to download media.', { id: 'downloading' });

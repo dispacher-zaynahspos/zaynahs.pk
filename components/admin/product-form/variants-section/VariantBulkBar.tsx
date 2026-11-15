@@ -56,18 +56,18 @@ export const VariantBulkBar: React.FC<VariantBulkBarProps> = ({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-2.5">
         <div>
           <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-1">
             Price
           </label>
-          <div className="flex rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-[#0f0f1b] focus-within:border-primary focus-within:bg-white transition-all">
+          <div className="flex rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-[#0f0f1b] focus-within:border-[#e94560] focus-within:bg-white transition-all">
             <input
               id="bulk-price-input"
               type="number"
-              placeholder="Enter price"
+              placeholder="Price"
               style={{ borderWidth: 0 }}
-              className="w-full min-w-[60px] bg-transparent text-xs text-gray-900 dark:text-white px-3 py-2 focus:outline-none"
+              className="w-full min-w-[70px] bg-transparent text-xs text-gray-900 dark:text-white px-3 py-2 focus:outline-none"
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   e.preventDefault();
@@ -89,7 +89,7 @@ export const VariantBulkBar: React.FC<VariantBulkBarProps> = ({
                   input.value = '';
                 }
               }}
-              className="bg-primary hover:bg-primary-hover text-white px-2.5 py-2 text-[10px] font-bold cursor-pointer transition-colors whitespace-nowrap"
+              className="bg-[#e94560] hover:bg-[#d33a53] text-white px-3 py-2 text-xs font-bold cursor-pointer transition-colors whitespace-nowrap shrink-0"
             >
               Apply
             </button>
@@ -100,13 +100,13 @@ export const VariantBulkBar: React.FC<VariantBulkBarProps> = ({
           <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-1">
             Compare Price
           </label>
-          <div className="flex rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-[#0f0f1b] focus-within:border-primary focus-within:bg-white transition-all">
+          <div className="flex rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-[#0f0f1b] focus-within:border-[#e94560] focus-within:bg-white transition-all">
             <input
               id="bulk-compare-price-input"
               type="number"
-              placeholder="Enter compare price"
+              placeholder="Compare"
               style={{ borderWidth: 0 }}
-              className="w-full min-w-[60px] bg-transparent text-xs text-gray-900 dark:text-white px-3 py-2 focus:outline-none"
+              className="w-full min-w-[70px] bg-transparent text-xs text-gray-900 dark:text-white px-3 py-2 focus:outline-none"
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   e.preventDefault();
@@ -128,7 +128,7 @@ export const VariantBulkBar: React.FC<VariantBulkBarProps> = ({
                   input.value = '';
                 }
               }}
-              className="bg-primary hover:bg-primary-hover text-white px-2.5 py-2 text-[10px] font-bold cursor-pointer transition-colors whitespace-nowrap"
+              className="bg-[#e94560] hover:bg-[#d33a53] text-white px-3 py-2 text-xs font-bold cursor-pointer transition-colors whitespace-nowrap shrink-0"
             >
               Apply
             </button>
@@ -139,13 +139,13 @@ export const VariantBulkBar: React.FC<VariantBulkBarProps> = ({
           <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-1">
             Stock
           </label>
-          <div className="flex rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-[#0f0f1b] focus-within:border-primary focus-within:bg-white transition-all">
+          <div className="flex rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-[#0f0f1b] focus-within:border-[#e94560] focus-within:bg-white transition-all">
             <input
               id="bulk-stock-input"
               type="number"
-              placeholder="Enter stock"
+              placeholder="Stock"
               style={{ borderWidth: 0 }}
-              className="w-full min-w-[60px] bg-transparent text-xs text-gray-900 dark:text-white px-3 py-2 focus:outline-none"
+              className="w-full min-w-[70px] bg-transparent text-xs text-gray-900 dark:text-white px-3 py-2 focus:outline-none"
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   e.preventDefault();
@@ -167,7 +167,7 @@ export const VariantBulkBar: React.FC<VariantBulkBarProps> = ({
                   input.value = '';
                 }
               }}
-              className="bg-primary hover:bg-primary-hover text-white px-2.5 py-2 text-[10px] font-bold cursor-pointer transition-colors whitespace-nowrap"
+              className="bg-[#e94560] hover:bg-[#d33a53] text-white px-3 py-2 text-xs font-bold cursor-pointer transition-colors whitespace-nowrap shrink-0"
             >
               Apply
             </button>
@@ -176,15 +176,15 @@ export const VariantBulkBar: React.FC<VariantBulkBarProps> = ({
 
         <div>
           <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-1">
-            SKU
+            SKU Prefix
           </label>
-          <div className="flex rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-[#0f0f1b] focus-within:border-primary focus-within:bg-white transition-all">
+          <div className="flex rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-[#0f0f1b] focus-within:border-[#e94560] focus-within:bg-white transition-all">
             <input
               id="bulk-sku-input"
               type="text"
-              placeholder="SKU prefix"
+              placeholder="SKU"
               style={{ borderWidth: 0 }}
-              className="w-full min-w-[60px] bg-transparent text-xs text-gray-900 dark:text-white px-3 py-2 focus:outline-none"
+              className="w-full min-w-[70px] bg-transparent text-xs text-gray-900 dark:text-white px-3 py-2 focus:outline-none"
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   e.preventDefault();
@@ -202,7 +202,7 @@ export const VariantBulkBar: React.FC<VariantBulkBarProps> = ({
                 handleBulkUpdateSku(val);
                 input.value = '';
               }}
-              className="bg-primary hover:bg-primary-hover text-white px-2.5 py-2 text-[10px] font-bold cursor-pointer transition-colors whitespace-nowrap"
+              className="bg-[#e94560] hover:bg-[#d33a53] text-white px-3 py-2 text-xs font-bold cursor-pointer transition-colors whitespace-nowrap shrink-0"
             >
               Apply
             </button>
@@ -213,13 +213,13 @@ export const VariantBulkBar: React.FC<VariantBulkBarProps> = ({
           <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-1">
             Threshold
           </label>
-          <div className="flex rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-[#0f0f1b] focus-within:border-primary focus-within:bg-white transition-all">
+          <div className="flex rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-[#0f0f1b] focus-within:border-[#e94560] focus-within:bg-white transition-all">
             <input
               id="bulk-threshold-input"
               type="number"
-              placeholder="Enter threshold"
+              placeholder="Threshold"
               style={{ borderWidth: 0 }}
-              className="w-full min-w-[60px] bg-transparent text-xs text-gray-900 dark:text-white px-3 py-2 focus:outline-none"
+              className="w-full min-w-[70px] bg-transparent text-xs text-gray-900 dark:text-white px-3 py-2 focus:outline-none"
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   e.preventDefault();
@@ -241,7 +241,7 @@ export const VariantBulkBar: React.FC<VariantBulkBarProps> = ({
                   input.value = '';
                 }
               }}
-              className="bg-primary hover:bg-primary-hover text-white px-2.5 py-2 text-[10px] font-bold cursor-pointer transition-colors whitespace-nowrap"
+              className="bg-[#e94560] hover:bg-[#d33a53] text-white px-3 py-2 text-xs font-bold cursor-pointer transition-colors whitespace-nowrap shrink-0"
             >
               Apply
             </button>
@@ -252,18 +252,18 @@ export const VariantBulkBar: React.FC<VariantBulkBarProps> = ({
           <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-1">
             Status
           </label>
-          <div className="flex gap-2">
+          <div className="flex gap-1.5">
             <button
               type="button"
               onClick={() => handleBulkUpdateActive(true)}
-              className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold cursor-pointer transition-colors active:scale-95 flex items-center justify-center py-2"
+              className="flex-1 min-w-[65px] bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold cursor-pointer transition-colors active:scale-95 flex items-center justify-center py-2 shadow-xs"
             >
               Activate
             </button>
             <button
               type="button"
               onClick={() => handleBulkUpdateActive(false)}
-              className="flex-1 bg-gray-500 hover:bg-gray-600 text-white rounded-xl text-xs font-bold cursor-pointer transition-colors active:scale-95 flex items-center justify-center py-2"
+              className="flex-1 min-w-[65px] bg-gray-500 hover:bg-gray-600 text-white rounded-xl text-xs font-bold cursor-pointer transition-colors active:scale-95 flex items-center justify-center py-2 shadow-xs"
             >
               Deactivate
             </button>

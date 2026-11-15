@@ -111,9 +111,9 @@ export default function OrderLog({ initialOrders, settings, initialFailedAttempt
       {/* Sticky Filter Tabs & Controls Toolbar (Flush with AdminHeader, zero gap) */}
       <div className="sticky top-0 z-20 -mt-3 sm:-mt-4 pt-3 sm:pt-4 -mx-3 sm:-mx-4 md:-mx-5 px-3 sm:px-4 md:px-5 bg-slate-50 dark:bg-[#0c0c16] pb-2">
         {/* Filter Tabs Row */}
-        <div className="filter-tabs-row flex items-center gap-2 border border-gray-200 dark:border-gray-800 bg-white/95 dark:bg-[#16162a]/95 backdrop-blur-md rounded-t-xl px-3 py-1 select-none shadow-xs">
+        <div className="filter-tabs-row flex items-center gap-2 border border-gray-200 dark:border-gray-800 bg-white/95 dark:bg-[#16162a]/95 backdrop-blur-md rounded-t-xl px-2 sm:px-3 py-1 select-none shadow-xs">
           {/* Scrollable tabs — kept separate from the action icons so tabs never clip */}
-          <div className="filter-tabs-scroll flex items-center flex-1 min-w-0 overflow-x-auto">
+          <div className="filter-tabs-scroll flex items-center flex-1 min-w-0 overflow-x-auto no-scrollbar scroll-smooth">
             {([
               { key: 'all', label: 'All' },
               { key: 'unfulfilled', label: 'Unfulfilled' },
@@ -124,8 +124,8 @@ export default function OrderLog({ initialOrders, settings, initialFailedAttempt
               <button
                 key={tab.key}
                 onClick={() => { o.setActiveTab(tab.key); o.setSelectedOrderIds([]); }}
-                className={`filter-tab shrink-0 whitespace-nowrap px-3 py-2.5 text-[13.5px] transition-all font-semibold border-b-2 mr-2 ${o.activeTab === tab.key
-                    ? 'border-gray-900 dark:border-white text-gray-900 dark:text-white'
+                className={`filter-tab shrink-0 whitespace-nowrap px-3 py-2 text-xs sm:text-[13.5px] transition-all font-bold border-b-2 mr-1 sm:mr-2 ${o.activeTab === tab.key
+                    ? 'border-[#e94560] text-[#e94560] dark:border-[#e94560] dark:text-[#e94560]'
                     : 'border-transparent text-gray-500 hover:text-gray-900 dark:hover:text-white'
                   }`}
               >
@@ -135,7 +135,7 @@ export default function OrderLog({ initialOrders, settings, initialFailedAttempt
           </div>
 
           {/* Right side icons — fixed, never part of the scroll track */}
-          <div className="flex items-center gap-1.5 py-1 shrink-0">
+          <div className="flex items-center gap-1 sm:gap-1.5 py-1 shrink-0">
             <button
               onClick={() => o.setIsSearchExpanded(!o.isSearchExpanded)}
               className={`table-ctrl-btn w-8 h-8 rounded-md border flex items-center justify-center transition-all ${o.isSearchExpanded

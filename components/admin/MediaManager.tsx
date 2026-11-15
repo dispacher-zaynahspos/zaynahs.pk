@@ -322,6 +322,11 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
                   onChange={(e) => {
                     setPageSize(Number(e.target.value));
                     setCurrentPage(1);
+                    if (typeof window !== 'undefined') {
+                      const container = document.getElementById('admin-main-content');
+                      if (container) container.scrollTo({ top: 0, behavior: 'smooth' });
+                      else window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
                   }}
                   className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] px-2.5 py-1.5 focus:outline-none focus:border-blue-500 cursor-pointer"
                 >
@@ -336,7 +341,14 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
                 <button
                   type="button"
                   disabled={currentPage === 1}
-                  onClick={() => setCurrentPage((prev: number) => Math.max(1, prev - 1))}
+                  onClick={() => {
+                    setCurrentPage((prev: number) => Math.max(1, prev - 1));
+                    if (typeof window !== 'undefined') {
+                      const container = document.getElementById('admin-main-content');
+                      if (container) container.scrollTo({ top: 0, behavior: 'smooth' });
+                      else window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
+                  }}
                   className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
                 >
                   Previous
@@ -347,7 +359,14 @@ export default function MediaManager({ mode, onSelect, multiple = false, onClose
                 <button
                   type="button"
                   disabled={currentPage >= Math.ceil(filteredMedia.length / pageSize)}
-                  onClick={() => setCurrentPage((prev: number) => Math.min(Math.ceil(filteredMedia.length / pageSize), prev + 1))}
+                  onClick={() => {
+                    setCurrentPage((prev: number) => Math.min(Math.ceil(filteredMedia.length / pageSize), prev + 1));
+                    if (typeof window !== 'undefined') {
+                      const container = document.getElementById('admin-main-content');
+                      if (container) container.scrollTo({ top: 0, behavior: 'smooth' });
+                      else window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
+                  }}
                   className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
                 >
                   Next

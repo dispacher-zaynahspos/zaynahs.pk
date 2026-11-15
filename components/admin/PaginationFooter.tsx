@@ -37,6 +37,18 @@ export default function PaginationFooter({
     pages.push(totalPages)
   }
 
+  const handlePageChange = (page: number) => {
+    onPageChange(page);
+    if (typeof window !== 'undefined') {
+      const container = document.getElementById('admin-main-content');
+      if (container) {
+        container.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+  };
+
   return (
     <div className="border-t border-gray-100 dark:border-gray-800/80 px-4 py-3.5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between select-none">
       <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400 font-semibold">
@@ -48,8 +60,8 @@ export default function PaginationFooter({
           <select
             value={pageSize}
             onChange={(e) => {
-              onPageSizeChange(Number(e.target.value))
-              onPageChange(1)
+              onPageSizeChange(Number(e.target.value));
+              handlePageChange(1);
             }}
             className="border border-gray-200/80 dark:border-gray-800/80 rounded-xl px-2.5 py-1 text-xs font-bold bg-white dark:bg-[#16162a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#e94560]/20 cursor-pointer"
           >
@@ -67,7 +79,7 @@ export default function PaginationFooter({
         <button
           type="button"
           disabled={currentPage <= 1}
-          onClick={() => onPageChange(currentPage - 1)}
+          onClick={() => handlePageChange(currentPage - 1)}
           className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-xl border border-gray-200/80 dark:border-gray-800/80 bg-white dark:bg-[#16162a] text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
         >
           <ChevronLeft className="h-3.5 w-3.5" />
@@ -83,7 +95,7 @@ export default function PaginationFooter({
             <button
               key={page}
               type="button"
-              onClick={() => onPageChange(page)}
+              onClick={() => handlePageChange(page)}
               className={`min-w-[32px] h-8 px-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${
                 page === currentPage
                   ? 'bg-[#1a1a2e] dark:bg-[#e94560] text-white shadow-xs font-black'
@@ -98,7 +110,7 @@ export default function PaginationFooter({
         <button
           type="button"
           disabled={currentPage >= totalPages}
-          onClick={() => onPageChange(currentPage + 1)}
+          onClick={() => handlePageChange(currentPage + 1)}
           className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-xl border border-gray-200/80 dark:border-gray-800/80 bg-white dark:bg-[#16162a] text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
         >
           Next
