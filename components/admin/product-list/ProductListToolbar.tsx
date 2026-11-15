@@ -41,19 +41,19 @@ export default function ProductListToolbar({
   setCurrentPage,
 }: ProductListToolbarProps) {
   return (
-    <div className="flex flex-col 2xl:flex-row gap-2.5 items-stretch 2xl:items-center justify-between w-full max-w-full">
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 flex-1 min-w-0">
+    <div className="flex flex-wrap items-center justify-between gap-2.5 w-full max-w-full">
+      <div className="flex items-center gap-2 flex-1 min-w-[280px] sm:min-w-[420px]">
         <AdminSearchInput
           value={searchQuery}
           onChange={(val) => { setSearchQuery(val); setCurrentPage(1); }}
           placeholder="Search products by name or SKU..."
-          className="flex-1 min-w-[220px]"
+          className="flex-1 min-w-[180px] sm:min-w-[240px]"
         />
-        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0">
+        <div className="flex items-center gap-2 shrink-0">
           <select
             value={selectedCategory}
             onChange={(e) => { setSelectedCategory(e.target.value); setCurrentPage(1); }}
-            className="flex-1 sm:flex-none rounded-xl border border-gray-200/80 dark:border-gray-800/80 bg-white dark:bg-[#16162a] px-3 py-2 text-xs font-bold text-gray-800 dark:text-gray-200 focus:outline-none focus:border-[#e94560] focus:ring-2 focus:ring-[#e94560]/15 cursor-pointer shadow-xs min-h-[38px]"
+            className="rounded-xl border border-gray-200/80 dark:border-gray-800/80 bg-white dark:bg-[#16162a] px-3 py-2 text-xs font-bold text-gray-800 dark:text-gray-200 focus:outline-none focus:border-[#e94560] focus:ring-2 focus:ring-[#e94560]/15 cursor-pointer shadow-xs min-h-[38px] shrink-0"
           >
             <option value="all">All Categories</option>
             {availableCategories.map(cat => (
@@ -63,7 +63,7 @@ export default function ProductListToolbar({
           <select
             value={sortBy}
             onChange={(e) => { setSortBy(e.target.value); setCurrentPage(1); }}
-            className="flex-1 sm:flex-none rounded-xl border border-gray-200/80 dark:border-gray-800/80 bg-white dark:bg-[#16162a] px-3 py-2 text-xs font-bold text-gray-800 dark:text-gray-200 focus:outline-none focus:border-[#e94560] focus:ring-2 focus:ring-[#e94560]/15 cursor-pointer shadow-xs min-h-[38px]"
+            className="rounded-xl border border-gray-200/80 dark:border-gray-800/80 bg-white dark:bg-[#16162a] px-3 py-2 text-xs font-bold text-gray-800 dark:text-gray-200 focus:outline-none focus:border-[#e94560] focus:ring-2 focus:ring-[#e94560]/15 cursor-pointer shadow-xs min-h-[38px] shrink-0"
           >
             {SORT_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -72,7 +72,7 @@ export default function ProductListToolbar({
         </div>
       </div>
 
-      <div className="flex items-center gap-2 flex-wrap justify-start 2xl:justify-end w-full 2xl:w-auto shrink-0">
+      <div className="flex items-center gap-2 flex-wrap shrink-0 justify-start sm:justify-end">
         {settings.meta_sync_enabled && (
           <>
             <button
