@@ -7,6 +7,7 @@ import { slugify } from '@/lib/utils/slugify';
 
 interface UseProductFormAiCopywriteProps {
   name: string;
+  setName?: (name: string) => void;
   setSlug: (slug: string) => void;
   description: string;
   setDescription: (desc: string) => void;
@@ -17,10 +18,12 @@ interface UseProductFormAiCopywriteProps {
   setShortDescription: (desc: string) => void;
   setTagInput: (tags: string) => void;
   editorRef: React.RefObject<HTMLDivElement | null>;
+  setImages?: React.Dispatch<React.SetStateAction<any[]>>;
 }
 
 export function useProductFormAiCopywrite({
   name,
+  setName,
   setSlug,
   description,
   setDescription,
@@ -31,6 +34,7 @@ export function useProductFormAiCopywrite({
   setShortDescription,
   setTagInput,
   editorRef,
+  setImages,
 }: UseProductFormAiCopywriteProps) {
   const [isAiGenerating, setIsAiGenerating] = useState(false);
 
@@ -79,6 +83,23 @@ export function useProductFormAiCopywrite({
         toast.warning(resData.message || 'AI keys not configured');
       } else {
         const data = resData.data;
+
+        // Apply SEO Title (Formula: [Gender] [Product] [Fabric] [Age] – [Season] | [Brand], <=60 chars)
+        if (data.seo_title && setName) {
+          setName(data.seo_title);
+          setSlug(slugify(data.seo_title));
+        }
+
+        // Apply Image Alt Text (Formula: [Gender] [Color] [Product] [Age Range] Pakistan)
+        if (data.image_alt && setImages) {
+          setImages((prev) =>
+            prev.map((img, idx) => ({
+              ...img,
+              alt: (!img.alt || idx === 0) ? data.image_alt : img.alt,
+            }))
+          );
+        }
+
         if (data.long_description) {
           setDescription(data.long_description);
           if (editorRef.current) {
@@ -99,7 +120,7 @@ export function useProductFormAiCopywrite({
 
           setTagInput(uniqueTags);
         }
-        toast.success('AI description, short description, and tags generated successfully!');
+        toast.success('AI Title, Alt text, Description, Short description, and tags generated successfully!');
       }
     } catch (err: unknown) {
       const name = err instanceof Error ? err.name : '';

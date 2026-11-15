@@ -114,6 +114,7 @@ export function useProductFormState({ categories, initialProduct, aiEnabled }: U
 
   const { isAiGenerating, handleAICopywrite } = useProductFormAiCopywrite({
     name,
+    setName,
     setSlug,
     description,
     setDescription,
@@ -124,6 +125,7 @@ export function useProductFormState({ categories, initialProduct, aiEnabled }: U
     setShortDescription,
     setTagInput,
     editorRef,
+    setImages: imageDrag.setImages,
   });
 
   const submitHook = useProductFormSubmit();

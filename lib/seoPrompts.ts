@@ -34,8 +34,10 @@ interface SeoStoreSettings {
 export function buildSystemPrompt(settings: AISettings, storeSettings?: SeoStoreSettings | null, siteUrl?: string): string {
   const resolvedUrl = siteUrl || storeSettings?.store_url || process.env.NEXT_PUBLIC_SITE_URL || '';
 
+  const brandName = settings.brand_name || storeSettings?.store_name || process.env.NEXT_PUBLIC_BRAND_NAME || 'Your Store';
+
   // Build brand info block
-  let brandInfo = `Brand Name: ${settings.brand_name || storeSettings?.store_name || process.env.NEXT_PUBLIC_BRAND_NAME || 'Your Store'}`;
+  let brandInfo = `Brand Name: ${brandName}`;
   if (storeSettings?.address) {
     brandInfo += `\nPhysical Address / Location: ${storeSettings.address}`;
   }
@@ -103,7 +105,7 @@ export function buildSystemPrompt(settings: AISettings, storeSettings?: SeoStore
     customPromptInstructions += `\n- Collection Description Length: Must be approximately ${settings.collection_description_limit} words.`;
   }
 
-  return `You are an expert SEO copywriter and marketing specialist for the brand "${settings.brand_name || storeSettings?.store_name || process.env.NEXT_PUBLIC_BRAND_NAME || 'Your Store'}".
+  return `You are an expert SEO copywriter and marketing specialist for the brand "${brandName}".
 ${brandInfo}
 Store Type: ${settings.store_type || settings.product_types || 'General'} store.${audienceInstruction}${typesInstruction}
 Target Market: ${settings.target_market || 'Pakistan'}.
@@ -117,8 +119,26 @@ STRICT SEO & COPYWRITING INSTRUCTIONS:
 2. The long description MUST be formatted in rich, informative, engaging markdown-like HTML (using <h2>, <p>, <ul>, <li> tags). Do not include <html>, <head>, or <body> tags. Adhere to any length constraints specified above (default to 1000+ words for product descriptions and 150+ words for category descriptions if no limit is set).
 3. CRITICAL: NEVER output raw URLs, website addresses (e.g. no "https://...", "www...."), or markdown/HTML hyperlinks in the long_description or meta_description. Focus purely on fabric composition, craftsmanship, styling suggestions, size/fit reassurance, and brand quality.
 4. FAQ Schema MUST contain 3-5 relevant questions and answers providing structured information about sizing, materials, delivery, and exchange, utilizing the brand contact and address details if relevant.
-5. CRITICAL: You MUST ALWAYS use the EXACT Brand Name provided above ("${settings.brand_name || storeSettings?.store_name || process.env.NEXT_PUBLIC_BRAND_NAME || 'Your Store'}"). NEVER use a placeholder, a previous store name, or any other brand name anywhere in the output.
-6. You must output ONLY a valid, parseable JSON object fitting the requested schema. Do not output any thinking tags, markdown wrapper blocks (like \`\`\`json), or conversational text. Return only raw JSON.`;
+5. CRITICAL: You MUST ALWAYS use the EXACT Brand Name provided above ("${brandName}"). NEVER use a placeholder, a previous store name, or any other brand name anywhere in the output.
+6. MANDATORY PRODUCT TITLE FORMULA (STRICTLY <= 60 CHARACTERS):
+   - Formula: [Gender/Audience] [Product] [Fabric/Material] [Age/Size] – [Season/Benefit] | [Brand]
+   - Examples:
+     * Boys Fleece Tracksuit 2-12 Years – Winter | ${brandName}
+     * Girls Cord Set Cotton 1-10 Years – Summer | ${brandName}
+     * Kids Night Suit Jersey 2-12 Years – COD Pakistan | ${brandName}
+     * Girls Beige Sweatshirt & Pants Set 2-12y – Winter | ${brandName}
+   - CRITICAL LENGTH LIMIT: "seo_title" MUST NEVER exceed 60 characters total so that Google never truncates it on desktop or mobile SERPs.
+7. MANDATORY IMAGE ALT TEXT FORMULA:
+   - Formula: [Gender] [Color] [Product] [Age Range] Pakistan
+   - Examples:
+     * Boys Black Fleece Tracksuit 2-12 Years Pakistan
+     * Girls Beige Sweatshirt and Pants Set 2-12 Years Pakistan
+     * Girls Jet Black Pintuck Flared Trousers 26-34 Size Pakistan
+   - CRITICAL: "image_alt" MUST strictly follow this exact pattern.
+8. MANDATORY META DESCRIPTION FORMULA (150-160 CHARACTERS):
+   - Formula: [Keyword] in Pakistan. [Fabric/Quality]. Sizes [Age/Size]. ✔ Cash on Delivery ✔ Free Delivery ✔ Easy Exchange. Order now from ${brandName}!
+   - Must be between 150 and 160 characters.
+9. You must output ONLY a valid, parseable JSON object fitting the requested schema. Do not output any thinking tags, markdown wrapper blocks (like \`\`\`json), or conversational text. Return only raw JSON.`;
 }
 
 interface SeoEntityData {
@@ -202,21 +222,23 @@ Page Details:
 `;
   }
 
+  const brandSuffix = settings?.brand_name ? ` | ${settings.brand_name}` : '';
+
   return `${basePrompt}
 ${contextInfo}
 
 Return ONLY a JSON object formatted exactly as below (no comments, no wrapper formatting):
 {
-  "seo_title": "Max 60 characters. Place primary keyword at the beginning, followed by brand suffix.",
+  "seo_title": "STRICTLY <= 60 characters following formula: [Gender] [Product] [Fabric] [Age] – [Season]${brandSuffix}. Example: Boys Fleece Tracksuit 2-12 Years – Winter${brandSuffix}",
   "meta_description": "${metaDescInstruction}",
   "focus_keyword": "The single primary keyword phrase chosen for this item.",
   "secondary_keywords": "5 relevant secondary keywords, comma-separated.",
   "lsi_tags": "12 comma-separated LSI (Latent Semantic Indexing) keyword tags.",
-  "og_title": "Open Graph title optimized for Facebook and Instagram shares (under 60 chars).",
+  "og_title": "Open Graph title (under 60 chars) matching seo_title.",
   "og_description": "Open Graph description (150-200 chars) for social cards.",
   "twitter_title": "Twitter card title (under 60 chars).",
   "twitter_description": "Twitter card description (under 160 chars).",
-  "image_alt": "Highly descriptive image ALT text incorporating the focus keyword.",
+  "image_alt": "STRICTLY follow formula: [Gender] [Color] [Product] [Age Range] Pakistan. Example: Girls Beige Sweatshirt and Pants Set 2-12 Years Pakistan",
   "long_description": "${longDescInstruction}",
   "faq_schema": [
     {

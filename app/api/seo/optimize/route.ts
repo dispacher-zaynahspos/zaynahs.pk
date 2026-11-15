@@ -265,6 +265,25 @@ export async function POST(request: Request) {
         if (updateProductError) {
           console.error('[SEO Optimize] Product Main Table Update Error:', updateProductError);
         }
+
+        // Also update product_images table with image_alt
+        if (seoData.image_alt) {
+          try {
+            await supabaseAdmin
+              .from('product_images')
+              .update({ alt: seoData.image_alt })
+              .eq('product_id', entity_id)
+              .or('alt.is.null,alt.eq.""');
+
+            await supabaseAdmin
+              .from('product_images')
+              .update({ alt: seoData.image_alt })
+              .eq('product_id', entity_id)
+              .eq('is_primary', true);
+          } catch (imgAltErr) {
+            console.warn('[SEO Optimize] product_images alt update error:', imgAltErr);
+          }
+        }
       } else if (entity_type === 'category') {
         const { error: updateCategoryError } = await supabaseAdmin
           .from('categories')
