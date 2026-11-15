@@ -120,61 +120,102 @@ export default function ProductGridSettings({
         />
       )}
 
-      <ResponsiveProductsPerPageControl
-        label="Products per Page Limit"
-        description="Number of products shown initially and per Load More batch for each device."
-        viewportMode={viewportMode}
-        desktopLimit={Number(settings.products_per_page_desktop) || Number(settings.limit) || 8}
-        tabletLimit={Number(settings.products_per_page_tablet) || Number(settings.limit) || 6}
-        mobileLimit={Number(settings.products_per_page_mobile) || Number(settings.limit) || 4}
-        onChangeDesktop={(val) => {
-          onUpdateSection({
-            settings: {
-              ...settings,
-              limit_mode: 'manual',
-              products_per_page_desktop: val,
-              limit: val,
-            }
-          });
-        }}
-        onChangeTablet={(val) => {
-          onUpdateSection({
-            settings: {
-              ...settings,
-              limit_mode: 'manual',
-              products_per_page_tablet: val,
-            }
-          });
-        }}
-        onChangeMobile={(val) => {
-          onUpdateSection({
-            settings: {
-              ...settings,
-              limit_mode: 'manual',
-              products_per_page_mobile: val,
-            }
-          });
-        }}
-      />
+      {/* Limit Mode (Auto = Columns × Rows, Manual = Exact per-device limit) */}
+      <div className="space-y-2.5 p-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-white/[0.02]">
+        <label className="text-[11px] font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider block">
+          Limit Mode (Auto / Manual)
+        </label>
+        <div className="grid grid-cols-2 gap-1.5">
+          <button
+            type="button"
+            onClick={() => handleSettingsChange('limit_mode', 'auto')}
+            className={`px-2 py-1.5 rounded-lg border text-center transition-all cursor-pointer ${
+              settings.limit_mode === 'auto'
+                ? 'border-[#e94560] bg-[#e94560]/10 text-[#e94560] font-black'
+                : 'border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-300'
+            }`}
+          >
+            <span className="block text-[11px] font-bold">Auto</span>
+            <span className="block text-[9px] text-gray-400">Columns × rows</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => handleSettingsChange('limit_mode', 'manual')}
+            className={`px-2 py-1.5 rounded-lg border text-center transition-all cursor-pointer ${
+              settings.limit_mode !== 'auto'
+                ? 'border-[#e94560] bg-[#e94560]/10 text-[#e94560] font-black'
+                : 'border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-300'
+            }`}
+          >
+            <span className="block text-[11px] font-bold">Manual</span>
+            <span className="block text-[9px] text-gray-400">Exact number</span>
+          </button>
+        </div>
 
-      <CatalogLimitControl
-        label="Limit Mode (Auto / Manual)"
-        mode={settings.limit_mode || 'manual'}
-        onChangeMode={(m) => handleSettingsChange('limit_mode', m)}
-        rows={Number(settings.limit_rows) || 2}
-        onChangeRows={(r) => handleSettingsChange('limit_rows', r)}
-        manual={Number(settings.products_per_page_desktop) || Number(settings.limit) || 8}
-        onChangeManual={(v) => {
-          onUpdateSection({
-            settings: {
-              ...settings,
-              limit: v,
-              products_per_page_desktop: v,
-            }
-          });
-        }}
-        previewColumns={Number(settings.columns_desktop) || 4}
-      />
+        {settings.limit_mode === 'auto' ? (
+          <div className="space-y-1 pt-1">
+            <div className="flex justify-between text-[10px] text-gray-500 font-semibold">
+              <span>Rows to show</span>
+              <span className="text-[#e94560] font-bold">
+                {Number(settings.columns_desktop) || 4} cols × {Number(settings.limit_rows) || 2} rows = {(Number(settings.columns_desktop) || 4) * (Number(settings.limit_rows) || 2)}
+              </span>
+            </div>
+            <select
+              value={Number(settings.limit_rows) || 2}
+              onChange={(e) => handleSettingsChange('limit_rows', Number(e.target.value))}
+              className="w-full px-3 py-2 bg-white dark:bg-[#16162a] border border-gray-200 dark:border-gray-800 rounded-xl text-xs font-semibold focus:outline-none focus:border-[#e94560] text-gray-900 dark:text-white"
+            >
+              {[1, 2, 3, 4, 5, 6].map((r) => (
+                <option key={r} value={r}>
+                  {r} {r === 1 ? 'Row' : 'Rows'}
+                </option>
+              ))}
+            </select>
+            <p className="text-[10px] text-gray-400 leading-normal">
+              Auto dynamically calculates product count = columns × rows per device.
+            </p>
+          </div>
+        ) : (
+          <div className="pt-1">
+            <ResponsiveProductsPerPageControl
+              label="Products per Page Limit"
+              description="Number of products shown initially and per Load More batch for each device."
+              viewportMode={viewportMode}
+              desktopLimit={Number(settings.products_per_page_desktop) || Number(settings.limit) || 8}
+              tabletLimit={Number(settings.products_per_page_tablet) || Number(settings.limit) || 6}
+              mobileLimit={Number(settings.products_per_page_mobile) || Number(settings.limit) || 4}
+              onChangeDesktop={(val) => {
+                onUpdateSection({
+                  settings: {
+                    ...settings,
+                    limit_mode: 'manual',
+                    products_per_page_desktop: val,
+                    limit: val,
+                  }
+                });
+              }}
+              onChangeTablet={(val) => {
+                onUpdateSection({
+                  settings: {
+                    ...settings,
+                    limit_mode: 'manual',
+                    products_per_page_tablet: val,
+                  }
+                });
+              }}
+              onChangeMobile={(val) => {
+                onUpdateSection({
+                  settings: {
+                    ...settings,
+                    limit_mode: 'manual',
+                    products_per_page_mobile: val,
+                  }
+                });
+              }}
+            />
+          </div>
+        )}
+      </div>
       {/* Responsive Columns per Device (Mobile: 1-3, Tablet: 2-4, Desktop: 2-8) */}
       <ResponsiveGridColumnsControl
         label="Product Grid Columns"

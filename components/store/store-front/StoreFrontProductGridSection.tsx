@@ -18,6 +18,7 @@ interface StoreFrontProductGridSectionProps {
   onLoadMore: (sectionId: string, baseLimit: number) => void;
   activeSettings: StoreSettings;
   getValidCategoryIds: (catIdOrSlug: string) => string[];
+  isPreview?: boolean;
 }
 
 export function StoreFrontProductGridSection({
@@ -29,6 +30,7 @@ export function StoreFrontProductGridSection({
   onLoadMore,
   activeSettings,
   getValidCategoryIds,
+  isPreview = false,
 }: StoreFrontProductGridSectionProps) {
   const source = section.settings?.source ?? 'all';
   const sortMethod = section.settings?.sortMethod || (source === 'featured' ? 'featured' : 'all');
@@ -85,7 +87,9 @@ export function StoreFrontProductGridSection({
     return Math.max(1, target);
   }, [columns, deviceBatchLimit, section.settings, fillRowsEnabled]);
 
-  const effectiveLimit = loadMoreLimits[section.id] || batchStep;
+  // In preview mode: strictly use batchStep so Customizer limit slider adjustments reflect immediately (0ms).
+  // On live storefront: loadMoreLimits takes precedence when user clicked "Load More" or scrolled.
+  const effectiveLimit = isPreview ? batchStep : (loadMoreLimits[section.id] || batchStep);
 
 
   const sectionProducts = React.useMemo(() => {
@@ -172,30 +176,41 @@ export function StoreFrontProductGridSection({
 
   const sentinelRef = React.useRef<HTMLDivElement | null>(null);
   const isTriggeringRef = React.useRef(false);
+  const lastTriggerTimeRef = React.useRef(0);
 
   React.useEffect(() => {
     isTriggeringRef.current = false;
   }, [effectiveLimit]);
 
   React.useEffect(() => {
-    if (!bottomEnableInfiniteScroll || !hasMore) return;
+    // In preview mode: do NOT auto-trigger runaway infinite loading
+    if (isPreview || !bottomEnableInfiniteScroll || !hasMore) return;
     if (typeof window === 'undefined' || !('IntersectionObserver' in window)) return;
     const sentinel = sentinelRef.current;
     if (!sentinel) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && !isTriggeringRef.current && typeof onLoadMore === 'function' && section?.id) {
+        const now = Date.now();
+        // Cooldown of 800ms to prevent rapid cascading runaway triggers
+        if (
+          entries[0].isIntersecting &&
+          !isTriggeringRef.current &&
+          now - lastTriggerTimeRef.current > 800 &&
+          typeof onLoadMore === 'function' &&
+          section?.id
+        ) {
           isTriggeringRef.current = true;
+          lastTriggerTimeRef.current = now;
           onLoadMore(section.id, batchStep);
         }
       },
-      { rootMargin: '250px' }
+      { rootMargin: '100px' }
     );
 
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [bottomEnableInfiniteScroll, hasMore, onLoadMore, section?.id, batchStep]);
+  }, [isPreview, bottomEnableInfiniteScroll, hasMore, onLoadMore, section?.id, batchStep]);
 
   return (
     <SectionWrapper section={section}>

@@ -105,7 +105,7 @@ export default function StoreFront({
   //
   // Safety: useState initializer only runs client-side. No SSR/hydration mismatch.
   const [loadMoreLimits, setLoadMoreLimits] = useState<Record<string, number>>(() => {
-    if (typeof window === 'undefined') return {};
+    if (typeof window === 'undefined' || isPreview) return {};
     try {
       // Detect back/forward navigation using performance API (available synchronously)
       const navEntries = performance?.getEntriesByType?.('navigation') as PerformanceNavigationTiming[];
@@ -142,15 +142,23 @@ export default function StoreFront({
     return {};
   });
 
+  // When in customizer preview, reset loadMoreLimits whenever sections change so slider values reflect immediately
+  useEffect(() => {
+    if (isPreview) {
+      setLoadMoreLimits({});
+    }
+  }, [isPreview, sections]);
+
   // Persist loadMoreLimits changes to sessionStorage and active navigation snapshot
   useEffect(() => {
+    if (isPreview) return;
     try {
       if (Object.keys(loadMoreLimits).length > 0) {
         sessionStorage.setItem(LOAD_MORE_KEY, JSON.stringify(loadMoreLimits));
         saveNavigationSnapshot({ loadMoreLimits });
       }
     } catch {}
-  }, [loadMoreLimits]);
+  }, [loadMoreLimits, isPreview]);
 
   const handleLoadMore = useCallback((sectionId: string, baseLimit: number) => {
     const step = baseLimit && baseLimit > 0 ? baseLimit : 8;
@@ -243,6 +251,7 @@ export default function StoreFront({
         onLoadMore={handleLoadMore}
         activeSettings={activeSettings}
         getValidCategoryIds={getValidCategoryIds}
+        isPreview={isPreview}
       />
     );
   };

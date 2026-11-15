@@ -112,29 +112,32 @@ export default function ShopPage({
     : displayCategories.slice(0, CATEGORY_LIMIT);
 
   const isShopLoadingRef = useRef(false);
+  const lastTriggerTimeRef = useRef(0);
 
   useEffect(() => {
     isShopLoadingRef.current = false;
   }, [displayProducts.length]);
 
   useEffect(() => {
-    if (paginationMode !== 'infinite' || !hasMore) return;
+    if (isPreview || paginationMode !== 'infinite' || !hasMore) return;
     const sentinel = sentinelRef.current;
     if (!sentinel) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && !isShopLoadingRef.current) {
+        const now = Date.now();
+        if (entries[0].isIntersecting && !isShopLoadingRef.current && now - lastTriggerTimeRef.current > 800) {
+          lastTriggerTimeRef.current = now;
           isShopLoadingRef.current = true;
           handleLoadMore();
         }
       },
-      { rootMargin: '250px' }
+      { rootMargin: '100px' }
     );
 
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [paginationMode, hasMore, handleLoadMore]);
+  }, [isPreview, paginationMode, hasMore, handleLoadMore]);
 
   // SSOT: shared catalog grid (RULE DS24 / RULE SSOT-CATALOG-LAYOUTS) — never hardcode columns/gap.
   const sidebarPosition = activeSettings?.shop_sidebar_position || 'left';
