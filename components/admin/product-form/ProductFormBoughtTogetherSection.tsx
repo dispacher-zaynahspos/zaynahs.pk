@@ -31,7 +31,7 @@ export const ProductFormBoughtTogetherSection: React.FC<ProductFormBoughtTogethe
     <div className="bg-white dark:bg-[#16162a] p-4 sm:p-5 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xs space-y-3 text-gray-900 dark:text-white">
       <div>
         <h3 className="text-xs font-bold text-gray-900 dark:text-white tracking-tight">Bought Together Recommendations</h3>
-        <p className="text-[10px] text-gray-400 mt-0.5">Select up to 2 items to bundle and offer discounts at storefront.</p>
+        <p className="text-[10px] text-gray-400 mt-0.5">Select up to 5 items to bundle and offer discounts at storefront.</p>
       </div>
 
       {/* Selected Items List */}
@@ -102,7 +102,7 @@ export const ProductFormBoughtTogetherSection: React.FC<ProductFormBoughtTogethe
                 return (
                   <label
                     key={product.id}
-                    className={`flex items-center gap-2 p-1.5 rounded-lg cursor-pointer select-none border border-transparent transition-colors ${!isChecked && frequentlyBoughtTogetherIds.length >= 2
+                    className={`flex items-center gap-2 p-1.5 rounded-lg cursor-pointer select-none border border-transparent transition-colors ${!isChecked && frequentlyBoughtTogetherIds.length >= 5
                         ? 'opacity-50 hover:bg-transparent'
                         : 'hover:bg-gray-100 dark:hover:bg-white/5 hover:border-gray-200 dark:hover:border-gray-800'
                       }`}
@@ -110,13 +110,13 @@ export const ProductFormBoughtTogetherSection: React.FC<ProductFormBoughtTogethe
                     <input
                       type="checkbox"
                       checked={isChecked}
-                      disabled={!isChecked && frequentlyBoughtTogetherIds.length >= 2}
+                      disabled={!isChecked && frequentlyBoughtTogetherIds.length >= 5}
                       onChange={(e) => {
                         if (e.target.checked) {
-                          if (frequentlyBoughtTogetherIds.length < 2) {
+                          if (frequentlyBoughtTogetherIds.length < 5) {
                             setFrequentlyBoughtTogetherIds(prev => [...prev, product.id]);
                           } else {
-                            toast.warning('You can choose a maximum of 2 bought-together items.');
+                            toast.warning('You can choose a maximum of 5 bought-together items.');
                           }
                         } else {
                           setFrequentlyBoughtTogetherIds(prev => prev.filter(id => id !== product.id));

@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client';
 import { PixelCrop } from 'react-image-crop';
 import { toast } from 'sonner';
 import { MediaItem } from '../types';
+import { uploadImage } from '@/lib/uploadImage';
 
 interface SaveEditedImageOptions {
   previewItem: MediaItem | null;
@@ -44,13 +45,28 @@ export function useImageEditorSave({
   const saveEditedImage = async (overwrite: boolean) => {
     if (!previewItem) return;
     setIsSavingEdits(true);
+    let blobUrlToRevoke: string | null = null;
     
     try {
       const toastId = toast.loading(overwrite ? 'Saving changes in-place...' : 'Saving as new copy...');
       
+      // Load image via same-origin download proxy to eliminate cross-origin canvas taint
+      let imageSrc = previewItem.file_url;
+      try {
+        const proxyUrl = `/api/media/download?url=${encodeURIComponent(previewItem.file_url)}`;
+        const res = await fetch(proxyUrl);
+        if (res.ok) {
+          const fetchedBlob = await res.blob();
+          blobUrlToRevoke = URL.createObjectURL(fetchedBlob);
+          imageSrc = blobUrlToRevoke;
+        }
+      } catch (proxyErr) {
+        console.warn('[Image Editor] Proxy load failed, using direct URL:', proxyErr);
+      }
+      
       const img = new Image();
       img.crossOrigin = 'anonymous'; 
-      img.src = previewItem.file_url;
+      img.src = imageSrc;
       
       await new Promise((resolve, reject) => {
         img.onload = resolve;
@@ -114,64 +130,46 @@ export function useImageEditorSave({
         }, 'image/webp', 0.90);
       });
       
-      const supabase = createClient();
       const timestamp = Date.now();
       const bucketName = previewItem.bucket || 'product-images';
+      const baseName = (previewItem.original_filename || previewItem.seo_filename || 'image').replace(/\.[^/.]+$/, '');
+      const cleanBaseName = baseName.replace(/[^a-zA-Z0-9-_\s]/g, '').trim().replace(/\s+/g, '-').toLowerCase();
+      const newFileName = overwrite 
+        ? (previewItem.seo_filename || `${cleanBaseName}-${timestamp}.webp`)
+        : `${cleanBaseName}-edited-${timestamp}.webp`;
       
+      // Upload via shared uploadImage which routes to R2 (Mode A) or Supabase (Mode B)
+      const newFileUrl = await uploadImage(blob, bucketName, newFileName);
+      
+      const supabase = createClient();
       if (overwrite) {
-        const pathParts = previewItem.file_url.split(`/storage/v1/object/public/${bucketName}/`);
-        const fullFilePath = pathParts[1] ? decodeURIComponent(pathParts[1]) : previewItem.seo_filename;
-        const filePath = fullFilePath.split('?')[0]; 
-        
-        const { error: uploadError } = await supabase.storage
-          .from(bucketName)
-          .upload(filePath, blob, { cacheControl: 'public, max-age=31536000', upsert: true });
-          
-        if (uploadError) throw uploadError;
-        
-        const baseUrl = previewItem.file_url.split('?')[0];
-        const newFileUrl = `${baseUrl}?v=${timestamp}`;
-        
         if (!previewItem.id.startsWith('virtual-')) {
-          const { error: dbError } = await supabase
+          await supabase
             .from('media_library')
             .update({ file_size: blob.size, file_url: newFileUrl, updated_at: new Date().toISOString() })
             .eq('id', previewItem.id);
-          if (dbError) throw dbError;
         }
         
         setPreviewItem({ ...previewItem, file_url: newFileUrl, file_size: blob.size });
         toast.dismiss(toastId);
         toast.success('Image updated successfully in-place!');
       } else {
-        const baseName = previewItem.original_filename.replace(/\.[^/.]+$/, '');
-        const cleanBaseName = baseName.replace(/[^a-zA-Z0-9-_\s]/g, '').trim().replace(/\s+/g, '-').toLowerCase();
-        const newFileName = `${cleanBaseName}-edited-${timestamp}.webp`;
+        if (!previewItem.id.startsWith('virtual-')) {
+          await supabase.from('media_library').insert({
+            original_filename: `edited-${previewItem.original_filename}`,
+            seo_filename: newFileName,
+            file_url: newFileUrl,
+            alt_text: `edited ${previewItem.alt_text || ''}`,
+            title: `edited ${previewItem.title || ''}`,
+            bucket: bucketName,
+            ai_generated: false,
+            ai_enabled: true,
+            file_size: blob.size,
+            mime_type: 'image/webp'
+          });
+        }
         
-        const { error: uploadError } = await supabase.storage
-          .from(bucketName)
-          .upload(newFileName, blob, { cacheControl: 'public, max-age=31536000', upsert: false });
-          
-        if (uploadError) throw uploadError;
-        
-        const { data: publicUrlData } = supabase.storage.from(bucketName).getPublicUrl(newFileName);
-        if (!publicUrlData?.publicUrl) throw new Error('Failed to get public URL');
-        
-        const { error: dbError } = await supabase.from('media_library').insert({
-          original_filename: `edited-${previewItem.original_filename}`,
-          seo_filename: newFileName,
-          file_url: publicUrlData.publicUrl,
-          alt_text: `edited ${previewItem.alt_text}`,
-          title: `edited ${previewItem.title}`,
-          bucket: bucketName,
-          ai_generated: false,
-          ai_enabled: true,
-          file_size: blob.size,
-          mime_type: 'image/webp'
-        });
-          
-        if (dbError) throw dbError;
-        
+        setPreviewItem({ ...previewItem, file_url: newFileUrl, file_size: blob.size });
         toast.dismiss(toastId);
         toast.success('Image saved as a new copy in Media Library!');
       }
@@ -179,6 +177,9 @@ export function useImageEditorSave({
       console.error('[Image Editor] Failed to save edited image:', err);
       toast.error(`Failed to save image edits: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
+      if (blobUrlToRevoke) {
+        URL.revokeObjectURL(blobUrlToRevoke);
+      }
       setIsSavingEdits(false);
     }
   };
