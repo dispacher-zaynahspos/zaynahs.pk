@@ -212,7 +212,7 @@ export const getDeletedProductsClient = async (): Promise<Product[]> => {
       .order('deleted_at', { ascending: false });
 
     if (error) throw error;
-    return (data ?? []).map(mapClientProduct);
+    return ((data ?? []) as unknown as ProductClientRow[]).map(mapClientProduct);
   } catch (error) {
     console.error('[products-client] getDeletedProductsClient failed:', error);
     throw error;

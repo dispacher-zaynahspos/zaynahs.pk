@@ -92,7 +92,7 @@ export const getDeletedVariantPresets = async (): Promise<VariantPreset[]> => {
       .not('deleted_at', 'is', null)
       .order('deleted_at', { ascending: false });
     if (error) throw error;
-    return (data || []).map(mapPreset);
+    return (((data || []) as unknown) as VariantPresetRow[]).map(mapPreset);
   } catch (error) {
     console.error('[variantPresets] getDeletedVariantPresets failed:', error);
     return [];

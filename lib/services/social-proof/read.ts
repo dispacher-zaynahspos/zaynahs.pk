@@ -2,7 +2,7 @@
 
 import { SocialProof } from '@/lib/types';
 import { supabaseAdmin } from '@/lib/supabase/admin';
-import { mapSocialProof, attachLinkedProducts } from './types';
+import { mapSocialProof, attachLinkedProducts, DBSocialProof } from './types';
 
 const fetchTopSocialProofs = async (limit: number = 2): Promise<SocialProof[]> => {
   try {
@@ -146,7 +146,7 @@ export const getDeletedSocialProofs = async (): Promise<SocialProof[]> => {
       .not('deleted_at', 'is', null)
       .order('deleted_at', { ascending: false });
     if (error) throw error;
-    return (data ?? []).map(mapSocialProof);
+    return ((data ?? []) as unknown as DBSocialProof[]).map(mapSocialProof);
   } catch (error) {
     console.error('[socialProof] getDeletedSocialProofs failed:', error);
     throw error;
