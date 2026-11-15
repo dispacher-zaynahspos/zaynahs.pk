@@ -5,6 +5,7 @@ import { StoreSettings } from '@/lib/types';
 import MediaField from '@/components/admin/customizer/shared/MediaField';
 import HeaderAnnouncementFields from '@/components/admin/shared/HeaderAnnouncementFields';
 import MobileBottomNavBuilder from '@/components/admin/customizer/pages/global/MobileBottomNavBuilder';
+import DesktopHeaderIconsBuilder from '@/components/admin/customizer/pages/global/DesktopHeaderIconsBuilder';
 import { Sparkles, Heart, ShoppingBag } from '@/components/common/Icons';
 
 interface GlobalSettingsProps {
@@ -474,6 +475,9 @@ export default function GlobalSettings({
                 <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#e94560]" />
               </label>
             </div>
+
+            {/* Desktop Header Icons Manager (Reorder, toggle, rename) */}
+            <DesktopHeaderIconsBuilder settings={settings} onUpdateSettings={onUpdateSettings} />
           </div>
         </div>
 

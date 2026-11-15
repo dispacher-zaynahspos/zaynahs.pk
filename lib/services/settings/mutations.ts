@@ -111,11 +111,14 @@ export const updateSettings = async (settings: Partial<StoreSettings>): Promise<
     if (settings.header_desktop_wishlist_align !== undefined) updatePayload.header_desktop_wishlist_align = settings.header_desktop_wishlist_align;
     if (settings.header_desktop_cart_align !== undefined) updatePayload.header_desktop_cart_align = settings.header_desktop_cart_align;
     if (settings.header_desktop_theme_align !== undefined) updatePayload.header_desktop_theme_align = settings.header_desktop_theme_align;
+    if (settings.header_desktop_track_align !== undefined) updatePayload.header_desktop_track_align = settings.header_desktop_track_align;
+    if (settings.desktop_header_icons !== undefined) updatePayload.desktop_header_icons = settings.desktop_header_icons;
     if (settings.header_mobile_logo_align !== undefined) updatePayload.header_mobile_logo_align = settings.header_mobile_logo_align;
     if (settings.header_mobile_menu_align !== undefined) updatePayload.header_mobile_menu_align = settings.header_mobile_menu_align;
     if (settings.header_mobile_search_align !== undefined) updatePayload.header_mobile_search_align = settings.header_mobile_search_align;
     if (settings.header_mobile_cart_align !== undefined) updatePayload.header_mobile_cart_align = settings.header_mobile_cart_align;
     if (settings.header_mobile_wishlist_align !== undefined) updatePayload.header_mobile_wishlist_align = settings.header_mobile_wishlist_align;
+    if (settings.header_mobile_track_align !== undefined) updatePayload.header_mobile_track_align = settings.header_mobile_track_align;
     if (settings.navigation_menu !== undefined) updatePayload.navigation_menu = settings.navigation_menu;
     if (settings.header_desktop_menu_align !== undefined) updatePayload.header_desktop_menu_align = settings.header_desktop_menu_align;
     if (settings.faq_content !== undefined) updatePayload.faq_content = settings.faq_content;

@@ -3,7 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Product, StoreSettings } from '@/lib/types';
-import { deleteProductAction as deleteProduct, updateProductFieldsAction as updateProductFields } from '@/lib/services/products/actions';
+import { 
+  deleteProductAction as deleteProduct, 
+  updateProductFieldsAction as updateProductFields,
+  bulkDeleteProductsAction,
+  bulkUpdateProductFieldsAction
+} from '@/lib/services/products/actions';
 import { triggerMetaSync } from '@/lib/services/metaSyncAction';
 import { toast } from 'sonner';
 import { useConfirm } from '@/components/admin/shared/AdminConfirmProvider';
@@ -136,7 +141,7 @@ export default function ProductList({ initialProducts, settings }: ProductListPr
     if (selectedProductIds.length === 0) return;
     const toastId = toast.loading(`Updating ${selectedProductIds.length} products...`);
     try {
-      await Promise.all(selectedProductIds.map(id => updateProductFields(id, { is_featured: featuredValue })));
+      await bulkUpdateProductFieldsAction(selectedProductIds, { is_featured: featuredValue });
       setProducts(prev => prev.map(p => selectedProductIds.includes(p.id) ? { ...p, is_featured: featuredValue } : p));
       toast.success(`Successfully updated ${selectedProductIds.length} products`, { id: toastId });
       setSelectedProductIds([]);
@@ -154,9 +159,9 @@ export default function ProductList({ initialProducts, settings }: ProductListPr
       confirmText: 'Move to Trash'
     });
     if (!confirmed) return;
-    const toastId = toast.loading(`Deleting ${selectedProductIds.length} products...`);
+    const toastId = toast.loading(`Moving ${selectedProductIds.length} products to Trash...`);
     try {
-      await Promise.all(selectedProductIds.map(id => deleteProduct(id)));
+      await bulkDeleteProductsAction(selectedProductIds);
       setProducts(prev => prev.filter(p => !selectedProductIds.includes(p.id)));
       toast.success(`Moved ${selectedProductIds.length} products to Trash`, { id: toastId });
       setSelectedProductIds([]);

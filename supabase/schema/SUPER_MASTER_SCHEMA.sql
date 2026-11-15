@@ -647,12 +647,15 @@ CREATE TABLE IF NOT EXISTS store_settings (
   header_desktop_wishlist_align TEXT DEFAULT 'right',
   header_desktop_cart_align TEXT DEFAULT 'right',
   header_desktop_theme_align TEXT DEFAULT 'right',
+  header_desktop_track_align TEXT DEFAULT 'right',
+  desktop_header_icons JSONB DEFAULT NULL,
 
   header_mobile_logo_align TEXT DEFAULT 'center',
   header_mobile_menu_align TEXT DEFAULT 'left',
   header_mobile_search_align TEXT DEFAULT 'right',
   header_mobile_cart_align TEXT DEFAULT 'right',
   header_mobile_wishlist_align TEXT DEFAULT 'hidden',
+  header_mobile_track_align TEXT DEFAULT 'hidden',
 
   faq_content TEXT DEFAULT '<h3>Frequently Asked Questions</h3><p>Add your store FAQs here. You can edit this content in the Admin Settings panel.</p>',
   return_policy_content TEXT DEFAULT '<h3>Return & Exchange Policy</h3><p>Add your store Return & Exchange policy here. You can edit this content in the Admin Settings panel.</p>',

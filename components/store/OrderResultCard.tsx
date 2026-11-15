@@ -18,6 +18,7 @@ import {
 import { formatPrice } from '@/lib/utils/whatsapp';
 import type { Order } from '@/lib/types';
 import { usePostExLiveTracking } from '@/lib/postex/usePostExLiveTracking';
+import { getItemVariant } from '@/lib/utils/formatVariant';
 
 const MILESTONE_STEPS = [
   { id: 'placed', label: 'Placed', icon: Check },
@@ -216,8 +217,16 @@ export default function OrderResultCard({
           )}
         </div>
 
+        {/* Loading Courier Status */}
+        {liveLoading && trackingNumber && (
+          <div className="flex items-center gap-2 pt-2 border-t border-gray-200/60 dark:border-gray-800 text-xs text-gray-500">
+            <span className="inline-block w-3 h-3 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin shrink-0" />
+            <span className="animate-pulse">Checking real-time courier tracking...</span>
+          </div>
+        )}
+
         {/* Live Courier Status Milestone */}
-        {liveData?.rawStatus && (
+        {!liveLoading && liveData?.rawStatus && (
           <div className="flex items-center justify-between gap-2 pt-2 border-t border-gray-200/60 dark:border-gray-800 text-xs">
             <div className="flex items-center gap-2 min-w-0">
               <span className="relative flex h-2 w-2 shrink-0">
@@ -238,6 +247,14 @@ export default function OrderResultCard({
                 {showHistory ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
               </button>
             )}
+          </div>
+        )}
+
+        {/* Fallback booked state if courier tracking exists but live data is pending */}
+        {!liveLoading && trackingNumber && !liveData?.rawStatus && (
+          <div className="flex items-center gap-2 pt-2 border-t border-gray-200/60 dark:border-gray-800 text-xs text-gray-500">
+            <span className="h-2 w-2 rounded-full bg-blue-500 shrink-0" />
+            <span>Courier Booked · Tracking active</span>
           </div>
         )}
 
@@ -285,37 +302,71 @@ export default function OrderResultCard({
       </div>
 
       {/* Items */}
-      <div className="space-y-2 pt-1">
+      <div className="space-y-2.5 pt-1">
         <span className="text-[10px] font-extrabold uppercase tracking-wider text-gray-400 block">
           Ordered Items ({order.items.length})
         </span>
-        {order.items.map((item, i) => (
-          <div key={i} className="flex items-center gap-3">
-            <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg border border-black/10 dark:border-white/10 bg-gray-50 dark:bg-black/30">
-              {item.product?.images?.[0]?.url && (
-                <Image
-                  src={item.product.images[0].url}
-                  alt={item.product.name}
-                  fill
-                  sizes="48px"
-                  className="object-cover"
-                />
-              )}
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="truncate text-sm font-semibold text-gray-900 dark:text-white">
-                {item.product?.name}
+        {order.items.map((item, i) => {
+          const variantDetails = getItemVariant(item);
+
+          return (
+            <div key={i} className="flex items-start gap-3 py-2 border-b border-gray-100/70 dark:border-white/5 last:border-b-0">
+              <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-black/10 dark:border-white/10 bg-gray-50 dark:bg-black/30 mt-0.5">
+                {item.product?.images?.[0]?.url && (
+                  <Image
+                    src={item.product.images[0].url}
+                    alt={item.product.name}
+                    fill
+                    sizes="56px"
+                    className="object-cover"
+                  />
+                )}
               </div>
-              <div className="text-[11px] text-gray-500 dark:text-gray-400">
-                Qty {item.quantity}
-                {item.selected_variant?.custom_value ? ` · ${item.selected_variant.custom_value}` : ''}
+              <div className="min-w-0 flex-1">
+                <div className="text-sm font-semibold text-gray-900 dark:text-white leading-snug line-clamp-2">
+                  {item.product?.name}
+                </div>
+
+                {/* Variation Chips, Quantity & Pricing */}
+                <div className="flex flex-wrap items-center gap-1 sm:gap-1.5 mt-1">
+                  {variantDetails.chips.length > 0 && variantDetails.chips.map((chip, cIdx) => (
+                    <span
+                      key={cIdx}
+                      className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] sm:text-[10.5px] font-semibold border ${
+                        chip.label.toLowerCase() === 'size'
+                          ? 'bg-indigo-50/80 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border-indigo-200/70 dark:border-indigo-800/60 font-bold'
+                          : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200/70 dark:border-gray-700/60'
+                      }`}
+                    >
+                      {chip.colorHex && (
+                        <span
+                          className="w-2 h-2 rounded-full border border-black/15 shadow-2xs shrink-0"
+                          style={{ backgroundColor: chip.colorHex }}
+                        />
+                      )}
+                      <span className="text-gray-500 dark:text-gray-400 font-normal">{chip.label}:</span>
+                      <span className="font-bold">{chip.value}</span>
+                    </span>
+                  ))}
+
+                  <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] sm:text-[10.5px] font-semibold bg-gray-50 dark:bg-white/5 text-gray-700 dark:text-gray-300 border border-gray-200/60 dark:border-gray-800">
+                    <span className="text-gray-400 font-normal">Qty:</span>
+                    <span className="font-bold text-gray-900 dark:text-white">{item.quantity}</span>
+                  </span>
+
+                  {item.quantity > 1 && (
+                    <span className="text-[10px] text-gray-400 dark:text-gray-500">
+                      ({formatPrice(item.unit_price, currencySymbol)} ea)
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div className="text-sm font-bold text-gray-900 dark:text-white text-right shrink-0 pt-0.5">
+                {formatPrice(item.total || item.unit_price * item.quantity, currencySymbol)}
               </div>
             </div>
-            <div className="text-sm font-bold text-gray-900 dark:text-white">
-              {formatPrice(item.total || item.unit_price * item.quantity, currencySymbol)}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Totals */}

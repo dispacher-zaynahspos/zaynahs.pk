@@ -18,6 +18,7 @@ import {
   NavWishlistLink,
   NavCartLink,
   NavAccountLink,
+  NavTrackLink,
   NavAdminLink,
   NavMobileMenuButton,
 } from './store-navbar';
@@ -82,6 +83,7 @@ export default function Navbar({
   const desktopWishlistAlign = settings?.header_desktop_wishlist_align ?? 'right';
   const desktopCartAlign = settings?.header_desktop_cart_align ?? 'right';
   const desktopThemeAlign = settings?.header_desktop_theme_align ?? 'right';
+  const desktopTrackAlign = settings?.header_desktop_track_align ?? 'right';
 
   // Mobile logo alignment
   const mobileLogoAlign = 'center';
@@ -89,6 +91,7 @@ export default function Navbar({
   const mobileSearchAlign = settings?.header_mobile_search_align ?? 'right';
   const mobileCartAlign = settings?.header_mobile_cart_align ?? 'right';
   const mobileWishlistAlign = settings?.header_mobile_wishlist_align ?? 'hidden';
+  const mobileTrackAlign = settings?.header_mobile_track_align ?? 'hidden';
 
   // Mobile menu states
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -212,6 +215,24 @@ export default function Navbar({
       isAdmin={isAdmin}
       customerSession={customerSession}
       customTextColorStyle={customTextColorStyle}
+    />
+  );
+
+  const trackDesktopNode = (
+    <NavTrackLink
+      key="track-desktop"
+      isAdmin={isAdmin}
+      customTextColorStyle={customTextColorStyle}
+      isMobile={false}
+    />
+  );
+
+  const trackMobileNode = (
+    <NavTrackLink
+      key="track-mobile"
+      isAdmin={isAdmin}
+      customTextColorStyle={customTextColorStyle}
+      isMobile={true}
     />
   );
 
@@ -350,12 +371,14 @@ export default function Navbar({
         desktopWishlistAlign={desktopWishlistAlign}
         desktopCartAlign={desktopCartAlign}
         desktopThemeAlign={desktopThemeAlign}
+        desktopTrackAlign={desktopTrackAlign}
         headerDesktopMenuAlign={headerDesktopMenuAlign}
         mobileLogoAlign={mobileLogoAlign}
         mobileMenuAlign={mobileMenuAlign}
         mobileSearchAlign={mobileSearchAlign}
         mobileCartAlign={mobileCartAlign}
         mobileWishlistAlign={mobileWishlistAlign}
+        mobileTrackAlign={mobileTrackAlign}
         logoNode={logoNode}
         searchNode={searchNode}
         wishlistDesktopNode={wishlistDesktopNode}
@@ -363,6 +386,9 @@ export default function Navbar({
         cartDesktopNode={cartDesktopNode}
         cartMobileNode={cartMobileNode}
         accountNode={accountNode}
+        trackDesktopNode={trackDesktopNode}
+        trackMobileNode={trackMobileNode}
+        desktopHeaderIcons={settings?.desktop_header_icons}
         adminLinkNode={adminLinkNode}
         mobileMenuButtonNode={mobileMenuButtonNode}
         isAdmin={isAdmin}

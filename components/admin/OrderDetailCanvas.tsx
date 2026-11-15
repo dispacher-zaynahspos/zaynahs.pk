@@ -22,6 +22,7 @@ import { useOrderDetailState, OrderCustomerCard, OrderStatusBadge } from './orde
 import { isOrderFulfilled, isOrderUnfulfilled } from '@/components/admin/order-log/orderLogUtils';
 import TableThumbnail from '@/components/admin/TableThumbnail';
 import ImagePreviewModal from '@/components/admin/ImagePreviewModal';
+import LiveCourierBadge from './order-detail/LiveCourierBadge';
 
 interface OrderDetailCanvasProps {
   order: Order;
@@ -654,9 +655,11 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
                     </span>
                   )}
                   {order.tracking_number && (
-                    <span className="text-[11px] font-mono bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 px-2 py-0.5 rounded border border-blue-200/60 dark:border-blue-800/60">
-                      TRK: {order.tracking_number}
-                    </span>
+                    <LiveCourierBadge
+                      trackingNumber={order.tracking_number}
+                      courierName={order.courier_name}
+                      orderStatus={order.status}
+                    />
                   )}
                 </div>
 

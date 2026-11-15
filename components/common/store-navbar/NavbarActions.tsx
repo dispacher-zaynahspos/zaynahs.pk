@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { ShoppingCart, Search, Heart, User } from '@/components/common/Icons';
+import { ShoppingCart, Search, Heart, User, Truck } from '@/components/common/Icons';
 import type { CustomerSession } from '@/lib/utils/customer-auth';
 
 interface NavbarActionsProps {
@@ -108,6 +108,27 @@ export function NavAccountLink({
       title={customerSession ? 'My Account' : 'Login / Register'}
     >
       <User className="h-5 w-5" style={customTextColorStyle} />
+    </Link>
+  );
+}
+
+export function NavTrackLink({
+  isAdmin,
+  isMobile,
+  customTextColorStyle,
+}: Pick<NavbarActionsProps, 'isAdmin' | 'customTextColorStyle'> & { isMobile?: boolean }) {
+  if (isAdmin) return null;
+  return (
+    <Link
+      href="/track-order"
+      prefetch={true}
+      key="track"
+      id={isMobile ? 'header-track-icon-mobile' : 'header-track-icon-desktop'}
+      className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-[#1a1a2e] dark:hover:text-white transition-all cursor-pointer"
+      title="Track Order"
+      aria-label="Track Order"
+    >
+      <Truck className="h-5 w-5" style={customTextColorStyle} />
     </Link>
   );
 }

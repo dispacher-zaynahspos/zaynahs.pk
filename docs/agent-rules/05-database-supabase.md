@@ -250,4 +250,35 @@ When a store operates on the Cloudflare Workers ($5 Paid) Zero-Vercel Architectu
 5. **Universal Domain Mandate**: Webhook targets and docs must never hardcode specific domain names — use `<domain>` / `<domain>.pk` and `img.<domain>` universally.
 6. **Dual Architecture Compatibility**: If the user explicitly asks for Legacy Vercel mode, Supabase Storage bucket `product-images` is permitted. Otherwise, S5 Workers standard applies strictly.
 
+---
+
+## RULE D21 — Universal Atomic Bulk Operations Standard (Zero N-Query Loops, Zero Blocking SWR) — STRICT
+
+Whenever implementing or modifying bulk actions across Admin (Products, Inventory, Categories, Orders, Media, Customers, Leads, Trash):
+1. **Strict Prohibition on N-Query Client Loops (`Promise.all(ids.map(...))` BAN)**:
+   - NEVER call individual single-record mutation actions in a client-side loop or `Promise.all` across multiple IDs.
+   - 44 products in a loop = 44 separate HTTP calls, 44 database transactions, 44 separate cache purges, and 44 external sync calls. This chokes Postgres connection pools, triggers browser 6-connection limits, causes Cloudflare 524/504 timeouts, and leaves data partially mutated.
+2. **Mandatory 1-Query Atomic Batch Mutation**:
+   - Every bulk action MUST execute in ONE single atomic SQL statement via Supabase:
+     ```typescript
+     // Bulk Trash / Soft Delete
+     await supabase.from('products').update({ deleted_at: new Date().toISOString() }).in('id', ids);
+     // Bulk Restore
+     await supabase.from('products').update({ deleted_at: null }).in('id', ids);
+     // Bulk Hard Delete
+     await supabase.from('products').delete().in('id', ids);
+     // Bulk Toggle (Featured / Active)
+     await supabase.from('products').update(fields).in('id', ids);
+     ```
+   - Takes 5–15ms in PostgreSQL regardless of whether 1, 44, or 500 items are touched. Zero DB load.
+3. **Batch Edge Invalidation (Single Global Purge)**:
+   - For bulk operations, NEVER execute individual per-product revalidation in a synchronous loop.
+   - Synchronously refresh memory tags (`revalidateTagSafe('products')`, `revalidateTagSafe('categories')`, `revalidateTagSafe('homepage')`).
+   - Trigger Cloudflare Edge CDN purge ONCE for the entire batch via `revalidateStorefrontEdge('products', 'homepage', 'categories')`.
+4. **Zero Blocking External Network Calls (Google IndexNow / Meta / Webhooks)**:
+   - External API calls (Google Indexing API, IndexNow, Meta catalog sync) MUST NEVER block the user's action or server action response.
+   - Wrap all third-party syncs in non-blocking background handlers (`revalidateAfterResponse(...)` or detached promises with `.catch(() => {})`).
+   - The user's UI must receive an instant `< 300ms` success response every single time.
+
+
 

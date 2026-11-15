@@ -49,6 +49,26 @@ export const deleteProduct = async (id: string): Promise<void> => {
   }
 };
 
+export const bulkDeleteProducts = async (ids: string[]): Promise<void> => {
+  if (!ids || ids.length === 0) return;
+  try {
+    const supabase = staticSupabase;
+    const { error } = await supabase
+      .from('products')
+      .update({ deleted_at: new Date().toISOString() })
+      .in('id', ids);
+
+    if (error) throw error;
+
+    revalidateTagSafe('products');
+    revalidateTagSafe('categories');
+    revalidateTagSafe('homepage');
+  } catch (error) {
+    console.error('[products] bulkDeleteProducts failed:', error);
+    throw error;
+  }
+};
+
 export const getDeletedProducts = async (): Promise<Product[]> => {
   try {
     const supabase = staticSupabase;

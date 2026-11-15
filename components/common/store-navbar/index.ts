@@ -11,6 +11,7 @@ export {
   NavWishlistLink,
   NavCartLink,
   NavAccountLink,
+  NavTrackLink,
   NavAdminLink,
   NavMobileMenuButton,
 } from './NavbarActions';

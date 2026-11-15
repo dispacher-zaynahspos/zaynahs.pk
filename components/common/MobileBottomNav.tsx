@@ -3,12 +3,12 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, User, ShoppingBag, Heart, ShoppingCart } from '@/components/common/Icons';
+import { Home, User, ShoppingBag, Heart, ShoppingCart, Truck } from '@/components/common/Icons';
 import { useCart } from '@/lib/hooks/useCart';
 import type { CustomerSession } from '@/lib/utils/customer-auth';
 
 export interface MobileBottomNavItem {
-  key: 'home' | 'shop' | 'wishlist' | 'cart' | 'account' | string;
+  key: 'home' | 'shop' | 'wishlist' | 'cart' | 'account' | 'track' | string;
   label: string;
   visible: boolean;
 }
@@ -20,6 +20,7 @@ const NAV_ITEM_REGISTRY: Record<string, { defaultLabel: string; icon: React.Comp
   wishlist: { defaultLabel: 'Wishlist', icon: Heart, href: () => '/wishlist', badge: 'wishlist' },
   cart: { defaultLabel: 'Cart', icon: ShoppingCart, href: () => '/cart', badge: 'cart' },
   account: { defaultLabel: 'Account', icon: User, href: () => '/account' },
+  track: { defaultLabel: 'Track', icon: Truck, href: () => '/track-order' },
 };
 
 // Standard high-conversion native e-commerce sequence.
@@ -29,6 +30,7 @@ export const DEFAULT_MOBILE_NAV_ITEMS: MobileBottomNavItem[] = [
   { key: 'wishlist', label: 'Wishlist', visible: true },
   { key: 'cart', label: 'Cart', visible: true },
   { key: 'account', label: 'Account', visible: true },
+  { key: 'track', label: 'Track', visible: true },
 ];
 
 export default function MobileBottomNav({

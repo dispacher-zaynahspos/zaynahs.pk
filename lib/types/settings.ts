@@ -197,12 +197,15 @@ export interface StoreSettings {
   header_desktop_wishlist_align?: 'left' | 'right' | 'hidden';
   header_desktop_cart_align?: 'left' | 'right' | 'hidden';
   header_desktop_theme_align?: 'left' | 'right' | 'hidden';
+  header_desktop_track_align?: 'left' | 'right' | 'hidden';
+  desktop_header_icons?: { key: string; label: string; visible: boolean }[] | null;
 
   header_mobile_logo_align?: 'left' | 'center' | 'right';
   header_mobile_menu_align?: 'left' | 'right' | 'hidden';
   header_mobile_search_align?: 'left' | 'right' | 'hidden';
   header_mobile_cart_align?: 'left' | 'right' | 'hidden';
   header_mobile_wishlist_align?: 'left' | 'right' | 'hidden';
+  header_mobile_track_align?: 'left' | 'right' | 'hidden';
 
   // Navigation options
   navigation_menu?: NavigationItem[];

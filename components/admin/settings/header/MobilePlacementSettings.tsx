@@ -13,6 +13,8 @@ interface MobilePlacementSettingsProps {
   setHeaderMobileCartAlign: (val: 'left' | 'right' | 'hidden') => void;
   headerMobileWishlistAlign: 'left' | 'right' | 'hidden';
   setHeaderMobileWishlistAlign: (val: 'left' | 'right' | 'hidden') => void;
+  headerMobileTrackAlign?: 'left' | 'right' | 'hidden';
+  setHeaderMobileTrackAlign?: (val: 'left' | 'right' | 'hidden') => void;
 }
 
 export default function MobilePlacementSettings({
@@ -26,6 +28,8 @@ export default function MobilePlacementSettings({
   setHeaderMobileCartAlign,
   headerMobileWishlistAlign,
   setHeaderMobileWishlistAlign,
+  headerMobileTrackAlign,
+  setHeaderMobileTrackAlign,
 }: MobilePlacementSettingsProps) {
   return (
     <div className="space-y-4">
@@ -99,6 +103,21 @@ export default function MobilePlacementSettings({
             <option value="hidden">Hidden</option>
           </select>
         </div>
+
+        {setHeaderMobileTrackAlign && (
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5">Track Order</label>
+            <select
+              value={headerMobileTrackAlign ?? 'hidden'}
+              onChange={(e) => setHeaderMobileTrackAlign(e.target.value as 'left' | 'right' | 'hidden')}
+              className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f0f1b] px-3 py-2 text-xs focus:outline-none focus:border-[#e94560] text-gray-955 dark:text-white"
+            >
+              <option value="left">Left</option>
+              <option value="right">Right</option>
+              <option value="hidden">Hidden</option>
+            </select>
+          </div>
+        )}
       </div>
     </div>
   );

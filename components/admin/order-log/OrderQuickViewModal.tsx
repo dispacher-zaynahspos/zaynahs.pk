@@ -21,6 +21,7 @@ import {
 } from '@/components/common/Icons';
 import { isOrderPaid, getOrderPaymentMethod } from './orderLogUtils';
 import { OrderStatusBadge } from '@/components/admin/order-detail/OrderStatusBadge';
+import LiveCourierBadge from '@/components/admin/order-detail/LiveCourierBadge';
 
 interface OrderQuickViewModalProps {
   order: Order | null;
@@ -244,6 +245,13 @@ export function OrderQuickViewModal({
                     </span>
                   )}
                   <OrderStatusBadge status={order.status} size="sm" />
+                  {order.tracking_number && (
+                    <LiveCourierBadge
+                      trackingNumber={order.tracking_number}
+                      courierName={order.courier_name}
+                      orderStatus={order.status}
+                    />
+                  )}
                 </div>
               </div>
               <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5 truncate" suppressHydrationWarning>

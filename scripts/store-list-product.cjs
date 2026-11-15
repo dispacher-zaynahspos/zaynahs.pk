@@ -448,6 +448,8 @@ async function listProducts(config, options) {
       is_active: true
     });
 
+    const optimizedPrimary = await ensureWebpR2(imageUrl, config);
+
     for (const s of itemSizes) {
       variantRows.push({
         id: crypto.randomUUID(),
@@ -460,11 +462,10 @@ async function listProducts(config, options) {
         active: true,
         sort_order: s.sort_order || 1,
         inventory_threshold: 0,
+        image_url: optimizedPrimary,
         show_image_swatch: false
       });
     }
-
-    const optimizedPrimary = await ensureWebpR2(imageUrl, config);
     if (optimizedPrimary) {
       imageRows.push({
         id: crypto.randomUUID(),
@@ -534,7 +535,7 @@ async function listProducts(config, options) {
     for (const existingId of linkWith) {
       const getRes = await apiRequest(config, "GET", `/rest/v1/products?id=eq.${existingId}&select=frequently_bought_together_ids`);
       const currentFbt = getRes.body?.[0]?.frequently_bought_together_ids || [];
-      const updatedFbt = Array.from(new Set([...currentFbt, ...allItemIds])).filter(id => id !== existingId);
+      const updatedFbt = Array.from(new Set([...allItemIds, ...currentFbt])).filter(id => id !== existingId).slice(0, 5);
       await apiRequest(config, "PATCH", `/rest/v1/products?id=eq.${existingId}`, {
         frequently_bought_together_ids: updatedFbt
       });

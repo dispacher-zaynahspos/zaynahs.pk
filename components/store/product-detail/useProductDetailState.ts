@@ -153,9 +153,11 @@ export function useProductDetailState({ product, settings }: UseProductDetailSta
     const loadBundleData = async () => {
       try {
         if (product.frequently_bought_together_ids && product.frequently_bought_together_ids.length > 0) {
-          const filtered = await getProductsByIdsClient(product.frequently_bought_together_ids);
-          setBundleProducts(filtered);
-          setSelectedBundleIds(filtered.map((p: Product) => p.id));
+          const ids = product.frequently_bought_together_ids.slice(0, 5);
+          const filtered = await getProductsByIdsClient(ids);
+          const limited = filtered.slice(0, 5);
+          setBundleProducts(limited);
+          setSelectedBundleIds(limited.map((p: Product) => p.id));
           const defaultSelections: Record<string, string> = {};
           filtered.forEach((p: Product) => {
             if (p.has_variants && p.variants.length > 0) {

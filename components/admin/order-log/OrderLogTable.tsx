@@ -272,7 +272,20 @@ export function OrderLogTable({
                 {visibleColumns.includes('deliveryStatus') && (
                   <td className="block md:table-cell py-1 px-4 md:py-3 text-xs text-gray-500 font-medium">
                     <span className="md:hidden font-semibold text-gray-400 mr-2">Delivery:</span>
-                    {getDeliveryStatus(order.status)}
+                    {order.tracking_number ? (
+                      <a
+                        href={order.tracking_url || `https://postex.pk/tracking?cn=${encodeURIComponent(order.tracking_number)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        title="Track directly on courier portal"
+                        className="inline-flex items-center gap-1 font-mono text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:underline"
+                      >
+                        <span>TRK: {order.tracking_number}</span>
+                      </a>
+                    ) : (
+                      getDeliveryStatus(order.status)
+                    )}
                   </td>
                 )}
                 {visibleColumns.includes('paymentMethod') && (

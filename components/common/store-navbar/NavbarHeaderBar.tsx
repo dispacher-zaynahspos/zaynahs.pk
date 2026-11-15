@@ -24,12 +24,14 @@ interface NavbarHeaderBarProps {
   desktopWishlistAlign: string;
   desktopCartAlign: string;
   desktopThemeAlign: string;
+  desktopTrackAlign?: string;
   headerDesktopMenuAlign: string;
   mobileLogoAlign: string;
   mobileMenuAlign: string;
   mobileSearchAlign: string;
   mobileCartAlign: string;
   mobileWishlistAlign: string;
+  mobileTrackAlign?: string;
   logoNode: React.ReactNode;
   searchNode: React.ReactNode;
   wishlistDesktopNode: React.ReactNode;
@@ -37,6 +39,9 @@ interface NavbarHeaderBarProps {
   cartDesktopNode: React.ReactNode;
   cartMobileNode: React.ReactNode;
   accountNode: React.ReactNode;
+  trackDesktopNode?: React.ReactNode;
+  trackMobileNode?: React.ReactNode;
+  desktopHeaderIcons?: { key: string; label: string; visible: boolean }[] | null;
   adminLinkNode: React.ReactNode;
   mobileMenuButtonNode: React.ReactNode;
   isAdmin: boolean;
@@ -64,12 +69,14 @@ export function NavbarHeaderBar({
   desktopWishlistAlign,
   desktopCartAlign,
   desktopThemeAlign,
+  desktopTrackAlign = 'right',
   headerDesktopMenuAlign,
   mobileLogoAlign,
   mobileMenuAlign,
   mobileSearchAlign,
   mobileCartAlign,
   mobileWishlistAlign,
+  mobileTrackAlign = 'hidden',
   logoNode,
   searchNode,
   wishlistDesktopNode,
@@ -77,6 +84,9 @@ export function NavbarHeaderBar({
   cartDesktopNode,
   cartMobileNode,
   accountNode,
+  trackDesktopNode,
+  trackMobileNode,
+  desktopHeaderIcons,
   adminLinkNode,
   mobileMenuButtonNode,
   isAdmin,
@@ -96,6 +106,7 @@ export function NavbarHeaderBar({
   const desktopRightElements: React.ReactNode[] = [];
 
   const addToDesktopSlot = (align: string, element: React.ReactNode) => {
+    if (!element || align === 'hidden') return;
     if (align === 'left') desktopLeftElements.push(element);
     else if (align === 'center') desktopCenterElements.push(element);
     else if (align === 'right') desktopRightElements.push(element);
@@ -122,10 +133,31 @@ export function NavbarHeaderBar({
       hoverTimerRef={hoverTimerRef}
     />
   );
-  addToDesktopSlot(desktopSearchAlign, searchNode);
-  addToDesktopSlot(desktopWishlistAlign, accountNode);
-  addToDesktopSlot(desktopWishlistAlign, wishlistDesktopNode);
-  addToDesktopSlot(desktopCartAlign, cartDesktopNode);
+
+  // Desktop Header Actions: Use customizer ordered items if present, else fallback to standard sequence
+  if (Array.isArray(desktopHeaderIcons) && desktopHeaderIcons.length > 0) {
+    const iconNodeMap: Record<string, { node: React.ReactNode; align: string }> = {
+      search: { node: searchNode, align: desktopSearchAlign },
+      account: { node: accountNode, align: desktopWishlistAlign },
+      wishlist: { node: wishlistDesktopNode, align: desktopWishlistAlign },
+      cart: { node: cartDesktopNode, align: desktopCartAlign },
+      track: { node: trackDesktopNode, align: desktopTrackAlign },
+    };
+
+    desktopHeaderIcons.forEach((item) => {
+      if (item.visible !== false && iconNodeMap[item.key]) {
+        const { node, align } = iconNodeMap[item.key];
+        addToDesktopSlot(align, node);
+      }
+    });
+  } else {
+    addToDesktopSlot(desktopSearchAlign, searchNode);
+    addToDesktopSlot(desktopWishlistAlign, accountNode);
+    addToDesktopSlot(desktopWishlistAlign, wishlistDesktopNode);
+    addToDesktopSlot(desktopCartAlign, cartDesktopNode);
+    addToDesktopSlot(desktopTrackAlign, trackDesktopNode);
+  }
+
   addToDesktopSlot(desktopThemeAlign, adminLinkNode);
 
   const mobileLeftElements: React.ReactNode[] = [];
@@ -133,6 +165,7 @@ export function NavbarHeaderBar({
   const mobileRightElements: React.ReactNode[] = [];
 
   const addToMobileSlot = (align: string, element: React.ReactNode) => {
+    if (!element || align === 'hidden') return;
     if (align === 'left') mobileLeftElements.push(element);
     else if (align === 'center') mobileCenterElements.push(element);
     else if (align === 'right') mobileRightElements.push(element);
@@ -144,6 +177,7 @@ export function NavbarHeaderBar({
   addToMobileSlot(mobileWishlistAlign, accountNode);
   addToMobileSlot(mobileWishlistAlign, wishlistMobileNode);
   addToMobileSlot(mobileCartAlign, cartMobileNode);
+  addToMobileSlot(mobileTrackAlign, trackMobileNode);
   addToMobileSlot('right', adminLinkNode);
 
   return (

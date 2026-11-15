@@ -113,11 +113,14 @@ export interface SettingsRow {
   header_desktop_wishlist_align?: string | null;
   header_desktop_cart_align?: string | null;
   header_desktop_theme_align?: string | null;
+  header_desktop_track_align?: string | null;
+  desktop_header_icons?: unknown[] | null;
   header_mobile_logo_align?: string | null;
   header_mobile_menu_align?: string | null;
   header_mobile_search_align?: string | null;
   header_mobile_cart_align?: string | null;
   header_mobile_wishlist_align?: string | null;
+  header_mobile_track_align?: string | null;
   navigation_menu?: unknown;
   header_desktop_menu_align?: string | null;
   faq_content?: string | null;

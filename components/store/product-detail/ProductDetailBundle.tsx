@@ -99,16 +99,14 @@ export default function ProductDetailBundle({
                   onClick={() => setSelectedBundleIds(prev => prev.includes(bp.id) ? prev.filter(id => id !== bp.id) : [...prev, bp.id])}
                   className="flex items-center gap-3"
                 >
-                  <div className={`relative w-12 rounded-lg overflow-hidden bg-gray-105 flex-shrink-0 ${getSharedAspectClass(settings?.image_aspect_ratio)}`}>
-                    {bp.images?.[0]?.url && (
-                      <Image
-                        src={bp.images?.[0]?.url}
-                        alt={bp.name}
-                        fill
-                        sizes="48px"
-                        className="object-cover"
-                      />
-                    )}
+                  <div className={`relative w-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0 ${getSharedAspectClass(settings?.image_aspect_ratio)}`}>
+                    <Image
+                      src={getPresetImageUrl(bpSelectedVar?.image_url || bp.images?.[0]?.url || fallbackPlaceholder, 'micro')}
+                      alt={bp.name}
+                      fill
+                      sizes="48px"
+                      className="object-cover transition-opacity duration-200"
+                    />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-bold text-gray-850 dark:text-white truncate flex items-center gap-1.5">
@@ -117,6 +115,14 @@ export default function ProductDetailBundle({
                       </span>
                       {bp.name}
                     </p>
+
+                    {/* Small selected variant label */}
+                    {bpSelectedVar && (
+                      <p className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 mt-0.5 truncate">
+                        {[bpSelectedVar.color, bpSelectedVar.size, bpSelectedVar.custom_value].filter(Boolean).join(' · ')}
+                      </p>
+                    )}
+
                     <div className="flex items-center justify-between mt-1 flex-wrap gap-1">
                       <p className="text-xs text-gray-500 font-semibold">{formatPrice(bpPrice, settings.currency_symbol)}</p>
                       <Link
@@ -135,20 +141,57 @@ export default function ProductDetailBundle({
                   <div className="border-t border-gray-100 dark:border-gray-800 pt-2 space-y-1.5">
                     {bpColors.length > 0 && (
                       <div>
-                        <p className="text-[9px] font-black uppercase tracking-wider text-gray-400 mb-1">Color</p>
-                        <div className="flex flex-wrap gap-1">
+                        <div className="flex items-center justify-between mb-1">
+                          <p className="text-[9px] font-black uppercase tracking-wider text-gray-400">Color</p>
+                          {bpSelectedVar?.color && (
+                            <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 truncate max-w-[180px]">
+                              {bpSelectedVar.color}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex flex-wrap gap-1.5 items-center">
                           {bpColors.map(color => {
                             const matchV = bpActiveVariants.find(v => v.color === color);
                             const isActive = bpSelectedVar?.color === color;
                             const bg = matchV?.color_hex;
-                            return bg ? (
+                            const hasImage = Boolean(matchV?.image_url);
+                            const isPackOrLong = color.toLowerCase().includes('pack') || color.length > 15;
+
+                            if (hasImage && !bg && isPackOrLong) {
+                              return (
+                                <button
+                                  key={color}
+                                  type="button"
+                                  title={color}
+                                  onClick={(e) => { e.stopPropagation(); selectBpVariant(color); }}
+                                  className={`inline-flex items-center gap-1.5 pl-1 pr-2 py-0.5 rounded-lg text-[10px] font-semibold border cursor-pointer transition-all ${
+                                    isActive
+                                      ? 'bg-amber-500 text-white border-amber-500 shadow-xs ring-1 ring-amber-400'
+                                      : 'bg-white dark:bg-transparent text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:border-gray-400'
+                                  }`}
+                                >
+                                  <span className="relative w-5 h-5 rounded overflow-hidden shrink-0 border border-black/10 bg-gray-100">
+                                    <img
+                                      src={getPresetImageUrl(matchV!.image_url!, 'micro')}
+                                      alt={color}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  </span>
+                                  <span className="truncate max-w-[150px]">{color}</span>
+                                </button>
+                              );
+                            }
+
+                            return (bg || hasImage) ? (
                               <button
                                 key={color}
                                 type="button"
                                 title={color}
                                 onClick={(e) => { e.stopPropagation(); selectBpVariant(color); }}
-                                className={`w-6 h-6 rounded-full border-2 transition-all cursor-pointer overflow-hidden flex-shrink-0 ${isActive ? 'border-amber-500 scale-110 shadow' : 'border-white dark:border-gray-700 hover:scale-105'}`}
-                                style={getSwatchStyle(bg)}
+                                className={`w-6 h-6 rounded-full border-2 transition-all cursor-pointer overflow-hidden flex-shrink-0 ${
+                                  isActive ? 'border-amber-500 scale-110 shadow-xs ring-2 ring-amber-400/40' : 'border-white dark:border-gray-700 hover:scale-105'
+                                }`}
+                                style={bg ? getSwatchStyle(bg) : undefined}
                               >
                                 {matchV?.image_url && (matchV.show_image_swatch || !bg) && (
                                   /* eslint-disable-next-line @next/next/no-img-element */
@@ -160,7 +203,9 @@ export default function ProductDetailBundle({
                                 key={color}
                                 type="button"
                                 onClick={(e) => { e.stopPropagation(); selectBpVariant(color); }}
-                                className={`px-2 py-0.5 rounded-lg text-[10px] font-semibold border cursor-pointer transition-all ${isActive ? 'bg-amber-500 text-white border-amber-500' : 'bg-white dark:bg-transparent text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700'}`}
+                                className={`px-2 py-0.5 rounded-lg text-[10px] font-semibold border cursor-pointer transition-all ${
+                                  isActive ? 'bg-amber-500 text-white border-amber-500' : 'bg-white dark:bg-transparent text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700'
+                                }`}
                               >{color}</button>
                             );
                           })}
@@ -169,7 +214,14 @@ export default function ProductDetailBundle({
                     )}
                     {bpSizes.length > 0 && (
                       <div>
-                        <p className="text-[9px] font-black uppercase tracking-wider text-gray-400 mb-1">Size</p>
+                        <div className="flex items-center justify-between mb-1">
+                          <p className="text-[9px] font-black uppercase tracking-wider text-gray-400">Size</p>
+                          {bpSelectedVar?.size && (
+                            <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400">
+                              {bpSelectedVar.size}
+                            </span>
+                          )}
+                        </div>
                         <div className="flex flex-wrap gap-1">
                           {bpSizes.map(size => {
                             const isActive = bpSelectedVar?.size === size;
@@ -187,7 +239,14 @@ export default function ProductDetailBundle({
                     )}
                     {bpMaterials.length > 0 && (
                       <div>
-                        <p className="text-[9px] font-black uppercase tracking-wider text-gray-400 mb-1">Material</p>
+                        <div className="flex items-center justify-between mb-1">
+                          <p className="text-[9px] font-black uppercase tracking-wider text-gray-400">Material</p>
+                          {bpSelectedVar?.material && (
+                            <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400">
+                              {bpSelectedVar.material}
+                            </span>
+                          )}
+                        </div>
                         <div className="flex flex-wrap gap-1">
                           {bpMaterials.map(mat => {
                             const isActive = bpSelectedVar?.material === mat;
@@ -205,7 +264,14 @@ export default function ProductDetailBundle({
                     )}
                     {bpCustomOpt && bpCustomVals.length > 0 && (
                       <div>
-                        <p className="text-[9px] font-black uppercase tracking-wider text-gray-400 mb-1">{bpCustomOpt}</p>
+                        <div className="flex items-center justify-between mb-1">
+                          <p className="text-[9px] font-black uppercase tracking-wider text-gray-400">{bpCustomOpt}</p>
+                          {bpSelectedVar?.custom_value && (
+                            <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400">
+                              {bpSelectedVar.custom_value}
+                            </span>
+                          )}
+                        </div>
                         <div className="flex flex-wrap gap-1">
                           {bpCustomVals.map(val => {
                             const isActive = bpSelectedVar?.custom_value === val;
