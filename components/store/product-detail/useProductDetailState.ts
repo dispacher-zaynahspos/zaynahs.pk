@@ -180,36 +180,44 @@ export function useProductDetailState({ product, settings }: UseProductDetailSta
       let isInfinite = false;
 
       const now = new Date().getTime();
-      const prodStart = product.flash_sale_start_date ? new Date(product.flash_sale_start_date).getTime() : 0;
-      const prodEnd = product.flash_sale_end_date ? new Date(product.flash_sale_end_date).getTime() : 0;
 
-      if (product.flash_sale_enabled) {
-        if (!product.flash_sale_start_date && !product.flash_sale_end_date) {
-          isFlashSaleActive = true;
+      // 1. Global Storewide Flash Sale takes precedence when active
+      const globalOn = Boolean(settings.flash_sale_enabled);
+      const globalStart = settings.flash_sale_start_date ? new Date(settings.flash_sale_start_date).getTime() : 0;
+      const globalEnd = settings.flash_sale_end_date ? new Date(settings.flash_sale_end_date).getTime() : 0;
+      const isGlobalStarted = !settings.flash_sale_start_date || globalStart <= now;
+      const isGlobalEnded = globalEnd > 0 && globalEnd < now;
+
+      if (globalOn && isGlobalStarted && !isGlobalEnded) {
+        isFlashSaleActive = true;
+        if (!settings.flash_sale_start_date && !settings.flash_sale_end_date) {
           isInfinite = true;
-        } else if (prodEnd > now || (prodStart > now && prodEnd === 0)) {
+        } else if (globalStart > now) {
+          isIncoming = true;
+          targetDateStr = settings.flash_sale_start_date || undefined;
+        } else if (globalEnd > now) {
+          targetDateStr = settings.flash_sale_end_date || undefined;
+        } else {
+          isInfinite = true;
+        }
+      } else if (product.flash_sale_enabled) {
+        // 2. Individual Product Flash Sale fallback when Global is OFF
+        const prodStart = product.flash_sale_start_date ? new Date(product.flash_sale_start_date).getTime() : 0;
+        const prodEnd = product.flash_sale_end_date ? new Date(product.flash_sale_end_date).getTime() : 0;
+        const isProdStarted = !product.flash_sale_start_date || prodStart <= now;
+        const isProdEnded = prodEnd > 0 && prodEnd < now;
+
+        if (isProdStarted && !isProdEnded) {
           isFlashSaleActive = true;
-          if (prodStart > now) {
+          if (!product.flash_sale_start_date && !product.flash_sale_end_date) {
+            isInfinite = true;
+          } else if (prodStart > now) {
             isIncoming = true;
             targetDateStr = product.flash_sale_start_date!;
-          } else {
+          } else if (prodEnd > now) {
             targetDateStr = product.flash_sale_end_date;
-          }
-        }
-      } else if (settings.flash_sale_enabled) {
-        const globalStart = settings.flash_sale_start_date ? new Date(settings.flash_sale_start_date).getTime() : 0;
-        const globalEnd = settings.flash_sale_end_date ? new Date(settings.flash_sale_end_date).getTime() : 0;
-
-        if (!settings.flash_sale_start_date && !settings.flash_sale_end_date) {
-          isFlashSaleActive = true;
-          isInfinite = true;
-        } else if (globalEnd > now || (globalStart > now && globalEnd === 0)) {
-          isFlashSaleActive = true;
-          if (globalStart > now) {
-            isIncoming = true;
-            targetDateStr = settings.flash_sale_start_date || undefined;
           } else {
-            targetDateStr = settings.flash_sale_end_date || undefined;
+            isInfinite = true;
           }
         }
       }

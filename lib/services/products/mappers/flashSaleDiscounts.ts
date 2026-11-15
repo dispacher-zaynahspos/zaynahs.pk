@@ -15,12 +15,12 @@ export const applyFlashSaleDiscounts = async (products: Product[]): Promise<Prod
     const now = Date.now();
 
     let isGlobalFlashSaleActive = false;
-    if (settings && settings.flash_sale_enabled) {
+    if (settings && isFeatureEnabled(settings, 'flash_sale') && settings.flash_sale_enabled) {
       const gStart = settings.flash_sale_start_date ? new Date(settings.flash_sale_start_date).getTime() : 0;
       const gEnd = settings.flash_sale_end_date ? new Date(settings.flash_sale_end_date).getTime() : 0;
 
       const isStarted = !settings.flash_sale_start_date || gStart <= now;
-      const isEnded = gEnd && gEnd < now;
+      const isEnded = gEnd > 0 && gEnd < now;
       if (isStarted && !isEnded) {
         isGlobalFlashSaleActive = true;
       }
@@ -89,6 +89,15 @@ export const applyFlashSaleDiscounts = async (products: Product[]): Promise<Prod
             };
           }
         }
+
+        // Global Flash Sale is ACTIVE even if discount value is blank/0:
+        // Uses existing compare_price & price, but activates sale timer and badges storewide!
+        return {
+          ...product,
+          flash_sale_enabled: true,
+          flash_sale_end_date: settings.flash_sale_end_date || undefined,
+          flash_sale_start_date: settings.flash_sale_start_date || undefined
+        };
       }
 
       for (const fs of activeFlashSales) {
@@ -182,6 +191,14 @@ export const applyFlashSaleDiscounts = async (products: Product[]): Promise<Prod
               };
             }
           }
+
+          // Individual product flash sale without discount value (uses existing compare_price)
+          return {
+            ...product,
+            flash_sale_enabled: true,
+            flash_sale_end_date: product.flash_sale_end_date || undefined,
+            flash_sale_start_date: product.flash_sale_start_date || undefined
+          };
         }
       }
 
