@@ -55,7 +55,7 @@ export default function ProductListTable({
       {/* Desktop Table */}
       <div className="hidden md:block">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-gray-700 dark:text-gray-300">
+          <table className="w-full table-fixed text-left text-sm text-gray-700 dark:text-gray-300">
             <thead className="text-[11px] font-black text-gray-400 dark:text-gray-400 uppercase tracking-wider bg-gray-50/80 dark:bg-white/2 border-b border-gray-100 dark:border-gray-800 select-none">
               <tr>
                 <th className="py-2.5 px-1.5 w-8 text-center shrink-0">
@@ -72,14 +72,14 @@ export default function ProductListTable({
                     className="rounded border-gray-300 text-[#e94560] focus:ring-[#e94560] h-3.5 w-3.5 cursor-pointer accent-[#e94560]"
                   />
                 </th>
-                <th className="py-2.5 px-3 min-w-0">Product</th>
-                <th className="py-2.5 px-2 hidden 2xl:table-cell w-20">SKU</th>
-                <th className="py-2.5 px-2 w-20 whitespace-nowrap">Price</th>
-                <th className="py-2.5 px-2 hidden lg:table-cell w-24">Stock</th>
-                <th className="py-2.5 px-1 hidden md:table-cell text-center w-14">Visible</th>
-                <th className="py-2.5 px-1 hidden xl:table-cell text-center w-14">Featured</th>
-                {settings.meta_sync_enabled && <th className="py-2.5 px-2 text-center w-22 whitespace-nowrap hidden lg:table-cell">Meta Sync</th>}
-                <th className="py-2.5 px-1.5 text-center w-16">Actions</th>
+                <th className="py-2.5 px-2.5 min-w-0">Product</th>
+                <th className="py-2.5 px-1.5 hidden 2xl:table-cell w-20">SKU</th>
+                <th className="py-2.5 px-1.5 w-20 whitespace-nowrap">Price</th>
+                <th className="py-2.5 px-1.5 hidden lg:table-cell w-24">Stock</th>
+                <th className="py-2.5 px-1 hidden md:table-cell text-center w-12">Visible</th>
+                <th className="py-2.5 px-1 hidden xl:table-cell text-center w-12">Featured</th>
+                {settings.meta_sync_enabled && <th className="py-2.5 px-1.5 text-center w-22 whitespace-nowrap hidden lg:table-cell">Meta Sync</th>}
+                <th className="py-2.5 px-1 text-center w-20 shrink-0">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-gray-800/60 font-medium">
@@ -106,8 +106,8 @@ export default function ProductListTable({
                         className="rounded border-gray-300 text-[#e94560] focus:ring-[#e94560] h-3.5 w-3.5 cursor-pointer accent-[#e94560]"
                       />
                     </td>
-                    <td className="py-2.5 px-3 min-w-0">
-                      <div className="flex items-center gap-2.5 min-w-0">
+                    <td className="py-2.5 px-2.5 min-w-0">
+                      <div className="flex items-center gap-2 min-w-0">
                         <TableThumbnail 
                           url={primaryImage} 
                           alt={product.name} 
@@ -122,31 +122,31 @@ export default function ProductListTable({
                             {(product.name || '').replace(/^[\s*#-]+/, '').replace(/[*_~`]/g, '').trim()}
                           </p>
                           {product.product_categories && product.product_categories.length > 0 ? (
-                            <div className="flex flex-wrap items-center gap-1 mt-0.5">
-                              {product.product_categories.slice(0, 3).map((pc) => pc.category ? (
-                                <span key={pc.category_id} className="inline-flex items-center px-1.5 py-0.2 rounded-full bg-indigo-50/70 dark:bg-indigo-950/30 text-[9px] font-bold text-indigo-600 dark:text-indigo-400 leading-tight">
+                            <div className="flex flex-nowrap overflow-hidden items-center gap-1 mt-0.5">
+                              {product.product_categories.slice(0, 2).map((pc) => pc.category ? (
+                                <span key={pc.category_id} className="inline-flex items-center px-1.5 py-0.2 rounded-full bg-indigo-50/70 dark:bg-indigo-950/30 text-[9px] font-bold text-indigo-600 dark:text-indigo-400 leading-tight truncate">
                                   {pc.category.name}
                                 </span>
                               ) : null)}
-                              {product.product_categories.length > 3 && (
-                                <span className="text-[9px] font-bold text-gray-400">+{product.product_categories.length - 3}</span>
+                              {product.product_categories.length > 2 && (
+                                <span className="text-[9px] font-bold text-gray-400 shrink-0">+{product.product_categories.length - 2}</span>
                               )}
                             </div>
                           ) : product.category ? (
-                            <span className="text-[10px] font-bold text-gray-400 ml-0.5">{product.category.name}</span>
+                            <span className="text-[10px] font-bold text-gray-400 ml-0.5 truncate block">{product.category.name}</span>
                           ) : null}
                         </div>
                       </div>
                     </td>
-                    <td className="py-2.5 px-2 font-semibold text-xs text-gray-500 dark:text-gray-400 hidden 2xl:table-cell">
-                      <span className="px-1.5 py-0.5 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-mono text-[10px]">
+                    <td className="py-2.5 px-1.5 font-semibold text-xs text-gray-500 dark:text-gray-400 hidden 2xl:table-cell w-20">
+                      <span className="px-1.5 py-0.5 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-mono text-[10px] truncate block">
                         {product.sku || '—'}
                       </span>
                     </td>
-                    <td className="py-2.5 px-2 font-black text-gray-900 dark:text-white text-xs md:text-sm whitespace-nowrap w-20">
+                    <td className="py-2.5 px-1.5 font-black text-gray-900 dark:text-white text-xs md:text-sm whitespace-nowrap w-20">
                       {formatPrice(product.price, settings.currency_symbol)}
                     </td>
-                    <td className="py-2.5 px-2 font-semibold text-xs hidden lg:table-cell w-24">
+                    <td className="py-2.5 px-1.5 font-semibold text-xs hidden lg:table-cell w-24">
                       {product.has_variants && product.variants ? (
                         <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-black bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 whitespace-nowrap">
                           Variants ({product.variants.reduce((sum, v) => sum + v.stock, 0)})
@@ -165,7 +165,7 @@ export default function ProductListTable({
                         </span>
                       )}
                     </td>
-                    <td className="py-2.5 px-1 hidden md:table-cell text-center w-14">
+                    <td className="py-2.5 px-1 hidden md:table-cell text-center w-12">
                       <div className="flex items-center justify-center">
                         <button
                           type="button"
@@ -185,7 +185,7 @@ export default function ProductListTable({
                         </button>
                       </div>
                     </td>
-                    <td className="py-2.5 px-1 hidden xl:table-cell text-center w-14">
+                    <td className="py-2.5 px-1 hidden xl:table-cell text-center w-12">
                       <div className="flex items-center justify-center">
                         <button
                           type="button"
@@ -206,7 +206,7 @@ export default function ProductListTable({
                       </div>
                     </td>
                     {settings.meta_sync_enabled && (
-                      <td className="py-2.5 px-2 text-center w-22 whitespace-nowrap hidden lg:table-cell">
+                      <td className="py-2.5 px-1.5 text-center w-22 whitespace-nowrap hidden lg:table-cell">
                         {product.meta_sync_status === 'synced' ? (
                           <span suppressHydrationWarning={true} className="inline-flex items-center gap-1.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 rounded-full border border-emerald-300 dark:border-emerald-800 shadow-2xs" title={product.meta_last_synced_at ? `Synced at: ${new Date(product.meta_last_synced_at).toLocaleString()}` : 'Synced with Meta Catalog'}>
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block animate-pulse" />
@@ -225,7 +225,7 @@ export default function ProductListTable({
                         )}
                       </td>
                     )}
-                    <td className="py-2.5 px-1.5 text-center w-16">
+                    <td className="py-2.5 px-1 text-center w-20 shrink-0">
                       <div className="flex items-center justify-center gap-1">
                         {settings.meta_sync_enabled && (
                           <button 

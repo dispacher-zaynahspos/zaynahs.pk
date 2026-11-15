@@ -17,7 +17,7 @@ export default function AdminSearchInput({
   className = ""
 }: AdminSearchInputProps) {
   return (
-    <div className={`relative group ${isExpandable ? 'w-full md:w-64 transition-all duration-200' : 'w-full md:w-64'} ${className}`}>
+    <div className={`relative group min-w-[180px] ${isExpandable ? 'w-full md:w-64 transition-all duration-200' : 'w-full md:w-64'} ${className}`}>
       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-[#e94560] transition-colors">
         <Search className="h-4 w-4" />
       </div>

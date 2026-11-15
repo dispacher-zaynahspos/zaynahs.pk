@@ -41,13 +41,13 @@ export default function ProductListToolbar({
   setCurrentPage,
 }: ProductListToolbarProps) {
   return (
-    <div className="flex flex-col xl:flex-row gap-3 items-stretch xl:items-center justify-between w-full max-w-full">
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full xl:w-auto flex-1 min-w-0">
+    <div className="flex flex-col 2xl:flex-row gap-2.5 items-stretch 2xl:items-center justify-between w-full max-w-full">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 flex-1 min-w-0">
         <AdminSearchInput
           value={searchQuery}
           onChange={(val) => { setSearchQuery(val); setCurrentPage(1); }}
           placeholder="Search products by name or SKU..."
-          className="flex-1 min-w-0"
+          className="flex-1 min-w-[220px]"
         />
         <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0">
           <select
@@ -72,7 +72,7 @@ export default function ProductListToolbar({
         </div>
       </div>
 
-      <div className="flex items-center gap-2 flex-wrap justify-start xl:justify-end w-full xl:w-auto">
+      <div className="flex items-center gap-2 flex-wrap justify-start 2xl:justify-end w-full 2xl:w-auto shrink-0">
         {settings.meta_sync_enabled && (
           <>
             <button
