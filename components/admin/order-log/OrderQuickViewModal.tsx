@@ -207,63 +207,71 @@ export function OrderQuickViewModal({
 
   const totalQuantity = (order.items || []).reduce((acc, i) => acc + (i.quantity || 1), 0);
 
+  // Formatted date and time in Asia/Karachi (PKT)
+  const orderDateFormatted = order ? new Date(order.created_at).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: 'Asia/Karachi',
+  }) : '';
+
+  const orderTimeFormatted = order ? new Date(order.created_at).toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+    timeZone: 'Asia/Karachi',
+  }) : '';
+
   return (
     <>
     <Modal
       open={open}
       onClose={onClose}
-      variant="sheet"
+      variant="center"
       size="md"
-      className="p-0 overflow-hidden !h-[92dvh] sm:!h-[670px] !max-h-[92dvh] sm:!max-h-[670px] flex flex-col"
+      className="p-0 overflow-hidden flex flex-col w-[94vw] sm:w-full max-w-2xl !h-auto max-h-[calc(100dvh-3rem)] sm:max-h-[670px] my-auto rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-800"
       fitHeight={true}
       showClose={false}
       ariaLabel={`Quick view for order ${order.order_number}`}
     >
-      {/* Modal Top Header - Shopify Polaris Style (Slim & Compact) */}
-      <div className="px-3 sm:px-5 py-2.5 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] shrink-0 z-20">
-        <div className="flex items-center justify-between gap-2">
-          {/* Left: Package Icon + Order Number & Badges */}
-          <div className="flex items-center gap-2 min-w-0 flex-1">
-            <div className="w-7 h-7 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
-              <Package className="w-3.5 h-3.5" />
+      {/* Modal Top Header - Locked & Anchored (Never jumps or overlaps) */}
+      <div className="px-3.5 sm:px-5 py-2.5 sm:py-3 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16162a] shrink-0 z-20">
+        <div className="flex items-center justify-between gap-2.5">
+          {/* Left: Package Icon + Order Number & Status Badges */}
+          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+            <div className="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
+              <Package className="w-4 h-4" />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="font-bold text-gray-900 dark:text-white text-sm sm:text-[15px] leading-none shrink-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-extrabold text-gray-900 dark:text-white text-sm sm:text-base leading-none shrink-0">
                   {order.order_number}
                 </span>
-                <div className="flex items-center gap-1 shrink-0">
+                <div className="flex items-center gap-1.5 shrink-0">
                   {paid ? (
-                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/60">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/60">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                       Paid
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[5px] text-[10px] font-semibold bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[5px] text-[10px] font-bold bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
                       <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
                       Unpaid
                     </span>
                   )}
                   <OrderStatusBadge status={order.status} size="sm" />
-                  {order.tracking_number && (
-                    <LiveCourierBadge
-                      trackingNumber={order.tracking_number}
-                      courierName={order.courier_name}
-                      orderStatus={order.status}
-                    />
-                  )}
                 </div>
               </div>
-              <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5 truncate" suppressHydrationWarning>
-                <span suppressHydrationWarning>{new Date(order.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'Asia/Karachi' })}</span> · {order.customer_name || 'Guest'}
+              <p className="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 mt-1 truncate" suppressHydrationWarning>
+                <span suppressHydrationWarning className="font-semibold text-gray-700 dark:text-gray-300">{orderDateFormatted}, {orderTimeFormatted}</span> · {order.customer_name || 'Guest'}
               </p>
             </div>
           </div>
 
-          {/* Right: Previous / Next Switcher & Close button */}
+          {/* Right: Previous / Next Switcher & Close button — FIXED ANCHORED POSITION */}
           <div className="flex items-center gap-1.5 shrink-0">
             {ordersList.length > 1 && (
-              <div className="flex items-center border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden bg-white dark:bg-[#16162a] shadow-xs">
+              <div className="flex items-center border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden bg-white dark:bg-[#16162a] shadow-xs h-7">
                 <button
                   type="button"
                   onClick={handlePrev}
@@ -309,6 +317,19 @@ export function OrderQuickViewModal({
         onTouchCancel={handleTouchCancel}
         className="flex-1 min-h-0 flex flex-col p-3 sm:p-4 gap-2.5 overflow-hidden touch-pan-y"
       >
+        {/* Tracking CN Strip (Inside body so header never overflows or shifts buttons) */}
+        {order.tracking_number && (
+          <div className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-xl bg-gray-50 dark:bg-white/[0.03] border border-gray-200/80 dark:border-gray-800 shrink-0">
+            <div className="flex items-center gap-2 min-w-0 flex-wrap">
+              <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider shrink-0">Tracking:</span>
+              <LiveCourierBadge
+                trackingNumber={order.tracking_number}
+                courierName={order.courier_name}
+                orderStatus={order.status}
+              />
+            </div>
+          </div>
+        )}
         
         {/* Section 1: Hero Products List with Maximized Scroll Space */}
         <div className="flex-1 min-h-0 flex flex-col">

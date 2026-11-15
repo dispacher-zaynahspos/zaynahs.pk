@@ -117,6 +117,7 @@ export default function OrderLog({ initialOrders, settings, initialFailedAttempt
             {([
               { key: 'all', label: 'All' },
               { key: 'unfulfilled', label: 'Unfulfilled' },
+              { key: 'fulfilled', label: 'Fulfilled' },
               { key: 'unpaid', label: 'Unpaid' },
               { key: 'open', label: 'Open' },
               { key: 'archived', label: 'Archived' },

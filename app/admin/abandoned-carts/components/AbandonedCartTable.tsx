@@ -97,10 +97,10 @@ export default function AbandonedCartTable({
   return (
     <div className="bg-white dark:bg-[#16162a] rounded-b-xl border-x border-b border-gray-200 dark:border-gray-800 shadow-xs overflow-hidden transition-colors">
       <div className="overflow-x-auto overscroll-x-contain overscroll-y-auto touch-pan-y">
-        <table className="w-full text-left text-sm text-gray-700 dark:text-gray-300">
-          <thead className="hidden md:table-header-group text-[12.5px] font-semibold text-gray-500 bg-gray-50/50 dark:bg-white/5 border-b border-gray-200 dark:border-gray-800 select-none">
+        <table className="w-full md:table-fixed text-left text-sm text-gray-700 dark:text-gray-300">
+          <thead className="hidden md:table-header-group text-[12px] font-semibold text-gray-500 bg-gray-50/50 dark:bg-white/5 border-b border-gray-200 dark:border-gray-800 select-none">
             <tr>
-              <th className="py-3 px-4 w-10 text-center">
+              <th className="py-2.5 px-2 w-9 md:w-10 text-center">
                 <input
                   type="checkbox"
                   aria-label="Select all on this page"
@@ -109,13 +109,13 @@ export default function AbandonedCartTable({
                   className="rounded border-gray-300 dark:border-gray-700 text-[#008060] focus:ring-[#008060] cursor-pointer"
                 />
               </th>
-              <th className="py-3 px-4 whitespace-nowrap min-w-[120px]">Cart / Shopper</th>
-              <th className="py-3 px-4 whitespace-nowrap min-w-[110px]">Date / Activity</th>
-              <th className="py-3 px-4">Contact</th>
-              <th className="py-3 px-4 whitespace-nowrap min-w-[110px]">Total Value</th>
-              <th className="py-3 px-4">Recovery Status</th>
-              <th className="py-3 px-4 min-w-[180px]">Items</th>
-              <th className="py-3 px-4 text-center w-24">Actions</th>
+              <th className="py-2.5 px-2.5 md:w-[18%]">Cart / Shopper</th>
+              <th className="py-2.5 px-2 md:w-[13%]">Date / Activity</th>
+              <th className="py-2.5 px-2.5 md:w-[16%]">Contact</th>
+              <th className="py-2.5 px-2 md:w-[12%]">Total Value</th>
+              <th className="py-2.5 px-2 md:w-[13%]">Recovery Status</th>
+              <th className="py-2.5 px-2.5 md:w-[18%]">Items</th>
+              <th className="py-2.5 px-2 w-16 md:w-20 text-center">Actions</th>
             </tr>
           </thead>
           <tbody className="block md:table-row-group">
@@ -146,7 +146,7 @@ export default function AbandonedCartTable({
                   }`}
                 >
                   {/* Checkbox & Mobile Header */}
-                  <td className="block md:table-cell py-2 px-4 md:py-3" onClick={(e) => e.stopPropagation()}>
+                  <td className="block md:table-cell py-2 px-3 md:py-2.5 md:px-2 md:w-10 text-center" onClick={(e) => e.stopPropagation()}>
                     <div className="md:hidden flex items-center justify-between mb-2">
                       <div className="inline-flex items-center gap-1.5 leading-none">
                         <span className="font-bold text-gray-900 dark:text-white">
@@ -174,31 +174,31 @@ export default function AbandonedCartTable({
                   </td>
 
                   {/* Cart / Shopper Column */}
-                  <td className="block md:table-cell py-1 px-4 md:py-3">
+                  <td className="block md:table-cell py-1 px-3 md:py-2.5 md:px-2.5 min-w-0">
                     <span className="md:hidden text-xs font-semibold text-gray-400 block mb-0.5">Shopper</span>
                     <div className="min-w-0">
-                      <p className="font-bold text-gray-900 dark:text-white truncate text-[13.5px]">
+                      <p className="font-bold text-gray-900 dark:text-white truncate text-[13px] leading-tight">
                         {cart.customerName || 'Anonymous Shopper'}
                       </p>
-                      <p className="text-[11px] text-gray-400 font-mono truncate">
+                      <p className="text-[10.5px] text-gray-400 font-mono truncate mt-0.5">
                         ID: {cart.sessionId.replace('cs_', '').slice(0, 10)}
                       </p>
                     </div>
                   </td>
 
                   {/* Date Column */}
-                  <td className="block md:table-cell py-1 px-4 md:py-3 whitespace-nowrap">
+                  <td className="block md:table-cell py-1 px-3 md:py-2.5 md:px-2 whitespace-nowrap">
                     <span className="md:hidden text-xs font-semibold text-gray-400 block mb-0.5">Last Activity</span>
-                    <div className="text-xs text-gray-700 dark:text-gray-300">
+                    <div className="text-xs text-gray-700 dark:text-gray-300 leading-tight">
                       <span>{new Date(cart.lastActivity).toLocaleDateString()}</span>
-                      <span className="text-[11px] text-gray-400 dark:text-gray-500 font-medium block">
+                      <span className="text-[10.5px] text-gray-400 dark:text-gray-500 font-medium block mt-0.5">
                         {timeAgo(cart.lastActivity)}
                       </span>
                     </div>
                   </td>
 
                   {/* Contact Column */}
-                  <td className="block md:table-cell py-1 px-4 md:py-3" onClick={(e) => e.stopPropagation()}>
+                  <td className="block md:table-cell py-1 px-3 md:py-2.5 md:px-2.5 min-w-0" onClick={(e) => e.stopPropagation()}>
                     <span className="md:hidden text-xs font-semibold text-gray-400 block mb-0.5">Contact Info</span>
                     <div className="min-w-0 space-y-0.5">
                       {cart.customerPhone ? (
@@ -206,17 +206,17 @@ export default function AbandonedCartTable({
                           href={`https://wa.me/${rawPhone}`}
                           target="_blank"
                           rel="noreferrer"
-                          className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline"
+                          className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline truncate max-w-full"
                           title="Contact via WhatsApp"
                         >
-                          <Phone className="h-3 w-3 stroke-[2.2]" />
-                          <span>{cart.customerPhone}</span>
+                          <Phone className="h-3 w-3 stroke-[2.2] shrink-0" />
+                          <span className="truncate">{cart.customerPhone}</span>
                         </a>
                       ) : (
-                        <span className="text-xs text-gray-400 italic">No phone captured</span>
+                        <span className="text-xs text-gray-400 italic">No phone</span>
                       )}
                       {cart.customerEmail && (
-                        <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate max-w-[160px]">
+                        <p className="text-[10.5px] text-gray-500 dark:text-gray-400 truncate max-w-full">
                           {cart.customerEmail}
                         </p>
                       )}
@@ -224,49 +224,49 @@ export default function AbandonedCartTable({
                   </td>
 
                   {/* Total Value Column */}
-                  <td className="block md:table-cell py-1 px-4 md:py-3 whitespace-nowrap">
+                  <td className="block md:table-cell py-1 px-3 md:py-2.5 md:px-2 whitespace-nowrap">
                     <span className="md:hidden text-xs font-semibold text-gray-400 block mb-0.5">Subtotal</span>
-                    <span className="font-bold text-gray-900 dark:text-white text-[13.5px]">
+                    <span className="font-bold text-gray-900 dark:text-white text-[13px] leading-tight block">
                       {formatPrice(cart.subtotal)}
                     </span>
-                    <span className="text-[10.5px] text-gray-400 block font-medium">
+                    <span className="text-[10px] text-gray-400 block font-medium mt-0.5">
                       {itemsCount} {itemsCount === 1 ? 'item' : 'items'}
                     </span>
                   </td>
 
                   {/* Status Column */}
-                  <td className="block md:table-cell py-1 px-4 md:py-3">
+                  <td className="block md:table-cell py-1 px-3 md:py-2.5 md:px-2 min-w-0">
                     <span className="md:hidden text-xs font-semibold text-gray-400 block mb-0.5">Status</span>
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${getStatusBadgeStyles(cart)}`}>
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9.5px] font-bold uppercase tracking-wider border truncate max-w-full ${getStatusBadgeStyles(cart)}`}>
                       {cart.orderPlaced ? 'Recovered' : cart.emailSent ? 'Email Sent' : hasPhone ? 'Recoverable' : 'Anonymous'}
                     </span>
                   </td>
 
-                  {/* Items Column (with single eye icon + pills like OrderLog) */}
-                  <td className="block md:table-cell py-1 px-4 md:py-3">
+                  {/* Items Column */}
+                  <td className="block md:table-cell py-1 px-3 md:py-2.5 md:px-2.5 min-w-0">
                     <span className="md:hidden text-xs font-semibold text-gray-400 block mb-0.5">Items</span>
-                    <div className="flex items-center gap-1.5 flex-wrap">
+                    <div className="flex items-center gap-1.5 min-w-0">
                       <button
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
                           setSelectedCartId(cart.id);
                         }}
-                        className="p-1 rounded-md text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
+                        className="p-1 rounded-md text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/5 transition-colors shrink-0"
                         title="View Cart Details"
                       >
                         <Eye className="h-3.5 w-3.5" />
                       </button>
-                      <span className="text-xs text-gray-700 dark:text-gray-300 font-medium truncate max-w-[150px]">
+                      <span className="text-xs text-gray-700 dark:text-gray-300 font-medium truncate min-w-0">
                         {cart.items[0]?.product?.name || cart.items[0]?.name || 'Item'}
-                        {cart.items.length > 1 ? ` +${cart.items.length - 1} more` : ''}
+                        {cart.items.length > 1 ? ` +${cart.items.length - 1}` : ''}
                       </span>
                     </div>
                   </td>
 
                   {/* Actions Column */}
-                  <td className="block md:table-cell py-2 px-4 md:py-3 text-center" onClick={(e) => e.stopPropagation()}>
-                    <div className="flex items-center justify-end md:justify-center gap-2">
+                  <td className="block md:table-cell py-2 px-3 md:py-2.5 md:px-2 md:w-20 text-center" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex items-center justify-end md:justify-center gap-1.5">
                       {hasPhone && (
                         <a
                           href={`https://wa.me/${rawPhone}`}

@@ -32,7 +32,7 @@ export function useOrderLogState({ initialOrders, settings }: UseOrderLogStatePr
 
   // Layout and view states
   const [isFullWidth, setIsFullWidth] = useState(false);
-  const [activeTab, setActiveTab] = useState<'all' | 'unfulfilled' | 'unpaid' | 'open' | 'archived'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'unfulfilled' | 'fulfilled' | 'unpaid' | 'open' | 'archived'>('all');
   const [selectedOrderIds, setSelectedOrderIds] = useState<string[]>([]);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [isFiltersExpanded, setIsFiltersExpanded] = useState(false);
@@ -261,7 +261,7 @@ export function useOrderLogState({ initialOrders, settings }: UseOrderLogStatePr
           }
           if (saved.customStartDate) setCustomStartDate(saved.customStartDate);
           if (saved.customEndDate) setCustomEndDate(saved.customEndDate);
-          if (saved.activeTab && ['all', 'unfulfilled', 'unpaid', 'open', 'archived'].includes(saved.activeTab)) {
+          if (saved.activeTab && ['all', 'unfulfilled', 'fulfilled', 'unpaid', 'open', 'archived'].includes(saved.activeTab)) {
             setActiveTab(saved.activeTab);
           }
           if (saved.searchQuery) {
@@ -396,6 +396,10 @@ export function useOrderLogState({ initialOrders, settings }: UseOrderLogStatePr
         query = query
           .in('status', ['pending', 'placed', 'confirmed'])
           .or('fulfillment_status.is.null,fulfillment_status.neq.fulfilled');
+      } else if (tab === 'fulfilled') {
+        query = query
+          .neq('status', 'cancelled')
+          .or('fulfillment_status.eq.fulfilled,status.in.("shipped","out_for_delivery","delivered")');
       } else if (tab === 'unpaid') {
         query = query
           .neq('payment_status', 'paid')
@@ -530,6 +534,8 @@ export function useOrderLogState({ initialOrders, settings }: UseOrderLogStatePr
 
     if (activeTab === 'unfulfilled') {
       if (!isOrderUnfulfilled(o)) return false;
+    } else if (activeTab === 'fulfilled') {
+      if (!isOrderFulfilled(o)) return false;
     } else if (activeTab === 'unpaid') {
       if (isOrderPaid(o)) return false;
       if (['cancelled', 'refunded'].includes(o.status)) return false;
