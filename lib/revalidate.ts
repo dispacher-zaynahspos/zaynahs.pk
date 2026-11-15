@@ -486,7 +486,6 @@ export async function revalidateBanner() {
     console.log('[revalidate] Banners & homepage revalidated');
   } catch (error) {
     console.error('Error in revalidateBanner:', error);
-    throw error;
   }
 }
 

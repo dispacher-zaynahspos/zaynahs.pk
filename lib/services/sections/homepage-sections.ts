@@ -58,7 +58,7 @@ export const getHomepageSections = async (onlyActive = false): Promise<HomepageS
       [`homepage-sections-${onlyActive ? 'active' : 'all'}`],
       { revalidate: 300, tags: ['homepage', 'banners', 'homepage_sections'] }
     );
-    return cachedFn();
+    return await cachedFn();
   } catch {
     return fetchHomepageSections(onlyActive);
   }
@@ -265,7 +265,11 @@ export const saveHomepageSections = async (
       if (upsertErr) throw upsertErr;
     }
 
-    await revalidateBanner();
+    try {
+      await revalidateBanner();
+    } catch (revalErr) {
+      console.warn('[sections] revalidateBanner non-fatal error:', revalErr);
+    }
   } catch (error) {
     console.error('[sections] saveHomepageSections failed:', error);
     throw error;
