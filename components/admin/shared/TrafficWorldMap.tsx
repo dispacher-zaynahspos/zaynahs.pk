@@ -105,9 +105,20 @@ export interface TrafficWorldMapProps {
 }
 
 const MIN_ZOOM = 0.8;
-const MAX_ZOOM = 16;
-const CLUSTER_PX = 46; // screen-space radius for grouping nearby markers
+const MAX_ZOOM = 96;
 const LABEL_H = 14; // approx label box height (screen px)
+
+/** Screen-space radius for grouping nearby markers based on zoom level.
+ * Wide views keep clean clustered bubbles; close-up zooms dissolve clusters so all cities are visible individually.
+ */
+function getClusterRadius(zoom: number): number {
+  if (zoom <= 2.5) return 50;
+  if (zoom <= 4.5) return 36;
+  if (zoom <= 7.0) return 22;
+  if (zoom <= 12.0) return 12;
+  if (zoom <= 20.0) return 6;
+  return 2; // Close-up zoom: uncluster everything except identical coordinates
+}
 
 function resolveCountryName(apiName: string): string {
   return NAME_ALIASES[apiName] || apiName;
@@ -147,8 +158,9 @@ interface RenderedMarker extends MapPoint {
   clusterItems?: ClusterItem[];
 }
 
-/** Greedy screen-space clustering: group points whose on-screen distance < CLUSTER_PX. */
+/** Greedy screen-space clustering: group points whose on-screen distance < clusterRadius(zoom). */
 function clusterPoints(points: MapPoint[], zoom: number): RenderedMarker[] {
+  const clusterRadius = getClusterRadius(zoom);
   const sorted = [...points].sort((a, b) => b.count - a.count);
   const used = new Set<string>();
   const clusters: RenderedMarker[] = [];
@@ -165,7 +177,7 @@ function clusterPoints(points: MapPoint[], zoom: number): RenderedMarker[] {
       if (used.has(other.id)) continue;
       const dx = (seed.bx - other.bx) * zoom;
       const dy = (seed.by - other.by) * zoom;
-      if (Math.hypot(dx, dy) < CLUSTER_PX) {
+      if (Math.hypot(dx, dy) < clusterRadius) {
         used.add(other.id);
         count += other.count;
         if (other.revenue) revenue += other.revenue;
@@ -202,6 +214,8 @@ interface TooltipState {
   anchorX: number; // in container coords
   anchorY: number; // in container coords
   pinned?: boolean;
+  lng?: number;
+  lat?: number;
 }
 
 export default function TrafficWorldMap({
@@ -371,15 +385,22 @@ export default function TrafficWorldMap({
 
   const handleZoomIn = () => {
     setTooltip(null);
-    setPosition((p) => ({ ...p, zoom: Math.min(Number((p.zoom * 1.6).toFixed(2)), MAX_ZOOM) }));
+    setPosition((p) => ({ ...p, zoom: Math.min(Number((p.zoom * 1.5).toFixed(2)), MAX_ZOOM) }));
   };
   const handleZoomOut = () => {
     setTooltip(null);
-    setPosition((p) => ({ ...p, zoom: Math.max(Number((p.zoom / 1.6).toFixed(2)), MIN_ZOOM) }));
+    setPosition((p) => ({ ...p, zoom: Math.max(Number((p.zoom / 1.5).toFixed(2)), MIN_ZOOM) }));
   };
   const handleReset = () => {
     setTooltip(null);
     setPosition({ coordinates: initialCenter, zoom: initialZoom });
+  };
+  const handleZoomIntoPoint = (lng: number, lat: number) => {
+    setTooltip(null);
+    setPosition((p) => ({
+      coordinates: [lng, lat],
+      zoom: Math.min(Number((Math.max(p.zoom * 2.2, 16)).toFixed(2)), MAX_ZOOM),
+    }));
   };
 
   const handleMarkerHover = (m: RenderedMarker, e: React.MouseEvent) => {
@@ -402,6 +423,8 @@ export default function TrafficWorldMap({
       anchorX,
       anchorY,
       pinned: false,
+      lng: m.lng,
+      lat: m.lat,
     });
   };
 
@@ -437,6 +460,8 @@ export default function TrafficWorldMap({
         anchorX,
         anchorY,
         pinned: true,
+        lng: m.lng,
+        lat: m.lat,
       };
     });
   };
@@ -590,7 +615,7 @@ export default function TrafficWorldMap({
                     geography={geo}
                     fill={fill}
                     stroke="#ffffff"
-                    strokeWidth={Math.max(0.25, 0.5 / position.zoom)}
+                    strokeWidth={Math.max(0.015, Math.min(0.5, 0.65 / position.zoom))}
                     style={{
                       default: { outline: 'none' },
                       hover: {
@@ -678,17 +703,23 @@ export default function TrafficWorldMap({
       {/* Zoom & pan controls */}
       {showControls && (
         <div
-          className="absolute top-3 right-3 flex flex-col gap-1.5 z-10"
+          className="absolute top-3 right-3 flex flex-col items-center gap-1.5 z-10"
           onClick={(e) => e.stopPropagation()}
         >
           <button
             type="button"
             onClick={handleZoomIn}
             className="w-8 h-8 flex items-center justify-center bg-white dark:bg-[#16162a] border border-gray-200 dark:border-gray-800 rounded-xl shadow-xs text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 font-black text-base cursor-pointer active:scale-95 transition-all"
-            title="Zoom in"
+            title="Zoom in (or use mouse scroll / pinch)"
           >
             +
           </button>
+          <div 
+            className="px-1.5 py-0.5 bg-white/95 dark:bg-[#16162a]/95 border border-gray-200/80 dark:border-gray-800 rounded-md text-[9px] font-mono font-black text-gray-600 dark:text-gray-300 select-none shadow-2xs"
+            title="Current zoom level (up to 96x)"
+          >
+            {Math.round(position.zoom)}x
+          </div>
           <button
             type="button"
             onClick={handleZoomOut}
@@ -787,7 +818,15 @@ export default function TrafficWorldMap({
               <div className="mt-2.5 pt-2 border-t border-white/10 max-h-32 overflow-y-auto space-y-1 pr-1 overscroll-contain">
                 <div className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1 flex items-center justify-between">
                   <span>Clustered Cities ({tooltip.clusterItems.length})</span>
-                  <span className="text-[9px] text-gray-400">proximity grouped</span>
+                  {tooltip.lng !== undefined && tooltip.lat !== undefined && (
+                    <button
+                      type="button"
+                      onClick={() => handleZoomIntoPoint(tooltip.lng!, tooltip.lat!)}
+                      className="text-[9px] font-bold text-amber-400 hover:text-amber-300 bg-amber-500/15 hover:bg-amber-500/25 px-1.5 py-0.5 rounded cursor-pointer transition-colors"
+                    >
+                      Zoom in →
+                    </button>
+                  )}
                 </div>
                 {tooltip.clusterItems.map((item, idx) => (
                   <div
@@ -913,7 +952,15 @@ export default function TrafficWorldMap({
                 <div className="mt-2.5 pt-2 border-t border-white/10 max-h-36 overflow-y-auto space-y-1 pr-1 overscroll-contain">
                   <div className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1 flex items-center justify-between">
                     <span>Cluster ({tooltip.clusterItems.length})</span>
-                    <span className="text-[9px] text-gray-400 font-normal">grouped</span>
+                    {tooltip.lng !== undefined && tooltip.lat !== undefined && (
+                      <button
+                        type="button"
+                        onClick={() => handleZoomIntoPoint(tooltip.lng!, tooltip.lat!)}
+                        className="text-[9px] font-bold text-amber-400 hover:text-amber-300 bg-amber-500/15 hover:bg-amber-500/25 px-1.5 py-0.5 rounded cursor-pointer transition-colors"
+                      >
+                        Zoom in →
+                      </button>
+                    )}
                   </div>
                   {tooltip.clusterItems.map((item, idx) => (
                     <div
@@ -946,7 +993,7 @@ export default function TrafficWorldMap({
           <span className="w-2.5 h-2.5 rounded-full bg-orange-500 shadow-xs" /> Orders
         </span>
         <span className="text-gray-400 border-l border-gray-200 dark:border-gray-700 pl-2">
-          {showCities ? 'Zoom out for countries' : 'Zoom in for cities'} · scroll / drag
+          {position.zoom >= 10 ? 'Close city view' : showCities ? 'City view' : 'Country view'} · scroll / drag / buttons to zoom (up to 96x)
         </span>
       </div>
     </div>
