@@ -41,15 +41,16 @@ export default function ProductListToolbar({
   setCurrentPage,
 }: ProductListToolbarProps) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-2.5 w-full max-w-full">
-      <div className="flex items-center gap-2 flex-1 min-w-[280px] sm:min-w-[420px]">
+    <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-2.5 w-full">
+      {/* Left Filters Group (Search, Category, Sort) */}
+      <div className="flex flex-wrap items-center gap-2 flex-1 min-w-0">
         <AdminSearchInput
           value={searchQuery}
           onChange={(val) => { setSearchQuery(val); setCurrentPage(1); }}
           placeholder="Search products by name or SKU..."
-          className="flex-1 min-w-[180px] sm:min-w-[240px]"
+          className="flex-1 min-w-[200px]"
         />
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2 shrink-0 flex-wrap">
           <select
             value={selectedCategory}
             onChange={(e) => { setSelectedCategory(e.target.value); setCurrentPage(1); }}
@@ -72,7 +73,8 @@ export default function ProductListToolbar({
         </div>
       </div>
 
-      <div className="flex items-center gap-2 flex-wrap shrink-0 justify-start sm:justify-end">
+      {/* Right Action Buttons */}
+      <div className="flex items-center gap-2 flex-wrap shrink-0 justify-start lg:justify-end">
         {settings.meta_sync_enabled && (
           <>
             <button

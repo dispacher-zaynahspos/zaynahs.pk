@@ -4,7 +4,7 @@ import React from 'react';
 import { Product, StoreSettings } from '@/lib/types';
 import EmptyState from '@/components/common/EmptyState';
 import TableThumbnail from '@/components/admin/TableThumbnail';
-import { Package, Edit, Trash2, RefreshCw, Loader2 } from '@/components/common/Icons';
+import { Package, Edit, Trash2, RefreshCw, Loader2, Layers } from '@/components/common/Icons';
 import { formatPrice } from '@/lib/utils/whatsapp';
 
 interface ProductListTableProps {
@@ -86,6 +86,8 @@ export default function ProductListTable({
               {paginatedProducts.map(product => {
                 const primaryImage = product.images?.find(img => img.is_primary)?.url || product.images?.[0]?.url || fallbackPlaceholder;
                 const isSyncing = syncingProductId === product.id;
+                const isVariable = Boolean(product.has_variants || (product.variants && product.variants.length > 0));
+                const variantCount = product.variants?.length ?? 0;
                 return (
                   <tr 
                     key={product.id} 
@@ -114,13 +116,25 @@ export default function ProductListTable({
                           onPreview={setPreviewImageUrl} 
                         />
                         <div className="min-w-0 flex-1">
-                          <p 
-                            className="font-bold text-gray-900 dark:text-white text-xs md:text-sm truncate cursor-pointer hover:text-[#e94560] transition-colors" 
-                            title={product.name}
-                            onClick={() => handleEditProduct(product.id, filteredProducts)}
-                          >
-                            {(product.name || '').replace(/^[\s*#-]+/, '').replace(/[*_~`]/g, '').trim()}
-                          </p>
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <p 
+                              className="font-bold text-gray-900 dark:text-white text-xs md:text-sm truncate cursor-pointer hover:text-[#e94560] transition-colors min-w-0" 
+                              title={product.name}
+                              onClick={() => handleEditProduct(product.id, filteredProducts)}
+                            >
+                              {(product.name || '').replace(/^[\s*#-]+/, '').replace(/[*_~`]/g, '').trim()}
+                            </p>
+                            {isVariable && (
+                              <span 
+                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/80 text-[10px] font-extrabold tracking-tight shrink-0 select-none shadow-2xs" 
+                                title={`Variable Product: ${variantCount} variant${variantCount === 1 ? '' : 's'}`}
+                              >
+                                <Layers className="w-2.5 h-2.5 text-purple-600 dark:text-purple-400" />
+                                <span>Variable</span>
+                                {variantCount > 0 && <span className="text-[9px] font-bold text-purple-600/80 dark:text-purple-400/80">({variantCount})</span>}
+                              </span>
+                            )}
+                          </div>
                           {product.product_categories && product.product_categories.length > 0 ? (
                             <div className="flex flex-nowrap overflow-hidden items-center gap-1 mt-0.5">
                               {product.product_categories.slice(0, 2).map((pc) => pc.category ? (
@@ -147,8 +161,8 @@ export default function ProductListTable({
                       {formatPrice(product.price, settings.currency_symbol)}
                     </td>
                     <td className="py-2.5 px-1.5 font-semibold text-xs hidden lg:table-cell w-24">
-                      {product.has_variants && product.variants ? (
-                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-black bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 whitespace-nowrap">
+                      {isVariable && product.variants ? (
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-black bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 whitespace-nowrap" title={`${variantCount} variants total stock`}>
                           Variants ({product.variants.reduce((sum, v) => sum + v.stock, 0)})
                         </span>
                       ) : product.stock === 0 ? (
@@ -303,6 +317,8 @@ export default function ProductListTable({
         {paginatedProducts.map(product => {
           const primaryImage = product.images?.find(img => img.is_primary)?.url || product.images?.[0]?.url || fallbackPlaceholder;
           const isSyncing = syncingProductId === product.id;
+          const isVariable = Boolean(product.has_variants || (product.variants && product.variants.length > 0));
+          const variantCount = product.variants?.length ?? 0;
           return (
             <div 
               key={product.id} 
@@ -330,9 +346,23 @@ export default function ProductListTable({
                 />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2">
-                    <h3 className="text-[11px] sm:text-xs font-bold text-gray-900 dark:text-white line-clamp-2 leading-snug flex-1 break-words" title={product.name}>
-                      {(product.name || '').replace(/^[\s*#-]+/, '').replace(/[*_~`]/g, '').trim()}
-                    </h3>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <h3 className="text-[11px] sm:text-xs font-bold text-gray-900 dark:text-white line-clamp-2 leading-snug break-words" title={product.name}>
+                          {(product.name || '').replace(/^[\s*#-]+/, '').replace(/[*_~`]/g, '').trim()}
+                        </h3>
+                        {isVariable && (
+                          <span 
+                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/80 text-[9.5px] font-extrabold shrink-0 select-none shadow-2xs"
+                            title={`Variable Product: ${variantCount} variants`}
+                          >
+                            <Layers className="w-2.5 h-2.5 text-purple-600 dark:text-purple-400" />
+                            <span>Variable</span>
+                            {variantCount > 0 && <span className="text-[9px] font-bold text-purple-600/80 dark:text-purple-400/80">({variantCount})</span>}
+                          </span>
+                        )}
+                      </div>
+                    </div>
                     <span className="text-[11px] sm:text-xs font-bold text-gray-900 dark:text-white flex-shrink-0">{formatPrice(product.price, settings.currency_symbol)}</span>
                   </div>
                   {product.product_categories && product.product_categories.length > 0 ? (
