@@ -139,3 +139,21 @@ export const getTimelineNoteText = (order: Order): string => {
   if (order.staff_notes && order.staff_notes.trim()) return order.staff_notes.trim();
   return 'Timeline note added';
 };
+
+/**
+ * Formats order created_at into real local date and time with 12-hour AM/PM format (Asia/Karachi).
+ * Example: "Nov 17, 5:26 AM"
+ */
+export const formatOrderDateTime = (dateStr: string | null | undefined): { date: string; time: string; full: string } => {
+  if (!dateStr) return { date: '—', time: '', full: '—' };
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return { date: '—', time: '', full: '—' };
+    const date = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'Asia/Karachi' });
+    const time = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'Asia/Karachi' });
+    const full = `${date}, ${time}`;
+    return { date, time, full };
+  } catch {
+    return { date: '—', time: '', full: '—' };
+  }
+};

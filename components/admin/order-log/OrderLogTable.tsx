@@ -7,7 +7,7 @@ import { Package, Eye, MessageSquare } from '@/components/common/Icons';
 import { Order, StoreSettings } from '@/lib/types';
 import { formatPrice } from '@/lib/utils/whatsapp';
 import { getItemVariant } from '@/lib/utils/formatVariant';
-import { isOrderPaid, isOrderUnfulfilled, getOrderPaymentMethod, getDeliveryStatus, hasTimelineNote, getTimelineNoteText } from './orderLogUtils';
+import { isOrderPaid, isOrderUnfulfilled, getOrderPaymentMethod, getDeliveryStatus, hasTimelineNote, getTimelineNoteText, formatOrderDateTime } from './orderLogUtils';
 import { OrderQuickViewModal } from './OrderQuickViewModal';
 import { saveOrderNavContext, getOrderNavContext, restoreOrderScrollAndHighlight } from '@/lib/hooks/useOrderNav';
 
@@ -180,10 +180,15 @@ export function OrderLogTable({
                   </td>
                 )}
                 {visibleColumns.includes('date') && (
-                  <td className="py-2.5 px-2 text-xs text-gray-500 font-medium w-24" suppressHydrationWarning>
-                    <span suppressHydrationWarning>
-                      {new Date(order.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'Asia/Karachi' })}
-                    </span>
+                  <td className="py-2.5 px-2 text-xs text-gray-500 font-medium w-28 whitespace-nowrap" suppressHydrationWarning>
+                    <div suppressHydrationWarning className="leading-tight">
+                      <span className="font-semibold text-gray-900 dark:text-gray-100 block">
+                        {formatOrderDateTime(order.created_at).date}
+                      </span>
+                      <span className="text-[11px] text-gray-400 dark:text-gray-500 block font-mono">
+                        {formatOrderDateTime(order.created_at).time}
+                      </span>
+                    </div>
                   </td>
                 )}
                 {visibleColumns.includes('customer') && (
@@ -311,8 +316,8 @@ export function OrderLogTable({
                   </span>
                 )}
                 <span className="text-[11px] text-gray-300 dark:text-gray-600">•</span>
-                <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
-                  {new Date(order.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                <span className="text-xs text-gray-500 dark:text-gray-400 font-medium whitespace-nowrap" suppressHydrationWarning>
+                  {formatOrderDateTime(order.created_at).full}
                 </span>
               </div>
               <div onClick={(e) => e.stopPropagation()} className="shrink-0">

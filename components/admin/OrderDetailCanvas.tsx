@@ -638,52 +638,57 @@ export default function OrderDetailCanvas({ order: initialOrder, settings }: Ord
               <div className="border-t border-gray-100 dark:border-gray-800/80" />
 
               {/* Fulfillment Section */}
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-[13.5px] font-bold text-gray-800 dark:text-gray-200">Fulfillment</span>
-                  {isUpdating ? (
-                    <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full border bg-slate-800 text-white border-slate-700 inline-flex items-center gap-1.5 animate-pulse">
-                      <span className="w-2 h-2 border-2 border-white border-t-transparent rounded-full animate-spin shrink-0" />
-                      UPDATING...
-                    </span>
-                  ) : (
-                    <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${order.fulfillment_status === 'fulfilled'
-                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-400 dark:border-emerald-500/30'
-                        : 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700'
-                      }`}>
-                      {(order.fulfillment_status || 'unfulfilled').toUpperCase()}
-                    </span>
-                  )}
-                  {order.tracking_number && (
-                    <LiveCourierBadge
-                      trackingNumber={order.tracking_number}
-                      courierName={order.courier_name}
-                      orderStatus={order.status}
-                    />
-                  )}
+              <div className="space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[13.5px] font-bold text-gray-800 dark:text-gray-200">Fulfillment</span>
+                    {isUpdating ? (
+                      <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full border bg-slate-800 text-white border-slate-700 inline-flex items-center gap-1.5 animate-pulse">
+                        <span className="w-2 h-2 border-2 border-white border-t-transparent rounded-full animate-spin shrink-0" />
+                        UPDATING...
+                      </span>
+                    ) : (
+                      <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${order.fulfillment_status === 'fulfilled'
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-400 dark:border-emerald-500/30'
+                          : 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700'
+                        }`}>
+                        {(order.fulfillment_status || 'unfulfilled').toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Action buttons: smart-fit on desktop, proportional on mobile */}
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <button
+                      onClick={() => router.push(`/admin/orders/postex-booking?id=${order.id}`)}
+                      className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#2c6ecb] hover:bg-[#20549c] text-white text-[12px] font-bold cursor-pointer active:scale-95 transition-all shadow-xs whitespace-nowrap"
+                      title="Book or manage courier at PostEx"
+                    >
+                      <Package className="w-3.5 h-3.5" />
+                      Book at PostEx
+                    </button>
+                    <button
+                      onClick={() => handleSetFulfillment(order.fulfillment_status === 'fulfilled' ? 'unfulfilled' : 'fulfilled')}
+                      className={`flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[12px] font-bold cursor-pointer active:scale-95 transition-all shadow-xs whitespace-nowrap ${order.fulfillment_status === 'fulfilled'
+                          ? 'border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
+                          : 'bg-emerald-700 hover:bg-emerald-800 text-white'
+                        }`}
+                    >
+                      <Check className="w-3.5 h-3.5" />
+                      {order.fulfillment_status === 'fulfilled' ? 'Mark Unfulfilled' : 'Mark Fulfilled'}
+                    </button>
+                  </div>
                 </div>
 
-                {/* Action buttons: smart-fit on desktop, proportional on mobile */}
-                <div className="flex items-center gap-2 w-full sm:w-auto">
-                  <button
-                    onClick={() => router.push(`/admin/orders/postex-booking?id=${order.id}`)}
-                    className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#2c6ecb] hover:bg-[#20549c] text-white text-[12px] font-bold cursor-pointer active:scale-95 transition-all shadow-xs whitespace-nowrap"
-                    title="Book or manage courier at PostEx"
-                  >
-                    <Package className="w-3.5 h-3.5" />
-                    Book at PostEx
-                  </button>
-                  <button
-                    onClick={() => handleSetFulfillment(order.fulfillment_status === 'fulfilled' ? 'unfulfilled' : 'fulfilled')}
-                    className={`flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[12px] font-bold cursor-pointer active:scale-95 transition-all shadow-xs whitespace-nowrap ${order.fulfillment_status === 'fulfilled'
-                        ? 'border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
-                        : 'bg-emerald-700 hover:bg-emerald-800 text-white'
-                      }`}
-                  >
-                    <Check className="w-3.5 h-3.5" />
-                    {order.fulfillment_status === 'fulfilled' ? 'Mark Unfulfilled' : 'Mark Fulfilled'}
-                  </button>
-                </div>
+                {/* Dedicated Courier Tracking Box (When tracking number exists) */}
+                {order.tracking_number && (
+                  <LiveCourierBadge
+                    trackingNumber={order.tracking_number}
+                    courierName={order.courier_name}
+                    orderStatus={order.status}
+                    variant="card"
+                  />
+                )}
               </div>
             </div>
 

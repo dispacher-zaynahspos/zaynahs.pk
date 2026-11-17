@@ -12,6 +12,7 @@ interface TrafficGlobeProps {
   rangeLabel?: string;
   initialZoom?: number;
   initialCenter?: [number, number];
+  focusTarget?: { city: string; lat: number; lng: number; zoom?: number; timestamp: number } | null;
 }
 
 export default function TrafficGlobe({
@@ -21,8 +22,9 @@ export default function TrafficGlobe({
   height = 320,
   liveCount,
   rangeLabel,
-  initialZoom = 2.8,
-  initialCenter = [69.3, 30.4],
+  initialZoom = 5.0,
+  initialCenter = [71.8, 30.8],
+  focusTarget,
 }: TrafficGlobeProps) {
   return (
     <TrafficWorldMap
@@ -35,6 +37,7 @@ export default function TrafficGlobe({
       initialCenter={initialCenter}
       liveCount={liveCount}
       rangeLabel={rangeLabel}
+      focusTarget={focusTarget}
     />
   );
 }

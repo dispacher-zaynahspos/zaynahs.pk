@@ -10,6 +10,7 @@ interface MapViewProps {
   height?: number | string;
   liveCount?: number;
   rangeLabel?: string;
+  focusTarget?: { city: string; lat: number; lng: number; zoom?: number; timestamp: number } | null;
 }
 
 export default function MapView({
@@ -19,6 +20,7 @@ export default function MapView({
   height = 500,
   liveCount,
   rangeLabel,
+  focusTarget,
 }: MapViewProps) {
   return (
     <TrafficWorldMap
@@ -27,10 +29,11 @@ export default function MapView({
       countries={countries}
       height={height}
       showControls={true}
-      initialZoom={4.5}
-      initialCenter={[69.3, 30.4]}
+      initialZoom={5.8}
+      initialCenter={[71.8, 30.8]}
       liveCount={liveCount}
       rangeLabel={rangeLabel}
+      focusTarget={focusTarget}
     />
   );
 }

@@ -121,6 +121,17 @@ export function getCustomerTemplate(emailType: string, vars: Record<string, stri
             <strong>Next Step:</strong> You will receive a confirmation notice as soon as your order has been packed and scheduled for shipping.
           </div>
 
+          ${vars.whatsapp_url ? `
+          <div style="margin: 22px 0; text-align: center;">
+            <a href="${vars.whatsapp_url}" target="_blank" style="background-color: #25D366; color: #ffffff; padding: 13px 28px; border-radius: 10px; font-weight: 700; font-size: 14px; text-decoration: none; display: inline-block; letter-spacing: 0.2px; box-shadow: 0 3px 6px rgba(37,211,102,0.25);">
+              <span style="font-size: 16px; vertical-align: middle; margin-right: 6px;">💬</span>
+              <span style="vertical-align: middle;">Need Help? Chat with Us on WhatsApp →</span>
+            </a>
+            <p style="margin: 8px 0 0 0; font-size: 12px; color: #64748b;">
+              Questions about this order? Reach out to our official store WhatsApp support anytime.
+            </p>
+          </div>` : ''}
+
           ${getOrderSummary(vars)}
         `
       };
@@ -143,6 +154,14 @@ export function getCustomerTemplate(emailType: string, vars: Record<string, stri
             Estimated delivery timeframe is <strong>3–5 working days</strong>. We will send you the courier tracking consignment details as soon as it is dispatched!
           </div>
 
+          ${vars.whatsapp_url ? `
+          <div style="margin: 22px 0; text-align: center;">
+            <a href="${vars.whatsapp_url}" target="_blank" style="background-color: #25D366; color: #ffffff; padding: 13px 28px; border-radius: 10px; font-weight: 700; font-size: 14px; text-decoration: none; display: inline-block; letter-spacing: 0.2px; box-shadow: 0 3px 6px rgba(37,211,102,0.25);">
+              <span style="font-size: 16px; vertical-align: middle; margin-right: 6px;">💬</span>
+              <span style="vertical-align: middle;">Questions? Contact Us on WhatsApp →</span>
+            </a>
+          </div>` : ''}
+
           ${getOrderSummary(vars)}
         `
       };
@@ -160,6 +179,14 @@ export function getCustomerTemplate(emailType: string, vars: Record<string, stri
               Hi <strong>${vars.customer_name}</strong>, our warehouse team is currently inspecting and carefully packing your order <strong>#${vars.order_id}</strong>.
             </p>
           </div>
+
+          ${vars.whatsapp_url ? `
+          <div style="margin: 22px 0; text-align: center;">
+            <a href="${vars.whatsapp_url}" target="_blank" style="background-color: #25D366; color: #ffffff; padding: 13px 28px; border-radius: 10px; font-weight: 700; font-size: 14px; text-decoration: none; display: inline-block; letter-spacing: 0.2px; box-shadow: 0 3px 6px rgba(37,211,102,0.25);">
+              <span style="font-size: 16px; vertical-align: middle; margin-right: 6px;">💬</span>
+              <span style="vertical-align: middle;">Questions? Chat on WhatsApp →</span>
+            </a>
+          </div>` : ''}
 
           ${getOrderSummary(vars)}
         `
@@ -358,6 +385,14 @@ export function getCustomerTemplate(emailType: string, vars: Record<string, stri
             If you did not request this cancellation or would like to re-order, our team is here to assist you via WhatsApp or Email.
           </p>
 
+          ${vars.whatsapp_url ? `
+          <div style="margin: 20px 0; text-align: center;">
+            <a href="${vars.whatsapp_url}" target="_blank" style="background-color: #25D366; color: #ffffff; padding: 12px 26px; border-radius: 10px; font-weight: 700; font-size: 14px; text-decoration: none; display: inline-block; letter-spacing: 0.2px; box-shadow: 0 3px 6px rgba(37,211,102,0.25);">
+              <span style="font-size: 16px; vertical-align: middle; margin-right: 6px;">💬</span>
+              <span style="vertical-align: middle;">Chat with Support on WhatsApp →</span>
+            </a>
+          </div>` : ''}
+
           ${getCTAButton('Browse New Arrivals →', `${vars.site_url}/shop`, btnBg, btnText)}
 
           ${getOrderSummary(vars)}
@@ -381,6 +416,14 @@ export function getCustomerTemplate(emailType: string, vars: Record<string, stri
           <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px 16px; margin: 18px 0; font-size: 13px; color: #334155;">
             The refunded amount will reflect in your account within <strong>3–7 business days</strong>, depending on your financial institution or method of payment.
           </div>
+
+          ${vars.whatsapp_url ? `
+          <div style="margin: 20px 0; text-align: center;">
+            <a href="${vars.whatsapp_url}" target="_blank" style="background-color: #25D366; color: #ffffff; padding: 12px 26px; border-radius: 10px; font-weight: 700; font-size: 14px; text-decoration: none; display: inline-block; letter-spacing: 0.2px; box-shadow: 0 3px 6px rgba(37,211,102,0.25);">
+              <span style="font-size: 16px; vertical-align: middle; margin-right: 6px;">💬</span>
+              <span style="vertical-align: middle;">Need Assistance? WhatsApp Support →</span>
+            </a>
+          </div>` : ''}
         `
       };
 
@@ -429,6 +472,14 @@ export function getCustomerTemplate(emailType: string, vars: Record<string, stri
           ${getOrderSummary(vars)}
 
           ${getCTAButton('Complete Checkout Now →', vars.checkout_url || `${vars.site_url}/cart`, btnBg, btnText)}
+
+          ${vars.whatsapp_url ? `
+          <div style="margin: 16px 0; text-align: center;">
+            <a href="${vars.whatsapp_url}" target="_blank" style="background-color: #25D366; color: #ffffff; padding: 12px 26px; border-radius: 10px; font-weight: 700; font-size: 14px; text-decoration: none; display: inline-block; letter-spacing: 0.2px; box-shadow: 0 3px 6px rgba(37,211,102,0.25);">
+              <span style="font-size: 16px; vertical-align: middle; margin-right: 6px;">💬</span>
+              <span style="vertical-align: middle;">Need Help Placing Order? WhatsApp Us →</span>
+            </a>
+          </div>` : ''}
         `
       };
 

@@ -173,7 +173,7 @@ export const getProductById = async (id: string): Promise<Product | null> => {
       product.meta_sync_status = latestLog.status as Product['meta_sync_status'];
       product.meta_sync_error = latestLog.error || undefined;
       product.meta_last_synced_at = latestLog.created_at;
-    } else {
+    } else if (!product.meta_sync_status) {
       product.meta_sync_status = 'pending';
       product.meta_sync_error = undefined;
       product.meta_last_synced_at = undefined;
@@ -188,7 +188,7 @@ export const getProductById = async (id: string): Promise<Product | null> => {
 
 export const getAllProductsAdmin = async (): Promise<Product[]> => {
   try {
-    const supabase = staticSupabase;
+    const supabase = supabaseAdmin;
     const { data, error } = await supabase
       .from('products')
       .select('*, product_images(*), product_variants(*), categories!category_id(*), product_categories(*, categories(*))')
@@ -201,7 +201,7 @@ export const getAllProductsAdmin = async (): Promise<Product[]> => {
 
     if (products.length > 0) {
       const productIds = products.map(p => p.id);
-      const { data: logs, error: logsError } = await supabase
+      const { data: logs, error: logsError } = await supabaseAdmin
         .from('meta_sync_log')
         .select('product_id, status, error, created_at')
         .in('product_id', productIds)
@@ -223,7 +223,7 @@ export const getAllProductsAdmin = async (): Promise<Product[]> => {
             p.meta_sync_status = log.status as Product['meta_sync_status'];
             p.meta_sync_error = log.error || undefined;
             p.meta_last_synced_at = log.created_at;
-          } else {
+          } else if (!p.meta_sync_status) {
             p.meta_sync_status = 'pending';
             p.meta_sync_error = undefined;
             p.meta_last_synced_at = undefined;

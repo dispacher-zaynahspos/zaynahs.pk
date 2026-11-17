@@ -30,6 +30,11 @@ export function getAdminTemplate(emailType: string, vars: Record<string, string>
                 <td style="padding: 6px 0; color: #64748b;">Phone</td>
                 <td style="padding: 6px 0; font-weight: 600;">
                   <a href="tel:${vars.customer_phone}" style="color: #0284c7; text-decoration: none;">${vars.customer_phone}</a>
+                  ${vars.customer_whatsapp_url ? `
+                    <a href="${vars.customer_whatsapp_url}" target="_blank" style="margin-left: 8px; display: inline-block; background-color: #25D366; color: #ffffff; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 6px; text-decoration: none; vertical-align: middle;">
+                      WhatsApp 💬
+                    </a>
+                  ` : ''}
                 </td>
               </tr>` : ''}
               ${vars.customer_email ? `
@@ -46,7 +51,21 @@ export function getAdminTemplate(emailType: string, vars: Record<string, string>
             </table>
           </div>
 
-          ${getCTAButton('Manage Order in Dashboard →', `${vars.admin_panel_url}/orders`, btnBg, btnText)}
+          <!-- Admin Action Buttons (WhatsApp + Dashboard) -->
+          <div style="margin: 22px 0 24px 0; text-align: center;">
+            ${vars.customer_whatsapp_url ? `
+            <div style="margin-bottom: 12px;">
+              <a href="${vars.customer_whatsapp_url}" target="_blank" style="background-color: #25D366; color: #ffffff; padding: 13px 28px; border-radius: 10px; font-weight: 700; font-size: 14px; text-decoration: none; display: inline-block; letter-spacing: 0.2px; box-shadow: 0 3px 6px rgba(37,211,102,0.25);">
+                <span style="font-size: 16px; vertical-align: middle; margin-right: 6px;">💬</span>
+                <span style="vertical-align: middle;">Chat with Customer on WhatsApp →</span>
+              </a>
+            </div>` : ''}
+            <div>
+              <a href="${vars.admin_panel_url}/orders" target="_blank" style="background-color: ${btnBg}; color: ${btnText}; padding: 13px 28px; border-radius: 10px; font-weight: 700; font-size: 14px; text-decoration: none; display: inline-block; letter-spacing: 0.2px; box-shadow: 0 3px 6px rgba(0,0,0,0.08);">
+                Manage Order in Dashboard →
+              </a>
+            </div>
+          </div>
 
           ${getOrderSummary(vars)}
         `
@@ -69,7 +88,21 @@ export function getAdminTemplate(emailType: string, vars: Record<string, string>
             <strong>Stated Reason:</strong> ${vars.cancel_reason}
           </div>` : ''}
 
-          ${getCTAButton('View in Dashboard →', `${vars.admin_panel_url}/orders`, btnBg, btnText)}
+          <!-- Admin Action Buttons -->
+          <div style="margin: 22px 0 24px 0; text-align: center;">
+            ${vars.customer_whatsapp_url ? `
+            <div style="margin-bottom: 12px;">
+              <a href="${vars.customer_whatsapp_url}" target="_blank" style="background-color: #25D366; color: #ffffff; padding: 12px 26px; border-radius: 10px; font-weight: 700; font-size: 13px; text-decoration: none; display: inline-block; letter-spacing: 0.2px; box-shadow: 0 3px 6px rgba(37,211,102,0.25);">
+                <span style="font-size: 15px; vertical-align: middle; margin-right: 6px;">💬</span>
+                <span style="vertical-align: middle;">Contact Customer on WhatsApp →</span>
+              </a>
+            </div>` : ''}
+            <div>
+              <a href="${vars.admin_panel_url}/orders" target="_blank" style="background-color: ${btnBg}; color: ${btnText}; padding: 12px 26px; border-radius: 10px; font-weight: 700; font-size: 13px; text-decoration: none; display: inline-block;">
+                View in Dashboard →
+              </a>
+            </div>
+          </div>
         `
       };
 
@@ -182,11 +215,31 @@ export function getAdminTemplate(emailType: string, vars: Record<string, string>
           <div style="background-color: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 18px 20px; margin: 16px 0; font-size: 14px; color: #334155;">
             <p style="margin: 0 0 6px 0;"><strong>Customer:</strong> ${vars.customer_name}</p>
             ${vars.customer_email ? `<p style="margin: 0 0 6px 0;"><strong>Email:</strong> <a href="mailto:${vars.customer_email}" style="color: #0284c7; text-decoration: none;">${vars.customer_email}</a></p>` : ''}
-            ${vars.customer_phone ? `<p style="margin: 0 0 6px 0;"><strong>Phone:</strong> <a href="tel:${vars.customer_phone}" style="color: #0284c7; text-decoration: none;">${vars.customer_phone}</a></p>` : ''}
+            ${vars.customer_phone ? `
+            <p style="margin: 0 0 6px 0;">
+              <strong>Phone:</strong> <a href="tel:${vars.customer_phone}" style="color: #0284c7; text-decoration: none;">${vars.customer_phone}</a>
+              ${vars.customer_whatsapp_url ? `
+                <a href="${vars.customer_whatsapp_url}" target="_blank" style="margin-left: 8px; display: inline-block; background-color: #25D366; color: #ffffff; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 6px; text-decoration: none; vertical-align: middle;">
+                  WhatsApp 💬
+                </a>
+              ` : ''}
+            </p>` : ''}
             <p style="margin: 0;"><strong>Last Activity:</strong> ${vars.last_activity || 'Recently'}</p>
           </div>
 
-          ${getCTAButton('View in Abandoned Carts →', `${vars.admin_panel_url}/abandoned-carts`, btnBg, btnText)}
+          <div style="margin: 22px 0 24px 0; text-align: center;">
+            ${vars.customer_whatsapp_url ? `
+            <div style="margin-bottom: 12px;">
+              <a href="${vars.customer_whatsapp_url}" target="_blank" style="background-color: #25D366; color: #ffffff; padding: 12px 26px; border-radius: 10px; font-weight: 700; font-size: 13px; text-decoration: none; display: inline-block; box-shadow: 0 3px 6px rgba(37,211,102,0.25);">
+                💬 Contact Customer on WhatsApp to Recover Cart →
+              </a>
+            </div>` : ''}
+            <div>
+              <a href="${vars.admin_panel_url}/abandoned-carts" target="_blank" style="background-color: ${btnBg}; color: ${btnText}; padding: 12px 26px; border-radius: 10px; font-weight: 700; font-size: 13px; text-decoration: none; display: inline-block;">
+                View in Abandoned Carts →
+              </a>
+            </div>
+          </div>
         `
       };
 
@@ -217,6 +270,11 @@ export function getAdminTemplate(emailType: string, vars: Record<string, string>
                 <td style="padding: 6px 0; color: #64748b; vertical-align: top;">Phone</td>
                 <td style="padding: 6px 0; color: ${primary};">
                   <a href="tel:${vars.customer_phone}" style="color: #0284c7; text-decoration: none; font-weight: 600;">${vars.customer_phone}</a>
+                  ${vars.customer_whatsapp_url ? `
+                    <a href="${vars.customer_whatsapp_url}" target="_blank" style="margin-left: 8px; display: inline-block; background-color: #25D366; color: #ffffff; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 6px; text-decoration: none; vertical-align: middle;">
+                      WhatsApp 💬
+                    </a>
+                  ` : ''}
                 </td>
               </tr>` : ''}
               <tr>

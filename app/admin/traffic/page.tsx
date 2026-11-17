@@ -55,7 +55,30 @@ export default function TrafficPage() {
   const [customStart, setCustomStart] = useState('');
   const [customEnd, setCustomEnd] = useState('');
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [mapFocusTarget, setMapFocusTarget] = useState<{
+    city: string;
+    lat: number;
+    lng: number;
+    zoom?: number;
+    timestamp: number;
+  } | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const handleCityClick = useCallback((cityName: string) => {
+    const coords = KNOWN_CITIES[cityName];
+    if (!coords) return;
+    setMapFocusTarget({
+      city: cityName,
+      lat: coords.lat,
+      lng: coords.lng,
+      zoom: 20,
+      timestamp: Date.now(),
+    });
+    const mapEl = document.getElementById('traffic-map-card');
+    if (mapEl) {
+      mapEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, []);
 
   const fetchData = useCallback(async () => {
     try {
@@ -241,7 +264,7 @@ export default function TrafficPage() {
         <>
           {/* Map + Stats */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xs overflow-hidden" style={{ minHeight: 500 }}>
+            <div id="traffic-map-card" className="lg:col-span-2 bg-white dark:bg-[#16162a] rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xs overflow-hidden" style={{ minHeight: 500 }}>
               <TrafficMap
                 visitorDots={visitorDots}
                 orderDots={orderDots}
@@ -249,6 +272,7 @@ export default function TrafficPage() {
                 height={500}
                 liveCount={data?.liveCount ?? 0}
                 rangeLabel={range === 'custom' ? 'Custom' : range}
+                focusTarget={mapFocusTarget}
               />
             </div>
 
@@ -373,17 +397,34 @@ export default function TrafficPage() {
               </div>
               {data?.cities && data.cities.length > 0 ? (
                 <>
-                  <div className="space-y-2">
-                    {displayedCities.map((c, i) => (
-                      <div key={i} className="flex items-center gap-3 py-1.5">
-                        <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 flex-1 truncate">{c.city}</span>
-                        <span className="text-[10px] text-gray-400 font-medium uppercase">{c.country}</span>
-                        <div className="flex-1 h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden max-w-[80px]">
-                          <div className="h-full rounded-full bg-emerald-500" style={{ width: `${Math.min(100, c.visitors * 5)}%` }} />
+                  <div className="space-y-1.5">
+                    {displayedCities.map((c, i) => {
+                      const hasCoords = Boolean(KNOWN_CITIES[c.city]);
+                      return (
+                        <div
+                          key={i}
+                          onClick={() => hasCoords && handleCityClick(c.city)}
+                          className={`flex items-center gap-3 py-1.5 px-2 rounded-xl transition-all ${
+                            hasCoords ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-white/5 group' : ''
+                          }`}
+                          title={hasCoords ? `Click to zoom map directly into ${c.city}` : undefined}
+                        >
+                          <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 flex-1 truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 flex items-center gap-1.5">
+                            <span>{c.city}</span>
+                            {hasCoords && (
+                              <span className="text-[9px] font-bold text-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                                ⌖ Zoom
+                              </span>
+                            )}
+                          </span>
+                          <span className="text-[10px] text-gray-400 font-medium uppercase">{c.country}</span>
+                          <div className="flex-1 h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden max-w-[80px]">
+                            <div className="h-full rounded-full bg-emerald-500" style={{ width: `${Math.min(100, c.visitors * 5)}%` }} />
+                          </div>
+                          <span className="text-xs font-bold text-gray-900 dark:text-white w-8 text-right">{c.visitors}</span>
                         </div>
-                        <span className="text-xs font-bold text-gray-900 dark:text-white w-8 text-right">{c.visitors}</span>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
 
                   {data.cities.length > 8 && (
@@ -446,14 +487,33 @@ export default function TrafficPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50 dark:divide-gray-800/50 font-semibold text-gray-700 dark:text-gray-300">
-                      {displayedOrderCities.map((c, i) => (
-                        <tr key={i} className="hover:bg-gray-50/30 dark:hover:bg-white/2 transition-colors">
-                          <td className={`py-3 font-bold ${c.city === 'Unknown' ? 'text-gray-400 italic' : 'text-gray-900 dark:text-white'}`}>{c.city}</td>
-                          <td className="py-3 text-right font-bold">{c.orders}</td>
-                          <td className="py-3 text-right font-black text-gray-900 dark:text-white">{formatPrice(c.revenue, 'Rs.')}</td>
-                          <td className="py-3 text-right text-gray-500">{formatPrice(c.orders > 0 ? c.revenue / c.orders : 0, 'Rs.')}</td>
-                        </tr>
-                      ))}
+                      {displayedOrderCities.map((c, i) => {
+                        const hasCoords = Boolean(KNOWN_CITIES[c.city]);
+                        return (
+                          <tr
+                            key={i}
+                            onClick={() => hasCoords && handleCityClick(c.city)}
+                            className={`hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors ${
+                              hasCoords ? 'cursor-pointer group' : ''
+                            }`}
+                            title={hasCoords ? `Click to zoom map directly into ${c.city}` : undefined}
+                          >
+                            <td className={`py-3 font-bold ${c.city === 'Unknown' ? 'text-gray-400 italic' : 'text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400'}`}>
+                              <div className="flex items-center gap-1.5">
+                                <span>{c.city}</span>
+                                {hasCoords && (
+                                  <span className="text-[9px] font-bold text-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    ⌖
+                                  </span>
+                                )}
+                              </div>
+                            </td>
+                            <td className="py-3 text-right font-bold">{c.orders}</td>
+                            <td className="py-3 text-right font-black text-gray-900 dark:text-white">{formatPrice(c.revenue, 'Rs.')}</td>
+                            <td className="py-3 text-right text-gray-500">{formatPrice(c.orders > 0 ? c.revenue / c.orders : 0, 'Rs.')}</td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>

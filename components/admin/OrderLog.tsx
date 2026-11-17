@@ -110,8 +110,89 @@ export default function OrderLog({ initialOrders, settings, initialFailedAttempt
 
       {/* Sticky Filter Tabs & Controls Toolbar (Flush with AdminHeader, zero gap) */}
       <div className="sticky top-0 z-20 -mt-3 sm:-mt-4 pt-3 sm:pt-4 -mx-3 sm:-mx-4 md:-mx-5 px-3 sm:px-4 md:px-5 bg-slate-50 dark:bg-[#0c0c16] pb-2">
-        {/* Filter Tabs Row */}
-        <div className="filter-tabs-row flex items-center gap-2 border border-gray-200 dark:border-gray-800 bg-white/95 dark:bg-[#16162a]/95 backdrop-blur-md rounded-t-xl px-2 sm:px-3 py-1 select-none shadow-xs">
+        {/* Mobile Layout (< md): Native App Smart Controls + Full-Width Pill Tabs */}
+        <div className="md:hidden space-y-2">
+          {/* Mobile Top Controls Bar */}
+          <div className="flex items-center gap-2 bg-white/95 dark:bg-[#16162a]/95 backdrop-blur-md border border-gray-200 dark:border-gray-800 rounded-xl px-2.5 py-1.5 shadow-2xs">
+            <button
+              type="button"
+              onClick={() => o.setIsSearchExpanded(!o.isSearchExpanded)}
+              className={`flex-1 flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all ${
+                o.isSearchExpanded || o.searchQuery
+                  ? 'bg-blue-50 dark:bg-blue-950/40 border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400'
+                  : 'bg-gray-50 dark:bg-white/5 border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400'
+              }`}
+            >
+              <Search className="h-3.5 w-3.5 shrink-0 text-gray-400" />
+              <span className="truncate">
+                {o.searchQuery ? `"${o.searchQuery}"` : 'Search orders...'}
+              </span>
+              {o.searchQuery && (
+                <span
+                  onClick={(e) => { e.stopPropagation(); o.setSearchQuery(''); }}
+                  className="ml-auto text-[10px] font-bold text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                >
+                  ✕
+                </span>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => o.setIsFiltersExpanded(!o.isFiltersExpanded)}
+              className={`h-8 px-2.5 rounded-lg border flex items-center gap-1.5 text-xs font-bold transition-all shrink-0 ${
+                o.isFiltersExpanded || o.dateFilter !== 'all' || o.statusFilter !== 'all'
+                  ? 'bg-[#e94560]/10 border-[#e94560]/30 text-[#e94560]'
+                  : 'bg-gray-50 dark:bg-white/5 border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-300'
+              }`}
+              title="Filters"
+            >
+              <SlidersHorizontal className="h-3.5 w-3.5" />
+              <span>Filters</span>
+              {(o.dateFilter !== 'all' || o.statusFilter !== 'all') && (
+                <span className="w-1.5 h-1.5 rounded-full bg-[#e94560]" />
+              )}
+            </button>
+
+            <Link
+              href="/admin/reporting"
+              className="h-8 w-8 rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-white/5 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white flex items-center justify-center transition-all shrink-0"
+              title="View reports"
+            >
+              <TrendingUp className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+
+          {/* Mobile Native Horizontal Pill Chips (100% Width, Zero Cutoff) */}
+          <div className="filter-tabs-scroll flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth py-0.5 px-0.5">
+            {([
+              { key: 'all', label: 'All' },
+              { key: 'unfulfilled', label: 'Unfulfilled' },
+              { key: 'fulfilled', label: 'Fulfilled' },
+              { key: 'unpaid', label: 'Unpaid' },
+              { key: 'open', label: 'Open' },
+              { key: 'archived', label: 'Archived' },
+            ] as const).map((tab) => {
+              const isActive = o.activeTab === tab.key;
+              return (
+                <button
+                  key={tab.key}
+                  onClick={() => { o.setActiveTab(tab.key); o.setSelectedOrderIds([]); }}
+                  className={`shrink-0 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all active:scale-95 select-none ${
+                    isActive
+                      ? 'bg-[#e94560] text-white shadow-xs'
+                      : 'bg-white dark:bg-[#16162a] text-gray-600 dark:text-gray-300 border border-gray-200/90 dark:border-gray-800'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Desktop Layout (>= md): Classic Unified Header Bar */}
+        <div className="hidden md:flex filter-tabs-row items-center gap-2 border border-gray-200 dark:border-gray-800 bg-white/95 dark:bg-[#16162a]/95 backdrop-blur-md rounded-t-xl px-2 sm:px-3 py-1 select-none shadow-xs">
           {/* Scrollable tabs — kept separate from the action icons so tabs never clip */}
           <div className="filter-tabs-scroll flex items-center flex-1 min-w-0 overflow-x-auto no-scrollbar scroll-smooth">
             {([

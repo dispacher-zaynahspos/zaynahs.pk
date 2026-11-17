@@ -63,6 +63,20 @@ export function saveAdminNavContext(ctx: AdminNavContext): void {
   }
 }
 
+/** Detect if current navigation was a page reload/refresh */
+export function isPageReload(): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    const navEntries = performance.getEntriesByType('navigation');
+    if (navEntries.length > 0) {
+      return (navEntries[0] as PerformanceNavigationTiming).type === 'reload';
+    }
+    return (window.performance as unknown as { navigation?: { type: number } })?.navigation?.type === 1;
+  } catch {
+    return false;
+  }
+}
+
 /** Retrieve saved context synchronously for a specific dashboard view */
 export function getAdminNavContext(sourceUrl: string): AdminNavContext | null {
   if (typeof window === 'undefined') return null;
@@ -71,6 +85,10 @@ export function getAdminNavContext(sourceUrl: string): AdminNavContext | null {
     const raw = sessionStorage.getItem(key) || sessionStorage.getItem(GLOBAL_ADMIN_NAV_KEY);
     if (!raw) return null;
     const ctx: AdminNavContext = JSON.parse(raw);
+    if (isPageReload() && ctx.searchQuery) {
+      ctx.searchQuery = '';
+      sessionStorage.setItem(key, JSON.stringify(ctx));
+    }
     return ctx;
   } catch {
     return null;
@@ -89,6 +107,7 @@ export function getInitialAdminFilters<T extends Record<string, unknown>>(
 
     const params = new URLSearchParams(window.location.search);
     const result = { ...defaults } as Record<string, unknown>;
+    const isReload = isPageReload();
 
     // URL params take first priority, followed by saved session storage
     if (params.has('tab')) result.activeTab = params.get('tab');
@@ -103,8 +122,9 @@ export function getInitialAdminFilters<T extends Record<string, unknown>>(
     if (params.has('endDate')) result.customEndDate = params.get('endDate');
     else if (saved.customEndDate !== undefined) result.customEndDate = saved.customEndDate;
 
-    if (params.has('search')) result.searchQuery = params.get('search');
-    else if (saved.searchQuery !== undefined) result.searchQuery = saved.searchQuery;
+    if (params.has('search') && !isReload) result.searchQuery = params.get('search');
+    else if (!isReload && saved.searchQuery !== undefined) result.searchQuery = saved.searchQuery;
+    else result.searchQuery = '';
 
     if (params.has('page') && !isNaN(Number(params.get('page')))) result.currentPage = Math.max(1, Number(params.get('page')));
     else if (typeof saved.currentPage === 'number' && saved.currentPage > 0) result.currentPage = saved.currentPage;

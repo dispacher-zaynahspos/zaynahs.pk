@@ -106,3 +106,118 @@ export function getItemVariant(
     chips,
   };
 }
+
+export interface ProductOptionAxis {
+  name: string;
+  count: number;
+  values: string[];
+}
+
+export interface ProductOptionSummary {
+  isSingle: boolean;
+  label: string; // 'Single' | `${typeCount}x${totalOptions}`
+  typeCount: number;
+  totalOptions: number;
+  totalStock: number;
+  details: ProductOptionAxis[];
+  tooltip: string;
+}
+
+/**
+ * Extracts and calculates the canonical option architecture for a product (Rule SSOT1).
+ * Formula:
+ * - Simple direct-add-to-cart product -> 'Single'
+ * - Variable product -> '{typeCount}x{totalOptions}' where typeCount is the number of
+ *   distinct variable dimensions (e.g. Size, Color), and totalOptions is the total sum
+ *   of all distinct choice values across all dimensions (e.g. 6 sizes = 1x6; 6 sizes + 3 colors = 2x9).
+ */
+export function getProductOptionSummary(product: {
+  has_variants?: boolean | null;
+  stock?: number | null;
+  variants?: Array<{
+    size?: string | null;
+    color?: string | null;
+    material?: string | null;
+    custom_option?: string | null;
+    custom_value?: string | null;
+    stock?: number | null;
+  }> | null;
+  product_variants?: Array<{
+    size?: string | null;
+    color?: string | null;
+    material?: string | null;
+    custom_option?: string | null;
+    custom_value?: string | null;
+    stock?: number | null;
+  }> | null;
+}): ProductOptionSummary {
+  const variants = product.product_variants || product.variants || [];
+  const hasVariantsFlag = Boolean(product.has_variants || variants.length > 0);
+
+  if (!hasVariantsFlag || variants.length === 0) {
+    const stock = Number(product.stock ?? 0);
+    return {
+      isSingle: true,
+      label: 'Single',
+      typeCount: 0,
+      totalOptions: 0,
+      totalStock: stock,
+      details: [],
+      tooltip: `Single Item (Direct Add to Cart) • ${stock > 0 ? `${stock.toLocaleString()} in stock` : 'Out of stock'}`
+    };
+  }
+
+  const sizes = new Set<string>();
+  const colors = new Set<string>();
+  const materials = new Set<string>();
+  const customAxes = new Map<string, Set<string>>();
+
+  for (const v of variants) {
+    if (v.size && typeof v.size === 'string' && v.size.trim()) sizes.add(v.size.trim());
+    if (v.color && typeof v.color === 'string' && v.color.trim()) colors.add(v.color.trim());
+    if (v.material && typeof v.material === 'string' && v.material.trim()) materials.add(v.material.trim());
+    if (v.custom_value && typeof v.custom_value === 'string' && v.custom_value.trim()) {
+      const optName = (v.custom_option && typeof v.custom_option === 'string' && v.custom_option.trim()) || 'Custom';
+      if (!customAxes.has(optName)) customAxes.set(optName, new Set());
+      customAxes.get(optName)!.add(v.custom_value.trim());
+    }
+  }
+
+  const axes: ProductOptionAxis[] = [];
+  if (sizes.size > 0) axes.push({ name: 'Size', count: sizes.size, values: Array.from(sizes) });
+  if (colors.size > 0) axes.push({ name: 'Color', count: colors.size, values: Array.from(colors) });
+  if (materials.size > 0) axes.push({ name: 'Material', count: materials.size, values: Array.from(materials) });
+  for (const [name, valSet] of customAxes.entries()) {
+    if (valSet.size > 0) axes.push({ name, count: valSet.size, values: Array.from(valSet) });
+  }
+
+  const totalStock = variants.reduce((sum, v) => sum + (Number(v.stock) || 0), 0);
+
+  if (axes.length === 0) {
+    return {
+      isSingle: true,
+      label: 'Single',
+      typeCount: 0,
+      totalOptions: 0,
+      totalStock,
+      details: [],
+      tooltip: `Single Item • ${totalStock > 0 ? `${totalStock.toLocaleString()} in stock` : 'Out of stock'}`
+    };
+  }
+
+  const typeCount = axes.length;
+  const totalOptions = axes.reduce((sum, a) => sum + a.count, 0);
+  const label = `${typeCount}x${totalOptions}`;
+  const breakdownStr = axes.map(a => `${a.name}: ${a.count}`).join(', ');
+  const tooltip = `${typeCount} Variable Type${typeCount > 1 ? 's' : ''}, ${totalOptions} Total Options (${breakdownStr}) • Total Stock: ${totalStock.toLocaleString()}`;
+
+  return {
+    isSingle: false,
+    label,
+    typeCount,
+    totalOptions,
+    totalStock,
+    details: axes,
+    tooltip
+  };
+}

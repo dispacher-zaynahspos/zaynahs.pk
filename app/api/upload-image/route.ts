@@ -48,6 +48,10 @@ export async function POST(request: NextRequest) {
     const file = formData.get('file') as File | null;
     const folder = (formData.get('folder') as string) || 'uploads';
     const type = formData.get('type') as string | null;
+    const isOverwrite = formData.get('is_overwrite') === 'true' || formData.get('overwrite') === 'true';
+    const exactKey = ((formData.get('exact_key') as string | null) || (formData.get('exact_path') as string | null))?.trim();
+    const customName = (formData.get('custom_name') as string | null)?.trim();
+    const mediaId = (formData.get('media_id') as string | null)?.trim();
 
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
@@ -133,35 +137,79 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const fileName = `${folder}/${baseName}_${stamp}.${outputFormat}`;
+    let fileName: string;
+    let r2StorageKey: string;
+    let supabaseStoragePath: string;
+
+    if (isOverwrite && exactKey) {
+      // IN-PLACE OVERWRITE: keep exact same storage key
+      const cleanKey = exactKey.replace(/^\/+/, '');
+      if (cleanKey.startsWith('product-images/')) {
+        r2StorageKey = cleanKey;
+        supabaseStoragePath = cleanKey.slice('product-images/'.length);
+      } else {
+        r2StorageKey = `product-images/${cleanKey}`;
+        supabaseStoragePath = cleanKey;
+      }
+      fileName = supabaseStoragePath;
+    } else {
+      // NEW UPLOAD OR SAVE AS COPY
+      const nameToUse = customName 
+        ? customName.replace(/\.[^/.]+$/, '').replace(/[^a-z0-9_\-]/gi, '_')
+        : baseName;
+      const resolvedBase = customName ? nameToUse : `${nameToUse}_${stamp}`;
+      const rawPath = folder ? `${folder}/${resolvedBase}.${outputFormat}` : `${resolvedBase}.${outputFormat}`;
+      fileName = rawPath.replace(/^\/+/, '').replace(/\/+/g, '/');
+      r2StorageKey = `product-images/${fileName}`;
+      supabaseStoragePath = fileName;
+    }
 
     // R2 first (when enabled). Under S5 mode, Supabase Storage is strictly BANNED.
     if (isR2UploadEnabled()) {
       const r2 = await uploadObjectToR2({
-        key: `product-images/${fileName}`,
+        key: r2StorageKey,
         body: new Uint8Array(outputBuffer),
         contentType,
+        cacheControl: isOverwrite ? 'public, max-age=3600, must-revalidate' : 'public, max-age=31536000, immutable',
       });
       if (r2.ok) {
         const finalSizeKb = Math.round(outputBuffer.length / 1024);
-        console.log(`[api/upload-image] ✓ →R2: ${file.name} → ${r2.key} (${finalSizeKb} KB)`);
+        console.log(`[api/upload-image] ✓ →R2 (${isOverwrite ? 'IN-PLACE' : 'COPY'}): ${file.name} → ${r2.key} (${finalSizeKb} KB)`);
 
-        // Register in media_library (Supabase DB only)
-        try {
-          await supabaseAdmin.from('media_library').insert({
-            original_filename: file.name,
-            seo_filename: `${baseName}_${stamp}.${outputFormat}`,
-            file_url: r2.url,
-            alt_text: baseName.replace(/[-_]/g, ' '),
-            title: baseName.replace(/[-_]/g, ' '),
-            bucket: 'product-images',
-            ai_generated: false,
-            ai_enabled: true,
-            file_size: outputBuffer.length,
-            mime_type: contentType,
-          });
-        } catch (dbErr) {
-          console.warn('[api/upload-image] Media library insert notice:', dbErr);
+        let mediaRecordId = mediaId || null;
+        if (isOverwrite) {
+          // Update existing row in place (NO duplicate row!)
+          if (mediaId && !mediaId.startsWith('virtual-')) {
+            try {
+              await supabaseAdmin.from('media_library').update({
+                file_size: outputBuffer.length,
+                file_url: r2.url,
+                mime_type: contentType,
+                updated_at: new Date().toISOString(),
+              }).eq('id', mediaId);
+            } catch (dbErr) {
+              console.warn('[api/upload-image] Media library in-place update notice:', dbErr);
+            }
+          }
+        } else {
+          // Register in media_library as a new copy
+          try {
+            const { data: newRow } = await supabaseAdmin.from('media_library').insert({
+              original_filename: file.name,
+              seo_filename: fileName.split('/').pop() || fileName,
+              file_url: r2.url,
+              alt_text: (customName || baseName).replace(/[-_]/g, ' '),
+              title: (customName || baseName).replace(/[-_]/g, ' '),
+              bucket: 'product-images',
+              ai_generated: false,
+              ai_enabled: true,
+              file_size: outputBuffer.length,
+              mime_type: contentType,
+            }).select('id').single();
+            if (newRow?.id) mediaRecordId = newRow.id;
+          } catch (dbErr) {
+            console.warn('[api/upload-image] Media library copy insert notice:', dbErr);
+          }
         }
 
         return NextResponse.json({
@@ -170,6 +218,7 @@ export async function POST(request: NextRequest) {
           format: outputFormat,
           storage: 'r2',
           processed,
+          mediaId: mediaRecordId,
         });
       }
 
@@ -184,16 +233,50 @@ export async function POST(request: NextRequest) {
     // Mode B (Legacy Vercel Free Mode only): Fallback to Supabase Storage
     const { error: uploadError } = await supabaseAdmin.storage
       .from('product-images')
-      .upload(fileName, outputBuffer, { contentType, upsert: true });
+      .upload(supabaseStoragePath, outputBuffer, { contentType, upsert: true });
 
     if (uploadError) {
       console.error('[api/upload-image] Supabase upload failed:', uploadError);
       return NextResponse.json({ error: uploadError.message }, { status: 500 });
     }
 
-    const { data } = supabaseAdmin.storage.from('product-images').getPublicUrl(fileName);
+    const { data } = supabaseAdmin.storage.from('product-images').getPublicUrl(supabaseStoragePath);
     const finalSizeKb = Math.round(outputBuffer.length / 1024);
-    console.log(`[api/upload-image] ✓ →Supabase: ${file.name} → ${fileName} (${finalSizeKb} KB)`);
+    console.log(`[api/upload-image] ✓ →Supabase (${isOverwrite ? 'IN-PLACE' : 'COPY'}): ${file.name} → ${supabaseStoragePath} (${finalSizeKb} KB)`);
+
+    let mediaRecordId = mediaId || null;
+    if (isOverwrite) {
+      if (mediaId && !mediaId.startsWith('virtual-')) {
+        try {
+          await supabaseAdmin.from('media_library').update({
+            file_size: outputBuffer.length,
+            file_url: data.publicUrl,
+            mime_type: contentType,
+            updated_at: new Date().toISOString(),
+          }).eq('id', mediaId);
+        } catch (dbErr) {
+          console.warn('[api/upload-image] Media library in-place update notice:', dbErr);
+        }
+      }
+    } else {
+      try {
+        const { data: newRow } = await supabaseAdmin.from('media_library').insert({
+          original_filename: file.name,
+          seo_filename: fileName.split('/').pop() || fileName,
+          file_url: data.publicUrl,
+          alt_text: (customName || baseName).replace(/[-_]/g, ' '),
+          title: (customName || baseName).replace(/[-_]/g, ' '),
+          bucket: 'product-images',
+          ai_generated: false,
+          ai_enabled: true,
+          file_size: outputBuffer.length,
+          mime_type: contentType,
+        }).select('id').single();
+        if (newRow?.id) mediaRecordId = newRow.id;
+      } catch (dbErr) {
+        console.warn('[api/upload-image] Media library copy insert notice:', dbErr);
+      }
+    }
 
     return NextResponse.json({
       url: data.publicUrl,
@@ -201,6 +284,7 @@ export async function POST(request: NextRequest) {
       format: outputFormat,
       storage: 'supabase',
       processed,
+      mediaId: mediaRecordId,
     });
   } catch (err) {
     console.error('[api/upload-image] Error:', err);

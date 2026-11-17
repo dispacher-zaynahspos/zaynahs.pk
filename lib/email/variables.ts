@@ -124,7 +124,15 @@ export interface EmailVariableData {
 }
 
 export async function buildVariables(emailType: string, data: EmailVariableData): Promise<Record<string, string>> {
-  const settings = data.settings || {};
+  let settings = data.settings;
+  if (!settings || Object.keys(settings).length === 0) {
+    try {
+      const { getSettings } = await import('@/lib/services/settings');
+      settings = await getSettings();
+    } catch {
+      settings = {};
+    }
+  }
   const currencySymbol = settings.currency_symbol || 'Rs.';
 
   const brandName = settings.store_name || process.env.NEXT_PUBLIC_BRAND_NAME || 'Your Store';
@@ -153,13 +161,24 @@ export async function buildVariables(emailType: string, data: EmailVariableData)
     'Customer'
   ).trim();
 
-  const customerPhone = String(
+  let resolvedCustomerPhone = String(
     data.customer_phone ||
     data.customer?.phone ||
     order?.customerPhone ||
     order?.customer_phone ||
+    (order?.shipping_address as Record<string, unknown> | undefined)?.phone ||
     ''
   ).trim();
+
+  if (!resolvedCustomerPhone && order?.notes && typeof order.notes === 'string') {
+    const phoneMatch = order.notes.match(/Phone:\s*([0-9+\s-]+)/i);
+    if (phoneMatch) {
+      resolvedCustomerPhone = phoneMatch[1].trim();
+    } else {
+      const pkMatch = order.notes.match(/(?:03\d{2}|923\d{2}|\+923\d{2})\d{7}/);
+      if (pkMatch) resolvedCustomerPhone = pkMatch[0];
+    }
+  }
 
   const customerEmail = String(
     data.customer_email ||
@@ -199,13 +218,23 @@ export async function buildVariables(emailType: string, data: EmailVariableData)
     }
   }
 
-  // Build WhatsApp Support URL
+  // Build WhatsApp Support URL (Store / Admin WhatsApp for Customer to contact Admin)
   let whatsappUrl = '';
   if (cleanWa) {
-    const waText = orderId
-      ? `Hello, I need assistance regarding my Order #${orderId}`
-      : 'Hello, I need assistance regarding my order';
-    whatsappUrl = `https://wa.me/${cleanWa}?text=${encodeURIComponent(waText)}`;
+    const customerToStoreMsg = orderId
+      ? `Hello ${brandName}, I need assistance regarding my Order #${orderId}`
+      : `Hello ${brandName}, I need assistance regarding my order`;
+    whatsappUrl = `https://wa.me/${cleanWa}?text=${encodeURIComponent(customerToStoreMsg)}`;
+  }
+
+  // Build Customer WhatsApp URL (for Admin to contact Customer directly)
+  const cleanCustomerPhone = cleanWhatsAppPhone(resolvedCustomerPhone);
+  let customerWhatsappUrl = '';
+  if (cleanCustomerPhone) {
+    const adminToCustomerMsg = orderId
+      ? `Salam ${customerName}! We have received your Order #${orderId} on ${brandName}.`
+      : `Salam ${customerName}! Contacting you regarding your order on ${brandName}.`;
+    customerWhatsappUrl = `https://wa.me/${cleanCustomerPhone}?text=${encodeURIComponent(adminToCustomerMsg)}`;
   }
 
   // Resolve Order Total
@@ -240,7 +269,9 @@ export async function buildVariables(emailType: string, data: EmailVariableData)
     site_url: siteUrl,
     customer_name: customerName,
     customer_email: customerEmail,
-    customer_phone: customerPhone,
+    customer_phone: resolvedCustomerPhone,
+    customer_whatsapp_number: cleanCustomerPhone,
+    customer_whatsapp_url: customerWhatsappUrl,
     contact_email: settings.header_top_bar_email || settings.smtp_email || '',
     currency: currencySymbol,
     current_year: new Date().getFullYear().toString(),
@@ -252,6 +283,8 @@ export async function buildVariables(emailType: string, data: EmailVariableData)
     courier_name: courierName,
     whatsapp_number: cleanWa,
     whatsapp_url: whatsappUrl,
+    store_whatsapp_number: cleanWa,
+    store_whatsapp_url: whatsappUrl,
     postex_remarks: postexRemarks,
     // Theme & Branding variables (linked to store styling)
     primary_color: primaryColor,
@@ -289,7 +322,7 @@ export async function buildVariables(emailType: string, data: EmailVariableData)
     let street = (address.street as string) || (address.address as string) || '';
     let city = (address.city as string) || '';
     let postalCode = (address.postalCode as string) || '';
-    let phone = customerPhone || (address.phone as string) || '';
+    let phone = resolvedCustomerPhone || (address.phone as string) || '';
 
     // Parse specific address fields from formatted notes if present
     if (order.notes && typeof order.notes === 'string') {

@@ -1,11 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
 import { PixelCrop } from 'react-image-crop';
 import { toast } from 'sonner';
 import { MediaItem } from '../types';
-import { uploadImage } from '@/lib/uploadImage';
 
 interface SaveEditedImageOptions {
   previewItem: MediaItem | null;
@@ -22,6 +20,33 @@ interface SaveEditedImageOptions {
   invert: number;
   completedCrop: PixelCrop | null;
   imgRef: React.RefObject<HTMLImageElement | null>;
+}
+
+function extractStoragePath(fileUrl: string, bucket: string = 'product-images'): {
+  bucket: string;
+  pathInBucket: string;
+  r2Key: string;
+} {
+  try {
+    const url = new URL(fileUrl, 'http://localhost');
+    const cleanPath = decodeURIComponent(url.pathname).replace(/^\/+/, '');
+    
+    const supMatch = cleanPath.match(new RegExp(`(?:storage/v1/object/public|storage)/${bucket}/(.+)`));
+    if (supMatch) {
+      return { bucket, pathInBucket: supMatch[1], r2Key: `${bucket}/${supMatch[1]}` };
+    }
+
+    if (cleanPath.startsWith(`${bucket}/`)) {
+      const pathInBucket = cleanPath.slice(bucket.length + 1);
+      return { bucket, pathInBucket, r2Key: cleanPath };
+    }
+
+    const filename = cleanPath.split('/').pop() || 'image.webp';
+    return { bucket, pathInBucket: filename, r2Key: `${bucket}/${filename}` };
+  } catch {
+    const filename = fileUrl.split('/').pop() || 'image.webp';
+    return { bucket, pathInBucket: filename, r2Key: `${bucket}/${filename}` };
+  }
 }
 
 export function useImageEditorSave({
@@ -134,42 +159,59 @@ export function useImageEditorSave({
       const bucketName = previewItem.bucket || 'product-images';
       const baseName = (previewItem.original_filename || previewItem.seo_filename || 'image').replace(/\.[^/.]+$/, '');
       const cleanBaseName = baseName.replace(/[^a-zA-Z0-9-_\s]/g, '').trim().replace(/\s+/g, '-').toLowerCase();
-      const newFileName = overwrite 
-        ? (previewItem.seo_filename || `${cleanBaseName}-${timestamp}.webp`)
-        : `${cleanBaseName}-edited-${timestamp}.webp`;
-      
-      // Upload via shared uploadImage which routes to R2 (Mode A) or Supabase (Mode B)
-      const newFileUrl = await uploadImage(blob, bucketName, newFileName);
-      
-      const supabase = createClient();
+
+      const formData = new FormData();
+      const fileToSend = new File([blob], `${cleanBaseName}.webp`, { type: 'image/webp' });
+      formData.append('file', fileToSend);
+      formData.append('folder', bucketName);
+
       if (overwrite) {
-        if (!previewItem.id.startsWith('virtual-')) {
-          await supabase
-            .from('media_library')
-            .update({ file_size: blob.size, file_url: newFileUrl, updated_at: new Date().toISOString() })
-            .eq('id', previewItem.id);
+        // Save In-place
+        formData.append('is_overwrite', 'true');
+        const storageInfo = extractStoragePath(previewItem.file_url, bucketName);
+        formData.append('exact_key', storageInfo.r2Key);
+        formData.append('exact_path', storageInfo.pathInBucket);
+        if (previewItem.id && !previewItem.id.startsWith('virtual-')) {
+          formData.append('media_id', previewItem.id);
         }
-        
-        setPreviewItem({ ...previewItem, file_url: newFileUrl, file_size: blob.size });
+      } else {
+        // Save As Copy
+        formData.append('is_overwrite', 'false');
+        formData.append('custom_name', `${cleanBaseName}-copy-${timestamp}.webp`);
+      }
+
+      const res = await fetch('/api/upload-image', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.error || `Upload failed with status ${res.status}`);
+      }
+
+      const result = await res.json();
+      const rawNewUrl = result.url;
+      // Add timestamp query parameter so the browser preview updates immediately
+      const previewUrl = `${rawNewUrl}${rawNewUrl.includes('?') ? '&' : '?'}t=${timestamp}`;
+
+      if (overwrite) {
+        setPreviewItem({
+          ...previewItem,
+          file_url: previewUrl,
+          file_size: blob.size,
+        });
         toast.dismiss(toastId);
         toast.success('Image updated successfully in-place!');
       } else {
-        if (!previewItem.id.startsWith('virtual-')) {
-          await supabase.from('media_library').insert({
-            original_filename: `edited-${previewItem.original_filename}`,
-            seo_filename: newFileName,
-            file_url: newFileUrl,
-            alt_text: `edited ${previewItem.alt_text || ''}`,
-            title: `edited ${previewItem.title || ''}`,
-            bucket: bucketName,
-            ai_generated: false,
-            ai_enabled: true,
-            file_size: blob.size,
-            mime_type: 'image/webp'
-          });
-        }
-        
-        setPreviewItem({ ...previewItem, file_url: newFileUrl, file_size: blob.size });
+        setPreviewItem({
+          ...previewItem,
+          id: result.mediaId || previewItem.id,
+          file_url: rawNewUrl,
+          file_size: blob.size,
+          original_filename: `copy-${previewItem.original_filename}`,
+          seo_filename: `${cleanBaseName}-copy-${timestamp}.webp`,
+        });
         toast.dismiss(toastId);
         toast.success('Image saved as a new copy in Media Library!');
       }

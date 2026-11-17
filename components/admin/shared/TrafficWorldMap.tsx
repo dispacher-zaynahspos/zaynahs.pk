@@ -92,32 +92,34 @@ export interface TrafficWorldMapProps {
   height?: number | string;
   className?: string;
   showControls?: boolean;
-  /** Initial zoom level (default 1.5). Traffic page passes a higher value to open on cities. */
+  /** Initial zoom level (default 5.5). Traffic page passes a higher value to open on cities. */
   initialZoom?: number;
   /** Initial map center [lng, lat] (default Pakistan-region). */
   initialCenter?: [number, number];
-  /** Zoom at/above which individual CITY markers replace COUNTRY markers (default 2.6). */
+  /** Zoom at/above which individual CITY markers replace COUNTRY markers (default 2.4). */
   cityZoomThreshold?: number;
   /** Real-time active count (last 30m) from /api/admin/traffic */
   liveCount?: number;
   /** Current timeframe label (e.g. '24h', '7d', 'Custom') */
   rangeLabel?: string;
+  /** Programmatic city focus target from external tables */
+  focusTarget?: { city: string; lat: number; lng: number; zoom?: number; timestamp: number } | null;
 }
 
 const MIN_ZOOM = 0.8;
-const MAX_ZOOM = 96;
+const MAX_ZOOM = 120;
 const LABEL_H = 14; // approx label box height (screen px)
 
 /** Screen-space radius for grouping nearby markers based on zoom level.
  * Wide views keep clean clustered bubbles; close-up zooms dissolve clusters so all cities are visible individually.
  */
 function getClusterRadius(zoom: number): number {
-  if (zoom <= 2.5) return 50;
-  if (zoom <= 4.5) return 36;
-  if (zoom <= 7.0) return 22;
-  if (zoom <= 12.0) return 12;
-  if (zoom <= 20.0) return 6;
-  return 2; // Close-up zoom: uncluster everything except identical coordinates
+  if (zoom <= 2.5) return 36;
+  if (zoom <= 4.5) return 18; // Much tighter clustering so cities don't lump together at country zoom
+  if (zoom <= 6.5) return 10;
+  if (zoom <= 9.0) return 5;
+  if (zoom <= 13.0) return 2;
+  return 0; // Deep close-up zoom: uncluster completely! Every city is distinct
 }
 
 function resolveCountryName(apiName: string): string {
@@ -225,11 +227,12 @@ export default function TrafficWorldMap({
   height = 460,
   className = '',
   showControls = true,
-  initialZoom = 1.5,
-  initialCenter = [69, 28],
-  cityZoomThreshold = 2.6,
+  initialZoom = 5.6,
+  initialCenter = [71.5, 30.5],
+  cityZoomThreshold = 2.4,
   liveCount,
   rangeLabel,
+  focusTarget,
 }: TrafficWorldMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
@@ -248,6 +251,7 @@ export default function TrafficWorldMap({
     coordinates: initialCenter,
     zoom: initialZoom,
   });
+  const [activePreset, setActivePreset] = useState<'pakistan' | 'cities' | 'punjab' | 'sindh' | 'north' | null>(null);
 
   // Track container dimensions via ResizeObserver
   useEffect(() => {
@@ -381,27 +385,119 @@ export default function TrafficWorldMap({
     return show;
   }, [activeMarkers, position.zoom]);
 
+  // Respond to programmatic city focus (e.g. clicked in Cities list or Orders table)
+  useEffect(() => {
+    if (!focusTarget || typeof focusTarget.lat !== 'number' || typeof focusTarget.lng !== 'number') return;
+    const targetZoom = focusTarget.zoom ?? 18;
+    setActivePreset(null);
+    setPosition({
+      coordinates: [focusTarget.lng, focusTarget.lat],
+      zoom: Math.min(targetZoom, MAX_ZOOM),
+    });
+
+    const vDot = visitorDots.find((d) => d.city.toLowerCase() === focusTarget.city.toLowerCase());
+    const oDot = orderDots.find((d) => d.city.toLowerCase() === focusTarget.city.toLowerCase());
+
+    const anchorX = containerSize.width / 2;
+    const anchorY = containerSize.height / 2;
+
+    setTooltip({
+      title: focusTarget.city,
+      type: oDot ? 'order' : 'visitor',
+      visitors: vDot?.count,
+      orders: oDot?.count,
+      revenue: oDot?.revenue,
+      anchorX,
+      anchorY,
+      pinned: true,
+      lng: focusTarget.lng,
+      lat: focusTarget.lat,
+    });
+  }, [focusTarget, containerSize.width, containerSize.height, visitorDots, orderDots]);
+
   const hasData = countries.some((c) => c.visitors > 0) || visitorDots.length > 0 || orderDots.length > 0;
 
   const handleZoomIn = () => {
     setTooltip(null);
-    setPosition((p) => ({ ...p, zoom: Math.min(Number((p.zoom * 1.5).toFixed(2)), MAX_ZOOM) }));
+    setActivePreset(null);
+    setPosition((p) => ({ ...p, zoom: Math.min(Number((p.zoom * 1.55).toFixed(2)), MAX_ZOOM) }));
   };
   const handleZoomOut = () => {
     setTooltip(null);
-    setPosition((p) => ({ ...p, zoom: Math.max(Number((p.zoom / 1.5).toFixed(2)), MIN_ZOOM) }));
+    setActivePreset(null);
+    setPosition((p) => ({ ...p, zoom: Math.max(Number((p.zoom / 1.55).toFixed(2)), MIN_ZOOM) }));
   };
   const handleReset = () => {
     setTooltip(null);
+    setActivePreset('pakistan');
     setPosition({ coordinates: initialCenter, zoom: initialZoom });
   };
-  const handleZoomIntoPoint = (lng: number, lat: number) => {
+
+  const handleZoomIntoPoint = (lng: number, lat: number, targetZoom?: number) => {
     setTooltip(null);
+    setActivePreset(null);
     setPosition((p) => ({
       coordinates: [lng, lat],
-      zoom: Math.min(Number((Math.max(p.zoom * 2.2, 16)).toFixed(2)), MAX_ZOOM),
+      zoom: Math.min(Number((targetZoom ?? Math.max(p.zoom * 2.4, 15)).toFixed(2)), MAX_ZOOM),
     }));
   };
+
+  const handleFitActiveCities = useCallback(() => {
+    setTooltip(null);
+    setActivePreset('cities');
+    const allDots = [...visitorDots, ...orderDots];
+    if (allDots.length === 0) {
+      setPosition({ coordinates: [72.5, 31.2], zoom: 7.5 });
+      return;
+    }
+    let minLng = Infinity;
+    let maxLng = -Infinity;
+    let minLat = Infinity;
+    let maxLat = -Infinity;
+
+    for (const d of allDots) {
+      if (d.lng < minLng) minLng = d.lng;
+      if (d.lng > maxLng) maxLng = d.lng;
+      if (d.lat < minLat) minLat = d.lat;
+      if (d.lat > maxLat) maxLat = d.lat;
+    }
+
+    const centerLng = (minLng + maxLng) / 2;
+    const centerLat = (minLat + maxLat) / 2;
+    const dLng = Math.max(0.1, maxLng - minLng);
+    const dLat = Math.max(0.1, maxLat - minLat);
+
+    let targetZoom = 8.0;
+    const maxDelta = Math.max(dLng, dLat);
+    if (maxDelta > 6) targetZoom = 6.2;
+    else if (maxDelta > 3) targetZoom = 7.8;
+    else if (maxDelta > 1.5) targetZoom = 10.0;
+    else targetZoom = 14.0;
+
+    setPosition({
+      coordinates: [Number(centerLng.toFixed(4)), Number(centerLat.toFixed(4))],
+      zoom: targetZoom,
+    });
+  }, [visitorDots, orderDots]);
+
+  const handlePresetRegion = useCallback(
+    (region: 'pakistan' | 'cities' | 'punjab' | 'sindh' | 'north') => {
+      setTooltip(null);
+      setActivePreset(region);
+      if (region === 'pakistan') {
+        setPosition({ coordinates: initialCenter, zoom: initialZoom });
+      } else if (region === 'cities') {
+        handleFitActiveCities();
+      } else if (region === 'punjab') {
+        setPosition({ coordinates: [73.8, 31.6], zoom: 12.5 });
+      } else if (region === 'sindh') {
+        setPosition({ coordinates: [67.8, 25.1], zoom: 12.5 });
+      } else if (region === 'north') {
+        setPosition({ coordinates: [72.6, 33.8], zoom: 13.5 });
+      }
+    },
+    [initialCenter, initialZoom, handleFitActiveCities]
+  );
 
   const handleMarkerHover = (m: RenderedMarker, e: React.MouseEvent) => {
     clearDismissTimeout();
@@ -414,7 +510,7 @@ export default function TrafficWorldMap({
 
     setTooltip({
       title: m.city,
-      subtitle: m.members > 1 ? `${m.members} nearby locations clustered` : undefined,
+      subtitle: m.members > 1 ? `${m.members} nearby locations clustered (click to zoom in)` : undefined,
       type: m.type,
       visitors: m.type === 'visitor' ? m.count : undefined,
       orders: m.type === 'order' ? m.count : undefined,
@@ -439,6 +535,13 @@ export default function TrafficWorldMap({
   const handleMarkerClick = (m: RenderedMarker, e: React.MouseEvent) => {
     e.stopPropagation();
     clearDismissTimeout();
+
+    // If this is a cluster of multiple cities, CLICKING IMMEDIATELY ZOOMS IN to dissolve the cluster!
+    if (m.members > 1) {
+      handleZoomIntoPoint(m.lng, m.lat);
+      return;
+    }
+
     if (!containerRef.current) return;
     const containerRect = containerRef.current.getBoundingClientRect();
     const markerRect = (e.currentTarget as SVGElement).getBoundingClientRect();
@@ -451,7 +554,7 @@ export default function TrafficWorldMap({
       }
       return {
         title: m.city,
-        subtitle: m.members > 1 ? `${m.members} nearby locations clustered` : undefined,
+        subtitle: undefined,
         type: m.type,
         visitors: m.type === 'visitor' ? m.count : undefined,
         orders: m.type === 'order' ? m.count : undefined,
@@ -586,8 +689,75 @@ export default function TrafficWorldMap({
           </span>
         )}
         <span className="hidden sm:inline-block text-[9px] font-bold text-gray-400 border-l border-gray-200 dark:border-gray-700 pl-2 uppercase tracking-wide">
-          {showCities ? 'City view' : 'Country view'}
+          {position.zoom >= 13 ? 'Deep City View' : showCities ? 'City View' : 'Country View'}
         </span>
+      </div>
+
+      {/* Quick Region & City Zoom Preset Chips */}
+      <div
+        className="absolute top-12 left-3 z-10 flex items-center gap-1.5 max-w-[calc(100%-100px)] overflow-x-auto no-scrollbar py-0.5"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          type="button"
+          onClick={() => handlePresetRegion('pakistan')}
+          className={`shrink-0 px-2.5 py-1 rounded-full text-[10px] font-black transition-all cursor-pointer backdrop-blur-md shadow-xs border ${
+            activePreset === 'pakistan'
+              ? 'bg-indigo-600 text-white border-indigo-500 shadow-indigo-500/20'
+              : 'bg-white/95 dark:bg-[#16162a]/95 text-gray-700 dark:text-gray-300 border-gray-200/80 dark:border-gray-800 hover:bg-white dark:hover:bg-[#1f1f38]'
+          }`}
+          title="Full Pakistan Country View"
+        >
+          🇵🇰 All Pakistan
+        </button>
+        <button
+          type="button"
+          onClick={handleFitActiveCities}
+          className={`shrink-0 px-2.5 py-1 rounded-full text-[10px] font-black transition-all cursor-pointer backdrop-blur-md shadow-xs border ${
+            activePreset === 'cities'
+              ? 'bg-emerald-600 text-white border-emerald-500 shadow-emerald-500/20'
+              : 'bg-white/95 dark:bg-[#16162a]/95 text-gray-700 dark:text-gray-300 border-gray-200/80 dark:border-gray-800 hover:bg-white dark:hover:bg-[#1f1f38]'
+          }`}
+          title="Auto-zoom and frame all active visitor & order cities"
+        >
+          🏙️ Active Cities
+        </button>
+        <button
+          type="button"
+          onClick={() => handlePresetRegion('punjab')}
+          className={`shrink-0 px-2.5 py-1 rounded-full text-[10px] font-black transition-all cursor-pointer backdrop-blur-md shadow-xs border ${
+            activePreset === 'punjab'
+              ? 'bg-indigo-600 text-white border-indigo-500 shadow-indigo-500/20'
+              : 'bg-white/95 dark:bg-[#16162a]/95 text-gray-700 dark:text-gray-300 border-gray-200/80 dark:border-gray-800 hover:bg-white dark:hover:bg-[#1f1f38]'
+          }`}
+          title="Zoom deep into Lahore, Faisalabad, Gujranwala, Sialkot, Sheikhupura"
+        >
+          📍 Lahore & Punjab
+        </button>
+        <button
+          type="button"
+          onClick={() => handlePresetRegion('sindh')}
+          className={`shrink-0 px-2.5 py-1 rounded-full text-[10px] font-black transition-all cursor-pointer backdrop-blur-md shadow-xs border ${
+            activePreset === 'sindh'
+              ? 'bg-indigo-600 text-white border-indigo-500 shadow-indigo-500/20'
+              : 'bg-white/95 dark:bg-[#16162a]/95 text-gray-700 dark:text-gray-300 border-gray-200/80 dark:border-gray-800 hover:bg-white dark:hover:bg-[#1f1f38]'
+          }`}
+          title="Zoom deep into Karachi & Hyderabad"
+        >
+          📍 Karachi & Sindh
+        </button>
+        <button
+          type="button"
+          onClick={() => handlePresetRegion('north')}
+          className={`hidden sm:inline-flex shrink-0 px-2.5 py-1 rounded-full text-[10px] font-black transition-all cursor-pointer backdrop-blur-md shadow-xs border ${
+            activePreset === 'north'
+              ? 'bg-indigo-600 text-white border-indigo-500 shadow-indigo-500/20'
+              : 'bg-white/95 dark:bg-[#16162a]/95 text-gray-700 dark:text-gray-300 border-gray-200/80 dark:border-gray-800 hover:bg-white dark:hover:bg-[#1f1f38]'
+          }`}
+          title="Zoom deep into Islamabad, Rawalpindi, Peshawar, Mardan"
+        >
+          📍 Islamabad & North
+        </button>
       </div>
 
       <ComposableMap projection="geoMercator" projectionConfig={{ scale: PROJECTION_SCALE }} style={{ width: '100%', height: '100%' }}>
@@ -708,6 +878,14 @@ export default function TrafficWorldMap({
         >
           <button
             type="button"
+            onClick={handleFitActiveCities}
+            className="w-8 h-8 flex items-center justify-center bg-white dark:bg-[#16162a] border border-gray-200 dark:border-gray-800 rounded-xl shadow-xs text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 text-xs font-black cursor-pointer active:scale-95 transition-all"
+            title="Auto-zoom to active cities"
+          >
+            🔍
+          </button>
+          <button
+            type="button"
             onClick={handleZoomIn}
             className="w-8 h-8 flex items-center justify-center bg-white dark:bg-[#16162a] border border-gray-200 dark:border-gray-800 rounded-xl shadow-xs text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 font-black text-base cursor-pointer active:scale-95 transition-all"
             title="Zoom in (or use mouse scroll / pinch)"
@@ -716,7 +894,7 @@ export default function TrafficWorldMap({
           </button>
           <div 
             className="px-1.5 py-0.5 bg-white/95 dark:bg-[#16162a]/95 border border-gray-200/80 dark:border-gray-800 rounded-md text-[9px] font-mono font-black text-gray-600 dark:text-gray-300 select-none shadow-2xs"
-            title="Current zoom level (up to 96x)"
+            title="Current zoom level (up to 120x)"
           >
             {Math.round(position.zoom)}x
           </div>
@@ -732,7 +910,7 @@ export default function TrafficWorldMap({
             type="button"
             onClick={handleReset}
             className="w-8 h-8 flex items-center justify-center bg-white dark:bg-[#16162a] border border-gray-200 dark:border-gray-800 rounded-xl shadow-xs text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 text-xs font-bold cursor-pointer active:scale-95 transition-all"
-            title="Reset view"
+            title="Reset to whole country view"
           >
             ⌖
           </button>
@@ -840,6 +1018,26 @@ export default function TrafficWorldMap({
                     </span>
                   </div>
                 ))}
+              </div>
+            )}
+
+            {/* Quick Deep Zoom button for mobile */}
+            {tooltip.lng !== undefined && tooltip.lat !== undefined && (
+              <div className="mt-2.5 pt-2 border-t border-white/10 flex items-center justify-between gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleZoomIntoPoint(tooltip.lng!, tooltip.lat!, 22)}
+                  className="inline-flex items-center gap-1.5 text-[10px] font-black text-amber-400 hover:text-amber-300 bg-amber-500/15 hover:bg-amber-500/25 px-2.5 py-1 rounded-lg cursor-pointer transition-colors"
+                >
+                  🔍 Deep Zoom (22x)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handlePresetRegion('pakistan')}
+                  className="text-[10px] font-bold text-gray-400 hover:text-gray-200 px-2 py-0.5 rounded cursor-pointer transition-colors"
+                >
+                  Reset ⌖
+                </button>
               </div>
             )}
           </div>
@@ -976,6 +1174,26 @@ export default function TrafficWorldMap({
                   ))}
                 </div>
               )}
+
+              {/* Quick Deep Zoom button for desktop */}
+              {tooltip.lng !== undefined && tooltip.lat !== undefined && (
+                <div className="mt-2.5 pt-2 border-t border-white/10 flex items-center justify-between gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleZoomIntoPoint(tooltip.lng!, tooltip.lat!, 22)}
+                    className="inline-flex items-center gap-1.5 text-[10px] font-black text-amber-400 hover:text-amber-300 bg-amber-500/15 hover:bg-amber-500/25 px-2 py-0.5 rounded cursor-pointer transition-colors"
+                  >
+                    🔍 Deep Zoom (22x)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handlePresetRegion('pakistan')}
+                    className="text-[9px] font-bold text-gray-400 hover:text-gray-200 px-1.5 py-0.5 rounded cursor-pointer transition-colors"
+                  >
+                    Reset ⌖
+                  </button>
+                </div>
+              )}
             </div>
           )
         )
@@ -993,7 +1211,7 @@ export default function TrafficWorldMap({
           <span className="w-2.5 h-2.5 rounded-full bg-orange-500 shadow-xs" /> Orders
         </span>
         <span className="text-gray-400 border-l border-gray-200 dark:border-gray-700 pl-2">
-          {position.zoom >= 10 ? 'Close city view' : showCities ? 'City view' : 'Country view'} · scroll / drag / buttons to zoom (up to 96x)
+          {position.zoom >= 13 ? 'Deep city view' : showCities ? 'City view' : 'Country view'} · scroll / drag / click cluster to zoom (up to 120x)
         </span>
       </div>
     </div>

@@ -85,6 +85,21 @@ export function getProductNavContext(currentId: string): {
   }
 }
 
+/** Detect if the current page load is a browser reload/refresh */
+export function isPageReload(): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    const navEntries = performance.getEntriesByType('navigation');
+    if (navEntries.length > 0) {
+      return (navEntries[0] as PerformanceNavigationTiming).type === 'reload';
+    }
+    // Fallback for legacy browsers
+    return (window.performance as unknown as { navigation?: { type: number } })?.navigation?.type === 1;
+  } catch {
+    return false;
+  }
+}
+
 /** Retrieve saved context for a specific source view (e.g. '/admin/products' or '/admin/inventory') */
 export function getAdminNavContext(sourceUrl: string): ProductNavContext | null {
   try {
@@ -93,6 +108,11 @@ export function getAdminNavContext(sourceUrl: string): ProductNavContext | null 
     if (!raw) return null;
     const ctx: ProductNavContext = JSON.parse(raw);
     if (ctx.sourceUrl && ctx.sourceUrl.split('?')[0] === cleanSource) {
+      // If user refreshed the browser, clear input search text
+      if (isPageReload()) {
+        ctx.searchQuery = '';
+        saveProductNavContext(ctx);
+      }
       return ctx;
     }
     return null;
@@ -114,3 +134,4 @@ export function clearAdminNavContext(sourceUrl: string): void {
     sessionStorage.removeItem(`admin_nav_context_${cleanSource}`);
   } catch {}
 }
+

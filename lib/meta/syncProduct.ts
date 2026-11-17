@@ -51,8 +51,7 @@ async function getCachedSettings() {
 }
 
 /**
- * Writes sync result to meta_sync_log table ONLY.
- * NEVER writes to products table — avoids infinite webhook loop.
+ * Writes sync result to meta_sync_log and persists real status directly to products table.
  */
 async function logSyncResult(
   productId: string,
@@ -69,9 +68,28 @@ async function logSyncResult(
         action,
         error: error ?? null,
       });
+
+    if (status === 'synced') {
+      await supabaseAdmin
+        .from('products')
+        .update({
+          meta_sync_status: 'synced',
+          meta_sync_error: null,
+          meta_last_synced_at: new Date().toISOString(),
+        })
+        .eq('id', productId);
+    } else if (status === 'error') {
+      await supabaseAdmin
+        .from('products')
+        .update({
+          meta_sync_status: 'error',
+          meta_sync_error: error || 'Failed to sync with Meta',
+        })
+        .eq('id', productId);
+    }
   } catch (logErr) {
     // Log failure is non-fatal — don't throw
-    console.error('[MetaSync] Failed to write to meta_sync_log:', logErr);
+    console.error('[MetaSync] Failed to write to meta_sync_log / products:', logErr);
   }
 }
 
@@ -365,7 +383,7 @@ export async function bulkSyncProductsToMeta(
       }
     }
 
-    // 5. ✅ Write results ONLY to meta_sync_log — NOT to products table
+    // 5. ✅ Write results to meta_sync_log AND update products table directly
     const logRows: MetaSyncLogRow[] = [];
     successProductIds.forEach(id => {
       // Don't double-log as error
@@ -380,6 +398,32 @@ export async function bulkSyncProductsToMeta(
 
     if (logRows.length > 0) {
       await supabaseAdmin.from('meta_sync_log').insert(logRows);
+    }
+
+    // Persist real status to products table
+    const successList = Array.from(successProductIds).filter(id => !errorProductIds.has(id));
+    if (successList.length > 0) {
+      await supabaseAdmin
+        .from('products')
+        .update({
+          meta_sync_status: 'synced',
+          meta_sync_error: null,
+          meta_last_synced_at: new Date().toISOString(),
+        })
+        .in('id', successList);
+    }
+
+    if (errorProductIds.size > 0) {
+      for (const id of errorProductIds) {
+        const errMsg = validationErrors[id] || errors[0] || 'Unknown error';
+        await supabaseAdmin
+          .from('products')
+          .update({
+            meta_sync_status: 'error',
+            meta_sync_error: errMsg,
+          })
+          .eq('id', id);
+      }
     }
 
     return { success: errors.length === 0, totalSynced, errors };

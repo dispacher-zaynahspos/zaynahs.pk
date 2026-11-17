@@ -6,6 +6,7 @@ import EmptyState from '@/components/common/EmptyState';
 import TableThumbnail from '@/components/admin/TableThumbnail';
 import { Package, Edit, Trash2, RefreshCw, Loader2, Layers } from '@/components/common/Icons';
 import { formatPrice } from '@/lib/utils/whatsapp';
+import { getProductOptionSummary } from '@/lib/utils/formatVariant';
 
 interface ProductListTableProps {
   filteredProducts: Product[];
@@ -55,10 +56,10 @@ export default function ProductListTable({
       {/* Desktop Table */}
       <div className="hidden md:block">
         <div className="overflow-x-auto">
-          <table className="w-full table-fixed text-left text-sm text-gray-700 dark:text-gray-300">
+          <table className="w-full min-w-[860px] table-fixed text-left text-sm text-gray-700 dark:text-gray-300">
             <thead className="text-[11px] font-black text-gray-400 dark:text-gray-400 uppercase tracking-wider bg-gray-50/80 dark:bg-white/2 border-b border-gray-100 dark:border-gray-800 select-none">
               <tr>
-                <th className="py-2.5 px-1.5 w-8 text-center shrink-0">
+                <th className="py-2.5 px-2 w-9 text-center shrink-0">
                   <input
                     type="checkbox"
                     checked={paginatedProducts.length > 0 && paginatedProducts.every(p => selectedProductIds.includes(p.id))}
@@ -72,29 +73,28 @@ export default function ProductListTable({
                     className="rounded border-gray-300 text-[#e94560] focus:ring-[#e94560] h-3.5 w-3.5 cursor-pointer accent-[#e94560]"
                   />
                 </th>
-                <th className="py-2.5 px-2.5 min-w-0">Product</th>
-                <th className="py-2.5 px-1.5 hidden 2xl:table-cell w-20">SKU</th>
-                <th className="py-2.5 px-1.5 w-20 whitespace-nowrap">Price</th>
-                <th className="py-2.5 px-1.5 hidden lg:table-cell w-24">Stock</th>
-                <th className="py-2.5 px-1 hidden md:table-cell text-center w-12">Visible</th>
-                <th className="py-2.5 px-1 hidden xl:table-cell text-center w-12">Featured</th>
-                {settings.meta_sync_enabled && <th className="py-2.5 px-1.5 text-center w-22 whitespace-nowrap hidden lg:table-cell">Meta Sync</th>}
-                <th className="py-2.5 px-1 text-center w-20 shrink-0">Actions</th>
+                <th className="py-2.5 px-3 min-w-[200px]">Product</th>
+                <th className="py-2.5 px-2 hidden 2xl:table-cell w-24 shrink-0 whitespace-nowrap">SKU</th>
+                <th className="py-2.5 px-2 w-24 shrink-0 whitespace-nowrap">Price</th>
+                <th className="py-2.5 px-2 hidden lg:table-cell w-32 shrink-0 whitespace-nowrap">Option / Stock</th>
+                <th className="py-2.5 px-2 hidden md:table-cell text-center w-16 shrink-0 whitespace-nowrap">Visible</th>
+                <th className="py-2.5 px-2 hidden xl:table-cell text-center w-20 shrink-0 whitespace-nowrap">Featured</th>
+                {settings.meta_sync_enabled && <th className="py-2.5 px-2 text-center w-28 shrink-0 whitespace-nowrap hidden lg:table-cell">Meta Sync</th>}
+                <th className="py-2.5 px-2 text-center w-24 shrink-0 whitespace-nowrap">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-gray-800/60 font-medium">
               {paginatedProducts.map(product => {
                 const primaryImage = product.images?.find(img => img.is_primary)?.url || product.images?.[0]?.url || fallbackPlaceholder;
                 const isSyncing = syncingProductId === product.id;
-                const isVariable = Boolean(product.has_variants || (product.variants && product.variants.length > 0));
-                const variantCount = product.variants?.length ?? 0;
+                const optionSummary = getProductOptionSummary(product);
                 return (
                   <tr 
                     key={product.id} 
                     id={`product-row-${product.id}`}
                     className={`hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors ${selectedProductIds.includes(product.id) ? 'bg-indigo-50/30 dark:bg-indigo-950/20' : ''}`}
                   >
-                    <td className="py-2.5 px-1.5 w-8 text-center shrink-0">
+                    <td className="py-2.5 px-2 w-9 text-center shrink-0">
                       <input
                         type="checkbox"
                         checked={selectedProductIds.includes(product.id)}
@@ -108,7 +108,7 @@ export default function ProductListTable({
                         className="rounded border-gray-300 text-[#e94560] focus:ring-[#e94560] h-3.5 w-3.5 cursor-pointer accent-[#e94560]"
                       />
                     </td>
-                    <td className="py-2.5 px-2.5 min-w-0">
+                    <td className="py-2.5 px-3 min-w-0">
                       <div className="flex items-center gap-2 min-w-0">
                         <TableThumbnail 
                           url={primaryImage} 
@@ -124,14 +124,20 @@ export default function ProductListTable({
                             >
                               {(product.name || '').replace(/^[\s*#-]+/, '').replace(/[*_~`]/g, '').trim()}
                             </p>
-                            {isVariable && (
+                            {!optionSummary.isSingle ? (
                               <span 
-                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/80 text-[10px] font-extrabold tracking-tight shrink-0 select-none shadow-2xs" 
-                                title={`Variable Product: ${variantCount} variant${variantCount === 1 ? '' : 's'}`}
+                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/80 text-[9.5px] font-black tracking-tight shrink-0 select-none shadow-2xs font-mono" 
+                                title={optionSummary.tooltip}
                               >
                                 <Layers className="w-2.5 h-2.5 text-purple-600 dark:text-purple-400" />
-                                <span>Variable</span>
-                                {variantCount > 0 && <span className="text-[9px] font-bold text-purple-600/80 dark:text-purple-400/80">({variantCount})</span>}
+                                <span>{optionSummary.label}</span>
+                              </span>
+                            ) : (
+                              <span 
+                                className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 text-[9px] font-bold tracking-tight shrink-0 select-none"
+                                title={optionSummary.tooltip}
+                              >
+                                Single
                               </span>
                             )}
                           </div>
@@ -152,34 +158,43 @@ export default function ProductListTable({
                         </div>
                       </div>
                     </td>
-                    <td className="py-2.5 px-1.5 font-semibold text-xs text-gray-500 dark:text-gray-400 hidden 2xl:table-cell w-20">
+                    <td className="py-2.5 px-2 font-semibold text-xs text-gray-500 dark:text-gray-400 hidden 2xl:table-cell w-24 shrink-0">
                       <span className="px-1.5 py-0.5 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-mono text-[10px] truncate block">
                         {product.sku || '—'}
                       </span>
                     </td>
-                    <td className="py-2.5 px-1.5 font-black text-gray-900 dark:text-white text-xs md:text-sm whitespace-nowrap w-20">
+                    <td className="py-2.5 px-2 font-black text-gray-900 dark:text-white text-xs md:text-sm whitespace-nowrap w-24 shrink-0">
                       {formatPrice(product.price, settings.currency_symbol)}
                     </td>
-                    <td className="py-2.5 px-1.5 font-semibold text-xs hidden lg:table-cell w-24">
-                      {isVariable && product.variants ? (
-                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-black bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 whitespace-nowrap" title={`${variantCount} variants total stock`}>
-                          Variants ({product.variants.reduce((sum, v) => sum + v.stock, 0)})
+                    <td className="py-2.5 px-2 font-semibold text-xs hidden lg:table-cell w-32 shrink-0">
+                      <div className="flex flex-col items-start gap-0.5">
+                        {optionSummary.isSingle ? (
+                          <span 
+                            className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 border border-slate-300/80 dark:border-slate-700 whitespace-nowrap cursor-help select-none"
+                            title={optionSummary.tooltip}
+                          >
+                            Single
+                          </span>
+                        ) : (
+                          <span 
+                            className="inline-flex items-center px-2 py-0.5 rounded-full text-[9.5px] font-black bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/25 whitespace-nowrap cursor-help select-none font-mono tracking-tight"
+                            title={optionSummary.tooltip}
+                          >
+                            {optionSummary.label}
+                          </span>
+                        )}
+                        <span className={`text-[9.5px] font-bold leading-tight ${
+                          optionSummary.totalStock === 0 
+                            ? 'text-red-600 dark:text-red-400' 
+                            : optionSummary.totalStock < 5 
+                            ? 'text-amber-600 dark:text-amber-400' 
+                            : 'text-gray-500 dark:text-gray-400'
+                        }`}>
+                          {optionSummary.totalStock === 0 ? 'Out' : optionSummary.totalStock < 5 ? `Low: ${optionSummary.totalStock}` : `${optionSummary.totalStock.toLocaleString()} in stock`}
                         </span>
-                      ) : product.stock === 0 ? (
-                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-black bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 whitespace-nowrap">
-                          Out
-                        </span>
-                      ) : product.stock < 5 ? (
-                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-black bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 whitespace-nowrap">
-                          Low: {product.stock}
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-black bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 whitespace-nowrap">
-                          {product.stock} in stock
-                        </span>
-                      )}
+                      </div>
                     </td>
-                    <td className="py-2.5 px-1 hidden md:table-cell text-center w-12">
+                    <td className="py-2.5 px-2 hidden md:table-cell text-center w-16 shrink-0">
                       <div className="flex items-center justify-center">
                         <button
                           type="button"
@@ -199,7 +214,7 @@ export default function ProductListTable({
                         </button>
                       </div>
                     </td>
-                    <td className="py-2.5 px-1 hidden xl:table-cell text-center w-12">
+                    <td className="py-2.5 px-2 hidden xl:table-cell text-center w-20 shrink-0">
                       <div className="flex items-center justify-center">
                         <button
                           type="button"
@@ -220,7 +235,7 @@ export default function ProductListTable({
                       </div>
                     </td>
                     {settings.meta_sync_enabled && (
-                      <td className="py-2.5 px-1.5 text-center w-22 whitespace-nowrap hidden lg:table-cell">
+                      <td className="py-2.5 px-2 text-center w-28 whitespace-nowrap hidden lg:table-cell shrink-0">
                         {product.meta_sync_status === 'synced' ? (
                           <span suppressHydrationWarning={true} className="inline-flex items-center gap-1.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 rounded-full border border-emerald-300 dark:border-emerald-800 shadow-2xs" title={product.meta_last_synced_at ? `Synced at: ${new Date(product.meta_last_synced_at).toLocaleString()}` : 'Synced with Meta Catalog'}>
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block animate-pulse" />
@@ -239,7 +254,7 @@ export default function ProductListTable({
                         )}
                       </td>
                     )}
-                    <td className="py-2.5 px-1 text-center w-20 shrink-0">
+                    <td className="py-2.5 px-2 text-center w-24 shrink-0">
                       <div className="flex items-center justify-center gap-1">
                         {settings.meta_sync_enabled && (
                           <button 
@@ -317,8 +332,7 @@ export default function ProductListTable({
         {paginatedProducts.map(product => {
           const primaryImage = product.images?.find(img => img.is_primary)?.url || product.images?.[0]?.url || fallbackPlaceholder;
           const isSyncing = syncingProductId === product.id;
-          const isVariable = Boolean(product.has_variants || (product.variants && product.variants.length > 0));
-          const variantCount = product.variants?.length ?? 0;
+          const optionSummary = getProductOptionSummary(product);
           return (
             <div 
               key={product.id} 
@@ -351,14 +365,20 @@ export default function ProductListTable({
                         <h3 className="text-[11px] sm:text-xs font-bold text-gray-900 dark:text-white line-clamp-2 leading-snug break-words" title={product.name}>
                           {(product.name || '').replace(/^[\s*#-]+/, '').replace(/[*_~`]/g, '').trim()}
                         </h3>
-                        {isVariable && (
+                        {!optionSummary.isSingle ? (
                           <span 
-                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/80 text-[9.5px] font-extrabold shrink-0 select-none shadow-2xs"
-                            title={`Variable Product: ${variantCount} variants`}
+                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/80 text-[9.5px] font-black shrink-0 select-none shadow-2xs font-mono"
+                            title={optionSummary.tooltip}
                           >
                             <Layers className="w-2.5 h-2.5 text-purple-600 dark:text-purple-400" />
-                            <span>Variable</span>
-                            {variantCount > 0 && <span className="text-[9px] font-bold text-purple-600/80 dark:text-purple-400/80">({variantCount})</span>}
+                            <span>{optionSummary.label}</span>
+                          </span>
+                        ) : (
+                          <span 
+                            className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 text-[9px] font-bold shrink-0 select-none"
+                            title={optionSummary.tooltip}
+                          >
+                            Single
                           </span>
                         )}
                       </div>
@@ -445,7 +465,14 @@ export default function ProductListTable({
                   )}
                 </div>
 
-                <span className="text-gray-400 font-mono text-[10px]">{product.sku || 'No SKU'}</span>
+                <div className="flex items-center gap-2">
+                  <span className={`font-bold text-[10px] ${
+                    optionSummary.totalStock === 0 ? 'text-red-500' : optionSummary.totalStock < 5 ? 'text-amber-500' : 'text-gray-500 dark:text-gray-400'
+                  }`}>
+                    {optionSummary.totalStock === 0 ? 'Out of stock' : `${optionSummary.totalStock.toLocaleString()} stock`}
+                  </span>
+                  <span className="text-gray-400 font-mono text-[10px]">{product.sku || 'No SKU'}</span>
+                </div>
               </div>
 
               <div className="flex items-center gap-2 pt-2.5 border-t border-gray-100 dark:border-gray-800/80">

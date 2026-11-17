@@ -26,6 +26,9 @@ export default function AdminSearchInput({
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        autoComplete="off"
+        autoCorrect="off"
+        spellCheck={false}
         className="w-full pl-9 pr-8 py-2 bg-gray-50/80 dark:bg-white/5 border border-gray-200/80 dark:border-gray-800/80 rounded-xl text-base sm:text-xs font-semibold text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-[#e94560] focus:ring-2 focus:ring-[#e94560]/15 transition-all min-h-[44px] sm:min-h-0"
       />
       {value && (

@@ -56,8 +56,14 @@ export function wrapLayout(content: string, vars: Record<string, string>, title:
                 <tr>
                   <td class="email-footer-cell" style="padding: 24px 24px 28px 24px; border-top: 1px solid #f1f5f9; background-color: #f8fafc; text-align: center; color: #64748b; font-size: 13px; line-height: 1.5;">
                     <p style="margin: 0 0 6px 0; font-weight: 700; color: ${primaryColor}; font-size: 14px;">${brandName}</p>
-                    ${siteUrl ? `<p style="margin: 0 0 10px 0;"><a href="${siteUrl}" target="_blank" style="color: ${accentColor}; text-decoration: none; font-weight: 600;">Visit Online Store →</a></p>` : ''}
-                    ${supportEmail ? `<p style="margin: 0 0 12px 0;">Need help? Contact us at <a href="mailto:${supportEmail}" style="color: #0284c7; text-decoration: none;">${supportEmail}</a></p>` : ''}
+                    ${siteUrl ? `<p style="margin: 0 0 8px 0;"><a href="${siteUrl}" target="_blank" style="color: ${accentColor}; text-decoration: none; font-weight: 600;">Visit Online Store →</a></p>` : ''}
+                    ${vars.whatsapp_url ? `
+                    <p style="margin: 0 0 8px 0;">
+                      <a href="${vars.whatsapp_url}" target="_blank" style="color: #16a34a; text-decoration: none; font-weight: 700;">
+                        💬 WhatsApp Support: ${vars.whatsapp_number ? `+${vars.whatsapp_number}` : 'Chat with Us'} →
+                      </a>
+                    </p>` : ''}
+                    ${supportEmail ? `<p style="margin: 0 0 10px 0;">Need help? Contact us at <a href="mailto:${supportEmail}" style="color: #0284c7; text-decoration: none;">${supportEmail}</a></p>` : ''}
                     <p style="margin: 0; font-size: 11px; color: #94a3b8;">&copy; ${vars.current_year || new Date().getFullYear()} ${brandName}. All rights reserved.</p>
                   </td>
                 </tr>
@@ -74,10 +80,22 @@ export function getCTAButton(text: string, url: string, customBg?: string, custo
   const bg = customBg || '#0f172a';
   const color = customText || '#ffffff';
   return `
-    <div style="margin: 28px 0; text-align: center;">
+    <div style="margin: 24px 0; text-align: center;">
       <a href="${url}" target="_blank" style="background-color: ${bg}; color: ${color}; padding: 13px 32px; border-radius: 10px; font-weight: 700; font-size: 14px; text-decoration: none; display: inline-block; letter-spacing: 0.2px; box-shadow: 0 3px 6px rgba(0,0,0,0.08);">
         ${text}
       </a>
+    </div>
+  `;
+}
+
+export function getWhatsAppButton(text: string, url: string, subtitle?: string): string {
+  return `
+    <div style="margin: 20px 0; text-align: center;">
+      <a href="${url}" target="_blank" style="background-color: #25D366; color: #ffffff; padding: 13px 28px; border-radius: 10px; font-weight: 700; font-size: 14px; text-decoration: none; display: inline-block; letter-spacing: 0.2px; box-shadow: 0 3px 6px rgba(37,211,102,0.25);">
+        <span style="font-size: 16px; vertical-align: middle; margin-right: 6px;">💬</span>
+        <span style="vertical-align: middle;">${text}</span>
+      </a>
+      ${subtitle ? `<p style="margin: 8px 0 0 0; font-size: 12px; color: #64748b;">${subtitle}</p>` : ''}
     </div>
   `;
 }
