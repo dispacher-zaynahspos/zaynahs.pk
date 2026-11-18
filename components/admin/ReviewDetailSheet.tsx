@@ -11,7 +11,7 @@ import Link from 'next/link';
 import { getClientSiteUrl } from '@/lib/site-url';
 import { cleanWhatsAppPhone } from '@/lib/utils/whatsapp';
 import { useConfirm } from '@/components/admin/shared/AdminConfirmProvider';
-import { getAllProductsAdmin } from '@/lib/services/products';
+import { getAllProductsAdminAction } from '@/lib/services/products/actions';
 import { assignReviewProduct } from '@/lib/services/reviews';
 import { rankProducts } from '@/lib/services/product-search/useInMemoryProductSearch';
 import { toast } from 'sonner';
@@ -43,7 +43,7 @@ export default function ReviewDetailSheet({ review, onClose, onApprove, onHide, 
 
   useEffect(() => {
     if (!showAssign || products.length > 0) return;
-    getAllProductsAdmin().then(setProducts).catch(() => {});
+    getAllProductsAdminAction().then(setProducts).catch(() => {});
   }, [showAssign, products.length]);
 
   const handleAssign = useCallback(async (productId: string | null) => {

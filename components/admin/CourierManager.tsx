@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { StoreSettings } from '@/lib/types';
-import { updateSettings } from '@/lib/services/settings';
+import { updateSettings } from '@/lib/services/settings/mutations';
 import { toast } from 'sonner';
 import { Loader2, Save, Truck } from '@/components/common/Icons';
 import { SettingsTabBar } from './settings-form/SettingsTabBar';

@@ -104,7 +104,8 @@ function resolveRemote(storeName, activeRemotes) {
     littlemister: ['littlemisterpk-cell', 'littlemister'],
     minimahal: ['infominimahal-bit', 'minimahal'],
     lobo: ['infolobopk-lgtm', 'lobo'],
-    zaynahs: ['dispacher-zaynahspos', 'zaynahspk', 'zaynahs']
+    zaynahs: ['dispacher-zaynahspos', 'zaynahspk', 'zaynahs'],
+    jeanzone: ['jeanzone', 'jeanzoneestore']
   };
 
   const candidates = map[storeName] || [storeName];

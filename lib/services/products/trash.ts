@@ -1,3 +1,4 @@
+'use server';
 import { Product } from '@/lib/types';
 import { revalidateProduct, revalidateTagSafe, revalidateAfterResponse } from '@/lib/revalidate';
 import { staticSupabase, mapProduct } from './mappers';

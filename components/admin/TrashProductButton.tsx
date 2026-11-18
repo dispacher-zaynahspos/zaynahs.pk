@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Trash2 } from '@/components/common/Icons';
 import { useRouter } from 'next/navigation';
-import { deleteProduct } from '@/lib/services/products';
+import { deleteProduct } from '@/lib/services/products/trash';
 import { useConfirm } from '@/components/admin/shared/AdminConfirmProvider';
 import { toast } from 'sonner';
 

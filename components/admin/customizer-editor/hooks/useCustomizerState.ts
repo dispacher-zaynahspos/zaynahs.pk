@@ -4,8 +4,12 @@ import React, { useState, useTransition, useMemo, useEffect, useRef } from 'reac
 import { useRouter } from 'next/navigation';
 import { Product, Category, StoreSettings, Review, HomepageSection, Collection } from '@/lib/types';
 import { useConfirm } from '@/components/admin/shared/AdminConfirmProvider';
-import { saveHomepageSections } from '@/lib/services/sections';
-import { updateSettings } from '@/lib/services/settings';
+// Import server actions from their OWN action modules — never from a service
+// barrel. A barrel re-exports read/query modules that build Supabase clients at
+// module scope, which pulls them into the client bundle (duplicate GoTrueClient
+// warning + service-role modules shipped to the browser).
+import { saveHomepageSections } from '@/lib/services/sections/homepage-sections';
+import { updateSettings } from '@/lib/services/settings/mutations';
 import { updateProductFieldsAction as updateProductFields } from '@/lib/services/products/actions';
 import { toast } from 'sonner';
 import { resolveDefaultTitle, buildSectionDefaults } from '@/lib/theme-schema';

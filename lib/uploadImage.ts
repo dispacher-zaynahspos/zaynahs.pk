@@ -1,25 +1,30 @@
 import { createClient as createBrowserClient } from '@/lib/supabase/client';
-import { loadSharp } from '@/lib/platform/sharp-loader';
 
 /**
- * Validates, compresses, and uploads an image file to Supabase storage, converting it to WebP.
- * Registers metadata in the media_library table and returns the public URL.
- * Supports both client (browser Canvas) and server (Sharp Node.js) execution.
- * 
+ * BROWSER upload entry point (client-safe — never imports the service-role client).
+ *
+ * Server/route-handler code must use `lib/uploadImageServer.ts` instead.
+ * Keeping the two paths apart prevents `@/lib/supabase/admin` from being
+ * bundled into client chunks (duplicate GoTrueClient / RULE F7).
+ */
+
+const ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp', 'avif', 'mp4', 'mov', 'webm', 'ogg'];
+
+/**
+ * Validates, compresses (WebP) and uploads an image through `/api/upload-image`
+ * so R2 routing, secrets and strict WebP enforcement stay server-side.
+ *
  * @param file The image File or Blob to upload
- * @param bucket The Supabase Storage bucket name (e.g., 'product-images')
+ * @param bucket Target folder/bucket (e.g. `product-images`)
  * @param customName Optional custom filename for Blobs
  * @returns The public URL of the uploaded image
  */
 export const uploadImage = async (file: File | Blob, bucket: string, customName?: string): Promise<string> => {
   try {
-    const isBrowser = typeof window !== 'undefined';
-    const supabase = isBrowser 
-      ? createBrowserClient() 
-      : (await import('@/lib/supabase/admin')).supabaseAdmin;
+    if (typeof window === 'undefined') {
+      throw new Error('uploadImage() is browser-only — use uploadImageServer() on the server');
+    }
 
-    // 1. Validate file extension
-    const allowedExtensions = ['jpg', 'jpeg', 'png', 'webp', 'avif', 'mp4', 'mov', 'webm', 'ogg'];
     let fileExtension = 'webp';
     let originalName = 'image';
 
@@ -31,168 +36,48 @@ export const uploadImage = async (file: File | Blob, bucket: string, customName?
       originalName = customName.replace(/\.[^/.]+$/, '');
     }
 
-    if (!allowedExtensions.includes(fileExtension)) {
-      throw new Error(`Invalid file format. Allowed formats: ${allowedExtensions.join(', ')}`);
+    if (!ALLOWED_EXTENSIONS.includes(fileExtension)) {
+      throw new Error(`Invalid file format. Allowed formats: ${ALLOWED_EXTENSIONS.join(', ')}`);
     }
 
-    // 2. Determine if file is a video
     const isVideo = file.type.startsWith('video/') || ['mp4', 'mov', 'webm', 'ogg'].includes(fileExtension);
 
-    // 3. Convert images to WebP
     let webpFile: File | Blob = file;
     const sanitizedName = originalName
       .replace(/[^a-zA-Z0-9-_\s]/g, '')
       .trim()
       .replace(/\s+/g, '-')
       .toLowerCase();
-    const timestamp = Date.now();
 
     if (!isVideo) {
-      if (isBrowser) {
-        // Client-side conversion using imageCompressor fallback chain
-        const { compressImage } = await import('@/lib/utils/imageCompressor');
-        const fileToCompress = file instanceof File 
-          ? file 
-          : new File([file], `${sanitizedName}.${fileExtension}`, { type: file.type });
-        
-        try {
-          webpFile = await compressImage(fileToCompress, 200);
-          fileExtension = 'webp';
-        } catch (err) {
-          console.warn('[uploadImage] Client side compression failed, using original:', err);
-          webpFile = fileToCompress;
-        }
-      } else {
-        // Server-side conversion using sharp when available
-        const sharp = await loadSharp();
-        if (sharp) {
-          try {
-            const arrayBuffer = await file.arrayBuffer();
-            const buffer = Buffer.from(arrayBuffer);
-            const webpBuffer = await sharp(buffer)
-              .rotate()
-              .resize(1200, 1200, { fit: 'inside', withoutEnlargement: true })
-              .webp({ quality: 80, effort: 4 })
-              .toBuffer();
-            webpFile = new Blob([new Uint8Array(webpBuffer)], { type: 'image/webp' });
-            fileExtension = 'webp';
-          } catch (err) {
-            console.error('[uploadImage] Server side sharp compression failed:', err);
-            if (fileExtension === 'webp' || file.type === 'image/webp') {
-              webpFile = file;
-            } else {
-              throw new Error('WebP image compression failed: ' + (err instanceof Error ? err.message : String(err)));
-            }
-          }
-        } else {
-          // Edge runtime (Cloudflare Workers): Sharp native bindings are not available.
-          console.warn('[uploadImage] Sharp unavailable on this runtime; preserving uploaded file');
-          webpFile = file;
-        }
-      }
-    }
+      const { compressImage } = await import('@/lib/utils/imageCompressor');
+      const fileToCompress = file instanceof File
+        ? file
+        : new File([file], `${sanitizedName}.${fileExtension}`, { type: file.type });
 
-    // 4. Generate filename
-    const webpFileName = `${sanitizedName}-${timestamp}.${fileExtension}`;
-    let fileUrl = '';
-
-    if (isBrowser) {
-      // Browser delegates to /api/upload-image to ensure R2 routing, secrets protection, and strict WebP
-      const formData = new FormData();
-      const sendFile = file instanceof File ? file : new File([file], `${sanitizedName}.${fileExtension}`, { type: file.type || 'image/webp' });
-      formData.append('file', sendFile);
-      formData.append('folder', bucket);
-      const res = await fetch('/api/upload-image', {
-        method: 'POST',
-        body: formData,
-      });
-      if (!res.ok) {
-        const errJson = await res.json().catch(() => ({}));
-        throw new Error(errJson.error || `Upload failed with status ${res.status}`);
-      }
-      const data = await res.json();
-      return data.url;
-    }
-
-    // 5. Upload file (R2 primary under S5; Supabase fallback under legacy mode B)
-    const { isR2UploadEnabled, uploadObjectToR2 } = await import('@/lib/platform/r2');
-    if (isR2UploadEnabled()) {
-      const arrayBuffer = await webpFile.arrayBuffer();
-      const r2 = await uploadObjectToR2({
-        key: `${bucket}/${webpFileName}`,
-        body: new Uint8Array(arrayBuffer),
-        contentType: webpFile.type || 'image/webp',
-      });
-      if (!r2.ok) {
-        throw new Error(`R2 upload failed: ${r2.error}`);
-      }
-      const fileUrl = r2.url;
-
-      // Register in media_library (DB only)
       try {
-        await supabase
-          .from('media_library')
-          .insert({
-            original_filename: file instanceof File ? file.name : (customName || 'unknown'),
-            seo_filename: webpFileName,
-            file_url: fileUrl,
-            alt_text: originalName.replace(/-/g, ' '),
-            title: originalName.replace(/-/g, ' '),
-            bucket: bucket,
-            ai_generated: false,
-            ai_enabled: true,
-            file_size: webpFile.size,
-            mime_type: webpFile.type || 'image/webp'
-          });
-      } catch (dbError) {
-        console.warn('[uploadImage] Error saving to media_library table:', dbError);
+        webpFile = await compressImage(fileToCompress, 200);
+        fileExtension = 'webp';
+      } catch (err) {
+        console.warn('[uploadImage] Client side compression failed, using original:', err);
+        webpFile = fileToCompress;
       }
-
-      return fileUrl;
     }
 
-    // Mode B Legacy Vercel mode: Upload to Supabase storage
-    const { error: uploadError } = await supabase.storage
-      .from(bucket)
-      .upload(webpFileName, webpFile, {
-        cacheControl: 'public, max-age=31536000',
-        upsert: false
-      });
+    const formData = new FormData();
+    const sendFile = webpFile instanceof File
+      ? webpFile
+      : new File([webpFile], `${sanitizedName}.${fileExtension}`, { type: webpFile.type || 'image/webp' });
+    formData.append('file', sendFile);
+    formData.append('folder', bucket);
 
-    if (uploadError) throw uploadError;
-
-    // 6. Get public URL
-    const { data } = supabase.storage
-      .from(bucket)
-      .getPublicUrl(webpFileName);
-
-    if (!data?.publicUrl) {
-      throw new Error('Failed to retrieve public URL after upload');
+    const res = await fetch('/api/upload-image', { method: 'POST', body: formData });
+    if (!res.ok) {
+      const errJson = await res.json().catch(() => ({}));
+      throw new Error(errJson.error || `Upload failed with status ${res.status}`);
     }
-
-    fileUrl = data.publicUrl;
-
-    // 7. Save to media_library table
-    const { error: dbError } = await supabase
-      .from('media_library')
-      .insert({
-        original_filename: file instanceof File ? file.name : (customName || 'unknown'),
-        seo_filename: webpFileName,
-        file_url: fileUrl,
-        alt_text: originalName.replace(/-/g, ' '),
-        title: originalName.replace(/-/g, ' '),
-        bucket: bucket,
-        ai_generated: false,
-        ai_enabled: true,
-        file_size: webpFile.size,
-        mime_type: webpFile.type || 'image/webp'
-      });
-
-    if (dbError) {
-      console.warn('[uploadImage] Error saving to media_library table:', dbError);
-    }
-
-    return fileUrl;
+    const data = await res.json();
+    return data.url;
   } catch (error: unknown) {
     console.error('[uploadImage] Image upload process failed:', error);
     throw new Error(error instanceof Error ? error.message : 'Image upload failed');
@@ -200,88 +85,55 @@ export const uploadImage = async (file: File | Blob, bucket: string, customName?
 };
 
 /**
- * Specifically uploads customer review photos.
- * Compresses image client-side to WebP <= 20 KB (Judge.me style).
- * Uploads directly to Supabase storage without adding to product media_library table.
+ * Customer review photos — compressed client-side to WebP ≤ 50 KB, then
+ * uploaded through `/api/media/upload` (service role, no RLS issues) with a
+ * direct browser-SDK fallback.
  */
 export const uploadReviewImage = async (file: File): Promise<string> => {
   try {
-    const isBrowser = typeof window !== 'undefined';
+    if (typeof window === 'undefined') {
+      throw new Error('uploadReviewImage() is browser-only — use uploadReviewImageServer() on the server');
+    }
 
-    // 1. Client-side compression to WebP under 50 KB
     let webpFile: File | Blob = file;
-    if (isBrowser) {
-      const { compressImage } = await import('@/lib/utils/imageCompressor');
-      try {
-        webpFile = await compressImage(file, 50);
-      } catch (err) {
-        console.warn('[uploadReviewImage] Compression fallback used:', err);
-      }
+    const { compressImage } = await import('@/lib/utils/imageCompressor');
+    try {
+      webpFile = await compressImage(file, 50);
+    } catch (err) {
+      console.warn('[uploadReviewImage] Compression fallback used:', err);
     }
 
-    // 2. Upload via Server API route (uses service role key -> 100% reliable, zero RLS issues)
-    if (isBrowser) {
-      try {
-        const formData = new FormData();
-        const cleanName = file.name.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9-]/g, '');
-        formData.append('file', webpFile, `${cleanName}.webp`);
-        formData.append('bucket', 'product-images');
-        formData.append('skipMediaLibrary', 'true');
+    try {
+      const formData = new FormData();
+      const cleanName = file.name.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9-]/g, '');
+      formData.append('file', webpFile, `${cleanName}.webp`);
+      formData.append('bucket', 'product-images');
+      formData.append('skipMediaLibrary', 'true');
 
-        const res = await fetch('/api/media/upload', {
-          method: 'POST',
-          body: formData,
-        });
-
-        if (res.ok) {
-          const json = await res.json();
-          if (json.url) return json.url;
-        }
-      } catch (e) {
-        console.warn('[uploadReviewImage] API upload failed, falling back to client SDK:', e);
+      const res = await fetch('/api/media/upload', { method: 'POST', body: formData });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.url) return json.url;
       }
+    } catch (e) {
+      console.warn('[uploadReviewImage] API upload failed, falling back to client SDK:', e);
     }
 
-    const supabase = isBrowser 
-      ? createBrowserClient() 
-      : (await import('@/lib/supabase/admin')).supabaseAdmin;
-
-    const timestamp = Date.now();
-    const randomStr = Math.random().toString(36).substring(2, 7);
-    const fileName = `review-photo-${timestamp}-${randomStr}.webp`;
-
-    const { isR2UploadEnabled, uploadObjectToR2 } = await import('@/lib/platform/r2');
-    if (isR2UploadEnabled()) {
-      const arrayBuffer = await webpFile.arrayBuffer();
-      const r2 = await uploadObjectToR2({
-        key: `product-images/${fileName}`,
-        body: new Uint8Array(arrayBuffer),
-        contentType: 'image/webp',
-      });
-      if (!r2.ok) {
-        throw new Error(`R2 upload failed: ${r2.error}`);
-      }
-      return r2.url;
-    }
+    const supabase = createBrowserClient();
+    const fileName = `review-photo-${Date.now()}-${Math.random().toString(36).substring(2, 7)}.webp`;
 
     const { error: uploadError } = await supabase.storage
       .from('product-images')
       .upload(fileName, webpFile, {
         cacheControl: 'public, max-age=31536000',
         contentType: 'image/webp',
-        upsert: false
+        upsert: false,
       });
 
     if (uploadError) throw uploadError;
 
-    const { data } = supabase.storage
-      .from('product-images')
-      .getPublicUrl(fileName);
-
-    if (!data?.publicUrl) {
-      throw new Error('Failed to retrieve public URL for review photo');
-    }
-
+    const { data } = supabase.storage.from('product-images').getPublicUrl(fileName);
+    if (!data?.publicUrl) throw new Error('Failed to retrieve public URL for review photo');
     return data.publicUrl;
   } catch (error: unknown) {
     console.error('[uploadReviewImage] Failed to upload review photo:', error);

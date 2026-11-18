@@ -4,8 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { X, Image, Plus, Package, Send, Check, Search } from '@/components/common/Icons';
 import { Modal } from '@/components/common/Modal';
 import { submitAdminCustomReview } from '@/lib/services/reviews';
-import { submitSocialProof, updateSocialProof } from '@/lib/services/social-proof';
-import { getAllProductsAdmin } from '@/lib/services/products';
+import { submitSocialProof, updateSocialProof } from '@/lib/services/social-proof/mutate';
+import { getAllProductsAdminAction } from '@/lib/services/products/actions';
 import { SocialProof, Product } from '@/lib/types';
 import MediaSelectorModal from './MediaSelectorModal';
 import { toast } from 'sonner';
@@ -46,7 +46,7 @@ export default function PostReviewModal({ isOpen, onClose, onSuccess, editProof 
 
   useEffect(() => {
     if (!isOpen) return;
-    getAllProductsAdmin().then(setProducts).catch(() => {});
+    getAllProductsAdminAction().then(setProducts).catch(() => {});
     if (editProof) {
       setPostType('social_proof');
       setProofImageUrl(editProof.image_url);

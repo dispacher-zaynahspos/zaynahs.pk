@@ -1,3 +1,4 @@
+import 'server-only';
 import { createServerClient } from '@supabase/ssr';
 
 export const createClient = async () => {

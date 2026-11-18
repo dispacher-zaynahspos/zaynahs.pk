@@ -198,6 +198,10 @@ CREATE INDEX IF NOT EXISTS idx_products_featured ON products (is_featured) WHERE
 -- PRODUCT SEARCH OPTIMIZATION
 -- ============================================================
 
+-- pg_trgm MUST exist before any gin_trgm_ops index is created below.
+-- Fresh Supabase projects do not enable it by default (fixed 2026-11-18).
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
 -- Add search_vector column for full-text search
 ALTER TABLE public.products 
 ADD COLUMN IF NOT EXISTS search_vector tsvector;
@@ -229,23 +233,9 @@ ON public.products USING GIN (sku gin_trgm_ops);
 CREATE INDEX IF NOT EXISTS idx_products_age_range 
 ON public.products (recommended_age_min_months, recommended_age_max_months);
 
--- Trigram indexes on variant attributes
-CREATE INDEX IF NOT EXISTS idx_variants_color_trgm 
-ON public.product_variants USING GIN (color gin_trgm_ops);
+-- Trigram indexes on variant attributes live AFTER product_variants is created (below).
 
-CREATE INDEX IF NOT EXISTS idx_variants_size_trgm 
-ON public.product_variants USING GIN (size gin_trgm_ops);
-
-CREATE INDEX IF NOT EXISTS idx_variants_material_trgm 
-ON public.product_variants USING GIN (material gin_trgm_ops);
-
-CREATE INDEX IF NOT EXISTS idx_variants_custom_value_trgm 
-ON public.product_variants USING GIN (custom_value gin_trgm_ops);
-
-CREATE INDEX IF NOT EXISTS idx_variants_sku_trgm 
-ON public.product_variants USING GIN (sku gin_trgm_ops);
-
--- Enable pg_trgm extension for fuzzy matching
+-- Enable pg_trgm extension for fuzzy matching (already created above on fresh clones)
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
 -- Function to build search vector from product and related data
@@ -348,10 +338,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-DROP TRIGGER IF EXISTS trigger_variant_search_vector ON public.product_variants;
-CREATE TRIGGER trigger_variant_search_vector
-AFTER INSERT OR UPDATE OR DELETE ON public.product_variants
-FOR EACH ROW EXECUTE FUNCTION public.update_product_search_vector_on_variant_change();
+-- NOTE: trigger_variant_search_vector is created at the END of this file,
+-- after product_variants exists (fresh-clone ordering fix, 2026-11-18).
 
 CREATE OR REPLACE FUNCTION public.update_product_search_vector_on_category_change()
 RETURNS trigger AS $$
@@ -371,10 +359,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-DROP TRIGGER IF EXISTS trigger_product_category_search_vector ON public.product_categories;
-CREATE TRIGGER trigger_product_category_search_vector
-AFTER INSERT OR UPDATE OR DELETE ON public.product_categories
-FOR EACH ROW EXECUTE FUNCTION public.update_product_search_vector_on_category_change();
+-- NOTE: trigger_product_category_search_vector is created at the END of this file,
+-- after product_categories exists (fresh-clone ordering fix, 2026-11-18).
 
 CREATE OR REPLACE FUNCTION public.update_product_search_vector_on_category_rename()
 RETURNS trigger AS $$
@@ -447,6 +433,22 @@ CREATE TABLE IF NOT EXISTS product_variants (
 );
 
 CREATE INDEX IF NOT EXISTS idx_variants_product ON product_variants (product_id);
+
+-- Trigram indexes for fuzzy variant search (pg_trgm is created in the search section above)
+CREATE INDEX IF NOT EXISTS idx_variants_color_trgm
+ON product_variants USING GIN (color gin_trgm_ops);
+
+CREATE INDEX IF NOT EXISTS idx_variants_size_trgm
+ON product_variants USING GIN (size gin_trgm_ops);
+
+CREATE INDEX IF NOT EXISTS idx_variants_material_trgm
+ON product_variants USING GIN (material gin_trgm_ops);
+
+CREATE INDEX IF NOT EXISTS idx_variants_custom_value_trgm
+ON product_variants USING GIN (custom_value gin_trgm_ops);
+
+CREATE INDEX IF NOT EXISTS idx_variants_sku_trgm
+ON product_variants USING GIN (sku gin_trgm_ops);
 
 -- ============================================================
 -- PRODUCT MODIFIERS (Add-ons)
@@ -717,6 +719,7 @@ CREATE TABLE IF NOT EXISTS store_settings (
   footer_body_weight TEXT,
   footer_align TEXT,
   footer_padding TEXT,
+  footer_content_width TEXT DEFAULT 'wide',
 
   -- Floating Contact Buttons config
   floating_contacts_enabled BOOLEAN DEFAULT true,
@@ -3277,3 +3280,18 @@ REVOKE INSERT ON public.failed_order_attempts FROM anon, authenticated;
 
 DROP POLICY IF EXISTS "Public read media_library" ON public.media_library;
 REVOKE SELECT ON public.media_library FROM anon;
+
+-- ============================================================
+-- SEARCH-VECTOR TRIGGERS (moved to end — fresh-clone ordering fix)
+-- These reference product_variants / product_categories, so they must run
+-- AFTER those tables exist. Idempotent on existing stores.
+-- ============================================================
+DROP TRIGGER IF EXISTS trigger_variant_search_vector ON public.product_variants;
+CREATE TRIGGER trigger_variant_search_vector
+AFTER INSERT OR UPDATE OR DELETE ON public.product_variants
+FOR EACH ROW EXECUTE FUNCTION public.update_product_search_vector_on_variant_change();
+
+DROP TRIGGER IF EXISTS trigger_product_category_search_vector ON public.product_categories;
+CREATE TRIGGER trigger_product_category_search_vector
+AFTER INSERT OR UPDATE OR DELETE ON public.product_categories
+FOR EACH ROW EXECUTE FUNCTION public.update_product_search_vector_on_category_change();

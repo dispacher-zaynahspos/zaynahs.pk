@@ -3,9 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { StoreSettings } from '@/lib/types';
-import { updateSettingsSafe } from '@/lib/services/settings';
+import { updateSettingsSafe } from '@/lib/services/settings/mutations';
 import { getCategories } from '@/lib/services/categories';
-import { getAllProductsAdmin } from '@/lib/services/products';
+import { getAllProductsAdminAction } from '@/lib/services/products/actions';
 import { getShippingMethods } from '@/lib/services/shipping';
 import { getPaymentMethods } from '@/lib/services/paymentMethods';
 import { getCoupons } from '@/lib/services/coupons';
@@ -97,7 +97,7 @@ export function useSettingsFormState({ initialSettings }: UseSettingsFormStatePr
           getShippingMethods(),
           getPaymentMethods(),
           getCategories(),
-          getAllProductsAdmin(),
+          getAllProductsAdminAction(),
           getCoupons(),
         ]);
         shippingPayment.setShippingMethods(shipList);

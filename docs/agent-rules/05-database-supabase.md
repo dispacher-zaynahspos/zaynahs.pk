@@ -222,6 +222,34 @@ Without this rule, agents fix code but leave clone scripts, guides, and schema o
 
 ---
 
+## RULE SYNC3 — Fresh-clone schema parity gate (STRICT — no clone may ship a half-schema)
+
+> Root cause (2026-11-18, JeanZon clone): a column used by `updateSettings()` (`store_settings.footer_content_width`) existed in a migration but was missing from `SUPER_MASTER_SCHEMA.sql`. `check-master-schema.mjs` passed because it only asked *"does this word appear anywhere in the file?"* — it never checked that the column lived inside the owning table. Fresh clone → DB lacked the column → customizer save 500 (PGRST204).
+
+### Non-negotiables
+
+1. **Parity = column inside the owning table.** `scripts/check-master-schema.mjs` MUST verify every `ALTER TABLE <t> ADD COLUMN <c>` by parsing:
+   - each `ALTER TABLE ...;` **body** (so comma-chained multi-column ALTERs are all checked), and
+   - that `<c>` exists **inside that table's `CREATE TABLE` block** (paren/quote-aware) or via an explicit `ALTER TABLE <t> ADD COLUMN <c>` in the master file.
+   A bare `schema.includes(colName)` check is BANNED — it is exactly the blind spot that shipped the bug.
+2. **Ordering is part of correctness.** Extensions (`pg_trgm`) must be created before any index that uses them; indexes/triggers must come after their table's `CREATE TABLE`. Order already-fixed sections — don't "tidy" them back.
+3. **Fresh-clone proof is mandatory** before claiming a schema works: run `npm run clone:setup -- --store=<store> --only=db --yes` against an **empty** project (or a scratch project) — not just `check:schema` on an existing DB. Existing DBs have legacy tables/extensions that mask ordering bugs.
+4. **Gate stays green:** `npm run check:schema` and `npm run check:setup` must pass before any deploy/clone is reported done (plus `npx tsc --noEmit`).
+
+### Verification checklist
+```bash
+npm run check:schema    # migrations ↔ master schema, per-table column parity
+npm run check:setup     # schema + revalidate triggers + clone env docs
+npx tsc --noEmit
+```
+
+### Cross-references
+- RULE D5 (`SCHEMA_CHANGE_LOG.md`), RULE D6 (master schema always in sync)
+- RULE SYNC1 / SYNC2 (setup-sync + full doc update)
+- `scripts/check-master-schema.mjs`, `supabase/schema/SUPER_MASTER_SCHEMA.sql`
+
+---
+
 ## RULE D19 — Public data lock (PII / secrets / admin predicate) — STRICT
 
 Full rules: [32-security-public-data-lock.md](32-security-public-data-lock.md).

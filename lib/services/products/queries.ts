@@ -1,3 +1,4 @@
+import 'server-only';
 import { cache } from 'react';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { Product } from '@/lib/types';

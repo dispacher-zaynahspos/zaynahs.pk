@@ -1,5 +1,5 @@
 import { StoreSettings } from '@/lib/types';
-import { SettingsRow } from './types';
+import type { SettingsRow } from './types';
 
 export const mapSettings = (row: SettingsRow): StoreSettings => ({
   id: row.id,

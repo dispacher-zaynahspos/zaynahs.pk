@@ -1,3 +1,37 @@
+## [2026-11-18] Customizer save 500 (PGRST204) + React #441 — master schema column drift & weak checker
+
+**Symptom:** admin customizer save returned 500 on the fresh JeanZon store; browser only showed `Minified React error #441` (Next.js masks Server Action errors in production), server log had digest `2178853693` → `Could not find the 'footer_content_width' column of 'store_settings' in the schema cache` (`PGRST204`).
+
+**Root cause:**
+1. `footer_content_width` existed in migration `20261011140000_unified_catalog_grid_controls.sql` but was never added to `SUPER_MASTER_SCHEMA.sql` — a fresh clone therefore never got the column.
+2. `scripts/check-master-schema.mjs` verified `ADD COLUMN` with `schema.includes(colName)`, so a missing column passed as long as the same word appeared anywhere in the file (e.g. in the migration's `UPDATE` default). Its `ALTER TABLE` regex also missed comma-chained columns.
+
+**Fix:** added the column to the master schema; rewrote the checker to parse each `ALTER TABLE` body and assert the column exists inside the owning `CREATE TABLE` block. React #441 needs no code change — it is always the masked form of the real server error; read the digest in `vercel logs`.
+
+**Rule:** `PGRST204` on a fresh clone = schema drift, not a code bug. Fix the master schema + checker, then re-run `clone:setup --only=db` on an empty project. See RULE SYNC3 in `docs/agent-rules/05-database-supabase.md`.
+
+**Also fixed:** `Multiple GoTrueClient instances detected` — a client hook imported Server Actions from the `@/lib/services/settings` barrel, pulling modules that construct Supabase clients at module scope into the browser chunk. Client imports now point at the `'use server'` action modules directly; settings/product read modules + `lib/supabase/admin.ts` + `lib/supabase/server.ts` are guarded with `import 'server-only'`; and the shared upload helper was split into browser (`lib/uploadImage.ts`) and server (`lib/uploadImageServer.ts`) paths so webpack can no longer bundle the service-role client. Result: zero `persistSession`/`SUPABASE_SERVICE_ROLE_KEY` in client chunks (verified in the production build). Rules F7 + S13.
+
+---
+
+## [2026-11-18] Fresh clone failed: master schema had ordering bugs (extension → index → trigger)
+
+**Symptom:**
+Provisioning a brand-new Supabase project (JeanZon) with `clone:setup --only=db` failed repeatedly:
+`42704: operator class "gin_trgm_ops" does not exist` → then `42P01: relation "public.product_variants" does not exist`.
+
+**Root Cause:**
+`SUPER_MASTER_SCHEMA.sql` was only ever run against databases that already had extensions/tables from older migrations, so section order was never validated on an empty project:
+1. `pg_trgm` extension was created AFTER the trigram indexes.
+2. Variant trigram indexes were created BEFORE `product_variants`.
+3. Search-vector triggers targeted `product_variants` / `product_categories` BEFORE those tables were created.
+
+**Fix:** moved the extension to the top of the search section, moved variant indexes after `CREATE TABLE product_variants`, and moved both triggers to the end of the file. `npm run check:schema` + `clone:setup --only=db` now pass on a fresh project.
+
+**Rule:** never assume "master schema works" — always test it on an empty project before trusting a clone.
+
+---
+
 ## [2026-10-15] Admin Customizer Styles Not Reflecting on Live Store — ThemeStyleRegistry CSS `!important` Override
 
 **Symptom:**

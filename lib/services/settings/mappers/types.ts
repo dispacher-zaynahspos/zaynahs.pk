@@ -1,3 +1,4 @@
+import 'server-only';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { STORE_SETTINGS_ID } from '@/lib/config/singleton-ids';
 

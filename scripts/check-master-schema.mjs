@@ -28,6 +28,59 @@ function has(pattern) {
   return schema.includes(n(pattern));
 }
 
+/**
+ * Extract the body of `CREATE TABLE [IF NOT EXISTS] <table> (...)` from the
+ * normalized master schema. Returns null when the table is not declared there.
+ * Paren/quote aware so column defaults like `check (x in ('a','b'))` don't
+ * truncate the body early.
+ */
+function tableBody(table) {
+  const re = new RegExp(`create table (?:if not exists )?${table}\\s*\\(`, 'i');
+  const m = re.exec(schema);
+  if (!m) return null;
+  let i = m.index + m[0].length;
+  let depth = 1;
+  let quote = null;
+  const start = i;
+  for (; i < schema.length; i++) {
+    const ch = schema[i];
+    if (quote) {
+      if (ch === quote) quote = null;
+      continue;
+    }
+    if (ch === "'" || ch === '"') { quote = ch; continue; }
+    if (ch === '(') depth++;
+    else if (ch === ')') {
+      depth--;
+      if (depth === 0) return schema.slice(start, i);
+    }
+  }
+  return null;
+}
+
+// Columns the master schema itself adds via ALTER TABLE (created after CREATE TABLE).
+const masterAddedCols = new Map();
+for (const stmt of schema.matchAll(/alter\s+table\s+(?:if\s+exists\s+)?(\w+)\s+([\s\S]*?);/g)) {
+  const table = stmt[1].toLowerCase();
+  for (const add of stmt[2].matchAll(/add\s+column\s+(?:if\s+not\s+exists\s+)?(\w+)/g)) {
+    if (!masterAddedCols.has(table)) masterAddedCols.set(table, new Set());
+    masterAddedCols.get(table).add(add[1].toLowerCase());
+  }
+}
+
+/**
+ * A column is reflected only if it is declared INSIDE that table's CREATE TABLE
+ * body (or explicitly added to that same table later in the master schema).
+ * Matching the bare word anywhere in the file is NOT enough — that blind spot
+ * let `store_settings.footer_content_width` ship missing (PGRST204, 2026-11-18).
+ */
+function columnInTable(table, col) {
+  const body = tableBody(table);
+  if (body && new RegExp(`(^|[,\\s(])${col}\\s`).test(body)) return true;
+  const added = masterAddedCols.get(table);
+  return Boolean(added && added.has(col));
+}
+
 const files = readdirSync(MIGRATIONS_DIR).filter(f => f.endsWith('.sql')).sort();
 let errors = [];
 
@@ -49,12 +102,15 @@ for (const file of files) {
     }
   }
 
-  // Check ALTER TABLE ... ADD COLUMN IF NOT EXISTS (not ADD CONSTRAINT)
-  const addCols = sql.match(/ALTER\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?(?:public\.)?(\w+)\s+ADD\s+(?:COLUMN\s+)(?:IF\s+NOT\s+EXISTS\s+)?(\w+)\s+/gi) || [];
-  for (const ac of addCols) {
-    const [, table, col] = ac.match(/ALTER\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?(?:public\.)?(\w+)\s+ADD\s+(?:COLUMN\s+)?(?:IF\s+NOT\s+EXISTS\s+)?(\w+)/i);
-    if (!has(`${col.toLowerCase()}`)) {
-      errors.push(`${file}: ALTER TABLE ${table} ADD COLUMN ${col} — column NOT FOUND in master schema`);
+  // Check ALTER TABLE ... ADD COLUMN — parse each statement body so comma-chained
+  // multi-column ALTERs are all verified against the owning table definition.
+  for (const stmt of sql.matchAll(/alter\s+table\s+(?:if\s+exists\s+)?(?:public\.)?(\w+)([\s\S]*?);/gi)) {
+    const table = stmt[1].toLowerCase();
+    for (const colMatch of stmt[2].matchAll(/add\s+column\s+(?:if\s+not\s+exists\s+)?(\w+)/gi)) {
+      const col = colMatch[1].toLowerCase();
+      if (!columnInTable(table, col)) {
+        errors.push(`${file}: ALTER TABLE ${table} ADD COLUMN ${col} — column NOT FOUND inside ${table} in master schema`);
+      }
     }
   }
 

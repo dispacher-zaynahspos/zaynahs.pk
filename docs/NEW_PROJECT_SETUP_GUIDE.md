@@ -99,6 +99,18 @@ node scripts/verify-rls-status.mjs     # RLS ON/OFF + policies for every sensiti
 ```
 Expected: every listed table shows `RLS ✓` (never `RLS ✗ (OPEN)`) after the v7.0.0 schema.
 
+### 🧱 Fresh-clone proof (MANDATORY before calling a clone "done" — RULE SYNC3)
+```bash
+npm run check:schema   # every migration column must exist INSIDE its table in the master schema
+npm run check:setup    # schema + 22 revalidate triggers + clone env docs in sync
+npx tsc --noEmit
+```
+Then prove the master schema on an **empty** project — an existing DB hides ordering bugs:
+```bash
+npm run clone:setup -- --store=<store> --only=db --yes
+```
+If `check:schema` is green but the live app throws `PGRST204 — Could not find the '<col>' column`, the column is missing from `SUPER_MASTER_SCHEMA.sql`: add it to the owning `CREATE TABLE`, re-run `clone:setup --only=db`, and `NOTIFY pgrst, 'reload schema'`.
+
 Or manual live check:
 ```bash
 node -e "

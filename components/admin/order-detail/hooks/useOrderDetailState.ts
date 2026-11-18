@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { getAllProductsAdmin } from '@/lib/services/products';
+import { getAllProductsAdminAction } from '@/lib/services/products/actions';
 import { Order, Product } from '@/lib/types';
 import { mapOrderRow, OrderRow } from '@/components/admin/order-log/orderLogUtils';
 import { useOrderCustomerEditing } from './useOrderCustomerEditing';
@@ -448,7 +448,7 @@ export function useOrderDetailState(initialOrder: Order) {
 
   useEffect(() => {
     if (isEditingOrder && allProducts.length === 0) {
-      getAllProductsAdmin().then(setAllProducts).catch(console.error);
+      getAllProductsAdminAction().then(setAllProducts).catch(console.error);
     }
   }, [isEditingOrder, allProducts.length]);
 

@@ -50,7 +50,7 @@ export default function CustomizerEditor(props: CustomizerEditorProps) {
   }, [state.mobileTab, state.activeSectionId, state.activePage, state]);
 
   return (
-    <div className="fixed inset-0 z-[100] w-screen h-[100dvh] overflow-hidden flex flex-col bg-gray-50 dark:bg-[#0f0f1b] select-none text-gray-900 dark:text-gray-100">
+    <div className="admin-shell fixed inset-0 z-[100] w-screen h-[100dvh] overflow-hidden flex flex-col bg-gray-50 dark:bg-[#0f0f1b] select-none text-gray-900 dark:text-gray-100">
       
       {/* 1. TOP HEADER BAR */}
       <CustomizerTopBar

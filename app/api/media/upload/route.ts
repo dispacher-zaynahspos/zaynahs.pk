@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth/requireAdmin';
-import { uploadImage } from '@/lib/uploadImage';
+import { uploadImageServer } from '@/lib/uploadImageServer';
 import { getAISettings } from '@/lib/ai';
 import { routeVision, extractKeys } from '@/lib/ai/router';
 import { supabaseAdmin } from '@/lib/supabase/admin';
@@ -59,7 +59,7 @@ export async function POST(request: Request) {
     }
 
     // 1. Process upload and convert to WebP
-    const fileUrl = await uploadImage(file, bucket);
+    const fileUrl = await uploadImageServer(file, bucket);
 
     // 2. Fetch media library record to get its ID
     const { data: mediaRecord, error: fetchError } = await supabaseAdmin

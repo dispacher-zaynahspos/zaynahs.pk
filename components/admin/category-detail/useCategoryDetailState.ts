@@ -8,7 +8,7 @@ import {
   removeProductsFromCategoryAction,
   updateCategorySortOrderAction,
 } from '@/lib/services/products/actions';
-import { getAllProductsAdmin } from '@/lib/services/products';
+import { getAllProductsAdminAction } from '@/lib/services/products/actions';
 import { useConfirm } from '@/components/admin/shared/AdminConfirmProvider';
 import { arrayMove } from '@/lib/utils/arrayMove';
 import { toast } from 'sonner';
@@ -99,7 +99,7 @@ export function useCategoryDetailState(category: Category, initialProducts: Prod
     setIsAddModalOpen(true);
     setLoadingAllProducts(true);
     try {
-      const data = await getAllProductsAdmin();
+      const data = await getAllProductsAdminAction();
       setAllStoreProducts(data);
     } catch (err) {
       toast.error('Failed to load store products');

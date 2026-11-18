@@ -112,44 +112,46 @@ export default function ThemeStyleRegistry({ settings }: ThemeStyleRegistryProps
       color: var(--color-text-primary) !important;
     }
 
-    /* Footer Customizer Colors: Merchant settings have absolute priority over default theme colors */
-    footer, body:not(.admin-shell) footer {
+    /* Footer Customizer Colors: Merchant settings have absolute priority over default theme colors (Storefront only) */
+    body:not(.admin-shell):not(:has(.admin-shell)) footer:not([data-admin-footer]):not(.admin-footer),
+    footer.site-footer {
       background-color: var(--footer-bg) !important;
       color: var(--footer-text) !important;
       border-color: var(--footer-divider) !important;
     }
-    footer :is(h1, h2, h3, h4, h5, h6),
-    body:not(.admin-shell) footer :is(h1, h2, h3, h4, h5, h6) {
+    body:not(.admin-shell):not(:has(.admin-shell)) footer:not([data-admin-footer]):not(.admin-footer) :is(h1, h2, h3, h4, h5, h6),
+    footer.site-footer :is(h1, h2, h3, h4, h5, h6) {
       color: var(--footer-heading) !important;
       font-family: var(--footer-heading-font) !important;
     }
-    footer a,
-    body:not(.admin-shell) footer a {
+    body:not(.admin-shell):not(:has(.admin-shell)) footer:not([data-admin-footer]):not(.admin-footer) a,
+    footer.site-footer a {
       color: var(--footer-link) !important;
     }
-    footer p,
-    body:not(.admin-shell) footer p {
+    body:not(.admin-shell):not(:has(.admin-shell)) footer:not([data-admin-footer]):not(.admin-footer) p,
+    footer.site-footer p {
       color: var(--footer-text) !important;
       font-family: var(--footer-body-font) !important;
     }
-    footer .footer-copyright,
-    body:not(.admin-shell) footer .footer-copyright {
+    body:not(.admin-shell):not(:has(.admin-shell)) footer:not([data-admin-footer]):not(.admin-footer) .footer-copyright,
+    footer.site-footer .footer-copyright {
       color: var(--footer-copyright) !important;
     }
 
-    /* Header Customizer Colors: Merchant settings have absolute priority */
-    header, body:not(.admin-shell) header {
+    /* Header Customizer Colors: Merchant settings have absolute priority for Storefront (never override admin/customizer headers) */
+    body:not(.admin-shell):not(:has(.admin-shell)) header:not([data-admin-header]):not(.customizer-topbar):not(.admin-header),
+    header.site-header {
       background-color: var(--header-bg) !important;
       color: var(--header-text) !important;
     }
 
-    /* Remap hardcoded dark-theme hex colors to active theme variables (Storefront only) */
-    body:not(.admin-shell) [class*="bg-[#16162a]"],
-    body:not(.admin-shell).dark [class*="bg-[#16162a]"] {
+    /* Remap hardcoded dark-theme hex colors to active theme variables (Storefront only - protect admin-shell) */
+    body:not(.admin-shell) [class*="bg-[#16162a]"]:not(.admin-shell *),
+    body:not(.admin-shell).dark [class*="bg-[#16162a]"]:not(.admin-shell *) {
       background-color: var(--color-surface) !important;
     }
-    body:not(.admin-shell) [class*="bg-[#0f0f1b]"],
-    body:not(.admin-shell).dark [class*="bg-[#0f0f1b]"] {
+    body:not(.admin-shell) [class*="bg-[#0f0f1b]"]:not(.admin-shell *),
+    body:not(.admin-shell).dark [class*="bg-[#0f0f1b]"]:not(.admin-shell *) {
       background-color: var(--color-background) !important;
     }
     /* bg-white/80 opacity variants → use surface with opacity */

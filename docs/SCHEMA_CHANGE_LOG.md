@@ -4,6 +4,33 @@
 
 ---
 
+### [2026-11-18] v10.1.1 — `store_settings.footer_content_width` parity fix + checker hardening
+
+**Files:** `supabase/schema/SUPER_MASTER_SCHEMA.sql`, `scripts/check-master-schema.mjs` (no new migration — column already shipped in `20261011140000_unified_catalog_grid_controls.sql`)
+
+**Problem:** fresh JeanZon DB lacked `store_settings.footer_content_width`, so the admin customizer save threw `PGRST204 — Could not find the 'footer_content_width' column` (browser saw React #441 + POST 500).
+**Root cause:** the column was only in the migration, never copied into the master schema; the parity checker did `schema.includes(colName)` and its `ALTER TABLE` regex missed comma-chained `ADD COLUMN`s — so the drift passed CI.
+**Fix:**
+1. Added `footer_content_width TEXT DEFAULT 'wide'` to the `store_settings` block in the master schema.
+2. Hardened `scripts/check-master-schema.mjs`: it now parses each `ALTER TABLE ...;` body, captures every `ADD COLUMN`, and asserts the column lives **inside the owning table's `CREATE TABLE` block** (paren/quote-aware), or in a master-level `ALTER TABLE <t> ADD COLUMN`.
+3. Applied `ALTER TABLE public.store_settings ADD COLUMN IF NOT EXISTS footer_content_width TEXT DEFAULT 'wide'` + `NOTIFY pgrst, 'reload schema'` to the live JeanZon project.
+
+**Verification:** negative test (column removed → checker fails with the exact table/column) · `npm run check:schema` ✅ · `npm run check:setup` ✅ · live `information_schema` shows the column ✅.
+
+---
+
+### [2026-11-18] v10.1.0 — Master schema fresh-clone ordering fixes (JeanZon bring-up)
+
+**Files:** `supabase/schema/SUPER_MASTER_SCHEMA.sql` (no new migration — ordering only; already-applied stores unaffected)
+
+**Fixes (discovered while provisioning a brand-new Supabase project):**
+1. `CREATE EXTENSION IF NOT EXISTS pg_trgm` moved BEFORE the trigram indexes (fresh projects don't enable it; previously failed with `42704 gin_trgm_ops does not exist`).
+2. Variant trigram indexes (`idx_variants_*_trgm`) moved AFTER `product_variants` table creation.
+3. `trigger_variant_search_vector` + `trigger_product_category_search_vector` moved to end of file (their tables are created later).
+Result: `SUPER_MASTER_SCHEMA.sql` now applies to a completely empty project in one transaction.
+
+---
+
 ### [2026-10-29] v10.0.4 — Free Shipping Toggle & Cart Recommendations Engine
 
 **Migration:** `supabase/migrations/20261029110000_cart_recommendations_and_free_shipping.sql`

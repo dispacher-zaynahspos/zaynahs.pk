@@ -38,18 +38,20 @@ export function CustomizerTopBar({
 
   return (
     <header 
-      className="h-16 bg-[#16162a] text-white border-b border-white/10 flex items-center justify-between px-2 sm:px-4 lg:px-6 z-50 shadow-md flex-shrink-0 gap-2 overflow-hidden"
+      data-admin-header="true"
+      className="customizer-topbar h-16 bg-[#16162a] text-white border-b border-white/10 flex items-center justify-between px-2 sm:px-4 lg:px-6 z-50 shadow-md flex-shrink-0 gap-2 overflow-hidden"
+      style={{ backgroundColor: '#16162a', color: '#ffffff' }}
     >
       {/* Left: Back to Dashboard & Page Selector */}
       <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0 shrink">
         <button
           onClick={() => router.push('/admin/dashboard')}
-          className="flex items-center gap-1.5 text-white bg-white/10 hover:bg-white/20 active:scale-95 border border-white/15 px-2.5 sm:px-3 py-1.5 rounded-xl transition-all font-bold text-xs cursor-pointer select-none shrink-0 min-h-[38px]"
+          className="flex items-center gap-1.5 text-white bg-[#252542] hover:bg-[#303055] active:scale-95 border border-white/20 px-2.5 sm:px-3 py-1.5 rounded-xl transition-all font-bold text-xs cursor-pointer select-none shrink-0 min-h-[38px] shadow-sm ring-1 ring-white/10"
           title="Back to Dashboard"
           aria-label="Back to Dashboard"
         >
-          <ChevronLeft className="h-4 w-4 shrink-0 text-white" />
-          <span className="font-bold inline">Dashboard</span>
+          <ChevronLeft className="h-4 w-4 shrink-0 text-white stroke-[2.5]" />
+          <span className="font-bold inline text-white">Dashboard</span>
         </button>
         <div className="w-[1px] h-6 bg-white/15 hidden xl:block shrink-0" />
         <div className="hidden xl:flex flex-col items-start leading-none gap-0.5 mr-1 shrink-0">

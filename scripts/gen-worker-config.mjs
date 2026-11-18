@@ -119,6 +119,7 @@ function buildConfigs(ctx, split) {
   const single = {
     $schema: 'node_modules/wrangler/config-schema.json',
     name: slug,
+    ...(ctx.accountId ? { account_id: ctx.accountId } : {}),
     ...base,
     vars,
     routes: [
@@ -202,6 +203,7 @@ function main() {
     imageBucket: (env.R2_IMAGES_BUCKET || `${slug}-images`).trim(),
     zoneId: (env.CLOUDFLARE_ZONE_ID || '').trim(),
     multiStoreConfig: (env.MULTI_STORE_CLOUDFLARE_CONFIG || '').trim(),
+    accountId: (env.CF_ACCOUNT_ID || env.CLOUDFLARE_ACCOUNT_ID || '').trim(),
     date: compatDate(),
   };
 

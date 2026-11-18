@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState, Suspense } from 'react';
 import { getAllReviews, approveReview, deleteReview, hideShowReview } from '@/lib/services/reviews';
-import { getAllSocialProofs, deleteSocialProof } from '@/lib/services/social-proof';
+import { getAllSocialProofs } from '@/lib/services/social-proof/read';
+import { deleteSocialProof } from '@/lib/services/social-proof/mutate';
 import { SocialProof } from '@/lib/types';
 import { formatDistanceToNow, parseISO } from 'date-fns';
 import { Plus, Image } from '@/components/common/Icons';

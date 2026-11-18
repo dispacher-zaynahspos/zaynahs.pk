@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react';
 import { toast } from 'sonner';
 import { Product, Category, Review, Order, WhatsAppSubscriber, EmailSubscriber, SizeGuide, VariantPreset } from '@/lib/types';
-import { restoreProduct, hardDeleteProduct } from '@/lib/services/products';
+import { restoreProduct, hardDeleteProduct } from '@/lib/services/products/trash';
 import { restoreCategory, hardDeleteCategory } from '@/lib/services/categories';
 import { restoreReview, hardDeleteReview } from '@/lib/services/reviews';
 import { restoreOrder, hardDeleteOrder } from '@/lib/services/orders';

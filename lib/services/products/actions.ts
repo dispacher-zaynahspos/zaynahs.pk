@@ -4,7 +4,7 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
 import { Product, ProductImage, ProductVariant, ProductModifier } from '@/lib/types';
 import { revalidateProduct, revalidateTagSafe, revalidateAfterResponse, revalidateStorefrontEdge } from '@/lib/revalidate';
 import { SHOP_CATEGORY_ID } from '@/lib/config/singleton-ids';
-import { getProductById } from './queries';
+import { getProductById, getAllProductsAdmin } from './queries';
 import { slugify } from '@/lib/utils/slugify';
 
 /**
@@ -542,6 +542,15 @@ export async function updateProductFieldsAction(
     console.error('[products] updateProductFieldsAction failed:', error);
     throw error;
   }
+}
+
+/**
+ * Server Action wrapper for the admin product list. Client components must
+ * never import `./queries` (it builds service-role Supabase clients at module
+ * scope) — always call this action instead (RULE F7).
+ */
+export async function getAllProductsAdminAction(): Promise<Product[]> {
+  return getAllProductsAdmin();
 }
 
 export async function deleteProductAction(id: string): Promise<void> {

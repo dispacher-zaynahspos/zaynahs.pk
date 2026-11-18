@@ -7,3 +7,9 @@ env-backups
 .next
 node_modules
 *.log
+# Large local artefacts (never part of a build) — 100MB upload limit guard
+Archive.zip
+*.zip
+.open-next
+.build-cache
+*.tsbuildinfo

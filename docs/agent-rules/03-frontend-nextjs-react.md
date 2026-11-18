@@ -148,3 +148,23 @@ Applies universally across all current stores and future clones:
 2. **Sitemap Isolation (`app/sitemap.ts`)**:
    - Only public storefront canonical URLs (home, `/shop`, categories, products, collections, `/reviews`, policies) are included. Admin, cart, checkout, account, and auth URLs are strictly excluded.
 
+
+---
+
+## RULE F7 — Client components import Server Actions from their OWN action module (STRICT — no service barrels in the browser bundle)
+
+> Root cause (2026-11-18, JeanZon admin customizer): a `'use client'` hook imported `updateSettings` / `saveHomepageSections` from the **service barrel** (`@/lib/services/settings`). The barrel also re-exported non-`'use server'` read modules, so webpack pulled those into the client chunk. They create Supabase clients at module scope → **`Multiple GoTrueClient instances detected`** warning, extra bundle weight, and service-role modules (`supabaseAdmin`) shipped to the browser.
+
+### Rules
+1. **Allowed:** `import { action } from '@/lib/services/<domain>/<action-file>'` — where that file starts with `'use server'`.
+2. **Banned:** importing Server Actions from a barrel (`@/lib/services/settings`, `@/lib/services/products`, `@/lib/services/categories`, …) inside any `'use client'` file. Barrels exist for Server Components / route handlers only.
+3. **Banned:** creating a Supabase client at module scope in any module reachable from a client component. Client-side auth must use the ONE shared singleton `lib/supabase/client.ts` (`createBrowserClient` + global key). Server modules marked with `import 'server-only'` must never be client-imported (Next fails the build — that failure is the guard, do not bypass it).
+4. **Type-only imports** across the server/client boundary must use `import type { … }` so the value module (and its top-level side effects) is elided.
+5. When you see `Multiple GoTrueClient instances detected`, fix the import graph — never "silence" it by adding options/keys.
+
+### Verify
+```bash
+npx tsc --noEmit
+npm run build   # catches 'server-only' violations at bundle time
+```
+Grep guard: no `'use client'` file may match `from '@/lib/services/<domain>'` (barrel) — only `<domain>/<action-module>`.

@@ -159,3 +159,10 @@ Verified 2026-10. ALL media uploads go through a single system — never a bespo
   - Zero silent fallback from Mode A to Supabase Storage.
 - **Media Re-use Mapping**: If multiple variants share the same source image as a product image, the import engine maps it via `uploadedUrlsMap` so the asset is downloaded and uploaded exactly once to avoid redundant network/storage overhead.
 
+
+## RULE S13 — Split upload entry points: browser-safe vs server-only (STRICT)
+
+- `lib/uploadImage.ts` = **browser-only** entry point. It compresses (Canvas/WebP) and delegates to the server API routes (`/api/upload-image`, `/api/media/upload`). It must never import `@/lib/supabase/admin` (directly or dynamically).
+- `lib/uploadImageServer.ts` = **server-only** (`import 'server-only'`) pipeline: Sharp → WebP → R2 (Mode A) / Supabase Storage (Mode B) + `media_library` registration. Route handlers and server services import this module.
+- Why: a runtime `typeof window` branch inside one shared file still makes webpack bundle the service-role client into **client** chunks — that produced duplicate `GoTrueClient` instances in the browser and shipped server code to users. Two files, two environments, zero cross-imports (see RULE F7 in `03-frontend-nextjs-react.md`).
+- Never "fix" a duplicate-GoTrueClient warning by adding `storageKey`/options — fix the import graph.
