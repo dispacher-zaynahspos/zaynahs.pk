@@ -15,6 +15,7 @@
 | MiniMahal | mgwkcumurrllhpjvfezz | 6acd493022cd0f2d5a9c290088b5327a | www.minimahal.com |
 | LittleMister | ljknmwianiswkalifueb | 063a3d5c72d44b3654aa60b17ed94863 | www.littlemister.pk |
 | Lobo | kixsxgyfiovtaxsuflfy | 645e99188d3241324e154045a4c9a8db | www.lobo.pk |
+| JeanZon | oaicwycjuflsuqrsavzc | 67de36682ea50da46689771df9943806 | www.jeanzon.com |
 
 
 (Full credential map: [26-project-reference-table.md](26-project-reference-table.md).)

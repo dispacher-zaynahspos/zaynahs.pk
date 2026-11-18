@@ -305,9 +305,9 @@ export default function ProductListTable({
         </div>
       </div>
 
-      {/* Mobile Products Select All Bar */}
-      <div className="md:hidden flex items-center justify-between p-4 bg-gray-50/70 dark:bg-white/2 border-b border-gray-100 dark:border-gray-800">
-        <div className="flex items-center gap-2">
+      {/* Mobile Select-all Subheader */}
+      <div className="md:hidden flex items-center justify-between px-3.5 py-2.5 bg-gray-50/80 dark:bg-white/2 border-b border-gray-100 dark:border-gray-800 text-xs">
+        <label className="flex items-center gap-2 cursor-pointer select-none">
           <input
             type="checkbox"
             checked={paginatedProducts.length > 0 && paginatedProducts.every(p => selectedProductIds.includes(p.id))}
@@ -318,191 +318,209 @@ export default function ProductListTable({
                 setSelectedProductIds([]);
               }
             }}
-            className="rounded border-gray-300 text-[#e94560] focus:ring-[#e94560] h-4 w-4 cursor-pointer accent-[#e94560]"
-            id="select-all-products-mobile"
+            className="rounded border-gray-300 text-[#e94560] focus:ring-[#e94560] h-3.5 w-3.5 cursor-pointer accent-[#e94560]"
           />
-          <label htmlFor="select-all-products-mobile" className="text-xs font-black text-gray-800 dark:text-gray-200 select-none cursor-pointer">
-            Select All Products
-          </label>
-        </div>
+          <span className="font-bold text-gray-700 dark:text-gray-300 text-xs">Select Page</span>
+        </label>
+        <span className="text-[11px] font-semibold text-gray-400">
+          {paginatedProducts.length} of {filteredProducts.length} products
+        </span>
       </div>
 
-      {/* Mobile Products Cards */}
-      <div className="md:hidden space-y-3 p-4">
+      {/* Mobile Products Cards (Native App Smart Compact Card Style) */}
+      <div className="md:hidden divide-y divide-gray-100 dark:divide-gray-800/70">
         {paginatedProducts.map(product => {
           const primaryImage = product.images?.find(img => img.is_primary)?.url || product.images?.[0]?.url || fallbackPlaceholder;
           const isSyncing = syncingProductId === product.id;
           const optionSummary = getProductOptionSummary(product);
+          const isSelected = selectedProductIds.includes(product.id);
+          const primaryCategory = product.product_categories?.[0]?.category?.name || product.category?.name;
+
           return (
             <div 
               key={product.id} 
               id={`product-card-${product.id}`}
-              className="bg-white dark:bg-[#16162a] p-4 rounded-2xl border border-gray-200/80 dark:border-gray-800/80 shadow-xs space-y-3 transition-all"
+              onClick={() => handleEditProduct(product.id, filteredProducts)}
+              className={`p-3 space-y-2 bg-white dark:bg-[#16162a] active:bg-gray-50/80 dark:active:bg-white/5 transition-colors cursor-pointer select-none ${
+                isSelected ? 'bg-indigo-50/30 dark:bg-indigo-950/20' : ''
+              }`}
             >
-              <div className="flex items-start gap-3">
-                <input
-                  type="checkbox"
-                  checked={selectedProductIds.includes(product.id)}
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      setSelectedProductIds(prev => [...prev, product.id]);
-                    } else {
-                      setSelectedProductIds(prev => prev.filter(id => id !== product.id));
-                    }
-                  }}
-                  className="rounded border-gray-300 text-[#e94560] focus:ring-[#e94560] h-4 w-4 cursor-pointer mt-1 flex-shrink-0 accent-[#e94560]"
-                />
-                <TableThumbnail 
-                  url={primaryImage} 
-                  alt={product.name} 
-                  onPreview={setPreviewImageUrl} 
-                  className="h-12 w-12"
-                />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <h3 className="text-[11px] sm:text-xs font-bold text-gray-900 dark:text-white line-clamp-2 leading-snug break-words" title={product.name}>
-                          {(product.name || '').replace(/^[\s*#-]+/, '').replace(/[*_~`]/g, '').trim()}
-                        </h3>
-                        {!optionSummary.isSingle ? (
-                          <span 
-                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/80 text-[9.5px] font-black shrink-0 select-none shadow-2xs font-mono"
-                            title={optionSummary.tooltip}
-                          >
-                            <Layers className="w-2.5 h-2.5 text-purple-600 dark:text-purple-400" />
-                            <span>{optionSummary.label}</span>
-                          </span>
-                        ) : (
-                          <span 
-                            className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 text-[9px] font-bold shrink-0 select-none"
-                            title={optionSummary.tooltip}
-                          >
-                            Single
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <span className="text-[11px] sm:text-xs font-bold text-gray-900 dark:text-white flex-shrink-0">{formatPrice(product.price, settings.currency_symbol)}</span>
+              {/* Line 1: Left Thumbnail + Title + Option Pill; Right Checkbox */}
+              <div className="flex items-start justify-between gap-2.5">
+                <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                  <div 
+                    onClick={(e) => { 
+                      e.stopPropagation(); 
+                      setPreviewImageUrl(primaryImage); 
+                    }} 
+                    className="shrink-0"
+                    title="Preview image"
+                  >
+                    <TableThumbnail 
+                      url={primaryImage} 
+                      alt={product.name} 
+                      onPreview={setPreviewImageUrl}
+                      className="h-10 w-10 rounded-lg shrink-0 object-cover border border-gray-100 dark:border-gray-800"
+                    />
                   </div>
-                  {product.product_categories && product.product_categories.length > 0 ? (
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {product.product_categories.map((pc) => pc.category ? (
-                        <span key={pc.category_id} className="inline-flex items-center px-2 py-0.5 rounded-full bg-indigo-50/80 dark:bg-indigo-950/30 text-[10px] font-bold text-indigo-600 dark:text-indigo-400">
-                          {pc.category.name}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <h3 className="font-bold text-gray-900 dark:text-white text-xs truncate leading-tight">
+                        {(product.name || '').replace(/^[\s*#-]+/, '').replace(/[*_~`]/g, '').trim()}
+                      </h3>
+                      {!optionSummary.isSingle ? (
+                        <span 
+                          className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/80 text-[9.5px] font-black shrink-0 font-mono tracking-tight"
+                          title={optionSummary.tooltip}
+                        >
+                          <Layers className="w-2.5 h-2.5 text-purple-600 dark:text-purple-400" />
+                          <span>{optionSummary.label}</span>
                         </span>
-                      ) : null)}
+                      ) : (
+                        <span 
+                          className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 text-[9px] font-bold shrink-0"
+                          title={optionSummary.tooltip}
+                        >
+                          Single
+                        </span>
+                      )}
                     </div>
-                  ) : product.category ? (
-                    <p className="text-[10px] font-semibold text-gray-400 mt-0.5">{product.category.name}</p>
-                  ) : null}
+
+                    <div className="flex items-center gap-1.5 mt-0.5 text-[11px] text-gray-500 dark:text-gray-400">
+                      {primaryCategory && (
+                        <span className="font-semibold text-indigo-600 dark:text-indigo-400 truncate max-w-[120px]">
+                          {primaryCategory}
+                        </span>
+                      )}
+                      {product.sku && (
+                        <>
+                          <span className="text-gray-300 dark:text-gray-600">•</span>
+                          <span className="font-mono text-[10px] text-gray-400">{product.sku}</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div onClick={(e) => e.stopPropagation()} className="shrink-0 pt-0.5">
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedProductIds(prev => [...prev, product.id]);
+                      } else {
+                        setSelectedProductIds(prev => prev.filter(id => id !== product.id));
+                      }
+                    }}
+                    className="rounded border-gray-300 text-[#e94560] focus:ring-[#e94560] h-4 w-4 cursor-pointer accent-[#e94560]"
+                  />
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-[10px] pt-1">
-                <div className="flex flex-wrap items-center gap-3">
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => handleToggleActive(product)}
-                      className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                        product.is_active ? 'bg-emerald-500' : 'bg-gray-200 dark:bg-gray-800'
-                      }`}
-                      role="switch"
-                      aria-checked={product.is_active}
-                      title={product.is_active ? 'Visible on store' : 'Hidden from store'}
-                    >
-                      <span
-                        className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
-                          product.is_active ? 'translate-x-4' : 'translate-x-0'
-                        }`}
-                      />
-                    </button>
-                    <span className="text-[11px] font-bold text-gray-500 dark:text-gray-400">
-                      {product.is_active ? 'Visible' : 'Hidden'}
-                    </span>
-                  </div>
+              {/* Line 2: Stock on Left, Price on Right */}
+              <div className="flex items-baseline justify-between gap-2">
+                <span className={`text-[11px] font-bold ${
+                  optionSummary.totalStock === 0 
+                    ? 'text-red-600 dark:text-red-400' 
+                    : optionSummary.totalStock < 5 
+                    ? 'text-amber-600 dark:text-amber-400' 
+                    : 'text-gray-500 dark:text-gray-400'
+                }`}>
+                  {optionSummary.totalStock === 0 
+                    ? 'Out of stock' 
+                    : optionSummary.totalStock < 5 
+                    ? `Low: ${optionSummary.totalStock} in stock` 
+                    : `${optionSummary.totalStock.toLocaleString()} in stock`}
+                </span>
+                <span className="font-black text-sm text-gray-900 dark:text-white whitespace-nowrap">
+                  {formatPrice(product.price, settings.currency_symbol)}
+                </span>
+              </div>
 
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => handleToggleFeatured(product)}
-                      className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                        product.is_featured ? 'bg-amber-500' : 'bg-gray-200 dark:bg-gray-800'
-                      }`}
-                      role="switch"
-                      aria-checked={product.is_featured}
-                      title={product.is_featured ? 'Remove from Featured' : 'Mark as Featured'}
-                    >
-                      <span
-                        className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
-                          product.is_featured ? 'translate-x-4' : 'translate-x-0'
-                        }`}
-                      />
-                    </button>
-                    <span className="text-[11px] font-bold text-gray-500 dark:text-gray-400">
-                      {product.is_featured ? 'Featured' : 'Not Featured'}
-                    </span>
-                  </div>
+              {/* Line 3: Status Micro-Pills on Left + Quick Action Icons on Right */}
+              <div className="flex items-center justify-between pt-1.5 border-t border-gray-100 dark:border-gray-800/80">
+                <div className="flex items-center gap-1.5 flex-wrap" onClick={(e) => e.stopPropagation()}>
+                  {/* Visible toggle pill */}
+                  <button
+                    type="button"
+                    onClick={() => handleToggleActive(product)}
+                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10.5px] font-bold border transition-all ${
+                      product.is_active 
+                        ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/40' 
+                        : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 border-gray-200 dark:border-gray-700'
+                    }`}
+                    title={product.is_active ? 'Click to hide' : 'Click to show'}
+                  >
+                    <span className={`w-1.5 h-1.5 rounded-full ${product.is_active ? 'bg-emerald-500' : 'bg-gray-400'}`} />
+                    <span>{product.is_active ? 'Visible' : 'Hidden'}</span>
+                  </button>
 
+                  {/* Featured toggle pill */}
+                  <button
+                    type="button"
+                    onClick={() => handleToggleFeatured(product)}
+                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10.5px] font-bold border transition-all ${
+                      product.is_featured 
+                        ? 'bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 border-amber-200 dark:border-amber-800/40' 
+                        : 'bg-transparent text-gray-400 hover:text-gray-600 border-dashed border-gray-300 dark:border-gray-700'
+                    }`}
+                    title={product.is_featured ? 'Click to unfeature' : 'Click to feature'}
+                  >
+                    <span>{product.is_featured ? '★ Featured' : '☆ Feature'}</span>
+                  </button>
+
+                  {/* Meta Sync pill */}
                   {settings.meta_sync_enabled && (
                     product.meta_sync_status === 'synced' ? (
-                      <span suppressHydrationWarning={true} className="inline-flex items-center gap-1.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full border border-emerald-300 dark:border-emerald-800">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-300 border border-blue-200/60">
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
                         Synced
                       </span>
                     ) : product.meta_sync_status === 'error' ? (
-                      <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-rose-700 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 px-2 py-0.5 rounded-full border border-rose-300 dark:border-rose-800 cursor-help" title={product.meta_sync_error || 'Sync failed'}>
-                        <span className="w-1.5 h-1.5 rounded-full bg-rose-500 inline-block" />
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400 border border-rose-300 dark:border-rose-800 cursor-help" title={product.meta_sync_error || 'Sync failed'}>
+                        <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
                         Failed
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded-full border border-amber-300 dark:border-amber-800">
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block" />
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 border border-amber-300 dark:border-amber-800">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
                         Pending
                       </span>
                     )
                   )}
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <span className={`font-bold text-[10px] ${
-                    optionSummary.totalStock === 0 ? 'text-red-500' : optionSummary.totalStock < 5 ? 'text-amber-500' : 'text-gray-500 dark:text-gray-400'
-                  }`}>
-                    {optionSummary.totalStock === 0 ? 'Out of stock' : `${optionSummary.totalStock.toLocaleString()} stock`}
-                  </span>
-                  <span className="text-gray-400 font-mono text-[10px]">{product.sku || 'No SKU'}</span>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 pt-2.5 border-t border-gray-100 dark:border-gray-800/80">
-                {settings.meta_sync_enabled && (
-                  <button 
+                {/* Quick action buttons on right */}
+                <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                  {settings.meta_sync_enabled && (
+                    <button
+                      type="button"
+                      onClick={() => handleSingleSync(product.id)}
+                      disabled={isSyncing}
+                      className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                      title="Sync Meta"
+                    >
+                      {isSyncing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5 text-indigo-500" />}
+                    </button>
+                  )}
+                  <button
                     type="button"
-                    onClick={() => handleSingleSync(product.id)} 
-                    disabled={isSyncing}
-                    className="flex-1 flex items-center justify-center gap-1.5 min-h-[38px] rounded-xl border border-gray-200/80 dark:border-gray-800/80 text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 text-xs font-bold transition-all cursor-pointer"
+                    onClick={() => handleEditProduct(product.id, filteredProducts)}
+                    className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-colors"
+                    title="Edit product"
                   >
-                    {isSyncing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5 text-indigo-500" />}
-                    <span>Sync</span>
+                    <Edit className="w-3.5 h-3.5 text-blue-500" />
                   </button>
-                )}
-                <button 
-                  type="button"
-                  onClick={() => handleEditProduct(product.id, filteredProducts)}
-                  className="flex-1 flex items-center justify-center gap-1.5 min-h-[38px] rounded-xl border border-gray-200/80 dark:border-gray-800/80 text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:text-blue-600 dark:hover:text-blue-400 text-xs font-bold transition-all cursor-pointer"
-                >
-                  <Edit className="h-3.5 w-3.5 text-blue-500" />
-                  <span>Edit</span>
-                </button>
-                <button 
-                  type="button"
-                  onClick={() => handleDelete(product.id)}
-                  className="flex-1 flex items-center justify-center gap-1.5 min-h-[38px] rounded-xl border border-gray-200/80 dark:border-gray-800/80 text-red-500 hover:bg-red-50/50 dark:hover:bg-red-950/30 text-xs font-bold transition-all cursor-pointer"
-                >
-                  <Trash2 className="h-3.5 w-3.5 text-red-500" />
-                  <span>Delete</span>
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(product.id)}
+                    className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                    title="Move to trash"
+                  >
+                    <Trash2 className="w-3.5 h-3.5 text-red-500" />
+                  </button>
+                </div>
               </div>
             </div>
           );

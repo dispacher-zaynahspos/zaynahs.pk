@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Product, StoreSettings } from '@/lib/types';
 import { 
@@ -18,11 +18,13 @@ import ImagePreviewModal from '@/components/admin/ImagePreviewModal';
 import { saveProductNavContext, getAdminNavContext } from '@/lib/hooks/useProductNav';
 import { applySort } from '@/lib/sorting/sortOptions';
 import { rankProducts } from '@/lib/services/product-search/useInMemoryProductSearch';
+import { getProductOptionSummary } from '@/lib/utils/formatVariant';
 import { 
   ProductListToolbar, 
   ProductListBulkActions, 
   ProductListTable 
 } from './product-list';
+import type { ProductTab } from './product-list/ProductListToolbar';
 
 interface ProductListProps {
   initialProducts: Product[];
@@ -73,6 +75,13 @@ export default function ProductList({ initialProducts, settings }: ProductListPr
     }
     return 1;
   });
+  const [activeTab, setActiveTab] = useState<ProductTab>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = getAdminNavContext('/admin/products');
+      if (saved?.activeTab) return saved.activeTab as ProductTab;
+    }
+    return 'all';
+  });
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
 
   /** Save nav context then navigate to edit page */
@@ -89,6 +98,7 @@ export default function ProductList({ initialProducts, settings }: ProductListPr
       searchQuery,
       selectedCategory,
       sortBy,
+      activeTab,
       scrollPosition: scrollPos,
     });
     router.push(`/admin/products/${productId}`);
@@ -319,9 +329,47 @@ export default function ProductList({ initialProducts, settings }: ProductListPr
     }
   };
 
-  // Category filter first (keeps admin scoping), then the shared ranking engine
+  // Compute counts for the status tabs
+  const tabCounts = useMemo(() => {
+    let visible = 0;
+    let featured = 0;
+    let lowStock = 0;
+    let hidden = 0;
+
+    for (const p of products) {
+      if (p.is_active) visible++;
+      else hidden++;
+      if (p.is_featured) featured++;
+      const opt = getProductOptionSummary(p);
+      if (opt.totalStock < 5) lowStock++;
+    }
+
+    return {
+      all: products.length,
+      visible,
+      featured,
+      low_stock: lowStock,
+      hidden,
+    };
+  }, [products]);
+
+  // Tab filter first
+  const tabScoped = useMemo(() => {
+    if (activeTab === 'visible') return products.filter(p => p.is_active);
+    if (activeTab === 'featured') return products.filter(p => p.is_featured);
+    if (activeTab === 'low_stock') {
+      return products.filter(p => {
+        const opt = getProductOptionSummary(p);
+        return opt.totalStock < 5;
+      });
+    }
+    if (activeTab === 'hidden') return products.filter(p => !p.is_active);
+    return products;
+  }, [products, activeTab]);
+
+  // Category filter next (keeps admin scoping), then the shared ranking engine
   // handles the text query (title → sku → variant → short → tags → category → long).
-  const categoryScoped = products.filter(p => {
+  const categoryScoped = tabScoped.filter(p => {
     if (selectedCategory === 'all') return true;
     if (p.product_categories && p.product_categories.length > 0) {
       return p.product_categories.some(pc => pc.category_id === selectedCategory);
@@ -361,6 +409,12 @@ export default function ProductList({ initialProducts, settings }: ProductListPr
         onSyncFailed={handleSyncFailed}
         onOpenImportExport={() => setIsImportExportOpen(true)}
         setCurrentPage={setCurrentPage}
+        activeTab={activeTab}
+        setActiveTab={(tab) => {
+          setActiveTab(tab);
+          setSelectedProductIds([]);
+        }}
+        tabCounts={tabCounts}
       />
 
       {/* Bulk action toolbar */}

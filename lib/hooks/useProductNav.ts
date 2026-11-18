@@ -25,6 +25,7 @@ export interface ProductNavContext {
   searchQuery?: string;       // active search term
   selectedCategory?: string;  // active category filter
   sortBy?: string;            // active sort option
+  activeTab?: string;         // active product status tab
   scrollPosition?: number;    // scroll offset of #admin-main-content or window
   timestamp?: number;
 }

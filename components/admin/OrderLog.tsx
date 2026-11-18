@@ -6,6 +6,7 @@ import OrderCreateCanvas from '@/components/admin/OrderCreateCanvas';
 import AdminSearchInput from '@/components/admin/shared/AdminSearchInput';
 import AdminDateFilter from '@/components/admin/shared/AdminDateFilter';
 import { Search, TrendingUp, SlidersHorizontal } from '@/components/common/Icons';
+import { useHorizontalScroll } from '@/lib/hooks/useHorizontalScroll';
 import { Order, StoreSettings, FailedOrderAttempt } from '@/lib/types';
 
 import { OrderLogStatsBar } from './order-log/OrderLogStatsBar';
@@ -24,6 +25,8 @@ export default function OrderLog({ initialOrders, settings, initialFailedAttempt
   const o = useOrderLogState({ initialOrders, settings });
   const [isFailedModalOpen, setIsFailedModalOpen] = useState(false);
   const failedAttempts = initialFailedAttempts;
+  const { scrollRef: mobileTabsRef, scrollIntoView: scrollMobileTabIntoView } = useHorizontalScroll<HTMLDivElement>();
+  const { scrollRef: desktopTabsRef, scrollIntoView: scrollDesktopTabIntoView } = useHorizontalScroll<HTMLDivElement>();
 
   return (
     <div className={`space-y-6 relative transition-all duration-300 font-sans pb-20 ${o.isFullWidth ? 'max-w-none px-4' : 'max-w-6xl mx-auto'}`}>
@@ -163,8 +166,12 @@ export default function OrderLog({ initialOrders, settings, initialFailedAttempt
             </Link>
           </div>
 
-          {/* Mobile Native Horizontal Pill Chips (100% Width, Zero Cutoff) */}
-          <div className="filter-tabs-scroll flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth py-0.5 px-0.5">
+          {/* Mobile Native Horizontal Pill Chips (100% Fluid Touch Pan & Drag, Zero Cutoff) */}
+          <div 
+            ref={mobileTabsRef}
+            className="filter-tabs-scroll flex items-center gap-1.5 overflow-x-auto overflow-y-hidden touch-pan-x overscroll-x-contain [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden py-1 px-1 pr-10 cursor-grab active:cursor-grabbing select-none"
+            style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-x' }}
+          >
             {([
               { key: 'all', label: 'All' },
               { key: 'unfulfilled', label: 'Unfulfilled' },
@@ -177,8 +184,13 @@ export default function OrderLog({ initialOrders, settings, initialFailedAttempt
               return (
                 <button
                   key={tab.key}
-                  onClick={() => { o.setActiveTab(tab.key); o.setSelectedOrderIds([]); }}
-                  className={`shrink-0 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all active:scale-95 select-none ${
+                  type="button"
+                  onClick={(e) => { 
+                    scrollMobileTabIntoView(e.currentTarget);
+                    o.setActiveTab(tab.key); 
+                    o.setSelectedOrderIds([]); 
+                  }}
+                  className={`shrink-0 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all select-none ${
                     isActive
                       ? 'bg-[#e94560] text-white shadow-xs'
                       : 'bg-white dark:bg-[#16162a] text-gray-600 dark:text-gray-300 border border-gray-200/90 dark:border-gray-800'
@@ -194,7 +206,10 @@ export default function OrderLog({ initialOrders, settings, initialFailedAttempt
         {/* Desktop Layout (>= md): Classic Unified Header Bar */}
         <div className="hidden md:flex filter-tabs-row items-center gap-2 border border-gray-200 dark:border-gray-800 bg-white/95 dark:bg-[#16162a]/95 backdrop-blur-md rounded-t-xl px-2 sm:px-3 py-1 select-none shadow-xs">
           {/* Scrollable tabs — kept separate from the action icons so tabs never clip */}
-          <div className="filter-tabs-scroll flex items-center flex-1 min-w-0 overflow-x-auto no-scrollbar scroll-smooth">
+          <div 
+            ref={desktopTabsRef}
+            className="filter-tabs-scroll flex items-center flex-1 min-w-0 overflow-x-auto overflow-y-hidden touch-pan-x overscroll-x-contain [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden cursor-grab active:cursor-grabbing select-none pr-4"
+          >
             {([
               { key: 'all', label: 'All' },
               { key: 'unfulfilled', label: 'Unfulfilled' },
@@ -205,7 +220,12 @@ export default function OrderLog({ initialOrders, settings, initialFailedAttempt
             ] as const).map((tab) => (
               <button
                 key={tab.key}
-                onClick={() => { o.setActiveTab(tab.key); o.setSelectedOrderIds([]); }}
+                type="button"
+                onClick={(e) => { 
+                  scrollDesktopTabIntoView(e.currentTarget);
+                  o.setActiveTab(tab.key); 
+                  o.setSelectedOrderIds([]); 
+                }}
                 className={`filter-tab shrink-0 whitespace-nowrap px-3 py-2 text-xs sm:text-[13.5px] transition-all font-bold border-b-2 mr-1 sm:mr-2 ${o.activeTab === tab.key
                     ? 'border-[#e94560] text-[#e94560] dark:border-[#e94560] dark:text-[#e94560]'
                     : 'border-transparent text-gray-500 hover:text-gray-900 dark:hover:text-white'

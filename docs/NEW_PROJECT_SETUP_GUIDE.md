@@ -58,6 +58,7 @@ npm run clone:setup -- --store=<store> --deploy --yes
 | MiniMahal | `infominimahal-bit/mini-mahal-e-store` | www.minimahal.com | `env-backups/minimahal.env.local` | Vercel |
 | LittleMister | `littlemisterpk-cell/eestore` | www.littlemister.pk | `env-backups/littlemister.env.local` | Vercel |
 | Lobo | `infolobopk-lgtm/lobo.pk` | www.lobo.pk | `env-backups/lobo.env.local` | Vercel |
+| JeanZon | `jeanzone111-ux/jeanzoneestore` | www.jeanzon.com | `env-backups/jeanzone.env.local` | Vercel (Mode B — setup pending) |
 
 **REVALIDATE_SECRET (all projects — universal):** `zaynahs_secret_cache_revalidate_2026`
 
